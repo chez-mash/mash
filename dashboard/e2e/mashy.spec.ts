@@ -172,3 +172,31 @@ test("the Mashy window can be dragged by its header and stays on screen", async 
   await page.locator("#mashy > header strong").dblclick();
   expect((await panel.boundingBox())?.x).toBeCloseTo(before.x, 0);
 });
+
+test("while Mashy looks, a ring turns and what it says changes", async ({ page }) => {
+  await page.route("**/api/assistant**", async (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { enabled: true, model: "test/model" } });
+    // Long enough for the second phrase to come round.
+    await new Promise((resolve) => setTimeout(resolve, 3200));
+    return route.fulfill({
+      contentType: "text/event-stream",
+      body: answer([
+        { type: "text", delta: "Port 8080." },
+        { type: "done", partial: false },
+      ]),
+    });
+  });
+  await page.goto("/#/chat/ports");
+  await page.getByRole("button", { name: "Open Mashy" }).click();
+  const mashy = page.getByRole("region", { name: "Mashy" });
+  await mashy.getByRole("button", { name: "Summarise this chat" }).click();
+  await expect(mashy.locator(".mashy-ring")).toBeVisible();
+  // A screen reader hears one steady line, not every change.
+  await expect(mashy.getByRole("status")).toHaveText("Searching your history…");
+  await expect(mashy.locator(".mashy-phrase")).toHaveText("Searching your history…");
+  await expect(mashy.locator(".mashy-phrase")).toHaveText("Reading old chats…");
+  await mashy.screenshot({ path: process.env.MASHY_SHOT ?? "test-results/mashy-waiting.png" });
+  await expect(mashy.getByText("Port 8080.")).toBeVisible();
+  await expect(mashy.locator(".mashy-ring")).toHaveCount(0);
+});

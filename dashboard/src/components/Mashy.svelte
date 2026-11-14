@@ -13,6 +13,7 @@ import { plainTitle } from "../lib/markdown";
 import { mashy } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
 import { router } from "../lib/route.svelte";
+import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
 import MessageBody from "./MessageBody.svelte";
 
 // There is no Mashy unless this dashboard was given a model to ask.
@@ -32,6 +33,16 @@ const openChat = $derived.by((): OpenChat | undefined => {
     ...(route.shared ? { shared: true } : {}),
     ...(title ? { title: plainTitle(title) } : {}),
   };
+});
+// While Mashy looks things up, what it says changes every few seconds.
+let waited = $state(0);
+$effect(() => {
+  if (mashy.phase !== "searching") return;
+  waited = 0;
+  const timer = setInterval(() => {
+    waited += 1;
+  }, WAITING_INTERVAL);
+  return () => clearInterval(timer);
 });
 const suggestions = $derived(
   openChat
@@ -279,7 +290,13 @@ function followed(event: MouseEvent): void {
           {/if}
         {/each}
         {#if mashy.answer}<div class="mashy-a" use:chips><MessageBody text={linkify(answer(mashy.answer).body)} /></div>{/if}
-        {#if mashy.phase === "searching"}<p class="mashy-wait" role="status">Searching your history…</p>{/if}
+        {#if mashy.phase === "searching"}
+          <p class="mashy-wait">
+            <span class="sr-only" role="status">Searching your history…</span>
+            <span class="mashy-ring" aria-hidden="true"></span>
+            {#key waited}<span class="mashy-phrase" aria-hidden="true">{waitingPhrase(waited)}</span>{/key}
+          </p>
+        {/if}
         {#if mashy.note}
           <div class="mashy-note" class:bad={mashy.note.kind === "error"} role={mashy.note.kind === "error" ? "alert" : "status"}>
             <strong>{mashy.note.title}</strong>

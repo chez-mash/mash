@@ -3670,8 +3670,45 @@ summary.rw::-webkit-details-marker {
   background: var(--bg);
 }
 .mashy-wait {
-  color: var(--faint);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 20px;
+  color: var(--dim);
   font-size: 13px;
+}
+.mashy-ring {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid var(--line);
+  border-top-color: var(--clay);
+  border-radius: 50%;
+  animation: mashy-spin 0.9s linear infinite;
+}
+.mashy-phrase {
+  animation: mashy-in 0.35s ease-out;
+}
+@keyframes mashy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes mashy-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* The ring still says "working" when motion is unwelcome, only slowly. */
+@media (prefers-reduced-motion: reduce) {
+  .mashy-ring {
+    animation-duration: 4s;
+  }
+  .mashy-phrase {
+    animation: none;
+  }
 }
 .mashy-note {
   display: flex;
