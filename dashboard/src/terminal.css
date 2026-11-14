@@ -3599,6 +3599,8 @@ summary.rw::-webkit-details-marker {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* A short chat scrolls; it never squeezes this line flat. */
+  flex: none;
 }
 .mashy-ctx i {
   flex: none;
@@ -4004,6 +4006,13 @@ body:has(#mashy-fab) #main {
     box-shadow: 0 0 0 100vmax var(--bg);
     /* A sheet fills the screen; it has nowhere to be moved to. */
     translate: none !important;
+  }
+  /* A phone's browser can also show the page under its own bottom bar,
+     where no fixed sheet or shadow is painted. While the sheet is open the
+     page behind it is not drawn at all; it keeps its place for when the
+     sheet closes. */
+  body:has(#mashy) #col {
+    visibility: hidden;
   }
   #mashy > header {
     cursor: auto;

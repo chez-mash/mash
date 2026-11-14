@@ -119,8 +119,12 @@ test("on a phone the Back button closes Mashy and returns to it from a linked ch
   const mashy = page.getByRole("region", { name: "Mashy" });
   await page.getByRole("button", { name: "Open Mashy" }).click();
   await expect(mashy).toBeVisible();
+  // The page behind the sheet is not drawn, so none of it shows round a
+  // phone's own bars.
+  await expect(page.locator("#col")).toBeHidden();
   await page.goBack();
   await expect(mashy).toHaveCount(0);
+  await expect(page.locator("#col")).toBeVisible();
   await expect(page).toHaveURL(/#\/$/);
 
   await page.getByRole("button", { name: "Open Mashy" }).click();
@@ -132,6 +136,9 @@ test("on a phone the Back button closes Mashy and returns to it from a linked ch
   await expect(page).toHaveURL(/#\/chat\/ports/);
   await page.goBack();
   await expect(mashy.getByText("See")).toBeVisible();
+  // An answer that offers nothing to ask next is followed by the questions
+  // the chat started with.
+  await expect(mashy.locator(".mashy-sugg.next button")).toHaveCount(3);
   // Closing it with its own button leaves the page where it was.
   await mashy.getByRole("button", { name: "Close Mashy" }).click();
   await expect(mashy).toHaveCount(0);
