@@ -217,7 +217,9 @@ test("an answer can quote, point to places, offer the full search and a command 
           delta:
             "Yes, in [project](project:/work/project) on [local](machine:local) with [Codex](agent:codex).\n\n" +
             "> “Which port?”\n>\n> — You, 13 Nov 19:00, [Port decision](chat:ports?message=m0)\n\n" +
-            "> “Port 8080.”\n>\n> — Codex, 13 Nov 19:01, [Port decision](chat:ports?message=m0)\n\n" +
+            // A blank line between a quote and who said it still makes one card.
+            "> “Port 8080.”\n\n> — Codex, 13 Nov 19:01, [Port decision](chat:ports?message=m0)\n\n" +
+            "More in [the search guide](docs:search).\n\n" +
             "Run `mash index` to pick up newer chats.\n\n" +
             '[See all for "port"](search:port)\n\n§ Which chats mention ports?',
         },
@@ -229,7 +231,12 @@ test("an answer can quote, point to places, offer the full search and a command 
   await page.getByRole("button", { name: "Open Mashy" }).click();
   const mashy = page.getByRole("region", { name: "Mashy" });
   await mashy.getByRole("button", { name: "What did I work on yesterday?" }).click();
-  await expect(mashy.locator("a.mashy-chip.place")).toHaveText(["project", "local", "Codex"]);
+  await expect(mashy.locator("a.mashy-chip.place")).toHaveText([
+    "project",
+    "local",
+    "Codex",
+    "the search guide",
+  ]);
   await expect(mashy.locator("a.mashy-chip.place").first()).toHaveAttribute(
     "href",
     "#/project?name=%2Fwork%2Fproject",
@@ -242,6 +249,10 @@ test("an answer can quote, point to places, offer the full search and a command 
     "#/chat/ports?node=&message=m0",
   );
   await expect(mashy.locator("a.mashy-all")).toHaveAttribute("href", "#/search?q=port");
+  // A guide opens on the documentation site, beside the dashboard.
+  const guide = mashy.locator("a.mashy-chip.place", { hasText: "the search guide" });
+  await expect(guide).toHaveAttribute("href", "https://getmash.io/search/");
+  await expect(guide).toHaveAttribute("target", "_blank");
   await mashy.getByRole("button", { name: "Copy", exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("mash index");
   // A follow-up question carries its icon.

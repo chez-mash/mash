@@ -300,6 +300,17 @@ function dress(node: HTMLElement): void {
     link.rel = "noopener";
     link.prepend(icon("guide"));
   }
+  // A quote and who said it belong in one card, also when the model left a
+  // blank line between them and they arrived as two.
+  for (const said of node.querySelectorAll<HTMLElement>("blockquote")) {
+    const before = said.previousElementSibling;
+    if (!(before instanceof HTMLElement) || before.tagName !== "BLOCKQUOTE") continue;
+    if (!/^\s*—/.test(said.textContent ?? "") || /—\s*\S/.test(before.textContent ?? "")) continue;
+    before.append(...said.childNodes);
+    delete before.dataset.chip;
+    before.classList.remove("own");
+    said.remove();
+  }
   // A quote is a card; the reader's own words are marked apart from an agent's.
   for (const quote of node.querySelectorAll<HTMLElement>("blockquote")) {
     if (quote.dataset.chip) continue;
