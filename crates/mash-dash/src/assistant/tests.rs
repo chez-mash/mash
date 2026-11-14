@@ -515,6 +515,19 @@ fn links_reach_the_browser_whole_with_real_memory_ids_and_no_local_machine() {
         ),
         "[a](memory:record/owner/abc) [b](memory:m9) [c](chat:one) [d](chat:two?node=mac)"
     );
+    // A link opens at a message only when a lookup showed that message.
+    reader.saw("one", Some(12), "msg-12");
+    reader.saw("two", None, "found-by-search");
+    assert_eq!(
+        mend(
+            "[a](chat:one?at=12) [b](chat:one?node=xenia&at=12) [c](chat:one?at=99) \
+             [d](chat:two?node=mac&message=found-by-search) [e](chat:two?message=made-up) \
+             [f](chat:one?message=found-by-search)",
+            &reader
+        ),
+        "[a](chat:one?message=msg-12) [b](chat:one?message=msg-12) [c](chat:one) \
+         [d](chat:two?node=mac&message=found-by-search) [e](chat:two) [f](chat:one)"
+    );
     // An address split across chunks is held until it is complete.
     let mut links = Links::default();
     let mut sent = Vec::new();

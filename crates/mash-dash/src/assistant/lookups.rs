@@ -42,6 +42,10 @@ pub(super) struct Reader {
     /// The memories shown so far. Their IDs are a hundred characters long,
     /// so the model names a memory by its place here, as `m1`, `m2`.
     pub(super) memories: Vec<String>,
+    /// The messages shown so far, by chat and position. The model points at
+    /// one by its position, or by an ID a search gave it; a link to a
+    /// message that was never shown is not passed on.
+    pub(super) messages: std::collections::HashMap<(String, i64), String>,
 }
 
 impl Reader {
@@ -53,7 +57,33 @@ impl Reader {
             }),
             node,
             memories: Vec::new(),
+            messages: std::collections::HashMap::new(),
         }
+    }
+
+    /// Notes a message a lookup showed. A search result has no position, so
+    /// it is kept under one no chat uses.
+    pub(super) fn saw(&mut self, chat: &str, ordinal: Option<i64>, id: &str) {
+        if id.is_empty() || self.messages.len() >= 4_000 {
+            return;
+        }
+        let ordinal = ordinal.unwrap_or(-1 - i64::try_from(self.messages.len()).unwrap_or(0));
+        self.messages
+            .insert((chat.to_owned(), ordinal), id.to_owned());
+    }
+
+    /// The ID of the message at a position of a chat, if it was shown.
+    pub(super) fn message_at(&self, chat: &str, ordinal: i64) -> Option<&str> {
+        self.messages
+            .get(&(chat.to_owned(), ordinal))
+            .map(String::as_str)
+    }
+
+    /// Whether a lookup showed a message with this ID in this chat.
+    pub(super) fn showed(&self, chat: &str, id: &str) -> bool {
+        self.messages
+            .iter()
+            .any(|((known, _), shown)| known == chat && shown == id)
     }
 
     /// The reader's date, time, weekday and offset now.
@@ -455,6 +485,7 @@ async fn search(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<St
     for result in &results {
         if messages {
             let about = result.get("metadata").unwrap_or(&Value::Null);
+            reader.saw(text(result, "chat_id"), None, text(result, "id"));
             let _ = writeln!(
                 shown,
                 "message_id={} | {} at {} | in chat_id={} {} | {}",
@@ -469,6 +500,7 @@ async fn search(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<St
         }
         let _ = writeln!(shown, "{}", chat_line(reader, result));
         for found in rows(result, "matches").iter().take(3) {
+            reader.saw(text(result, "chat_id"), None, text(found, "message_id"));
             let _ = writeln!(
                 shown,
                 "  message_id={} | {} at {} | {}",
@@ -799,6 +831,9 @@ async fn read_chat(state: &Dash, reader: &mut Reader, arguments: &str) -> Result
             None => format!("There is no message at position {start}."),
         });
     }
+    for message in &view.messages {
+        reader.saw(&input.chat_id, Some(message.ordinal), &message.id);
+    }
     let lines: Vec<(i64, String)> = view
         .messages
         .iter()
@@ -857,7 +892,7 @@ async fn read_chat(state: &Dash, reader: &mut Reader, arguments: &str) -> Result
 /// to see what it was about and where to read.
 async fn outline(
     state: &Dash,
-    reader: &Reader,
+    reader: &mut Reader,
     input: &ReadChat,
     total: Option<u32>,
 ) -> Result<String, String> {
@@ -883,6 +918,7 @@ async fn outline(
             let Some(("reader", content)) = said(message) else {
                 continue;
             };
+            reader.saw(&input.chat_id, Some(message.ordinal), &message.id);
             let when = message
                 .created_at
                 .map_or_else(String::new, |time| format!(" {}", reader.time(time)));
@@ -940,6 +976,11 @@ async fn read_message(
     );
     for message in rows(&view, "messages") {
         let wanted = text(&message, "id") == input.message_id;
+        reader.saw(
+            text(&view, "chat_id"),
+            message["ordinal"].as_i64(),
+            text(&message, "id"),
+        );
         // Around the message only dialogue matters; the message itself is
         // shown whatever it is.
         if !wanted && (message.get("tools").is_some() || text(&message, "role") == "tool") {

@@ -133,3 +133,21 @@ describe("links in an answer", () => {
     expect(sources("Nothing found.")).toEqual([]);
   });
 });
+
+describe("a chat link that names a message", () => {
+  const answer =
+    "Decided in [Port decision](chat:abc-123?message=m-42), confirmed on " +
+    "[the laptop](chat:x%20y?node=laptop&message=m-7), and again in " +
+    "[Port decision](chat:abc-123?message=m-50).";
+  it("opens the chat at that message", () => {
+    const text = linkify(answer);
+    expect(text).toContain("[Port decision](#/chat/abc-123?node=&message=m-42)");
+    expect(text).toContain("[the laptop](#/chat/x%20y?node=laptop&message=m-7&shared=true)");
+  });
+  it("is one source per chat, opening at the first message named", () => {
+    expect(sources(answer).map((source) => source.href)).toEqual([
+      "#/chat/abc-123?node=&message=m-42",
+      "#/chat/x%20y?node=laptop&message=m-7&shared=true",
+    ]);
+  });
+});

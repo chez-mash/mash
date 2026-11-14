@@ -403,6 +403,7 @@ fn instructions(reader: &Reader, open: Option<&OpenChat>, trimmed: bool) -> Stri
          - If you found nothing, say so in a sentence, with what you searched for. Do not guess where the answer might be, and do not fill the space with other things you found.\n\
          - Your earlier answers in this conversation came from lookups you can no longer see. Treat them as checked; do not take them back unless a new lookup contradicts them.\n\
          - Mention a chat only as a link written exactly as [short name](chat:CHAT_ID), with the chat_id copied whole from a lookup. The short name is the chat's title, cut to a few words when it is long or is a pasted message. Never use a bare word such as \"chat\" or \"here\" as the name. Add ?node=MACHINE after the ID only when the lookup says the chat is on another machine.\n\
+         - When what you say rests on one message, make the link open there: add ?at=N, where N is that message's number in square brackets from reading the chat, as in [short name](chat:CHAT_ID?at=12), or ?message=MESSAGE_ID with a message_id from a search. Join it to a machine with &, as in ?node=MACHINE&at=12. Use the plain chat link when you mean the chat as a whole.\n\
          - Mention a memory as [a few words of it](memory:m3), using its short id. The short id goes only inside the link: never write m3 or (m3) in the text. Use no other links, and never a web address as a link.\n\
          - After an answer drawn from the history, add up to three short questions the reader might ask next, each on its own line starting with \"§ \", worded as the reader would type them and answerable from what you saw. They must follow from this answer; never offer the same ones twice. Add none after a refusal or when you found nothing.\n\
          \n\
@@ -555,13 +556,44 @@ fn mend(text: &str, reader: &Reader) -> String {
             let id = reader.memory(target).unwrap_or(target);
             return format!("](memory:{id})");
         }
-        let here = format!("?node={}", reader.node);
-        format!(
-            "](chat:{})",
-            target.strip_suffix(here.as_str()).unwrap_or(target)
-        )
+        format!("](chat:{})", chat_target(target, reader))
     })
     .into_owned()
+}
+
+/// A chat link's address as the browser should get it: the chat, another
+/// machine's name if it is not this one, and the message to open at when a
+/// lookup showed that message. The model names a message by its position
+/// (`at=12`) or by an ID from a search (`message=...`).
+fn chat_target(target: &str, reader: &Reader) -> String {
+    let (chat, query) = target.split_once('?').unwrap_or((target, ""));
+    let mut node = None;
+    let mut message = None;
+    for (key, value) in query.split('&').filter_map(|pair| pair.split_once('=')) {
+        match key {
+            "node" if value != reader.node && !value.is_empty() => node = Some(value),
+            "at" => {
+                message = value
+                    .parse()
+                    .ok()
+                    .and_then(|ordinal| reader.message_at(chat, ordinal));
+            }
+            "message" if reader.showed(chat, value) => message = Some(value),
+            _ => {}
+        }
+    }
+    let mut address = chat.to_owned();
+    let mut join = '?';
+    for (key, value) in [("node", node), ("message", message)] {
+        if let Some(value) = value {
+            address.push(join);
+            address.push_str(key);
+            address.push('=');
+            address.push_str(value);
+            join = '&';
+        }
+    }
+    address
 }
 
 /// Text held back while the address of a link may still be arriving, so a

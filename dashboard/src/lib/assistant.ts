@@ -126,8 +126,12 @@ function target(kind: string, rest: string): string {
   } catch {
     /* An ID that is not percent-encoded is used as written. */
   }
-  const node = new URLSearchParams(query).get("node") ?? "";
-  return kind === "chat" ? chatHref(name, node, "", node !== "") : recordHref(name, node);
+  const params = new URLSearchParams(query);
+  const node = params.get("node") ?? "";
+  // A chat link may name the message to open at.
+  return kind === "chat"
+    ? chatHref(name, node, params.get("message") ?? "", node !== "")
+    : recordHref(name, node);
 }
 
 /**
@@ -168,13 +172,17 @@ export interface Source {
 
 const SOURCE = /\[([^\]\n]+)\]\((chat|memory):([^)\s]+)\)/g;
 
-/** The chats and memories an answer links to, each once, in order. */
+/**
+ * The chats and memories an answer links to, each once, in order. A chat
+ * linked at several messages is one source, opening at the first.
+ */
 export function sources(text: string): Source[] {
   const found = new Map<string, Source>();
   for (const [, title = "", kind = "", rest = ""] of text.matchAll(SOURCE)) {
     const href = target(kind, rest);
-    if (!found.has(href))
-      found.set(href, { kind: kind === "chat" ? "chat" : "memory", title, href });
+    const [id = "", query = ""] = rest.split("?", 2);
+    const key = `${kind}:${id}?${new URLSearchParams(query).get("node") ?? ""}`;
+    if (!found.has(key)) found.set(key, { kind: kind === "chat" ? "chat" : "memory", title, href });
   }
   return [...found.values()];
 }
