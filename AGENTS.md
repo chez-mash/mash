@@ -165,8 +165,11 @@ and only when `[assistant]` names an OpenAI-compatible service and its key is
 set; a key alone never enables it. It is chat, not an agent: the model may
 write text or ask for a lookup from a fixed read-only list enforced in code
 (`search`, `list_chats`, `view`, `list_records`, typed `query_silver`
-requests that count messages by chat over a period, never its SQL form, and
-reading a chat's dialogue), within a hard cap per question. Never give it a tool that writes,
+requests that count messages by chat over a period, never its SQL form,
+reading a chat's dialogue, `status`, which reports Mash's own readiness and
+never repairs it, and `docs`, which reads the user guides built into the
+binary), within a hard cap per question. A passage the reader
+selected on screen may accompany a question, as bounded data. Never give it a tool that writes,
 runs commands, reads files or reaches the network, and do not adopt an agent
 framework for it. The key stays server-side; lookups pass through output
 masking; requests are bounded, single-attempt and never retried. Treat model

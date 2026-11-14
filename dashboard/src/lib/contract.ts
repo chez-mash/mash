@@ -468,6 +468,11 @@ export interface components {
             messages: components["schemas"]["Turn"][];
             open_chat?: components["schemas"]["OpenChat"] | null;
             /**
+             * @description Text the reader selected on screen and is asking about.
+             * @default null
+             */
+            passage: string | null;
+            /**
              * Format: int32
              * @description Minutes the reader's clock is ahead of UTC, so "yesterday" is theirs.
              * @default null

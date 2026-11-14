@@ -151,3 +151,24 @@ describe("a chat link that names a message", () => {
     ]);
   });
 });
+
+describe("places and the full search in an answer", () => {
+  const text = linkify(
+    "In [mash](project:/work/mash) on [xenia](machine:xenia) with [Codex](agent:codex). " +
+      '[See all for "Qdrant upgrade"](search:Qdrant%20upgrade)',
+  );
+  it("open the dashboard's own pages", () => {
+    expect(text).toContain("[mash](#/project?name=%2Fwork%2Fmash)");
+    expect(text).toContain("[xenia](#/machine/xenia)");
+    expect(text).toContain("[Codex](#/agent/codex)");
+    expect(text).toContain('[See all for "Qdrant upgrade"](#/search?q=Qdrant+upgrade)');
+    expect(linkify("[Search guide](docs:search)")).toBe(
+      "[Search guide](https://getmash.io/search/)",
+    );
+  });
+  it("are not listed among an answer's sources", () => {
+    expect(sources("[mash](project:mash) [Port decision](chat:abc)")).toEqual([
+      { kind: "chat", title: "Port decision", href: "#/chat/abc?node=&message=" },
+    ]);
+  });
+});

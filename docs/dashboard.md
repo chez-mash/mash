@@ -151,14 +151,38 @@ words:
 - "What did I work on yesterday?"
 - "What did we decide about the restart test?"
 - On a chat's page: "Summarise this chat."
+- "Why can't I find this morning's chat?"
 
 On a wide screen, drag the window by its top bar to move it off what you are
 reading; double-click the bar to put it back. On a phone it fills the screen.
 
-Mashy searches your chats and memories and answers briefly. A chat or memory
-it mentions is a chip: choose it to open that chat or memory in the dashboard
-behind. Under an answer it suggests questions that follow from it. If it finds
+Mashy searches your chats and memories and answers briefly. What it mentions
+you can open in the dashboard behind:
+
+- A chat or memory is a chip. When the answer rests on one message, the chip
+  opens the chat at that message.
+- Quoted words appear in a card with who said them and when; your own words
+  carry a coloured edge.
+- A project, an agent or a machine opens its page.
+- When an answer covers only part of what matched, **See all** opens the full
+  search for the same words.
+- A command such as `mash index` has a **Copy** button.
+
+Under an answer it suggests questions that follow from it. If it finds
 nothing, it says so. Use the stop button to cut an answer short.
+
+To ask about something you are reading, select the text in a transcript and
+choose **Ask Mashy**. The passage stays pinned above the conversation and goes
+with each question until you remove it.
+
+Mashy can also tell you how Mash itself is doing: whether search is ready, how
+recent the newest indexed chat is, which agents are connected and when your
+other machines last synced. It cannot fix anything, so it names the command to
+run.
+
+It answers questions about Mash itself from these guides, which are built into
+Mash: "How do I share my index with my laptop?" or "What does `mash init`
+change?" A guide it names opens on this site.
 
 Dates and times are on your browser's clock, so "yesterday" is your yesterday.
 Questions about a period ("what did I do last week", "how many chats in
@@ -170,7 +194,8 @@ cannot index, forget, save memories, run commands or change settings. The
 conversation lasts as long as the browser tab and is not added to your
 history.
 
-Each question sends the text Mashy reads to the model you configured. Without
+Each question sends the text Mashy reads to the model you configured,
+including a passage you selected. Without
 that configuration there is no circle and nothing is sent.
 
 If Mashy fails or answers badly, start the dashboard with `MASH_TRACE=1` and

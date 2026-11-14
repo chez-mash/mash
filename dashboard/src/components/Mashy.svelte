@@ -1,5 +1,6 @@
 <script lang="ts">
 import ArrowUp from "@lucide/svelte/icons/arrow-up";
+import CornerDownRight from "@lucide/svelte/icons/corner-down-right";
 import RotateCw from "@lucide/svelte/icons/rotate-cw";
 import Square from "@lucide/svelte/icons/square";
 import Trash2 from "@lucide/svelte/icons/trash-2";
@@ -8,7 +9,7 @@ import { createQuery } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import { agents } from "../lib/agents";
 import { asset } from "../lib/asset";
-import { answer, assistantOptions, linkify, type OpenChat } from "../lib/assistant";
+import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
 import { plainTitle } from "../lib/markdown";
 import { mashy } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
@@ -44,14 +45,21 @@ $effect(() => {
   }, WAITING_INTERVAL);
   return () => clearInterval(timer);
 });
+const aboutPassage = [
+  "Explain this in plain words",
+  "Where else did this come up?",
+  "Was this changed later?",
+];
 const suggestions = $derived(
-  openChat
-    ? ["Summarise this chat", "What was decided here?", "What was left unfinished?"]
-    : [
-        "What did I work on yesterday?",
-        "What have I decided recently?",
-        "Which chats were about the dashboard?",
-      ],
+  mashy.passage
+    ? aboutPassage
+    : openChat
+      ? ["Summarise this chat", "What was decided here?", "What was left unfinished?"]
+      : [
+          "What did I work on yesterday?",
+          "What have I decided recently?",
+          "Which chats were about the dashboard?",
+        ],
 );
 let draft = $state("");
 let log = $state<HTMLElement>();
@@ -203,6 +211,7 @@ async function submit(text: string): Promise<void> {
 // the model wrote.
 function chips(node: HTMLElement): { destroy(): void } {
   const draw = (): void => {
+    dress(node);
     for (const link of node.querySelectorAll<HTMLAnchorElement>(
       "a[href^='#/chat/'], a[href^='#/record/']",
     )) {
@@ -232,6 +241,118 @@ function chips(node: HTMLElement): { destroy(): void } {
   observer.observe(node, { childList: true, subtree: true });
   return { destroy: () => observer.disconnect() };
 }
+const SVG = "http://www.w3.org/2000/svg";
+// The few line icons an answer's chips carry, as path data on a 24 grid.
+const ICONS = {
+  project: "M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+  machine: "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4",
+  search: "M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0zM20 20l-3.5-3.5",
+  guide: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21a2 2 0 0 0 2 2h13",
+  next: "M9 6l6 6-6 6",
+} as const;
+function icon(name: keyof typeof ICONS): SVGSVGElement {
+  const drawn = document.createElementNS(SVG, "svg");
+  drawn.setAttribute("viewBox", "0 0 24 24");
+  drawn.setAttribute("aria-hidden", "true");
+  drawn.classList.add("ico");
+  const path = document.createElementNS(SVG, "path");
+  path.setAttribute("d", ICONS[name]);
+  drawn.append(path);
+  return drawn;
+}
+// The rest of what an answer may hold beyond chats and memories: places to
+// go (a project, an agent, a machine, the full search), quoted words, and
+// commands to copy. All of it is drawn from the link or text itself.
+function dress(node: HTMLElement): void {
+  for (const link of node.querySelectorAll<HTMLAnchorElement>(
+    "a[href^='#/project'], a[href^='#/agent/'], a[href^='#/machine/'], a[href^='#/search']",
+  )) {
+    if (link.dataset.chip) continue;
+    link.dataset.chip = "1";
+    const href = link.getAttribute("href") ?? "";
+    if (href.startsWith("#/search")) {
+      link.classList.add("mashy-all");
+      link.prepend(icon("search"));
+      link.append(icon("next"));
+      continue;
+    }
+    link.classList.add("mashy-chip", "place");
+    if (href.startsWith("#/agent/")) {
+      const agent = decodeURIComponent(href.slice(8).split("?", 1)[0] ?? "");
+      if (agent in agents) {
+        const known = agents[agent as keyof typeof agents];
+        const mark = document.createElement("span");
+        mark.className = "mark tint";
+        mark.setAttribute("aria-hidden", "true");
+        mark.style.backgroundColor = known.tint;
+        mark.style.maskImage = `url(${known.logo})`;
+        mark.style.setProperty("-webkit-mask-image", `url(${known.logo})`);
+        link.prepend(mark);
+      }
+    } else link.prepend(icon(href.startsWith("#/project") ? "project" : "machine"));
+  }
+  // A guide opens on the documentation site, beside the dashboard.
+  for (const link of node.querySelectorAll<HTMLAnchorElement>("a[href^='https://getmash.io/']")) {
+    if (link.dataset.chip) continue;
+    link.dataset.chip = "1";
+    link.classList.add("mashy-chip", "place");
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.prepend(icon("guide"));
+  }
+  // A quote is a card; the reader's own words are marked apart from an agent's.
+  for (const quote of node.querySelectorAll<HTMLElement>("blockquote")) {
+    if (quote.dataset.chip) continue;
+    quote.dataset.chip = "1";
+    quote.classList.add("mashy-quote");
+    if (/—\s*You\b/.test(quote.textContent ?? "")) quote.classList.add("own");
+  }
+  // A Mash command in the text can be copied.
+  for (const code of node.querySelectorAll<HTMLElement>("code")) {
+    if (code.dataset.chip || code.closest("pre") || !/^mash\s/.test(code.textContent ?? ""))
+      continue;
+    code.dataset.chip = "1";
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "mashy-copy";
+    copy.textContent = "Copy";
+    copy.addEventListener("click", () => {
+      void navigator.clipboard.writeText(code.textContent ?? "").then(() => {
+        copy.textContent = "Copied";
+        setTimeout(() => {
+          copy.textContent = "Copy";
+        }, 2000);
+      });
+    });
+    code.after(copy);
+  }
+}
+// Selecting text in a transcript offers to ask Mashy about it.
+let picked = $state<{ text: string; left: number; top: number } | null>(null);
+function selected(): void {
+  const selection = document.getSelection();
+  const text = selection?.toString().trim() ?? "";
+  const anchor = selection?.anchorNode?.parentElement;
+  if (!selection || selection.isCollapsed || text.length < 3 || !anchor?.closest(".chat .hitbox")) {
+    picked = null;
+    return;
+  }
+  const box = selection.getRangeAt(0).getBoundingClientRect();
+  picked = {
+    text: text.slice(0, PASSAGE),
+    left: Math.max(8, Math.min(box.left, window.innerWidth - 150)),
+    top: Math.min(box.bottom + 8, window.innerHeight - 52),
+  };
+}
+async function askAbout(): Promise<void> {
+  if (!picked) return;
+  mashy.about(picked.text);
+  picked = null;
+  document.getSelection()?.removeAllRanges();
+  following = true;
+  await tick();
+  input?.focus();
+}
 // A link in an answer opens in the dashboard behind; on a phone the sheet
 // covers it, so it steps aside.
 function followed(event: MouseEvent): void {
@@ -241,6 +362,7 @@ function followed(event: MouseEvent): void {
 }
 </script>
 
+<svelte:document onselectionchange={selected} />
 <svelte:window
   onresize={keepIn}
   onpopstate={() => {
@@ -267,6 +389,13 @@ function followed(event: MouseEvent): void {
       </header>
       <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
         {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
+        {#if mashy.passage}
+          <div class="mashy-passage">
+            <span>About this passage</span>
+            <p>“{mashy.passage.length > 160 ? `${mashy.passage.slice(0, 160)}…` : mashy.passage}”</p>
+            <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
+          </div>
+        {/if}
         {#if empty}
           <div class="mashy-hello">
             <img src={asset("mashy.png")} alt="" />
@@ -284,7 +413,7 @@ function followed(event: MouseEvent): void {
             <div class="mashy-a" use:chips><MessageBody text={linkify(said.body)} /></div>
             {#if said.next.length && index === mashy.turns.length - 1 && !mashy.busy}
               <div class="mashy-sugg next">
-                {#each said.next as question (question)}<button type="button" onclick={() => void submit(question)}>{question}</button>{/each}
+                {#each said.next as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
               </div>
             {/if}
           {/if}
@@ -332,6 +461,11 @@ function followed(event: MouseEvent): void {
         {/if}
       </form>
     </section>
+  {/if}
+  {#if picked}
+    <button id="mashy-pick" type="button" style:left="{picked.left}px" style:top="{picked.top}px" onpointerdown={(event) => event.preventDefault()} onclick={() => void askAbout()}>
+      <img src={asset("mashy.png")} alt="" />Ask Mashy
+    </button>
   {/if}
   <button id="mashy-fab" bind:this={circle} type="button" aria-label={mashy.open ? "Close Mashy" : "Open Mashy"} aria-expanded={mashy.open} onclick={() => void (mashy.open ? close() : open())}>
     <img src={asset("mashy.png")} alt="" />

@@ -2,7 +2,14 @@
 // The dashboard server talks to the model; this side sends the conversation
 // and reads the answer as a stream of events. Nothing here holds a key.
 import { read } from "./api";
-import { chatHref, recordHref } from "./route.svelte";
+import {
+  agentHref,
+  chatHref,
+  machineHref,
+  projectHref,
+  recordHref,
+  searchHref,
+} from "./route.svelte";
 import { send } from "./transport";
 
 export interface Turn {
@@ -74,6 +81,7 @@ export async function ask(
   openChat: OpenChat | undefined,
   signal: AbortSignal,
   heard: (event: AssistantEvent) => void,
+  passage = "",
 ): Promise<void> {
   const response = await send("/api/assistant", {
     method: "POST",
@@ -81,6 +89,8 @@ export async function ask(
     body: JSON.stringify({
       messages,
       ...(openChat ? { open_chat: openChat } : {}),
+      // Text the reader selected and is asking about.
+      ...(passage ? { passage: passage.slice(0, PASSAGE) } : {}),
       // So "yesterday" and every time in an answer are on this reader's clock.
       utc_offset: -new Date().getTimezoneOffset(),
     }),
@@ -116,7 +126,10 @@ export async function ask(
   }
 }
 
-const LINK = /\]\((chat|memory):([^)\s]+)\)/g;
+/** The most of a selected passage that is sent with a question. */
+export const PASSAGE = 2000;
+
+const LINK = /\]\((chat|memory|project|agent|machine|search|docs):([^)\s]+)\)/g;
 
 function target(kind: string, rest: string): string {
   const [id = "", query = ""] = rest.split("?", 2);
@@ -128,10 +141,24 @@ function target(kind: string, rest: string): string {
   }
   const params = new URLSearchParams(query);
   const node = params.get("node") ?? "";
-  // A chat link may name the message to open at.
-  return kind === "chat"
-    ? chatHref(name, node, params.get("message") ?? "", node !== "")
-    : recordHref(name, node);
+  switch (kind) {
+    case "chat":
+      // A chat link may name the message to open at.
+      return chatHref(name, node, params.get("message") ?? "", node !== "");
+    case "project":
+      return projectHref(name);
+    case "agent":
+      return agentHref(name);
+    case "machine":
+      return machineHref(name);
+    case "search":
+      return searchHref({ q: name });
+    case "docs":
+      // One of Mash's guides, on the documentation site.
+      return `https://getmash.io/${encodeURIComponent(name)}/`;
+    default:
+      return recordHref(name, node);
+  }
 }
 
 /**
@@ -179,6 +206,7 @@ const SOURCE = /\[([^\]\n]+)\]\((chat|memory):([^)\s]+)\)/g;
 export function sources(text: string): Source[] {
   const found = new Map<string, Source>();
   for (const [, title = "", kind = "", rest = ""] of text.matchAll(SOURCE)) {
+    if (kind !== "chat" && kind !== "memory") continue;
     const href = target(kind, rest);
     const [id = "", query = ""] = rest.split("?", 2);
     const key = `${kind}:${id}?${new URLSearchParams(query).get("node") ?? ""}`;

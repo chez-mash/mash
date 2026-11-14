@@ -24,12 +24,14 @@ const OUTLINE: u32 = 2_500;
 /// Chats one listing shows.
 const LISTED: usize = 60;
 
-pub(super) const NAMES: [&str; 6] = [
+pub(super) const NAMES: [&str; 8] = [
     "search",
     "chats",
     "activity",
     "read_chat",
     "read_message",
+    "status",
+    "docs",
     "memories",
 ];
 
@@ -289,6 +291,20 @@ pub(super) fn tools() -> Vec<Tool> {
             &["message_id"],
         ),
         tool(
+            "status",
+            "How Mash itself is doing on this machine: whether search is ready, how much is indexed and how recent the newest indexed chat is, whether background indexing runs, which agents are connected, and when the reader's other machines last synced. Use it when the reader asks whether Mash is working, or why a chat or something recent cannot be found.",
+            &json!({}),
+            &[],
+        ),
+        tool(
+            "docs",
+            "Read Mash's own guides: how to install and set it up, search, indexing, agents and the plugin, memory records, the dashboard, sharing across machines, configuration, upgrades and backups, privacy, troubleshooting and the commands. Use it for any question about how Mash works or how to do something with it.",
+            &json!({
+                "about": {"type": "string", "description": "A few words for what to read about, such as \"install qdrant\" or \"export a chat\". Leave it out to see what the guides cover."},
+            }),
+            &[],
+        ),
+        tool(
             "memories",
             "List the decisions, preferences and facts saved from the reader's chats, newest first. Each has a short id such as m3, its kind, date, the project it applies to and the chat it came from.",
             &json!({
@@ -320,6 +336,12 @@ struct Search {
     to: Option<String>,
     #[serde(default)]
     more: Option<u32>,
+}
+
+#[derive(serde::Deserialize)]
+struct Docs {
+    #[serde(default)]
+    about: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -406,6 +428,9 @@ pub(super) async fn run(state: &Dash, reader: &mut Reader, call: &Function) -> S
         "read_chat" => read_chat(state, reader, &call.arguments).await,
         "read_message" => read_message(state, reader, &call.arguments).await,
         "memories" => memories(state, reader, &call.arguments).await,
+        "status" => status(state, reader).await,
+        "docs" => parse::<Docs>(&call.arguments)
+            .map(|input| super::docs::look_up(input.about.as_deref().unwrap_or(""))),
         _ => Err("There is no such lookup.".to_owned()),
     };
     clip(&answer.unwrap_or_else(|refusal| refusal), MAX_RESULT)
@@ -1044,6 +1069,82 @@ fn searchable(record: &Value, body: &Value) -> String {
         kind(body).unwrap_or_default(),
     )
     .to_lowercase()
+}
+
+/// How Mash itself is doing on this machine, read and never repaired.
+async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
+    use chrono::DateTime;
+    // Other machines are a detail: without a shared index, ask again plainly.
+    let report = match console(state, "status", json!({"shared": true})).await {
+        Ok(report) => report,
+        Err(_) => console(state, "status", json!({})).await?,
+    };
+    let mut shown = String::new();
+    let ready = report["ready"].as_bool().unwrap_or(false);
+    let by_meaning = text(&report, "realized_mode") == "hybrid";
+    let _ = writeln!(
+        shown,
+        "Search: {}",
+        match (ready, by_meaning) {
+            (true, true) => "ready, by words and by meaning",
+            (true, false) => "ready, by words only",
+            (false, _) => "not ready",
+        }
+    );
+    let _ = writeln!(
+        shown,
+        "Indexed here: {} chats, {} messages",
+        report["chats"].as_u64().unwrap_or(0),
+        report["messages"].as_u64().unwrap_or(0)
+    );
+    if let Ok(newest) = console(state, "list_chats", json!({"limit": 1, "local": true})).await
+        && let Some(chat) = rows(&newest, "chats").first()
+    {
+        let _ = writeln!(
+            shown,
+            "Newest indexed activity here: {} ({})",
+            reader.moment(&chat["updated_at"]),
+            quoted_title(text(chat, "title"))
+        );
+    }
+    let _ = writeln!(
+        shown,
+        "Background indexing: {}. It refreshes at most every ten minutes, so the last few minutes of a conversation are normally not indexed yet.",
+        if report["watcher"]["running"].as_bool().unwrap_or(false) {
+            "running"
+        } else {
+            "not running"
+        }
+    );
+    for client in rows(&report["installation"], "clients") {
+        let _ = writeln!(
+            shown,
+            "Agent {}: {}",
+            text(&client, "agent"),
+            match text(&client, "connection") {
+                "full" => "connected",
+                "mcp-only" => "tools work, but its plugin is missing or out of date",
+                _ => "not connected",
+            }
+        );
+    }
+    for node in rows(&report["shared_index"], "nodes") {
+        let synced = DateTime::parse_from_rfc3339(text(&node, "last_synced_at")).map_or_else(
+            |_| "unknown time".to_owned(),
+            |time| reader.time(time.timestamp_millis()),
+        );
+        let _ = writeln!(
+            shown,
+            "Machine {}: last synced {synced}, {} chats",
+            text(&node, "node_id"),
+            node["chats"].as_u64().unwrap_or(0)
+        );
+    }
+    if let Some(action) = given(Some(text(&report, "recommended_action").to_owned())) {
+        let _ = writeln!(shown, "Suggested next step: {}", line(&action, 300));
+    }
+    shown.push_str("You cannot repair anything. Name the command for the reader: `mash index` indexes new history now.\n");
+    Ok(shown)
 }
 
 async fn memories(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<String, String> {

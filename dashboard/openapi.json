@@ -290,6 +290,14 @@
               }
             ]
           },
+          "passage": {
+            "default": null,
+            "description": "Text the reader selected on screen and is asking about.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "utc_offset": {
             "default": null,
             "description": "Minutes the reader's clock is ahead of UTC, so \"yesterday\" is theirs.",

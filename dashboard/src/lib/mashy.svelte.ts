@@ -26,6 +26,8 @@ class Conversation {
   note = $state<Note | null>(null);
   /** An answer arrived while the chat was closed. */
   unread = $state(false);
+  /** Text the reader selected and is asking about, until they let it go. */
+  passage = $state("");
   private controller: AbortController | undefined;
   private context: OpenChat | undefined;
 
@@ -99,7 +101,7 @@ class Conversation {
       const said = this.turns.map((turn) =>
         turn.role === "assistant" ? { ...turn, content: answer(turn.content).body } : turn,
       );
-      await ask(said, this.context, controller.signal, heard);
+      await ask(said, this.context, controller.signal, heard, this.passage);
       if (!finished && !this.note)
         this.note = {
           kind: "error",
@@ -141,6 +143,13 @@ class Conversation {
     this.stop();
     this.turns = [];
     this.note = null;
+    this.passage = "";
+  }
+
+  /** Opens Mashy on a passage the reader selected. */
+  about(passage: string): void {
+    this.passage = passage.trim();
+    this.toggle(true);
   }
 }
 

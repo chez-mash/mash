@@ -3658,6 +3658,151 @@ summary.rw::-webkit-details-marker {
   padding-left: 9px;
   color: var(--clay2);
 }
+/* A project, an agent or a machine is a place to go: squarer than a chat. */
+#mashy .mashy-a a.mashy-chip.place {
+  padding-left: 7px;
+  border-radius: 6px;
+}
+#mashy .mashy-a a.mashy-chip .ico,
+#mashy .mashy-a a.mashy-all .ico {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: var(--dim);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* The way to everything a partial answer left out: the dashboard's search. */
+#mashy .mashy-a a.mashy-all {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--strong);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--fg);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+}
+#mashy .mashy-a a.mashy-all:hover {
+  border-color: var(--clay2);
+}
+#mashy .mashy-a a.mashy-all .ico:first-child {
+  width: 15px;
+  height: 15px;
+  stroke: var(--clay2);
+}
+#mashy .mashy-a a.mashy-all .ico:last-child {
+  margin-left: auto;
+}
+/* Quoted words are a card. The reader's own carry the clay edge. */
+.mashy-a .prose blockquote.mashy-quote {
+  margin: 0 0 0.75rem;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--strong);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--fg);
+}
+.mashy-a .prose blockquote.mashy-quote.own {
+  border-left-color: var(--clay);
+}
+.mashy-a .prose blockquote.mashy-quote p {
+  margin: 0;
+}
+.mashy-a .prose blockquote.mashy-quote p + p,
+.mashy-a .prose blockquote.mashy-quote br + * {
+  color: var(--dim);
+  font-size: 12px;
+}
+.mashy-a .prose blockquote.mashy-quote p:last-child {
+  margin-top: 6px;
+  color: var(--dim);
+  font-size: 12px;
+}
+/* A Mash command can be copied where it stands. */
+#mashy .mashy-a button.mashy-copy {
+  min-height: 24px;
+  margin-left: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--dim);
+  font-size: 12px;
+  vertical-align: 1px;
+}
+#mashy .mashy-a button.mashy-copy:hover {
+  border-color: var(--clay2);
+  color: var(--clay2);
+}
+/* The passage a question is about stays in view until it is let go. */
+.mashy-passage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 34px 9px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--clay);
+  border-radius: 10px;
+  background: var(--raised);
+}
+.mashy-passage span {
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mashy-passage p {
+  margin: 0;
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.mashy-passage button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--dim);
+}
+.mashy-passage button:hover {
+  color: var(--fg);
+}
+/* Offered beside a selection in a transcript. */
+#mashy-pick {
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 12px 0 8px;
+  border: 1px solid var(--clay);
+  border-radius: 10px;
+  background: var(--clay);
+  color: #1b1a18;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
+}
+#mashy-pick img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
 /* An answer is short prose in a narrow column: blocks keep apart, and code
    stands out from the chat's own surface. */
 .mashy-a .prose > :last-child {
@@ -3770,7 +3915,17 @@ summary.rw::-webkit-details-marker {
   align-items: flex-start;
 }
 .mashy-sugg.next button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   text-align: left;
+}
+.mashy-sugg.next button svg {
+  flex: none;
+  color: var(--faint);
+}
+.mashy-sugg.next button:hover svg {
+  color: var(--clay2);
 }
 .mashy-sugg button {
   min-height: 30px;
