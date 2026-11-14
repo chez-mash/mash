@@ -301,6 +301,7 @@ pub(super) fn tools() -> Vec<Tool> {
             "Read Mash's own guides: how to install and set it up, search, indexing, agents and the plugin, memory records, the dashboard, sharing across machines, configuration, upgrades and backups, privacy, troubleshooting and the commands. Use it for any question about how Mash works or how to do something with it.",
             &json!({
                 "about": {"type": "string", "description": "A few words for what to read about, such as \"install qdrant\" or \"export a chat\". Leave it out to see what the guides cover."},
+                "page": {"type": "string", "description": "Read one guide from its start: quick-start, installation, search, indexing, agents, plugin, records, mcp, dashboard, services, shared-index, synchronization, configuration, upgrades, privacy, troubleshooting or cli. Privacy covers credentials and private text; upgrades covers backups, export and import."},
             }),
             &[],
         ),
@@ -342,6 +343,8 @@ struct Search {
 struct Docs {
     #[serde(default)]
     about: Option<String>,
+    #[serde(default)]
+    page: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -429,8 +432,12 @@ pub(super) async fn run(state: &Dash, reader: &mut Reader, call: &Function) -> S
         "read_message" => read_message(state, reader, &call.arguments).await,
         "memories" => memories(state, reader, &call.arguments).await,
         "status" => status(state, reader).await,
-        "docs" => parse::<Docs>(&call.arguments)
-            .map(|input| super::docs::look_up(input.about.as_deref().unwrap_or(""))),
+        "docs" => parse::<Docs>(&call.arguments).map(|input| {
+            super::docs::look_up(
+                input.about.as_deref().unwrap_or(""),
+                input.page.as_deref().unwrap_or(""),
+            )
+        }),
         _ => Err("There is no such lookup.".to_owned()),
     };
     clip(&answer.unwrap_or_else(|refusal| refusal), MAX_RESULT)
@@ -628,6 +635,40 @@ async fn chats(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<Str
 
 /// Every chat with messages in a period. A chat that ran for days is found
 /// by the messages it had then, not by when it was last touched.
+/// The chats a period's counts name, with their agent and project.
+async fn placed(
+    state: &Dash,
+    counts: &[(String, u64)],
+    after: i64,
+) -> Result<std::collections::HashMap<String, Value>, String> {
+    let wanted: std::collections::HashSet<&str> =
+        counts.iter().map(|(id, _)| id.as_str()).collect();
+    let mut known = std::collections::HashMap::new();
+    // Chats listed as active since the period began come first. A chat that
+    // began long before may not be among them, so the rest are looked for in
+    // the whole list: the breakdown below must cover every chat counted.
+    for since in [Some(after), None] {
+        let mut offset = 0;
+        while known.len() < counts.len() && offset < 4_000 {
+            let mut request = json!({"limit": 100, "offset": offset, "local": true});
+            if let Some(since) = since {
+                request["after"] = json!(since);
+            }
+            let page = console(state, "list_chats", request).await?;
+            for chat in rows(&page, "chats") {
+                if wanted.contains(text(&chat, "chat_id")) {
+                    known.insert(text(&chat, "chat_id").to_owned(), chat);
+                }
+            }
+            match page.get("next_offset").and_then(Value::as_u64) {
+                Some(next) => offset = next,
+                None => break,
+            }
+        }
+    }
+    Ok(known)
+}
+
 async fn activity(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<String, String> {
     let input: Activity = parse(arguments)?;
     let to = input.to.as_deref().unwrap_or(&input.from);
@@ -660,23 +701,8 @@ async fn activity(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<
     }
     counts.sort_by_key(|left| std::cmp::Reverse(left.1));
     // A chat with messages in the period was last active in or after it.
-    let mut known = std::collections::HashMap::new();
-    let mut offset = 0;
-    while known.len() < counts.len() && offset < 2_000 {
-        let page = console(
-            state,
-            "list_chats",
-            json!({"limit": 100, "offset": offset, "after": after, "local": true}),
-        )
-        .await?;
-        for chat in rows(&page, "chats") {
-            known.insert(text(&chat, "chat_id").to_owned(), chat);
-        }
-        match page.get("next_offset").and_then(Value::as_u64) {
-            Some(next) => offset = next,
-            None => break,
-        }
-    }
+    let known = placed(state, &counts, after).await?;
+    let unplaced = counts.len() - known.len().min(counts.len());
     let mut agents = std::collections::BTreeMap::<String, usize>::new();
     let mut projects = std::collections::BTreeMap::<String, usize>::new();
     for (id, _) in &counts {
@@ -703,6 +729,12 @@ async fn activity(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<
         tally(agents),
         tally(projects),
     );
+    if unplaced > 0 {
+        let _ = writeln!(
+            shown,
+            "The two breakdowns leave out {unplaced} chats whose agent and project could not be read; say so if you give them."
+        );
+    }
     for (id, count) in counts.iter().take(LISTED) {
         match known.get(id) {
             Some(chat) => {
@@ -1080,7 +1112,11 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
         Err(_) => console(state, "status", json!({})).await?,
     };
     let mut shown = String::new();
-    let ready = report["ready"].as_bool().unwrap_or(false);
+    // Readiness is what the report says, or what its parts add up to.
+    let part = |name: &str| text(&report["local_artifacts"], name) == "ready";
+    let ready = report["ready"]
+        .as_bool()
+        .unwrap_or_else(|| part("metadata") && part("lexical"));
     let by_meaning = text(&report, "realized_mode") == "hybrid";
     let _ = writeln!(
         shown,
@@ -1107,15 +1143,13 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
             quoted_title(text(chat, "title"))
         );
     }
-    let _ = writeln!(
-        shown,
-        "Background indexing: {}. It refreshes at most every ten minutes, so the last few minutes of a conversation are normally not indexed yet.",
-        if report["watcher"]["running"].as_bool().unwrap_or(false) {
-            "running"
-        } else {
-            "not running"
-        }
-    );
+    // A watcher follows chats as they are written; without one, new history
+    // waits for the plugin's catch-up when an agent session starts.
+    shown.push_str(if report["watcher"]["running"].as_bool().unwrap_or(false) {
+        "Background indexing: a watcher is running, and indexes new messages shortly after a chat goes quiet.\n"
+    } else {
+        "Background indexing: no watcher is running. New history is indexed when an agent session starts, at most every ten minutes, or when `mash index` is run.\n"
+    });
     for client in rows(&report["installation"], "clients") {
         let _ = writeln!(
             shown,
@@ -1127,6 +1161,16 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
                 _ => "not connected",
             }
         );
+        let unverified = client["unverified"].as_u64().unwrap_or(0);
+        if unverified > 0 {
+            let _ = writeln!(
+                shown,
+                "  {unverified} of its settings could not be verified."
+            );
+        }
+        if let Some(action) = given(Some(text(&client, "next_action").to_owned())) {
+            let _ = writeln!(shown, "  To fix: {}", line(&action, 240));
+        }
     }
     for node in rows(&report["shared_index"], "nodes") {
         let synced = DateTime::parse_from_rfc3339(text(&node, "last_synced_at")).map_or_else(
@@ -1139,6 +1183,24 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
             text(&node, "node_id"),
             node["chats"].as_u64().unwrap_or(0)
         );
+    }
+    let nodes = rows(&report["shared_index"], "nodes");
+    match text(&report["shared"], "state") {
+        "" => {}
+        state if nodes.is_empty() => {
+            let _ = writeln!(
+                shown,
+                "Shared index: {state}. Other machines' sync times are not available right now; `mash status --shared` shows them."
+            );
+        }
+        state => {
+            let _ = writeln!(shown, "Shared index: {state}");
+        }
+    }
+    if let Some(action) = given(Some(
+        text(&report["runtime"], "recommended_action").to_owned(),
+    )) {
+        let _ = writeln!(shown, "This Mash process: {}", line(&action, 240));
     }
     if let Some(action) = given(Some(text(&report, "recommended_action").to_owned())) {
         let _ = writeln!(shown, "Suggested next step: {}", line(&action, 300));
