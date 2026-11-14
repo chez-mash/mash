@@ -48,6 +48,10 @@ jobs:
     # workflow (dependencies.yml) and do not fail an unrelated push.
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # Nothing is compiled here, and the workflow's compiler cache is not
+      # installed in this job.
+      RUSTC_WRAPPER: ""
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
