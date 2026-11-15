@@ -74,8 +74,16 @@ assets to rebuild shared views from saved history.
 
 ## Embedding inference
 
-Embeddings are generated locally by default. To send indexing batches to an
-authenticated Mash embedding worker, add:
+Indexing uses the fastest engine available to it, in this order:
+
+1. On an Apple Silicon Mac, Core ML, inside Mash. This is the default there
+   and needs no setting.
+2. A GPU worker, when you configure one: on Modal, or, experimentally, as a
+   container on your own machine with an NVIDIA card. Mash cannot use an
+   NVIDIA card without that worker.
+3. Otherwise, your CPU.
+
+To send indexing batches to an authenticated Mash embedding worker, add:
 
 ```toml
 [embeddings]
