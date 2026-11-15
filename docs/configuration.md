@@ -167,7 +167,10 @@ token_env = "MASH_RERANKING_TOKEN"
 timeout_milliseconds = 1500
 ```
 
-This sends the query and the excerpts being ranked to the worker.
+This sends the query and the excerpts being ranked to the worker. The worker
+runs on Modal or as a container on your own machine with an NVIDIA card; see
+`deployment/reranking/README.md` in the source repository. A worker on the
+same machine uses `url = "http://127.0.0.1:8000/rerank"`.
 
 - Set the variable named by `token_env` in every process that searches: MCP
   servers, the dashboard and your shell. A Modal proxy token for the embedding

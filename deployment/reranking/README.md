@@ -1,10 +1,15 @@
-# Modal reranking worker
+# Reranking worker
 
-This optional worker scores search candidates for Mash's contextual reranking.
+This optional worker scores search candidates for Mash's contextual reranking
+on a GPU. Run it on Modal, or as a container on a machine of your own with an
+NVIDIA card; both speak the same contract and Mash cannot tell them apart.
+Local CPU reranking remains the default and the offline path.
+
+## On Modal
+
 It is a separate Modal app from the embedding worker, so searches never queue
 behind indexing batches. Deploying it builds an image and downloads the pinned
-model; invoking it starts billable GPU work. Local CPU reranking remains the
-default and the offline path.
+model; invoking it starts billable GPU work.
 
 From this directory, using your existing Modal account configuration:
 
@@ -19,7 +24,33 @@ Use a Modal proxy token (the embedding worker's token works) as the
 credential used for deployment separate from this invocation token. See
 [Modal proxy authentication](https://modal.com/docs/guide/webhook-proxy-auth).
 
-The worker permits one T4 (or L4) container, no warm pool, a 60-second
+## On your own machine
+
+This needs Docker with the NVIDIA Container Toolkit. Build the image from this
+directory; the build downloads the pinned model, and a running worker never
+downloads anything.
+
+```sh
+docker build -t mash-reranker .
+export MASH_RERANKING_TOKEN="$(openssl rand -hex 32)"
+docker run --gpus all -p 127.0.0.1:8000:8000 -e MASH_RERANKING_TOKEN mash-reranker
+```
+
+Point the node's `[reranking]` at `http://127.0.0.1:8000/rerank` with
+`token_env = "MASH_RERANKING_TOKEN"`. Mash accepts plain HTTP on loopback only;
+put the worker behind HTTPS to reach it from another machine.
+
+- The worker refuses to start without `MASH_RERANKING_TOKEN`, and answers only
+  requests carrying it as a bearer token.
+- Its start-up log names the engine in use. Without a usable GPU it serves from
+  the container's CPU; set `MASH_RERANKING_REQUIRE_GPU=1` to make it fail
+  instead.
+- `MASH_RERANKING_MODEL_DIR` names a model directory other than the one in the
+  image.
+
+## Limits and contract
+
+The Modal worker permits one T4 (or L4) container, no warm pool, a 60-second
 invocation timeout and no automatic retries. It scales down after 15 idle
 minutes, longer than the plugin's ten-minute catch-up interval, and Mash sends
 a text-free warm-up when a search is likely. Each request holds one query of at
@@ -35,10 +66,10 @@ The recipe pins `jinaai/jina-reranker-v1-turbo-en` at the revision Mash
 installs, FP32 ONNX inference, FastEmbed's pair tokenization (512-token
 longest-first truncation, batch-longest padding) and the first logit. Mash
 refuses the worker when its installed reranker revision differs, and validates
-every reply before using it. CUDA execution is required; the worker fails
-rather than falling back to CPU.
+every reply before using it. On Modal, CUDA execution is required; the worker
+fails rather than falling back to CPU.
 
-Local contract checks do not invoke Modal. Set `MASH_TEST_RERANKER_DIR` to an
+Local checks do not invoke Modal or need a GPU. Set `MASH_TEST_RERANKER_DIR` to an
 installed reranker snapshot to also check tokenization and CPU scoring:
 
 ```sh

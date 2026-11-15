@@ -1,0 +1,148 @@
+"""The plain worker's HTTP boundary, without a GPU, a download or a network."""
+
+import os
+import struct
+from pathlib import Path
+
+import pytest
+import zstandard
+from fastapi.testclient import TestClient
+
+from contract import MAX_BODY_BYTES, REQUEST_ID_BYTES, Document
+from server import create_app
+from service import CPU, CUDA, Scores, load_engine
+from test_contract import REQUEST_ID, pack
+
+TOKEN = "worker-token"
+AUTHORIZED = {"authorization": f"Bearer {TOKEN}"}
+HEADER_BYTES = 4 + REQUEST_ID_BYTES + 8
+
+
+class Lengths:
+    """Stands in for the model: each document scores its own length."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def infer(self, query: str, documents: list[Document]) -> Scores:
+        self.calls += 1
+        return 7, [(item.id, float(len(item.text))) for item in documents]
+
+
+def client(model: Lengths | None = None) -> TestClient:
+    return TestClient(create_app((model or Lengths()).infer, TOKEN))
+
+
+def unpack(reply: bytes) -> tuple[int, dict[int, float]]:
+    assert reply[:4] == b"MRR1"
+    assert reply[4 : 4 + REQUEST_ID_BYTES] == REQUEST_ID
+    milliseconds, count = struct.unpack_from("<II", reply, 4 + REQUEST_ID_BYTES)
+    assert len(reply) == HEADER_BYTES + count * 8
+    pairs = [struct.unpack_from("<If", reply, HEADER_BYTES + index * 8) for index in range(count)]
+    return milliseconds, dict(pairs)
+
+
+def test_a_worker_cannot_be_created_without_a_token() -> None:
+    with pytest.raises(ValueError):
+        create_app(Lengths().infer, "")
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {},
+        {"authorization": "Bearer wrong"},
+        {"authorization": TOKEN},
+        {"authorization": f"Bearer {TOKEN} "},
+        {"authorization": f"Basic {TOKEN}"},
+    ],
+)
+def test_requests_without_the_exact_bearer_token_never_reach_the_model(
+    headers: dict[str, str],
+) -> None:
+    model = Lengths()
+    response = client(model).post("/rerank", content=pack("q", [(0, "x")]), headers=headers)
+    assert response.status_code == 401
+    assert model.calls == 0
+
+
+def test_scores_come_back_keyed_by_document_id() -> None:
+    response = client().post(
+        "/rerank", content=pack("q", [(1, "four"), (0, "sixsix")]), headers=AUTHORIZED
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert unpack(response.content) == (7, {1: 4.0, 0: 6.0})
+
+
+def test_a_compressed_request_is_scored_like_a_plain_one() -> None:
+    body = zstandard.ZstdCompressor(level=3).compress(pack("q", [(0, "東京")]))
+    response = client().post(
+        "/rerank", content=body, headers={**AUTHORIZED, "content-encoding": "zstd"}
+    )
+    assert unpack(response.content) == (7, {0: 2.0})
+
+
+def test_a_warm_up_answers_without_running_the_model() -> None:
+    model = Lengths()
+    response = client(model).post("/rerank", content=pack("", []), headers=AUTHORIZED)
+    assert unpack(response.content) == (0, {})
+    assert model.calls == 0
+
+
+def test_malformed_oversized_and_unsupported_requests_are_refused() -> None:
+    model = Lengths()
+    worker = client(model)
+    cases = [
+        (b"not a frame", {}, 400),
+        (pack("q", [(0, "x")], recipe="another-model"), {}, 400),
+        (b"x" * (MAX_BODY_BYTES + 1), {}, 413),
+        (pack("q", [(0, "x")]), {"content-encoding": "gzip"}, 415),
+        (b"not zstd", {"content-encoding": "zstd"}, 400),
+    ]
+    for body, extra, status in cases:
+        response = worker.post("/rerank", content=body, headers={**AUTHORIZED, **extra})
+        assert response.status_code == status
+    assert model.calls == 0
+
+
+def test_only_the_rerank_route_exists() -> None:
+    worker = client()
+    for path in ["/", "/docs", "/openapi.json", "/redoc"]:
+        assert worker.get(path, headers=AUTHORIZED).status_code == 404
+
+
+def model_root() -> Path | None:
+    root = os.environ.get("MASH_TEST_RERANKER_DIR")
+    return Path(root) if root else None
+
+
+@pytest.mark.skipif(model_root() is None, reason="set MASH_TEST_RERANKER_DIR")
+def test_the_real_model_serves_from_cpu_when_no_gpu_is_present() -> None:
+    root = model_root()
+    assert root is not None
+    engine = load_engine(root, [CUDA, CPU])
+    worker = TestClient(create_app(engine.infer, TOKEN))
+    documents = [
+        (0, "The cat slept on the warm windowsill all afternoon."),
+        (1, "Rotate the Postgres password with ALTER ROLE and update the secret."),
+    ]
+    response = worker.post(
+        "/rerank",
+        content=pack("how do I rotate a database password", documents),
+        headers=AUTHORIZED,
+    )
+    _, scores = unpack(response.content)
+    assert scores[1] > scores[0]
+
+
+@pytest.mark.skipif(model_root() is None, reason="set MASH_TEST_RERANKER_DIR")
+def test_requiring_a_gpu_fails_where_there_is_none() -> None:
+    import onnxruntime as ort
+
+    if CUDA in ort.get_available_providers():
+        pytest.skip("this machine has the CUDA provider")
+    root = model_root()
+    assert root is not None
+    with pytest.raises(RuntimeError):
+        load_engine(root, [CUDA])
