@@ -32,7 +32,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
         ..Default::default()
     };
     assert_eq!(
-        super::super::history::normalize(&root, &metadata, 0, &step)
+        super::super::history::normalize(&root, &metadata, 0, &step, None)
             .unwrap()
             .remove(0)
             .dialogue_text
@@ -43,7 +43,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
     user.items.clear();
     user.legacy_query = "Legacy cBioPortal query".into();
     assert_eq!(
-        super::super::history::normalize(&root, &metadata, 0, &step)
+        super::super::history::normalize(&root, &metadata, 0, &step, None)
             .unwrap()
             .remove(0)
             .content,
@@ -61,7 +61,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
         }),
     });
     assert_eq!(
-        super::super::history::normalize(&root, &metadata, 0, &step)
+        super::super::history::normalize(&root, &metadata, 0, &step, None)
             .unwrap()
             .remove(0)
             .dialogue_text
@@ -81,7 +81,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
         }),
         ..Default::default()
     };
-    let message = super::super::history::normalize(&root, &metadata, 1, &reasoning)
+    let message = super::super::history::normalize(&root, &metadata, 1, &reasoning, None)
         .unwrap()
         .remove(0);
     assert_eq!(message.content, "[Thinking] internal analysis");

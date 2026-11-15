@@ -15,9 +15,6 @@ pub struct Step {
     pub user: Option<User>,
     #[prost(message, optional, tag = "20")]
     pub assistant: Option<Assistant>,
-    /// The body of a `Kind::Generic` step: one tool's result.
-    #[prost(message, optional, tag = "140")]
-    pub generic: Option<Generic>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, prost::Enumeration)]
 #[repr(i32)]
@@ -25,8 +22,57 @@ pub enum Kind {
     Unspecified = 0,
     User = 14,
     Assistant = 15,
-    /// A tool's result; its call is named by the step metadata.
+    // Tool steps: each holds one tool's outcome, in the body `outcome.rs`
+    // names, and answers the call in the step metadata.
+    GrepSearch = 7,
+    ViewFile = 8,
+    ListDirectory = 9,
+    RunCommand = 21,
+    Find = 25,
+    CommandStatus = 28,
+    ReadUrlContent = 31,
+    ViewContentChunk = 32,
+    SearchWeb = 33,
+    McpTool = 38,
+    ViewFileOutline = 47,
+    ListResources = 51,
+    ReadResource = 52,
+    OpenBrowserUrl = 56,
+    RunExtensionCode = 57,
+    ExecuteBrowserJavascript = 61,
+    ClickBrowserPixel = 64,
+    ReadTerminal = 65,
+    CaptureBrowserConsoleLogs = 66,
+    ReadBrowserPage = 67,
+    BrowserGetDom = 68,
+    BrowserInput = 74,
+    BrowserMoveMouse = 75,
+    BrowserSelectOption = 76,
+    BrowserScrollUp = 77,
+    BrowserScrollDown = 78,
+    BrowserClickElement = 79,
+    BrowserPressKey = 80,
+    BrowserSubagent = 85,
+    BrowserScroll = 88,
+    CompileApplet = 93,
+    InstallAppletDependencies = 94,
+    InstallAppletPackage = 95,
+    BrowserResizeWindow = 96,
+    SendCommandInput = 100,
+    ShellExec = 112,
+    BrowserMouseWheel = 113,
+    LintApplet = 114,
+    BrowserMouseUp = 120,
+    BrowserMouseDown = 121,
+    WorkspaceApi = 122,
+    BrowserListNetworkRequests = 123,
+    BrowserGetNetworkRequest = 124,
+    BrowserRefreshPage = 125,
+    ReadNotebook = 129,
     Generic = 132,
+    ExecuteNotebook = 134,
+    CloudSqlUpdateSchema = 135,
+    CloudSqlExecuteSql = 137,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, prost::Enumeration)]
 #[repr(i32)]
@@ -130,16 +176,6 @@ pub struct ToolCall {
     pub name: String,
     #[prost(string, tag = "3")]
     pub arguments_json: String,
-}
-#[derive(Clone, Message)]
-pub struct Generic {
-    #[prost(message, optional, tag = "2")]
-    pub result: Option<GenericResult>,
-}
-#[derive(Clone, Message)]
-pub struct GenericResult {
-    #[prost(string, tag = "1")]
-    pub text: String,
 }
 #[derive(Clone, Message)]
 pub struct Metadata {

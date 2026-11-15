@@ -1,6 +1,6 @@
 //! Native displayed prose is independent of attachments, reasoning, tool
 //! activity and copies.
-use super::{invalid, proto, store::Root, timestamp};
+use super::{invalid, outcome::Outcome, proto, store::Root, timestamp};
 use crate::{
     AppError, dialogue,
     message_context::MessageContext,
@@ -124,10 +124,16 @@ fn assistant(assistant: &proto::Assistant) -> Vec<Part> {
     parts
 }
 
-/// A generic step is one tool's result, answering the call in its metadata.
-fn result(step: &proto::Step, generic: &proto::Generic) -> Part {
-    let answered = step.metadata.as_ref().and_then(|m| m.tool_call.as_ref());
+/// The call a tool step answers, named by its metadata.
+fn answered(step: &proto::Step) -> Option<&proto::ToolCall> {
+    step.metadata.as_ref()?.tool_call.as_ref()
+}
+
+/// A tool step is one tool's result. A generic step always is; any other
+/// step type is one only when its metadata names the call it answers.
+fn result(step: &proto::Step, outcome: &Outcome) -> Part {
     let is_error = match proto::Status::try_from(step.status) {
+        _ if outcome.failed => Some(true),
         Ok(proto::Status::Done) => Some(false),
         Ok(proto::Status::Error) => Some(true),
         _ => None,
@@ -135,12 +141,9 @@ fn result(step: &proto::Step, generic: &proto::Generic) -> Part {
     Part {
         suffix: None,
         role: Role::Tool,
-        content: generic
-            .result
-            .as_ref()
-            .map_or_else(String::new, |r| r.text.clone()),
+        content: outcome.text.clone(),
         prose: None,
-        tools: Activity::result(answered.and_then(|call| present(&call.id)), is_error),
+        tools: Activity::result(answered(step).and_then(|call| present(&call.id)), is_error),
     }
 }
 
@@ -157,6 +160,7 @@ pub fn normalize(
     metadata: &proto::Metadata,
     index: i64,
     step: &proto::Step,
+    outcome: Option<&Outcome>,
 ) -> Result<Vec<NormalizedMessage>, AppError> {
     let kind = proto::Kind::try_from(step.kind);
     if kind == Ok(proto::Kind::User) && step.user.is_none()
@@ -173,8 +177,10 @@ pub fn normalize(
         vec![user(user_input)]
     } else if let Some(response) = &step.assistant {
         assistant(response)
-    } else if let (Ok(proto::Kind::Generic), Some(generic)) = (kind, &step.generic) {
-        vec![result(step, generic)]
+    } else if let Some(outcome) =
+        outcome.filter(|_| kind == Ok(proto::Kind::Generic) || answered(step).is_some())
+    {
+        vec![result(step, outcome)]
     } else {
         return Ok(Vec::new());
     };

@@ -44,7 +44,7 @@ implementation.
 | OpenCode | Own messages with named `tool_calls` | Own messages with `tool_results` once a tool completed or failed | `[Thinking] ` messages; empty reasoning dropped | Linear |
 | Copilot | Own messages with named `tool_calls` | Own messages with `tool_results` where the session recorded one | `[Thinking] ` messages | Session events have parents; chat history is linear |
 | Cursor | Text: `Tool: <name>` then arguments | Text: `Tool result: <name>` then result | `Thinking: <text>`, `Thinking: [redacted]` | Linear |
-| Antigravity | Own messages from the reply's tool-call field | Generic result steps, linked by `call_id`; other tool step types are not read | `[Thinking] ` messages | Linear |
+| Antigravity | Own messages from the reply's tool-call field | Tool result steps, linked by `call_id`: generic steps, and the file view, directory listing, search, command, MCP, web, browser and notebook step types listed in `antigravity/outcome.rs`, when the step names its call. File edits, code-item views, screenshots and generated images record no result text and are not read | `[Thinking] ` messages | Linear |
 
 Codex `content.type` values observed: `commandExecution` (`command`, `cwd`,
 `exitCode`, `durationMs`, `status`, `aggregatedOutput`), `fileChange` (`changes`,

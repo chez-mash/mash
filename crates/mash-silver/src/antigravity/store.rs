@@ -1,5 +1,5 @@
 //! One read-only SQLite snapshot; SQL guards prevent oversized BLOB allocation.
-use super::{invalid, proto, wire};
+use super::{invalid, outcome, proto, wire};
 use crate::{AppError, sqlite_source};
 use prost::Message;
 use rusqlite::Connection;
@@ -135,7 +135,7 @@ impl Store {
     }
     pub fn steps(
         &mut self,
-        mut consume: impl FnMut(i64, proto::Step) -> Result<(), AppError>,
+        mut consume: impl FnMut(i64, proto::Step, Option<outcome::Outcome>) -> Result<(), AppError>,
     ) -> Result<(), AppError> {
         let mut statement = self.connection.prepare("SELECT idx,step_type,status,step_format, length(step_payload)+coalesce(length(metadata),0) AS bytes, CASE WHEN typeof(metadata)='blob' AND length(metadata)<=8388608 AND length(step_payload)+length(metadata)<=?1 THEN metadata END AS metadata, CASE WHEN typeof(step_payload)='blob' AND length(step_payload)<=8388608 AND length(step_payload)+coalesce(length(metadata),0)<=?1 THEN step_payload END AS payload FROM steps ORDER BY idx LIMIT 65537").map_err(AppError::database)?;
         // The initial SQL budget guards each allocation; the decreasing Rust
@@ -178,7 +178,8 @@ impl Store {
             {
                 return Err(invalid("SQL and protobuf step headers disagree"));
             }
-            consume(index, step)?;
+            let outcome = outcome::read(step.kind, &payload, &mut self.fields)?;
+            consume(index, step, outcome)?;
         }
         Ok(())
     }

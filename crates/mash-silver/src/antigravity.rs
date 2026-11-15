@@ -7,6 +7,7 @@ use std::path::Path;
 #[cfg(any(test, feature = "test-support"))]
 pub mod fixture;
 pub mod history;
+pub mod outcome;
 pub mod proto;
 pub mod store;
 #[cfg(test)]
@@ -80,11 +81,11 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
     let mut updated_at = created_at;
     let mut messages = Vec::new();
     let mut retained = 0usize;
-    store.steps(|index, step| {
+    store.steps(|index, step, outcome| {
         updated_at = updated_at.max(timestamp(
             step.metadata.as_ref().and_then(|m| m.created_at.as_ref()),
         )?);
-        for mut message in history::normalize(&root, &metadata, index, &step)? {
+        for mut message in history::normalize(&root, &metadata, index, &step, outcome.as_ref())? {
             retained = retained
                 .saturating_add(message.content.capacity())
                 .saturating_add(message.dialogue_text.as_ref().map_or(0, String::capacity))
