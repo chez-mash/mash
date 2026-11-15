@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 mod appended;
 mod legacy;
+mod parts;
 
 struct Fixture {
     dir: tempfile::TempDir,
@@ -110,16 +111,29 @@ fn catalog_snapshot_projects_prose_and_keeps_cli_identity_distinct() {
         );
         assert_eq!(chat.title.as_deref(), Some("Native Chat"));
         let rows = chat.messages.inline();
-        assert_eq!(rows.len(), 2);
+        assert_eq!(rows.len(), 6);
+        assert_eq!(
+            rows[1].content,
+            "Validate mutation metadata before importing."
+        );
         assert_eq!(
             rows[1].dialogue_text.as_deref(),
             Some("Validate mutation metadata before importing.")
         );
-        assert!(rows[1].content.contains("privatefirstthought"));
-        assert!(rows[1].content.contains("privatefuturemarker"));
-        assert!(rows[1].content.contains("privatetoolmarker"));
-        assert!(rows[1].content.contains("privateoutputmarker"));
-        assert!(rows[1].content.contains("privateresultmarker"));
+        // Everything else the response holds is kept as context beside it.
+        assert!(
+            rows[2..]
+                .iter()
+                .all(|r| r.dialogue_text.as_deref() == Some(""))
+        );
+        assert_eq!(
+            rows[2].content,
+            "[Thinking] privatefirstthought\nprivatesecondthought"
+        );
+        assert!(rows[3].content.contains("privatetoolmarker"));
+        assert!(rows[3].content.contains("privateoutputmarker"));
+        assert!(rows[4].content.contains("privateresultmarker"));
+        assert_eq!(rows[5].content, "privatefuturemarker");
         assert_ne!(
             chat.id,
             crate::silver::parsers::stable_id("session", &["copilot", "chat-session"])
@@ -159,18 +173,21 @@ fn logs_replay_edits_appends_truncation_and_typed_deletions() {
     assert_eq!(result.id, original.id);
     assert_eq!(result.source.key(), original.source.key());
     let rows = result.messages.inline();
-    assert_eq!(rows.len(), 4);
+    assert_eq!(rows.len(), 13);
     assert_eq!(
         rows[0].id,
         original.messages.inline()[0].id,
         "edits retain identity"
     );
     assert_eq!(rows[0].content, "Fix cBioPortal structural variants");
+    assert_eq!(rows[1].id, original.messages.inline()[1].id);
     assert_eq!(
         rows[1].dialogue_text.as_deref(),
-        Some("Updated structural variant answer\nAdditional answer")
+        Some("Updated structural variant answer")
     );
-    assert_eq!(rows[2].content, "surviving question");
+    // Text appended after the tool call is a later passage of the same reply.
+    assert_eq!(rows[6].dialogue_text.as_deref(), Some("Additional answer"));
+    assert_eq!(rows[7].content, "surviving question");
     assert_eq!(result.title.as_deref(), Some("cBioPortal chat"));
     assert!(
         !rows
@@ -259,11 +276,10 @@ fn indexing_refreshes_wal_catalog_and_transcript_with_atomic_retry() {
                 let crate::shared::protocol::Batch::Messages { records } = batch else {
                     panic!("messages");
                 };
-                assert_eq!(records.len(), 2);
-                assert_eq!(
-                    records[1].projection,
-                    "Validate mutation metadata before importing."
-                );
+                assert_eq!(records.len(), 6);
+                assert!(records.iter().any(|record| {
+                    record.projection == "Validate mutation metadata before importing."
+                }));
                 Ok(())
             })
         })
@@ -350,19 +366,25 @@ fn old_snapshots_and_hidden_or_non_copilot_requests_preserve_context_only() {
     assert_eq!(chat.title.as_deref(), Some("Older native title"));
     assert_eq!(chat.project.as_deref(), Some("/work/other project"));
     let rows = chat.messages.inline();
-    assert_eq!(rows.len(), 8);
+    assert_eq!(rows.len(), 24);
     assert_eq!(rows[0].content, "Older plain-string prompt");
-    assert!(
-        rows[2..4]
-            .iter()
-            .all(|r| r.dialogue_text.as_deref() == Some(""))
+    // Dialogue is the first request's prompt and reply, and the reply to
+    // the prompt the editor wrote itself.
+    assert_eq!(
+        rows.iter()
+            .enumerate()
+            .filter(|(_, r)| r.dialogue_text.as_deref() != Some(""))
+            .map(|(index, _)| index)
+            .collect::<Vec<_>>(),
+        [0, 1, 13]
     );
-    assert_eq!(rows[4].dialogue_text.as_deref(), Some(""));
-    assert!(
-        rows[6..]
-            .iter()
-            .all(|r| r.dialogue_text.as_deref() == Some(""))
-    );
+    for hidden in [
+        "privatehiddenrequest",
+        "privateautomaticrequest",
+        "privatethirdpartyrequest",
+    ] {
+        assert!(rows.iter().any(|r| r.content == hidden));
+    }
     assert!(
         !rows
             .iter()

@@ -116,15 +116,21 @@ fn remote_window_sessions_keep_remote_folders_roles_order_and_completion_times()
             rows.iter()
                 .map(|r| (r.role.clone(), r.created_at))
                 .collect::<Vec<_>>(),
-            [(Role::User, Some(1100)), (Role::Assistant, Some(1600))]
+            [
+                (Role::User, Some(1100)),
+                (Role::Assistant, Some(1600)),
+                (Role::Assistant, Some(1600)),
+                (Role::Assistant, Some(1600))
+            ]
         );
         assert_eq!(rows[0].dialogue_text.as_deref(), Some("hello ?"));
+        assert_eq!(rows[1].content, "[Thinking] privatereasoning");
+        assert_eq!(rows[2].content, "Tool: copilot_readFile\nReading lock.go");
+        assert_eq!(rows[3].content, "Hello! How can I help?");
         assert_eq!(
-            rows[1].dialogue_text.as_deref(),
+            rows[3].dialogue_text.as_deref(),
             Some("Hello! How can I help?")
         );
-        assert!(rows[1].content.contains("privatereasoning"));
-        assert!(rows[1].content.contains("Reading lock.go"));
         assert!(
             !rows
                 .iter()
@@ -148,7 +154,7 @@ fn appended_sessions_reindex_without_duplicating_or_reordering_messages() {
     f.write("jsonl", &log(&operations));
     f.reindex(&database);
     let before = stored(&database);
-    assert_eq!(before.len(), 2);
+    assert_eq!(before.len(), 4);
 
     f.append(&log(&exchange(
         1,
@@ -160,24 +166,26 @@ fn appended_sessions_reindex_without_duplicating_or_reordering_messages() {
     f.catalog(&json!({"chat-session":{"sessionId":"chat-session","title":"New Chat","lastMessageDate":3000}}));
     f.reindex(&database);
     let after = stored(&database);
-    assert_eq!(after.len(), 4);
+    assert_eq!(after.len(), 8);
     assert_eq!(
-        after[..2],
+        after[..4],
         before[..],
         "existing messages keep identity and order"
     );
     assert_eq!(
-        after[2..]
+        after[4..]
             .iter()
             .map(|r| (r.1.as_str(), r.2, r.3.as_str()))
             .collect::<Vec<_>>(),
         [
             ("user", Some(3000), "Show the deferred unlock"),
+            ("assistant", Some(3500), "[Thinking] privatereasoning"),
             (
                 "assistant",
                 Some(3500),
-                "privatereasoning\nReading lock.go\nUse defer."
+                "Tool: copilot_readFile\nReading lock.go"
             ),
+            ("assistant", Some(3500), "Use defer."),
         ]
     );
     let unchanged = f.reindex(&database);
@@ -232,8 +240,8 @@ fn torn_or_damaged_lines_keep_the_previous_contribution_until_readable() {
     let summary = f.reindex(&database);
     assert_eq!(summary.rejected_sources, 0);
     let rows = stored(&database);
-    assert_eq!(rows.len(), 4);
-    assert_eq!(rows[..2], indexed[..]);
+    assert_eq!(rows.len(), 8);
+    assert_eq!(rows[..4], indexed[..]);
 }
 
 #[test]

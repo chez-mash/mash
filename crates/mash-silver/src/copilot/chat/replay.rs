@@ -113,6 +113,7 @@ fn set_request(
         "message" => request.message = required(value)?,
         "response" => request.response = decode(value)?,
         "agent" => request.agent = decode(value)?,
+        "variableData" => request.variable_data = decode(value)?,
         "timestamp" => request.timestamp = decode(value)?,
         "responseTimestamp" => request.response_timestamp = decode(value)?,
         "modelState" => request.model_state = decode(value)?,
@@ -275,6 +276,19 @@ fn apply_requests(
             *part = required(value)?;
             return Ok(());
         }
+    }
+    if matches!(operation.kind, Kind::Push)
+        && matches!(path, [_, _, Segment::Field(data), Segment::Field(list)]
+            if data == "variableData" && list == "variables")
+    {
+        return splice(
+            request
+                .variable_data
+                .get_or_insert_default()
+                .variables_mut(),
+            value,
+            operation.i,
+        );
     }
     if matches!(operation.kind, Kind::Push) {
         if matches!(&path[2], Segment::Field(f) if f == "message" || f == "response") {

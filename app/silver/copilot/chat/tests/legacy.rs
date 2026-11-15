@@ -21,12 +21,12 @@ fn old_empty_window_location_and_plain_response_shapes_survive_migration() {
     let source = f.sources().unwrap().remove(0);
     let stamp = source.stamp().unwrap();
     snapshot["version"] = json!(3);
-    snapshot["requests"][0]["response"] = json!(["First answer", {"value":"Second answer"}]);
+    snapshot["requests"][0]["response"] = json!(["First answer. ", {"value":"Second answer. "}]);
     f.write(
         "jsonl",
         &log(&[
             json!({"kind":0,"v":snapshot}),
-            json!({"kind":2,"k":["requests",0,"response"],"v":["Appended answer"]}),
+            json!({"kind":2,"k":["requests",0,"response"],"v":["Appended answer."]}),
         ]),
     );
     assert!(stamp.verify(&source.identity).is_err());
@@ -39,6 +39,6 @@ fn old_empty_window_location_and_plain_response_shapes_survive_migration() {
     );
     assert_eq!(
         migrated.messages.inline()[1].dialogue_text.as_deref(),
-        Some("First answer\nSecond answer\nAppended answer")
+        Some("First answer. Second answer. Appended answer.")
     );
 }

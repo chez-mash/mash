@@ -442,6 +442,10 @@ including WAL changes. Each session becomes one chat. Sessions with
 `session_message` records use that history; other sessions use the native
 `message`/`part` tables. User and assistant text is searchable; reasoning, tools,
 files, shell output, compaction and synthetic/ignored text remain context only.
+Reasoning is stored as `[Thinking]` messages and each tool part as a tool call
+followed, once it settles, by its result with the error flag; text between them
+stays the reply, whose first passage keeps the message ID. Synthetic messages
+and synthetic text inside a legacy prompt are stored as system context.
 Operational events and unknown part types are omitted. Session activity controls
 the history horizon. OpenCode JSON records are checked for the 8 MiB byte limit
 and a 65,536-node structural limit before typed decoding. OpenCode sessions have
@@ -498,7 +502,13 @@ retain stable identities and remove discarded history on refresh. A partial
 or invalid log preserves the previous indexed snapshot for retry. Draft input
 is excluded. Human requests and answer markdown are searchable; hidden requests,
 reasoning, tools and explicitly identified third-party participants remain
-context only. Workspace and logged repository metadata support normal filters.
+context only. Reasoning is stored as `[Thinking]` messages and each tool
+invocation as a tool call (with its result when one is recorded), between the
+passages of reply text they separate; the first passage keeps the reply's
+message ID. A file named inside a sentence appears there by name, and files
+attached to a request are listed in that request's content, never in its
+searchable text. Prompts VS Code wrote itself are stored as system context.
+Workspace and logged repository metadata support normal filters.
 CLI and Chat session/message IDs have distinct namespaces. Both use the existing
 `copilot` provider filter and provider settings. Their upstream schemas are
 the [VS Code session store](https://github.com/microsoft/vscode/blob/f5f73df304d9c5eeab64d4d07eed57e007742a92/src/vs/workbench/contrib/chat/common/model/chatSessionStore.ts)
