@@ -252,9 +252,13 @@ impl Catalog {
                 );",
             )
             .map_err(database)?;
-        connection
-            .pragma_update(None, "user_version", SCHEMA_VERSION)
-            .map_err(database)?;
+        // Only a new catalog needs stamping. Writing the version on every open
+        // would commit under a transfer another connection has in progress.
+        if version != SCHEMA_VERSION {
+            connection
+                .pragma_update(None, "user_version", SCHEMA_VERSION)
+                .map_err(database)?;
+        }
         Ok(Self {
             root: root.to_path_buf(),
             connection,
@@ -354,7 +358,7 @@ impl Catalog {
             ));
         }
         self.write_piece(operation_id, chunk)?;
-        let transaction = self.connection.unchecked_transaction().map_err(database)?;
+        let transaction = self.write()?;
         let retained: i64 = transaction
             .query_row(
                 "SELECT COALESCE(SUM(encoded_length), 0) FROM pieces",
@@ -702,7 +706,7 @@ impl Catalog {
             ));
         }
         if backfill.state == "receiving_manifest" {
-            let transaction = self.connection.unchecked_transaction().map_err(database)?;
+            let transaction = self.write()?;
             for member in members {
                 transaction
                     .execute(
@@ -750,7 +754,7 @@ impl Catalog {
         if backfill.state != "ready" && backfill.state != "complete" {
             return Err(conflict("backfill manifest is not ready"));
         }
-        let transaction = self.connection.unchecked_transaction().map_err(database)?;
+        let transaction = self.write()?;
         for (chat_id, digest) in members {
             transaction
                 .execute(
@@ -834,7 +838,7 @@ impl Catalog {
         if revision <= backfill.baseline_revision {
             return Ok(());
         }
-        let transaction = self.connection.unchecked_transaction().map_err(database)?;
+        let transaction = self.write()?;
         for chat in chats {
             transaction
                 .execute(
@@ -904,6 +908,17 @@ impl Catalog {
     pub fn cancel(&self, operation_id: &str) -> Result<(), AppError> {
         self.set_state(operation_id, State::Cancelled, None, None)?;
         self.remove_pieces(operation_id)
+    }
+
+    /// A write transaction that takes the write lock at once. A deferred one
+    /// that reads first cannot wait for another connection's commit: SQLite
+    /// refuses it outright, and the transfer it belonged to is abandoned.
+    fn write(&self) -> Result<rusqlite::Transaction<'_>, AppError> {
+        rusqlite::Transaction::new_unchecked(
+            &self.connection,
+            rusqlite::TransactionBehavior::Immediate,
+        )
+        .map_err(database)
     }
 
     /// Expire abandoned receiving transfers whose last progress is older than
@@ -1267,6 +1282,23 @@ mod tests {
             })
             .unwrap();
         catalog.backfill(id, "group", "node").unwrap()
+    }
+
+    /// Freshness requests used to open the catalog again and restamp its
+    /// version: a commit that made SQLite refuse a transfer's next piece.
+    #[test]
+    fn opening_an_existing_catalog_commits_nothing() {
+        let directory = tempfile::tempdir().unwrap();
+        let catalog = Catalog::open(directory.path()).unwrap();
+        let version = |catalog: &Catalog| -> i64 {
+            catalog
+                .connection
+                .pragma_query_value(None, "data_version", |row| row.get(0))
+                .unwrap()
+        };
+        let before = version(&catalog);
+        drop(Catalog::open(directory.path()).unwrap());
+        assert_eq!(version(&catalog), before);
     }
 
     #[test]

@@ -224,7 +224,7 @@ fn require_active(active: Option<&str>, operation_id: &str) -> Result<(), AppErr
     }
 }
 
-async fn catalog<T: Send + 'static>(
+pub(super) async fn catalog<T: Send + 'static>(
     handle: &CatalogHandle,
     work: impl FnOnce(&Catalog) -> Result<T, AppError> + Send + 'static,
 ) -> Result<T, AppError> {

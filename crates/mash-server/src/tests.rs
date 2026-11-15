@@ -610,7 +610,6 @@ impl Service {
             activity: crate::shared::activity::Registry::default(),
             mutation_capacity: uploads.available_permits(),
             attachments_dir: Some(attachments.path().to_path_buf()),
-            transfer_dir: directory.path().join("sync"),
             catalog: std::sync::Arc::new(std::sync::Mutex::new(
                 super::sync::open_catalog(&directory.path().join("sync")).unwrap(),
             )),
@@ -650,7 +649,6 @@ impl Service {
             activity: crate::shared::activity::Registry::default(),
             mutation_capacity: self.uploads.available_permits(),
             attachments_dir: Some(self.attachments.path().to_path_buf()),
-            transfer_dir: self.silver_dir.path().join("sync"),
             catalog: std::sync::Arc::new(std::sync::Mutex::new(
                 super::sync::open_catalog(&self.silver_dir.path().join("sync")).unwrap(),
             )),

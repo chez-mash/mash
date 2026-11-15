@@ -35,11 +35,6 @@ fn traced_router(dispatcher: tracing::Dispatch) -> Router {
             )))
             .unwrap(),
         )),
-        transfer_dir: std::env::temp_dir().join(format!(
-            "mash-sync-test-{}-{:?}",
-            std::process::id(),
-            std::thread::current().id()
-        )),
         store: Store::unavailable(),
         identities: Arc::new(HashMap::from([(
             blake3::hash(FIRST.as_bytes()),

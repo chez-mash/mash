@@ -43,7 +43,6 @@ struct App {
     activity: shared::activity::Registry,
     mutation_capacity: usize,
     attachments_dir: Option<std::path::PathBuf>,
-    transfer_dir: std::path::PathBuf,
     catalog: sync::CatalogHandle,
     store: Store,
     identities: Arc<HashMap<blake3::Hash, Identity>>,
@@ -288,12 +287,13 @@ async fn freshness(
     ));
     freshness.unpublished_nodes =
         Some(unpublished_nodes(&app.identities, &id.group_id, &freshness));
-    let root = app.transfer_dir.clone();
     let group = id.group_id.clone();
     let node = id.node_id.clone();
-    freshness.baseline = crate::blocking(
-        move || -> Result<Option<crate::shared::BaselineCoverage>, AppError> {
-            let catalog = sync::open_catalog(&root)?;
+    // The server's one catalog connection: a second one opened per request
+    // would contend with the transfers this reports on.
+    freshness.baseline = sync::catalog(
+        &app.catalog,
+        move |catalog| -> Result<Option<crate::shared::BaselineCoverage>, AppError> {
             Ok(catalog.latest_backfill(&group, &node)?.map(|backfill| {
                 crate::shared::BaselineCoverage {
                     id: backfill.backfill_id,
@@ -584,7 +584,6 @@ pub async fn run(
         activity: shared::activity::Registry::default(),
         mutation_capacity: config.max_concurrent_uploads,
         attachments_dir: config.attachments_dir,
-        transfer_dir,
         catalog,
         store,
         identities: Arc::new(identities),
