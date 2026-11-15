@@ -1,7 +1,7 @@
 //! Bounded, lazy fixed-shape Jina sessions; every graph node must use Core ML.
 //! Only the reranking worker uses these: compiling and loading a shape takes
 //! seconds, which a long-lived process pays once and a one-shot search cannot.
-use super::{cache, coreml_sequence_bucket};
+use super::cache;
 use crate::AppError;
 use crate::semantic::models::{read_tokenizer_files, snapshot};
 use crate::semantic::{COREML_CACHE_DIRECTORY, RERANKER_MODEL, RERANKER_REPOSITORY};
@@ -13,6 +13,18 @@ use std::{
 };
 
 const BATCH: usize = 4;
+/// Compiled input lengths, in tokens. Cost grows with the padded length, and
+/// in real searches most passages past 128 tokens stop short of 192, so that
+/// shape saves them from being padded to 256. Each shape costs disk, memory
+/// and start-up time, so there are no finer steps.
+const SEQUENCES: [usize; 5] = [64, 128, 192, 256, 512];
+
+fn bucket(tokens: usize) -> usize {
+    SEQUENCES
+        .into_iter()
+        .find(|&length| length >= tokens)
+        .unwrap_or(SEQUENCES[SEQUENCES.len() - 1])
+}
 
 struct Session {
     model: TextRerank,
@@ -52,13 +64,30 @@ impl Pool {
         let encodings = self.tokenizer.encode_batch(pairs, true).map_err(|error| {
             AppError::model(format!("Core ML reranker tokenization failed: {error}"))
         })?;
-        let sequence = coreml_sequence_bucket(
+        let sequence = bucket(
             encodings
                 .iter()
                 .map(tokenizers::Encoding::len)
                 .max()
                 .unwrap_or(0),
         );
+        self.infer(sequence, query, documents)
+    }
+
+    /// Compile and load every shape, so no search waits for one.
+    pub(crate) fn warm(&mut self) -> Result<(), AppError> {
+        for sequence in SEQUENCES {
+            self.infer(sequence, "warm up", &["warm up"])?;
+        }
+        Ok(())
+    }
+
+    fn infer(
+        &mut self,
+        sequence: usize,
+        query: &str,
+        documents: &[&str],
+    ) -> Result<Vec<f32>, AppError> {
         let session = match self.sessions.entry(sequence) {
             std::collections::hash_map::Entry::Occupied(entry) => entry.into_mut(),
             std::collections::hash_map::Entry::Vacant(entry) => {

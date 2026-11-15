@@ -41,17 +41,24 @@ impl Engine {
             root,
             cpu.tokenizer.clone(),
         ));
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        let accelerated = accelerated.and_then(|mut pool| {
+            // Compile and load every input shape now. A search waits at most
+            // its short time bound, and loading a Core ML shape takes seconds.
+            match pool.warm() {
+                Ok(()) => Some(pool),
+                Err(error) => {
+                    tracing::warn!(reason = %error.error.message, "Core ML reranking is unavailable; this worker uses CPU");
+                    None
+                }
+            }
+        });
         let mut engine = Self {
             cpu,
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             accelerated,
         };
-        // Compile and load every input shape now. A search waits at most its
-        // short time bound, and the first use of a Core ML shape takes seconds.
-        for words in [8, 80, 160, 600] {
-            let document = "word ".repeat(words);
-            engine.scores("warm up", &[document.as_str()])?;
-        }
+        engine.scores("warm up", &["warm up"])?;
         Ok(engine)
     }
 
