@@ -312,6 +312,9 @@ macro_rules! chat_record {
 macro_rules! message_record {
     ($row:expr) => {{
         let row = $row;
+        // An absent projection means the whole content is dialogue, as in
+        // every `COALESCE(search_projection, content)` over this table.
+        let projection = row.search_projection.unwrap_or_else(|| row.content.clone());
         Ok::<_, $crate::AppError>($crate::shared::protocol::MessageRecord {
             attachments: $crate::shared::silver_store::decode(&row.attachments)?,
             id: row.id,
@@ -320,7 +323,7 @@ macro_rules! message_record {
             context: $crate::message_context::MessageContext::from_parent(row.context_parent),
             role: $crate::role::Role::from(row.role),
             content: row.content,
-            projection: row.search_projection.unwrap_or_default(),
+            projection,
             created_at: row.created_at,
             generation: None,
             vector: None,
