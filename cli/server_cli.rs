@@ -18,7 +18,7 @@ use crate::{AppError, server};
 )]
 struct Arguments {
     /// Server configuration in TOML format.
-    #[arg(long, value_name = "PATH", required_unless_present = "setup")]
+    #[arg(long, value_name = "PATH", required_unless_present_any = ["setup", "reranking_worker"])]
     server_config: Option<PathBuf>,
     /// Set this machine up as the home of a shared index: write a first
     /// configuration under ~/.mash/server, keep the server running as a user
@@ -36,6 +36,19 @@ struct Arguments {
     /// Port for the server on this machine and in its tailnet address.
     #[arg(long, default_value_t = 8787, requires = "setup")]
     port: u16,
+    /// Serve search reranking for this machine at this address, for example
+    /// 127.0.0.1:8000, instead of the shared index. Uses Core ML on Apple
+    /// Silicon and the CPU elsewhere, and takes its token from
+    /// MASH_RERANKING_TOKEN. Point a node's [reranking] at
+    /// http://ADDRESS/rerank.
+    // Help text, shown as written.
+    #[allow(clippy::doc_markdown)]
+    #[arg(
+        long,
+        value_name = "ADDRESS",
+        conflicts_with_all = ["server_config", "setup", "api_url", "add_node", "retire_node", "replay_views", "activate_views", "activate_query", "activate_memory"]
+    )]
+    reranking_worker: Option<std::net::SocketAddr>,
     /// Semantic model asset directory; models are never downloaded here.
     #[arg(long, value_name = "PATH")]
     models_dir: Option<PathBuf>,
@@ -126,6 +139,12 @@ where
     let models = args
         .models_dir
         .unwrap_or_else(crate::core::default_models_path);
+    if let Some(listen) = args.reranking_worker {
+        runtime.block_on(crate::semantic::remote_reranker::worker::serve(
+            listen, models,
+        ))?;
+        return Ok(None);
+    }
     if args.setup && args.remove {
         runtime.block_on(server::setup::remove(args.port))?;
         return Ok(None);

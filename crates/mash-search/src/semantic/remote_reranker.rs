@@ -38,6 +38,7 @@ pub struct Client {
     timeout: Duration,
 }
 
+#[derive(Debug)]
 pub struct Scores {
     /// One raw logit per document, in input order.
     pub scores: Vec<f32>,
@@ -381,6 +382,8 @@ impl<'a> Request<'a> {
         })
     }
 }
+
+pub mod worker;
 
 #[cfg(test)]
 pub mod tests;

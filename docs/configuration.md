@@ -168,7 +168,8 @@ timeout_milliseconds = 1500
 ```
 
 This sends the query and the excerpts being ranked to the worker. The worker
-runs on Modal or as a container on your own machine with an NVIDIA card; see
+runs on Modal, as a container on your own machine with an NVIDIA card, or on
+an Apple Silicon Mac with `mash-server --reranking-worker 127.0.0.1:8000`; see
 `deployment/reranking/README.md` in the source repository. A worker on the
 same machine uses `url = "http://127.0.0.1:8000/rerank"`.
 

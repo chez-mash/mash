@@ -239,7 +239,7 @@ impl Models {
     }
 }
 
-fn load_reranker(root: &Path) -> Result<TextRerank, AppError> {
+pub(super) fn load_reranker(root: &Path) -> Result<TextRerank, AppError> {
     load_reranker_with_threads(root, None)
 }
 

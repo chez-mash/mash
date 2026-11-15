@@ -1,0 +1,132 @@
+{
+  "components": {
+    "securitySchemes": {
+      "token": {
+        "description": "The value of the environment variable the node's `token_env` names.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Scores one search query against its candidate passages. A worker runs wherever a suitable accelerator is; Mash reaches it with `[reranking] backend = \"remote\"`. Bodies are versioned binary frames with little-endian integers. Generated from crates/mash-search/src/semantic/remote_reranker/worker.rs; do not edit.",
+    "title": "mash-reranking-worker",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/rerank": {
+      "post": {
+        "description": "One attempt per search pass: the client never retries, and reranks on its own CPU when the worker does not answer within its time bound. A frame with an empty query and no documents is a warm-up and runs no inference. The worker refuses a recipe other than its own, so its scores are interchangeable with the client's CPU scores.",
+        "operationId": "rerank",
+        "parameters": [
+          {
+            "description": "Present when the body is a zstd-compressed frame. Clients compress frames of one kilobyte or more. The decompressed frame has the same byte limit as a plain one.",
+            "in": "header",
+            "name": "Content-Encoding",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zstd"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "format": "binary",
+                "maxLength": 2097152,
+                "type": "string"
+              }
+            }
+          },
+          "description": "Request frame, in order: the 4-byte magic `MRK1`; u16 recipe length and the recipe as UTF-8; a 32-byte request ID chosen by the client; u32 query length and the query as UTF-8; u32 document count; then for each document a u32 ID, a u32 length and the text as UTF-8. Document IDs are unique and cover 0 to count-1. Nothing follows the last document.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Reply frame, in order: the 4-byte magic `MRR1`; the request's 32-byte ID; u32 inference time in milliseconds; u32 score count; then for each document a u32 ID and an f32 raw logit. There is one finite score per document, within the stated magnitude. A warm-up reply has no scores."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The frame is malformed, exceeds a query or document byte limit, or names another recipe. The message says which and never contains input text."
+          },
+          "401": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The bearer token is missing or wrong."
+          },
+          "413": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The body exceeds the byte limit."
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The content encoding is not zstd."
+          },
+          "500": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The model failed or produced a score outside the contract."
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Score a query against its documents, or warm the worker up"
+      }
+    }
+  },
+  "x-mash-contract": {
+    "max_body_bytes": 2097152,
+    "max_document_bytes": 1048576,
+    "max_documents": 64,
+    "max_query_bytes": 16384,
+    "max_score_magnitude": 1000.0,
+    "recipe": "jina-reranker-v1-turbo-en:b8c14f4e723d9e0aab4732a7b7b93741eeeb77c2:onnx-f32:pair-512-longest-first:logit0:v1",
+    "request_id_bytes": 32,
+    "request_magic": "MRK1",
+    "response_magic": "MRR1"
+  }
+}

@@ -12,6 +12,10 @@ with `dash remote` to keep it running behind a sign-in at a private Tailscale
 address.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
+`mash-server --reranking-worker ADDRESS` serves the reranking worker contract
+(`deployment/reranking/openapi.json`) on loopback instead of the shared index:
+Core ML on Apple Silicon, CPU elsewhere. Core ML reranking lives only there,
+because loading its compiled shapes costs a one-shot search seconds.
 `init` is first-run setup: it writes configuration for detected histories, registers
 Mash with agent CLIs through their own commands, and indexes; it never downloads models
 and never downloads or starts Qdrant.

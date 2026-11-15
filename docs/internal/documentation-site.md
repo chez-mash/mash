@@ -116,6 +116,13 @@ and rewrites it with `MASH_WRITE_CONTRACT=1`. The synchronization route
 upgrades to a WebSocket, and its frames are outside what the document
 describes.
 
+The reranking worker's contract is `deployment/reranking/openapi.json`. Its
+bodies are binary frames, so the document is written out in
+`crates/mash-search/src/semantic/remote_reranker/worker.rs` from the same
+constants the code uses; `committed_worker_contract_matches_the_code` fails
+when it is out of date and rewrites it with `MASH_WRITE_CONTRACT=1`. The
+Python workers' tests check their limits, route and statuses against it.
+
 Several types share a short name, such as `Request` and `Scope`, and the MCP
 tools publish them under those names. `app/openapi.rs` gives each a distinct
 name inside the generated documents without renaming the types.

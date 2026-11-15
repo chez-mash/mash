@@ -1,8 +1,10 @@
 # Reranking worker
 
 This optional worker scores search candidates for Mash's contextual reranking
-on a GPU. Run it on Modal, or as a container on a machine of your own with an
-NVIDIA card; both speak the same contract and Mash cannot tell them apart.
+on an accelerator. Run it on Modal, as a container on a machine of your own
+with an NVIDIA card, or on an Apple Silicon Mac with the `mash-server` you
+already have. All three speak the same contract, published in
+[`openapi.json`](openapi.json), and Mash cannot tell them apart.
 Local CPU reranking remains the default and the offline path.
 
 ## On Modal
@@ -48,6 +50,30 @@ put the worker behind HTTPS to reach it from another machine.
 - `MASH_RERANKING_MODEL_DIR` names a model directory other than the one in the
   image.
 
+## On an Apple Silicon Mac
+
+`mash-server` ships with Mash and can serve reranking through Core ML. It
+needs the models from `mash models install` and nothing else.
+
+```sh
+export MASH_RERANKING_TOKEN="$(openssl rand -hex 32)"
+mash-server --reranking-worker 127.0.0.1:8000
+```
+
+Point the node's `[reranking]` at `http://127.0.0.1:8000/rerank` with
+`token_env = "MASH_RERANKING_TOKEN"`, and set the same variable wherever Mash
+searches.
+
+- The first start compiles the model for Core ML, which takes up to a minute.
+  Later starts load the compiled model in a few seconds. The worker prints its
+  address when it is ready, and searches rerank on the CPU until then.
+- One search process would pay that loading time on every run, which is why
+  Core ML reranking lives in a worker and not inside `mash search`.
+- If Core ML fails, the worker logs it and serves from the CPU.
+- It listens on this machine only. On other platforms the same command serves
+  from the CPU, which is useful for testing and no faster than searching
+  without a worker.
+
 ## Limits and contract
 
 The Modal worker permits one T4 (or L4) container, no warm pool, a 60-second
@@ -57,7 +83,8 @@ a text-free warm-up when a search is likely. Each request holds one query of at
 most 16 KiB and at most 64 documents totalling one MiB of UTF-8 text. Request
 bodies and errors never log or echo chat text.
 
-Requests and replies use versioned binary frames (`MRK1`/`MRR1`); an empty
+`openapi.json` is generated from the Rust worker and checked against the
+Python one by its tests. Requests and replies use versioned binary frames (`MRK1`/`MRR1`); an empty
 batch with an empty query is a warm-up and runs no inference. Replies carry one
 little-endian f32 raw logit per document ID. Requests above one kilobyte are
 zstd compressed and marked `Content-Encoding: zstd`.
