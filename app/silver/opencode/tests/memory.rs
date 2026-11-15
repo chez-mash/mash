@@ -21,21 +21,31 @@ fn large_tool_heavy_session_preserves_every_message_and_checkpoint() {
     let source = discover(&path).unwrap().remove(0);
     let checkpoint = source.stamp().unwrap();
     let chat = parse(&source.identity).unwrap().chat.unwrap();
-    assert_eq!(chat.messages.len(), 42);
-    for (i, message) in chat.messages.rows().unwrap().skip(2).enumerate() {
-        let message = message.unwrap();
-        assert!(message.content.contains(&output));
+    // The fixture's five messages, then a reply, a call and its result each.
+    assert_eq!(chat.messages.len(), 125);
+    let rows: Vec<_> = chat
+        .messages
+        .rows()
+        .unwrap()
+        .skip(5)
+        .collect::<Result<_, _>>()
+        .unwrap();
+    for (i, step) in rows.chunks(3).enumerate() {
         assert_eq!(
-            message.dialogue_text.as_deref(),
+            step[0].dialogue_text.as_deref(),
             Some(format!("answer {i}").as_str())
         );
+        assert_eq!(step[1].content, "Tool: read");
+        assert_eq!(step[2].content, output);
+        assert_eq!(step[2].dialogue_text.as_deref(), Some(""));
     }
+    drop(rows);
     drop(chat);
     let local = directory.path().join("index.sqlite3");
     let mut writer = Storage::open_writer(&local).unwrap();
     index(&mut writer, &options(&path)).unwrap();
     writer.commit_writer().unwrap();
-    assert_eq!(writer.counts().unwrap().messages, 43);
+    assert_eq!(writer.counts().unwrap().messages, 126);
     assert!(
         writer
             .source_checkpoint_matches(Provider::Opencode, &source.identity, &checkpoint)
@@ -45,7 +55,7 @@ fn large_tool_heavy_session_preserves_every_message_and_checkpoint() {
     let mut writer = Storage::open_writer(&local).unwrap();
     index(&mut writer, &options(&path)).unwrap();
     writer.commit_writer().unwrap();
-    assert_eq!(writer.counts().unwrap().messages, 43);
+    assert_eq!(writer.counts().unwrap().messages, 126);
 }
 
 #[test]
@@ -93,7 +103,7 @@ fn oversized_current_and_fragmented_legacy_sessions_preserve_index_and_checkpoin
         let mut writer = Storage::open_writer(&local).unwrap();
         assert!(index(&mut writer, &options(&path)).is_err());
         writer.commit_writer().unwrap();
-        assert_eq!(writer.counts().unwrap().messages, 3);
+        assert_eq!(writer.counts().unwrap().messages, 6);
         assert!(
             writer
                 .source_checkpoint_matches(Provider::Opencode, &source.identity, &checkpoint)
@@ -114,7 +124,7 @@ fn oversized_current_and_fragmented_legacy_sessions_preserve_index_and_checkpoin
         let mut writer = Storage::open_writer(&local).unwrap();
         index(&mut writer, &options(&path)).unwrap();
         writer.commit_writer().unwrap();
-        assert_eq!(writer.counts().unwrap().messages, 3);
+        assert_eq!(writer.counts().unwrap().messages, 6);
         assert!(
             writer
                 .source_checkpoint_matches(

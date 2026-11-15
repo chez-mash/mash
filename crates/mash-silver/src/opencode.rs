@@ -167,8 +167,9 @@ struct Session {
     updated_at: i64,
 }
 
-// Both layouts use typed text/reasoning parts. Tool state is deliberately opaque
-// provider-owned context; it never enters the searchable projection.
+// Both layouts use typed text, reasoning and tool parts. A tool's arguments and
+// any result shape Mash does not know stay opaque provider-owned JSON; none of
+// it enters the searchable projection.
 #[derive(Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 enum Part {
@@ -183,11 +184,17 @@ enum Part {
         text: String,
     },
     Tool {
+        /// The call's identity in the current layout.
+        #[serde(default)]
+        id: Option<String>,
+        /// The call's identity in the legacy layout.
+        #[serde(default, rename = "callID")]
+        call_id: Option<String>,
         #[serde(default)]
         name: Option<String>,
         #[serde(default)]
         tool: Option<String>,
-        state: serde_json::Value,
+        state: ToolState,
     },
     File {
         #[serde(default)]
@@ -201,6 +208,103 @@ enum Part {
     },
     #[serde(other)]
     Unknown,
+}
+
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum ToolStatus {
+    Completed,
+    Error,
+    /// Pending, streaming, running and any later state: no result yet.
+    #[default]
+    #[serde(other)]
+    Unsettled,
+}
+
+#[derive(Deserialize)]
+struct ToolState {
+    #[serde(default)]
+    status: ToolStatus,
+    /// An object once the call runs; a partial string while it streams.
+    #[serde(default)]
+    input: Option<serde_json::Value>,
+    /// The legacy layout's result text.
+    #[serde(default)]
+    output: Option<Loose>,
+    /// The current layout's result.
+    #[serde(default)]
+    content: Vec<ToolContent>,
+    #[serde(default)]
+    error: Option<ToolError>,
+}
+
+/// Text where upstream documents text, kept as JSON when it is something else.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum Loose {
+    Text(String),
+    Other(serde_json::Value),
+}
+
+impl Loose {
+    fn text(self) -> String {
+        match self {
+            Self::Text(text) => text,
+            Self::Other(value) => value.to_string(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "type", rename_all = "kebab-case")]
+enum ToolContent {
+    Text {
+        text: String,
+    },
+    File {
+        uri: String,
+        #[serde(default)]
+        name: Option<String>,
+    },
+    #[serde(other)]
+    Unknown,
+}
+
+/// The legacy layout records a message; the current one a structured error.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum ToolError {
+    Structured { message: String },
+    Other(Loose),
+}
+
+impl ToolState {
+    /// The result's text and whether it failed, once the call has settled.
+    /// A state without a known status still counts when it carries a result.
+    fn result(self) -> Option<(String, Option<bool>)> {
+        let mut lines = Vec::new();
+        lines.extend(self.output.map(Loose::text));
+        for content in self.content {
+            match content {
+                ToolContent::Text { text } => lines.push(text),
+                ToolContent::File { uri, name } => {
+                    lines.push(format!("File {}: {uri}", name.unwrap_or_default()));
+                }
+                ToolContent::Unknown => {}
+            }
+        }
+        lines.extend(self.error.map(|error| match error {
+            ToolError::Structured { message } => message,
+            ToolError::Other(other) => other.text(),
+        }));
+        let is_error = match self.status {
+            ToolStatus::Completed => Some(false),
+            ToolStatus::Error => Some(true),
+            ToolStatus::Unsettled if lines.is_empty() => return None,
+            ToolStatus::Unsettled => None,
+        };
+        Some((lines.join("\n"), is_error))
+    }
 }
 
 #[derive(Default)]
@@ -230,44 +334,6 @@ impl Content {
         Ok(())
     }
 
-    fn part(&mut self, part: Part) -> Result<(), AppError> {
-        let (canonical, prose) = match part {
-            Part::Text {
-                text,
-                synthetic,
-                ignored,
-            } => {
-                let prose = (!synthetic && !ignored).then(|| text.clone());
-                (text, prose)
-            }
-            Part::Reasoning { text } => (format!("Reasoning: {text}"), None),
-            Part::Tool { name, tool, state } => (
-                format!("Tool {}: {state}", name.or(tool).unwrap_or_default()),
-                None,
-            ),
-            Part::File {
-                filename,
-                name,
-                url,
-                uri,
-            } => {
-                self.attachments.push(crate::attachments::url(
-                    filename.as_deref().or(name.as_deref()).unwrap_or("file"),
-                    url.as_deref().or(uri.as_deref()).unwrap_or(""),
-                ));
-                (
-                    format!(
-                        "File {}: {}",
-                        filename.or(name).unwrap_or_default(),
-                        url.or(uri).unwrap_or_default()
-                    ),
-                    None,
-                )
-            }
-            Part::Unknown => return Ok(()),
-        };
-        self.append(canonical, prose)
-    }
     fn text(text: String, searchable: bool) -> Result<Self, AppError> {
         let mut content = Self::default();
         let prose = searchable.then(|| text.clone());
@@ -276,15 +342,184 @@ impl Content {
     }
 }
 
+/// One stored message. A provider message holding reasoning, text and tool
+/// parts becomes several, in the order of its parts.
+struct Piece {
+    /// Distinguishes this piece within its provider message. The first run of
+    /// text has none, so it keeps the provider message's own identity.
+    suffix: Option<String>,
+    role: Role,
+    content: Content,
+    tools: crate::tools::Activity,
+}
+
+impl Piece {
+    fn whole(role: Role, content: Content) -> Self {
+        Self {
+            suffix: None,
+            role,
+            content,
+            tools: crate::tools::Activity::default(),
+        }
+    }
+}
+
+/// Splits a provider message's parts into stored messages.
+struct Pieces {
+    role: Role,
+    /// Messages already complete, in order.
+    settled: Vec<Piece>,
+    /// The run of text and file parts being collected, with its first part's key.
+    run: Option<(String, Content)>,
+    /// Text `OpenCode` injected into a prompt, kept apart from what was typed.
+    injected: Content,
+    /// Whether a run has already taken the provider message's identity.
+    named: bool,
+}
+
+impl Pieces {
+    fn new(role: Role) -> Self {
+        Self {
+            role,
+            settled: Vec::new(),
+            run: None,
+            injected: Content::default(),
+            named: false,
+        }
+    }
+
+    fn run(&mut self, key: &str) -> &mut Content {
+        &mut self
+            .run
+            .get_or_insert_with(|| (key.to_owned(), Content::default()))
+            .1
+    }
+
+    fn flush(&mut self) {
+        if let Some((key, content)) = self.run.take() {
+            let suffix = std::mem::replace(&mut self.named, true).then(|| format!("text:{key}"));
+            self.settled.push(Piece {
+                suffix,
+                ..Piece::whole(self.role.clone(), content)
+            });
+        }
+    }
+
+    /// `key` identifies the part within its message and stays the same when
+    /// the message is read again: the part's row in the legacy layout, its
+    /// position in the current one.
+    fn part(&mut self, key: &str, part: Part) -> Result<(), AppError> {
+        match part {
+            Part::Text {
+                text,
+                synthetic,
+                ignored,
+            } => {
+                if (synthetic || ignored) && self.role == Role::User {
+                    self.injected.append(text, None)
+                } else {
+                    let prose = (!synthetic && !ignored).then(|| text.clone());
+                    self.run(key).append(text, prose)
+                }
+            }
+            Part::Reasoning { text } => {
+                self.flush();
+                if !text.trim().is_empty() {
+                    self.settled.push(Piece {
+                        suffix: Some(format!("reasoning:{key}")),
+                        ..Piece::whole(
+                            Role::Assistant,
+                            Content::text(format!("[Thinking] {text}"), false)?,
+                        )
+                    });
+                }
+                Ok(())
+            }
+            Part::Tool {
+                id,
+                call_id,
+                name,
+                tool,
+                state,
+            } => {
+                self.flush();
+                let call_id = call_id.or(id);
+                let name = name.or(tool);
+                let label = name.as_deref().unwrap_or_default();
+                let text = state.input.as_ref().map_or_else(
+                    || format!("Tool: {label}"),
+                    |input| format!("Tool: {label}\n{input}"),
+                );
+                self.settled.push(Piece {
+                    suffix: Some(format!("tool:{key}")),
+                    role: Role::Assistant,
+                    content: Content::text(text, false)?,
+                    tools: crate::tools::Activity::call(
+                        name.as_deref(),
+                        call_id.as_deref(),
+                        state.input.as_ref(),
+                    ),
+                });
+                if let Some((text, is_error)) = state.result() {
+                    self.settled.push(Piece {
+                        suffix: Some(format!("result:{key}")),
+                        role: Role::Tool,
+                        content: Content::text(text, false)?,
+                        tools: crate::tools::Activity::result(call_id.as_deref(), is_error),
+                    });
+                }
+                Ok(())
+            }
+            Part::File {
+                filename,
+                name,
+                url,
+                uri,
+            } => {
+                let content = self.run(key);
+                content.attachments.push(crate::attachments::url(
+                    filename.as_deref().or(name.as_deref()).unwrap_or("file"),
+                    url.as_deref().or(uri.as_deref()).unwrap_or(""),
+                ));
+                content.append(
+                    format!(
+                        "File {}: {}",
+                        filename.or(name).unwrap_or_default(),
+                        url.or(uri).unwrap_or_default()
+                    ),
+                    None,
+                )
+            }
+            Part::Unknown => Ok(()),
+        }
+    }
+
+    fn finish(mut self) -> Vec<Piece> {
+        self.flush();
+        if !self.injected.canonical.is_empty() {
+            self.settled.push(Piece {
+                suffix: Some("synthetic".to_owned()),
+                ..Piece::whole(Role::System, self.injected)
+            });
+        }
+        self.settled
+    }
+}
+
 fn normalize(
     source: &SourceIdentity,
     id: &str,
-    role: Role,
     created: i64,
-    content: &Content,
+    piece: Piece,
     messages: &mut Vec<NormalizedMessage>,
     budget: &mut Budget,
 ) -> Result<(), AppError> {
+    let Piece {
+        suffix,
+        role,
+        content,
+        tools,
+    } = piece;
     if created < 0 {
         return Err(AppError::configuration(
             "invalid OpenCode message timestamp",
@@ -294,9 +529,12 @@ fn normalize(
     if canonical.trim().is_empty() {
         return Ok(());
     }
+    let key = source.key();
+    let mut identity = vec![Provider::Opencode.as_str(), &key, id];
+    identity.extend(suffix.as_deref());
     let message = NormalizedMessage {
-        attachments: content.attachments.clone(),
-        id: super::parsers::stable_id("message", &[Provider::Opencode.as_str(), &source.key(), id]),
+        attachments: content.attachments,
+        id: super::parsers::stable_id("message", &identity),
         ordinal: i64::try_from(messages.len())
             .map_err(|_| AppError::internal("too many OpenCode messages"))?,
         context: crate::message_context::MessageContext::Linear,
@@ -306,12 +544,18 @@ fn normalize(
         role,
         content: canonical,
         created_at: Some(created),
-        tools: crate::tools::Activity::default(),
+        tools,
     };
+    // A call's arguments are held twice: as text and as structured input.
     budget.retain(
         std::mem::size_of::<NormalizedMessage>()
             + message.id.len()
             + message.content.len()
+            + if message.tools.tool_calls.is_empty() {
+                0
+            } else {
+                message.content.len()
+            }
             + message.dialogue_text.as_ref().map_or(0, String::len),
     )?;
     messages.push(message);
@@ -340,7 +584,7 @@ fn current(
             serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&kind),
         )
         .map_err(|_| AppError::configuration("invalid OpenCode message type"))?;
-        let (role, content) = match kind {
+        let pieces = match kind {
             Kind::User => {
                 let user: User = sqlite_source::bounded_json(row)?;
                 let mut content = Content::text(user.text, true)?;
@@ -362,32 +606,31 @@ fn current(
                         None,
                     )?;
                 }
-                (Role::User, content)
+                vec![Piece::whole(Role::User, content)]
             }
             Kind::Assistant => {
-                let mut content = Content::default();
-                for part in sqlite_source::bounded_json::<Assistant>(row)?.content {
-                    content.part(part)?;
+                let mut pieces = Pieces::new(Role::Assistant);
+                let parts = sqlite_source::bounded_json::<Assistant>(row)?.content;
+                for (index, part) in parts.into_iter().enumerate() {
+                    pieces.part(&index.to_string(), part)?;
                 }
-                (Role::Assistant, content)
+                pieces.finish()
             }
-            Kind::Synthetic => (
-                Role::User,
-                Content::text(sqlite_source::bounded_json::<Text>(row)?.text, false)?,
-            ),
-            Kind::System => (
+            // Synthetic messages are written by OpenCode, never by the person:
+            // context beside the system's own, not a prompt.
+            Kind::Synthetic | Kind::System => vec![Piece::whole(
                 Role::System,
                 Content::text(sqlite_source::bounded_json::<Text>(row)?.text, false)?,
-            ),
+            )],
             Kind::Shell => {
                 let shell = sqlite_source::bounded_json::<Shell>(row)?;
-                (
+                vec![Piece::whole(
                     Role::Tool,
                     Content::text(
                         format!("Command: {}\n{}", shell.command, shell.output),
                         false,
                     )?,
-                )
+                )]
             }
             Kind::Compaction => {
                 let compaction = sqlite_source::bounded_json::<Compaction>(row)?;
@@ -396,20 +639,15 @@ fn current(
                     text.push('\n');
                     text.push_str(&recent);
                 }
-                (Role::System, Content::text(text, false)?)
+                vec![Piece::whole(Role::System, Content::text(text, false)?)]
             }
             Kind::AgentSwitched | Kind::ModelSwitched | Kind::Unknown => continue,
         };
         let id: String = row.get("id").map_err(AppError::database)?;
-        normalize(
-            source,
-            &id,
-            role,
-            row.get("time_created").map_err(AppError::database)?,
-            &content,
-            &mut messages,
-            budget,
-        )?;
+        let created = row.get("time_created").map_err(AppError::database)?;
+        for piece in pieces {
+            normalize(source, &id, created, piece, &mut messages, budget)?;
+        }
     }
     Ok(messages)
 }
@@ -429,7 +667,7 @@ fn legacy(
         .map_err(AppError::database)?;
     let mut parts = connection
         .prepare(
-            "SELECT data,length(CAST(data AS BLOB)) AS bytes FROM part
+            "SELECT id,data,length(CAST(data AS BLOB)) AS bytes FROM part
         WHERE message_id=?1 AND session_id=?2 ORDER BY id",
         )
         .map_err(AppError::database)?;
@@ -439,23 +677,19 @@ fn legacy(
         budget.read(row.get("input_bytes").map_err(AppError::database)?)?;
         let id: String = row.get("id").map_err(AppError::database)?;
         let message: LegacyMessage = sqlite_source::bounded_json(row)?;
-        let mut content = Content::default();
+        let mut pieces = Pieces::new(message.role);
         let mut fragments = parts
             .query([id.as_str(), session])
             .map_err(AppError::database)?;
         while let Some(fragment) = fragments.next().map_err(AppError::database)? {
             budget.read(fragment.get("bytes").map_err(AppError::database)?)?;
-            content.part(sqlite_source::bounded_json(fragment)?)?;
+            let key: String = fragment.get("id").map_err(AppError::database)?;
+            pieces.part(&key, sqlite_source::bounded_json(fragment)?)?;
         }
-        normalize(
-            source,
-            &id,
-            message.role,
-            row.get("time_created").map_err(AppError::database)?,
-            &content,
-            &mut messages,
-            budget,
-        )?;
+        let created = row.get("time_created").map_err(AppError::database)?;
+        for piece in pieces.finish() {
+            normalize(source, &id, created, piece, &mut messages, budget)?;
+        }
     }
     Ok(messages)
 }

@@ -4,6 +4,7 @@ use crate::storage::Storage;
 
 mod enrichment;
 mod memory;
+mod parts;
 
 // Required columns from upstream core/session/sql.ts and core/project/sql.ts.
 const SCHEMA: &str = "PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0;
@@ -97,30 +98,31 @@ fn native_layouts_preserve_prose_metadata_and_context_without_duplicate_mirrors(
     assert!(sources.iter().all(|s| s.estimated_bytes.unwrap() > 0));
     let before = source_stamp_for(&sources[0].identity).unwrap();
     let parsed = parse(&sources[0].identity).unwrap().chat.unwrap();
-    assert_eq!(parsed.messages.len(), 4);
+    // Prompt, reply, thinking, tool call, tool result, shell, synthetic.
+    assert_eq!(parsed.messages.len(), 7);
     assert_eq!(parsed.project.as_deref(), Some("/work/cbioportal"));
     assert_eq!(parsed.repository.as_deref(), Some("/work/repository"));
-    assert!(parsed.messages.inline()[1].content.contains("toolmarker"));
-    assert!(
-        parsed.messages.inline()[1]
-            .content
-            .contains("reasoningmarker")
+    assert_eq!(
+        parsed.messages.inline()[1].content,
+        "Repair mutation parsing"
     );
     assert_eq!(
         parsed.messages.inline()[1].dialogue_text.as_deref(),
         Some("Repair mutation parsing")
     );
     assert_eq!(
-        parsed.messages.inline()[2].dialogue_text.as_deref(),
-        Some("")
+        parsed.messages.inline()[2].content,
+        "[Thinking] reasoningmarker"
     );
-    assert_eq!(
-        parsed.messages.inline()[3].dialogue_text.as_deref(),
-        Some("")
+    assert_eq!(parsed.messages.inline()[4].content, "toolmarker");
+    assert!(
+        parsed.messages.inline()[2..]
+            .iter()
+            .all(|message| message.dialogue_text.as_deref() == Some(""))
     );
     let legacy = parse(&sources[1].identity).unwrap().chat.unwrap();
     assert!(
-        legacy.messages.inline()[0]
+        legacy.messages.inline()[1]
             .content
             .contains("syntheticmarker")
     );
