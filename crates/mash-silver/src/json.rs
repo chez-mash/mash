@@ -107,8 +107,52 @@ pub struct Record {
     pub compact_metadata: Option<CompactMetadata>,
     pub message: Option<Payload>,
     pub payload: Option<Payload>,
+    /// Claude Code wrote this record itself: hook feedback, a skill body, an
+    /// image caption.
+    #[serde(rename = "isMeta", default)]
+    pub is_meta: bool,
+    /// The summary Claude Code wrote when it compacted the chat.
+    #[serde(rename = "isCompactSummary", default)]
+    pub is_compact_summary: bool,
+    pub origin: Option<Origin>,
     #[serde(flatten)]
     pub metadata: Metadata,
+}
+
+impl Record {
+    /// A record the agent wrote into the person's side of the chat. It stays
+    /// in history and is never their dialogue.
+    pub fn injected(&self) -> bool {
+        self.is_meta
+            || self.is_compact_summary
+            || matches!(
+                self.origin,
+                Some(Origin::Known {
+                    kind: Some(OriginKind::TaskNotification)
+                })
+            )
+    }
+}
+
+/// Who a user record came from. Any other shape under this name is accepted
+/// and ignored, so a provider reusing the field never rejects a record.
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum Origin {
+    Known {
+        #[serde(default)]
+        kind: Option<OriginKind>,
+    },
+    Unrecognized(serde::de::IgnoredAny),
+}
+
+#[derive(PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum OriginKind {
+    Human,
+    TaskNotification,
+    #[serde(other)]
+    Other,
 }
 
 #[derive(Default, PartialEq, Eq, Deserialize)]
@@ -380,9 +424,11 @@ impl Block {
                         "image"
                     })
             )),
+            // Claude Code often stores thinking as a signature with no text.
             Kind::Thinking => self
                 .thinking
                 .as_ref()
+                .filter(|thinking| !thinking.trim().is_empty())
                 .map(|thinking| format!("[Thinking] {thinking}")),
             Kind::ToolCall | Kind::ToolUse => {
                 let input = if self.kind == Kind::ToolCall {
@@ -437,6 +483,49 @@ mod tests {
         assert_eq!(
             projection.as_deref(),
             Some("spoken answer\nrequest\nresponse")
+        );
+    }
+
+    #[test]
+    fn records_the_agent_wrote_for_the_person_are_recognised() {
+        let injected = [
+            r#"{"type":"user","isMeta":true,"message":{"role":"user","content":"Stop hook feedback: keep going"}}"#,
+            r#"{"type":"user","isCompactSummary":true,"message":{"role":"user","content":"summary"}}"#,
+            r#"{"type":"user","origin":{"kind":"task-notification","producer":"session-task"},"message":{"role":"user","content":"done"}}"#,
+        ];
+        for line in injected {
+            assert!(
+                serde_json::from_str::<Record>(line).unwrap().injected(),
+                "{line}"
+            );
+        }
+        let typed = [
+            r#"{"type":"user","isMeta":false,"origin":{"kind":"human"},"message":{"role":"user","content":"hello"}}"#,
+            r#"{"type":"user","origin":{"kind":"a-future-kind"},"message":{"role":"user","content":"hello"}}"#,
+            // Another meaning of the same field name must not reject the record.
+            r#"{"type":"user","origin":{"host":"github.com","remote":"a/b"},"message":{"role":"user","content":"hello"}}"#,
+            r#"{"type":"user","origin":"cli","message":{"role":"user","content":"hello"}}"#,
+            r#"{"type":"user","origin":null,"message":{"role":"user","content":"hello"}}"#,
+        ];
+        for line in typed {
+            assert!(
+                !serde_json::from_str::<Record>(line).unwrap().injected(),
+                "{line}"
+            );
+        }
+    }
+
+    #[test]
+    fn thinking_without_text_is_not_a_step() {
+        let empty: Content =
+            serde_json::from_str(r#"[{"type":"thinking","thinking":"","signature":"abc"}]"#)
+                .unwrap();
+        assert!(empty.projected().is_none());
+        let kept: Content =
+            serde_json::from_str(r#"[{"type":"thinking","thinking":"weigh both"}]"#).unwrap();
+        assert_eq!(
+            kept.projected(),
+            Some(("[Thinking] weigh both".into(), Some(String::new())))
         );
     }
 

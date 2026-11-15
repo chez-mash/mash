@@ -304,7 +304,10 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             if item.id() != id {
                 return Err(invalid("item identity disagrees with its row"));
             }
-            item.normalize()?
+            let Some(text) = item.normalize()? else {
+                continue;
+            };
+            text
         };
         messages.push(NormalizedMessage {
             id: super::parsers::stable_id(

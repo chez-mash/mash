@@ -95,7 +95,7 @@ fn codex_paginated_item_limit_rejects_before_materializing_payload() {
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(12))]
     #[test]
-    fn codex_paginated_repeated_text_does_not_collapse_native_items(texts in prop::collection::vec("[a-z ]{1,40}", 1..20)) {
+    fn codex_paginated_repeated_text_does_not_collapse_native_items(texts in prop::collection::vec("[a-z][a-z ]{0,39}", 1..20)) {
         let directory=tempfile::tempdir().unwrap();
         let (path,history,_state)=fixture(directory.path());
         history.execute("DELETE FROM thread_items",[]).unwrap();
@@ -119,6 +119,59 @@ proptest! {
         let reordered_ids=reordered.messages.inline().iter().map(|m| m.id.clone()).collect::<BTreeSet<_>>();
         prop_assert_eq!(ids,reordered_ids);
     }
+}
+
+#[test]
+fn codex_paginated_reasoning_is_thinking_and_items_without_text_are_dropped() {
+    let directory = tempfile::tempdir().unwrap();
+    let (path, history, _state) = fixture(directory.path());
+    history.execute("DELETE FROM thread_items", []).unwrap();
+    let items = [
+        serde_json::json!({"id":"item-0","type":"reasoning","summary":[],"content":[]}),
+        serde_json::json!({"id":"item-1","type":"reasoning","summary":["weigh both"],"content":["", "pick the guard"]}),
+        serde_json::json!({"id":"item-2","type":"agentMessage","text":" \n"}),
+        serde_json::json!({"id":"item-3","type":"sleep","durationMs":30000}),
+        serde_json::json!({"id":"item-4","type":"agentMessage","text":"The guard was in the wrong order."}),
+    ];
+    for (ordinal, item) in items.iter().enumerate() {
+        history
+            .execute(
+                "INSERT INTO thread_items VALUES('alpha','turn',?1,?2,2000,?3)",
+                rusqlite::params![
+                    item["id"].as_str().unwrap(),
+                    i64::try_from(ordinal).unwrap(),
+                    item.to_string()
+                ],
+            )
+            .unwrap();
+    }
+    let source = sources(vec![HistorySource::file(&path)]).unwrap().remove(0);
+    let parsed = parse(&source.identity).unwrap().chat.unwrap();
+    let messages = parsed.messages.inline();
+    let shown = messages
+        .iter()
+        .map(|message| (message.content.as_str(), message.dialogue()))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        shown,
+        [
+            // Thinking is a step of its own and never dialogue.
+            ("[Thinking] weigh both\npick the guard", ""),
+            // Bookkeeping stays in history as context.
+            (r#"{"type":"sleep","durationMs":30000}"#, ""),
+            (
+                "The guard was in the wrong order.",
+                "The guard was in the wrong order."
+            ),
+        ]
+    );
+    assert_eq!(
+        messages
+            .iter()
+            .map(|message| message.ordinal)
+            .collect::<Vec<_>>(),
+        [0, 1, 2]
+    );
 }
 
 #[test]

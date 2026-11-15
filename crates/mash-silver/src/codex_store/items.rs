@@ -186,7 +186,9 @@ impl Item {
         &self.id
     }
 
-    pub fn normalize(self) -> Result<Text, AppError> {
+    /// `None` for an item with nothing to show: Codex stores most reasoning
+    /// encrypted, leaving an item with no text, and some replies are empty.
+    pub fn normalize(self) -> Result<Option<Text>, AppError> {
         let mut text = Text {
             canonical: serde_json::to_string(&self.body)
                 .map_err(|_| super::invalid("cannot encode item context"))?,
@@ -198,18 +200,23 @@ impl Item {
         match self.body {
             Body::UserMessage { content } => user_text(&mut text, content)?,
             Body::AgentMessage { text: message } => {
+                if message.trim().is_empty() {
+                    return Ok(None);
+                }
                 text.canonical = message.clone();
                 text.dialogue = message;
             }
             Body::Reasoning { summary, content } => {
-                text.canonical = format!(
-                    "Reasoning: {}",
-                    summary
-                        .into_iter()
-                        .chain(content)
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                );
+                let thinking = summary
+                    .into_iter()
+                    .chain(content)
+                    .filter(|part| !part.trim().is_empty())
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                if thinking.is_empty() {
+                    return Ok(None);
+                }
+                text.canonical = format!("[Thinking] {thinking}");
             }
             Body::HookPrompt { fragments } => {
                 text.role = Role::Developer;
@@ -250,7 +257,7 @@ impl Item {
         if text.attachments.len() > crate::attachments::MAX_FILES {
             return Err(super::invalid("too many item attachments"));
         }
-        Ok(text)
+        Ok(Some(text))
     }
 }
 

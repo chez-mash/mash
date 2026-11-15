@@ -53,6 +53,11 @@ fn parse_claude_file(path: &Path, file: File) -> Result<ParsedFile, AppError> {
         }
         let message = raw.message.as_ref()?;
         let (content, dialogue_text) = message.content.as_ref()?.projected()?;
+        let dialogue_text = if raw.injected() {
+            Some(String::new())
+        } else {
+            dialogue_text
+        };
         Some(ExtractedMessage {
             attachments: message.content.as_ref()?.attachments(),
             tools: message.content.as_ref()?.tools(),
