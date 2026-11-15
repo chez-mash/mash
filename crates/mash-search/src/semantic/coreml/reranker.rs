@@ -34,18 +34,40 @@ struct Session {
 
 pub(crate) struct Pool {
     root: PathBuf,
-    tokenizer: tokenizers::Tokenizer,
+    /// Measures a batch to choose its shape. Taken from the first session
+    /// loaded, so the CPU model is never loaded only to supply it.
+    tokenizer: Option<tokenizers::Tokenizer>,
     sessions: HashMap<usize, Session>,
 }
 
 impl Pool {
-    pub(crate) fn new(root: &Path, mut tokenizer: tokenizers::Tokenizer) -> Self {
-        tokenizer.with_padding(None);
+    pub(crate) fn new(root: &Path) -> Self {
         Self {
             root: root.to_path_buf(),
-            tokenizer,
+            tokenizer: None,
             sessions: HashMap::new(),
         }
+    }
+
+    fn tokenizer(&mut self) -> Result<&tokenizers::Tokenizer, AppError> {
+        if self.tokenizer.is_none() {
+            let mut tokenizer = self.session(SEQUENCES[0])?.model.tokenizer.clone();
+            // A session pads to its own fixed length; measuring needs none.
+            tokenizer.with_padding(None);
+            self.tokenizer = Some(tokenizer);
+        }
+        self.tokenizer
+            .as_ref()
+            .ok_or_else(|| AppError::internal("Core ML reranker has no tokenizer"))
+    }
+
+    fn session(&mut self, sequence: usize) -> Result<&mut Session, AppError> {
+        Ok(match self.sessions.entry(sequence) {
+            std::collections::hash_map::Entry::Occupied(entry) => entry.into_mut(),
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(load(&self.root, sequence)?)
+            }
+        })
     }
 
     /// Raw logits in input order for at most one batch of documents.
@@ -61,9 +83,12 @@ impl Pool {
             .iter()
             .map(|document| (query, *document))
             .collect::<Vec<_>>();
-        let encodings = self.tokenizer.encode_batch(pairs, true).map_err(|error| {
-            AppError::model(format!("Core ML reranker tokenization failed: {error}"))
-        })?;
+        let encodings = self
+            .tokenizer()?
+            .encode_batch(pairs, true)
+            .map_err(|error| {
+                AppError::model(format!("Core ML reranker tokenization failed: {error}"))
+            })?;
         let sequence = bucket(
             encodings
                 .iter()
@@ -88,12 +113,7 @@ impl Pool {
         query: &str,
         documents: &[&str],
     ) -> Result<Vec<f32>, AppError> {
-        let session = match self.sessions.entry(sequence) {
-            std::collections::hash_map::Entry::Occupied(entry) => entry.into_mut(),
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(load(&self.root, sequence)?)
-            }
-        };
+        let session = self.session(sequence)?;
         // The compiled shape is exactly four pairs; the padding's scores are dropped.
         let mut padded = documents.to_vec();
         padded.resize(BATCH, "");
@@ -141,7 +161,10 @@ fn build(root: &Path, sequence: usize, directory: &Path) -> Result<TextRerank, c
     );
     let provider = ort::ep::CoreML::default()
         .with_model_format(ort::ep::coreml::ModelFormat::MLProgram)
-        .with_compute_units(ort::ep::coreml::ComputeUnits::All)
+        // The GPU alone: allowing the Neural Engine as well made every start
+        // take about four seconds longer per shape on an M4, for no gain in
+        // speed on this model.
+        .with_compute_units(ort::ep::coreml::ComputeUnits::CPUAndGPU)
         .with_specialization_strategy(ort::ep::coreml::SpecializationStrategy::FastPrediction)
         .with_model_cache_dir(directory.to_string_lossy())
         .build()

@@ -77,9 +77,9 @@ Point the node's `[reranking]` at `http://127.0.0.1:8000/rerank` with
 searches.
 
 - The first start compiles the model for Core ML, which takes a minute or two.
-  Later starts load the compiled model in about twenty seconds. It keeps about
-  2 GB of compiled shapes beside the models and holds a similar amount of
-  memory while running. The worker prints its
+  Later starts load the compiled model in about two seconds. It keeps about
+  2 GB of compiled shapes beside the models and holds about 1 GB of memory
+  while running. The worker prints its
   address when it is ready, and searches rerank on the CPU until then.
 - One search process would pay that loading time on every run, which is why
   Core ML reranking lives in a worker and not inside `mash search`.

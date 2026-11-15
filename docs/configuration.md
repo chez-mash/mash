@@ -180,10 +180,10 @@ accelerated = true
   meanwhile. Later searches use the worker; nothing needs installing or
   starting by hand.
 - The worker leaves by itself after 15 minutes without a search and starts
-  again when one needs it, which takes about 20 seconds.
+  again when one needs it, which takes about 2 seconds.
 - The first start ever compiles the model, which takes a minute or two and
   keeps about 2 GB beside the models. While running, the worker holds about
-  2 GB of memory.
+  1 GB of memory.
 - `mash search --diagnostics` reports `reranker_engine` as `remote` when the
   worker answered and `cpu` while it is not up.
 - If Core ML cannot be used, searches stay on the CPU and Mash tries again

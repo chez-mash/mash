@@ -29,23 +29,21 @@ mod tests;
 pub(super) type Scorer = Arc<dyn Fn(&str, &[&str]) -> Result<Vec<f32>, AppError> + Send + Sync>;
 
 pub struct Engine {
-    cpu: fastembed::TextRerank,
+    root: PathBuf,
+    /// Held only while the CPU does the scoring: with Core ML working it
+    /// would be a second copy of the model in memory.
+    cpu: Option<fastembed::TextRerank>,
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     accelerated: Option<crate::semantic::coreml::reranker::Pool>,
 }
 
 impl Engine {
     pub fn load(root: &Path) -> Result<Self, AppError> {
-        let cpu = crate::semantic::models::load_reranker(root)?;
         #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-        let accelerated = Some(crate::semantic::coreml::reranker::Pool::new(
-            root,
-            cpu.tokenizer.clone(),
-        ));
-        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-        let accelerated = accelerated.and_then(|mut pool| {
+        let accelerated = {
+            let mut pool = crate::semantic::coreml::reranker::Pool::new(root);
             // Compile and load every input shape now. A search waits at most
-            // its short time bound, and loading a Core ML shape takes seconds.
+            // its short time bound, and compiling a shape takes much longer.
             match pool.warm() {
                 Ok(()) => Some(pool),
                 Err(error) => {
@@ -53,12 +51,16 @@ impl Engine {
                     None
                 }
             }
-        });
+        };
         let mut engine = Self {
-            cpu,
+            root: root.to_path_buf(),
+            cpu: None,
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             accelerated,
         };
+        if !engine.accelerated() {
+            engine.cpu = Some(crate::semantic::models::load_reranker(root)?);
+        }
         engine.scores("warm up", &["warm up"])?;
         Ok(engine)
     }
@@ -105,8 +107,12 @@ impl Engine {
                 }
             }
         }
-        let results = self
-            .cpu
+        let cpu = match &mut self.cpu {
+            Some(cpu) => cpu,
+            // Core ML has just failed; the CPU model was never loaded.
+            empty => empty.insert(crate::semantic::models::load_reranker(&self.root)?),
+        };
+        let results = cpu
             .rerank(query, documents, false, Some(BATCH))
             .map_err(|error| AppError::model(format!("reranking inference failed: {error}")))?;
         let mut scores = vec![None; documents.len()];
