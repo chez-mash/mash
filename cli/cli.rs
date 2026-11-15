@@ -837,7 +837,13 @@ where
             _ => None,
         };
         occasion
-            .and_then(|occasion| warm_up_task(occasion, cli.config.clone()))
+            .and_then(|occasion| {
+                let models = cli
+                    .models_dir
+                    .clone()
+                    .unwrap_or_else(crate::core::default_models_path);
+                warm_up_task(occasion, cli.config.clone(), models)
+            })
             .map(|task| runtime.spawn(task))
     };
     if matches!(cli.command, Command::Dash { .. }) {

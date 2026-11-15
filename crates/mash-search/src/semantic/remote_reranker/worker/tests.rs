@@ -21,7 +21,7 @@ fn lengths(calls: &Arc<AtomicUsize>) -> Scorer {
 async fn start(scorer: Scorer) -> String {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
-    tokio::spawn(async move { axum::serve(listener, router(TOKEN, scorer)).await });
+    tokio::spawn(async move { axum::serve(listener, router(TOKEN, scorer, Arc::default())).await });
     format!("http://{address}/rerank")
 }
 

@@ -14,6 +14,7 @@ use axum::routing::post;
 use std::io::Read;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub const TOKEN_ENV: &str = "MASH_RERANKING_TOKEN";
@@ -25,7 +26,7 @@ const BATCH: usize = 4;
 mod tests;
 
 /// One raw logit per document, in input order.
-type Scorer = Arc<dyn Fn(&str, &[&str]) -> Result<Vec<f32>, AppError> + Send + Sync>;
+pub(super) type Scorer = Arc<dyn Fn(&str, &[&str]) -> Result<Vec<f32>, AppError> + Send + Sync>;
 
 pub struct Engine {
     cpu: fastembed::TextRerank,
@@ -62,12 +63,17 @@ impl Engine {
         Ok(engine)
     }
 
-    pub const fn name(&self) -> &'static str {
+    /// Whether scores come from Core ML and not the CPU model.
+    pub const fn accelerated(&self) -> bool {
         #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
         if self.accelerated.is_some() {
-            return "core-ml";
+            return true;
         }
-        "cpu"
+        false
+    }
+
+    pub const fn name(&self) -> &'static str {
+        if self.accelerated() { "core-ml" } else { "cpu" }
     }
 
     pub fn scores(&mut self, query: &str, documents: &[&str]) -> Result<Vec<f32>, AppError> {
@@ -146,7 +152,7 @@ pub async fn serve(listen: SocketAddr, models: PathBuf) -> Result<(), AppError> 
         .await
         .map_err(AppError::io)?;
     eprintln!("Mash reranking worker ready at http://{listen}/rerank ({name})");
-    axum::serve(listener, router(&token, scorer))
+    axum::serve(listener, router(&token, scorer, Arc::default()))
         .await
         .map_err(AppError::io)
 }
@@ -155,15 +161,18 @@ pub async fn serve(listen: SocketAddr, models: PathBuf) -> Result<(), AppError> 
 struct Worker {
     authorization: blake3::Hash,
     scorer: Scorer,
+    /// Authorized, well-formed requests so far, warm-ups included.
+    requests: Arc<AtomicU64>,
 }
 
-fn router(token: &str, scorer: Scorer) -> axum::Router {
+pub(super) fn router(token: &str, scorer: Scorer, requests: Arc<AtomicU64>) -> axum::Router {
     axum::Router::new()
         .route("/rerank", post(rerank))
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(Worker {
             authorization: blake3::hash(format!("Bearer {token}").as_bytes()),
             scorer,
+            requests,
         })
 }
 
@@ -193,6 +202,7 @@ async fn rerank(State(worker): State<Worker>, headers: HeaderMap, body: Bytes) -
         // Refusal messages never contain input text.
         Err(refusal) => return refuse(StatusCode::BAD_REQUEST, refusal.message()),
     };
+    worker.requests.fetch_add(1, Ordering::Relaxed);
     if batch.documents.is_empty() {
         // Warm-up: the process and model are loaded; no inference.
         return reply(&batch.request_id, 0, &[]);

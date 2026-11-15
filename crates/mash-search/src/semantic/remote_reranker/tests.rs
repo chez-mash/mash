@@ -308,7 +308,11 @@ async fn warm_up_sends_an_empty_batch_without_chat_text() {
         timeout_milliseconds: 100,
     };
     assert!(warm_up(&unset).await.is_err());
-    assert!(warm_up(&Reranking::Local {}).await.is_err());
+    assert!(
+        warm_up(&Reranking::Local { accelerated: true })
+            .await
+            .is_err()
+    );
     assert_eq!(server.calls.load(Ordering::SeqCst), 1);
 }
 
@@ -331,6 +335,13 @@ fn the_worker_is_woken_only_when_the_default_search_reranks_on_it() {
         "{remote}{meaning}ranking='fusion'\n"
     ))));
     assert!(!warms(&load(meaning)));
+    // Mash's own worker is opt-in, and exists only where Core ML does.
+    assert_eq!(
+        warms(&load(&format!(
+            "[reranking]\nbackend='local'\naccelerated=true\n{meaning}"
+        ))),
+        managed::supported()
+    );
 }
 
 #[test]
@@ -347,7 +358,7 @@ fn connect_uses_remote_only_for_the_pinned_installed_reranker_and_a_credential()
         token_env: token_env.into(),
         timeout_milliseconds: 1500,
     };
-    assert!(connect(&Reranking::Local {}, root.path()).is_none());
+    assert!(connect(&Reranking::Local { accelerated: true }, root.path()).is_none());
     assert_eq!(
         connect(&remote("HOME"), root.path()).map(Result::err),
         Some(Some(RerankerFallback::RecipeMismatch))

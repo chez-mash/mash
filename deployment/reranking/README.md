@@ -52,6 +52,11 @@ put the worker behind HTTPS to reach it from another machine.
 
 ## On an Apple Silicon Mac
 
+For your own searches on a Mac, set `accelerated = true` under `[reranking]`
+(see `docs/configuration.md`): Mash then starts and stops a Core ML worker by
+itself. The command below runs the same worker by hand, at an address and with
+a token you choose, for example to put it behind HTTPS for other machines.
+
 `mash-server` ships with Mash and can serve reranking through Core ML. It
 needs the models from `mash models install` and nothing else.
 

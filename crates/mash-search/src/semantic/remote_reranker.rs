@@ -49,22 +49,36 @@ pub struct Scores {
 // the dashboard reuse the connection their warm-up opened.
 static CLIENT: Mutex<Option<Arc<Client>>> = Mutex::new(None);
 
-/// The configured remote reranker for a search with these installed assets,
-/// or why it cannot be used. `None` means local CPU reranking by configuration.
+/// The reranking worker for a search with these installed assets, or why it
+/// cannot be used. `None` means local CPU reranking: by configuration, or
+/// because Mash's own worker is not up yet.
 pub fn connect(
     configuration: &Reranking,
     asset_root: &std::path::Path,
 ) -> Option<Result<Arc<Client>, RerankerFallback>> {
-    if matches!(configuration, Reranking::Local {}) {
+    if !uses_worker(configuration) {
         return None;
     }
     let installed = super::models::snapshot(asset_root, super::RERANKER_REPOSITORY)
         .ok()
         .and_then(|path| path.file_name().map(std::ffi::OsStr::to_owned));
-    if installed.as_deref() != Some(std::ffi::OsStr::new(REVISION)) {
-        return Some(Err(RerankerFallback::RecipeMismatch));
+    let pinned = installed.as_deref() == Some(std::ffi::OsStr::new(REVISION));
+    match configuration {
+        // Mash's own worker loads the installed model, so there is nothing
+        // to start without the pinned one.
+        Reranking::Local { .. } => pinned.then(|| managed::connect(asset_root)).flatten(),
+        Reranking::Remote { .. } if !pinned => Some(Err(RerankerFallback::RecipeMismatch)),
+        Reranking::Remote { .. } => Some(shared_client(configuration)),
     }
-    Some(shared_client(configuration))
+}
+
+/// Whether reranking leaves this process: a configured remote worker, or
+/// Mash's own Core ML worker where that exists.
+fn uses_worker(configuration: &Reranking) -> bool {
+    match configuration {
+        Reranking::Local { accelerated } => *accelerated && managed::supported(),
+        Reranking::Remote { .. } => true,
+    }
 }
 
 fn shared_client(configuration: &Reranking) -> Result<Arc<Client>, RerankerFallback> {
@@ -80,12 +94,23 @@ fn shared_client(configuration: &Reranking) -> Result<Arc<Client>, RerankerFallb
         .ok()
         .filter(|token| !token.trim().is_empty())
         .ok_or(RerankerFallback::CredentialMissing)?;
-    let timeout = Duration::from_millis(u64::from(*timeout_milliseconds));
+    cached_client(
+        url,
+        token,
+        Duration::from_millis(u64::from(*timeout_milliseconds)),
+    )
+}
+
+fn cached_client(
+    url: &str,
+    token: String,
+    timeout: Duration,
+) -> Result<Arc<Client>, RerankerFallback> {
     let mut cached = CLIENT
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     if let Some(client) = cached.as_ref()
-        && client.url == *url
+        && client.url == url
         && client.token == token
         && client.timeout == timeout
     {
@@ -93,7 +118,7 @@ fn shared_client(configuration: &Reranking) -> Result<Arc<Client>, RerankerFallb
     }
     let client = Arc::new(Client {
         http: http_client().map_err(|_| RerankerFallback::Unavailable)?,
-        url: url.clone(),
+        url: url.to_owned(),
         token,
         timeout,
     });
@@ -145,6 +170,7 @@ pub enum Occasion {
 pub fn warm_up_task(
     occasion: Occasion,
     config_path: Option<std::path::PathBuf>,
+    models: std::path::PathBuf,
 ) -> Option<impl std::future::Future<Output = ()> + Send + 'static> {
     let setting = std::env::var("MASH_RERANK_WARMUP")
         .unwrap_or_default()
@@ -160,18 +186,27 @@ pub fn warm_up_task(
         else {
             return;
         };
-        if warms(&configuration) {
+        if !warms(&configuration) {
+            return;
+        }
+        if matches!(configuration.reranking, Reranking::Local { .. }) {
+            // Starts Mash's own worker if there is none; a running one counts
+            // the request as use and stays loaded.
+            if let Some(Ok(client)) = connect(&configuration.reranking, &models) {
+                let _ = client.send(&Request::new("", &[]), client.timeout).await;
+            }
+        } else {
             let _ = warm_up(&configuration.reranking).await;
         }
     })
 }
 
-/// Whether a search here is likely to use the remote worker: one is
-/// configured, and the default search reranks. With word search as the
+/// Whether a search here is likely to use a worker: there is one to use, and
+/// the default search reranks. With word search as the
 /// default the worker is not woken (or billed) for searches that never use
 /// it; an explicit search by meaning then starts it, or falls back to CPU.
 fn warms(configuration: &crate::config::ResolvedConfig) -> bool {
-    !matches!(configuration.reranking, Reranking::Local {})
+    uses_worker(&configuration.reranking)
         && configuration.views.query.intent.semantic()
         && configuration.views.query.ranking == crate::views::config::Ranking::ContextualRerank
 }
@@ -383,6 +418,7 @@ impl<'a> Request<'a> {
     }
 }
 
+pub mod managed;
 pub mod worker;
 
 #[cfg(test)]

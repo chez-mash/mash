@@ -1482,6 +1482,12 @@ export interface components {
         /** @description Why a search configured for remote reranking used the local CPU. */
         RerankerFallback: "timeout" | "unavailable" | "invalid-response" | "credential-missing" | "recipe-mismatch" | "input-limit";
         Reranking: {
+            /**
+             * @description On Apple Silicon, rerank through a Core ML worker that Mash starts
+             *     when a search needs it and that exits when idle. Searches use the
+             *     CPU until it is ready. Off unless set; ignored on other machines.
+             */
+            accelerated?: boolean;
             /** @constant */
             backend: "local";
         } | {

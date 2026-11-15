@@ -155,10 +155,35 @@ other output. Choose a service you trust with your history. Each question
 makes a few requests, which that service bills to your key; a failed request
 is never retried.
 
+## Faster reranking on Apple Silicon
+
+Searches rerank their best candidates on your CPU by default. On an Apple
+Silicon Mac, Mash can rerank through Core ML instead:
+
+```toml
+[reranking]
+backend = "local"
+accelerated = true
+```
+
+- The first search that reranks starts a background worker and uses the CPU
+  meanwhile. Later searches use the worker; nothing needs installing or
+  starting by hand.
+- The worker leaves by itself after 15 minutes without a search and starts
+  again when one needs it, which takes about 20 seconds.
+- The first start ever compiles the model, which takes a minute or two and
+  keeps about 2 GB beside the models. While running, the worker holds about
+  2 GB of memory.
+- `mash search --diagnostics` reports `reranker_engine` as `remote` when the
+  worker answered and `cpu` while it is not up.
+- If Core ML cannot be used, searches stay on the CPU and Mash tries again
+  after an hour. The worker's messages are in `reranking-worker.log` in the
+  models directory.
+- The setting does nothing on other machines.
+
 ## Remote reranking
 
-Searches rerank their best candidates on your CPU by default. To score them on
-an authenticated Mash reranking worker, add:
+To score candidates on an authenticated Mash reranking worker elsewhere, add:
 
 ```toml
 [reranking]

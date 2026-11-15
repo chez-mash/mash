@@ -14,8 +14,15 @@ The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
 `mash-server --reranking-worker ADDRESS` serves the reranking worker contract
 (`deployment/reranking/openapi.json`) on loopback instead of the shared index:
-Core ML on Apple Silicon, CPU elsewhere. Core ML reranking lives only there,
-because loading its compiled shapes costs a one-shot search seconds.
+Core ML on Apple Silicon, CPU elsewhere. Core ML reranking lives only in a
+worker, because loading its compiled shapes costs a one-shot search seconds.
+With `[reranking] accelerated = true` (off by default, Apple Silicon only) a
+search or warm-up that finds no worker starts one from its own executable with
+the internal `__reranking-worker` argument, which is not part of either command
+line. That worker holds a lock in the models directory, publishes its loopback
+address and a generated token in a file private to the user, and exits after
+15 idle minutes. Mash installs no supervisor for it, never waits for it, and
+does not start it again within an hour of a Core ML failure.
 `init` is first-run setup: it writes configuration for detected histories, registers
 Mash with agent CLIs through their own commands, and indexes; it never downloads models
 and never downloads or starts Qdrant.

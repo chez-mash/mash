@@ -3796,6 +3796,10 @@
           {
             "additionalProperties": false,
             "properties": {
+              "accelerated": {
+                "description": "On Apple Silicon, rerank through a Core ML worker that Mash starts\nwhen a search needs it and that exits when idle. Searches use the\nCPU until it is ready. Off unless set; ignored on other machines.",
+                "type": "boolean"
+              },
               "backend": {
                 "const": "local",
                 "type": "string"

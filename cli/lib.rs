@@ -36,6 +36,9 @@ pub use mash_mcp::guidance::{generate_history_skill, validate_history_release};
 #[must_use]
 pub fn main_entry() -> i32 {
     observability::initialize();
+    if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
+        return code;
+    }
     execute(std::env::args_os(), &mut io::stdout(), &mut io::stderr())
 }
 
@@ -43,6 +46,9 @@ pub fn main_entry() -> i32 {
 #[must_use]
 pub fn server_main_entry() -> i32 {
     observability::initialize();
+    if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
+        return code;
+    }
     match server_cli::run(std::env::args_os()) {
         Ok(Some(server_cli::Information::Help { help })) => {
             write_help(&mut io::stdout(), &mut io::stderr(), &help)

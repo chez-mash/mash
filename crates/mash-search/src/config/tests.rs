@@ -656,7 +656,7 @@ fn remote_reranking_is_explicit_strict_and_keeps_credentials_unresolved() {
     let prefix = "version = 1\n[providers]\n";
     assert_eq!(
         parse_document(prefix.as_bytes()).unwrap().reranking,
-        Reranking::Local {}
+        Reranking::Local { accelerated: false }
     );
     let base = format!(
         "{prefix}[reranking]\nbackend = 'remote'\nurl = 'https://example.com/rerank'\ntoken_env = 'MASH_TEST_NOT_PRESENT'\n"
