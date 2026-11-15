@@ -15,7 +15,7 @@ async fn contract(service: Service) {
         .chat
         .unwrap();
     let (events, ids) = super::native::publication(chat);
-    assert_eq!(ids.len(), 9);
+    assert_eq!(ids.len(), 12);
     service
         .upload(FIRST, &events)
         .await

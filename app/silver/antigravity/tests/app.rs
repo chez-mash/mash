@@ -72,13 +72,14 @@ fn app_snapshots_read_like_ide_snapshots_with_their_workspace() {
             })
             .collect::<Vec<_>>()
     };
-    assert_eq!(parsed.messages.len(), 9);
+    assert_eq!(parsed.messages.len(), 12);
     assert_eq!(shape(&parsed), shape(&expected));
     assert!(
         parsed
             .messages
             .inline()
             .iter()
+            .filter(|m| !m.content.starts_with("[Thinking] "))
             .all(|m| !m.dialogue_text.as_deref().unwrap().is_empty()),
         "agent manager conversations are searchable dialogue"
     );

@@ -15,6 +15,9 @@ pub struct Step {
     pub user: Option<User>,
     #[prost(message, optional, tag = "20")]
     pub assistant: Option<Assistant>,
+    /// The body of a `Kind::Generic` step: one tool's result.
+    #[prost(message, optional, tag = "140")]
+    pub generic: Option<Generic>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, prost::Enumeration)]
 #[repr(i32)]
@@ -22,12 +25,15 @@ pub enum Kind {
     Unspecified = 0,
     User = 14,
     Assistant = 15,
+    /// A tool's result; its call is named by the step metadata.
+    Generic = 132,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, prost::Enumeration)]
 #[repr(i32)]
 pub enum Status {
     Unspecified = 0,
     Done = 3,
+    Error = 7,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, prost::Enumeration)]
 #[repr(i32)]
@@ -60,6 +66,9 @@ pub struct StepMetadata {
     pub created_at: Option<Timestamp>,
     #[prost(enumeration = "Source", tag = "3")]
     pub source: i32,
+    /// The call a tool step answers.
+    #[prost(message, optional, tag = "4")]
+    pub tool_call: Option<ToolCall>,
     #[prost(message, optional, tag = "20")]
     pub origin: Option<Origin>,
 }
@@ -106,10 +115,31 @@ pub struct Assistant {
     pub response: String,
     #[prost(string, tag = "3")]
     pub thinking: String,
+    #[prost(message, repeated, tag = "7")]
+    pub tool_calls: Vec<ToolCall>,
     #[prost(string, tag = "8")]
     pub modified_response: String,
     #[prost(string, tag = "16")]
     pub raw_thinking: String,
+}
+#[derive(Clone, Message)]
+pub struct ToolCall {
+    #[prost(string, tag = "1")]
+    pub id: String,
+    #[prost(string, tag = "2")]
+    pub name: String,
+    #[prost(string, tag = "3")]
+    pub arguments_json: String,
+}
+#[derive(Clone, Message)]
+pub struct Generic {
+    #[prost(message, optional, tag = "2")]
+    pub result: Option<GenericResult>,
+}
+#[derive(Clone, Message)]
+pub struct GenericResult {
+    #[prost(string, tag = "1")]
+    pub text: String,
 }
 #[derive(Clone, Message)]
 pub struct Metadata {

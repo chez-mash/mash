@@ -9,6 +9,8 @@ pub mod fixture;
 pub mod history;
 pub mod proto;
 pub mod store;
+#[cfg(test)]
+mod tests;
 pub mod wire;
 
 fn invalid(message: &str) -> AppError {
@@ -82,10 +84,11 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
         updated_at = updated_at.max(timestamp(
             step.metadata.as_ref().and_then(|m| m.created_at.as_ref()),
         )?);
-        if let Some(mut message) = history::normalize(&root, &metadata, index, &step)? {
+        for mut message in history::normalize(&root, &metadata, index, &step)? {
             retained = retained
                 .saturating_add(message.content.capacity())
                 .saturating_add(message.dialogue_text.as_ref().map_or(0, String::capacity))
+                .saturating_add(message.tools.retained_size())
                 .saturating_add(512);
             if retained > 32 * 1024 * 1024 {
                 return Err(invalid("history exceeds retained replay limit"));

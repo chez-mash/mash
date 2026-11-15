@@ -34,7 +34,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
     assert_eq!(
         super::super::history::normalize(&root, &metadata, 0, &step)
             .unwrap()
-            .unwrap()
+            .remove(0)
             .dialogue_text
             .as_deref(),
         Some("Explain cBioPortal")
@@ -45,7 +45,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
     assert_eq!(
         super::super::history::normalize(&root, &metadata, 0, &step)
             .unwrap()
-            .unwrap()
+            .remove(0)
             .content,
         "Legacy cBioPortal query"
     );
@@ -63,7 +63,7 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
     assert_eq!(
         super::super::history::normalize(&root, &metadata, 0, &step)
             .unwrap()
-            .unwrap()
+            .remove(0)
             .dialogue_text
             .as_deref(),
         Some("")
@@ -83,8 +83,8 @@ fn absent_display_text_uses_ordered_text_and_keeps_scope_only_content_unsearchab
     };
     let message = super::super::history::normalize(&root, &metadata, 1, &reasoning)
         .unwrap()
-        .unwrap();
-    assert_eq!(message.content, "internal analysis");
+        .remove(0);
+    assert_eq!(message.content, "[Thinking] internal analysis");
     assert_eq!(message.dialogue_text.as_deref(), Some(""));
 }
 
@@ -93,7 +93,8 @@ fn native_dialogue_keeps_identities_and_separates_scope_and_reasoning() {
     let directory = tempfile::tempdir().unwrap();
     let path = write(directory.path());
     let parsed = chat(&path);
-    assert_eq!(parsed.messages.len(), 9);
+    // Nine dialogue messages, and each of the three answers' reasoning.
+    assert_eq!(parsed.messages.len(), 12);
     assert_eq!(
         parsed.messages.inline()[0].content,
         parsed.messages.inline()[1].content
@@ -102,28 +103,21 @@ fn native_dialogue_keeps_identities_and_separates_scope_and_reasoning() {
         parsed.messages.inline()[0].id,
         parsed.messages.inline()[1].id
     );
-    assert!(
-        parsed
-            .messages
-            .inline()
-            .iter()
-            .all(|m| !m.dialogue_text.as_deref().unwrap().is_empty())
-    );
-    for message in parsed
-        .messages
-        .inline()
-        .iter()
-        .filter(|m| m.role == Role::Assistant)
-    {
-        assert!(message.content.contains("Synthetic reasoning"));
-        assert!(
-            !message
-                .dialogue_text
-                .as_deref()
-                .unwrap()
-                .contains("Synthetic reasoning")
-        );
-        assert_eq!(message.created_at, None);
+    let reasoning = |m: &&mash_silver::NormalizedMessage| m.content.starts_with("[Thinking] ");
+    assert_eq!(parsed.messages.inline().iter().filter(reasoning).count(), 3);
+    for message in parsed.messages.inline() {
+        let searchable = message.dialogue_text.as_deref().unwrap();
+        if reasoning(&message) {
+            assert_eq!(message.role, Role::Assistant);
+            assert!(message.content.contains("Synthetic reasoning"));
+            assert_eq!(searchable, "");
+        } else {
+            assert!(!message.content.contains("Synthetic reasoning"));
+            assert_ne!(searchable, "");
+        }
+        if message.role == Role::Assistant {
+            assert_eq!(message.created_at, None);
+        }
     }
     let scoped = parsed.messages.inline().last().unwrap();
     assert!(scoped.content.contains("synthetic_scope_only_marker"));

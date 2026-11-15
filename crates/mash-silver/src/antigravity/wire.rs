@@ -12,6 +12,7 @@ pub enum Shape {
     Metadata,
     StepMetadata,
     User,
+    Assistant,
     Item,
     Scope,
     Leaf,
@@ -21,7 +22,8 @@ impl Shape {
         match (self, tag) {
             (Self::Step, 5) => Some(Self::StepMetadata),
             (Self::Step, 19) => Some(Self::User),
-            (Self::Step, 20)
+            (Self::Step, 20) => Some(Self::Assistant),
+            (Self::Assistant, 7)
             | (Self::StepMetadata, 1 | 20)
             | (Self::Metadata, 1 | 2 | 8)
             | (Self::Scope, 11) => Some(Self::Leaf),
@@ -33,10 +35,14 @@ impl Shape {
 }
 pub fn inspect(mut bytes: &[u8], shape: Shape, remaining: &mut usize) -> Result<(), AppError> {
     while !bytes.is_empty() {
-        *remaining = remaining
-            .checked_sub(1)
-            .ok_or_else(|| invalid("protobuf field limit exceeded"))?;
         let (tag, wire) = decode_key(&mut bytes).map_err(|_| invalid("invalid protobuf key"))?;
+        // An assistant's scalar fields allocate nothing per occurrence; only
+        // its repeated tool calls count against the limit.
+        if !matches!(shape, Shape::Assistant) || tag == 7 {
+            *remaining = remaining
+                .checked_sub(1)
+                .ok_or_else(|| invalid("protobuf field limit exceeded"))?;
+        }
         if let Some(nested) = shape.nested(tag) {
             if wire != WireType::LengthDelimited {
                 return Err(invalid("invalid native message wire type"));
@@ -68,7 +74,7 @@ pub fn step(
     let mut singles = std::collections::BTreeSet::new();
     while !fields.is_empty() {
         let (tag, wire) = decode_key(&mut fields).map_err(|_| invalid("invalid protobuf key"))?;
-        if matches!(tag, 1 | 4 | 5 | 19 | 20) && !singles.insert(tag) {
+        if matches!(tag, 1 | 4 | 5 | 19 | 20 | 140) && !singles.insert(tag) {
             return Err(invalid("duplicate native step field"));
         }
         if tag == 5 {
