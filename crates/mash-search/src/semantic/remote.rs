@@ -8,6 +8,8 @@ pub const RECIPE: &str =
 const DIMENSIONS: usize = 384;
 const MAX_INPUT_BYTES: usize = 1024 * 1024;
 const MAX_RESPONSE_BYTES: usize = 8 * 1024 * 1024;
+// The worker's request limit, shared with deployment/embeddings/contract.py.
+const MAX_BODY_BYTES: usize = 8 * 1024 * 1024;
 pub const MAX_INPUTS: usize = 256;
 /// Requests kept in flight together. The worker serializes GPU inference but
 /// can receive and reply concurrently, hiding proxy round-trip latency.
@@ -361,9 +363,107 @@ async fn send(
     Ok(result)
 }
 
+/// The worker contract as an `OpenAPI` document. The workers in
+/// `deployment/embeddings` and this client answer to it; the committed copy
+/// is `deployment/embeddings/openapi.json`.
+pub fn document() -> serde_json::Value {
+    let refusal = |description: &str| {
+        serde_json::json!({
+            "description": description,
+            "content": { "application/json": { "schema": {
+                "type": "object",
+                "properties": { "detail": { "type": "string" } },
+            } } },
+        })
+    };
+    serde_json::json!({
+        "openapi": "3.1.0",
+        "info": {
+            "title": "mash-embedding-worker",
+            "version": "1",
+            "description": "Turns a batch of texts into the vectors Mash indexes. Mash reaches a worker with `[embeddings] backend = \"remote\"`; search queries are always embedded locally. Bodies are versioned binary frames with little-endian integers. Generated from crates/mash-search/src/semantic/remote.rs; do not edit.",
+        },
+        "x-mash-contract": {
+            "recipe": RECIPE,
+            "request_magic": std::str::from_utf8(REQUEST_MAGIC).unwrap_or_default(),
+            "response_magic": std::str::from_utf8(RESPONSE_MAGIC).unwrap_or_default(),
+            "request_id_bytes": REQUEST_ID_BYTES,
+            "dimensions": DIMENSIONS,
+            "max_inputs": MAX_INPUTS,
+            "max_input_bytes": MAX_INPUT_BYTES,
+            "max_body_bytes": MAX_BODY_BYTES,
+        },
+        "paths": {
+            "/embed": {
+                "post": {
+                    "operationId": "embed",
+                    "summary": "Embed a batch of texts",
+                    "description": "One attempt per batch: the client never retries and never switches to local inference, because a failed or timed-out request may still have been billed. The worker refuses a recipe other than its own, so its vectors are interchangeable with ones Mash computed locally. Up to four requests may be in flight; the worker runs inference for one at a time.",
+                    "security": [{ "token": [] }],
+                    "parameters": [{
+                        "name": "Content-Encoding",
+                        "in": "header",
+                        "required": false,
+                        "description": "Present when the body is a zstd-compressed frame. Clients compress frames of one kilobyte or more. The decompressed frame has the same byte limit as a plain one.",
+                        "schema": { "type": "string", "enum": ["zstd"] },
+                    }],
+                    "requestBody": {
+                        "required": true,
+                        "description": "Request frame, in order: the 4-byte magic `MSH1`; u16 recipe length and the recipe as UTF-8; a 32-byte request ID chosen by the client; u32 input count, at least one; then for each input a u32 ID, a u32 length and the text as UTF-8. Input IDs are unique and cover 0 to count-1. The texts together stay within the input byte limit. Nothing follows the last input.",
+                        "content": { "application/octet-stream": {
+                            "schema": { "type": "string", "format": "binary", "maxLength": MAX_BODY_BYTES },
+                        } },
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Reply frame, in order: the 4-byte magic `MSR1`; the request's 32-byte ID; u32 inference time in milliseconds; u32 vector count; then for each input a u32 ID and its vector as one f16 per dimension. Vectors are mean-pooled over the attention mask and L2-normalized, one per input.",
+                            "content": { "application/octet-stream": {
+                                "schema": { "type": "string", "format": "binary" },
+                            } },
+                        },
+                        "400": refusal("The frame is malformed, exceeds a limit or names another recipe. The message never contains input text."),
+                        "401": refusal("The bearer token is missing or wrong."),
+                        "413": refusal("The body exceeds the byte limit."),
+                        "415": refusal("The content encoding is not zstd."),
+                        "500": refusal("The model failed or produced a vector outside the contract."),
+                    },
+                },
+            },
+        },
+        "components": {
+            "securitySchemes": {
+                "token": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "description": "The value of the environment variable the node's `token_env` names.",
+                },
+            },
+        },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `deployment/embeddings/openapi.json` is the committed copy of the
+    /// worker contract. Rewrite it with `MASH_WRITE_CONTRACT=1` after changing
+    /// a limit, a frame or a status.
+    #[test]
+    fn committed_embedding_worker_contract_matches_the_code() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../deployment/embeddings/openapi.json");
+        let mut current = serde_json::to_string_pretty(&document()).unwrap();
+        current.push('\n');
+        if std::env::var_os("MASH_WRITE_CONTRACT").is_some() {
+            std::fs::write(&path, &current).unwrap();
+        }
+        let committed = std::fs::read_to_string(&path).unwrap_or_default();
+        assert!(
+            committed == current,
+            "deployment/embeddings/openapi.json is out of date: rerun this test with MASH_WRITE_CONTRACT=1"
+        );
+    }
 
     fn half(value: f32) -> u16 {
         match value {

@@ -83,9 +83,7 @@ def decode_batch(body: bytes) -> Batch:
 def decompress_request(data: bytes) -> bytes:
     """Decode a zstd HTTP body while bounding the decompressed size."""
     try:
-        return zstandard.ZstdDecompressor().decompress(
-            data, max_output_size=MAX_BODY_BYTES
-        )
+        return zstandard.ZstdDecompressor().decompress(data, max_output_size=MAX_BODY_BYTES)
     except zstandard.ZstdError:
         raise ContractError("invalid compressed embedding batch") from None
 

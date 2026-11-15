@@ -1,0 +1,156 @@
+{
+  "components": {
+    "securitySchemes": {
+      "token": {
+        "description": "The value of the environment variable the node's `token_env` names.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Turns a batch of texts into the vectors Mash indexes. Mash reaches a worker with `[embeddings] backend = \"remote\"`; search queries are always embedded locally. Bodies are versioned binary frames with little-endian integers. Generated from crates/mash-search/src/semantic/remote.rs; do not edit.",
+    "title": "mash-embedding-worker",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/embed": {
+      "post": {
+        "description": "One attempt per batch: the client never retries and never switches to local inference, because a failed or timed-out request may still have been billed. The worker refuses a recipe other than its own, so its vectors are interchangeable with ones Mash computed locally. Up to four requests may be in flight; the worker runs inference for one at a time.",
+        "operationId": "embed",
+        "parameters": [
+          {
+            "description": "Present when the body is a zstd-compressed frame. Clients compress frames of one kilobyte or more. The decompressed frame has the same byte limit as a plain one.",
+            "in": "header",
+            "name": "Content-Encoding",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zstd"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "format": "binary",
+                "maxLength": 8388608,
+                "type": "string"
+              }
+            }
+          },
+          "description": "Request frame, in order: the 4-byte magic `MSH1`; u16 recipe length and the recipe as UTF-8; a 32-byte request ID chosen by the client; u32 input count, at least one; then for each input a u32 ID, a u32 length and the text as UTF-8. Input IDs are unique and cover 0 to count-1. The texts together stay within the input byte limit. Nothing follows the last input.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Reply frame, in order: the 4-byte magic `MSR1`; the request's 32-byte ID; u32 inference time in milliseconds; u32 vector count; then for each input a u32 ID and its vector as one f16 per dimension. Vectors are mean-pooled over the attention mask and L2-normalized, one per input."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The frame is malformed, exceeds a limit or names another recipe. The message never contains input text."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The bearer token is missing or wrong."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The body exceeds the byte limit."
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The content encoding is not zstd."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The model failed or produced a vector outside the contract."
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Embed a batch of texts"
+      }
+    }
+  },
+  "x-mash-contract": {
+    "dimensions": 384,
+    "max_body_bytes": 8388608,
+    "max_input_bytes": 1048576,
+    "max_inputs": 256,
+    "recipe": "minilm-l6-v2:751bff37182d3f1213fa05d7196b954e230abad9:onnx-f32:mean-mask:512:l2:v1",
+    "request_id_bytes": 32,
+    "request_magic": "MSH1",
+    "response_magic": "MSR1"
+  }
+}

@@ -1,37 +1,19 @@
 """Explicitly deploy an authenticated GPU worker; importing does not launch jobs."""
 
-import asyncio
-import threading
 from pathlib import Path
-from time import perf_counter
 
 import modal
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response
 
-from contract import (
-    MAX_BODY_BYTES,
-    REQUEST_MAGIC,
-    REVISION,
-    ContractError,
-    decode_batch,
-    decompress_request,
-    encode_reply,
-)
+from service import CUDA, answer, download_model, load_engine
 
 app = modal.App("mash-embeddings")
-MODEL_ROOT = "/opt/mash-model"
+MODEL_ROOT = Path("/opt/mash-model")
 
 
-def download_model() -> None:
+def download_pinned_model() -> None:
     """Runs during explicit image construction, before a GPU is allocated."""
-    from huggingface_hub import snapshot_download
-
-    snapshot_download(
-        "Xenova/all-MiniLM-L6-v2",
-        revision=REVISION,
-        local_dir=MODEL_ROOT,
-        allow_patterns=["onnx/model.onnx", "tokenizer.json"],
-    )
+    download_model(MODEL_ROOT)
 
 
 image = (
@@ -45,7 +27,8 @@ image = (
         "zstandard>=0.23,<1",
     )
     .add_local_file(Path(__file__).with_name("contract.py"), "/root/contract.py", copy=True)
-    .run_function(download_model)
+    .add_local_file(Path(__file__).with_name("service.py"), "/root/service.py", copy=True)
+    .run_function(download_pinned_model)
 )
 
 
@@ -65,83 +48,9 @@ image = (
 class Worker:
     @modal.enter()
     def load(self) -> None:
-        import onnxruntime as ort
-        from tokenizers import Tokenizer
-
-        self.tokenizer = Tokenizer.from_file(f"{MODEL_ROOT}/tokenizer.json")
-        self.tokenizer.enable_truncation(max_length=512)
-        self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]")
-        options = ort.SessionOptions()
-        # ONNX schedules small shape operations on CPU even with CUDA active.
-        # Require the CUDA provider below and disable whole-session fallback.
-        self.session = ort.InferenceSession(
-            f"{MODEL_ROOT}/onnx/model.onnx", options, providers=["CUDAExecutionProvider"]
-        )
-        if self.session.get_providers()[0] != "CUDAExecutionProvider":
-            raise RuntimeError("CUDA inference is unavailable")
-        self.session.disable_fallback()
-        # One GPU: overlap request transfer with inference, never inference itself.
-        self.compute = threading.Lock()
-
-    def infer(self, inputs: list) -> tuple[int, list[tuple[int, bytes]]]:
-        import numpy as np
-
-        results: list[tuple[int, bytes]] = []
-        with self.compute:
-            started = perf_counter()
-            # Amortize network cost with a larger request while bounding the GPU's
-            # attention workspace and padding separately for each inference batch.
-            for start in range(0, len(inputs), 32):
-                chunk = inputs[start : start + 32]
-                encodings = self.tokenizer.encode_batch([item.text for item in chunk])
-                feed = {
-                    "input_ids": np.asarray([item.ids for item in encodings], dtype=np.int64),
-                    "attention_mask": np.asarray(
-                        [item.attention_mask for item in encodings], dtype=np.int64
-                    ),
-                    "token_type_ids": np.asarray(
-                        [item.type_ids for item in encodings], dtype=np.int64
-                    ),
-                }
-                outputs = np.asarray(self.session.run(None, feed)[0], dtype=np.float32)
-                mask = feed["attention_mask"][..., None].astype(np.float32)
-                vectors = (outputs * mask).sum(axis=1) / mask.sum(axis=1).clip(min=1)
-                vectors /= np.linalg.norm(vectors, axis=1, keepdims=True).clip(min=1e-12)
-                if vectors.shape != (len(chunk), 384) or not np.isfinite(vectors).all():
-                    raise HTTPException(500, "invalid model output")
-                # Halves are enough for the int8 vectors Mash stores, and keep
-                # the response five times smaller than JSON float32 text.
-                encoded = vectors.astype("<f2", copy=False)
-                results.extend(
-                    (item.id, row.tobytes())
-                    for item, row in zip(chunk, encoded, strict=True)
-                )
-            inference_milliseconds = round((perf_counter() - started) * 1000)
-        return inference_milliseconds, results
+        # CUDA only: the worker fails rather than serving from the container's CPU.
+        self.engine = load_engine(MODEL_ROOT, [CUDA])
 
     @modal.fastapi_endpoint(method="POST", requires_proxy_auth=True, docs=False)
     async def embed(self, request: Request) -> Response:
-        body = bytearray()
-        async for chunk in request.stream():
-            if len(body) + len(chunk) > MAX_BODY_BYTES:
-                raise HTTPException(413, "embedding request exceeds byte limit")
-            body.extend(chunk)
-        raw = bytes(body)
-        encoding = request.headers.get("content-encoding")
-        if encoding is not None:
-            if encoding != "zstd":
-                raise HTTPException(415, "unsupported content encoding")
-            try:
-                raw = decompress_request(raw)
-            except ContractError:
-                raise HTTPException(400, "invalid embedding batch") from None
-        if raw[:4] != REQUEST_MAGIC:
-            raise HTTPException(400, "invalid embedding batch")
-        try:
-            batch = decode_batch(raw)
-        except ContractError:
-            # Diagnostics may echo input text; never return them.
-            raise HTTPException(400, "invalid embedding batch") from None
-        inference_milliseconds, results = await asyncio.to_thread(self.infer, batch.inputs)
-        reply = encode_reply(batch.request_id, inference_milliseconds, results)
-        return Response(reply, media_type="application/octet-stream")
+        return await answer(request, self.engine.infer)

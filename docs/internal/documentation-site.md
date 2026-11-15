@@ -116,6 +116,10 @@ and rewrites it with `MASH_WRITE_CONTRACT=1`. The synchronization route
 upgrades to a WebSocket, and its frames are outside what the document
 describes.
 
+The embedding worker's contract is `deployment/embeddings/openapi.json`,
+kept the same way from `crates/mash-search/src/semantic/remote.rs` by
+`committed_embedding_worker_contract_matches_the_code`.
+
 The reranking worker's contract is `deployment/reranking/openapi.json`. Its
 bodies are binary frames, so the document is written out in
 `crates/mash-search/src/semantic/remote_reranker/worker.rs` from the same

@@ -103,7 +103,8 @@ embeddings stay local, so semantic search still needs `mash models install`.
 
 The worker must implement Mash's model-specific contract; an arbitrary
 embedding API is not interchangeable. Changing the embedding recipe can require
-rebuilding search data. Deployment instructions are in
+rebuilding search data. The worker runs on Modal or as a container on your
+own machine with an NVIDIA card; instructions are in
 `deployment/embeddings/README.md` in the source repository.
 
 An idle worker can take minutes to start. To keep routine refreshes quick, add
