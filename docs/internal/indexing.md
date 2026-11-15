@@ -239,7 +239,9 @@ quantized ONNX CPU model. After upgrading an existing Mac installation, rerun
 cache.
 
 Contextual reranking uses the FP32 ONNX CPU model on every platform by default,
-with bounded four-candidate batches. Search never downloads model assets.
+in batches of at most four candidates of similar length. A search starts loading
+the reranker when it begins and waits for it only when reranking starts, so
+retrieval overlaps the load. Search never downloads model assets.
 
 An opt-in `[reranking]` remote worker (`deployment/reranking/`) scores a whole
 pass in one bounded request using the same model revision and FastEmbed's

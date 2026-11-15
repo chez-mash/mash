@@ -38,7 +38,7 @@ type RemoteReranker = Option<
 
 pub struct Backend {
     embedding: TextEmbedding,
-    reranker: Option<reranker::Reranker>,
+    reranker: Option<reranker::Lazy>,
     // Resolved on every load: configuration and credentials can change while
     // a cached backend is idle.
     remote_reranker: RemoteReranker,
@@ -62,6 +62,11 @@ struct CachedBackend {
 // MCP already serializes model work. Retain at most one idle local backend;
 // in-flight searches own their backend without holding a lock across I/O.
 static LOCAL_BACKEND: Mutex<Option<CachedBackend>> = Mutex::new(None);
+
+/// Passages scored per inference call. Eight per call measured about 5%
+/// faster than four on a 16-core server and about 10% slower on an M4, so
+/// this stays at four.
+const RERANK_BATCH: usize = 4;
 
 pub struct LoadedBackend {
     backend: Option<Backend>,
@@ -89,6 +94,15 @@ impl DerefMut for LoadedBackend {
 impl Drop for LoadedBackend {
     fn drop(&mut self) {
         if let (Some(key), Some(backend)) = (self.cache_key.take(), self.backend.take()) {
+            // Keep a model that failed to load out of the cache: the next
+            // search loads it again and reports the reason.
+            if backend
+                .reranker
+                .as_ref()
+                .is_some_and(reranker::Lazy::failed)
+            {
+                return;
+            }
             let previous = LOCAL_BACKEND
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -176,16 +190,20 @@ impl Models {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .take();
-        let mut backend = match cached {
-            Some(cached) if cached.key == key => cached.backend,
-            _ => Backend::load_local_search(&asset_root, ranking)?,
-        };
-        backend.remote_reranker = match ranking {
+        let remote_reranker = match ranking {
             crate::views::config::Ranking::ContextualRerank => {
                 super::remote_reranker::connect(&self.reranking, &asset_root)
             }
             crate::views::config::Ranking::Fusion => None,
         };
+        // With a worker to score on, the CPU model is needed only if the
+        // worker fails: do not spend a core and its memory loading it.
+        let worker = matches!(remote_reranker, Some(Ok(_)));
+        let mut backend = match cached {
+            Some(cached) if cached.key == key => cached.backend,
+            _ => Backend::load_local_search(&asset_root, ranking, worker)?,
+        };
+        backend.remote_reranker = remote_reranker;
         backend.assets_lease = selected.lease;
         Ok(Some(LoadedBackend {
             backend: Some(backend),
@@ -267,29 +285,27 @@ impl Backend {
     }
 
     pub(super) fn load_local(root: &Path) -> Result<Self, AppError> {
-        Self::load_local_search(root, crate::views::config::Ranking::default())
+        Self::load_local_search(root, crate::views::config::Ranking::default(), false)
     }
 
     fn load_local_search(
         root: &Path,
         ranking: crate::views::config::Ranking,
+        worker: bool,
     ) -> Result<Self, AppError> {
-        // A command-line search loads both models before it can answer, and
-        // each load is single-threaded work on its own files: do them together.
-        let (embedding, reranker) = std::thread::scope(|scope| {
-            let reranker = matches!(ranking, crate::views::config::Ranking::ContextualRerank)
-                .then(|| scope.spawn(|| reranker::Reranker::load(root)));
-            let embedding = load_local_embedding(root, None);
-            let reranker = reranker
-                .map(|loading| {
-                    loading
-                        .join()
-                        .unwrap_or_else(|_| Err(AppError::internal("reranker loading failed")))
-                })
-                .transpose();
-            (embedding, reranker)
-        });
-        let (embedding, reranker) = (embedding?, reranker?);
+        // A command-line search loads both models, each single-threaded work
+        // on its own files. Start the reranker now and wait for it only when
+        // reranking begins: embedding the query and retrieval need the
+        // embedding model alone.
+        let reranker =
+            matches!(ranking, crate::views::config::Ranking::ContextualRerank).then(|| {
+                if worker {
+                    reranker::Lazy::deferred(root)
+                } else {
+                    reranker::Lazy::start(root)
+                }
+            });
+        let embedding = load_local_embedding(root, None)?;
         Ok(Self {
             embedding,
             reranker,
@@ -320,10 +336,14 @@ impl Backend {
         query: S,
         documents: &[S],
     ) -> Result<Vec<fastembed::RerankResult>, AppError> {
+        // Wait for the model outside the measured stage: loading is not
+        // inference, and a search that started it late should not report a
+        // slow reranker.
+        self.wait_for_reranker()?;
         let result = crate::observability::retrieval::measure_vec(
             crate::observability::retrieval::Stage::Rerank,
             Some(documents.len()),
-            || self.rerank_batched(query, documents, 4),
+            || self.rerank_batched(query, documents, RERANK_BATCH),
         );
         if self.reranker.is_some() {
             crate::observability::retrieval::record_reranker(
@@ -334,6 +354,14 @@ impl Backend {
         result
     }
 
+    /// Blocks until the CPU reranker has loaded, if this backend has one.
+    pub fn wait_for_reranker(&mut self) -> Result<(), AppError> {
+        if let Some(reranker) = self.reranker.as_mut() {
+            reranker.get()?;
+        }
+        Ok(())
+    }
+
     pub fn remote_reranker(&self) -> RemoteReranker {
         self.remote_reranker.clone()
     }
@@ -341,7 +369,7 @@ impl Backend {
     /// Raw CPU logits in input order, for one complete reranking pass.
     pub fn rerank_cpu(&mut self, query: &str, documents: &[&str]) -> Result<Vec<f32>, AppError> {
         let mut scores = vec![f32::NEG_INFINITY; documents.len()];
-        for result in self.rerank_batched(query, documents, 4)? {
+        for result in self.rerank_batched(query, documents, RERANK_BATCH)? {
             *scores
                 .get_mut(result.index)
                 .ok_or_else(|| AppError::model("reranker returned an invalid document index"))? =
@@ -362,26 +390,24 @@ impl Backend {
         let reranker = self
             .reranker
             .as_mut()
-            .ok_or_else(|| AppError::internal("query backend has no reranker"))?;
+            .ok_or_else(|| AppError::internal("query backend has no reranker"))?
+            .get()?;
         let mut order = (0..documents.len()).collect::<Vec<_>>();
-        let bucket = |index: usize| documents[index].as_ref().len().next_power_of_two();
-        order.sort_by_key(|&index| bucket(index));
+        // Neighbours in length share a batch, so a long history message does
+        // not pad every short candidate and little padding is computed.
+        order.sort_by_key(|&index| documents[index].as_ref().len());
         let mut scores = Vec::with_capacity(documents.len());
-        // Small batches of similarly sized documents amortize inference calls
-        // without making a long history message pad every short candidate.
-        for group in order.chunk_by(|&a, &b| bucket(a) == bucket(b)) {
-            for indices in group.chunks(batch_size) {
-                let refs = indices
-                    .iter()
-                    .map(|&index| documents[index].as_ref())
-                    .collect::<Vec<_>>();
-                let results = reranker.run(query.as_ref(), &refs)?;
-                for mut result in results {
-                    result.index = *indices.get(result.index).ok_or_else(|| {
-                        AppError::model("reranker returned an invalid document index")
-                    })?;
-                    scores.push(result);
-                }
+        for indices in order.chunks(batch_size) {
+            let refs = indices
+                .iter()
+                .map(|&index| documents[index].as_ref())
+                .collect::<Vec<_>>();
+            let results = reranker.run(query.as_ref(), &refs)?;
+            for mut result in results {
+                result.index = *indices.get(result.index).ok_or_else(|| {
+                    AppError::model("reranker returned an invalid document index")
+                })?;
+                scores.push(result);
             }
         }
         scores.sort_by(|a, b| {

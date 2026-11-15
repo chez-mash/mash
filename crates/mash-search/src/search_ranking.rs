@@ -193,6 +193,16 @@ pub async fn finish(backend: LoadedBackend, ranked: Ranked) -> Result<Vec<Search
             .await;
         }
     };
+    let mut backend = backend;
+    if backend.remote_reranker().is_none() {
+        // The CPU will score. Wait for its model outside the measured stage:
+        // loading is not inference, and it began when the search did.
+        backend = crate::blocking(move || {
+            backend.wait_for_reranker()?;
+            Ok(backend)
+        })
+        .await?;
+    }
     let mut measured = Guard::begin(Stage::Rerank);
     let inputs = pending.windows.len();
     let attempt = match backend.remote_reranker() {

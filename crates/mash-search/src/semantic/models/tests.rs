@@ -124,6 +124,8 @@ fn small_rerank_batches_preserve_scores_and_document_indices() {
         .reranker
         .as_mut()
         .unwrap()
+        .get()
+        .unwrap()
         .cpu
         .rerank("cbioportal importer", documents, false, None)
         .unwrap();
