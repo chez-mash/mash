@@ -1,11 +1,12 @@
 # Reranking worker
 
 This optional worker scores search candidates for Mash's contextual reranking
-on an accelerator. Run it on Modal, as a container on a machine of your own
-with an NVIDIA card, or on an Apple Silicon Mac with the `mash-server` you
-already have. All three speak the same contract, published in
-[`openapi.json`](openapi.json), and Mash cannot tell them apart.
-Local CPU reranking remains the default and the offline path.
+on an accelerator. Run it on Modal, or, experimentally, on hardware of your
+own: as a container on a machine with an NVIDIA card, or on an Apple Silicon
+Mac with the `mash-server` you already have. All three speak the same
+contract, published in [`openapi.json`](openapi.json), and Mash cannot tell
+them apart. Local CPU reranking is the default and the offline path, and
+nothing here is used unless you configure it.
 
 ## On Modal
 
@@ -26,7 +27,10 @@ Use a Modal proxy token (the embedding worker's token works) as the
 credential used for deployment separate from this invocation token. See
 [Modal proxy authentication](https://modal.com/docs/guide/webhook-proxy-auth).
 
-## On your own machine
+## On your own machine (experimental)
+
+The container has been built and timed on a cloud GPU, not yet run with
+Docker on a machine of our own. Expect rough edges and tell us what you find.
 
 This needs Docker with the NVIDIA Container Toolkit. Build the image from this
 directory; the build downloads the pinned model, and a running worker never
@@ -50,7 +54,10 @@ put the worker behind HTTPS to reach it from another machine.
 - `MASH_RERANKING_MODEL_DIR` names a model directory other than the one in the
   image.
 
-## On an Apple Silicon Mac
+## On an Apple Silicon Mac (experimental)
+
+Core ML reranking has been measured on one Mac so far. It is off unless you
+turn it on, and its setting and behaviour may change.
 
 For your own searches on a Mac, set `accelerated = true` under `[reranking]`
 (see `docs/configuration.md`): Mash then starts and stops a Core ML worker by

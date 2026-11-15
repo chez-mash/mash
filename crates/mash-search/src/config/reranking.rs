@@ -7,9 +7,10 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "backend", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Reranking {
     Local {
-        /// On Apple Silicon, rerank through a Core ML worker that Mash starts
-        /// when a search needs it and that exits when idle. Searches use the
-        /// CPU until it is ready. Off unless set; ignored on other machines.
+        /// Experimental. On Apple Silicon, rerank through a Core ML worker
+        /// that Mash starts when a search needs it and that exits when idle.
+        /// Searches use the CPU until it is ready. Off unless set; ignored
+        /// on other machines.
         // Left out of status output while off, as before the setting existed.
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         accelerated: bool,

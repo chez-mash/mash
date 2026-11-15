@@ -1,8 +1,8 @@
 # Embedding worker
 
 This optional worker generates indexing vectors for Mash on a GPU. Run it on
-Modal, or as a container on a machine of your own with an NVIDIA card; both
-speak the same contract, published in [`openapi.json`](openapi.json), and Mash
+Modal, or, experimentally, as a container on a machine of your own with an
+NVIDIA card; both speak the same contract, published in [`openapi.json`](openapi.json), and Mash
 cannot tell them apart. Query inference remains local, and no deployment or
 model download happens on ordinary Mash startup.
 
@@ -24,7 +24,10 @@ Use the emitted endpoint URL in the node's `[embeddings]` configuration. Keep th
 account API credential used for deployment separate from this invocation token.
 See [Modal proxy authentication](https://modal.com/docs/guide/webhook-proxy-auth).
 
-## On your own machine
+## On your own machine (experimental)
+
+The container has been built and timed on a cloud GPU, not yet run with
+Docker on a machine of our own or used for a whole index. Expect rough edges.
 
 This needs Docker with the NVIDIA Container Toolkit. Build the image from this
 directory; the build downloads the pinned model, and a running worker never

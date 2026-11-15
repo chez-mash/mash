@@ -36,7 +36,7 @@ struct Arguments {
     /// Port for the server on this machine and in its tailnet address.
     #[arg(long, default_value_t = 8787, requires = "setup")]
     port: u16,
-    /// Serve search reranking for this machine at this address, for example
+    /// Experimental. Serve search reranking for this machine at this address, for example
     /// 127.0.0.1:8000, instead of the shared index. Uses Core ML on Apple
     /// Silicon and the CPU elsewhere, and takes its token from
     /// MASH_RERANKING_TOKEN. Point a node's [reranking] at

@@ -12,6 +12,10 @@ with `dash remote` to keep it running behind a sign-in at a private Tailscale
 address.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
+Inference on a GPU of the user's own is experimental and off by default, for
+reranking and embeddings alike: the Core ML reranking worker and the NVIDIA
+worker containers in `deployment/`. Say so wherever they are documented, and
+do not make any of them a default. CPU reranking is the default everywhere.
 `mash-server --reranking-worker ADDRESS` serves the reranking worker contract
 (`deployment/reranking/openapi.json`) on loopback instead of the shared index:
 Core ML on Apple Silicon, CPU elsewhere. Core ML reranking lives only in a

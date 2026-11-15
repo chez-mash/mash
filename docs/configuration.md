@@ -103,8 +103,8 @@ embeddings stay local, so semantic search still needs `mash models install`.
 
 The worker must implement Mash's model-specific contract; an arbitrary
 embedding API is not interchangeable. Changing the embedding recipe can require
-rebuilding search data. The worker runs on Modal or as a container on your
-own machine with an NVIDIA card; instructions are in
+rebuilding search data. The worker runs on Modal. Running it as a container
+on your own machine with an NVIDIA card is experimental. Instructions are in
 `deployment/embeddings/README.md` in the source repository.
 
 An idle worker can take minutes to start. To keep routine refreshes quick, add
@@ -155,10 +155,12 @@ other output. Choose a service you trust with your history. Each question
 makes a few requests, which that service bills to your key; a failed request
 is never retried.
 
-## Faster reranking on Apple Silicon
+## Faster reranking on Apple Silicon (experimental)
 
-Searches rerank their best candidates on your CPU by default. On an Apple
-Silicon Mac, Mash can rerank through Core ML instead:
+Searches rerank their best candidates on your CPU by default, on every
+machine. On an Apple Silicon Mac, Mash can rerank through Core ML instead.
+This is experimental and off unless you turn it on: it has been measured on
+few machines, and its setting and behaviour may change.
 
 ```toml
 [reranking]
@@ -194,8 +196,9 @@ timeout_milliseconds = 1500
 ```
 
 This sends the query and the excerpts being ranked to the worker. The worker
-runs on Modal, as a container on your own machine with an NVIDIA card, or on
-an Apple Silicon Mac with `mash-server --reranking-worker 127.0.0.1:8000`; see
+runs on Modal. Running it yourself is experimental: as a container on a
+machine with an NVIDIA card, or on an Apple Silicon Mac with
+`mash-server --reranking-worker 127.0.0.1:8000`. See
 `deployment/reranking/README.md` in the source repository. A worker on the
 same machine uses `url = "http://127.0.0.1:8000/rerank"`.
 
