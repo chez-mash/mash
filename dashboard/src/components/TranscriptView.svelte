@@ -22,7 +22,7 @@ import Terminal from "@lucide/svelte/icons/terminal";
 import X from "@lucide/svelte/icons/x";
 import { createQuery } from "@tanstack/svelte-query";
 import { tick, untrack } from "svelte";
-import { context, type MessagePage, PAGE_SIZE, transcript } from "../lib/api";
+import { type MessagePage, PAGE_SIZE, transcript, transcriptPage } from "../lib/api";
 import { projectLabel, whenLabel } from "../lib/browse";
 import {
   collectChat,
@@ -30,17 +30,17 @@ import {
   type ExportFormat,
   htmlExport,
   markdownExport,
-  messageText,
 } from "../lib/export";
 import { countLabel, type FindMatch, findMatches } from "../lib/find";
 import { bringIntoView, clearMatches, paintMatches } from "../lib/findHighlight";
 import { concerns, onChange, pageUpdate } from "../lib/live";
 import { plainTitle } from "../lib/markdown";
+import { messageText, saidText, shownText } from "../lib/message";
 import { catalogOptions, stableRead } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import { label, recordPage } from "../lib/records";
 import { chatHref, projectHref, recordHref, recordsHref } from "../lib/route.svelte";
-import { type ToolCall, toolCalls } from "../lib/toolcalls";
+import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/steps";
 import type { Message } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import MessageBody from "./MessageBody.svelte";
@@ -169,7 +169,7 @@ const whole = createQuery(() => ({
 const matches = $derived(
   findOpen && whole.data
     ? findMatches(
-        whole.data.map((message) => ({ id: message.id, text: messageText(message) })),
+        whole.data.map((message) => ({ id: message.id, text: shownText(message) })),
         findQuery,
       )
     : [],
@@ -229,6 +229,16 @@ async function reveal(target: FindMatch): Promise<void> {
     fold.open = true;
   await tick();
   const spot = paintMatches(pane, findQuery, { element, occurrence: target.occurrence });
+  // The match may sit in a fold inside the message, such as its added context.
+  if (spot instanceof Range) {
+    for (
+      let fold = spot.startContainer.parentElement?.closest("details");
+      fold && element.contains(fold);
+      fold = fold.parentElement?.closest("details")
+    )
+      fold.open = true;
+    await tick();
+  }
   if (spot) bringIntoView(spot);
 }
 $effect(() => {
@@ -260,10 +270,9 @@ $effect(() => {
 const key = $derived(JSON.stringify([id, machine, offset, anchor, shared]));
 const live = createQuery(() => ({
   queryKey: ["transcript", id, machine, offset, anchor, shared],
-  queryFn: ({ signal }) =>
-    anchor
-      ? context(anchor, machine, signal, shared)
-      : transcript(id, machine, offset, signal, shared),
+  // A tool call cut off from its output by the edge of the page arrives
+  // with it, so the page is whole when it is first shown.
+  queryFn: ({ signal }) => transcriptPage(id, machine, offset, anchor, signal, shared),
   ...stableRead,
 }));
 const loaded = $derived(snapshot?.key === key ? snapshot.page : undefined);
@@ -355,9 +364,10 @@ $effect(() => {
 function plainText(message: Message): string {
   return messageText(message);
 }
+/** Copies what the bubble shows: a person's own words, not the context around them. */
 async function copy(message: Message): Promise<void> {
   try {
-    await navigator.clipboard.writeText(plainText(message));
+    await navigator.clipboard.writeText(saidText(message));
     notice = "Copied message.";
   } catch {
     notice = "Copy failed. Select the message text to copy it manually.";
@@ -442,64 +452,14 @@ async function copySession(): Promise<void> {
     notice = `Copy failed. The session ID is ${id}.`;
   }
 }
-// Consecutive tool calls, tool output and reasoning read as one run of
-// steps, folded so the conversation stays the main thing on the page.
-type Item =
-  | { readonly kind: "message"; readonly message: Message }
-  | { readonly kind: "steps"; readonly messages: readonly Message[] };
-const items = $derived.by(() => {
-  const list: Item[] = [];
-  let run: Message[] = [];
-  const flush = () => {
-    if (run.length) list.push({ kind: "steps", messages: run });
-    run = [];
-  };
-  for (const message of loaded?.messages ?? []) {
-    if (message.presentation && message.presentation !== "dialogue") run.push(message);
-    else {
-      flush();
-      list.push({ kind: "message", message });
-    }
-  }
-  flush();
-  return list;
-});
-type StepPart =
-  | { readonly kind: "call"; readonly call: ToolCall; readonly messages: readonly Message[] }
-  | { readonly kind: "note"; readonly message: Message };
-// A run of steps as what the reader sees: each tool call once, with its
-// output, and the agent's thinking in between, in the order they happened.
-function stepParts(messages: readonly Message[]): StepPart[] {
-  const calls = toolCalls(messages);
-  const parts: StepPart[] = [];
-  for (const message of messages) {
-    if (message.presentation === "reasoning") parts.push({ kind: "note", message });
-    for (const call of calls) {
-      if (call.id !== message.id && !call.id.startsWith(`${message.id}:`)) continue;
-      parts.push({
-        kind: "call",
-        call,
-        messages: messages.filter(
-          (other) =>
-            (other.id === message.id && call.id === message.id) || other.id === call.resultId,
-        ),
-      });
-    }
-  }
-  return parts;
+// Consecutive tool calls, tool output, thinking and context read as one run
+// of steps, folded so the conversation stays the main thing on the page.
+const items = $derived(loaded ? transcriptItems(loaded) : []);
+function characters(message: Message): string {
+  const count = plainText(message).length;
+  return `${count.toLocaleString()} character${count === 1 ? "" : "s"}`;
 }
-function stepLabel(message: Message): string {
-  if (message.presentation === "reasoning") return "Thinking";
-  return message.presentation === "tool-result" ? "Tool output" : message.toolLabel || "Tool call";
-}
-function stepsSummary(messages: readonly Message[]): string {
-  const calls = toolCalls(messages);
-  const names = [...new Set(calls.map((call) => call.name))];
-  const count = calls.length || messages.length;
-  const noun = calls.length ? "tool call" : "step";
-  const failed = calls.filter((call) => call.status?.failed).length;
-  return `${count} ${noun}${count === 1 ? "" : "s"}${names.length ? `: ${names.slice(0, 4).join(", ")}${names.length > 4 ? ", …" : ""}` : ""}${failed ? ` · ${failed} failed` : ""}`;
-}
+// Context is not a prompt: only what a person said is listed.
 const prompts = $derived(
   (loaded?.messages ?? []).filter(
     (message) => message.role === "user" && message.presentation === "dialogue",
@@ -527,7 +487,7 @@ const prompts = $derived(
         <h2 class="h2"><ListOrdered size={15} aria-hidden="true" />your prompts on this page</h2>
         <div class="outl-l">
           {#each prompts as message, index (message.id)}
-            <button type="button" class:on={currentMessage === message.id} aria-current={currentMessage === message.id ? "location" : undefined} onclick={async () => { await closeSessions(false); jump(message.id); }}><small>{index + 1}</small><span>{plainText(message).replace(/\s+/g, " ").slice(0, 80)}</span></button>
+            <button type="button" class:on={currentMessage === message.id} aria-current={currentMessage === message.id ? "location" : undefined} onclick={async () => { await closeSessions(false); jump(message.id); }}><small>{index + 1}</small><span>{saidText(message).replace(/\s+/g, " ").slice(0, 80)}</span></button>
           {/each}
         </div>
       </div>
@@ -631,33 +591,43 @@ const prompts = $derived(
           {/if}
         {/each}
       {/snippet}
+      <!-- Thinking and context: a closed row that opens to plain text. -->
+      {#snippet note(message: Message)}
+        {@const context = message.presentation === "context"}
+        <details class="fold" class:hit={message.id === messageId} id="message-{message.id}" data-message={message.id} open={message.id === messageId} style:scroll-margin-top="80px">
+          <summary>{#if context}<FileText size={15} aria-hidden="true" />{:else}<Lightbulb size={15} aria-hidden="true" />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span></summary>
+          <div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div>
+        </details>
+        {@render saved(message)}
+      {/snippet}
       {#each items as item (item.kind === "message" ? item.message.id : item.messages[0]?.id)}
         {#if item.kind === "steps"}
-          <details class="fold" open={item.messages.some((message) => message.id === messageId)}>
-            <summary><Terminal size={16} aria-hidden="true" />{stepsSummary(item.messages)}</summary>
-            <div>
-              {#each stepParts(item.messages) as part (part.kind === "call" ? part.call.id : part.message.id)}
-                {#if part.kind === "call"}
-                  <ToolStep call={part.call} selected={messageId} />
-                  {#each part.messages as message (message.id)}{@render saved(message)}{/each}
-                {:else}
-                  {@const message = part.message}
-                  <details class="fold" class:hit={message.id === messageId} id="message-{message.id}" data-message={message.id} open={message.id === messageId} style:scroll-margin-top="80px">
-                    <summary><Lightbulb size={15} aria-hidden="true" />{stepLabel(message)}<span class="mtx">{message.at}</span></summary>
-                    <div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div>
-                  </details>
-                  {@render saved(message)}
-                {/if}
-              {/each}
-            </div>
-          </details>
+          {@const only = item.messages.length === 1 ? item.messages[0] : undefined}
+          {#if only?.presentation === "context"}
+            {@render note(only)}
+          {:else}
+            <details class="fold" open={item.messages.some((message) => message.id === messageId)}>
+              <summary><Terminal size={16} aria-hidden="true" />{stepsSummary(item)}</summary>
+              <div>
+                {#each stepParts(item) as part (part.kind === "call" ? part.call.id : part.message.id)}
+                  {#if part.kind === "call"}
+                    <ToolStep call={part.call} selected={messageId} />
+                    {#each part.messages as message (message.id)}{@render saved(message)}{/each}
+                  {:else}
+                    {@render note(part.message)}
+                  {/if}
+                {/each}
+              </div>
+            </details>
+          {/if}
         {:else}
           {@const message = item.message}
           {@const selected = message.id === messageId}
           <div class="hitbox" class:hit={selected} id="message-{message.id}" data-message={message.id} style:scroll-margin-top="80px">
             {#if selected}<span class="hitlabel">Matched your search</span>{/if}
             {#if message.role === "user"}
-              <div class="you"><MessageBody text={plainText(message)} own /><button class="cp" type="button" aria-label="Copy message" title="Copy message" onclick={() => copy(message)}><Copy size={14} /></button></div>
+              <div class="you"><MessageBody text={saidText(message)} own /><button class="cp" type="button" aria-label="Copy message" title="Copy message" onclick={() => copy(message)}><Copy size={14} /></button></div>
+              {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
                 {#each message.blocks as block, i (i)}

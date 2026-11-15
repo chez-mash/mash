@@ -121,16 +121,19 @@ pub fn view(
 }
 
 pub fn message(record: MessageRecord, projection: bool) -> Message {
+    let (content, dialogue) = if projection {
+        (record.projection, None)
+    } else {
+        let dialogue = Message::dialogue_of(&record.role, &record.content, &record.projection);
+        (record.content, dialogue)
+    };
     Message {
         attachments: record.attachments,
         id: record.id,
         ordinal: record.ordinal,
         role: record.role,
-        content: if projection {
-            record.projection
-        } else {
-            record.content
-        },
+        content,
+        dialogue,
         created_at: record.created_at,
         tools: record.tools,
     }

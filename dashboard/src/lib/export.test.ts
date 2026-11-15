@@ -104,4 +104,30 @@ describe("whole-chat exports", () => {
     expect(output).toContain("## Tool output");
     expect(output).toContain("````\n```html\n<div>raw</div>\n```\n````");
   });
+
+  it("labels context as context, not as the person or the assistant", () => {
+    const output = markdownExport("Chat", "remote", [
+      { ...message("sys"), role: "system", presentation: "context" },
+      { ...message("hook"), role: "user", presentation: "context" },
+    ]);
+    expect(output).toContain("## System instructions · Now\n\n```\nMessage sys\n```");
+    expect(output).toContain("## Context added by the agent · Now\n\n```\nMessage hook\n```");
+    expect(output).not.toContain("## user");
+    expect(output).not.toContain("## system");
+  });
+
+  it("puts a person's own words first and keeps the context that came with them", () => {
+    const output = markdownExport("Chat", "remote", [
+      {
+        ...message("q"),
+        role: "user",
+        presentation: "dialogue",
+        dialogue: "fix it",
+        blocks: [{ type: "text", markdown: "<ide>`a.rs`</ide>\nfix it" }],
+      },
+    ]);
+    expect(output).toContain(
+      "## user · Now\n\nfix it\n\n### Context added by the agent\n\n```\n<ide>`a.rs`</ide>\nfix it\n```",
+    );
+  });
 });

@@ -57,7 +57,12 @@ export interface Message {
   readonly role: string;
   readonly ordinal?: number;
   readonly activity?: string;
-  readonly presentation?: "dialogue" | "tool-call" | "tool-result" | "reasoning";
+  /** `context` is text the agent or its tooling put into the chat: nobody
+   * said it and it answers nobody. */
+  readonly presentation?: "dialogue" | "tool-call" | "tool-result" | "reasoning" | "context";
+  /** What the person typed, when the message also carries context the agent
+   * added around it. Absent when the whole message is what was said. */
+  readonly dialogue?: string;
   readonly toolLabel?: string;
   /** The stored tool records of a step, as the agent wrote them. Inputs are
    * opaque provider payloads: shown as text, never interpreted. */

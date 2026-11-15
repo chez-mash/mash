@@ -65,6 +65,8 @@ export function jsonExport(chat: ChatSummary, messages: readonly Message[]): str
         ordinal: message.ordinal ?? null,
         role: message.role,
         kind: message.presentation ?? "dialogue",
+        // What the person typed, when `text` also holds context added around it.
+        ...(message.dialogue === undefined ? {} : { dialogue: message.dialogue }),
         at: message.at,
         text: message.blocks
           .map((block) =>

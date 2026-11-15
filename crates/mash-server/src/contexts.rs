@@ -54,7 +54,7 @@ pub(super) async fn read(
                 let result = match result {
                     Ok(mut messages) => {
                         for message in &mut messages {
-                            message.content = store.responses().text(&message.content);
+                            message.mask_text(|text| store.responses().text(text));
                             store.responses().attachments(&mut message.attachments);
                         }
                         protocol::ContextResult::Complete { index, messages }

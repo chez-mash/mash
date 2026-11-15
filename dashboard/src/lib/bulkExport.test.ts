@@ -101,6 +101,24 @@ describe("bulk chat export", () => {
       updated: "2026-11-12T05:00:00.000Z",
       messages: [{ id: "m1", role: "user", kind: "dialogue", text: "hi", tools: null }],
     });
+    expect(parsed.messages[0]).not.toHaveProperty("dialogue");
+  });
+
+  it("marks context in JSON and keeps what was typed beside the whole message", () => {
+    const parsed = JSON.parse(
+      jsonExport(chat("a"), [
+        { ...message("m1", "<hook>x</hook>"), presentation: "context" },
+        {
+          ...message("m2", "<ide>a.rs</ide> fix it"),
+          presentation: "dialogue",
+          dialogue: "fix it",
+        },
+      ]),
+    );
+    expect(parsed.messages).toMatchObject([
+      { id: "m1", role: "user", kind: "context", text: "<hook>x</hook>" },
+      { id: "m2", kind: "dialogue", dialogue: "fix it", text: "<ide>a.rs</ide> fix it" },
+    ]);
   });
 
   it("saves nothing when one chat cannot be read, and names it", async () => {

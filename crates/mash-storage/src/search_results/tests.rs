@@ -270,6 +270,7 @@ fn contextual_evidence_uses_nearest_searchable_messages_with_a_fixed_budget() {
         ordinal: 0,
         role,
         content,
+        dialogue: None,
         created_at: None,
         tools: crate::tools::Activity::default(),
     };

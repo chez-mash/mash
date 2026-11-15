@@ -1,5 +1,12 @@
 import { expect, test } from "vitest";
-import { durationLabel, toolCalls, toolOutput } from "./toolcalls";
+import {
+  callsBefore,
+  durationLabel,
+  resultsAfter,
+  toolCalls,
+  toolOutput,
+  unpaired,
+} from "./toolcalls";
 import type { Message } from "./types";
 
 function step(
@@ -133,4 +140,70 @@ test("durations read in natural units", () => {
   expect(durationLabel(379)).toBe("379 ms");
   expect(durationLabel(2400)).toBe("2.4 s");
   expect(durationLabel(125_000)).toBe("2 min 5 s");
+});
+
+const said = (id: string): Message => ({
+  id,
+  role: "user",
+  presentation: "dialogue",
+  at: "10:22",
+  blocks: [{ type: "text", markdown: id }],
+});
+const bash = (id: string, callId: string): Message =>
+  step(id, "tool-call", "", {
+    calls: [{ name: "Bash", callId, input: { command: "ls" } }],
+    results: [],
+  });
+const output = (id: string, callId: string): Message =>
+  step(id, "tool-result", "out", { calls: [], results: [{ callId, isError: false }] });
+
+test("a page knows which calls and outputs it holds only half of", () => {
+  expect(
+    unpaired([
+      output("r0", "t0"),
+      said("q"),
+      bash("c1", "t1"),
+      output("r1", "t1"),
+      bash("c2", "t2"),
+    ]),
+  ).toEqual({ results: ["t0"], calls: ["t2"] });
+  // A call left unanswered in the middle of a page is not waiting on the next one.
+  expect(unpaired([said("q"), bash("c1", "t1"), said("a")])).toEqual({ results: [], calls: [] });
+  expect(unpaired([bash("c1", "t1"), output("r1", "t1")])).toEqual({ results: [], calls: [] });
+});
+
+test("a record that carries its own output is not waiting for one", () => {
+  const whole = step(
+    "e",
+    "tool-call",
+    JSON.stringify({ type: "commandExecution", command: "ls", aggregatedOutput: "a\n" }),
+    { calls: [{ name: undefined, callId: "e1", input: undefined }], results: [] },
+  );
+  expect(unpaired([said("q"), whole])).toEqual({ results: [], calls: [] });
+});
+
+test("only the adjoining steps that are the other half are taken from a neighbouring page", () => {
+  expect(
+    callsBefore(["t1"], [bash("c0", "t0"), said("q"), bash("c1", "t1"), bash("c2", "t2")]).map(
+      (message) => message.id,
+    ),
+  ).toEqual(["c1"]);
+  // A call beyond what was said in between is not adjoining.
+  expect(callsBefore(["t0"], [bash("c0", "t0"), said("q")])).toEqual([]);
+  expect(
+    resultsAfter(
+      ["t1"],
+      [output("r2", "t2"), output("r1", "t1"), said("q"), output("x", "t1")],
+    ).map((message) => message.id),
+  ).toEqual(["r1"]);
+});
+
+test("record types written with underscores read as words too", () => {
+  const [call] = toolCalls([
+    step("e", "tool-call", JSON.stringify({ type: "web_search_call", query: "mash" }), {
+      calls: [],
+      results: [],
+    }),
+  ]);
+  expect(call?.name).toBe("web search call");
 });

@@ -192,11 +192,13 @@ impl Storage {
             .map_err(AppError::database)?;
         rows.into_iter()
             .map(|row| {
+                let role = row.role.into();
                 Ok(Message {
                     attachments: Vec::new(),
                     id: row.id,
                     ordinal: row.ordinal,
-                    role: row.role.into(),
+                    dialogue: Message::dialogue_of(&role, &row.content, &row.projection),
+                    role,
                     content: row.content,
                     created_at: row.created_at,
                     tools: crate::tools::Activity::decode(row.metadata.as_deref())?,
@@ -233,15 +235,21 @@ impl Storage {
             .map_err(AppError::database)?;
         rows.into_iter()
             .map(|row| {
+                let role = row.role.into();
+                let (shown, dialogue) = match representation {
+                    super::MessageContent::Canonical => {
+                        let dialogue = Message::dialogue_of(&role, &row.content, &row.projection);
+                        (row.content, dialogue)
+                    }
+                    super::MessageContent::SearchProjection => (row.projection, None),
+                };
                 Ok(Message {
                     attachments: Vec::new(),
                     id: row.id,
                     ordinal: row.ordinal,
-                    role: row.role.into(),
-                    content: match representation {
-                        super::MessageContent::Canonical => row.content,
-                        super::MessageContent::SearchProjection => row.projection,
-                    },
+                    role,
+                    content: shown,
+                    dialogue,
                     created_at: row.created_at,
                     tools: crate::tools::Activity::decode(row.metadata.as_deref())?,
                 })
@@ -305,15 +313,21 @@ impl Storage {
         rows.sort_by_key(|row| row.ordinal);
         rows.into_iter()
             .map(|row| {
+                let role = row.role.into();
+                let (shown, dialogue) = match representation {
+                    super::MessageContent::Canonical => {
+                        let dialogue = Message::dialogue_of(&role, &row.content, &row.projection);
+                        (row.content, dialogue)
+                    }
+                    super::MessageContent::SearchProjection => (row.projection, None),
+                };
                 Ok(Message {
                     attachments: Vec::new(),
                     id: row.id,
                     ordinal: row.ordinal,
-                    role: row.role.into(),
-                    content: match representation {
-                        super::MessageContent::Canonical => row.content,
-                        super::MessageContent::SearchProjection => row.projection,
-                    },
+                    role,
+                    content: shown,
+                    dialogue,
                     created_at: row.created_at,
                     tools: crate::tools::Activity::decode(row.metadata.as_deref())?,
                 })

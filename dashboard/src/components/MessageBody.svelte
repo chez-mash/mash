@@ -34,7 +34,7 @@ $effect(() => {
 .clamped { max-height: 11rem; overflow: hidden; mask-image: linear-gradient(black 55%, transparent); -webkit-mask-image: linear-gradient(black 55%, transparent); }
 .more { align-self: flex-start; margin-top: 6px; font-size: 13.5px; font-weight: 600; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .prose :global(p) { margin: 0 0 .75rem; }
-.prose :global(h1), .prose :global(h2), .prose :global(h3), .prose :global(h4) { font-weight: 650; line-height: 1.3; margin: 1.25rem 0 .65rem; }
+.prose :global(h1), .prose :global(h2), .prose :global(h3), .prose :global(h4), .prose :global(h5), .prose :global(h6) { font-weight: 650; line-height: 1.3; margin: 1.25rem 0 .65rem; }
 .prose :global(h1) { font-size: 16px; }
 .prose :global(h2) { font-size: 15px; }
 .prose :global(h3) { font-size: 14px; }

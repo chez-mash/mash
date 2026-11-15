@@ -2773,6 +2773,13 @@
               "null"
             ]
           },
+          "dialogue": {
+            "description": "The dialogue in `content`, when the entry holds more than that. Absent:\nall of `content` is dialogue. Empty: none of it is; the entry is context\nsuch as injected instructions, thinking or tool traffic. Otherwise what\nthe person typed, with the context an agent wrapped around it removed.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string"
           },

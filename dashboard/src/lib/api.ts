@@ -1,5 +1,6 @@
 import type { Answer, ReadPath, Wire } from "./routes";
 import { check } from "./session.svelte";
+import { callsBefore, resultsAfter, unpaired } from "./toolcalls";
 import { send } from "./transport";
 import type { Agent, ChatSummary, Message, SearchFilters, SearchHit } from "./types";
 
@@ -17,6 +18,11 @@ export interface MessagePage {
   readonly messages: readonly Message[];
   /** Messages in the whole chat, when the server reports it. */
   readonly total?: number;
+  /** Tool calls just before this page whose output opens it. They are shown
+   * with that output and are not otherwise part of the page. */
+  readonly before?: readonly Message[];
+  /** Tool output just after this page for calls that end it. */
+  readonly after?: readonly Message[];
 }
 
 export function isAgent(value: string): value is Agent {
@@ -159,14 +165,22 @@ export function parseMessages(body: Answer<"/api/chat">): MessagePage {
           ? "tool-result"
           : calls.length
             ? "tool-call"
-            : row.content.startsWith("[Thinking]")
+            : row.role === "assistant" && row.content.startsWith("[Thinking]")
               ? "reasoning"
-              : "dialogue";
+              : (row.role !== "user" && row.role !== "assistant") || row.dialogue === ""
+                ? "context"
+                : "dialogue";
+      // Only a person's message carries what they typed apart from its context.
+      const said =
+        presentation === "dialogue" && row.role === "user" && row.dialogue !== row.content
+          ? row.dialogue
+          : undefined;
       return {
         id: row.id,
         ordinal: row.ordinal,
         role: row.role,
         presentation,
+        ...(said ? { dialogue: said } : {}),
         toolLabel: calls.map((call) => call.name ?? "Tool").join(", ") || "Tool output",
         at: date(row.created_at ?? undefined),
         blocks: [{ type: "text", markdown: row.content }],
@@ -222,4 +236,54 @@ export async function context(
   if (node) params.set("node", node);
   if (shared) params.set("shared", "true");
   return parseMessages(await read("/api/view", params, signal));
+}
+
+/** How far past a page's edge to look for the other half of a tool call. */
+export const NEIGHBOURS = 16;
+/**
+ * A page whose first or last steps are half of a tool call, with the other
+ * half read from just outside it. `start` is the position in the chat of the
+ * page's first message. The page's own messages are returned unchanged.
+ */
+export async function withNeighbours(
+  page: MessagePage,
+  start: number,
+  readRange: (offset: number, limit: number) => Promise<readonly Message[]>,
+): Promise<MessagePage> {
+  const { results, calls } = unpaired(page.messages);
+  const reach = Math.min(NEIGHBOURS, start);
+  const [preceding, following] = await Promise.all([
+    results.length && reach ? readRange(start - reach, reach) : [],
+    calls.length ? readRange(start + page.messages.length, NEIGHBOURS) : [],
+  ]);
+  // A call ID matching is what makes a neighbour part of this page; a chat
+  // that changed between the two reads simply stays unpaired.
+  const before = callsBefore(results, preceding);
+  const after = resultsAfter(calls, following);
+  return {
+    ...page,
+    ...(before.length ? { before } : {}),
+    ...(after.length ? { after } : {}),
+  };
+}
+/** One page of a chat as the reader sees it, or the messages around `anchor`. */
+export async function transcriptPage(
+  id: string,
+  node: string,
+  offset: number,
+  anchor: string,
+  signal: AbortSignal,
+  shared = false,
+): Promise<MessagePage> {
+  const page = anchor
+    ? await context(anchor, node, signal, shared)
+    : await transcript(id, node, offset, signal, shared);
+  // Around a match the page says where it is by its first message's place in the chat.
+  const start = anchor ? page.messages[0]?.ordinal : offset;
+  if (start === undefined) return page;
+  return withNeighbours(
+    page,
+    start,
+    async (from, limit) => (await transcript(id, node, from, signal, shared, limit)).messages,
+  );
 }

@@ -1,18 +1,10 @@
 import { type MessagePage, transcript, WHOLE_PAGE } from "./api";
 import { markdown } from "./markdown";
+import { isStep, messageText } from "./message";
+import { contextLabel } from "./steps";
 import type { Message } from "./types";
 
 export type ExportFormat = "markdown" | "html" | "pdf";
-
-export function messageText(message: Message): string {
-  return (
-    message.blocks
-      .map((block) =>
-        block.type === "text" ? block.markdown : block.type === "code" ? block.code : "",
-      )
-      .join("\n\n") + (message.activity ? `\n\n${message.activity}` : "")
-  );
-}
 
 export type ReadPage = (
   id: string,
@@ -102,29 +94,44 @@ function label(message: Message): string {
       ? message.toolLabel || "Tool call"
       : kind === "reasoning"
         ? "Reasoning"
-        : message.role;
+        : kind === "context"
+          ? contextLabel(message)
+          : message.role;
+}
+/** The heading over the whole of a message whose own words are shown first. */
+const ADDED = "Context added by the agent";
+/** A fence longer than any run of backticks in `text`, so it is kept verbatim. */
+function fenced(text: string): string {
+  let length = 3;
+  for (const match of text.matchAll(/`+/g)) length = Math.max(length, match[0].length + 1);
+  const fence = "`".repeat(length);
+  return `${fence}\n${text}\n${fence}`;
 }
 
 export function markdownExport(title: string, node: string, messages: readonly Message[]): string {
   return `# ${title.replace(/\s+/g, " ")}\n\nMachine: ${node}\n\n${messages
     .map((message) => {
       const text = messageText(message);
-      // A fence longer than any embedded run also preserves tool output verbatim.
-      let fenceLength = 3;
-      for (const match of text.matchAll(/`+/g))
-        fenceLength = Math.max(fenceLength, match[0].length + 1);
-      const fence = "`".repeat(fenceLength);
-      const body =
-        message.presentation && message.presentation !== "dialogue"
-          ? `${fence}\n${text}\n${fence}`
-          : text;
+      // Steps are fenced, which also preserves tool output verbatim.
+      const body = isStep(message)
+        ? fenced(text)
+        : message.dialogue === undefined
+          ? text
+          : `${message.dialogue}\n\n### ${ADDED}\n\n${fenced(text)}`;
       return `## ${label(message)} · ${message.at}\n\n${body}`;
     })
     .join("\n\n---\n\n")}\n`;
 }
 
+function htmlBody(message: Message): string {
+  const whole = `<pre>${escapeHtml(messageText(message))}</pre>`;
+  if (isStep(message)) return whole;
+  if (message.dialogue === undefined) return markdown(messageText(message));
+  return `${markdown(message.dialogue)}<h2>${ADDED}</h2>${whole}`;
+}
+
 export function htmlExport(title: string, node: string, messages: readonly Message[]): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{max-width:850px;margin:40px auto;padding:0 24px;font:16px/1.6 system-ui;color:#222}header{border-bottom:1px solid #ccc}article{margin:32px 0}h2{font-size:14px;color:#555}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f5f5;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px}img{display:none}@media print{body{margin:0;max-width:none}pre{white-space:pre-wrap}a{color:inherit}}</style></head><body><header><h1>${escapeHtml(title)}</h1><p>Machine: ${escapeHtml(node)} · ${messages.length} messages</p></header>${messages.map((message) => `<article><h2>${escapeHtml(label(message))} · ${escapeHtml(message.at)}</h2>${message.presentation && message.presentation !== "dialogue" ? `<pre>${escapeHtml(messageText(message))}</pre>` : markdown(messageText(message))}</article>`).join("\n")}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{max-width:850px;margin:40px auto;padding:0 24px;font:16px/1.6 system-ui;color:#222}header{border-bottom:1px solid #ccc}article{margin:32px 0}h2{font-size:14px;color:#555}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f5f5;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px}img{display:none}@media print{body{margin:0;max-width:none}pre{white-space:pre-wrap}a{color:inherit}}</style></head><body><header><h1>${escapeHtml(title)}</h1><p>Machine: ${escapeHtml(node)} · ${messages.length} messages</p></header>${messages.map((message) => `<article><h2>${escapeHtml(label(message))} · ${escapeHtml(message.at)}</h2>${htmlBody(message)}</article>`).join("\n")}</body></html>`;
 }
 
 export function downloadChat(content: string, format: "markdown" | "html"): void {

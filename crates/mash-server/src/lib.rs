@@ -386,7 +386,7 @@ async fn view(
     let mut messages = app.store.view(&id, input).await?;
     let redaction = app.store.responses();
     for message in &mut messages {
-        message.content = redaction.text(&message.content);
+        message.mask_text(|text| redaction.text(text));
         redaction.attachments(&mut message.attachments);
         redaction.tools(&mut message.tools);
     }
@@ -444,7 +444,7 @@ async fn chat_page(
     let mut messages = app.store.chat_page(&id, input).await?;
     let redaction = app.store.responses();
     for message in &mut messages {
-        message.content = redaction.text(&message.content);
+        message.mask_text(|text| redaction.text(text));
         redaction.attachments(&mut message.attachments);
         redaction.tools(&mut message.tools);
     }

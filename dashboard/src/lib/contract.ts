@@ -1190,6 +1190,13 @@ export interface components {
             content: string;
             /** Format: int64 */
             created_at?: number | null;
+            /**
+             * @description The dialogue in `content`, when the entry holds more than that. Absent:
+             *     all of `content` is dialogue. Empty: none of it is; the entry is context
+             *     such as injected instructions, thinking or tool traffic. Otherwise what
+             *     the person typed, with the context an agent wrapped around it removed.
+             */
+            dialogue?: string | null;
             id: string;
             /** Format: int64 */
             ordinal: number;

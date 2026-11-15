@@ -62,7 +62,7 @@ pub(super) async fn view(
             )));
         }
         for message in &mut messages {
-            message.content = output.text(&message.content);
+            message.mask_text(|text| output.text(text));
             output.tools(&mut message.tools);
         }
         Ok(ViewResponse::messages(id, messages))
@@ -254,7 +254,7 @@ pub(super) async fn chat_messages(
         )
         .await?;
         for message in &mut messages {
-            message.content = output.text(&message.content);
+            message.mask_text(|text| output.text(text));
             output.tools(&mut message.tools);
             output.attachments(&mut message.attachments);
         }
@@ -265,7 +265,7 @@ pub(super) async fn chat_messages(
         let storage = Storage::open_silver(&database)?;
         let mut messages = storage.chat_messages(&chat_id, i64::from(offset), i64::from(limit))?;
         for message in &mut messages {
-            message.content = output.text(&message.content);
+            message.mask_text(|text| output.text(text));
             output.tools(&mut message.tools);
             message.attachments = storage.list_attachments(&message.id)?.attachments;
             output.attachments(&mut message.attachments);
@@ -297,7 +297,7 @@ fn local_view(
         return Err(missing_message(&id, storage.unmatched_id(&id)?));
     }
     for message in &mut messages {
-        message.content = output.text(&message.content);
+        message.mask_text(|text| output.text(text));
         output.tools(&mut message.tools);
         message.attachments = storage.list_attachments(&message.id)?.attachments;
     }

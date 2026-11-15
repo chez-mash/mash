@@ -106,10 +106,38 @@ pub struct Message {
     pub ordinal: i64,
     pub role: crate::role::Role,
     pub content: String,
+    /// The dialogue in `content`, when the entry holds more than that. Absent:
+    /// all of `content` is dialogue. Empty: none of it is; the entry is context
+    /// such as injected instructions, thinking or tool traffic. Otherwise what
+    /// the person typed, with the context an agent wrapped around it removed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dialogue: Option<String>,
     pub created_at: Option<i64>,
     /// A native entry's structured tool calls and results.
     #[serde(default, skip_serializing_if = "crate::tools::Activity::is_empty")]
     pub tools: crate::tools::Activity,
+}
+
+impl Message {
+    /// `dialogue` for an entry read in full. An assistant entry that mixes a
+    /// reply with thinking or tool blocks states nothing: its parts are told
+    /// apart by `tools` and would only repeat the reply here.
+    pub fn dialogue_of(
+        role: &crate::role::Role,
+        content: &str,
+        projection: &str,
+    ) -> Option<String> {
+        (projection != content && (projection.is_empty() || *role == crate::role::Role::User))
+            .then(|| projection.to_owned())
+    }
+
+    /// Apply output masking to every text an entry shows.
+    pub fn mask_text(&mut self, mask: impl Fn(&str) -> String) {
+        self.content = mask(&self.content);
+        if let Some(dialogue) = &mut self.dialogue {
+            *dialogue = mask(dialogue);
+        }
+    }
 }
 
 /// Where a view's messages sit in their chat, so a short window is not
@@ -255,3 +283,53 @@ impl Drop for Storage {
 pub mod test_support;
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod message_tests {
+    use super::Message;
+    use crate::role::Role;
+
+    #[test]
+    fn dialogue_is_stated_only_where_content_holds_more() {
+        // All of it is dialogue: nothing to state.
+        assert_eq!(Message::dialogue_of(&Role::User, "hello", "hello"), None);
+        // Context only, for any role.
+        for role in [Role::User, Role::Assistant, Role::System] {
+            assert_eq!(
+                Message::dialogue_of(&role, "<system-reminder>x</system-reminder>", ""),
+                Some(String::new())
+            );
+        }
+        // What the person typed inside what the agent wrapped around it.
+        assert_eq!(
+            Message::dialogue_of(
+                &Role::User,
+                "<system-reminder>x</system-reminder>fix it",
+                "fix it"
+            ),
+            Some("fix it".into())
+        );
+        // A reply stored with its tool blocks: `tools` tells them apart.
+        assert_eq!(
+            Message::dialogue_of(&Role::Assistant, "Done.\nTool shell: ls", "Done."),
+            None
+        );
+    }
+
+    #[test]
+    fn masking_covers_the_dialogue_as_well_as_the_content() {
+        let mut message = Message {
+            attachments: Vec::new(),
+            id: "m".into(),
+            ordinal: 0,
+            role: Role::User,
+            content: "<system-reminder>x</system-reminder>token abc".into(),
+            dialogue: Some("token abc".into()),
+            created_at: None,
+            tools: crate::tools::Activity::default(),
+        };
+        message.mask_text(|text| text.replace("abc", "[masked]"));
+        assert!(message.content.ends_with("token [masked]"));
+        assert_eq!(message.dialogue.as_deref(), Some("token [masked]"));
+    }
+}
