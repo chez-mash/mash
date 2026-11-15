@@ -1,8 +1,15 @@
 # Transcript rendering model
 
-Status: proposed, not implemented. Today `/api/chat` returns silver messages and
-the dashboard infers a presentation from `role`, `metadata` and a `[Thinking]`
-prefix. The structured tool rows in `ToolCard.svelte` only receive sample data.
+Status: the event model below is proposed, not implemented. Today `/api/chat`
+returns silver messages and the dashboard infers a presentation from `role`,
+`tools`, a `[Thinking]` prefix on assistant messages, and `dialogue`.
+
+`dialogue` is stated on a viewed message when its `content` holds more than
+dialogue: empty for context (injected instructions, bookkeeping, a record the
+agent wrote on the person's side), or the person's own words when an agent
+wrapped context around them. The dashboard folds context into a labelled row
+and never draws it as a prompt or a reply. Messages with a role other than
+`user`, `assistant` or `tool` are context too.
 
 This document specifies one rendering model for every provider, so the transcript
 does not need to know how a particular agent stored its history.
@@ -33,11 +40,11 @@ implementation.
 | Provider | Tool calls | Tool results | Thinking | Branch links |
 |---|---|---|---|---|
 | Claude Code | `assistant` with named `tool_calls` and structured `input` | Separate `user` rows with `tool_results`, linked by `call_id`, with `is_error` | `[Thinking] ` prefix | `context_parent` on every message |
-| Codex | Mostly typed JSON in `assistant.content`; `metadata` has only `call_id`. Some named calls in `metadata` | Inside the same JSON, or `tool` rows linked by `call_id` | Not observed in the sampled chat | None |
-| OpenCode | Text: `Tool <name>: <state>` | None | `Reasoning: <text>` | Linear |
-| Copilot | Text: `Tool: <name>` then arguments | None confirmed | `Reasoning: <text>`, possibly mid-message | Session events have parents; chat history is linear |
+| Codex | Mostly typed JSON in `assistant.content`; `metadata` has only `call_id`. Some named calls in `metadata` | Inside the same JSON, or `tool` rows linked by `call_id` | `[Thinking] ` messages from reasoning items that have text | None |
+| OpenCode | Own messages with named `tool_calls` | Own messages with `tool_results` once a tool completed or failed | `[Thinking] ` messages; empty reasoning dropped | Linear |
+| Copilot | Own messages with named `tool_calls` | Own messages with `tool_results` where the session recorded one | `[Thinking] ` messages | Session events have parents; chat history is linear |
 | Cursor | Text: `Tool: <name>` then arguments | Text: `Tool result: <name>` then result | `Thinking: <text>`, `Thinking: [redacted]` | Linear |
-| Antigravity | No structured activity | None | To confirm | Linear |
+| Antigravity | Own messages from the reply's tool-call field | Generic result steps, linked by `call_id`; other tool step types are not read | `[Thinking] ` messages | Linear |
 
 Codex `content.type` values observed: `commandExecution` (`command`, `cwd`,
 `exitCode`, `durationMs`, `status`, `aggregatedOutput`), `fileChange` (`changes`,
@@ -49,7 +56,10 @@ One sampled message body reached 1.7 MB.
 
 Claude Code `user` rows also carry injected content that the person did not type,
 including `<system-reminder>`, `<task-notification>`, `<local-command-caveat>`,
-`<artifact-view-context>` and `<command-name>`.
+`<artifact-view-context>` and `<command-name>`. Silver keeps it in `content` and
+out of the dialogue; records flagged `isMeta` or `isCompactSummary`, and task
+notifications, are context as a whole. A slash command's dialogue is the command
+as typed.
 
 ## Event model
 
