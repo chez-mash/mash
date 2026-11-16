@@ -61,6 +61,11 @@ normally stop at logout unless that machine separately enables lingering.
 Failed processes restart after a delay. Starting an already-running watcher
 does not restart it; changed launcher settings take effect after an explicit
 stop/start. Stop disables login startup as well as stopping the process.
+A deployment replaces the binary but leaves a running watcher on the old one,
+which then refuses new writes. End each watched host's `mash_install` with a
+step that restarts its supervisor job when one exists (`systemctl --user
+try-restart mash-index-watch.service`, or `launchctl kickstart -k
+gui/$(id -u)/dev.mash.index-watch`).
 These operations do not install Mash, download models, or change indexing
 configuration. Starting the watcher does trigger its normal initial indexing.
 

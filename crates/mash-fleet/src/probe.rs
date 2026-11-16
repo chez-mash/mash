@@ -111,6 +111,10 @@ impl ClientHandler for Progress {
 /// How long an index request waits for another Mash operation to finish.
 const BUSY_WAITS: u32 = 60;
 const BUSY_WAIT: std::time::Duration = std::time::Duration::from_secs(10);
+/// A watcher's refresh after new messages takes under a minute on the
+/// largest indexes here; two minutes covers one that has just restarted.
+const READINESS_WAITS: u32 = 8;
+const READINESS_WAIT: std::time::Duration = std::time::Duration::from_secs(15);
 
 /// Whether Mash refused the call because another operation holds the index.
 fn busy(result: &CallToolResult) -> bool {
@@ -221,17 +225,29 @@ async fn run(
         record(report, result).await?;
     }
     let shared = arguments.shared && arguments.mode != Mode::LocalViews;
-    let result = service
-        .call_tool(request(
-            "status",
-            &Status {
-                shared,
-                detail: Detail::Extended,
-            },
-        )?)
-        .await
-        .map_err(|_| "Mash readiness request failed")?;
-    let status = readiness::status(&result, shared);
+    // A machine being written to is briefly behind its own history between
+    // a pass that stored new messages and the watcher's search refresh. That
+    // is not a failed installation, so ask again before reporting it; status
+    // is read-only, and the last answer is the one recorded.
+    let mut waits = 0;
+    let (result, status) = loop {
+        let result = service
+            .call_tool(request(
+                "status",
+                &Status {
+                    shared,
+                    detail: Detail::Extended,
+                },
+            )?)
+            .await
+            .map_err(|_| "Mash readiness request failed")?;
+        let status = readiness::status(&result, shared);
+        if status.is_ok() || waits == READINESS_WAITS {
+            break (result, status);
+        }
+        waits += 1;
+        tokio::time::sleep(READINESS_WAIT).await;
+    };
     record(report, result).await?;
     let status = status?;
     let mut intents = vec![Intent::ExactMention];
