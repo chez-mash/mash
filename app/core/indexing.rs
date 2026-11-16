@@ -218,7 +218,14 @@ async fn index(
                 LocalInput::ProviderFiles(options, attachments, reading) => {
                     storage.configure_attachments(attachments)?;
                     if reading == super::Reading::Everything {
-                        storage.reread_sources(options.providers.keys().copied())?;
+                        // A minute past the pass's own cutoff, so nothing
+                        // marked here can fall out of range before it is read.
+                        let cutoff = mash_silver::discovery::cutoff_modified_ns(
+                            std::time::SystemTime::now(),
+                            options.since_days,
+                        )?
+                        .map(|cutoff| cutoff.saturating_add(60_000_000_000));
+                        storage.reread_sources(options.providers.keys().copied(), cutoff)?;
                     }
                     let source = silver::ingest(&mut storage, &options)?;
                     (source.summary, source.certificate, source.milliseconds)

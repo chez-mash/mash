@@ -177,19 +177,23 @@ impl Storage {
             .is_some())
     }
 
-    /// Mark every checkpoint of these providers as read by an older release,
+    /// Mark the checkpoints of these providers as read by an older release,
     /// so the next pass reads their sources again. A chat whose content and
-    /// metadata come out the same is left as it is.
+    /// metadata come out the same is left as it is. Sources last active before
+    /// `cutoff_modified_ns` keep their checkpoints: the pass will not admit
+    /// them, and a checkpoint left waiting would keep silver unverified.
     pub fn reread_sources(
         &mut self,
         providers: impl IntoIterator<Item = Provider>,
+        cutoff_modified_ns: Option<i64>,
     ) -> Result<(), AppError> {
         self.require_writer()?;
         for provider in providers {
             self.connection
                 .execute(
-                    "UPDATE source_checkpoints SET interpretation_version = 0 WHERE provider = ?1",
-                    params![provider],
+                    "UPDATE source_checkpoints SET interpretation_version = 0
+                      WHERE provider = ?1 AND (?2 IS NULL OR modified_ns >= ?2)",
+                    params![provider, cutoff_modified_ns],
                 )
                 .map_err(AppError::database)?;
         }

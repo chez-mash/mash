@@ -107,3 +107,44 @@ fn deleted_rejection_and_old_interpretation_checkpoint_require_explicit_evidence
     assert_eq!(replayed.summary.changed_messages, 0);
     assert_eq!(replayed.certificate.revision, clean.certificate.revision);
 }
+
+#[test]
+fn a_reread_leaves_sources_outside_the_history_range_certified() {
+    let directory = tempfile::tempdir().unwrap();
+    let database = directory.path().join("history.sqlite3");
+    let root = directory.path().join("codex");
+    fs::create_dir(&root).unwrap();
+    let old = root.join("old.jsonl");
+    write_codex(&old);
+    let all = options(Provider::Codex, &root);
+    let mut storage = Storage::open_writer(&database).unwrap();
+    assert!(ingest(&mut storage, &all).unwrap().is_complete());
+    storage.commit_writer().unwrap();
+    drop(storage);
+    // The file ages out of a one-day range after it was indexed.
+    let aged = SystemTime::now() - Duration::from_hours(72);
+    fs::File::options()
+        .write(true)
+        .open(&old)
+        .unwrap()
+        .set_times(FileTimes::new().set_modified(aged))
+        .unwrap();
+    let mut storage = Storage::open_writer(&database).unwrap();
+    assert!(ingest(&mut storage, &all).unwrap().is_complete());
+    let mut recent = all.clone();
+    recent.since_days = Some(1);
+    let cutoff = mash_silver::discovery::cutoff_modified_ns(SystemTime::now(), Some(1)).unwrap();
+    storage.reread_sources([Provider::Codex], cutoff).unwrap();
+    let reread = ingest(&mut storage, &recent).unwrap();
+    assert_eq!(reread.summary.scanned_files, 0);
+    assert!(reread.is_complete());
+    // Without a range the same request reads the file again.
+    storage.reread_sources([Provider::Codex], None).unwrap();
+    assert_eq!(
+        storage.silver_certificate().unwrap().completeness,
+        Completeness::Unverified
+    );
+    let everything = ingest(&mut storage, &all).unwrap();
+    assert_eq!(everything.summary.checkpoint_skipped_sources, 0);
+    assert!(everything.is_complete());
+}
