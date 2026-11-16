@@ -226,9 +226,10 @@ async fn run(
     }
     let shared = arguments.shared && arguments.mode != Mode::LocalViews;
     // A machine being written to is briefly behind its own history between
-    // a pass that stored new messages and the watcher's search refresh. That
-    // is not a failed installation, so ask again before reporting it; status
-    // is read-only, and the last answer is the one recorded.
+    // a pass that stored new messages and its watcher's search refresh. That
+    // is not a failed installation, so while a watcher is running ask again
+    // before reporting it; status is read-only, and the last answer is the
+    // one recorded.
     let mut waits = 0;
     let (result, status) = loop {
         let result = service
@@ -242,7 +243,7 @@ async fn run(
             .await
             .map_err(|_| "Mash readiness request failed")?;
         let status = readiness::status(&result, shared);
-        if status.is_ok() || waits == READINESS_WAITS {
+        if status.is_ok() || !readiness::refreshing(&result) || waits == READINESS_WAITS {
             break (result, status);
         }
         waits += 1;

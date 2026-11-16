@@ -145,6 +145,30 @@ impl Status {
     }
 }
 
+#[derive(Deserialize)]
+struct Refresh {
+    ready: bool,
+    query_models: Models,
+    watcher: Option<Watcher>,
+}
+#[derive(Deserialize)]
+struct Watcher {
+    running: bool,
+}
+
+/// Whether a node that is not ready has a watcher at work on it: its search
+/// is then behind its history only until that watcher's next refresh. A node
+/// without a running watcher, or without its models, will not become ready
+/// by waiting.
+#[must_use]
+pub fn refreshing(result: &CallToolResult) -> bool {
+    decode::<Refresh>(result).is_ok_and(|status| {
+        !status.ready
+            && status.query_models != Models::Unavailable
+            && status.watcher.is_some_and(|watcher| watcher.running)
+    })
+}
+
 pub fn status(result: &CallToolResult, shared: bool) -> Result<Status, String> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -316,5 +340,28 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn only_a_node_with_a_running_watcher_is_worth_waiting_for() {
+        let status = |ready: bool, models: &str, watcher: serde_json::Value| {
+            CallToolResult::structured(
+                json!({"ready": ready, "query_models": models, "watcher": watcher}),
+            )
+        };
+        let running = json!({"definition": "unit", "running": true});
+        assert!(refreshing(&status(false, "available", running.clone())));
+        assert!(!refreshing(&status(true, "available", running.clone())));
+        assert!(!refreshing(&status(false, "unavailable", running)));
+        assert!(!refreshing(&status(
+            false,
+            "available",
+            json!({"definition": "unit", "running": false})
+        )));
+        assert!(!refreshing(&status(
+            false,
+            "available",
+            serde_json::Value::Null
+        )));
     }
 }
