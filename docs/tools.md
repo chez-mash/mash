@@ -323,6 +323,16 @@ history.
 </div>
 </details>
 
+<details class="mash-tool read" id="tool-doctor">
+<summary><span class="badge">READ</span><code>doctor</code><span class="about">Examine this machine and say what is wrong and how to repair it: configuration, index, history completeness, Qdrant, search readiness, models, the watcher, running Mash processes, the shared copy, agent integrations and the agent's own transcript retention.</span></summary>
+<ul>
+<li>Each finding is ok, warning or problem, with its cause and the command that repairs it. healthy is false when any problem is found.</li>
+<li>Changes nothing: never indexes, migrates, downloads or restarts.</li>
+<li>Use status for readiness and freshness figures.</li>
+</ul>
+<p class="none">Takes no parameters.</p>
+</details>
+
 <details class="mash-tool read" id="tool-help">
 <summary><span class="badge">READ</span><code>help</code><span class="about">Usage notes, typed examples and the input schema for one tool or topic, from this running server.</span></summary>
 <ul>

@@ -5,7 +5,7 @@ set -euo pipefail
 operation=$1
 shift
 case "$operation" in
-    preflight|deploy|check) playbook=$operation ;;
+    preflight|deploy|check|doctor) playbook=$operation ;;
     sync|local-views) playbook=refresh ;;
     replay-views) playbook=replay-views ;;
     watch-start|watch-stop|watch-status|watch-logs) playbook=watch ;;
@@ -63,7 +63,9 @@ bash "$repository/tools/run-ansible.sh" "$logs/fleet.lock" \
 for target in "$@"; do
     report="$job/$target.json"
     if [[ -f "$report" ]]; then
-        jq --arg target "$target" '{target:$target,state,error} + (if has("process") then {process,readiness,logs} else {} end)' "$report"
+        jq --arg target "$target" '{target:$target,state,error}
+            + (if has("process") then {process,readiness,logs} else {} end)
+            + (if has("findings") then {summary, findings: [.findings[] | select(.state != "ok")]} else {} end)' "$report"
         jq -e '.state == "succeeded" or .state == "skipped"' "$report" > /dev/null || result=1
     else
         jq -n --arg target "$target" '{target:$target,state:"unverified"}'

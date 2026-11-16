@@ -3,7 +3,7 @@
 [Documentation](../README.md) · [Project home](../../README.md)
 
 Run `mash mcp` as a stdio MCP server. It accepts `--config`, `--db`, and
-`--models-dir` at startup and exposes `search`, `list_chats`, `view`, `status`, `index`, `forget`,
+`--models-dir` at startup and exposes `search`, `list_chats`, `view`, `status`, `doctor`, `index`, `forget`,
 `models_install`, `list_attachments`, `get_attachment`, `export_silver`, and `import_silver`. The server uses the same operations and typed JSON errors
 as the CLI; tool failures set MCP `isError`.
 

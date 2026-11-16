@@ -1,0 +1,33 @@
+- import_playbook: prepare.yml
+
+# An examination reports what it finds and goes on to the next machine: a
+# failed check here is a finding, never a reason to leave the rest unexamined.
+- name: Examine requested APIs without changing them
+  hosts: mash_available:&mash_api
+  gather_facts: false
+  tasks:
+    - name: Check the API and record the outcome
+      block:
+        - ansible.builtin.include_tasks: tasks/api-check.yml
+        - name: Record a verified API
+          ansible.builtin.copy:
+            dest: "{{ mash_job_directory }}/{{ inventory_hostname }}.json"
+            mode: '0600'
+            content: '{"state":"succeeded","results":[]}'
+          delegate_to: localhost
+      rescue:
+        - name: Record an API that did not pass its check
+          ansible.builtin.copy:
+            dest: "{{ mash_job_directory }}/{{ inventory_hostname }}.json"
+            mode: '0600'
+            content: '{"state":"failed","error":"The shared index service did not pass its identity and readiness check.","results":[]}'
+          delegate_to: localhost
+
+- name: Ask each history machine to examine itself
+  hosts: mash_available:&mash_history
+  gather_facts: false
+  serial: 1
+  tasks:
+    - ansible.builtin.include_tasks: tasks/probe.yml
+      vars:
+        mash_probe_mode: doctor

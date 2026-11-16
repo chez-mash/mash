@@ -98,7 +98,15 @@ if run_playbook check '["one"]' deployment/playbooks/check.yml dependency-down; 
     echo 'A check behind a failing required API was accepted.' >&2; exit 1
 fi
 jq -e '.state == "failed" and (.error | test("depends on \\(api\\)"))' "$scratch/check-dependency-down/one.json" >/dev/null
+# An examination records a failing API as a finding and still examines the
+# machines behind it, where a check stops.
+run_playbook doctor '["one","api"]' deployment/playbooks/doctor.yml api-down
+[[ $(jq -r .state "$scratch/doctor-api-down/api.json") == failed ]]
+[[ $(jq -r .state "$scratch/doctor-api-down/one.json") == succeeded ]]
+[[ $(tail -n 1 "$scratch/actions") == doctor ]]
 rm -f "$scratch/fail-api"
+run_playbook doctor '["one","api"]' deployment/playbooks/doctor.yml healthy
+[[ $(jq -r .state "$scratch/doctor-healthy/api.json") == succeeded ]]
 touch "$scratch/deny-install"
 if run_playbook deploy '["one","api"]' deployment/playbooks/deploy.yml denied-access; then
     echo 'Failed install-access check was accepted.' >&2; exit 1

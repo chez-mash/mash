@@ -1,6 +1,22 @@
 # Troubleshooting
 
-Start with the check that matches the problem:
+Start with `mash doctor`. It examines the machine and, for each thing that is
+wrong, says why and gives the command that repairs it:
+
+```sh
+mash doctor
+```
+
+Each finding is `ok`, `warning` or `problem`. A problem means something Mash is
+for does not work until it is repaired, and the command exits 1; a warning means
+it works, with something worth knowing. The examination covers the
+configuration, the index, whether every source was read by this release, the
+search service, search itself, models, the watcher, Mash processes left running
+on a replaced build, the shared copy, agent connections, and how long Claude
+Code keeps the transcripts Mash reads. It changes nothing: it never indexes,
+migrates, downloads or restarts.
+
+For the figures behind a finding, use the check that matches:
 
 ```sh
 mash status                  # index and search readiness

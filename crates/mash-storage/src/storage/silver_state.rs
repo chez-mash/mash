@@ -16,6 +16,15 @@ enum ScanState {
     Incomplete = 2,
 }
 
+/// How many of one provider's sources are in a state, for diagnosis.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SourceCount {
+    pub provider: String,
+    pub sources: u64,
+    /// Of those, the ones last active before the history range began.
+    pub outside_range: u64,
+}
+
 impl Storage {
     pub fn silver_certificate(&self) -> Result<Certificate, AppError> {
         self.silver_certificate_for(INTERPRETATION_VERSION)
@@ -48,6 +57,51 @@ impl Storage {
             rejected_sources: u64::try_from(row.rejected_sources)
                 .map_err(|_| AppError::database_data("invalid silver rejection count"))?,
         })
+    }
+
+    /// Per provider, the sources whose checkpoint an earlier reader wrote,
+    /// and how many of them were last active before `cutoff_modified_ns`:
+    /// those an ordinary pass will not admit. For diagnosis only.
+    pub fn sources_awaiting_reading(
+        &self,
+        cutoff_modified_ns: Option<i64>,
+    ) -> Result<Vec<SourceCount>, AppError> {
+        self.source_counts(
+            "SELECT provider, count(*), coalesce(sum(?2 IS NOT NULL AND modified_ns < ?2), 0)
+               FROM source_checkpoints WHERE interpretation_version <> ?1
+              GROUP BY provider ORDER BY provider",
+            params![INTERPRETATION_VERSION, cutoff_modified_ns],
+        )
+    }
+
+    /// Per provider, the sources the last pass could not read.
+    pub fn rejected_sources(&self) -> Result<Vec<SourceCount>, AppError> {
+        self.source_counts(
+            "SELECT provider, count(*), 0 FROM silver_rejections
+              GROUP BY provider ORDER BY provider",
+            [],
+        )
+    }
+
+    fn source_counts(
+        &self,
+        sql: &str,
+        parameters: impl rusqlite::Params,
+    ) -> Result<Vec<SourceCount>, AppError> {
+        let count = |value: i64| u64::try_from(value).unwrap_or_default();
+        self.connection
+            .prepare(sql)
+            .map_err(AppError::database)?
+            .query_map(parameters, |row| {
+                Ok(SourceCount {
+                    provider: row.get(0)?,
+                    sources: count(row.get(1)?),
+                    outside_range: count(row.get(2)?),
+                })
+            })
+            .map_err(AppError::database)?
+            .collect::<Result<_, _>>()
+            .map_err(AppError::database)
     }
 
     pub fn begin_silver_scan(&mut self, provider: Provider) -> Result<(), AppError> {

@@ -27,6 +27,8 @@ enum Command {
     Logs(Logs),
     /// Check installed builds, schemas, and search readiness.
     Status(Targets),
+    /// Ask each machine what is wrong with it and how to repair it.
+    Doctor(Targets),
     /// Validate deployment prerequisites without installing anything.
     Preflight(Targets),
     /// Build and deploy through the configured Ansible inventory.
@@ -181,6 +183,7 @@ async fn main() -> ExitCode {
             },
         ),
         Command::Status(targets) => ("check", targets),
+        Command::Doctor(targets) => ("doctor", targets),
         Command::Preflight(targets) => ("preflight", targets),
         Command::Deploy(targets) => ("deploy", targets),
         Command::Sync(targets) => ("sync", targets),

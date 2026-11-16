@@ -62,6 +62,10 @@ uses `bash tools/fleet.sh check shared-api xenia`. The Rust RMCP probe checks th
 installed build/contract, local/shared readiness and bounded lexical/available
 semantic searches; successful status with ready=false does not pass.
 
+When a check or deploy reports a machine as failed, run `bash tools/fleet.sh doctor TARGET...`
+before investigating by hand: each machine examines itself and names the cause and
+the repair command. It reads only and examines every target even when one fails.
+
 Report the deployed commit, each target's installed/skipped/failed outcome,
 local/shared readiness and follow-ups. Existing Mash MCP processes require
 reconnection after installing a new binary. Reload updated plugin instructions;

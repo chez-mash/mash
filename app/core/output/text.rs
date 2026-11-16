@@ -397,6 +397,7 @@ pub fn render(
         Response::DashboardCatalog(value) => json(&mut out, "Dashboard catalogue", value)?,
         Response::Status(value) => status(&mut out, &Status::from(value.as_ref()))?,
         Response::Installation(value) => json(&mut out, "Installation", value)?,
+        Response::Doctor(value) => out.push_str(&value.text()?),
         Response::Init(value) => json(&mut out, "Init", value)?,
         Response::View(value) => operations::view(&mut out, value)?,
         Response::Index(value) => operations::index(&mut out, value)?,

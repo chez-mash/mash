@@ -250,7 +250,7 @@ fn missing_and_invalid_cli_arguments_remain_json_usage_errors() {
 
 #[test]
 fn removed_commands_are_rejected() {
-    for command in ["export", "doctor", "list", "sources"] {
+    for command in ["export", "list", "sources"] {
         Command::cargo_bin("mash")
             .expect("mash binary")
             .arg(command)

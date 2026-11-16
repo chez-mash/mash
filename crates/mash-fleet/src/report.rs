@@ -22,6 +22,30 @@ pub struct Report {
     pub summary: Option<String>,
     #[serde(default)]
     pub results: Vec<CallToolResult>,
+    /// What a doctor examination found on the machine, problems included.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub findings: Vec<Finding>,
+}
+
+/// One thing `mash doctor` examined on a machine. The check is kept as the
+/// machine named it, so a newer release's checks are still reported.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct Finding {
+    pub check: String,
+    pub state: Health,
+    pub summary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cause: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repair: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Health {
+    Ok,
+    Warning,
+    Problem,
 }
 
 impl Default for Report {
@@ -32,6 +56,7 @@ impl Default for Report {
             error: None,
             summary: None,
             results: vec![],
+            findings: vec![],
         }
     }
 }

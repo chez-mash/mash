@@ -368,7 +368,7 @@ fn the_lean_set_offers_only_tools_that_find_and_read() {
         size(&lean),
         size(&all)
     );
-    assert_eq!(all.len(), 21);
+    assert_eq!(all.len(), 22);
 }
 
 fn assert_filter_schema(tools: &[rmcp::model::Tool]) {
@@ -455,6 +455,7 @@ async fn sdk_handshake_discovery_calls_and_errors_share_cli_contract() {
     assert_eq!(
         names,
         [
+            "doctor",
             "export_silver",
             "extract_records",
             "find_record_matches",

@@ -123,6 +123,8 @@ pub enum Operation {
         shared: bool,
         coverage: Option<super::coverage::Scope>,
     },
+    /// Examine this machine and name what is wrong and how to repair it.
+    Doctor,
     Installation {
         agents: Vec<super::installation::Agent>,
         /// The MCP contract fingerprint each configured server must report
@@ -194,6 +196,7 @@ pub enum Response {
     View(ViewResponse),
     Status(Box<StatusResponse>),
     Installation(super::installation::Report),
+    Doctor(super::doctor::Response),
     Forget(ForgetResponse),
     Query(serde_json::Value),
     ModelsInstall(ModelsInstallResponse),
@@ -259,11 +262,13 @@ pub struct BackfillSummary {
 }
 
 impl Response {
-    /// An installation report where an expected agent needs attention, or an
-    /// `init` that left a stale agent registration in place: exit status 1.
+    /// An installation report where an expected agent needs attention, an
+    /// `init` that left a stale agent registration in place, or a `doctor`
+    /// that found a problem: exit status 1.
     pub fn agents_need_attention(&self) -> bool {
         match self {
             Self::Installation(report) => report.agents_need_attention(),
+            Self::Doctor(report) => !report.healthy(),
             Self::Init(result) => result.left_stale_registration(),
             _ => false,
         }

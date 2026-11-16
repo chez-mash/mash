@@ -45,6 +45,17 @@ pub fn mash_home() -> Option<PathBuf> {
     directories::BaseDirs::new().map(|directories| directories.home_dir().join(".mash"))
 }
 
+/// Where earlier releases kept Mash's data, before it moved to `~/.mash`:
+/// the platform data directory under either of the application's past
+/// identifiers. A release that reads only `~/.mash` finds nothing there.
+pub fn earlier_homes() -> Vec<PathBuf> {
+    ["jamesqo", "kojah"]
+        .into_iter()
+        .filter_map(|organization| directories::ProjectDirs::from("dev", organization, "mash"))
+        .map(|directories| directories.data_dir().to_path_buf())
+        .collect()
+}
+
 /// Persist a directory's entries, such as a rename into it. Windows cannot
 /// open a directory to sync it: its renames stay atomic for other processes
 /// but are not ordered against power loss, so callers must not claim that.

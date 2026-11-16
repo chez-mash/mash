@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 mod chats;
 pub mod coverage;
+pub mod doctor;
 mod indexing;
 mod inspection;
 pub mod installation;
@@ -58,6 +59,7 @@ async fn execute_admitted(
             "view"
         }
         Operation::Status { .. } | Operation::Installation { .. } => "status",
+        Operation::Doctor => "doctor",
         Operation::Forget { .. } => "forget",
         Operation::QuerySilver { .. }
         | Operation::QueryStructured { .. }
@@ -573,6 +575,9 @@ async fn dispatch(
                 .await
                 .map(|status| Response::Status(Box::new(status)))
         }
+        Operation::Doctor => Ok(Response::Doctor(
+            doctor::examine(configuration, database, models).await,
+        )),
         Operation::Installation { agents, probe } => installation::inspect(
             agents,
             probe,

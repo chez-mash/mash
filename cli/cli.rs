@@ -231,6 +231,16 @@ enum Command {
         #[arg(long)]
         shared: bool,
     },
+    /// Examine this machine and say what is wrong and how to repair it.
+    #[command(long_about = concat!(
+        "Examine this machine and say what is wrong and how to repair it.\n\n",
+        "Reads the configuration, the index, Qdrant, the watcher, running Mash ",
+        "processes, the shared copy and agent integrations, and reports each as ",
+        "ok, warning or problem with its cause and the command that repairs it. ",
+        "Changes nothing: it never indexes, migrates, downloads or restarts. ",
+        "Exits 1 when it finds a problem.",
+    ))]
+    Doctor,
     /// Remove one chat and its derived search rows.
     Forget { id: String },
     /// Run one read-only query over local silver.
@@ -642,6 +652,7 @@ impl Cli {
                     }
                 }
             }
+            Command::Doctor => Operation::Doctor,
             Command::Forget { id } => Operation::Forget { id },
             Command::Query {
                 sql,
@@ -1279,6 +1290,7 @@ mod tests {
                 "search",
                 "view",
                 "status",
+                "doctor",
                 "forget",
                 "query",
                 "export",

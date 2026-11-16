@@ -38,6 +38,8 @@ enum Mode {
     Check,
     Sync,
     LocalViews,
+    /// Ask the machine to examine itself and report what it found. Reads only.
+    Doctor,
 }
 
 #[derive(Serialize)]
@@ -172,6 +174,9 @@ async fn run(
     expected: &readiness::Stamp,
     service: &rmcp::service::Peer<RoleClient>,
 ) -> Result<String, String> {
+    if arguments.mode == Mode::Doctor {
+        return doctor(report, expected, service).await;
+    }
     let tools = service
         .list_all_tools()
         .await
@@ -293,6 +298,88 @@ fn write_report(path: &std::path::Path, report: &Report) -> Result<(), String> {
     std::fs::rename(incoming, path).map_err(|_| "cannot publish probe report".into())
 }
 
+#[derive(serde::Deserialize)]
+struct Examination {
+    findings: Vec<report::Finding>,
+}
+
+fn problem(check: &str, summary: &str, repair: &str) -> report::Finding {
+    report::Finding {
+        check: check.to_owned(),
+        state: report::Health::Problem,
+        summary: summary.to_owned(),
+        cause: None,
+        repair: Some(repair.to_owned()),
+    }
+}
+
+/// The machine's own examination, preceded by what only the controller can
+/// tell: whether the build installed there is the one this checkout releases.
+/// A machine too old to examine itself is reported as that, not as an error.
+async fn doctor(
+    report: &Arc<Mutex<report::Report>>,
+    expected: &readiness::Stamp,
+    service: &rmcp::service::Peer<RoleClient>,
+) -> Result<String, String> {
+    const REDEPLOY: &str = "Deploy the current release to this machine.";
+    let mut findings = Vec::new();
+    let help = service
+        .call_tool(request(
+            "help",
+            &Help {
+                tool: "search",
+                expected_contract: &expected.contract_fingerprint,
+            },
+        )?)
+        .await
+        .map_err(|_| "Mash live contract request failed")?;
+    if readiness::help(&help, expected).is_err() {
+        findings.push(problem(
+            "build",
+            "The installed build or its contract differs from this controller's release.",
+            REDEPLOY,
+        ));
+    }
+    report.lock().await.results.push(help);
+    let examined = service
+        .call_tool(CallToolRequestParams::new("doctor"))
+        .await
+        .ok()
+        .filter(|result| result.is_error != Some(true));
+    match examined {
+        Some(result) => {
+            let examination: Examination = result
+                .structured_content
+                .clone()
+                .and_then(|content| serde_json::from_value(content).ok())
+                .ok_or("Mash doctor returned an incompatible report")?;
+            findings.extend(examination.findings);
+            report.lock().await.results.push(result);
+        }
+        None => findings.push(problem(
+            "doctor",
+            "The Mash installed here cannot examine itself: it predates `mash doctor`.",
+            REDEPLOY,
+        )),
+    }
+    let count = |state| findings.iter().filter(|f| f.state == state).count();
+    let (problems, warnings) = (
+        count(report::Health::Problem),
+        count(report::Health::Warning),
+    );
+    let first = findings
+        .iter()
+        .find(|finding| finding.state == report::Health::Problem)
+        .map(|finding| finding.summary.clone());
+    report.lock().await.findings = findings;
+    match first {
+        Some(first) => Err(format!(
+            "{problems} problems, {warnings} warnings. First: {first}"
+        )),
+        None => Ok(format!("No problems; {warnings} warnings")),
+    }
+}
+
 pub(crate) async fn run_probe(arguments: Arguments) {
     let report = Arc::new(Mutex::new(report::Report::default()));
     let outcome = check(&arguments, report.clone()).await;
@@ -310,7 +397,9 @@ pub(crate) async fn run_probe(arguments: Arguments) {
         eprintln!("{error}");
         std::process::exit(1);
     }
-    if report.state == report::State::Failed {
+    // An examination that found problems has done its job: its findings are
+    // the report, and the other machines are still to be examined.
+    if report.state == report::State::Failed && arguments.mode != Mode::Doctor {
         eprintln!("Mash probe failed; inspect its private report");
         std::process::exit(1);
     }
@@ -438,6 +527,20 @@ mod tests {
                     .is_some_and(|value| value["messages"] == if file == "one" { 1 } else { 2 })
             }));
         }
+        // An examination reads only, and reports what the machine found.
+        let before = std::fs::read(&database).unwrap();
+        arguments.mode = Mode::Doctor;
+        let examined = report();
+        let summary = check(&arguments, examined.clone()).await.unwrap();
+        assert!(summary.starts_with("No problems"), "{summary}");
+        assert_eq!(std::fs::read(&database).unwrap(), before);
+        let findings = examined.lock().await.findings.clone();
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.check == "history" && f.state == report::Health::Ok)
+        );
+        assert!(findings.iter().all(|f| f.state != report::Health::Problem));
         assert!(!root.join("missing-models").exists());
     }
 }

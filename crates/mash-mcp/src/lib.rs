@@ -730,6 +730,14 @@ impl Mash {
 
     #[tool(
         annotations(read_only_hint = true, destructive_hint = false),
+        description = "Examine this machine and say what is wrong and how to repair it: configuration, index, history completeness, Qdrant, search readiness, models, the watcher, running Mash processes, the shared copy, agent integrations and the agent's own transcript retention. Each finding is ok, warning or problem, with its cause and the command that repairs it. healthy is false when any problem is found. Changes nothing: never indexes, migrates, downloads or restarts. Use status for readiness and freshness figures."
+    )]
+    async fn doctor(&self) -> CallToolResult {
+        self.execute(Operation::Doctor).await
+    }
+
+    #[tool(
+        annotations(read_only_hint = true, destructive_hint = false),
         description = "Usage notes, typed examples and the input schema for one tool or topic, from this running server. Pass expected_contract from the history skill to check that its instructions are current. Reports the build revision and contract fingerprint. Needs no index, models or network."
     )]
     async fn help(&self, Parameters(request): Parameters<guidance::Help>) -> CallToolResult {

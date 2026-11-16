@@ -32,6 +32,7 @@ binary's absolute path (replacing the old `mash_probe` setting).
 
 ```bash
 mash-fleet status --all
+mash-fleet doctor --all
 mash-fleet deploy shared-api xenia
 mash-fleet sync xenia
 mash-fleet watch start --all
@@ -39,6 +40,13 @@ mash-fleet watch status --all
 mash-fleet watch stop dev-macbook
 mash-fleet logs dev-macbook
 ```
+
+`doctor` asks each machine to run `mash doctor` on itself and prints what it
+found that is not `ok`: the cause and the command that repairs it. It adds the
+one thing only the controller can tell, whether the installed build is the one
+this checkout releases. Unlike `status`, a failing machine does not stop the
+run: every selected machine is examined. It reads only. `tools/fleet.sh doctor
+TARGET...` is the same operation; it is not available through `--fleet-config`.
 
 `--all` selects eligible hosts from the inventory, including child groups:
 history hosts for sync, local views and watchers; API hosts for replay; both

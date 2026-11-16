@@ -142,6 +142,13 @@ pub(crate) struct Summary {
     next_action: Option<String>,
 }
 
+impl Summary {
+    /// How many findings need attention, and the command that addresses them.
+    pub(super) fn attention(&self) -> (usize, Option<&str>) {
+        (self.attention, self.next_action.as_deref())
+    }
+}
+
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 struct ClientSummary {
     agent: Agent,

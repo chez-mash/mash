@@ -31,6 +31,7 @@ pub mod turns;
 // Connection/schema and generated query infrastructure for both layers.
 mod queries;
 pub use queries::UnmatchedId;
+pub use silver_state::SourceCount;
 pub mod schema;
 
 #[cfg(test)]
