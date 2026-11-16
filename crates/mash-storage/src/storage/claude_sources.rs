@@ -157,7 +157,7 @@ impl Storage {
                     .map_err(AppError::database)?;
                 moved = storage.refresh_claude_chat(&previous.chat_id, None)?;
             }
-            let repaired = storage.repair_claude_source_identity(source)?;
+            let repaired = storage.repair_source_identity(source)?;
             let title = source.title.clone().map(|mut title| {
                 crate::redaction::private_text(&mut title);
                 title

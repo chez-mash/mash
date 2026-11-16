@@ -63,7 +63,7 @@ impl Storage {
             });
         }
 
-        let repaired_messages = self.repair_claude_source_identity(chat)?;
+        let repaired_messages = self.repair_source_identity(chat)?;
 
         let enrichment = crate::silver::enrichment::Evidence::capture(chat)?;
         let source_fingerprint = chat_fingerprint(chat, &enrichment)?;
@@ -123,13 +123,16 @@ impl Storage {
         })
     }
 
-    pub(super) fn repair_claude_source_identity(&mut self, chat: &Chat) -> Result<u64, AppError> {
-        if chat.provider != Provider::ClaudeCode {
-            return Ok(0);
-        }
-        // The old parser could store a subagent under its parent's ID. Repair
+    pub(super) fn repair_source_identity(&mut self, chat: &Chat) -> Result<u64, AppError> {
+        // A source holds one chat. Where a reader has changed how it names
+        // that chat, the chat stored under the old name is displaced: the old
+        // Claude parser could store a subagent under its parent's ID, and a
+        // Cursor agent's ID did not include its workspace folder. Repair
         // source ownership within the writer transaction, staging every derived
         // index before deletion so an agent-first replay is also correct.
+        if !matches!(chat.provider, Provider::ClaudeCode | Provider::Cursor) {
+            return Ok(0);
+        }
         let source_key = chat.source.key();
         let displaced = sql::DisplacedChatMessages::builder()
             .provider(chat.provider.as_str())

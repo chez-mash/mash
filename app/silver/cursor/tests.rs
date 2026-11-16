@@ -348,6 +348,11 @@ fn the_same_agent_under_two_workspace_folders_is_two_chats() {
     );
     let db = dir.path().join("index.sqlite3");
     let mut storage = Storage::open_writer(&db).unwrap();
+    // An index written before the folder was part of the identity holds the
+    // chat under its old ID; reading the store again replaces that chat.
+    let mut legacy = first;
+    legacy.id = "legacy-agent-chat".into();
+    storage.replace_chat(&legacy).unwrap();
     index(&mut storage, &options(&dir.path().join("chats"))).unwrap();
     storage.commit_writer().unwrap();
     assert_eq!(storage.counts().unwrap().chats, 2);
