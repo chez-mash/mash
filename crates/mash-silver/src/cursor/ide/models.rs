@@ -17,6 +17,8 @@ pub struct Root {
     pub composer_id: String,
     #[serde(default)]
     pub full_conversation_headers_only: Vec<Header>,
+    /// Newer roots keep their headers in numbered chunk records instead.
+    pub header_log: Option<HeaderLog>,
     pub name: Option<String>,
     pub created_at: Option<i64>,
     pub last_updated_at: Option<i64>,
@@ -25,6 +27,15 @@ pub struct Root {
     pub tracked_git_repos: Vec<Repository>,
     pub conversation_state: Option<String>,
     pub subagent_info: Option<Subagent>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HeaderLog {
+    #[serde(default)]
+    pub chunk_count: u32,
+    #[serde(default)]
+    pub count: u64,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -115,12 +126,35 @@ pub struct Status {
     pub message: String,
 }
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Tool {
     /// Absent on the tool records of older releases.
     #[serde(rename = "tool")]
     pub id: Option<i32>,
+    pub name: Option<String>,
+    pub tool_call_id: Option<String>,
+    /// `completed`, `error`, `cancelled` and others; kept as recorded.
+    pub status: Option<String>,
     pub params: Option<serde_json::Value>,
     pub result: Option<serde_json::Value>,
+    pub error: Option<serde_json::Value>,
+}
+
+/// The folders a workspace's own state database says its composers belong to.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceComposers {
+    #[serde(default)]
+    pub all_composers: Vec<WorkspaceComposer>,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceComposer {
+    pub composer_id: Option<String>,
+}
+#[derive(Deserialize)]
+pub struct WorkspaceFolder {
+    pub folder: Option<String>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

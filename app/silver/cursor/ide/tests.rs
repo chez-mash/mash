@@ -92,7 +92,8 @@ fn native_root_owns_order_metadata_and_distinct_repeated_requests() {
     let path = path(dir.path());
     let connection = fixture(&path);
     let chat = parsed(&path);
-    assert_eq!(chat.messages.len(), 6);
+    // Six bubbles; the answer's thinking and the tool call are their own entries.
+    assert_eq!(chat.messages.len(), 8);
     assert_eq!(searchable(&chat).len(), 4);
     assert_eq!(chat.project.as_deref(), Some("/work/cbioportal"));
     assert_eq!(chat.repository.as_deref(), Some("/work/cbioportal"));
@@ -101,19 +102,27 @@ fn native_root_owns_order_metadata_and_distinct_repeated_requests() {
     assert_eq!(chat.updated_at, Some(1_790_762_400_001));
     assert_eq!(
         chat.messages.inline()[0].content,
-        chat.messages.inline()[4].content
+        chat.messages.inline()[6].content
     );
-    assert_ne!(chat.messages.inline()[0].id, chat.messages.inline()[4].id);
+    assert_ne!(chat.messages.inline()[0].id, chat.messages.inline()[6].id);
     assert_eq!(
         chat.messages.inline()[0].created_at,
         Some(1_790_762_400_000)
     );
     assert_eq!(chat.messages.inline()[1].created_at, None);
-    assert!(
-        chat.messages.inline()[1]
-            .content
-            .contains("private-ide-reasoning")
+    assert_eq!(
+        chat.messages.inline()[1].content,
+        "[Thinking] private-ide-reasoning"
     );
+    assert_eq!(chat.messages.inline()[1].role, crate::role::Role::Assistant);
+    assert_eq!(
+        chat.messages.inline()[2].content,
+        "Validate the study metadata before import."
+    );
+    let call = &chat.messages.inline()[5];
+    assert!(call.content.starts_with("Tool: tool 51\n"));
+    assert_eq!(call.tools.tool_calls.len(), 1);
+    assert_eq!(call.tools.tool_calls[0].name.as_deref(), Some("tool 51"));
     assert!(
         chat.messages
             .inline()
@@ -141,7 +150,7 @@ fn native_root_owns_order_metadata_and_distinct_repeated_requests() {
     root.full_conversation_headers_only.truncate(2);
     write(&connection, root_key(), &root);
     let rewind = parsed(&path);
-    assert_eq!(rewind.messages.len(), 2);
+    assert_eq!(rewind.messages.len(), 3);
     assert_eq!(rewind.messages.inline()[1].id, chat.messages.inline()[1].id);
     assert_eq!(
         connection
@@ -176,8 +185,9 @@ fn logical_composers_are_discovered_independently_and_schema_detection_is_explic
     let mut storage = Storage::open_writer(&db).unwrap();
     index(&mut storage, &options(dir.path())).unwrap();
     storage.commit_writer().unwrap();
-    assert_eq!(storage.counts().unwrap().chats, 2);
-    assert_eq!(storage.counts().unwrap().messages, 6);
+    // The second composer holds no conversation, so it is not a chat.
+    assert_eq!(storage.counts().unwrap().chats, 1);
+    assert_eq!(storage.counts().unwrap().messages, 8);
     connection
         .execute_batch(
             "CREATE TABLE meta(key TEXT,value TEXT); CREATE TABLE blobs(id TEXT,data BLOB);",
@@ -244,7 +254,7 @@ fn unknown_composer_versions_reject_themselves_and_deleted_composers_are_not_sou
     storage.commit_writer().unwrap();
     assert_eq!(summary.rejected_sources, 1);
     assert_eq!(storage.counts().unwrap().chats, 1);
-    assert_eq!(storage.counts().unwrap().messages, 6);
+    assert_eq!(storage.counts().unwrap().messages, 8);
 }
 
 /// Found on macOS with Cursor 3.30.8: 80 of 91 composers were saved by older
@@ -267,7 +277,7 @@ fn older_composer_versions_are_read_and_empty_ones_are_not_chats() {
         ),
         (
             "bubbleId:older:t",
-            r#"{"bubbleId":"t","type":2,"text":"","capabilityType":15,"toolFormerData":{"params":"{\"path\":\"a.rs\"}","result":"{\"ok\":true}"}}"#,
+            r#"{"bubbleId":"t","type":2,"text":"","capabilityType":15,"toolFormerData":{"tool":5,"name":"read_file","toolCallId":"call-1","status":"completed","params":"{\"path\":\"a.rs\"}","result":"{\"ok\":true}"}}"#,
         ),
         (
             "bubbleId:older:a",
@@ -298,17 +308,33 @@ fn older_composer_versions_are_read_and_empty_ones_are_not_chats() {
     let older = parse("ide:older").chat.unwrap();
     assert_eq!(older.title.as_deref(), Some("Older chat"));
     let messages = older.messages.inline();
-    assert_eq!(messages.len(), 3);
+    assert_eq!(messages.len(), 5);
     assert_eq!(messages[0].role, crate::role::Role::User);
     assert_eq!(
         messages[0].dialogue_text.as_deref(),
         Some("olderquestion sentinel")
     );
-    // The tool step is kept for viewing and stays out of search.
+    // The tool step is kept for viewing, typed, and stays out of search.
     assert!(messages[1].content.contains("a.rs"));
     assert_eq!(messages[1].dialogue_text.as_deref(), Some(""));
     assert_eq!(
-        messages[2].dialogue_text.as_deref(),
+        messages[1].tools.tool_calls[0].name.as_deref(),
+        Some("read_file")
+    );
+    assert_eq!(
+        messages[1].tools.tool_calls[0].call_id.as_deref(),
+        Some("call-1")
+    );
+    assert_eq!(messages[2].role, crate::role::Role::Tool);
+    assert_eq!(
+        messages[2].tools.tool_results[0].call_id.as_deref(),
+        Some("call-1")
+    );
+    assert_eq!(messages[2].tools.tool_results[0].is_error, Some(false));
+    assert_eq!(messages[3].content, "[Thinking] olderthought");
+    assert_eq!(messages[3].dialogue_text.as_deref(), Some(""));
+    assert_eq!(
+        messages[4].dialogue_text.as_deref(),
         Some("olderanswer sentinel")
     );
     for session in ["ide:draft", "ide:bare"] {
@@ -322,7 +348,7 @@ fn older_composer_versions_are_read_and_empty_ones_are_not_chats() {
     storage.commit_writer().unwrap();
     assert_eq!(summary.rejected_sources, 0);
     assert_eq!(storage.counts().unwrap().chats, 2);
-    assert_eq!(storage.counts().unwrap().messages, 9);
+    assert_eq!(storage.counts().unwrap().messages, 13);
 }
 
 #[test]
@@ -378,7 +404,7 @@ fn synthetic_operational_and_unknown_bubbles_remain_context_only() {
     });
     write(&connection, root_key(), &root);
     assert_eq!(searchable(&parsed(&path)), Vec::<&NormalizedMessage>::new());
-    assert_eq!(parsed(&path).messages.len(), 6);
+    assert_eq!(parsed(&path).messages.len(), 8);
 }
 
 #[test]
@@ -402,4 +428,79 @@ fn wal_changes_refresh_sources_without_mixing_snapshot_revisions() {
     assert_eq!(parsed(&path).messages.inline()[0].content, bubble.text);
     assert_ne!(stamp.fingerprint, source.stamp().unwrap().fingerprint);
     assert!(path.with_file_name("state.vscdb-wal").exists());
+}
+
+/// Found on macOS with Cursor 3.30.8: a version 18 root had no inline headers
+/// and a header log instead, and the chat came out with a title and nothing in it.
+#[test]
+fn headers_kept_in_chunk_records_are_read_in_order() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = path(dir.path());
+    let connection = fixture(&path);
+    let inline = parsed(&path);
+    let mut root: Root = read(&connection, root_key());
+    let headers = std::mem::take(&mut root.full_conversation_headers_only);
+    root.header_log = Some(models::HeaderLog {
+        chunk_count: 2,
+        count: 6,
+    });
+    write(&connection, root_key(), &root);
+    write(
+        &connection,
+        "composerConvHeaders:fixture-ide-session:000000",
+        &&headers[..4],
+    );
+    write(
+        &connection,
+        "composerConvHeaders:fixture-ide-session:000001",
+        &&headers[4..],
+    );
+    let ids = |chat: &Chat| {
+        chat.messages
+            .inline()
+            .iter()
+            .map(|m| m.id.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(ids(&parsed(&path)), ids(&inline));
+    // A log that disagrees with its chunks is not a shorter chat.
+    root.header_log = Some(models::HeaderLog {
+        chunk_count: 2,
+        count: 7,
+    });
+    write(&connection, root_key(), &root);
+    let source = super::super::discover(&path).unwrap().remove(0);
+    assert!(super::super::parse(&source.identity).is_err());
+}
+
+/// Older roots name no workspace; the workspace's own state lists its chats.
+#[test]
+fn a_chat_without_a_recorded_workspace_takes_the_folder_that_lists_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = path(dir.path());
+    let connection = fixture(&path);
+    let mut root: Root = read(&connection, root_key());
+    root.workspace_identifier = None;
+    root.tracked_git_repos.clear();
+    root.conversation_state = None;
+    write(&connection, root_key(), &root);
+    assert_eq!(parsed(&path).project, None);
+    let workspace = dir.path().join("User/workspaceStorage/abc");
+    std::fs::create_dir_all(&workspace).unwrap();
+    std::fs::write(
+        workspace.join("workspace.json"),
+        r#"{"folder":"file:///work/listed"}"#,
+    )
+    .unwrap();
+    let state = Connection::open(workspace.join("state.vscdb")).unwrap();
+    state
+        .execute_batch("CREATE TABLE ItemTable(key TEXT UNIQUE ON CONFLICT REPLACE,value BLOB);")
+        .unwrap();
+    state
+        .execute(
+            "INSERT INTO ItemTable VALUES('composer.composerData',?1)",
+            [r#"{"allComposers":[{"composerId":"other"},{"composerId":"fixture-ide-session"}]}"#],
+        )
+        .unwrap();
+    assert_eq!(parsed(&path).project.as_deref(), Some("/work/listed"));
 }

@@ -110,7 +110,7 @@ fn first_party_native_fixture_hydrates_archives_and_only_visible_prose() {
     let path = path(dir.path());
     let connection = fixture(&path);
     let chat = parsed(&path);
-    assert_eq!(chat.messages.len(), 6);
+    assert_eq!(chat.messages.len(), 7);
     let searchable = searchable(&chat);
     assert_eq!(searchable.len(), 4);
     assert_eq!(
@@ -274,5 +274,81 @@ fn simulated_users_and_subagent_sessions_stay_context_only() {
     });
     set_metadata(&connection, &meta);
     assert_eq!(searchable(&parsed(&path)), Vec::<&NormalizedMessage>::new());
-    assert_eq!(parsed(&path).messages.len(), 6);
+    assert_eq!(parsed(&path).messages.len(), 7);
+}
+
+/// Found on macOS: 15 of 20 agent stores record no turns, so every prompt was
+/// taken for injected context; reasoning and tool steps were prose inside the
+/// reply; no chat had a project.
+#[test]
+fn stores_without_turns_keep_prompts_and_split_thinking_and_tool_steps() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = path(dir.path());
+    let connection = fixture(&path);
+    let blobs = [
+        r#"{"role":"user","content":"<user_info>\nOS Version: darwin\nCurrent working directory: /work/coolio\n</user_info>\nturnless sentinel question"}"#,
+        r#"{"role":"assistant","id":"1","content":[{"type":"reasoning","text":"turnless thought","signature":"s"},{"type":"text","text":"turnless sentinel answer"},{"type":"tool-call","toolCallId":"call-1","toolName":"grep","args":{"pattern":"x"}}]}"#,
+        r#"{"role":"tool","id":"2","content":[{"type":"tool-result","toolCallId":"call-1","toolName":"grep","result":"turnless output"}]}"#,
+    ];
+    let root = proto::Root {
+        messages: blobs
+            .iter()
+            .map(|blob| put(&connection, blob.as_bytes()))
+            .collect(),
+        ..Default::default()
+    };
+    checkpoint(&connection, &root);
+    let chat = parsed(&path);
+    let messages = chat.messages.inline();
+    assert_eq!(messages.len(), 5);
+    assert_eq!(
+        messages[0].dialogue_text.as_deref(),
+        Some("turnless sentinel question")
+    );
+    assert_eq!(messages[1].content, "[Thinking] turnless thought");
+    assert_eq!(messages[1].dialogue_text.as_deref(), Some(""));
+    assert_eq!(messages[2].content, "turnless sentinel answer");
+    assert_eq!(
+        messages[2].dialogue_text.as_deref(),
+        Some("turnless sentinel answer")
+    );
+    assert_eq!(messages[3].role, crate::role::Role::Assistant);
+    assert_eq!(
+        messages[3].tools.tool_calls[0].name.as_deref(),
+        Some("grep")
+    );
+    assert_eq!(
+        messages[3].tools.tool_calls[0].call_id.as_deref(),
+        Some("call-1")
+    );
+    assert_eq!(messages[3].dialogue_text.as_deref(), Some(""));
+    assert_eq!(messages[4].role, crate::role::Role::Tool);
+    assert_eq!(messages[4].content, "turnless output");
+    assert_eq!(
+        messages[4].tools.tool_results[0].call_id.as_deref(),
+        Some("call-1")
+    );
+    assert_eq!(chat.project.as_deref(), Some("/work/coolio"));
+}
+
+/// Found on macOS: one agent ID existed under two workspace folders with
+/// different histories, and only one copy was kept.
+#[test]
+fn the_same_agent_under_two_workspace_folders_is_two_chats() {
+    let dir = tempfile::tempdir().unwrap();
+    let first = dir.path().join("chats/one/session/store.db");
+    let second = dir.path().join("chats/two/session/store.db");
+    fixture(&first);
+    fixture(&second);
+    let (first, second) = (parsed(&first), parsed(&second));
+    assert_ne!(first.id, second.id);
+    assert_ne!(
+        first.messages.inline()[0].id,
+        second.messages.inline()[0].id
+    );
+    let db = dir.path().join("index.sqlite3");
+    let mut storage = Storage::open_writer(&db).unwrap();
+    index(&mut storage, &options(&dir.path().join("chats"))).unwrap();
+    storage.commit_writer().unwrap();
+    assert_eq!(storage.counts().unwrap().chats, 2);
 }

@@ -7,6 +7,7 @@ use super::{
     store::Store,
     timestamp,
 };
+use crate::tools::Activity;
 use crate::{NormalizedMessage, message_context::MessageContext, provider::Provider, role::Role};
 use std::{collections::BTreeSet, fmt::Write};
 
@@ -25,7 +26,47 @@ fn recorded_time(bubble: &Bubble, header: &models::Header) -> Result<Option<i64>
     timestamp(bubble.started_at_ms.or(bubble.completed_at_ms))
 }
 
-fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppError> {
+/// A tool payload as recorded: encoded JSON is decoded, anything else kept.
+fn payload(value: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::String(text) => {
+            serde_json::from_str(text).unwrap_or_else(|_| value.clone())
+        }
+        other => other.clone(),
+    }
+}
+
+fn shown(value: &serde_json::Value) -> String {
+    match value {
+        serde_json::Value::String(text) => text.clone(),
+        other => other.to_string(),
+    }
+}
+
+/// One displayed step of a bubble. `suffix` keeps the bubble's own identity
+/// for its text and gives its thinking and tool steps their own.
+struct Part {
+    suffix: Option<&'static str>,
+    role: Role,
+    text: text::Text,
+    tools: Activity,
+}
+
+impl Part {
+    fn step(suffix: &'static str, role: Role, canonical: String, tools: Activity) -> Self {
+        Self {
+            suffix: Some(suffix),
+            role,
+            text: text::Text {
+                canonical,
+                projection: String::new(),
+            },
+            tools,
+        }
+    }
+}
+
+fn normalized(bubble: &Bubble, child: bool) -> Result<Vec<Part>, AppError> {
     let role = match bubble.kind {
         Kind::Human => Role::User,
         Kind::Assistant => Role::Assistant,
@@ -34,10 +75,22 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
     // Older releases attach a tool record holding only `additionalData` to
     // ordinary prompts and replies. Only one that names a tool or carries a
     // payload is a tool step.
-    let tool = bubble
-        .tool_former_data
+    let tool = bubble.tool_former_data.as_ref().filter(|tool| {
+        tool.id.is_some() || tool.name.is_some() || tool.params.is_some() || tool.result.is_some()
+    });
+    let mut parts = Vec::new();
+    if let Some(thinking) = bubble
+        .thinking
         .as_ref()
-        .filter(|tool| tool.id.is_some() || tool.params.is_some() || tool.result.is_some());
+        .filter(|thinking| !thinking.text.trim().is_empty())
+    {
+        parts.push(Part::step(
+            "thinking",
+            Role::Assistant,
+            format!("[Thinking] {}", thinking.text),
+            Activity::default(),
+        ));
+    }
     let mut text = text::Text {
         canonical: bubble.text.clone(),
         projection: text::projection(&role, &bubble.text),
@@ -59,21 +112,6 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
     {
         text.projection.clear();
     }
-    if let Some(thinking) = &bubble.thinking {
-        let _ = write!(text.canonical, "\nThinking: {}", thinking.text);
-    }
-    if let Some(tool) = tool {
-        match tool.id {
-            Some(id) => {
-                let _ = write!(text.canonical, "\nTool {id}");
-            }
-            None => text.canonical.push_str("\nTool"),
-        }
-        for payload in [&tool.params, &tool.result].into_iter().flatten() {
-            text.canonical.push('\n');
-            text.canonical.push_str(&payload.to_string());
-        }
-    }
     if let Some(status) = &bubble.service_status_update {
         let message = match status {
             models::ProtoRecord::Object(status) => status.message.clone(),
@@ -89,14 +127,83 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
             let _ = write!(text.canonical, "\n{detail}");
         }
     }
-    Ok((role, text))
+    parts.push(Part {
+        suffix: None,
+        role,
+        text,
+        tools: Activity::default(),
+    });
+    if let Some(tool) = tool {
+        let name = tool
+            .name
+            .clone()
+            .or_else(|| tool.id.map(|id| format!("tool {id}")));
+        let input = tool.params.as_ref().map(payload);
+        let mut call = format!("Tool: {}", name.as_deref().unwrap_or("unknown"));
+        if let Some(params) = &tool.params {
+            call.push('\n');
+            call.push_str(&shown(params));
+        }
+        let call_id = tool.tool_call_id.as_deref();
+        parts.push(Part::step(
+            "tool",
+            Role::Assistant,
+            call,
+            Activity::call(name.as_deref(), call_id, input.as_ref()),
+        ));
+        let failed = match tool.status.as_deref() {
+            Some("completed") => Some(false),
+            Some("error") => Some(true),
+            _ => None,
+        };
+        if let Some(output) = tool.result.as_ref().or(tool.error.as_ref()) {
+            parts.push(Part::step(
+                "result",
+                Role::Tool,
+                shown(output),
+                Activity::result(call_id, failed),
+            ));
+        }
+    }
+    Ok(parts)
+}
+
+/// The bubble order: inline on older roots, in numbered chunk records on
+/// roots that keep a header log.
+fn headers(store: &mut Store, root: &Root, id: &str) -> Result<Vec<models::Header>, AppError> {
+    let Some(log) = root
+        .header_log
+        .as_ref()
+        .filter(|log| root.full_conversation_headers_only.is_empty() && log.chunk_count > 0)
+    else {
+        return Ok(Vec::new());
+    };
+    if log.chunk_count > 4096 {
+        return Err(invalid("too many header chunks"));
+    }
+    let mut headers = Vec::new();
+    for chunk in 0..log.chunk_count {
+        let part: Vec<models::Header> =
+            store.json(&format!("composerConvHeaders:{id}:{chunk:06}"))?;
+        headers.extend(part);
+    }
+    if u64::try_from(headers.len()).ok() != Some(log.count) {
+        return Err(invalid("header chunks disagree with the header log"));
+    }
+    Ok(headers)
 }
 
 pub fn read(store: &mut Store, root: &Root, id: &str) -> Result<Vec<NormalizedMessage>, AppError> {
     let mut ids = BTreeSet::new();
     let mut messages = Vec::new();
     let mut bytes = 0usize;
-    for header in &root.full_conversation_headers_only {
+    let chunked = headers(store, root, id)?;
+    let listed = if chunked.is_empty() {
+        &root.full_conversation_headers_only
+    } else {
+        &chunked
+    };
+    for header in listed {
         if header.bubble_id.trim().is_empty() || !ids.insert(&header.bubble_id) {
             return Err(invalid("invalid or duplicate reachable bubble identity"));
         }
@@ -110,34 +217,35 @@ pub fn read(store: &mut Store, root: &Root, id: &str) -> Result<Vec<NormalizedMe
         if bubble.is_display_only {
             continue;
         }
-        let (role, text) = normalized(&bubble, root.subagent_info.is_some())?;
         let created_at = recorded_time(&bubble, header)?;
-        if text.canonical.trim().is_empty() {
-            continue;
+        for part in normalized(&bubble, root.subagent_info.is_some())? {
+            if part.text.canonical.trim().is_empty() {
+                continue;
+            }
+            bytes = bytes
+                .saturating_add(part.text.canonical.capacity())
+                .saturating_add(part.text.projection.capacity())
+                .saturating_add(part.tools.retained_size())
+                .saturating_add(512);
+            if bytes > 32 * 1024 * 1024 || messages.len() == 65_536 {
+                return Err(invalid(
+                    "normalized history exceeds the retained replay limit",
+                ));
+            }
+            let mut identity = vec![Provider::Cursor.as_str(), "ide", id, &bubble.id];
+            identity.extend(part.suffix);
+            messages.push(NormalizedMessage {
+                attachments: Vec::new(),
+                id: crate::parsers::stable_id("message", &identity),
+                ordinal: i64::try_from(messages.len()).map_err(|_| invalid("too many bubbles"))?,
+                context: MessageContext::Linear,
+                role: part.role,
+                content: part.text.canonical,
+                dialogue_text: Some(part.text.projection),
+                created_at,
+                tools: part.tools,
+            });
         }
-        bytes = bytes
-            .saturating_add(text.canonical.capacity())
-            .saturating_add(text.projection.capacity())
-            .saturating_add(512);
-        if bytes > 32 * 1024 * 1024 || messages.len() == 65_536 {
-            return Err(invalid(
-                "normalized history exceeds the retained replay limit",
-            ));
-        }
-        messages.push(NormalizedMessage {
-            attachments: Vec::new(),
-            id: crate::parsers::stable_id(
-                "message",
-                &[Provider::Cursor.as_str(), "ide", id, &bubble.id],
-            ),
-            ordinal: i64::try_from(messages.len()).map_err(|_| invalid("too many bubbles"))?,
-            context: MessageContext::Linear,
-            role,
-            content: text.canonical,
-            dialogue_text: Some(text.projection),
-            created_at,
-            tools: crate::tools::Activity::default(),
-        });
     }
     Ok(messages)
 }

@@ -60,14 +60,17 @@ pub enum Part {
     RedactedReasoning,
     #[serde(rename_all = "camelCase")]
     ToolCall {
+        tool_call_id: Option<String>,
         tool_name: String,
         args: serde_json::Value,
     },
     #[serde(rename_all = "camelCase")]
     ToolResult {
+        tool_call_id: Option<String>,
         tool_name: String,
         #[serde(default)]
         result: serde_json::Value,
+        is_error: Option<bool>,
     },
     File {
         filename: Option<String>,

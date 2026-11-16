@@ -37,7 +37,7 @@ fn missing_corrupt_oversized_and_malformed_blobs_preserve_previous_index() {
         let mut storage = Storage::open_writer(&database).unwrap();
         assert!(index(&mut storage, &options(&path)).is_err());
         storage.commit_writer().unwrap();
-        assert_eq!(storage.counts().unwrap().messages, 6);
+        assert_eq!(storage.counts().unwrap().messages, 7);
         assert!(
             storage
                 .source_checkpoint_matches(Provider::Cursor, &source.identity, &stamp)
@@ -69,7 +69,7 @@ fn missing_corrupt_oversized_and_malformed_blobs_preserve_previous_index() {
     let mut storage = Storage::open_writer(&database).unwrap();
     index(&mut storage, &options(&path)).unwrap();
     storage.commit_writer().unwrap();
-    assert_eq!(storage.counts().unwrap().messages, 6);
+    assert_eq!(storage.counts().unwrap().messages, 7);
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn wal_only_changes_are_checkpointed_and_unreachable_old_blobs_are_ignored() {
     let source = discover(&path).unwrap().remove(0);
     let before = source.stamp().unwrap();
     put(&connection, b"old-unreachable-invalid-json");
-    assert_eq!(parsed(&path).messages.len(), 6);
+    assert_eq!(parsed(&path).messages.len(), 7);
     assert_ne!(before.fingerprint, source.stamp().unwrap().fingerprint);
     let mut metadata = metadata(&connection);
     metadata.name = "New native title".into();

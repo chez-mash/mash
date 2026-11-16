@@ -9,13 +9,13 @@ use std::path::Path;
 mod history;
 pub mod models;
 pub mod store;
+mod workspace;
 use models::Root;
 use store::Store;
 
-const CURRENT_VERSION: u32 = 18;
 /// Composer layouts with the same root, header and bubble records. Versions
 /// 6, 9, 10 and 11 are what Cursor releases before 18 left in real stores.
-const SUPPORTED_VERSIONS: [u32; 5] = [6, 9, 10, 11, CURRENT_VERSION];
+const SUPPORTED_VERSIONS: [u32; 5] = [6, 9, 10, 11, 18];
 
 fn invalid(message: &str) -> AppError {
     AppError::configuration(format!("Cursor IDE: {message}"))
@@ -140,8 +140,8 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
     }
     let state = state(&root)?;
     let messages = history::read(&mut store, &root, id)?;
-    if messages.is_empty() && saved.version != CURRENT_VERSION {
-        // An older composer that never held a conversation: nothing to keep.
+    if messages.is_empty() {
+        // A draft or a composer that never held a conversation is not a chat.
         return Ok(ParsedFile {
             chat: None,
             malformed_records: 0,
@@ -152,7 +152,7 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
     let updated_at = timestamp(root.last_updated_at)?
         .or_else(|| messages.iter().filter_map(|m| m.created_at).max())
         .or(created_at);
-    let project = project(&root, &state);
+    let project = project(&root, &state).or_else(|| workspace::folder(&source.path, id));
     let repository = repository(&root, &state);
     let title = root
         .name

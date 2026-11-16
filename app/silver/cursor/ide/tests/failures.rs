@@ -55,7 +55,7 @@ fn incomplete_or_invalid_records_preserve_previous_index_and_checkpoint() {
         let mut storage = Storage::open_writer(&db).unwrap();
         assert!(index(&mut storage, &options(&path)).is_err());
         storage.commit_writer().unwrap();
-        assert_eq!(storage.counts().unwrap().messages, 6);
+        assert_eq!(storage.counts().unwrap().messages, 8);
         assert!(
             storage
                 .source_checkpoint_matches(Provider::Cursor, &source.identity, &stamp)

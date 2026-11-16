@@ -520,9 +520,16 @@ directory or an explicit `store.db`. Its config root is `CURSOR_CONFIG_DIR`, the
 `chats/<workspace-hash>/<session>/store.db`. The reader takes read-only WAL-aware
 snapshots and follows the latest root's reachable archives and current messages.
 Repeated requests retain distinct identities through archive moves and rewinds.
-Tools, reasoning, model summaries, simulated prompts and subagent histories stay
-context-only; current user messages require matching native turn evidence.
-Native workspace URIs and tracked repositories supply project/repository filters.
+Each thinking block, tool call and tool result is its own entry, with the call's
+name and identity typed; none of them, nor model summaries, simulated prompts or
+subagent histories, enters search prose. Where a store records its turns, a
+current user message needs matching turn evidence to count as typed; a store
+without turns has no such evidence, so its prompts are read from their text.
+A chat's identity includes its workspace folder, because the same agent ID can
+exist under two. Native workspace URIs and tracked repositories supply
+project/repository filters, with the working directory in the injected context
+as the fallback project. These stores keep no message times: a chat's last
+update is then its store's last write.
 
 Each blob is limited to 8 MiB, each protobuf to 65,536 fields, cumulative reads
 to 64 MiB and retained normalized history to 32 MiB. Missing, corrupt or oversized
@@ -530,11 +537,14 @@ reachable history fails indexing and preserves the previous revision. These are
 parser limits rather than process RSS limits. Cursor IDE is also supported through
 explicit `state.vscdb` files or directories containing them. It reads the native
 application KV schema and composer roots saved as versions 6, 9, 10, 11 and 18,
-follows saved bubble order, and
-keeps native bubble IDs stable through edits and rewinds. Drafts, summaries,
+follows saved bubble order (inline, or in the numbered `composerConvHeaders`
+chunk records of a root that keeps a header log), and
+keeps native bubble IDs stable through edits and rewinds. A bubble's thinking
+and tool call are entries of their own beside its text. Drafts, summaries,
 orphaned bubbles, simulated/agent-sent prompts and operational rows do not enter
-search prose. Any other root version rejects that chat alone, and an older
-composer that never held a conversation is not a chat. Each JSON record
+search prose. Any other root version rejects that chat alone, and a composer
+that holds no conversation is not a chat. A root that names no workspace takes
+the folder of the one workspace whose own state lists it. Each JSON record
 is limited to 8 MiB and 65,536 nodes; each chat has a 64 MiB read budget
 and 32 MiB retained-history budget. IDE and Agent identities remain distinct.
 Its [native storage contract](https://github.com/mashium/mash/blob/a49210157b990b23c5ef9f90d5d1d13fd3ce9f11/docs/cursor-ide-ingestion-contract.md) records the
