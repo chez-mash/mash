@@ -163,7 +163,11 @@ pub fn entries(message: &Message) -> Vec<Entry> {
                         entries.push(Entry::step(
                             Role::Assistant,
                             format!("Tool: {tool_name}\n{args}"),
-                            Activity::call(Some(tool_name), tool_call_id.as_deref(), Some(args)),
+                            Activity::call(
+                                super::label(Some(tool_name)).as_deref(),
+                                super::label(tool_call_id.as_deref()).as_deref(),
+                                Some(args),
+                            ),
                         ));
                     }
                     Part::ToolResult {
@@ -188,7 +192,10 @@ pub fn entries(message: &Message) -> Vec<Entry> {
                         entries.push(Entry::step(
                             Role::Tool,
                             output,
-                            Activity::result(tool_call_id.as_deref(), *is_error),
+                            Activity::result(
+                                super::label(tool_call_id.as_deref()).as_deref(),
+                                *is_error,
+                            ),
                         ));
                     }
                 }

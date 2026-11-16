@@ -291,6 +291,18 @@ fn parse_agent(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
     })
 }
 
+/// A tool name or call identity as a single-line label. Cursor joins two
+/// provider identities with a newline; published activity allows no control
+/// characters, so each becomes a space, the same way on a call and its result.
+fn label(value: Option<&str>) -> Option<String> {
+    let label: String = value?
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect();
+    let label = label.trim();
+    (!label.is_empty() && label.len() <= 4096).then(|| label.to_owned())
+}
+
 fn unique(values: impl Iterator<Item = String>) -> Option<String> {
     let values = values.collect::<std::collections::BTreeSet<_>>();
     (values.len() == 1)

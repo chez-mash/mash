@@ -144,7 +144,9 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<Vec<Part>, AppError> {
             call.push('\n');
             call.push_str(&shown(params));
         }
-        let call_id = tool.tool_call_id.as_deref();
+        let name = super::super::label(name.as_deref());
+        let call_id = super::super::label(tool.tool_call_id.as_deref());
+        let call_id = call_id.as_deref();
         parts.push(Part::step(
             "tool",
             Role::Assistant,

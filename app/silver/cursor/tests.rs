@@ -287,8 +287,8 @@ fn stores_without_turns_keep_prompts_and_split_thinking_and_tool_steps() {
     let connection = fixture(&path);
     let blobs = [
         r#"{"role":"user","content":"<user_info>\nOS Version: darwin\nCurrent working directory: /work/coolio\n</user_info>\nturnless sentinel question"}"#,
-        r#"{"role":"assistant","id":"1","content":[{"type":"reasoning","text":"turnless thought","signature":"s"},{"type":"text","text":"turnless sentinel answer"},{"type":"tool-call","toolCallId":"call-1","toolName":"grep","args":{"pattern":"x"}}]}"#,
-        r#"{"role":"tool","id":"2","content":[{"type":"tool-result","toolCallId":"call-1","toolName":"grep","result":"turnless output"}]}"#,
+        r#"{"role":"assistant","id":"1","content":[{"type":"reasoning","text":"turnless thought","signature":"s"},{"type":"text","text":"turnless sentinel answer"},{"type":"tool-call","toolCallId":"call-1\nfc-1","toolName":"grep","args":{"pattern":"x"}}]}"#,
+        r#"{"role":"tool","id":"2","content":[{"type":"tool-result","toolCallId":"call-1\nfc-1","toolName":"grep","result":"turnless output"}]}"#,
     ];
     let root = proto::Root {
         messages: blobs
@@ -319,14 +319,16 @@ fn stores_without_turns_keep_prompts_and_split_thinking_and_tool_steps() {
     );
     assert_eq!(
         messages[3].tools.tool_calls[0].call_id.as_deref(),
-        Some("call-1")
+        Some("call-1 fc-1")
     );
+    // What a node publishes must pass the shared index's label rules.
+    assert!(messages.iter().all(|m| m.tools.validate().is_ok()));
     assert_eq!(messages[3].dialogue_text.as_deref(), Some(""));
     assert_eq!(messages[4].role, crate::role::Role::Tool);
     assert_eq!(messages[4].content, "turnless output");
     assert_eq!(
         messages[4].tools.tool_results[0].call_id.as_deref(),
-        Some("call-1")
+        Some("call-1 fc-1")
     );
     assert_eq!(chat.project.as_deref(), Some("/work/coolio"));
 }
