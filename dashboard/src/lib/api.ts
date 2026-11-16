@@ -153,10 +153,16 @@ export function parseSearch(body: Answer<"/api/search">, localNode: string): Sea
     ),
   };
 }
+function hasSomethingToShow(row: Answer<"/api/chat">["messages"][number]): boolean {
+  return row.role !== "assistant" || row.content.trim() !== "[Thinking]";
+}
+
 export function parseMessages(body: Answer<"/api/chat">): MessagePage {
   return {
     ...(typeof body.message_count === "number" ? { total: body.message_count } : {}),
-    messages: body.messages.map((row) => {
+    // Thinking recorded without its text is kept in the index, where later
+    // messages name it as their parent, and has nothing to show.
+    messages: body.messages.filter(hasSomethingToShow).map((row) => {
       const tools = row.tools ?? {};
       const calls = tools.tool_calls ?? [];
       const results = tools.tool_results ?? [];

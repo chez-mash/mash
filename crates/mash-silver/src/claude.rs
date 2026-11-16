@@ -28,14 +28,25 @@ fn merge_copy(
     tools: &mut BTreeMap<String, crate::tools::Activity>,
     projections: &mut BTreeMap<String, Option<String>>,
 ) -> Result<(), AppError> {
-    if previous.role != message.role
-        || previous.content != message.content
-        || previous.created_at != message.created_at
-        || !same_parent
-    {
-        return Err(AppError::configuration(
-            "Claude native message identity has conflicting content or ancestry",
-        ));
+    let differing = if previous.role != message.role {
+        Some("role")
+    } else if previous.content != message.content {
+        Some("content")
+    } else if previous.created_at != message.created_at {
+        Some("time")
+    } else if same_parent {
+        None
+    } else {
+        Some("parent")
+    };
+    if let Some(differing) = differing {
+        // Name what differs: the identity is not history, and without it
+        // the failure cannot be told apart from a changed reading.
+        return Err(AppError::configuration(format!(
+            "Claude native message identity has conflicting content or ancestry \
+             (message {}: {differing} differs between session files)",
+            message.id
+        )));
     }
     let kept = projections
         .get(&message.id)

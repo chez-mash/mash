@@ -425,10 +425,11 @@ impl Block {
                     })
             )),
             // Claude Code often stores thinking as a signature with no text.
+            // The record stays a message all the same: later messages name
+            // it as their parent, and readers hide a step with nothing in it.
             Kind::Thinking => self
                 .thinking
                 .as_ref()
-                .filter(|thinking| !thinking.trim().is_empty())
                 .map(|thinking| format!("[Thinking] {thinking}")),
             Kind::ToolCall | Kind::ToolUse => {
                 let input = if self.kind == Kind::ToolCall {
@@ -516,11 +517,14 @@ mod tests {
     }
 
     #[test]
-    fn thinking_without_text_is_not_a_step() {
+    fn thinking_without_text_stays_a_message_for_ancestry() {
         let empty: Content =
             serde_json::from_str(r#"[{"type":"thinking","thinking":"","signature":"abc"}]"#)
                 .unwrap();
-        assert!(empty.projected().is_none());
+        assert_eq!(
+            empty.projected(),
+            Some(("[Thinking] ".into(), Some(String::new())))
+        );
         let kept: Content =
             serde_json::from_str(r#"[{"type":"thinking","thinking":"weigh both"}]"#).unwrap();
         assert_eq!(

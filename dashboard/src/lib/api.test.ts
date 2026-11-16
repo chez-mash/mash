@@ -97,6 +97,17 @@ describe("dashboard API boundary", () => {
     expect(parseMessages({ message_count: 342, messages: [] }).total).toBe(342);
     expect(parseMessages({ messages: [] }).total).toBeUndefined();
   });
+  it("leaves out thinking that was recorded without its text", () => {
+    const row = (id: string, role: string, content: string) => ({ id, ordinal: 0, role, content });
+    const page = parseMessages({
+      messages: [
+        row("a", "assistant", "[Thinking] "),
+        row("b", "assistant", "[Thinking] weigh both"),
+        row("c", "user", "[Thinking]"),
+      ],
+    });
+    expect(page.messages.map((message) => message.id)).toEqual(["b", "c"]);
+  });
   it("only an assistant message can be reasoning", () => {
     const page = parseMessages({
       messages: [
