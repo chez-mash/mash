@@ -210,18 +210,17 @@ fn workspace_state_without_a_chat_table_holds_no_chats_and_is_not_an_error() {
     assert_eq!(storage.counts().unwrap().chats, 1);
 }
 
-/// Found on macOS with Cursor 3.30.8: 80 of 91 composers were saved by older
-/// releases (versions 6, 9, 10 and 11) and 7 rows had no value. One of them
-/// stopped the whole provider, so no Cursor chat was indexed.
+/// A composer layout this reader has not been checked against rejects only
+/// itself, and a deleted composer (a row without a value) is not a source.
 #[test]
-fn older_composer_versions_reject_themselves_and_deleted_composers_are_not_sources() {
+fn unknown_composer_versions_reject_themselves_and_deleted_composers_are_not_sources() {
     let dir = tempfile::tempdir().unwrap();
     let path = path(dir.path());
     let connection = fixture(&path);
     connection
         .execute(
-            "INSERT INTO cursorDiskKV VALUES('composerData:older',?1)",
-            [r#"{"_v":9,"composerId":"older","conversation":[],"createdAt":1}"#],
+            "INSERT INTO cursorDiskKV VALUES('composerData:unknown',?1)",
+            [r#"{"_v":5,"composerId":"unknown","conversation":[],"createdAt":1}"#],
         )
         .unwrap();
     connection
@@ -232,11 +231,11 @@ fn older_composer_versions_reject_themselves_and_deleted_composers_are_not_sourc
         .unwrap();
     let sources = discovered_sources(Provider::Cursor, &[dir.path().into()]);
     assert_eq!(sources.len(), 2);
-    let older = sources
+    let unknown = sources
         .iter()
-        .find(|s| s.identity.session.as_deref() == Some("ide:older"))
+        .find(|s| s.identity.session.as_deref() == Some("ide:unknown"))
         .unwrap();
-    let rejected = super::super::parse(&older.identity).unwrap();
+    let rejected = super::super::parse(&unknown.identity).unwrap();
     assert!(rejected.chat.is_none());
     assert!(rejected.first_record_issue.is_some());
     let db = dir.path().join("index.sqlite3");
@@ -246,6 +245,84 @@ fn older_composer_versions_reject_themselves_and_deleted_composers_are_not_sourc
     assert_eq!(summary.rejected_sources, 1);
     assert_eq!(storage.counts().unwrap().chats, 1);
     assert_eq!(storage.counts().unwrap().messages, 6);
+}
+
+/// Found on macOS with Cursor 3.30.8: 80 of 91 composers were saved by older
+/// releases (versions 6, 9, 10 and 11). They keep the same headers and bubble
+/// rows; prompts and replies carry a tool record with nothing in it, and most
+/// composers never held a conversation.
+#[test]
+fn older_composer_versions_are_read_and_empty_ones_are_not_chats() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = path(dir.path());
+    let connection = fixture(&path);
+    let rows = [
+        (
+            "composerData:older",
+            r#"{"_v":9,"composerId":"older","name":"Older chat","createdAt":1700000000000,"lastUpdatedAt":1700000005000,"fullConversationHeadersOnly":[{"bubbleId":"q","type":1},{"bubbleId":"t","type":2},{"bubbleId":"a","type":2}]}"#,
+        ),
+        (
+            "bubbleId:older:q",
+            r#"{"bubbleId":"q","type":1,"text":"olderquestion sentinel","toolFormerData":{"additionalData":{}}}"#,
+        ),
+        (
+            "bubbleId:older:t",
+            r#"{"bubbleId":"t","type":2,"text":"","capabilityType":15,"toolFormerData":{"params":"{\"path\":\"a.rs\"}","result":"{\"ok\":true}"}}"#,
+        ),
+        (
+            "bubbleId:older:a",
+            r#"{"bubbleId":"a","type":2,"text":"olderanswer sentinel","createdAt":"2023-11-14T22:13:25.000Z","thinking":{"text":"olderthought"}}"#,
+        ),
+        (
+            "composerData:draft",
+            r#"{"_v":6,"composerId":"draft","createdAt":1,"fullConversationHeadersOnly":[]}"#,
+        ),
+        (
+            "composerData:bare",
+            r#"{"_v":11,"composerId":"bare","createdAt":1}"#,
+        ),
+    ];
+    for (key, value) in rows {
+        connection
+            .execute("INSERT INTO cursorDiskKV VALUES(?1,?2)", [key, value])
+            .unwrap();
+    }
+    let sources = discovered_sources(Provider::Cursor, &[dir.path().into()]);
+    let parse = |session: &str| {
+        let source = sources
+            .iter()
+            .find(|s| s.identity.session.as_deref() == Some(session))
+            .unwrap();
+        super::super::parse(&source.identity).unwrap()
+    };
+    let older = parse("ide:older").chat.unwrap();
+    assert_eq!(older.title.as_deref(), Some("Older chat"));
+    let messages = older.messages.inline();
+    assert_eq!(messages.len(), 3);
+    assert_eq!(messages[0].role, crate::role::Role::User);
+    assert_eq!(
+        messages[0].dialogue_text.as_deref(),
+        Some("olderquestion sentinel")
+    );
+    // The tool step is kept for viewing and stays out of search.
+    assert!(messages[1].content.contains("a.rs"));
+    assert_eq!(messages[1].dialogue_text.as_deref(), Some(""));
+    assert_eq!(
+        messages[2].dialogue_text.as_deref(),
+        Some("olderanswer sentinel")
+    );
+    for session in ["ide:draft", "ide:bare"] {
+        let empty = parse(session);
+        assert!(empty.chat.is_none());
+        assert!(empty.first_record_issue.is_none());
+    }
+    let db = dir.path().join("index.sqlite3");
+    let mut storage = Storage::open_writer(&db).unwrap();
+    let summary = index(&mut storage, &options(dir.path())).unwrap();
+    storage.commit_writer().unwrap();
+    assert_eq!(summary.rejected_sources, 0);
+    assert_eq!(storage.counts().unwrap().chats, 2);
+    assert_eq!(storage.counts().unwrap().messages, 9);
 }
 
 #[test]

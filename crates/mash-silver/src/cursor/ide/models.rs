@@ -1,4 +1,4 @@
-//! Native desktop v18 root and visible bubble schemas. Model input is not prose.
+//! Native desktop root and visible bubble schemas. Model input is not prose.
 use serde::{Deserialize, Serialize};
 
 /// The layout version a composer root was saved with, read before the root
@@ -15,6 +15,7 @@ pub struct Root {
     #[serde(rename = "_v")]
     pub version: u32,
     pub composer_id: String,
+    #[serde(default)]
     pub full_conversation_headers_only: Vec<Header>,
     pub name: Option<String>,
     pub created_at: Option<i64>,
@@ -115,8 +116,9 @@ pub struct Status {
 }
 #[derive(Deserialize, Serialize)]
 pub struct Tool {
+    /// Absent on the tool records of older releases.
     #[serde(rename = "tool")]
-    pub id: i32,
+    pub id: Option<i32>,
     pub params: Option<serde_json::Value>,
     pub result: Option<serde_json::Value>,
 }

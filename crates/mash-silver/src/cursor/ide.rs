@@ -1,4 +1,4 @@
-//! Native IDE v18 composer roots own the ordered visible bubble history.
+//! Native IDE composer roots own the ordered visible bubble history.
 use super::{Chat, HistorySource, ParsedFile, SourceIdentity, proto};
 use crate::diagnostics::RecordIssue;
 use crate::{AppError, provider::Provider, records, role::Role};
@@ -11,6 +11,11 @@ pub mod models;
 pub mod store;
 use models::Root;
 use store::Store;
+
+const CURRENT_VERSION: u32 = 18;
+/// Composer layouts with the same root, header and bubble records. Versions
+/// 6, 9, 10 and 11 are what Cursor releases before 18 left in real stores.
+const SUPPORTED_VERSIONS: [u32; 5] = [6, 9, 10, 11, CURRENT_VERSION];
 
 fn invalid(message: &str) -> AppError {
     AppError::configuration(format!("Cursor IDE: {message}"))
@@ -108,11 +113,11 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
         .ok_or_else(|| invalid("invalid logical source identity"))?;
     let mut store = Store::open(&source.path)?;
     let key = format!("composerData:{id}");
-    // Chats saved by older Cursor releases keep their own root layouts. Each
-    // rejects itself, so the chats this reader understands are still indexed
-    // and the pass reports what it could not read.
+    // Only layouts checked against real stores are read. Any other rejects
+    // itself, so the chats this reader understands are still indexed and the
+    // pass reports what it could not read.
     let saved: models::Saved = store.json(&key)?;
-    if saved.version != 18 {
+    if !SUPPORTED_VERSIONS.contains(&saved.version) {
         tracing::warn!(target: "mash", provider = Provider::Cursor.as_str(),
             source_fingerprint = %blake3::hash(source.path.as_os_str().as_encoded_bytes()).to_hex(),
             version = saved.version, "native composer version not supported");
@@ -135,6 +140,14 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
     }
     let state = state(&root)?;
     let messages = history::read(&mut store, &root, id)?;
+    if messages.is_empty() && saved.version != CURRENT_VERSION {
+        // An older composer that never held a conversation: nothing to keep.
+        return Ok(ParsedFile {
+            chat: None,
+            malformed_records: 0,
+            first_record_issue: None,
+        });
+    }
     let created_at = timestamp(root.created_at)?.or(super::evidence::timestamp(state.started_at)?);
     let updated_at = timestamp(root.last_updated_at)?
         .or_else(|| messages.iter().filter_map(|m| m.created_at).max())

@@ -31,6 +31,13 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
         Kind::Assistant => Role::Assistant,
         kind => Role::Other(format!("cursor-message-type-{}", i32::from(kind))),
     };
+    // Older releases attach a tool record holding only `additionalData` to
+    // ordinary prompts and replies. Only one that names a tool or carries a
+    // payload is a tool step.
+    let tool = bubble
+        .tool_former_data
+        .as_ref()
+        .filter(|tool| tool.id.is_some() || tool.params.is_some() || tool.result.is_some());
     let mut text = text::Text {
         canonical: bubble.text.clone(),
         projection: text::projection(&role, &bubble.text),
@@ -47,7 +54,7 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
         || bubble.service_status_update.is_some()
         || bubble.event_notification.is_some()
         || bubble.capability_type.is_some()
-        || bubble.tool_former_data.is_some()
+        || tool.is_some()
         || bubble.sent_by_agent_id.is_some()
     {
         text.projection.clear();
@@ -55,8 +62,13 @@ fn normalized(bubble: &Bubble, child: bool) -> Result<(Role, text::Text), AppErr
     if let Some(thinking) = &bubble.thinking {
         let _ = write!(text.canonical, "\nThinking: {}", thinking.text);
     }
-    if let Some(tool) = &bubble.tool_former_data {
-        let _ = write!(text.canonical, "\nTool {}", tool.id);
+    if let Some(tool) = tool {
+        match tool.id {
+            Some(id) => {
+                let _ = write!(text.canonical, "\nTool {id}");
+            }
+            None => text.canonical.push_str("\nTool"),
+        }
         for payload in [&tool.params, &tool.result].into_iter().flatten() {
             text.canonical.push('\n');
             text.canonical.push_str(&payload.to_string());
