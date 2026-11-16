@@ -529,10 +529,12 @@ to 64 MiB and retained normalized history to 32 MiB. Missing, corrupt or oversiz
 reachable history fails indexing and preserves the previous revision. These are
 parser limits rather than process RSS limits. Cursor IDE is also supported through
 explicit `state.vscdb` files or directories containing them. It reads the native
-application KV schema and v18 composer roots, follows saved bubble order, and
+application KV schema and composer roots saved as versions 6, 9, 10, 11 and 18,
+follows saved bubble order, and
 keeps native bubble IDs stable through edits and rewinds. Drafts, summaries,
 orphaned bubbles, simulated/agent-sent prompts and operational rows do not enter
-search prose. Older or unknown root versions fail explicitly. Each JSON record
+search prose. Any other root version rejects that chat alone, and an older
+composer that never held a conversation is not a chat. Each JSON record
 is limited to 8 MiB and 65,536 nodes; each chat has a 64 MiB read budget
 and 32 MiB retained-history budget. IDE and Agent identities remain distinct.
 Its [native storage contract](https://github.com/mashium/mash/blob/a49210157b990b23c5ef9f90d5d1d13fd3ce9f11/docs/cursor-ide-ingestion-contract.md) records the
