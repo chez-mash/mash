@@ -165,3 +165,36 @@ fn reconciled_claude_copies_keep_activity_from_a_newer_interpretation() {
         assert_eq!(messages.inline()[0].tools, current);
     }
 }
+
+/// A reread reads one session file the new way while another file's stored
+/// copy of the same message still carries the earlier, wider projection.
+#[test]
+fn reconciled_claude_copies_keep_the_narrowest_projection_in_either_order() {
+    let message = |projection: Option<&str>| NormalizedMessage {
+        attachments: Vec::new(),
+        id: "shared".into(),
+        ordinal: 0,
+        context: crate::message_context::MessageContext::Root,
+        role: crate::role::Role::User,
+        content: "<note>injected</note> fix the build".into(),
+        dialogue_text: projection.map(str::to_owned),
+        created_at: Some(1),
+        tools: Activity::default(),
+    };
+    let copies = [None, Some("injected fix the build"), Some("fix the build")];
+    for order in [[0, 1, 2], [2, 1, 0], [1, 2, 0]] {
+        let (messages, _) = claude::reconcile(
+            order
+                .into_iter()
+                .map(|copy| Ok((message(copies[copy]), None))),
+        )
+        .unwrap();
+        assert_eq!(
+            messages.inline()[0].dialogue_text.as_deref(),
+            Some("fix the build")
+        );
+    }
+    let mut other = message(None);
+    other.content = "different words".into();
+    assert!(claude::reconcile([Ok((message(None), None)), Ok((other, None))]).is_err());
+}

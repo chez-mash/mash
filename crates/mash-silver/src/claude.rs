@@ -8,6 +8,51 @@ use crate::message_context::MessageContext;
 
 pub type Lineage = BTreeMap<String, Option<String>>;
 
+/// Whether `candidate` leaves less of `content` searchable than `kept`. No
+/// projection means the whole content. What is searched is derived from the
+/// content, and a newer reading derives less of it: a copy another session
+/// file contributed before a reread still carries the wider one, so the
+/// narrowest is kept. Ties break on the text, never on arrival order.
+fn narrower(candidate: Option<&str>, kept: Option<&str>, content: &str) -> bool {
+    let size = |projection: Option<&str>| projection.map_or(content.len(), str::len);
+    (size(candidate), candidate) < (size(kept), kept)
+}
+
+/// Check a further copy of a message already seen and keep what it adds.
+/// Copies retained from an earlier interpretation may lack tool activity that
+/// a newer copy carries; the activity is kept.
+fn merge_copy(
+    previous: &NormalizedMessage,
+    same_parent: bool,
+    message: NormalizedMessage,
+    tools: &mut BTreeMap<String, crate::tools::Activity>,
+    projections: &mut BTreeMap<String, Option<String>>,
+) -> Result<(), AppError> {
+    if previous.role != message.role
+        || previous.content != message.content
+        || previous.created_at != message.created_at
+        || !same_parent
+    {
+        return Err(AppError::configuration(
+            "Claude native message identity has conflicting content or ancestry",
+        ));
+    }
+    let kept = projections
+        .get(&message.id)
+        .unwrap_or(&previous.dialogue_text);
+    if narrower(
+        message.dialogue_text.as_deref(),
+        kept.as_deref(),
+        &message.content,
+    ) {
+        projections.insert(message.id.clone(), message.dialogue_text);
+    }
+    if previous.tools.is_empty() && !message.tools.is_empty() {
+        tools.insert(message.id, message.tools);
+    }
+    Ok(())
+}
+
 /// Reconcile matching native identities and order every retained branch after
 /// its parent. Missing ancestors remain roots until another contribution supplies
 /// them. Timestamp and identity break ties; source arrival order never does.
@@ -21,28 +66,22 @@ pub fn reconcile(
     }
     let mut payloads = Builder::default();
     let mut nodes = BTreeMap::<String, Node>::new();
-    // Copies retained from an earlier interpretation may lack tool activity
-    // that a newer copy of the same message carries; the activity is kept.
     let mut tools = BTreeMap::<String, crate::tools::Activity>::new();
+    let mut projections = BTreeMap::<String, Option<String>>::new();
     for contribution in contributions {
         let (message, parent) = contribution?;
         if let Some(node) = nodes.get(&message.id) {
             let previous = payloads
                 .get(node.position)?
                 .ok_or_else(|| AppError::internal("Claude reconciliation lost a payload"))?;
-            if previous.role != message.role
-                || previous.content != message.content
-                || previous.dialogue_text != message.dialogue_text
-                || previous.created_at != message.created_at
-                || node.parent != parent
-            {
-                return Err(AppError::configuration(
-                    "Claude native message identity has conflicting content or ancestry",
-                ));
-            }
-            if previous.tools.is_empty() && !message.tools.is_empty() {
-                tools.insert(message.id, message.tools);
-            }
+            let same_parent = node.parent == parent;
+            merge_copy(
+                &previous,
+                same_parent,
+                message,
+                &mut tools,
+                &mut projections,
+            )?;
         } else {
             let id = message.id.clone();
             let created_at = message.created_at;
@@ -84,6 +123,9 @@ pub fn reconcile(
         let parent = node.parent;
         if let Some(activity) = tools.remove(&id) {
             message.tools = activity;
+        }
+        if let Some(projection) = projections.remove(&id) {
+            message.dialogue_text = projection;
         }
         message.ordinal = i64::try_from(messages.len())
             .map_err(|_| AppError::internal("Claude chat contains too many messages"))?;
