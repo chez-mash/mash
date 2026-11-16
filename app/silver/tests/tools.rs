@@ -198,3 +198,38 @@ fn reconciled_claude_copies_keep_the_narrowest_projection_in_either_order() {
     other.content = "different words".into();
     assert!(claude::reconcile([Ok((message(None), None)), Ok((other, None))]).is_err());
 }
+
+/// While a reread is under way, a file not yet read again still holds its
+/// copy from an earlier reading, with other ancestry. The current copy wins
+/// whichever arrives first; two current copies must still agree.
+#[test]
+fn a_current_claude_copy_replaces_one_awaiting_its_reread() {
+    use claude::Reading::{Current, Earlier};
+    let message = |content: &str| NormalizedMessage {
+        attachments: Vec::new(),
+        id: "shared".into(),
+        ordinal: 0,
+        context: crate::message_context::MessageContext::Root,
+        role: crate::role::Role::Assistant,
+        content: content.into(),
+        dialogue_text: None,
+        created_at: Some(1),
+        tools: Activity::default(),
+    };
+    let current = || (message("as read now"), Some("thinking".to_owned()), Current);
+    let earlier = || {
+        (
+            message("as read before"),
+            Some("request".to_owned()),
+            Earlier,
+        )
+    };
+    for copies in [[current(), earlier()], [earlier(), current()]] {
+        let (messages, lineage) = claude::reconcile_readings(copies.map(Ok)).unwrap();
+        assert_eq!(messages.inline()[0].content, "as read now");
+        assert_eq!(lineage["shared"].as_deref(), Some("thinking"));
+    }
+    let mut other = current();
+    other.1 = Some("elsewhere".into());
+    assert!(claude::reconcile_readings([Ok(current()), Ok(other)]).is_err());
+}

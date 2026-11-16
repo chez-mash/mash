@@ -64,47 +64,81 @@ fn merge_copy(
     Ok(())
 }
 
+/// Which reading of its session file a copy of a message came from.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Reading {
+    /// Read the way this release reads history.
+    Current,
+    /// Read by an earlier release and waiting to be read again. Its roles,
+    /// text and ancestry may differ; it yields to any current copy.
+    Earlier,
+}
+
+struct Node {
+    position: usize,
+    created_at: Option<i64>,
+    parent: Option<String>,
+    reading: Reading,
+}
+
 /// Reconcile matching native identities and order every retained branch after
 /// its parent. Missing ancestors remain roots until another contribution supplies
 /// them. Timestamp and identity break ties; source arrival order never does.
 pub fn reconcile(
     contributions: impl IntoIterator<Item = Result<(NormalizedMessage, Option<String>), AppError>>,
 ) -> Result<(Messages, Lineage), AppError> {
-    struct Node {
-        position: usize,
-        created_at: Option<i64>,
-        parent: Option<String>,
-    }
+    reconcile_readings(contributions.into_iter().map(|contribution| {
+        contribution.map(|(message, parent)| (message, parent, Reading::Current))
+    }))
+}
+
+/// `reconcile`, for copies that may come from files not yet read again. While
+/// a reread is under way a message can have a current copy from one session
+/// file and an earlier one from another; they are not required to agree.
+pub fn reconcile_readings(
+    contributions: impl IntoIterator<
+        Item = Result<(NormalizedMessage, Option<String>, Reading), AppError>,
+    >,
+) -> Result<(Messages, Lineage), AppError> {
     let mut payloads = Builder::default();
     let mut nodes = BTreeMap::<String, Node>::new();
     let mut tools = BTreeMap::<String, crate::tools::Activity>::new();
     let mut projections = BTreeMap::<String, Option<String>>::new();
     for contribution in contributions {
-        let (message, parent) = contribution?;
-        if let Some(node) = nodes.get(&message.id) {
-            let previous = payloads
-                .get(node.position)?
-                .ok_or_else(|| AppError::internal("Claude reconciliation lost a payload"))?;
-            let same_parent = node.parent == parent;
-            merge_copy(
-                &previous,
-                same_parent,
-                message,
-                &mut tools,
-                &mut projections,
-            )?;
-        } else {
-            let id = message.id.clone();
-            let created_at = message.created_at;
-            let position = payloads.push(message)?;
-            nodes.insert(
-                id,
-                Node {
-                    position,
-                    created_at,
-                    parent,
-                },
-            );
+        let (message, parent, reading) = contribution?;
+        match nodes.get(&message.id) {
+            Some(node) if node.reading == reading => {
+                let previous = payloads
+                    .get(node.position)?
+                    .ok_or_else(|| AppError::internal("Claude reconciliation lost a payload"))?;
+                let same_parent = node.parent == parent;
+                merge_copy(
+                    &previous,
+                    same_parent,
+                    message,
+                    &mut tools,
+                    &mut projections,
+                )?;
+            }
+            // The current copy is already held.
+            Some(_) if reading == Reading::Earlier => {}
+            // New, or a current copy replacing an earlier one and all it added.
+            _ => {
+                let id = message.id.clone();
+                tools.remove(&id);
+                projections.remove(&id);
+                let created_at = message.created_at;
+                let position = payloads.push(message)?;
+                nodes.insert(
+                    id,
+                    Node {
+                        position,
+                        created_at,
+                        parent,
+                        reading,
+                    },
+                );
+            }
         }
     }
     let mut children = BTreeMap::<String, Vec<String>>::new();

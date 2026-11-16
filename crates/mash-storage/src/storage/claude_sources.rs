@@ -9,10 +9,43 @@ use crate::AppError;
 use crate::provider::Provider;
 use crate::silver::{Chat, NormalizedMessage, SourceIdentity, claude};
 
+/// This chat's session files that `index --reread` has marked and not yet
+/// read again. Their stored copies come from an earlier reading.
+fn sources_awaiting_reread(
+    connection: &rusqlite::Connection,
+    chat_id: &str,
+) -> Result<BTreeSet<String>, AppError> {
+    let mut statement = connection
+        .prepare_cached(
+            "SELECT s.source_key FROM claude_sources s
+               JOIN source_checkpoints c
+                 ON c.provider = 'claude-code' AND c.source_key = s.source_key
+              WHERE s.chat_id = ?1 AND c.interpretation_version = 0",
+        )
+        .map_err(AppError::database)?;
+    statement
+        .query_map([chat_id], |row| row.get(0))
+        .map_err(AppError::database)?
+        .collect::<Result<_, _>>()
+        .map_err(AppError::database)
+}
+
+#[cfg(test)]
 pub(super) fn claude_chat(
     connection: &rusqlite::Connection,
     id: &str,
     sources: Option<&BTreeSet<String>>,
+) -> Result<Option<Chat>, AppError> {
+    claude_chat_after(connection, id, sources, None)
+}
+
+/// `claude_chat`, right after `just_read`'s copies were replaced: its
+/// checkpoint is recorded later, but what it holds is already current.
+fn claude_chat_after(
+    connection: &rusqlite::Connection,
+    id: &str,
+    sources: Option<&BTreeSet<String>>,
+    just_read: Option<&str>,
 ) -> Result<Option<Chat>, AppError> {
     let metadata = sql::ClaudeSourceMetadata::builder()
         .chat_id(id)
@@ -24,6 +57,10 @@ pub(super) fn claude_chat(
     let Some(metadata) = metadata else {
         return Ok(None);
     };
+    let mut awaiting = sources_awaiting_reread(connection, id)?;
+    if let Some(key) = just_read {
+        awaiting.remove(key);
+    }
     let query = sql::ClaudeContributionMessages::builder()
         .chat_id(id)
         .build();
@@ -37,13 +74,18 @@ pub(super) fn claude_chat(
             sql::ClaudeContributionMessagesRow::from_row,
         )
         .map_err(AppError::database)?;
-    let (messages, lineage) = claude::reconcile(
+    let (messages, lineage) = claude::reconcile_readings(
         rows.filter(|row| match row {
             Ok(row) => sources.is_none_or(|keys| keys.contains(&row.source_key)),
             Err(_) => true,
         })
         .map(|row| {
             let row = row.map_err(AppError::database)?;
+            let reading = if awaiting.contains(&row.source_key) {
+                claude::Reading::Earlier
+            } else {
+                claude::Reading::Current
+            };
             Ok((
                 NormalizedMessage {
                     attachments: serde_json::from_str(&row.attachments)
@@ -58,6 +100,7 @@ pub(super) fn claude_chat(
                     tools: crate::tools::Activity::decode(row.metadata.as_deref())?,
                 },
                 row.parent_id,
+                reading,
             ))
         }),
     )?;
@@ -112,7 +155,7 @@ impl Storage {
                     .build()
                     .execute(&storage.connection)
                     .map_err(AppError::database)?;
-                moved = storage.refresh_claude_chat(&previous.chat_id)?;
+                moved = storage.refresh_claude_chat(&previous.chat_id, None)?;
             }
             let repaired = storage.repair_claude_source_identity(source)?;
             let title = source.title.clone().map(|mut title| {
@@ -130,7 +173,7 @@ impl Storage {
                 .execute(&storage.connection)
                 .map_err(AppError::database)?;
             storage.write_claude_contribution(&key, source)?;
-            let mut change = storage.refresh_claude_chat(&source.id)?;
+            let mut change = storage.refresh_claude_chat(&source.id, Some(&key))?;
             change.removed_messages += repaired + moved.removed_messages;
             change.changed_message_ids.extend(moved.changed_message_ids);
             Ok(change)
@@ -229,8 +272,12 @@ impl Storage {
         }
     }
 
-    fn refresh_claude_chat(&mut self, id: &str) -> Result<ChatChange, AppError> {
-        let chat = claude_chat(&self.connection, id, None)?;
+    fn refresh_claude_chat(
+        &mut self,
+        id: &str,
+        just_read: Option<&str>,
+    ) -> Result<ChatChange, AppError> {
+        let chat = claude_chat_after(&self.connection, id, None, just_read)?;
         let Some(chat) = chat else {
             let count = sql::CanonicalChatMessageCount::builder()
                 .chat_id(id)
@@ -264,7 +311,7 @@ impl Storage {
                 .build()
                 .execute(&storage.connection)
                 .map_err(AppError::database)?;
-            storage.refresh_claude_chat(&previous.chat_id)?;
+            storage.refresh_claude_chat(&previous.chat_id, None)?;
             let retained = sql::ClaudeSourceMetadata::builder()
                 .chat_id(&previous.chat_id)
                 .build()

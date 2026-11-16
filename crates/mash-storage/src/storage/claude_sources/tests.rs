@@ -13,6 +13,8 @@ fn fixture() -> rusqlite::Connection {
                 content_packed, content TEXT GENERATED ALWAYS AS (silver_text(content_packed)) VIRTUAL,
                 projection TEXT, created_at INTEGER, attachments TEXT NOT NULL DEFAULT '[]',
                 metadata TEXT);
+             CREATE TABLE source_checkpoints (
+                provider TEXT, source_key TEXT, interpretation_version INTEGER);
              INSERT INTO claude_sources VALUES
                 ('a','/a','thread','title a','project a','repository a'),
                 ('b','/b','thread','title b','project b','repository b');
@@ -67,6 +69,33 @@ fn streamed_contributions_preserve_copies_branches_and_selected_sources() {
             .unwrap()
             .is_none()
     );
+}
+
+/// A reread reads one file at a time: until the other is read again its copy
+/// of a shared message comes from an earlier reading and yields.
+#[test]
+fn a_file_awaiting_its_reread_yields_to_the_one_just_read() {
+    let connection = fixture();
+    connection
+        .execute_batch(
+            "UPDATE claude_source_messages SET content_packed='earlier reading'
+              WHERE source_key='b' AND message_id='root';
+             INSERT INTO source_checkpoints VALUES
+                ('claude-code','a',0), ('claude-code','b',0);",
+        )
+        .unwrap();
+    // Both await their reread: neither reading is known to be the current one.
+    assert!(claude_chat(&connection, "thread", None).is_err());
+    let chat = claude_chat_after(&connection, "thread", None, Some("a"))
+        .unwrap()
+        .unwrap();
+    let texts = chat
+        .messages
+        .inline()
+        .iter()
+        .map(|message| message.content.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(texts, ["root text", "left text", "right text"]);
 }
 
 #[test]
