@@ -662,7 +662,8 @@ fn integrations(status: &StatusResponse) -> Finding {
             format!("{attention} findings about agent integrations need attention."),
         )
         .repair("mash status --installation");
-        match next {
+        // The next step is often that same command; say it once.
+        match next.filter(|next| *next != "mash status --installation") {
             Some(next) => finding.cause(next.to_owned()),
             None => finding,
         }
