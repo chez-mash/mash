@@ -43,7 +43,8 @@ fn native_publication() -> (Vec<Value>, Vec<String>) {
 
 async fn contract(service: Service) {
     let (events, ids) = native_publication();
-    assert_eq!(ids.len(), 6);
+    // Six bubbles; one's thinking and one's tool call are entries of their own.
+    assert_eq!(ids.len(), 8);
     let response = service.upload(FIRST, &events).await;
     assert_eq!(
         response.status(),
@@ -88,16 +89,16 @@ async fn contract(service: Service) {
                 .lexical
                 .iter()
                 .chain(&result.semantic)
-                .all(|m| m.id != ids[2] && m.id != ids[3])
+                .all(|m| [1, 3, 4, 5].iter().all(|hidden| m.id != ids[*hidden]))
         );
         if lexical == 2 {
             assert_ne!(result.lexical[0].id, result.lexical[1].id);
         }
     }
     for (id, expected) in [
-        (&ids[1], "private-ide-reasoning"),
-        (&ids[2], "private-ide-simulated-context"),
-        (&ids[3], "Tool 51"),
+        (&ids[1], "[Thinking] private-ide-reasoning"),
+        (&ids[3], "private-ide-simulated-context"),
+        (&ids[5], "Tool: tool 51"),
     ] {
         let input = View {
             node_id: "first".into(),
