@@ -35,7 +35,6 @@ const listing = createQuery(() => ({
 }));
 let filter = $state("");
 let open = $state("");
-let allParams = $state(false);
 let values = $state<Record<string, string>>({});
 type Outcome =
   | { readonly state: "idle" }
@@ -62,20 +61,12 @@ const runnable = $derived(tools.filter((tool) => tool.readOnly).length);
 const tool = $derived(tools.find((entry) => entry.name === open));
 const request = $derived(tool ? argumentsFor(tool, values) : null);
 const summary = $derived(outcome.state === "done" ? summarize(outcome.answer) : null);
-const FEW = 6;
 
 function toggle(name: string): void {
   controller?.abort();
   open = open === name ? "" : name;
-  allParams = false;
   outcome = { state: "idle" };
   notice = "";
-}
-function shownParams(entry: Tool) {
-  if (allParams || entry.params.length <= FEW) return entry.params;
-  return entry.params.filter(
-    (param) => param.required || (values[`${entry.name}.${param.name}`] ?? "").trim(),
-  );
 }
 async function run(event: SubmitEvent): Promise<void> {
   event.preventDefault();
@@ -161,7 +152,7 @@ $effect(() => () => controller?.abort());
                 <h3 class="op-t">Parameters</h3>
                 {#if !entry.params.length}<p class="meta">This tool takes no parameters.</p>{/if}
                 <div class="prms">
-                  {#each shownParams(entry) as param (param.name)}
+                  {#each entry.params as param (param.name)}
                     {@const key = `${entry.name}.${param.name}`}
                     <label class="prm" class:bad={request && !request.ok && request.param === param.name && outcome.state !== "idle"}>
                       <span class="prm-n"><code>{param.name}</code><small>{param.type}</small>{#if param.required}<b>required</b>{/if}</span>
@@ -178,9 +169,6 @@ $effect(() => () => controller?.abort());
                     </label>
                   {/each}
                 </div>
-                {#if entry.params.length > FEW}
-                  <button class="a" type="button" style:min-height="36px" onclick={() => (allParams = !allParams)}>{allParams ? "Show fewer parameters" : `Show all ${entry.params.length} parameters`}</button>
-                {/if}
               </div>
               {#if entry.readOnly}
                 <div class="op-r">
