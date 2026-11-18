@@ -55,7 +55,7 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 850 });
     const read = await mockHistory(page);
     await page.goto("/#/");
-    await followRail(page, "export", "chats");
+    await followRail(page, "export chats", "chats");
     await expect(page).toHaveURL(/#\/export$/);
     const main = page.getByRole("main");
     const status = main.getByRole("status").first();

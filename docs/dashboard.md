@@ -218,7 +218,7 @@ opens it there.
 
 ## Export many chats at once
 
-Open **chats**, then **export**. Narrow the list with the agent, machine,
+Open **chats**, then **export chats**. Narrow the list with the agent, machine,
 project and time filters; every matching chat is exported, on every page,
 unless you untick it. Choose **Markdown** to read or **JSON** for scripts, then
 **Export**. Your browser saves one `.zip` file with a folder per project and a

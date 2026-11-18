@@ -201,7 +201,7 @@ async function copy(): Promise<void> {
 </script>
 
 <div class="hd">
-  <div><h1 class="h1">Export</h1><p class="meta">Copy many chats out of Mash at once.</p></div>
+  <div><h1 class="h1">Export chats</h1><p class="meta">Copy many chats out of Mash at once.</p></div>
 </div>
 
 <QueryError title="Couldn’t load chats" query={catalogue} />

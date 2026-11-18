@@ -194,7 +194,7 @@ function toggle(id: Section): void {
         {#if section.id === "chats"}
           <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={16} color="var(--sky)" aria-hidden="true" /><span>recent chats</span></a>
           <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={16} color="var(--sky)" aria-hidden="true" /><span>viewing history</span></a>
-          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={16} color="var(--sky)" aria-hidden="true" /><span>export</span></a>
+          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={16} color="var(--sky)" aria-hidden="true" /><span>export chats</span></a>
         {:else if section.id === "agents"}
           {#each providers as provider (provider.key)}
             {@const agent = provider.chats[0]?.agent}
