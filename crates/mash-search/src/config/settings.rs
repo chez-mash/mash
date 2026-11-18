@@ -25,6 +25,17 @@ pub struct View {
     shared: bool,
     memory_capture: bool,
     hide_credentials: crate::redaction::Settings,
+    /// The dashboard assistant, when the file configures a service for it.
+    assistant: Option<Assistant>,
+}
+
+/// The assistant's switch and model. Its service and key stay in the file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[schemars(rename = "AssistantSettings")]
+#[serde(deny_unknown_fields)]
+pub struct Assistant {
+    enabled: bool,
+    model: String,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -44,6 +55,9 @@ pub struct Change {
     destination: IndexDestination,
     memory_capture: bool,
     hide_credentials: crate::redaction::Settings,
+    /// Left out, the assistant's settings stay as they are.
+    #[serde(default)]
+    assistant: Option<Assistant>,
 }
 
 fn read(path: &Path) -> Result<String, AppError> {
@@ -88,6 +102,10 @@ fn describe(path: &Path, text: &str, detected: &ProviderRoots) -> Result<View, A
         shared: document.shared.is_some(),
         memory_capture: document.records.enabled,
         hide_credentials: document.redaction,
+        assistant: document.assistant.map(|assistant| Assistant {
+            enabled: assistant.enabled,
+            model: assistant.model,
+        }),
     })
 }
 
@@ -131,6 +149,10 @@ fn revise(text: &str, change: &Change, detected: &ProviderRoots) -> Result<Strin
             destination: change.destination,
             memory_capture: change.memory_capture,
             redaction: change.hide_credentials,
+            assistant: change
+                .assistant
+                .as_ref()
+                .map(|assistant| (assistant.enabled, assistant.model.as_str())),
         },
     )
 }
@@ -164,7 +186,55 @@ mod tests {
             destination: IndexDestination::Local,
             memory_capture: true,
             hide_credentials: crate::redaction::Settings::default(),
+            assistant: None,
         }
+    }
+
+    #[test]
+    fn the_assistant_is_switched_and_given_a_model_only_where_one_is_configured() {
+        let with = format!(
+            "{}\n[assistant]\nbase_url = 'https://openrouter.ai/api/v1'\ntoken_env = 'KEY'\nmodel = 'a/b'\n",
+            file()
+        );
+        let view = describe(Path::new("/c.toml"), &with, &detected()).unwrap();
+        assert_eq!(
+            view.assistant,
+            Some(Assistant {
+                enabled: true,
+                model: "a/b".into()
+            })
+        );
+        let mut request = change(&with);
+        request.assistant = Some(Assistant {
+            enabled: false,
+            model: "c/d".into(),
+        });
+        let updated = revise(&with, &request, &detected()).unwrap();
+        let view = describe(Path::new("/c.toml"), &updated, &detected()).unwrap();
+        assert_eq!(view.assistant, request.assistant);
+        // The service and the key's name are kept as written.
+        assert!(updated.contains("openrouter.ai") && updated.contains("KEY"));
+        // A change that leaves the assistant out leaves it as it is.
+        let kept = revise(&updated, &change(&updated), &detected()).unwrap();
+        let view = describe(Path::new("/c.toml"), &kept, &detected()).unwrap();
+        assert_eq!(view.assistant, request.assistant);
+        // An empty model name is refused, and so is an assistant the file lacks.
+        let mut unnamed = change(&with);
+        unnamed.assistant = Some(Assistant {
+            enabled: true,
+            model: " ".into(),
+        });
+        assert!(revise(&with, &unnamed, &detected()).is_err());
+        let file = &file();
+        assert!(
+            describe(Path::new("/c.toml"), file, &detected())
+                .unwrap()
+                .assistant
+                .is_none()
+        );
+        let mut absent = change(file);
+        absent.assistant = request.assistant.clone();
+        assert!(revise(file, &absent, &detected()).is_err());
     }
 
     #[test]

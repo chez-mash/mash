@@ -69,6 +69,8 @@ async function mock(page: Page, served: unknown, posts: unknown[]): Promise<void
       }
       return route.fulfill({ json: served });
     }
+    if (path === "/api/assistant/models")
+      return route.fulfill({ json: { models: ["another/model", "test/model"] } });
     if (path === "/api/services/access")
       return route.fulfill({ json: { authentication_required: false, local_node: "fixture" } });
     if (path === "/api/chats")
@@ -88,7 +90,7 @@ for (const width of [390, 1280]) {
     await expect(page.getByRole("region", { name: "Unsaved settings" })).toHaveCount(0);
     // Search internals are shown, never offered as a choice.
     await expect(page.getByText("HNSW", { exact: true })).toBeVisible();
-    await expect(page.getByRole("switch")).toHaveCount(5);
+    await expect(page.getByRole("main").getByRole("switch")).toHaveCount(5);
 
     await page.getByRole("switch", { name: "Index Cursor" }).click();
     await page.getByRole("button", { name: "recent only" }).click();
@@ -124,6 +126,7 @@ for (const width of [390, 1280]) {
       destination: "both",
       memory_capture: true,
       hide_credentials: { output: true, publication: false },
+      assistant: null,
     });
     await expect(page.getByRole("switch", { name: "Index Cursor" })).toHaveAttribute(
       "aria-checked",
@@ -151,7 +154,30 @@ test("a dashboard that does not accept changes shows settings without controls",
   await mock(page, { ...settings, editable: false }, posts);
   await page.goto("/#/settings");
   await expect(page.getByText(/does not change settings/)).toBeVisible();
-  await expect(page.getByRole("switch")).toHaveCount(0);
+  await expect(page.getByRole("main").getByRole("switch")).toHaveCount(0);
   await expect(page.getByText("not indexed", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Save to file" })).toHaveCount(0);
+});
+
+test("Mashy is switched off and given another model where an assistant is configured", async ({
+  page,
+}) => {
+  const posts: unknown[] = [{}];
+  await mock(page, { ...settings, assistant: { enabled: true, model: "test/model" } }, posts);
+  await page.goto("/#/settings");
+  const model = page.getByRole("combobox", { name: "Mashy's model" });
+  await expect(model).toHaveValue("test/model");
+  // The service's own list of models is offered as choices.
+  await expect(page.locator("#assistant-models option")).toHaveCount(2);
+  await page.getByRole("switch", { name: "Mashy", exact: true }).click();
+  await model.fill("another/model");
+  const bar = page.getByRole("region", { name: "Unsaved settings" });
+  await bar.getByRole("button", { name: "Review changes" }).click();
+  await expect(bar.getByRole("listitem")).toHaveText([
+    /Mashy\s*on\s*→\s*off/,
+    /Mashy's model\s*test\/model\s*→\s*another\/model/,
+  ]);
+  await bar.getByRole("button", { name: "Save to file" }).click();
+  await expect.poll(() => posts.length).toBe(2);
+  expect(posts[1]).toMatchObject({ assistant: { enabled: false, model: "another/model" } });
 });

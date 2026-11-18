@@ -117,6 +117,9 @@ pub(super) struct Edit<'a> {
     pub(super) destination: IndexDestination,
     pub(super) memory_capture: bool,
     pub(super) redaction: crate::redaction::Settings,
+    /// Whether the assistant is on and which model it uses, when the request
+    /// says. Its service and key are never set here.
+    pub(super) assistant: Option<(bool, &'a str)>,
 }
 
 /// Apply `edit` to the file's text, preserving every other typed field. The
@@ -142,6 +145,15 @@ pub(super) fn edit(text: &str, edit: &Edit) -> Result<String, AppError> {
     document.index.destination = Some(edit.destination);
     document.records.enabled = edit.memory_capture;
     document.redaction = edit.redaction;
+    if let Some((enabled, model)) = edit.assistant {
+        let assistant = document.assistant.as_mut().ok_or_else(|| {
+            AppError::configuration(
+                "no assistant is configured; add an [assistant] table to the configuration file first",
+            )
+        })?;
+        assistant.enabled = enabled;
+        model.clone_into(&mut assistant.model);
+    }
     let text = toml::to_string_pretty(&document)
         .map_err(|error| AppError::configuration(format!("serialize configuration: {error}")))?;
     parse_document(text.as_bytes())?;

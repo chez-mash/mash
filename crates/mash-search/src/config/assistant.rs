@@ -15,6 +15,13 @@ pub struct Assistant {
     pub token_env: String,
     /// The model's name as that service knows it.
     pub model: String,
+    /// False keeps the assistant off while its service stays configured.
+    #[serde(default = "on")]
+    pub enabled: bool,
+}
+
+const fn on() -> bool {
+    true
 }
 
 impl Assistant {
@@ -35,6 +42,11 @@ impl Assistant {
         super::secret(&self.token_env)
     }
 
+    /// Where the service lists the models it offers.
+    pub fn models_endpoint(&self) -> String {
+        format!("{}/models", self.base_url.trim_end_matches('/'))
+    }
+
     /// Where chat requests are sent.
     pub fn endpoint(&self) -> String {
         format!("{}/chat/completions", self.base_url.trim_end_matches('/'))
@@ -50,6 +62,7 @@ mod tests {
             base_url: base_url.into(),
             token_env: token_env.into(),
             model: model.into(),
+            enabled: true,
         }
     }
 
@@ -81,7 +94,13 @@ mod tests {
     fn the_table_is_strict_and_optional() {
         let with = "version = 1\nproviders = {}\n[assistant]\nbase_url = 'https://openrouter.ai/api/v1'\ntoken_env = 'KEY'\nmodel = 'a/b'\n";
         let parsed = super::super::document::parse_document(with.as_bytes()).unwrap();
-        assert_eq!(parsed.assistant.unwrap().model, "a/b");
+        let assistant = parsed.assistant.unwrap();
+        assert_eq!(assistant.model, "a/b");
+        // The assistant is on unless the file says otherwise.
+        assert!(assistant.enabled);
+        let off = format!("{with}enabled = false\n");
+        let parsed = super::super::document::parse_document(off.as_bytes()).unwrap();
+        assert!(!parsed.assistant.unwrap().enabled);
         let without =
             super::super::document::parse_document(b"version = 1\nproviders = {}\n").unwrap();
         assert!(without.assistant.is_none());

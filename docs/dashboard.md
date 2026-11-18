@@ -57,9 +57,12 @@ The left rail is the way around. On a phone it opens from the menu button.
   Tools that change data are listed but cannot be run here.
 - **settings:** this machine's configuration and index readiness. You can
   change which agents are indexed, how far back, whether history also goes to
-  the shared server, memory capture and credential masking. Saving rewrites
+  the shared server, memory capture and credential masking. Where
+  [Mashy](#ask-mashy) is set up you can also switch it off and on and choose
+  its model. Saving rewrites
   the file and keeps the previous one beside it as `config.toml.previous`;
-  restart the watcher and reconnect agents to apply. Search and storage
+  restart the watcher and reconnect agents to apply. Mashy follows its own
+  settings at once. Search and storage
   settings are shown but cannot be changed here. A dashboard that other
   machines can reach changes settings only when it was started with
   `--services-config`.

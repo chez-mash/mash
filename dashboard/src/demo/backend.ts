@@ -388,6 +388,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/health": () => ({ build: tools.build_revision }),
   // The demo has no model to ask.
   "/api/assistant": () => ({ enabled: false, model: null }),
+  "/api/assistant/models": () => refuse(404, "No assistant is configured in the demo."),
   "/api/chats": (_, now) => ({
     local_node: localMachine,
     truncated: false,

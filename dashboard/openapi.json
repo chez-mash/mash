@@ -313,6 +313,23 @@
         ],
         "type": "object"
       },
+      "AssistantSettings": {
+        "additionalProperties": false,
+        "description": "The assistant's switch and model. Its service and key stay in the file.",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "model"
+        ],
+        "type": "object"
+      },
       "AttachmentConfiguration": {
         "additionalProperties": false,
         "properties": {
@@ -648,6 +665,18 @@
               }
             },
             "type": "object"
+          },
+          "assistant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistantSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Left out, the assistant's settings stay as they are."
           },
           "destination": {
             "$ref": "#/components/schemas/IndexDestination"
@@ -2880,6 +2909,21 @@
         ],
         "type": "string"
       },
+      "Models": {
+        "description": "The models the configured service offers, by the names it knows them by.",
+        "properties": {
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "models"
+        ],
+        "type": "object"
+      },
       "NodeFingerprintSummary": {
         "properties": {
           "chats": {
@@ -4612,6 +4656,17 @@
             },
             "type": "object"
           },
+          "assistant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistantSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The dashboard assistant, when the file configures a service for it."
+          },
           "destination": {
             "$ref": "#/components/schemas/IndexDestination"
           },
@@ -5727,6 +5782,34 @@
           }
         },
         "summary": "Ask the assistant; the answer is a text/event-stream of these events."
+      }
+    },
+    "/api/assistant/models": {
+      "get": {
+        "operationId": "getApiAssistantModels",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Models"
+                }
+              }
+            },
+            "description": "The models the configured service offers, by the names it knows them by."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "The models the configured service offers."
       }
     },
     "/api/chat": {

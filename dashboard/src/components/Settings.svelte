@@ -11,7 +11,7 @@ import Server from "@lucide/svelte/icons/server";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
-import { assistantOptions } from "../lib/assistant";
+import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
 import {
   type Draft,
   destinations,
@@ -37,6 +37,11 @@ const assistant = createQuery(() => assistantOptions);
 const settings = createQuery(() => settingsOptions);
 const config = $derived(status.data?.configuration);
 const file = $derived(settings.data);
+// The service is asked for its models only where one could be chosen.
+const models = createQuery(() => ({
+  ...assistantModelsOptions,
+  enabled: !!settings.data?.assistant && settings.data.editable,
+}));
 const names = Object.fromEntries(
   Object.entries(agentInfo).map(([agent, info]) => [agent, info.name]),
 ) as Record<Agent, string>;
@@ -73,6 +78,7 @@ async function save(): Promise<void> {
     const next = await saveSettings(file, draft);
     queryClient.setQueryData(settingsOptions.queryKey, next);
     await queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });
+    await queryClient.invalidateQueries({ queryKey: assistantOptions.queryKey, exact: true });
     saved = count;
     reviewing = false;
   } catch (error) {
@@ -208,11 +214,27 @@ async function save(): Promise<void> {
   </section>
   <section class="set-s">
     <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
-    <dl>
-      {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
-      {#if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
-    </dl>
-    {#if assistant.data && !assistant.data.enabled}<p class="meta">Mashy answers questions from your history using a model you choose, and sends it the chat text it reads. To turn it on, add an <code>[assistant]</code> table to the configuration file and set the key it names.</p>{/if}
+    {#if file?.assistant && draft?.assistant && file.editable}
+      <div class="set-r" class:changed={touched.has("mashy")}>
+        <span class="set-l">Mashy<small>answers questions from your history, and sends the model the chat text it reads</small></span>
+        <span class="set-c">{@render toggle("Mashy", draft.assistant.enabled, () => { if (draft?.assistant) draft.assistant.enabled = !draft.assistant.enabled; })}</span>
+      </div>
+      <div class="set-r" class:changed={touched.has("model")}>
+        <span class="set-l">model<small>{models.data?.length ? `${models.data.length.toLocaleString()} offered by the configured service` : models.error ? "the service did not list its models; type a name" : "as the configured service names it"}</small></span>
+        <span class="set-c">
+          <input class="field" list="assistant-models" aria-label="Mashy's model" autocomplete="off" autocapitalize="off" spellcheck="false" style:width="min(100%, 340px)" value={draft.assistant.model} oninput={(event) => { saved = 0; if (draft?.assistant) draft.assistant.model = event.currentTarget.value; }} />
+          <datalist id="assistant-models">{#each models.data ?? [] as model (model)}<option value={model}></option>{/each}</datalist>
+        </span>
+      </div>
+      {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}<p class="meta warn">Mashy is switched on, but the key the configuration names is not set, so it stays unavailable.</p>{/if}
+      <p class="meta" style:margin-top="8px">The service's address and its key are set in the configuration file, not here.</p>
+    {:else}
+      <dl>
+        {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
+        {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
+      </dl>
+      {#if !file?.assistant && assistant.data && !assistant.data.enabled}<p class="meta">Mashy answers questions from your history using a model you choose, and sends it the chat text it reads. To turn it on, add an <code>[assistant]</code> table to the configuration file and set the key it names.</p>{/if}
+    {/if}
   </section>
   <section class="set-s">
     <h2 class="h2"><Database size={15} aria-hidden="true" />storage</h2>
@@ -256,6 +278,6 @@ async function save(): Promise<void> {
       {/if}
     {/if}
     {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
-    {#if saved && !changed.length}<p class="ok" role="status">Saved {saved} change{saved === 1 ? "" : "s"} to the file. A running watcher and connected agents keep their old settings until they restart. <a class="a" href="#/services">Restart the watcher from Services</a>.</p>{/if}
+    {#if saved && !changed.length}<p class="ok" role="status">Saved {saved} change{saved === 1 ? "" : "s"} to the file. A running watcher and connected agents keep their old settings until they restart; Mashy follows its own at once. <a class="a" href="#/services">Restart the watcher from Services</a>.</p>{/if}
   </div>
 {/if}

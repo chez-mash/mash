@@ -153,9 +153,14 @@ streaming.
   process that runs `mash dash`. A dashboard run as a service can instead read
   it from `~/.mash/node.env`, one `NAME=key` line, readable only by you.
 - `model` is the model's name as that service knows it.
+- `enabled = false` switches Mashy off while keeping the rest of the table.
+  It is on when the line is left out.
 
 Mashy is off unless the table is present and the key is set. A key in your
-environment does not turn it on by itself.
+environment does not turn it on by itself. Once the table is there, the
+dashboard's **settings** page can switch Mashy off and on and change the
+model, choosing from the models the service lists; the service's address and
+the key's name are only ever set in this file.
 
 **What is sent.** When Mashy looks something up, the chat text and memories it
 reads are sent to that service, with recognizable credentials masked like any

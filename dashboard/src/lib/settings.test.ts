@@ -23,6 +23,7 @@ const body = {
   shared: true,
   memory_capture: true,
   hide_credentials: { output: true, publication: true },
+  assistant: { enabled: true, model: "a/b" },
 };
 
 test("unknown agents are left out of the settings", () => {
@@ -54,4 +55,21 @@ test("a draft that could not be saved says why", () => {
   draft.agents.codex = true;
   draft.sinceDays = 0;
   expect(problem(settings, draft)).toContain("between 1 and 36,500");
+});
+
+test("Mashy's switch and model are offered only where an assistant is configured", () => {
+  const settings = parseSettings(body);
+  const draft = draftOf(settings);
+  if (!draft.assistant) throw new Error("no assistant in the draft");
+  draft.assistant.enabled = false;
+  draft.assistant.model = " c/d ";
+  expect(differences(settings, draft, names)).toEqual([
+    { key: "mashy", label: "Mashy", from: "on", to: "off" },
+    { key: "model", label: "Mashy's model", from: "a/b", to: "c/d" },
+  ]);
+  draft.assistant.model = " ";
+  expect(problem(settings, draft)).toContain("model");
+  const without = parseSettings({ ...body, assistant: null });
+  expect(without.assistant).toBeNull();
+  expect(draftOf(without).assistant).toBeNull();
 });

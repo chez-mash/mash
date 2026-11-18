@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assistant/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The models the configured service offers. */
+        get: operations["getApiAssistantModels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat": {
         parameters: {
             query?: never;
@@ -479,6 +496,11 @@ export interface components {
              */
             utc_offset: number | null;
         };
+        /** @description The assistant's switch and model. Its service and key stay in the file. */
+        AssistantSettings: {
+            enabled: boolean;
+            model: string;
+        };
         AttachmentConfiguration: {
             /**
              * @description Only explicit provider attachment references within these roots can be retained.
@@ -588,6 +610,11 @@ export interface components {
                 cursor?: boolean;
                 opencode?: boolean;
             };
+            /**
+             * @description Left out, the assistant's settings stay as they are.
+             * @default null
+             */
+            assistant: components["schemas"]["AssistantSettings"] | null;
             destination: components["schemas"]["IndexDestination"];
             hide_credentials: components["schemas"]["RedactionSettings"];
             memory_capture: boolean;
@@ -1225,6 +1252,10 @@ export interface components {
         };
         /** @enum {string} */
         ModelAvailability: "not-required" | "available" | "unavailable";
+        /** @description The models the configured service offers, by the names it knows them by. */
+        Models: {
+            models: string[];
+        };
         NodeFingerprintSummary: {
             /** Format: uint64 */
             chats: number;
@@ -1744,6 +1775,8 @@ export interface components {
                 cursor?: components["schemas"]["AgentSettings"];
                 opencode?: components["schemas"]["AgentSettings"];
             };
+            /** @description The dashboard assistant, when the file configures a service for it. */
+            assistant?: components["schemas"]["AssistantSettings"] | null;
             destination: components["schemas"]["IndexDestination"];
             editable: boolean;
             hide_credentials: components["schemas"]["RedactionSettings"];
@@ -2167,6 +2200,35 @@ export interface operations {
                 };
                 content: {
                     "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiAssistantModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The models the configured service offers, by the names it knows them by. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Models"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

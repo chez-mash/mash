@@ -66,7 +66,11 @@ async fn fixture(assistant: Option<Script>, access: Option<&str>) -> Fixture {
     drop(connection);
     let asked = Arc::new(Mutex::new(Vec::new()));
     let mut tasks = Vec::new();
-    let mut config = String::from("version = 1\nproviders = {}\n");
+    // Settings can only be saved while some agent's history is indexed.
+    let mut config = format!(
+        "version = 1\n[providers.codex]\nroots = ['{}']\n",
+        directory.path().join("codex").display()
+    );
     if let Some(script) = assistant {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         // Any variable that is always set stands in for the key.
@@ -76,23 +80,36 @@ async fn fixture(assistant: Option<Script>, access: Option<&str>) -> Fixture {
             listener.local_addr().unwrap()
         );
         let record = asked.clone();
-        let service = axum::Router::new().route(
-            "/api/v1/chat/completions",
-            axum::routing::post(
-                move |headers: axum::http::HeaderMap, axum::Json(body): axum::Json<Value>| {
-                    let (status, text) = script(&body);
-                    let token = headers["authorization"].to_str().unwrap().to_owned();
-                    record.lock().unwrap().push((token, body));
-                    async move {
-                        (
-                            axum::http::StatusCode::from_u16(status).unwrap(),
-                            [("content-type", "text/event-stream")],
-                            text,
-                        )
-                    }
-                },
-            ),
-        );
+        let service = axum::Router::new()
+            .route(
+                "/api/v1/models",
+                axum::routing::get(|headers: axum::http::HeaderMap| async move {
+                    assert!(headers.contains_key("authorization"));
+                    axum::Json(json!({"data": [
+                        {"id": "test/model", "name": "Test"},
+                        {"id": "another/model"},
+                        {"id": " "},
+                        {"id": "test/model"},
+                    ]}))
+                }),
+            )
+            .route(
+                "/api/v1/chat/completions",
+                axum::routing::post(
+                    move |headers: axum::http::HeaderMap, axum::Json(body): axum::Json<Value>| {
+                        let (status, text) = script(&body);
+                        let token = headers["authorization"].to_str().unwrap().to_owned();
+                        record.lock().unwrap().push((token, body));
+                        async move {
+                            (
+                                axum::http::StatusCode::from_u16(status).unwrap(),
+                                [("content-type", "text/event-stream")],
+                                text,
+                            )
+                        }
+                    },
+                ),
+            );
         tasks.push(tokio::spawn(async move {
             axum::serve(listener, service).await.unwrap();
         }));
@@ -381,6 +398,62 @@ async fn a_service_that_refuses_or_limits_is_reported_once_and_not_retried() {
 }
 
 #[tokio::test]
+async fn the_assistant_is_switched_off_and_given_another_model_from_settings() {
+    let fixture = fixture(Some(Arc::new(|_| (200, says(&["Hello."])))), None).await;
+    let client = reqwest::Client::new();
+    let models = format!("http://{}/api/assistant/models", fixture.address);
+    let listed: Value = reqwest::get(&models).await.unwrap().json().await.unwrap();
+    assert_eq!(listed, json!({"models": ["another/model", "test/model"]}));
+    let settings = format!("http://{}/api/services/settings", fixture.address);
+    let mut current: Value = reqwest::get(&settings).await.unwrap().json().await.unwrap();
+    assert_eq!(
+        current["assistant"],
+        json!({"enabled": true, "model": "test/model"})
+    );
+    for (enabled, status) in [
+        (false, json!({"enabled": false, "model": null})),
+        (true, json!({"enabled": true, "model": "another/model"})),
+    ] {
+        let change = json!({
+            "revision": current["revision"],
+            "agents": {},
+            "since_days": current["since_days"],
+            "destination": current["destination"],
+            "memory_capture": current["memory_capture"],
+            "hide_credentials": current["hide_credentials"],
+            "assistant": {"enabled": enabled, "model": "another/model"},
+        });
+        let saved = client
+            .post(&settings)
+            .header("origin", format!("http://{}", fixture.address))
+            .json(&change)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(saved.status(), reqwest::StatusCode::OK);
+        current = saved.json().await.unwrap();
+        // The switch takes effect without a restart.
+        let now: Value = reqwest::get(fixture.url())
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert_eq!(now, status);
+        let asked = client
+            .post(fixture.url())
+            .json(&question("anything"))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(asked.status().is_success(), enabled);
+        // A model can still be chosen while the assistant is off.
+        assert!(reqwest::get(&models).await.unwrap().status().is_success());
+    }
+    assert_eq!(fixture.asked.lock().unwrap()[0].1["model"], "another/model");
+}
+
+#[tokio::test]
 async fn there_is_no_assistant_without_configuration() {
     let fixture = fixture(None, None).await;
     let status: Value = reqwest::get(fixture.url())
@@ -390,6 +463,10 @@ async fn there_is_no_assistant_without_configuration() {
         .await
         .unwrap();
     assert_eq!(status, json!({"enabled": false, "model": null}));
+    let models = reqwest::get(format!("http://{}/api/assistant/models", fixture.address))
+        .await
+        .unwrap();
+    assert_eq!(models.status(), reqwest::StatusCode::NOT_FOUND);
     let refused = reqwest::Client::new()
         .post(fixture.url())
         .json(&question("anything"))

@@ -8,7 +8,7 @@
 //! a bounded number of lookups and one bounded answer.
 //!
 //! There is no assistant unless the configuration has an `[assistant]` table
-//! and the key it names is set. The key stays on this side: the browser sends
+//! that is not switched off and the key it names is set. The key stays on this side: the browser sends
 //! the conversation and reads the answer as a stream of events. Whatever a
 //! lookup returns is sent to that model, masked like any other output.
 use super::Dash;
@@ -135,9 +135,93 @@ pub(super) enum Event {
     },
 }
 
+/// How long the service may take to list its models.
+const LISTING_DEADLINE: Duration = Duration::from_secs(10);
+/// Bytes of a model listing that are read.
+const MAX_LISTING: usize = 8 * 1024 * 1024;
+/// Models offered as choices.
+const MAX_MODELS: usize = 5_000;
+
+/// The models the configured service offers, by the names it knows them by.
+#[derive(serde::Serialize, schemars::JsonSchema)]
+pub(super) struct Models {
+    models: Vec<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct Listing {
+    data: Vec<Listed>,
+}
+#[derive(serde::Deserialize)]
+struct Listed {
+    id: String,
+}
+
+/// The names in a service's listing that could be configured, in order.
+fn listed(body: &[u8]) -> Option<Vec<String>> {
+    let listing: Listing = serde_json::from_slice(body).ok()?;
+    let mut models: Vec<String> = listing
+        .data
+        .into_iter()
+        .map(|model| model.id)
+        .filter(|id| !id.trim().is_empty() && id.len() <= 200)
+        .collect();
+    models.sort_unstable();
+    models.dedup();
+    models.truncate(MAX_MODELS);
+    Some(models)
+}
+
+/// Asks the service for its models, once. The switch does not matter here:
+/// a model can be chosen while the assistant is off.
+async fn models(State(state): State<Arc<Dash>>) -> Response {
+    let Some((assistant, token, _)) = service(&state).await else {
+        return refusal(StatusCode::NOT_FOUND, "no assistant is configured");
+    };
+    let unreachable = || {
+        refusal(
+            StatusCode::BAD_GATEWAY,
+            "the model service did not list its models",
+        )
+    };
+    let Ok(client) = CLIENT.as_ref() else {
+        return unreachable();
+    };
+    let sent = client
+        .get(assistant.models_endpoint())
+        .bearer_auth(token)
+        .timeout(LISTING_DEADLINE)
+        .send()
+        .await;
+    let Ok(mut response) = sent else {
+        return unreachable();
+    };
+    if !response.status().is_success() {
+        return unreachable();
+    }
+    let mut body = Vec::new();
+    while let Ok(Some(chunk)) = response.chunk().await {
+        if body.len() + chunk.len() > MAX_LISTING {
+            return unreachable();
+        }
+        body.extend_from_slice(&chunk);
+    }
+    match listed(&body) {
+        Some(models) => axum::Json(Models { models }).into_response(),
+        None => unreachable(),
+    }
+}
+
+/// The assistant when it is configured, switched on and has its key.
+async fn configured(state: &Dash) -> Option<(Assistant, String, String)> {
+    service(state)
+        .await
+        .filter(|(assistant, ..)| assistant.enabled)
+}
+
 /// The configured model, its key and what this machine's chats are filed
 /// under, when the first two are present.
-async fn configured(state: &Dash) -> Option<(Assistant, String, String)> {
+async fn service(state: &Dash) -> Option<(Assistant, String, String)> {
     let path = state.paths.config.clone();
     let config = tokio::task::spawn_blocking(move || crate::config::load(path.as_deref()))
         .await
@@ -154,20 +238,31 @@ async fn configured(state: &Dash) -> Option<(Assistant, String, String)> {
 
 pub(super) fn routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use super::contract::{changes, reads};
-    router.api_route(
-        "/api/assistant",
-        aide::axum::routing::get_with(
-            status,
-            reads::<Status>("/api/assistant", "Whether this dashboard has an assistant."),
-        )
-        .post_with(
-            ask,
-            changes::<Event>(
-                "/api/assistant",
-                "Ask the assistant; the answer is a text/event-stream of these events.",
+    router
+        .api_route(
+            "/api/assistant/models",
+            aide::axum::routing::get_with(
+                models,
+                reads::<Models>(
+                    "/api/assistant/models",
+                    "The models the configured service offers.",
+                ),
             ),
-        ),
-    )
+        )
+        .api_route(
+            "/api/assistant",
+            aide::axum::routing::get_with(
+                status,
+                reads::<Status>("/api/assistant", "Whether this dashboard has an assistant."),
+            )
+            .post_with(
+                ask,
+                changes::<Event>(
+                    "/api/assistant",
+                    "Ask the assistant; the answer is a text/event-stream of these events.",
+                ),
+            ),
+        )
 }
 
 async fn status(State(state): State<Arc<Dash>>) -> Response {

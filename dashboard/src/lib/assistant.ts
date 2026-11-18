@@ -71,6 +71,15 @@ export const assistantOptions = {
   retry: false,
 } as const;
 
+/** The models the configured service offers, for choosing one in settings. */
+export const assistantModelsOptions = {
+  queryKey: ["assistant", "models"],
+  queryFn: async ({ signal }: { signal: AbortSignal }) =>
+    (await read("/api/assistant/models", new URLSearchParams(), signal)).models,
+  staleTime: Infinity,
+  retry: false,
+} as const;
+
 /**
  * Asks a question and calls `heard` for each event of the answer. Rejects
  * when the dashboard turns the question down or the stream breaks; an

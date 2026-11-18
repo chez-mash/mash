@@ -174,7 +174,8 @@ never resubmit an ambiguous request, and keep command output and credentials
 on the controller. Peer dashboards expose their local services only.
 The settings page may rewrite only the node configuration's typed, offered
 fields (indexed agents, history range, destination, memory capture, credential
-masking) against a stated file revision; history locations come from the
+masking, and the assistant's switch and model where the file already
+configures one, never its address or key) against a stated file revision; history locations come from the
 machine's own detection, never from the browser. A dashboard bound beyond
 loopback accepts those changes only with a services configuration.
 The dashboard assistant (Mashy) is the one place Mash calls a language model,

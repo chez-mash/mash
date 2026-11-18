@@ -27,6 +27,12 @@ export interface Settings {
   readonly memoryCapture: boolean;
   readonly hideInResults: boolean;
   readonly hideWhenPublishing: boolean;
+  /** The assistant's switch and model, when the file configures a service. */
+  readonly assistant: AssistantChoice | null;
+}
+export interface AssistantChoice {
+  readonly enabled: boolean;
+  readonly model: string;
 }
 /** What the page has chosen, which may differ from the file. */
 export interface Draft {
@@ -36,6 +42,7 @@ export interface Draft {
   memoryCapture: boolean;
   hideInResults: boolean;
   hideWhenPublishing: boolean;
+  assistant: { enabled: boolean; model: string } | null;
 }
 
 export function parseSettings(body: Answer<"/api/services/settings">): Settings {
@@ -52,6 +59,9 @@ export function parseSettings(body: Answer<"/api/services/settings">): Settings 
     memoryCapture: body.memory_capture,
     hideInResults: body.hide_credentials.output,
     hideWhenPublishing: body.hide_credentials.publication,
+    assistant: body.assistant
+      ? { enabled: body.assistant.enabled, model: body.assistant.model }
+      : null,
   };
 }
 
@@ -69,6 +79,7 @@ export function draftOf(settings: Settings): Draft {
     memoryCapture: settings.memoryCapture,
     hideInResults: settings.hideInResults,
     hideWhenPublishing: settings.hideWhenPublishing,
+    assistant: settings.assistant ? { ...settings.assistant } : null,
   };
 }
 
@@ -126,6 +137,10 @@ export function differences(
     onOff(settings.hideWhenPublishing),
     onOff(draft.hideWhenPublishing),
   );
+  if (settings.assistant && draft.assistant) {
+    row("mashy", "Mashy", onOff(settings.assistant.enabled), onOff(draft.assistant.enabled));
+    row("model", "Mashy's model", settings.assistant.model, draft.assistant.model.trim());
+  }
   return changed;
 }
 
@@ -138,6 +153,9 @@ export function problem(settings: Settings, draft: Draft): string {
     !(Number.isSafeInteger(draft.sinceDays) && draft.sinceDays >= 1 && draft.sinceDays <= 36_500)
   )
     return "History range must be between 1 and 36,500 days.";
+  const model = draft.assistant?.model.trim();
+  if (draft.assistant && (!model || model.length > 200))
+    return "Mashy's model must be a name of at most 200 characters.";
   return "";
 }
 
@@ -150,6 +168,9 @@ export async function saveSettings(settings: Settings, draft: Draft): Promise<Se
       destination: draft.destination,
       memory_capture: draft.memoryCapture,
       hide_credentials: { output: draft.hideInResults, publication: draft.hideWhenPublishing },
+      assistant: draft.assistant
+        ? { enabled: draft.assistant.enabled, model: draft.assistant.model.trim() }
+        : null,
     }),
   );
 }
