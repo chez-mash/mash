@@ -159,13 +159,17 @@ const outcomeClass = {
   <QueryError title="Couldn’t check fleet jobs" query={history} />
   {#if history.data && !jobs.length}<p class="meta">No runs yet.</p>{/if}
   {#each jobs as job (job.request.id)}
-    <article>
-      <p style:display="flex" style:align-items="baseline" style:gap="10px"><i class="dot" class:run={job.outcome === "running"} class:bad={job.outcome === "failed"} class:warn={job.outcome === "partial" || job.outcome === "unknown"}></i><b style:flex="1" style:min-width="0">{fleetActionLabel[job.request.action]}</b><span class="meta">{checkedTime(job.requested_at)}</span></p>
+    <article class="job">
+      <header><b>{fleetActionLabel[job.request.action]}</b><span class="jb {job.outcome === "running" ? "run" : outcomeClass[job.outcome]}">{job.outcome}</span></header>
+      <time class="meta">{checkedTime(job.requested_at)}</time>
       {#each job.targets as target (target.id)}
-        <div class="elb" style:font-size="13.5px"><span style:flex="1">{targetName(target.id)}</span><span class={target.state === "succeeded" ? "ok" : target.state === "failed" ? "fail" : target.state === "running" ? "run" : "none"}>{target.state}{#if target.progress} {target.progress.progress}{target.progress.total === null ? "" : ` / ${target.progress.total}`}{/if}</span></div>
-        {#if target.detail}<p class="meta" style:font-size="13px" style:margin="0 0 6px">{target.detail}</p>{/if}
+        {@const state = target.state === "succeeded" ? "ok" : target.state === "failed" ? "fail" : target.state === "running" ? "run" : "none"}
+        <div class="jt">
+          <p><Laptop size={14} aria-hidden="true" /><b>{targetName(target.id)}</b>{#if job.targets.length > 1 || target.progress || target.state !== job.outcome}<span class={state}>{target.state}{#if target.progress} {target.progress.progress}{target.progress.total === null ? "" : ` / ${target.progress.total}`}{/if}</span>{/if}</p>
+          {#if target.detail}<p class="meta">{target.detail}</p>{/if}
+        </div>
       {/each}
-      <p class={outcomeClass[job.outcome]} style:margin="4px 0 0 21px" style:font-size="13px">{job.outcome}{job.outcome === "unknown" ? ": completion could not be confirmed. Inspect the affected machines before starting another operation." : ""}</p>
+      {#if job.outcome === "unknown"}<p class="warn jn">Completion could not be confirmed. Inspect the affected machines before starting another operation.</p>{/if}
     </article>
   {/each}
 {/snippet}

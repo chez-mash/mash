@@ -121,7 +121,7 @@ for (const width of [390, 1280]) {
     await expect(run).toContainText("macbook");
     // A finished target says what the check found, not only that it passed.
     await expect(run).toContainText("Build 0123456789ab installed; local search ready");
-    await expect(run.locator("p").last()).toHaveText("succeeded");
+    await expect(run.locator(".jb")).toHaveText("succeeded");
     expect(submissions).toBe(1);
     expect(documents).toBe(1);
     await machine("macbook").check();
