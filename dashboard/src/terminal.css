@@ -3991,22 +3991,27 @@ summary.rw::-webkit-details-marker {
 }
 .mashy-sugg.next button {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   text-align: left;
 }
+/* The arrow stays beside the first line of a question that wraps. */
 .mashy-sugg.next button svg {
   flex: none;
+  margin-top: calc((1.35em - 13px) / 2);
   color: var(--faint);
 }
 .mashy-sugg.next button:hover svg {
   color: var(--clay2);
 }
+/* A question that wraps keeps the same space above and below its text as a
+   short one, and the corners of a one-line pill rather than a tall oval. */
 .mashy-sugg button {
   min-height: 30px;
-  padding: 0 11px;
+  padding: 5px 11px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 15px;
+  line-height: 1.35;
   color: var(--dim);
   font-size: 12.5px;
 }
@@ -4114,7 +4119,8 @@ body:has(#mashy-fab) #main {
   }
   .mashy-sugg button {
     min-height: 40px;
-    padding: 0 16px;
+    padding: 9px 16px;
+    border-radius: 20px;
     font-size: 14px;
   }
   #mashy textarea {
