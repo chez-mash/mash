@@ -53,6 +53,15 @@ describe("message Markdown", () => {
       expect(render(source)).toBe("<p>the <strong>plan</strong></p>\n");
   });
 
+  it("keeps links to the dashboard's own pages only in Mashy's answers", () => {
+    expect(render("[Port decision](#/chat/ports?node=a)", false, true)).toBe(
+      '<p><a href="#/chat/ports?node=a">Port decision</a></p>\n',
+    );
+    expect(render("[Port decision](#/chat/ports)")).toBe("<p>Port decision</p>\n");
+    for (const source of ["[x](javascript:alert(1))", "[x](/settings)", "[x](docs/plan.md)"])
+      expect(render(source, false, true)).toBe("<p>x</p>\n");
+  });
+
   it("renders the two smallest headings", () => {
     expect(render("##### Five\n\n###### Six")).toBe("<h5>Five</h5>\n<h6>Six</h6>\n");
     expect(ALLOWED_TAGS).toEqual(expect.arrayContaining(["h5", "h6"]));

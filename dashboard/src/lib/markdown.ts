@@ -21,6 +21,15 @@ const renderer: RendererObject = {
   checkbox: ({ checked }) => (checked ? "[x] " : "[ ] "),
 };
 const replies = new Marked({ renderer });
+/** Mashy's answers, which also link to pages of the dashboard itself. */
+const guided = new Marked({
+  renderer: {
+    ...renderer,
+    link({ href, tokens }) {
+      return /^(https?:\/\/|#\/)/i.test(href) ? false : this.parser.parseInline(tokens);
+    },
+  },
+});
 /** What a person typed: a line break is a line break. */
 const typed = new Marked({ breaks: true, renderer });
 
@@ -58,17 +67,19 @@ export function plainTitle(title: string): string {
   return title.replace(/\*\*|`/g, "");
 }
 
-/** Markdown as HTML, before it is sanitized. `own` is a message the reader typed. */
-export function render(text: string, own = false): string {
-  return (own ? typed : replies).parse(text, { async: false });
+/** Markdown as HTML, before it is sanitized. `own` is a message the reader
+ * typed; `inApp` keeps links to the dashboard's own pages. */
+export function render(text: string, own = false, inApp = false): string {
+  return (inApp ? guided : own ? typed : replies).parse(text, { async: false });
 }
 
 /** Archived messages cannot load remote images or run HTML, scripts or styles.
- * `own` renders a message the reader typed themselves. */
-export function markdown(text: string, own = false): string {
-  return DOMPurify.sanitize(render(text, own), {
+ * `own` renders a message the reader typed themselves. `inApp` is for Mashy's
+ * answers only: archived text never links into the dashboard. */
+export function markdown(text: string, own = false, inApp = false): string {
+  return DOMPurify.sanitize(render(text, own, inApp), {
     ALLOWED_TAGS: [...ALLOWED_TAGS],
     ALLOWED_ATTR: ["href", "title"],
-    ALLOWED_URI_REGEXP: /^https?:\/\//i,
+    ALLOWED_URI_REGEXP: inApp ? /^(https?:\/\/|#\/)/i : /^https?:\/\//i,
   });
 }

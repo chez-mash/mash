@@ -11,7 +11,7 @@ test("the light and dark switch sits in the top corner and keeps its choice", as
   // Dark until the reader chooses otherwise.
   await expect(html).not.toHaveAttribute("data-theme");
   const dark = await ground();
-  const toLight = page.getByRole("button", { name: "Switch to light mode" });
+  const toLight = page.getByRole("switch", { name: "Dark mode" });
   const box = await toLight.boundingBox();
   expect(box && box.x + box.width).toBeGreaterThan(1280 - 40);
   expect(box?.y).toBeLessThan(40);
@@ -24,7 +24,7 @@ test("the light and dark switch sits in the top corner and keeps its choice", as
     .toContain("mash-mark-light.svg");
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await toLight.click();
   await expect(html).not.toHaveAttribute("data-theme");
   expect(await ground()).toBe(dark);
 });

@@ -421,7 +421,7 @@ function followed(event: MouseEvent): void {
             <div class="mashy-q">{turn.content}</div>
           {:else}
             {@const said = answer(turn.content)}
-            <div class="mashy-a" use:chips><MessageBody text={linkify(said.body)} /></div>
+            <div class="mashy-a" use:chips><MessageBody inApp text={linkify(said.body)} /></div>
             <!-- An answer that offers nothing to ask next, a greeting say, is
                  followed by the questions the chat started with. -->
             {@const next = said.next.length ? said.next : suggestions}
@@ -432,7 +432,7 @@ function followed(event: MouseEvent): void {
             {/if}
           {/if}
         {/each}
-        {#if mashy.answer}<div class="mashy-a" use:chips><MessageBody text={linkify(answer(mashy.answer).body)} /></div>{/if}
+        {#if mashy.answer}<div class="mashy-a" use:chips><MessageBody inApp text={linkify(answer(mashy.answer).body)} /></div>{/if}
         {#if mashy.phase === "searching"}
           <p class="mashy-wait">
             <span class="sr-only" role="status">Searching your history…</span>

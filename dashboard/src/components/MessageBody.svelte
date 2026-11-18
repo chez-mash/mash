@@ -2,7 +2,12 @@
 import { markdown } from "../lib/markdown";
 
 // `own` marks a message the reader typed: its line breaks and tags are kept.
-let { text, own = false }: { text: string; own?: boolean } = $props();
+// `inApp` is Mashy's answer, whose links to chats and memories stay links.
+let {
+  text,
+  own = false,
+  inApp = false,
+}: { text: string; own?: boolean; inApp?: boolean } = $props();
 let expanded = $state(false);
 // A long message the reader typed opens at its first lines; agent replies
 // are shown whole unless they are huge.
@@ -22,7 +27,7 @@ $effect(() => {
 });
 </script>
 
-<div bind:this={body} class="prose min-w-0 break-words" class:collapsed={!expanded && huge} class:clamped={!expanded && !huge && own && tall}>{@html markdown(text, own)}</div>
+<div bind:this={body} class="prose min-w-0 break-words" class:collapsed={!expanded && huge} class:clamped={!expanded && !huge && own && tall}>{@html markdown(text, own, inApp)}</div>
 {#if huge}
   <button type="button" class="a" style:align-self="flex-start" style:font-size="13.5px" onclick={() => expanded = !expanded}>{expanded ? "Collapse" : `Show full message (${text.length.toLocaleString()} characters)`}</button>
 {:else if own && tall}
