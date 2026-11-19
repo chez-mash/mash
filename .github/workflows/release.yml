@@ -179,17 +179,28 @@ jobs:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Update the Homebrew tap
         env:
+          # A deploy key with write access to the tap alone; the token is the
+          # older way and is used only when no key is set.
+          TAP_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$TAP_TOKEN" ]; then
-            echo "HOMEBREW_TAP_TOKEN is not set; skipping the tap update."
+          if [ -n "$TAP_KEY" ]; then
+            install -m 700 -d "$RUNNER_TEMP/tap-ssh"
+            printf '%s\n' "$TAP_KEY" > "$RUNNER_TEMP/tap-ssh/key"
+            chmod 600 "$RUNNER_TEMP/tap-ssh/key"
+            export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/tap-ssh/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+            remote=git@github.com:mashium/homebrew-tap.git
+          elif [ -n "$TAP_TOKEN" ]; then
+            remote="https://x-access-token:${TAP_TOKEN}@github.com/mashium/homebrew-tap.git"
+          else
+            echo "Neither HOMEBREW_TAP_DEPLOY_KEY nor HOMEBREW_TAP_TOKEN is set; skipping the tap update."
             exit 0
           fi
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
           python3 packaging/render.py "$TAG" dist/SHA256SUMS \
             packaging/homebrew/mash.rb.in mash.rb
-          git clone "https://x-access-token:${TAP_TOKEN}@github.com/mashium/homebrew-tap.git" tap
+          git clone "$remote" tap
           mkdir -p tap/Formula
           cp mash.rb tap/Formula/mash.rb
           cd tap
@@ -197,11 +208,14 @@ jobs:
           git config user.email "mash-release@users.noreply.github.com"
           git add Formula/mash.rb
           if git diff --cached --quiet; then
-            echo "The tap already has this formula."
+            # Nothing to publish, but a credential that cannot push should
+            # still fail here and not at the next release.
+            git push --dry-run origin HEAD
+            echo "The tap already has this formula, and this job can write to it."
             exit 0
           fi
           git commit -m "mash ${TAG}"
-          git push
+          git push origin HEAD
 
   apt:
     needs: publish

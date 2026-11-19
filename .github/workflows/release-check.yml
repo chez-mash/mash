@@ -1,0 +1,88 @@
+name: Release check
+
+# Installs a published release on each platform the way the guides say, and
+# runs it. Dispatch it after a release:
+#   gh workflow run release-check.yml -f tag=v0.1.0-alpha
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The published release tag to install and expect, for example v0.1.0-alpha
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.tag }}
+
+jobs:
+  installer:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm, macos-26, windows-latest]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Install with the shell installer
+        if: runner.os != 'Windows'
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/install.sh" | MASH_VERSION="$TAG" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install with the PowerShell installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:MASH_VERSION = $env:TAG
+          irm "https://raw.githubusercontent.com/$env:GITHUB_REPOSITORY/main/install.ps1" | iex
+          Join-Path $HOME '.local\bin' | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Run it
+        shell: bash
+        run: |
+          [ "$(mash --version | tr -d '\r')" = "mash ${TAG#v}" ]
+          [ "$(mash-server --version | tr -d '\r')" = "mash-server ${TAG#v}" ]
+          mash status > status.json || true
+          grep -q '"ready"' status.json
+
+  homebrew:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Install from the tap and run it
+        run: |
+          [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install mashium/tap/mash
+          [ "$(mash --version)" = "mash ${TAG#v}" ]
+
+  apt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install from the apt repository and run it
+        run: |
+          curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
+          echo "deb [signed-by=/usr/share/keyrings/mash-archive-keyring.gpg] https://getmash.io/apt stable main" | sudo tee /etc/apt/sources.list.d/mash.list
+          printf 'Package: mash\nPin: origin getmash.io\nPin-Priority: 1001\n' | sudo tee /etc/apt/preferences.d/mash
+          sudo apt-get update
+          sudo apt-get install -y mash
+          [ "$(mash --version)" = "mash ${TAG#v}" ]
+
+  scoop:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install from the Scoop bucket and run it
+        shell: pwsh
+        run: |
+          iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+          $env:PATH = "$HOME\scoop\shims;$env:PATH"
+          scoop bucket add mashium "https://github.com/$env:GITHUB_REPOSITORY"
+          scoop install mashium/mash
+          $version = (mash --version).Trim()
+          if ($version -ne "mash $($env:TAG.TrimStart('v'))") { throw "unexpected version: $version" }
