@@ -10,6 +10,7 @@ import {
   parseSetup,
 } from "../lib/services.svelte";
 import { parseSettings } from "../lib/settings";
+import { parseFirstRun } from "../lib/setup";
 import { parseStatus } from "../lib/status";
 import { type Reply, respond, terms } from "./backend";
 import { chats, localMachine, records } from "./history";
@@ -107,6 +108,7 @@ describe("the demo answers in the shapes mash dash sends", () => {
   it("reports status, settings, machines and tools", () => {
     expect(parseStatus(body("/api/status")).ready).toBe(true);
     expect(parseSettings(body("/api/services/settings")).editable).toBe(false);
+    expect(parseFirstRun(body("/api/services/setup")).editable).toBe(false);
     expect(parseMachines(body("/api/services")).map((machine) => machine.id)).toEqual([
       localMachine,
     ]);
@@ -123,6 +125,7 @@ describe("the demo answers in the shapes mash dash sends", () => {
 
   it("refuses to change or run anything", () => {
     expect(respond("/api/services/settings", "POST", now).status).toBe(403);
+    expect(respond("/api/services/setup", "POST", now).status).toBe(403);
     expect(respond("/api/services/fleet/jobs", "POST", now).status).toBe(403);
     expect(get("/api/console/call?name=search").status).toBe(403);
     expect(get("/api/elsewhere").status).toBe(404);

@@ -113,7 +113,7 @@ async function save(): Promise<void> {
 <QueryError title="Couldn’t load settings" query={status} />
 {#if settings.error}<p class="meta warn" role="alert">Settings can't be changed right now: {settings.error.message}</p>{/if}
 {#if status.data && config}
-  {#if !config.loaded}<p class="meta warn">No configuration file was found at that path, so built-in defaults apply. Run <code class="i">mash init</code> to create one.</p>{/if}
+  {#if !config.loaded}<p class="meta warn">No configuration file was found at that path, so built-in defaults apply. <a class="a" href="#/setup">Set up Mash here</a>, or run <code class="i">mash init</code> in a terminal.</p>{/if}
   {#if status.data.nextStep === "start-qdrant"}<p class="meta warn">Suggested next step: start the Qdrant search service at <code class="i">{config.searchStore}</code>. Indexing and every search need it; <code class="i">mash status</code> shows how to start it.</p>
   {:else if status.data.nextStep}<p class="meta warn">Suggested next step: <code class="i">mash {status.data.nextStep}</code></p>{/if}
 
@@ -257,7 +257,7 @@ async function save(): Promise<void> {
       <p class="meta">Not configured. This machine's history stays local.</p>
     {/if}
   </section>
-  <p class="meta">How search works and where data is stored are shown, not offered as choices. Change those in the configuration file.</p>
+  <p class="meta">How search works and where data is stored are shown, not offered as choices. Change those in the configuration file. To choose histories and connect agents again from the start, <a class="a" href="#/setup">go through setup</a>.</p>
 {/if}
 
 {#if file?.editable && (changed.length || saved || failure)}

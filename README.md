@@ -121,6 +121,10 @@ Setup checks that Qdrant answers before changing anything; if it does not, run
 `mash init --no-index`, then `mash index`: indexing saves your history first, and
 `mash list-chats` and `mash view` work without Qdrant. Search waits for Qdrant.
 
+Prefer a browser? Run `mash dash` and
+[set up from the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard): it
+asks the same questions for a local setup.
+
 Setup prints progress to stderr and a final JSON result to stdout. If the result
 has `"agents": []`, no agents were connected; check `next` for the reason and
 [connection instructions](docs/agents.md). You can still search with the CLI.

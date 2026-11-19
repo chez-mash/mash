@@ -1,6 +1,6 @@
 # Navigating the dashboard
 
-After [setup](installation.md), start the dashboard:
+After [installing Mash](installation.md), start the dashboard:
 
 ```sh
 mash dash
@@ -36,6 +36,39 @@ schema mismatch.
 For frontend development, `pnpm --dir dashboard run dev` forwards API requests
 to `http://127.0.0.1:8790`; set `MASH_DASHBOARD_API_URL` to proxy to a
 different running dashboard.
+
+## Set up Mash from the dashboard
+
+You can do first-run setup in the browser instead of running `mash init` in a
+terminal. Start `mash dash`, open the dashboard, and choose **Set it up here**
+on the overview (or open **settings** and follow **Set up Mash here**). The
+page asks four things, one at a time:
+
+1. **Which histories to index.** The agent histories found on this machine in
+   their usual locations, each with a switch.
+2. **How far back.** The last 90 days, all history, or a number of days.
+3. **Which agents to connect.** Claude Code and Codex, when their
+   command-line tools are installed, so those agents can search your history
+   through Mash.
+4. **Review.** What will be written, and whether the search service answers.
+
+Nothing changes until you choose **Set up and index** or **Set up without
+indexing** on the last step. Mash then writes its configuration file, has each
+chosen agent's own command-line tool connect it, and starts indexing in the
+background. The page shows what was written, which files each agent's tool
+edited and the commands that undo it, and follows the first index until your
+chats appear.
+
+- Indexing needs the local search service. If it is not running, the review
+  step says so and shows the command to run first: `mash qdrant install`.
+- Search by meaning needs the optional models: `mash models install`.
+- Going through setup again on a machine that is already set up rewrites the
+  configuration with your answers and keeps the previous file beside it.
+- Sharing with other machines, memory backfill and history kept in other
+  locations are not offered here: use `mash init` or edit the configuration
+  file.
+- A dashboard that other machines can reach runs setup only when it was
+  started with a services configuration, like the settings page.
 
 ## The rail
 

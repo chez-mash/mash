@@ -19,6 +19,7 @@ import RecordView from "./components/RecordView.svelte";
 import Search from "./components/Search.svelte";
 import ServicesView from "./components/ServicesView.svelte";
 import Settings from "./components/Settings.svelte";
+import Setup from "./components/Setup.svelte";
 import SignIn from "./components/SignIn.svelte";
 import TopBar from "./components/TopBar.svelte";
 import TranscriptView from "./components/TranscriptView.svelte";
@@ -155,6 +156,8 @@ $effect(() => {
         <Console />
       {:else if route.page === "settings"}
         <Settings />
+      {:else if route.page === "setup"}
+        <Setup />
       {:else if route.page === "records"}
         {#key route.params}<RecordsView params={route.params} />{/key}
       {:else if route.page === "record"}

@@ -182,6 +182,16 @@ masking, and the assistant's switch and model where the file already
 configures one, never its address or key) against a stated file revision; history locations come from the
 machine's own detection, never from the browser. A dashboard bound beyond
 loopback accepts those changes only with a services configuration.
+The setup page asks what `mash init` asks, as typed choices only: which found
+histories to index, the history range, and which installed agents (Claude
+Code, Codex) to connect, against a stated file revision and through the same
+core as `init`, where the agents' own CLIs do the connecting. It never takes a
+location, a command, a shared server or a marketplace from the browser, and
+runs where settings changes are accepted. The first index it offers is a
+separate `mash index` process started from the dashboard's own executable; the
+dashboard process still never indexes. It downloads nothing: models and Qdrant
+stay with their explicit commands, and sharing and memory backfill stay with
+the terminal.
 The dashboard assistant (Mashy) is the one place Mash calls a language model,
 and only when `[assistant]` names an OpenAI-compatible service and its key is
 set; a key alone never enables it. It is chat, not an agent: the model may

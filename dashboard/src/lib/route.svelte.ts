@@ -17,6 +17,8 @@ export type Route =
   | { readonly page: "fleet"; readonly action: string }
   | { readonly page: "console" }
   | { readonly page: "settings" }
+  /** First-run setup: the questions `mash init` asks. */
+  | { readonly page: "setup" }
   | { readonly page: "records"; readonly params: string }
   | { readonly page: "record"; readonly id: string; readonly node: string; readonly back: string }
   | {
@@ -35,6 +37,7 @@ const plain = {
   "#/machines": { page: "machines" },
   "#/console": { page: "console" },
   "#/settings": { page: "settings" },
+  "#/setup": { page: "setup" },
   "#/fleet": { page: "fleet", action: "" },
   // Earlier dashboards linked these; they now live on other pages.
   "#/status": { page: "services", params: "" },

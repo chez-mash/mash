@@ -27,6 +27,7 @@ mod assistant;
 mod contract;
 mod live;
 mod services;
+mod setup;
 
 mod assets {
     include!(concat!(env!("OUT_DIR"), "/dash_assets.rs"));
@@ -154,8 +155,8 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
         },
         ..Default::default()
     };
-    let router = history_routes(assistant::routes(live::routes(services::routes(
-        aide::axum::ApiRouter::new(),
+    let router = history_routes(setup::routes(assistant::routes(live::routes(
+        services::routes(aide::axum::ApiRouter::new()),
     ))))
     .finish_api(&mut document);
     (router, document)
@@ -384,6 +385,7 @@ async fn guard(
             "/api/services/action"
                 | "/api/services/fleet/jobs"
                 | "/api/services/settings"
+                | "/api/services/setup"
                 | "/api/assistant"
         ))
         && request.method() == axum::http::Method::POST;
@@ -1620,6 +1622,81 @@ mod tests {
         assert_eq!(content_type("/agents/claude.svg"), "image/svg+xml");
         assert_eq!(content_type("/unknown"), "application/octet-stream");
     }
+    #[tokio::test]
+    async fn setup_runs_only_where_the_dashboard_is_private_and_against_the_file_it_showed() {
+        let directory = tempfile::tempdir().unwrap();
+        let config = directory.path().join("config.toml");
+        let paths = crate::core::Paths {
+            config: Some(config.clone()),
+            ..crate::core::Paths::default()
+        };
+        let mut addresses = Vec::new();
+        for loopback in [true, false] {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let app = super::router(std::sync::Arc::new(super::Dash {
+                console: crate::mcp::console::Console::new(crate::core::Paths::default()),
+                paths: paths.clone(),
+                hosts: allowed_hosts(address),
+                loopback,
+                access: super::access::Access::new(None),
+                shared_only: false,
+                model_work: tokio::sync::Semaphore::new(0),
+                services: super::services::Services::load(None).unwrap(),
+                live: super::live::Live::new(None, None),
+                questions: std::sync::Arc::new(tokio::sync::Semaphore::new(2)),
+            }));
+            tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+            addresses.push(address);
+        }
+        let client = reqwest::Client::new();
+        let urls = addresses
+            .iter()
+            .map(|address| format!("http://{address}/api/services/setup"))
+            .collect::<Vec<_>>();
+        for (url, editable) in [(&urls[0], true), (&urls[1], false)] {
+            let view: serde_json::Value =
+                client.get(url).send().await.unwrap().json().await.unwrap();
+            // No file yet: nothing names its contents, and no index was started.
+            assert_eq!(view["configured"], false);
+            assert_eq!(view["revision"], "");
+            assert_eq!(view["editable"], editable);
+            assert_eq!(view["index"]["state"], "idle");
+            assert_eq!(view["path"], config.display().to_string());
+        }
+        let choice = |revision: &str| {
+            serde_json::json!({
+                "revision": revision, "agents": {}, "since_days": 90, "connect": [], "index": false
+            })
+        };
+        // A dashboard other machines can reach does not run setup.
+        let refused = client
+            .post(&urls[1])
+            .json(&choice(""))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(refused.status(), reqwest::StatusCode::FORBIDDEN);
+        // Nor does a page from another origin, even on this machine.
+        let foreign = client
+            .post(&urls[0])
+            .header("origin", "http://evil.example")
+            .json(&choice(""))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(foreign.status(), reqwest::StatusCode::FORBIDDEN);
+        // Choices made against other contents, or naming unknown fields, change nothing.
+        for body in [
+            choice("not what the page showed"),
+            serde_json::json!({"revision": "", "agents": {}, "connect": [], "index": false, "roots": ["/"]}),
+        ] {
+            let stale = client.post(&urls[0]).json(&body).send().await.unwrap();
+            assert_eq!(stale.status(), reqwest::StatusCode::BAD_REQUEST);
+        }
+        assert!(!config.exists());
+    }
+
     #[tokio::test]
     #[allow(clippy::too_many_lines)]
     async fn settings_are_changed_only_where_the_dashboard_is_private() {

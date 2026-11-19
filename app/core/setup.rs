@@ -103,7 +103,31 @@ fn error_body<S: serde::Serializer>(
         .serialize(serializer)
 }
 
+/// What setup changed, without the first index: for a caller that shows the
+/// outcome and starts indexing separately.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[schemars(rename = "InitReport")]
+pub struct InitReport {
+    config: ConfigOutcome,
+    agents: Vec<AgentOutcome>,
+    next: Vec<String>,
+}
+
 impl InitResponse {
+    /// `indexing` says the caller has started the first index itself, so the
+    /// closing advice to run `mash index`, added last when `init` does not
+    /// index, is left out.
+    pub fn into_report(mut self, indexing: bool) -> InitReport {
+        if indexing && self.index.is_none() {
+            self.next.pop();
+        }
+        InitReport {
+            config: self.config,
+            agents: self.agents,
+            next: self.next,
+        }
+    }
+
     /// An agent's registration names a missing or different executable and
     /// could not be replaced, so `init` exits 1.
     pub(in crate::core) fn left_stale_registration(&self) -> bool {
@@ -205,8 +229,9 @@ fn index_later(observed: Option<crate::views::qdrant::ServiceStatus>) -> String 
     }
 }
 
-#[derive(Debug, Serialize)]
-struct ConfigOutcome {
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[schemars(rename = "InitConfiguration")]
+pub struct ConfigOutcome {
     path: PathBuf,
     /// False when an existing configuration was kept.
     written: bool,
@@ -223,8 +248,9 @@ struct ConfigOutcome {
     recorded_agents: Vec<Agent>,
 }
 
-#[derive(Debug, Serialize)]
-struct AgentOutcome {
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[schemars(rename = "InitAgent")]
+pub struct AgentOutcome {
     agent: Agent,
     mcp: Step,
     plugin: Step,
@@ -234,9 +260,10 @@ struct AgentOutcome {
     undo: [&'static str; 2],
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[schemars(rename = "InitStep")]
 #[serde(tag = "state", rename_all = "kebab-case")]
-enum Step {
+pub enum Step {
     Done {
         command: String,
     },

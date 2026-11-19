@@ -351,6 +351,24 @@ function settings(): Answer<"/api/services/settings"> {
   };
 }
 /** What a dashboard with no service management reports: this machine's index, nothing to control. */
+function firstRun(): Answer<"/api/services/setup"> {
+  return {
+    path: "/home/sam/.mash/config.toml",
+    revision: "demo",
+    configured: true,
+    editable: false,
+    histories: perAgent((paths) => ({ indexed: true, roots: paths })),
+    since_days: 90,
+    shared: true,
+    integrations: [
+      { agent: "claude-code", installed: true, connected: true },
+      { agent: "codex", installed: true, connected: true },
+    ],
+    qdrant: { url: "http://127.0.0.1:6333", reachable: true, message: null },
+    models_installed: true,
+    index: { state: "idle" },
+  };
+}
 function machine(now: number): Answer<"/api/services/local"> {
   const checked = Math.round(now / 1000);
   return {
@@ -410,6 +428,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/services": (_, now) => ({ machines: [machine(now)] }),
   "/api/services/local": (_, now) => machine(now),
   "/api/services/settings": settings,
+  "/api/services/setup": firstRun,
   "/api/services/fleet": fleet,
   "/api/services/fleet/jobs": fleetJobs,
   "/api/services/operations": () => [],

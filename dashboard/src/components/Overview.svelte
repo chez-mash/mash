@@ -9,6 +9,7 @@ import { groupChats } from "../lib/browse";
 import { catalogOptions, stableRead } from "../lib/queries";
 import { recordPage } from "../lib/records";
 import { agentHref, machineHref } from "../lib/route.svelte";
+import { statusOptions } from "../lib/status";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
 import MemoryRow from "./MemoryRow.svelte";
@@ -16,6 +17,7 @@ import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 const catalogue = createQuery(() => catalogOptions);
+const status = createQuery(() => statusOptions);
 const memories = createQuery(() => ({
   ...stableRead,
   queryKey: ["records", ""],
@@ -29,6 +31,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
 </script>
 
 <h1 class="sr-only">Overview</h1>
+{#if status.data && !status.data.configuration.loaded}<p class="meta warn" style:margin-bottom="12px">Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <div class="cols">
   <section class="c-main">

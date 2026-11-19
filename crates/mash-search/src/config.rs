@@ -15,6 +15,7 @@ mod loading;
 mod qdrant;
 mod reranking;
 pub mod settings;
+pub mod setup;
 #[cfg(test)]
 mod tests;
 

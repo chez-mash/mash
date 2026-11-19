@@ -2064,6 +2064,313 @@
         ],
         "type": "object"
       },
+      "FirstRun": {
+        "description": "What the setup page shows: the file's choices, what this machine has, and\nthe first index when this dashboard started one.",
+        "properties": {
+          "configured": {
+            "description": "Whether a configuration file exists already.",
+            "type": "boolean"
+          },
+          "editable": {
+            "description": "Whether this dashboard accepts setup, as for settings.",
+            "type": "boolean"
+          },
+          "histories": {
+            "additionalProperties": false,
+            "description": "The histories found on this machine or named by the file.",
+            "properties": {
+              "antigravity": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              },
+              "claude-code": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              },
+              "codex": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              },
+              "copilot": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              },
+              "cursor": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              },
+              "opencode": {
+                "$ref": "#/components/schemas/FirstRunHistory"
+              }
+            },
+            "type": "object"
+          },
+          "index": {
+            "$ref": "#/components/schemas/FirstRunIndex"
+          },
+          "integrations": {
+            "items": {
+              "$ref": "#/components/schemas/FirstRunIntegration"
+            },
+            "type": "array"
+          },
+          "models_installed": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "qdrant": {
+            "$ref": "#/components/schemas/FirstRunQdrant"
+          },
+          "revision": {
+            "description": "Names the file's contents, and is empty while there is no file. A\nchoice states the contents it was made against.",
+            "type": "string"
+          },
+          "shared": {
+            "description": "Whether the file publishes to a shared server, which setup keeps.",
+            "type": "boolean"
+          },
+          "since_days": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "revision",
+          "configured",
+          "histories",
+          "shared",
+          "editable",
+          "integrations",
+          "qdrant",
+          "models_installed",
+          "index"
+        ],
+        "type": "object"
+      },
+      "FirstRunDone": {
+        "description": "What setup changed, and the page's state afterwards.",
+        "properties": {
+          "report": {
+            "$ref": "#/components/schemas/InitReport"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/FirstRun"
+          }
+        },
+        "required": [
+          "report",
+          "setup"
+        ],
+        "type": "object"
+      },
+      "FirstRunHistory": {
+        "properties": {
+          "indexed": {
+            "description": "Indexed by the file, or offered for a first setup.",
+            "type": "boolean"
+          },
+          "roots": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "indexed",
+          "roots"
+        ],
+        "type": "object"
+      },
+      "FirstRunIndex": {
+        "description": "The `mash index` this dashboard started after setup, if any.",
+        "oneOf": [
+          {
+            "properties": {
+              "state": {
+                "const": "idle",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "state": {
+                "const": "running",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Not started, and why.",
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "state": {
+                "const": "skipped",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "reason"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "chats": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "message": {
+                "description": "What went wrong, or why search by meaning is not current.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "messages": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "ok": {
+                "type": "boolean"
+              },
+              "state": {
+                "const": "finished",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "ok"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "FirstRunIntegration": {
+        "description": "An agent Mash can connect itself to through the agent's own CLI.",
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/SetupAgent"
+          },
+          "connected": {
+            "description": "Whether the configuration records Mash as connected to it.",
+            "type": "boolean"
+          },
+          "installed": {
+            "description": "Whether the agent's CLI is on this machine's `PATH`.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "agent",
+          "installed",
+          "connected"
+        ],
+        "type": "object"
+      },
+      "FirstRunQdrant": {
+        "properties": {
+          "message": {
+            "description": "Why it is not reachable, and how to start it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reachable": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "reachable"
+        ],
+        "type": "object"
+      },
+      "FirstRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "agents": {
+            "additionalProperties": false,
+            "properties": {
+              "antigravity": {
+                "type": "boolean"
+              },
+              "claude-code": {
+                "type": "boolean"
+              },
+              "codex": {
+                "type": "boolean"
+              },
+              "copilot": {
+                "type": "boolean"
+              },
+              "cursor": {
+                "type": "boolean"
+              },
+              "opencode": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "connect": {
+            "description": "The installed agents to connect Mash to.",
+            "items": {
+              "$ref": "#/components/schemas/SetupAgent"
+            },
+            "type": "array"
+          },
+          "index": {
+            "description": "Start the first index once setup is saved.",
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "since_days": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "revision",
+          "agents",
+          "connect",
+          "index"
+        ],
+        "type": "object"
+      },
       "FleetAction": {
         "enum": [
           "status",
@@ -2297,6 +2604,249 @@
           "destination"
         ],
         "type": "object"
+      },
+      "InitAgent": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/SetupAgent"
+          },
+          "files": {
+            "description": "The settings files and plugin directories the agent's own CLI edits.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "mcp": {
+            "$ref": "#/components/schemas/InitStep"
+          },
+          "plugin": {
+            "$ref": "#/components/schemas/InitStep"
+          },
+          "undo": {
+            "description": "The agent CLI commands that remove what `init` added.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "agent",
+          "mcp",
+          "plugin",
+          "files",
+          "undo"
+        ],
+        "type": "object"
+      },
+      "InitConfiguration": {
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "previous": {
+            "description": "Where `--force` kept the configuration it replaced.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "providers": {
+            "additionalProperties": false,
+            "properties": {
+              "antigravity": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "claude-code": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "codex": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "copilot": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "cursor": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "opencode": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "recorded_agents": {
+            "description": "Agents newly recorded under `[agents] connected`, which\n`mash status --installation` then expects to stay connected.",
+            "items": {
+              "$ref": "#/components/schemas/SetupAgent"
+            },
+            "type": "array"
+          },
+          "search": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "written": {
+            "description": "False when an existing configuration was kept.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "written",
+          "recorded_agents"
+        ],
+        "type": "object"
+      },
+      "InitReport": {
+        "description": "What setup changed, without the first index: for a caller that shows the\noutcome and starts indexing separately.",
+        "properties": {
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/InitAgent"
+            },
+            "type": "array"
+          },
+          "config": {
+            "$ref": "#/components/schemas/InitConfiguration"
+          },
+          "next": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "config",
+          "agents",
+          "next"
+        ],
+        "type": "object"
+      },
+      "InitStep": {
+        "oneOf": [
+          {
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "state": {
+                "const": "done",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "command"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "state": {
+                "const": "already-present",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "The registration named `stale`, a missing or different executable,\nand was removed and added again with this binary.",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "stale": {
+                "type": "string"
+              },
+              "state": {
+                "const": "replaced",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "stale",
+              "command"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "The registration names `stale` and could not be replaced; `command`\nreplaces it.",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "stale": {
+                "type": "string"
+              },
+              "state": {
+                "const": "stale",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "stale",
+              "command",
+              "message"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "state": {
+                "const": "failed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "command",
+              "message"
+            ],
+            "type": "object"
+          }
+        ]
       },
       "Intent": {
         "oneOf": [
@@ -6849,6 +7399,100 @@
           }
         },
         "summary": "Rewrite the configuration file."
+      }
+    },
+    "/api/services/setup": {
+      "get": {
+        "operationId": "getApiServicesSetup",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirstRun"
+                }
+              }
+            },
+            "description": "What the setup page shows: the file's choices, what this machine has, and\nthe first index when this dashboard started one."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "What first-run setup would choose on this machine."
+      },
+      "post": {
+        "operationId": "postApiServicesSetup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirstRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirstRunDone"
+                }
+              }
+            },
+            "description": "What setup changed, and the page's state afterwards."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Save the configuration, connect agents and start the first index."
       }
     },
     "/api/status": {

@@ -25,7 +25,7 @@ pub use models::{
     BackfillSummary, IndexMode, IndexRequest, Operation, Paths, Reading, Request, Response,
     SearchMode, SearchResponse, StatusResponse, ViewResponse,
 };
-pub use setup::{InitRequest, MARKETPLACE, join_plan};
+pub use setup::{InitPlan, InitReport, InitRequest, MARKETPLACE, join_plan};
 
 pub async fn execute(request: Request) -> Result<Response, AppError> {
     execute_admitted(request, None).await

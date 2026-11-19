@@ -364,6 +364,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/services/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What first-run setup would choose on this machine. */
+        get: operations["getApiServicesSetup"];
+        put?: never;
+        /** Save the configuration, connect agents and start the first index. */
+        post: operations["postApiServicesSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/status": {
         parameters: {
             query?: never;
@@ -1007,6 +1025,102 @@ export interface components {
              */
             redundant_messages: number;
         };
+        /**
+         * @description What the setup page shows: the file's choices, what this machine has, and
+         *     the first index when this dashboard started one.
+         */
+        FirstRun: {
+            /** @description Whether a configuration file exists already. */
+            configured: boolean;
+            /** @description Whether this dashboard accepts setup, as for settings. */
+            editable: boolean;
+            /** @description The histories found on this machine or named by the file. */
+            histories: {
+                antigravity?: components["schemas"]["FirstRunHistory"];
+                "claude-code"?: components["schemas"]["FirstRunHistory"];
+                codex?: components["schemas"]["FirstRunHistory"];
+                copilot?: components["schemas"]["FirstRunHistory"];
+                cursor?: components["schemas"]["FirstRunHistory"];
+                opencode?: components["schemas"]["FirstRunHistory"];
+            };
+            index: components["schemas"]["FirstRunIndex"];
+            integrations: components["schemas"]["FirstRunIntegration"][];
+            models_installed: boolean;
+            path: string;
+            qdrant: components["schemas"]["FirstRunQdrant"];
+            /**
+             * @description Names the file's contents, and is empty while there is no file. A
+             *     choice states the contents it was made against.
+             */
+            revision: string;
+            /** @description Whether the file publishes to a shared server, which setup keeps. */
+            shared: boolean;
+            /** Format: uint32 */
+            since_days?: number | null;
+        };
+        /** @description What setup changed, and the page's state afterwards. */
+        FirstRunDone: {
+            report: components["schemas"]["InitReport"];
+            setup: components["schemas"]["FirstRun"];
+        };
+        FirstRunHistory: {
+            /** @description Indexed by the file, or offered for a first setup. */
+            indexed: boolean;
+            roots: string[];
+        };
+        /** @description The `mash index` this dashboard started after setup, if any. */
+        FirstRunIndex: {
+            /** @constant */
+            state: "idle";
+        } | {
+            /** @constant */
+            state: "running";
+        } | {
+            reason: string;
+            /** @constant */
+            state: "skipped";
+        } | {
+            /** Format: uint64 */
+            chats?: number | null;
+            /** @description What went wrong, or why search by meaning is not current. */
+            message?: string | null;
+            /** Format: uint64 */
+            messages?: number | null;
+            ok: boolean;
+            /** @constant */
+            state: "finished";
+        };
+        /** @description An agent Mash can connect itself to through the agent's own CLI. */
+        FirstRunIntegration: {
+            agent: components["schemas"]["SetupAgent"];
+            /** @description Whether the configuration records Mash as connected to it. */
+            connected: boolean;
+            /** @description Whether the agent's CLI is on this machine's `PATH`. */
+            installed: boolean;
+        };
+        FirstRunQdrant: {
+            /** @description Why it is not reachable, and how to start it. */
+            message?: string | null;
+            reachable: boolean;
+            url: string;
+        };
+        FirstRunRequest: {
+            agents: {
+                antigravity?: boolean;
+                "claude-code"?: boolean;
+                codex?: boolean;
+                copilot?: boolean;
+                cursor?: boolean;
+                opencode?: boolean;
+            };
+            /** @description The installed agents to connect Mash to. */
+            connect: components["schemas"]["SetupAgent"][];
+            /** @description Start the first index once setup is saved. */
+            index: boolean;
+            revision: string;
+            /** Format: uint32 */
+            since_days?: number | null;
+        };
         /** @enum {string} */
         FleetAction: "status" | "preflight" | "deploy" | "sync" | "local-views" | "replay-views" | "watch-start" | "watch-stop" | "watch-status" | "watch-logs";
         Freshness: {
@@ -1091,6 +1205,69 @@ export interface components {
             destination: components["schemas"]["IndexDestination"];
             /** Format: uint32 */
             since_days?: number | null;
+        };
+        InitAgent: {
+            agent: components["schemas"]["SetupAgent"];
+            /** @description The settings files and plugin directories the agent's own CLI edits. */
+            files: string[];
+            mcp: components["schemas"]["InitStep"];
+            plugin: components["schemas"]["InitStep"];
+            /** @description The agent CLI commands that remove what `init` added. */
+            undo: string[];
+        };
+        InitConfiguration: {
+            path: string;
+            /** @description Where `--force` kept the configuration it replaced. */
+            previous?: string | null;
+            providers?: {
+                antigravity?: string[];
+                "claude-code"?: string[];
+                codex?: string[];
+                copilot?: string[];
+                cursor?: string[];
+                opencode?: string[];
+            } | null;
+            /**
+             * @description Agents newly recorded under `[agents] connected`, which
+             *     `mash status --installation` then expects to stay connected.
+             */
+            recorded_agents: components["schemas"]["SetupAgent"][];
+            search?: string | null;
+            /** @description False when an existing configuration was kept. */
+            written: boolean;
+        };
+        /**
+         * @description What setup changed, without the first index: for a caller that shows the
+         *     outcome and starts indexing separately.
+         */
+        InitReport: {
+            agents: components["schemas"]["InitAgent"][];
+            config: components["schemas"]["InitConfiguration"];
+            next: string[];
+        };
+        InitStep: {
+            command: string;
+            /** @constant */
+            state: "done";
+        } | {
+            /** @constant */
+            state: "already-present";
+        } | {
+            command: string;
+            stale: string;
+            /** @constant */
+            state: "replaced";
+        } | {
+            command: string;
+            message: string;
+            stale: string;
+            /** @constant */
+            state: "stale";
+        } | {
+            command: string;
+            message: string;
+            /** @constant */
+            state: "failed";
         };
         Intent: "related-discussion" | "exact-mention";
         Job: {
@@ -2951,6 +3128,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Settings"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiServicesSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /**
+             * @description What the setup page shows: the file's choices, what this machine has, and
+             *     the first index when this dashboard started one.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FirstRun"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiServicesSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FirstRunRequest"];
+            };
+        };
+        responses: {
+            /** @description What setup changed, and the page's state afterwards. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FirstRunDone"];
                 };
             };
             /** @description Failed to parse the request body as JSON */

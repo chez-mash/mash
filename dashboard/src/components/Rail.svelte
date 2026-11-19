@@ -100,6 +100,7 @@ const area = $derived.by((): Section | "" => {
     case "console":
       return "console";
     case "settings":
+    case "setup":
       return "settings";
     default:
       return "";
