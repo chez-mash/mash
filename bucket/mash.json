@@ -1,0 +1,25 @@
+{
+    "version": "0.1.0-alpha",
+    "description": "Search your coding agents' past conversations from a CLI and MCP server",
+    "homepage": "https://github.com/mashium/mash",
+    "license": "MIT OR Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/mashium/mash/releases/download/v0.1.0-alpha/mash-x86_64-pc-windows-msvc.zip",
+            "hash": "fdd46cf53fb9831252102e5765a25e138e0247722f3d5a259926499ce0ab12a4"
+        }
+    },
+    "bin": ["mash.exe", "mash-server.exe"],
+    "notes": "Start the local search service, then set Mash up for the agent histories on this machine: mash qdrant install, then mash init",
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/mashium/mash/releases/download/v$version/mash-x86_64-pc-windows-msvc.zip"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/SHA256SUMS"
+        }
+    }
+}
