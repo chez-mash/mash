@@ -243,3 +243,24 @@ function hasSkipped(): boolean {
 export function opensOnSetup(setup: FirstRun, page: string, skippedBefore = hasSkipped()): boolean {
   return !setup.configured && setup.editable && page === "overview" && !skippedBefore;
 }
+
+/**
+ * A history location short enough for one line: the home directory as `~`,
+ * and a long path cut to its last folders, which are what tell agents apart.
+ * The full path stays available as the row's title.
+ */
+export function shortPath(path: string, most = 34): string {
+  const home = /^(?:\/home\/[^/]+|\/Users\/[^/]+|[A-Za-z]:\\Users\\[^\\]+)(?=[\\/]|$)/;
+  const short = path.replace(home, "~");
+  if (short.length <= most) return short;
+  const separator = short.includes("\\") ? "\\" : "/";
+  const parts = short.split(separator).filter(Boolean);
+  let tail = parts.pop() ?? short;
+  while (parts.length) {
+    const longer = `${parts.at(-1)}${separator}${tail}`;
+    if (longer.length + 2 > most) break;
+    tail = longer;
+    parts.pop();
+  }
+  return `…${separator}${tail}`;
+}

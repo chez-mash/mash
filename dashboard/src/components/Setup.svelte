@@ -19,6 +19,7 @@ import {
   type Outcome,
   problem,
   runSetup,
+  shortPath,
   skipSetup,
   stepWord,
   summary,
@@ -161,10 +162,9 @@ function toggleConnect(agent: Integration): void {
         {#if step === "histories"}
           {#each file.histories as entry (entry.agent)}
             {@const on = answers.agents[entry.agent] ?? entry.indexed}
-            <div class="set-a" class:off={!on}>
-              <AgentMark agent={entry.agent} size={17} />
-              <span class="set-n">{agentInfo[entry.agent].name}</span>
-              <span class="meta set-p">{entry.roots.join(", ")}</span>
+            <div class="setup-row" class:off={!on}>
+              <AgentMark agent={entry.agent} size={18} />
+              <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small title={entry.roots.join("\n")}>{entry.roots.map((root) => shortPath(root)).join(", ")}</small></span>
               {@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (answers) answers.agents[entry.agent] = !on; }, !file.editable)}
             </div>
           {/each}
@@ -186,10 +186,9 @@ function toggleConnect(agent: Integration): void {
         {:else if step === "agents"}
           {#each file.integrations as entry (entry.agent)}
             {@const on = answers.connect.includes(entry.agent)}
-            <div class="set-a" class:off={!entry.installed}>
-              <AgentMark agent={entry.agent} size={17} />
-              <span class="set-n">{agentInfo[entry.agent].name}</span>
-              <span class="meta">{entry.installed ? (entry.connected ? "already connected; choosing it checks the connection" : "its command-line tool is installed") : "its command-line tool was not found on this machine"}</span>
+            <div class="setup-row" class:off={!entry.installed}>
+              <AgentMark agent={entry.agent} size={18} />
+              <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small>{entry.installed ? (entry.connected ? "already connected" : "its command-line tool is installed") : "its command-line tool was not found here"}</small></span>
               {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !file.editable)}
             </div>
           {/each}
@@ -269,11 +268,9 @@ function toggleConnect(agent: Integration): void {
           {#each outcome.agents as agent (agent.agent)}
             {@const mcp = stepWord(agent.mcp)}
             {@const plugin = stepWord(agent.plugin)}
-            <div class="set-a">
-              <AgentMark agent={agent.agent} size={17} />
-              <span class="set-n">{agentInfo[agent.agent].name}</span>
-              <span class="meta"><span class={mcp.ok ? "ok" : "warn"}>search tools: {mcp.word}</span> · <span class={plugin.ok ? "ok" : "warn"}>plugin: {plugin.word}</span></span>
-              <span></span>
+            <div class="setup-row">
+              <AgentMark agent={agent.agent} size={18} />
+              <span class="setup-who"><strong>{agentInfo[agent.agent].name}</strong><small><span class={mcp.ok ? "ok" : "warn"}>search tools: {mcp.word}</span> · <span class={plugin.ok ? "ok" : "warn"}>plugin: {plugin.word}</span></small></span>
             </div>
             {#each [agent.mcp, agent.plugin] as part, index (index)}
               {#if part.state === "failed" || part.state === "stale"}

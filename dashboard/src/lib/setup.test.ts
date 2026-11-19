@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { agents } from "./agents";
 import * as wire from "./setup";
-import { answersOf, opensOnSetup, problem, stepWord, summary } from "./setup";
+import { answersOf, opensOnSetup, problem, shortPath, stepWord, summary } from "./setup";
 import { trimmed } from "./trimmed";
 import type { Agent } from "./types";
 
@@ -99,4 +99,17 @@ test("only a first visit to the front page of an unconfigured, private dashboard
   expect(opensOnSetup(fresh, "search", false)).toBe(false);
   expect(opensOnSetup(parseFirstRun({ ...body, configured: true }), "overview", false)).toBe(false);
   expect(opensOnSetup(parseFirstRun({ ...body, editable: false }), "overview", false)).toBe(false);
+});
+
+test("a history location is shown on one line, ending in the folders that identify it", () => {
+  expect(shortPath("/home/sam/.claude/projects")).toBe("~/.claude/projects");
+  expect(shortPath("/Users/sam/.codex/sessions")).toBe("~/.codex/sessions");
+  expect(shortPath("C:\\Users\\sam\\.codex\\sessions")).toBe("~\\.codex\\sessions");
+  expect(shortPath("/srv/data/archives/2026/agents/claude/projects")).toBe(
+    "…/2026/agents/claude/projects",
+  );
+  expect(shortPath("/home/sam/Library/Application Support/Cursor/User")).toBe(
+    "…/Application Support/Cursor/User",
+  );
+  expect(shortPath("/short")).toBe("/short");
 });
