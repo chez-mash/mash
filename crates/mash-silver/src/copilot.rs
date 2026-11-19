@@ -436,8 +436,9 @@ fn tool_text(name: &str, arguments: Option<serde_json::Value>) -> String {
 }
 
 fn timestamp(value: &str) -> Result<i64, AppError> {
-    chrono::DateTime::parse_from_rfc3339(value)
-        .map(|t| t.timestamp_millis())
+    value
+        .parse::<jiff::Timestamp>()
+        .map(jiff::Timestamp::as_millisecond)
         .map_err(|_| AppError::configuration("invalid Copilot event timestamp"))
 }
 

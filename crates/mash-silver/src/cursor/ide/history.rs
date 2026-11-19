@@ -18,9 +18,9 @@ fn recorded_time(bubble: &Bubble, header: &models::Header) -> Result<Option<i64>
         .or(header.created_at.as_deref());
     if let Some(time) = time.filter(|time| !time.is_empty()) {
         return timestamp(Some(
-            chrono::DateTime::parse_from_rfc3339(time)
+            time.parse::<jiff::Timestamp>()
                 .map_err(|_| invalid("invalid native ISO timestamp"))?
-                .timestamp_millis(),
+                .as_millisecond(),
         ));
     }
     timestamp(bubble.started_at_ms.or(bubble.completed_at_ms))

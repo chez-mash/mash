@@ -360,16 +360,14 @@ fn join_sql(
     }
 }
 pub fn timestamp(value: &str) -> Result<i64, AppError> {
-    let time = chrono::DateTime::parse_from_rfc3339(value)
-        .map(|t| t.timestamp())
+    let time = value
+        .parse::<jiff::Timestamp>()
         .or_else(|_| {
-            chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d").map(|d| {
-                d.and_hms_opt(0, 0, 0)
-                    .expect("midnight")
-                    .and_utc()
-                    .timestamp()
-            })
+            jiff::civil::Date::strptime("%Y-%m-%d", value)
+                .and_then(|date| date.to_zoned_datetime(jiff::tz::TimeZone::UTC))
+                .map(|midnight| midnight.timestamp())
         })
+        .map(jiff::Timestamp::as_second)
         .map_err(|_| AppError::usage("dates must be YYYY-MM-DD or RFC3339 timestamps"))?;
     Filter::After(time).validate()?;
     Ok(time)
@@ -411,6 +409,13 @@ mod tests {
             "COALESCE('local' IN ('local'), FALSE)"
         );
         assert_eq!(timestamp("2026-09-30").unwrap(), 1_790_726_400);
+        // A timestamp keeps its own offset; a bare date is midnight UTC.
+        assert_eq!(timestamp("2026-09-30T00:00:00Z").unwrap(), 1_790_726_400);
+        assert_eq!(
+            timestamp("2026-09-30T02:00:00.75+02:00").unwrap(),
+            1_790_726_400
+        );
+        assert!(timestamp("2026-09-30T00:00:00").is_err());
         assert!(timestamp("yesterday").is_err());
         assert!(serde_json::from_str::<Filter>(r#"{"provider":["invalid"]}"#).is_err());
         assert!(Filter::Project(vec!["nul\0".into()]).validate().is_err());

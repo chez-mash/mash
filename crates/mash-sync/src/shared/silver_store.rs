@@ -101,8 +101,17 @@ pub fn key(provider: Provider, id: &str) -> String {
 }
 
 pub fn now() -> String {
-    chrono::DateTime::from(std::time::SystemTime::now())
-        .to_rfc3339_opts(chrono::SecondsFormat::Micros, true)
+    rfc3339_microseconds(jiff::Timestamp::now())
+}
+
+/// UTC with exactly six fractional digits and `Z`: the form every stored
+/// synchronization time has, so they compare as text.
+fn rfc3339_microseconds(time: jiff::Timestamp) -> String {
+    format!(
+        "{}.{:06}Z",
+        time.strftime("%Y-%m-%dT%H:%M:%S"),
+        time.subsec_microsecond()
+    )
 }
 
 pub fn token() -> Result<String, AppError> {
@@ -391,6 +400,25 @@ pub fn fingerprints(connection: &Connection) -> Result<BTreeMap<String, String>,
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn synchronization_times_are_utc_with_six_fraction_digits() {
+        let at = |nanoseconds: i128| {
+            super::rfc3339_microseconds(jiff::Timestamp::from_nanosecond(nanoseconds).unwrap())
+        };
+        let second = 1_794_412_800_i128 * 1_000_000_000;
+        assert_eq!(at(second), "2026-11-11T16:00:00.000000Z");
+        // Finer than a microsecond is cut off, never rounded up.
+        assert_eq!(at(second + 500_100_999), "2026-11-11T16:00:00.500100Z");
+        // What this writes, the readers of `last_synced_at` parse.
+        assert_eq!(
+            at(second + 500_000_000)
+                .parse::<jiff::Timestamp>()
+                .unwrap()
+                .as_millisecond(),
+            1_794_412_800_500
+        );
+    }
+
     #[test]
     fn one_process_owns_a_silver_directory() {
         let directory = tempfile::tempdir().unwrap();

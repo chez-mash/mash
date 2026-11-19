@@ -203,8 +203,8 @@ fn status_at(result: &CallToolResult, shared: bool, now: i64) -> Result<Status, 
         });
         let published_recently = member
             .and_then(|member| member.last_synced_at.as_deref())
-            .and_then(|at| chrono::DateTime::parse_from_rfc3339(at).ok())
-            .is_some_and(|at| (0..=CATCHING_UP).contains(&(now - at.timestamp())));
+            .and_then(|at| at.parse::<jiff::Timestamp>().ok())
+            .is_some_and(|at| (0..=CATCHING_UP).contains(&(now - at.as_second())));
         let publication = status.shared.as_ref();
         let published = publication.is_some_and(|p| p.state == PublicationState::Published);
         let catching_up = publication.is_some_and(|p| {
@@ -298,9 +298,10 @@ mod tests {
         // Pending publication is stale unless the node published moments ago
         // and nothing went wrong: then a publisher is working through changes.
         let at = |seconds: i64| {
-            chrono::DateTime::parse_from_rfc3339("2026-11-11T16:00:00.5Z")
+            "2026-11-11T16:00:00.5Z"
+                .parse::<jiff::Timestamp>()
                 .unwrap()
-                .timestamp()
+                .as_second()
                 + seconds
         };
         let mut pending = fixture.clone();

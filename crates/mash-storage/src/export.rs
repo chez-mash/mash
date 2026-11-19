@@ -94,8 +94,7 @@ pub fn write(
         format: Format::LocalSilver,
         format_version: FORMAT_VERSION,
         record_schema_version: crate::silver::archive::VERSION,
-        created_at: chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now())
-            .to_rfc3339(),
+        created_at: created_at(jiff::Timestamp::now()),
         source_node,
         silver: silver.clone(),
         counts: counts.clone(),
@@ -352,6 +351,22 @@ impl Drop for OutputDirectory {
         if !self.complete {
             let _ = fs::remove_dir_all(&self.path);
         }
+    }
+}
+
+/// An RFC 3339 time in UTC, spelled as exports always have: `+00:00`, with
+/// the nanoseconds when there are any.
+fn created_at(time: jiff::Timestamp) -> String {
+    let seconds = time.strftime("%Y-%m-%dT%H:%M:%S");
+    match time.subsec_nanosecond() {
+        0 => format!("{seconds}+00:00"),
+        nanoseconds if nanoseconds % 1_000_000 == 0 => {
+            format!("{seconds}.{:03}+00:00", nanoseconds / 1_000_000)
+        }
+        nanoseconds if nanoseconds % 1_000 == 0 => {
+            format!("{seconds}.{:06}+00:00", nanoseconds / 1_000)
+        }
+        nanoseconds => format!("{seconds}.{nanoseconds:09}+00:00"),
     }
 }
 

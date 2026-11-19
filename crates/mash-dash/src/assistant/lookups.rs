@@ -38,7 +38,7 @@ pub(super) const NAMES: [&str; 8] = [
 /// What the lookups know about the reader, and what they have shown them.
 pub(super) struct Reader {
     /// The reader's clock, so "yesterday" is their yesterday.
-    pub(super) zone: chrono::FixedOffset,
+    pub(super) zone: jiff::tz::Offset,
     /// What this machine's own chats are filed under.
     pub(super) node: String,
     /// The memories shown so far. Their IDs are a hundred characters long,
@@ -54,9 +54,7 @@ impl Reader {
     pub(super) fn new(utc_offset_minutes: i32, node: String) -> Self {
         let seconds = utc_offset_minutes.clamp(-14 * 60, 14 * 60) * 60;
         Self {
-            zone: chrono::FixedOffset::east_opt(seconds).unwrap_or_else(|| {
-                chrono::FixedOffset::east_opt(0).expect("zero is a valid offset")
-            }),
+            zone: jiff::tz::Offset::from_seconds(seconds).unwrap_or(jiff::tz::Offset::UTC),
             node,
             memories: Vec::new(),
             messages: std::collections::HashMap::new(),
@@ -90,21 +88,29 @@ impl Reader {
 
     /// The reader's date, time, weekday and offset now.
     pub(super) fn now(&self) -> String {
-        chrono::Utc::now()
-            .with_timezone(&self.zone)
-            .format("%A %Y-%m-%d %H:%M (UTC%:z)")
+        jiff::Timestamp::now()
+            .to_zoned_datetime(jiff::tz::TimeZone::fixed(self.zone))
+            .strftime("%A %Y-%m-%d %H:%M (UTC%:z)")
             .to_string()
     }
 
     /// A stored time, in Unix milliseconds, on the reader's clock.
     fn time(&self, milliseconds: i64) -> String {
-        chrono::DateTime::from_timestamp_millis(milliseconds).map_or_else(
-            || "unknown time".to_owned(),
+        jiff::Timestamp::from_millisecond(milliseconds).map_or_else(
+            |_| "unknown time".to_owned(),
             |time| {
-                time.with_timezone(&self.zone)
-                    .format("%Y-%m-%d %H:%M")
+                time.to_zoned_datetime(jiff::tz::TimeZone::fixed(self.zone))
+                    .strftime("%Y-%m-%d %H:%M")
                     .to_string()
             },
+        )
+    }
+
+    /// A stored RFC 3339 time on the reader's clock.
+    fn recorded(&self, time: &str) -> String {
+        time.parse::<jiff::Timestamp>().map_or_else(
+            |_| "unknown time".to_owned(),
+            |time| self.time(time.as_millisecond()),
         )
     }
 
@@ -116,13 +122,11 @@ impl Reader {
 
     /// The start of a `YYYY-MM-DD` day on the reader's clock, in Unix seconds.
     fn day(&self, text: &str) -> Result<i64, String> {
-        use chrono::TimeZone as _;
-        let date = chrono::NaiveDate::parse_from_str(text.trim(), "%Y-%m-%d")
+        let date = jiff::civil::Date::strptime("%Y-%m-%d", text.trim())
             .map_err(|_| format!("Write dates as YYYY-MM-DD, not {}.", quoted(text)))?;
-        date.and_hms_opt(0, 0, 0)
-            .and_then(|start| self.zone.from_local_datetime(&start).single())
-            .map(|start| start.timestamp())
-            .ok_or_else(|| "That date is out of range.".to_owned())
+        date.to_zoned_datetime(jiff::tz::TimeZone::fixed(self.zone))
+            .map(|start| start.timestamp().as_second())
+            .map_err(|_| "That date is out of range.".to_owned())
     }
 
     /// A period as Unix seconds: from the start of `from` to the end of `to`.
@@ -1105,7 +1109,6 @@ fn searchable(record: &Value, body: &Value) -> String {
 
 /// How Mash itself is doing on this machine, read and never repaired.
 async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
-    use chrono::DateTime;
     // Other machines are a detail: without a shared index, ask again plainly.
     let report = match console(state, "status", json!({"shared": true})).await {
         Ok(report) => report,
@@ -1173,10 +1176,7 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
         }
     }
     for node in rows(&report["shared_index"], "nodes") {
-        let synced = DateTime::parse_from_rfc3339(text(&node, "last_synced_at")).map_or_else(
-            |_| "unknown time".to_owned(),
-            |time| reader.time(time.timestamp_millis()),
-        );
+        let synced = reader.recorded(text(&node, "last_synced_at"));
         let _ = writeln!(
             shown,
             "Machine {}: last synced {synced}, {} chats",

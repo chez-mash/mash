@@ -564,3 +564,18 @@ fn archive_file_symlinks_are_rejected_without_creating_a_database() {
     assert!(!target.exists());
     assert!(!attachments::directory(&target).exists());
 }
+
+#[test]
+fn the_manifest_time_keeps_its_utc_spelling_and_fraction_width() {
+    let at = |nanoseconds: i128| {
+        super::created_at(jiff::Timestamp::from_nanosecond(nanoseconds).unwrap())
+    };
+    let second = 1_794_412_800_i128 * 1_000_000_000;
+    assert_eq!(at(second), "2026-11-11T16:00:00+00:00");
+    assert_eq!(at(second + 500_000_000), "2026-11-11T16:00:00.500+00:00");
+    assert_eq!(at(second + 500_100_000), "2026-11-11T16:00:00.500100+00:00");
+    assert_eq!(
+        at(second + 500_100_007),
+        "2026-11-11T16:00:00.500100007+00:00"
+    );
+}

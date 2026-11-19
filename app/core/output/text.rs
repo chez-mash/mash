@@ -25,10 +25,10 @@ fn safe(text: &str) -> String {
 /// compare at sight; the exact value stays in the structured result.
 fn time(value: Option<i64>) -> String {
     value
-        .and_then(chrono::DateTime::from_timestamp_millis)
+        .and_then(|milliseconds| jiff::Timestamp::from_millisecond(milliseconds).ok())
         .map_or_else(
             || "unknown".into(),
-            |time| time.format("%Y-%m-%dT%H:%MZ").to_string(),
+            |time| time.strftime("%Y-%m-%dT%H:%MZ").to_string(),
         )
 }
 

@@ -13,7 +13,7 @@ mash-fleet = { path = "../mash-fleet" }
 mash-mcp = { path = "../mash-mcp" }
 mash-model = { path = "../mash-model" }
 blake3 = "1.8.5"
-chrono = { version = "0.4.44", default-features = false, features = ["std"] }
+jiff = { version = "1.0.1", default-features = false, features = ["std"] }
 regex = "1.12"
 rusqlite = { version = "0.41.0", features = ["bundled", "modern_sqlite", "blob", "functions", "hooks"] }
 toml = "1.1"

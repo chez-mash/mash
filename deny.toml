@@ -17,6 +17,14 @@ ignore = [
     # `paste` is finished rather than broken: a small macro crate with no
     # known defect, pulled in by `tokenizers` for the embedding models.
     { id = "RUSTSEC-2024-0436", reason = "no replacement inside tokenizers; revisit when tokenizers drops it" },
+    # `chrono` is flagged as unmaintained. Mash's own code uses `jiff`; what
+    # remains is `rmcp`, the official MCP SDK, which depends on `chrono`
+    # itself and through its `schemars` support.
+    { id = "RUSTSEC-2026-0543", reason = "only through rmcp; revisit when rmcp drops chrono" },
+    # `humantime` is flagged as unmaintained. It arrives only with
+    # `console-subscriber`, behind the optional `console` debugging feature,
+    # and is in no release build. 0.5.0, the latest, still depends on it.
+    { id = "RUSTSEC-2026-0542", reason = "debug-only, through console-subscriber; revisit when it drops humantime" },
 ]
 
 [licenses]

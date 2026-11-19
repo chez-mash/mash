@@ -3,7 +3,6 @@ use super::json::{Kind, Record};
 use super::{Chat, NormalizedMessage, ParsedFile};
 use crate::AppError;
 use crate::provider::Provider;
-use chrono::DateTime;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
@@ -358,11 +357,37 @@ pub fn stable_id(domain: &str, parts: &[&str]) -> String {
 }
 
 fn parse_timestamp(value: Option<&str>) -> Option<i64> {
-    DateTime::parse_from_rfc3339(value?)
+    value?
+        .parse::<jiff::Timestamp>()
         .ok()
-        .map(|timestamp| timestamp.timestamp_millis())
+        .map(jiff::Timestamp::as_millisecond)
 }
 
 fn truncate_chars(value: &str, limit: usize) -> String {
     value.chars().take(limit).collect()
+}
+
+#[cfg(test)]
+mod timestamps {
+    use super::parse_timestamp;
+
+    #[test]
+    fn recorded_times_parse_to_the_same_millisecond_in_every_rfc3339_spelling() {
+        let expected = Some(1_794_412_800_500);
+        for spelling in [
+            "2026-11-11T16:00:00.5Z",
+            "2026-11-11t16:00:00.5z",
+            "2026-11-11 16:00:00.5Z",
+            "2026-11-11T18:00:00.500+02:00",
+            "2026-11-11T16:00:00.5-00:00",
+            "2026-11-11T16:00:00.500999999Z",
+        ] {
+            assert_eq!(parse_timestamp(Some(spelling)), expected, "{spelling}");
+        }
+        // A time without an offset names no instant.
+        for unusable in ["2026-11-11T16:00:00.5", "2026-11-11", "yesterday", ""] {
+            assert_eq!(parse_timestamp(Some(unusable)), None, "{unusable}");
+        }
+        assert_eq!(parse_timestamp(None), None);
+    }
 }
