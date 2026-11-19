@@ -1,6 +1,8 @@
 # Offline installer checks: fake release assets, real checksums and file replacement.
 $ErrorActionPreference = 'Stop'
+$env:MASH_INSTALL_DEFINE_ONLY = '1'
 . (Join-Path $PSScriptRoot '../install.ps1')
+Remove-Item Env:MASH_INSTALL_DEFINE_ONLY
 
 $root = Join-Path ([IO.Path]::GetTempPath()) ('mash-installer-test-' + [Guid]::NewGuid().ToString('N'))
 $originalOs = $env:OS

@@ -65,5 +65,8 @@ function Install-Mash {
     }
 }
 
-# Dot-sourcing exposes the function for offline fixture tests without installing.
-if ($MyInvocation.InvocationName -ne '.') { Install-Mash }
+# The offline fixture tests load the function without installing by setting
+# this variable. The way the script was invoked cannot be trusted for that:
+# piped into iex from a script that was itself dot-sourced, as CI runners do,
+# it looks dot-sourced too and would install nothing, silently.
+if (-not $env:MASH_INSTALL_DEFINE_ONLY) { Install-Mash }
