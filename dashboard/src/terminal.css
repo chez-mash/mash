@@ -4137,3 +4137,122 @@ body:has(#mashy-fab) #main {
     display: none;
   }
 }
+
+/* First-run setup: a screen of its own, one question at a time. */
+.setup {
+  flex: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 max(20px, env(safe-area-inset-right, 0px)) 48px
+    max(20px, env(safe-area-inset-left, 0px));
+}
+.setup-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.setup-top .brand {
+  padding-left: 0;
+}
+.setup-top .a {
+  font-size: 13.5px;
+}
+.setup-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 660px;
+  margin: clamp(16px, 6vh, 56px) auto 0;
+}
+.setup-steps {
+  display: flex;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.setup-steps li {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--dim);
+}
+/* The line to the step before, between the two circles. */
+.setup-steps li + li::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  right: calc(50% + 22px);
+  width: calc(100% - 44px);
+  height: 1px;
+  background: var(--strong);
+}
+.setup-steps .n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--strong);
+  border-radius: 50%;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.setup-steps li[aria-current="step"] {
+  color: var(--fg);
+  font-weight: 600;
+}
+.setup-steps li[aria-current="step"] .n {
+  border-color: var(--clay);
+  background: color-mix(in srgb, var(--clay) 22%, transparent);
+}
+.setup-steps li.done .n {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.setup-q {
+  margin: 0;
+  font-size: clamp(21px, 4.4vw, 26px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
+.setup-help {
+  margin: 0;
+  text-align: center;
+}
+.setup-card {
+  padding: 2px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+}
+.setup-card > :last-child,
+.setup-card dl > :last-child {
+  border-bottom: 0 !important;
+}
+.setup-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 0;
+}
+.setup-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+.setup-acts .sp {
+  flex: 1 1 auto;
+}

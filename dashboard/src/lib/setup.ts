@@ -218,3 +218,28 @@ export async function runSetup(
   });
   return { outcome: parseOutcome(done.report), setup: parseFirstRun(done.setup) };
 }
+
+const skipped = "mash.setup.skipped";
+/** Remember, for this browser tab, that the reader chose the dashboard over setup. */
+export function skipSetup(): void {
+  try {
+    sessionStorage.setItem(skipped, "1");
+  } catch {
+    // Without storage the reader is offered setup again on the next visit.
+  }
+}
+function hasSkipped(): boolean {
+  try {
+    return sessionStorage.getItem(skipped) === "1";
+  } catch {
+    return false;
+  }
+}
+/**
+ * Whether a visit should open on setup: the machine has no configuration,
+ * this dashboard can run setup, the reader came to the front page and has
+ * not already chosen to skip it.
+ */
+export function opensOnSetup(setup: FirstRun, page: string, skippedBefore = hasSkipped()): boolean {
+  return !setup.configured && setup.editable && page === "overview" && !skippedBefore;
+}

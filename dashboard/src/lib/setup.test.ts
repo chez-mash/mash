@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { agents } from "./agents";
 import * as wire from "./setup";
-import { answersOf, problem, stepWord, summary } from "./setup";
+import { answersOf, opensOnSetup, problem, stepWord, summary } from "./setup";
 import { trimmed } from "./trimmed";
 import type { Agent } from "./types";
 
@@ -90,4 +90,13 @@ test("each step of connecting an agent has a plain word", () => {
   expect(stepWord({ state: "done", command: "c" })).toEqual({ ok: true, word: "added" });
   expect(stepWord({ state: "already-present" }).ok).toBe(true);
   expect(stepWord({ state: "failed", command: "c", message: "m" }).ok).toBe(false);
+});
+
+test("only a first visit to the front page of an unconfigured, private dashboard opens on setup", () => {
+  const fresh = parseFirstRun(body);
+  expect(opensOnSetup(fresh, "overview", false)).toBe(true);
+  expect(opensOnSetup(fresh, "overview", true)).toBe(false);
+  expect(opensOnSetup(fresh, "search", false)).toBe(false);
+  expect(opensOnSetup(parseFirstRun({ ...body, configured: true }), "overview", false)).toBe(false);
+  expect(opensOnSetup(parseFirstRun({ ...body, editable: false }), "overview", false)).toBe(false);
 });

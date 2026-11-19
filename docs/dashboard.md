@@ -40,9 +40,11 @@ different running dashboard.
 ## Set up Mash from the dashboard
 
 You can do first-run setup in the browser instead of running `mash init` in a
-terminal. Start `mash dash`, open the dashboard, and choose **Set it up here**
-on the overview (or open **settings** and follow **Set up Mash here**). The
-page asks four things, one at a time:
+terminal. Start `mash dash` and open the dashboard: on a machine with no
+configuration it opens on setup by itself, as a screen of its own without the
+rail or search. **Skip to the dashboard** leaves it; **settings** has a link
+back, which is also how you go through setup again later. It asks four
+things, one to a screen:
 
 1. **Which histories to index.** The agent histories found on this machine in
    their usual locations, each with a switch.

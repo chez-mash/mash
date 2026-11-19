@@ -31,6 +31,7 @@ import { connect, onChange, throttle } from "./lib/live";
 import { catalogOptions, stableRead } from "./lib/queries";
 import { router } from "./lib/route.svelte";
 import { check, gate, open } from "./lib/session.svelte";
+import { firstRunOptions, opensOnSetup } from "./lib/setup";
 
 const client = new QueryClient({ defaultOptions: { queries: stableRead } });
 // Nothing is read until the dashboard has said whether it wants a sign-in.
@@ -75,6 +76,22 @@ $effect(() => {
   };
 });
 const route = $derived(router.current);
+// A machine that has not been set up opens on setup, once per visit.
+$effect(() => {
+  if (gate.value !== "open") return;
+  let current = true;
+  client
+    .fetchQuery(firstRunOptions)
+    .then((setup) => {
+      if (current && opensOnSetup(setup, router.current.page)) location.hash = "#/setup";
+    })
+    .catch(() => {
+      // A dashboard that cannot describe setup simply opens as usual.
+    });
+  return () => {
+    current = false;
+  };
+});
 // Keep the submitted search mounted while a chat is open, so going back
 // returns to the same results.
 let searchParams = $state<string | null>(null);
@@ -100,6 +117,10 @@ $effect(() => {
   <SignIn done={signedIn} />
 {:else if gate.value === "open"}
 <QueryClientProvider {client}>
+  {#if route.page === "setup"}
+    <!-- Setup is a screen of its own: before it, the rail and search lead nowhere. -->
+    <Setup />
+  {:else}
   <Rail open={railOpen} close={() => (railOpen = false)} />
   <div id="col">
     <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
@@ -156,8 +177,6 @@ $effect(() => {
         <Console />
       {:else if route.page === "settings"}
         <Settings />
-      {:else if route.page === "setup"}
-        <Setup />
       {:else if route.page === "records"}
         {#key route.params}<RecordsView params={route.params} />{/key}
       {:else if route.page === "record"}
@@ -172,5 +191,6 @@ $effect(() => {
   <!-- The drawer's own button and Escape close it for keyboards and screen readers. -->
   {#if railOpen}<div id="scrim" aria-hidden="true" onclick={() => (railOpen = false)}></div>{/if}
   <Mashy />
+  {/if}
 </QueryClientProvider>
 {/if}
