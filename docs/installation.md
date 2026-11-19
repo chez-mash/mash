@@ -19,6 +19,10 @@ These need no Rust. Prebuilt binaries cover
 Linux x86-64 and ARM64, macOS Apple silicon, and Windows x64. Choose **one**
 method.
 
+The Linux binaries need glibc 2.34 or newer, which Ubuntu 22.04, Debian 12,
+RHEL 9 and later releases provide. Alpine and other musl systems are not
+supported.
+
 #### macOS or Linux
 
 ```sh

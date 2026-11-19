@@ -49,11 +49,15 @@ jobs:
       fail-fast: true
       matrix:
         include:
+          # The Linux builds run in a glibc 2.34 image so the binaries load on
+          # that release and later; see crates/mash-search/glibc_compat.c.
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-latest
+            container: quay.io/pypa/manylinux_2_34_x86_64
             archive: tar.gz
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
+            container: quay.io/pypa/manylinux_2_34_aarch64
             archive: tar.gz
           - target: aarch64-apple-darwin
             runner: macos-26
@@ -62,6 +66,7 @@ jobs:
             runner: windows-latest
             archive: zip
     runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
     timeout-minutes: 60
     defaults:
       run:
@@ -91,6 +96,9 @@ jobs:
           MASH_BUILD_REVISION: ${{ github.sha }}
           MASH_REQUIRE_DASHBOARD: 1
         run: cargo +stable build --release --locked --bin mash --bin mash-server
+      - name: Check the glibc floor
+        if: contains(matrix.target, 'linux')
+        run: .github/scripts/check-glibc-floor 2.34 target/release/mash target/release/mash-server
       - name: Smoke
         run: |
           binary=target/release/mash

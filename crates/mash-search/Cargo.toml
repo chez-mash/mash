@@ -47,6 +47,9 @@ walkdir = "2.5.0"
 ort = { version = "2.0.0-rc.13", default-features = false, features = ["coreml"] }
 tokenizers = { version = "0.22.2", default-features = false, features = ["onig"] }
 
+[build-dependencies]
+cc = "1.2"
+
 [dev-dependencies]
 mash-storage = { path = "../mash-storage", features = ["test-support"] }
 mash-model = { path = "../mash-model", features = ["test-support"] }

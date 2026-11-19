@@ -1,0 +1,21 @@
+#!/bin/sh
+# Fails when a Linux binary needs a glibc newer than the documented floor, or
+# any version it merely prefers: an old loader warns about those on every run.
+set -eu
+
+floor=${1:?usage: check-glibc-floor MAJOR.MINOR BINARY...}
+shift
+status=0
+for binary in "$@"; do
+  versions=$(objdump -T "$binary" | grep -o 'GLIBC_[0-9][0-9.]*' | sort -u)
+  for version in $versions; do
+    number=${version#GLIBC_}
+    newest=$(printf '%s\n%s\n' "$floor" "$number" | sort -V | tail -n 1)
+    if [ "$newest" != "$floor" ]; then
+      echo "$binary needs $version, above the glibc $floor floor:" >&2
+      objdump -T "$binary" | grep -F "($version)" >&2
+      status=1
+    fi
+  done
+done
+exit $status
