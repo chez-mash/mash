@@ -1,0 +1,19 @@
+Package: mash
+Architecture: amd64
+Version: 0.1.0~alpha
+Priority: optional
+Section: utils
+Maintainer: Mashium <mash-release@users.noreply.github.com>
+Filename: pool/main/m/mash/mash_0.1.0~alpha_amd64.deb
+Size: 34613288
+MD5sum: 849e83565c87d96749f194e1d213b368
+SHA1: e8a5f7ff30b14e8cc11750fc537f3a0d86dc1ad2
+SHA256: 4f06b7262f24e626c68a45798554e69c787249bfe1e8fd610d35ed05fc0b69ca
+SHA512: 541655c26992db27911fd410efd2e6834426875064aae72d8646dfb06d9d9d4ab6456930fb4665de43ab18fd1cadd2156db14626789d91f210218ef9c4ec0b1a
+Homepage: https://github.com/mashium/mash
+Description: Search your coding agents' past conversations
+ Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
+ chat histories locally and searches them from a JSON CLI and an MCP server.
+ Also installs mash-server, the optional service for sharing an index between
+ machines. Run "mash qdrant install", then "mash init", after installing.
+

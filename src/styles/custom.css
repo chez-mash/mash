@@ -1,0 +1,357 @@
+/*
+ * The site is the dashboard's twin: its dark warm ground, IBM Plex, and clay
+ * for links and the current page. The light theme is the same design on the
+ * cream of the mash, with dark ink.
+ */
+:root {
+  --sl-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sl-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sl-color-white: #f0ece4;
+  --sl-color-gray-1: #e6e1d8;
+  --sl-color-gray-2: #d8d3ca;
+  --sl-color-gray-3: #b0aaa0;
+  --sl-color-gray-4: #66625a;
+  --sl-color-gray-5: #3d3a35;
+  --sl-color-gray-6: #24221f;
+  --sl-color-black: #1b1a18;
+  --sl-color-accent-low: #3b2a22;
+  --sl-color-accent: #d97757;
+  --sl-color-accent-high: #e8926f;
+  --mash-current: #2b2926;
+  --mash-cursor: #8a857c;
+  /* The name's colour in the project logo: clay on dark, ink on light. */
+  --mash-name: #e8926f;
+  --mash-turn: #f3e6c4;
+}
+:root[data-theme="light"] {
+  --sl-color-white: #2a2419;
+  --sl-color-gray-1: #2a2419;
+  --sl-color-gray-2: #3a3225;
+  --sl-color-gray-3: #6b5f49;
+  --sl-color-gray-4: #8a7c61;
+  --sl-color-gray-5: #c9b98f;
+  --sl-color-gray-6: #ecdcae;
+  --sl-color-gray-7: #f5ecd5;
+  --sl-color-black: #fbf6e9;
+  --sl-color-accent-low: #f3e6c4;
+  --sl-color-accent: #a84a26;
+  --sl-color-accent-high: #7a3318;
+  --mash-current: #ecdcae;
+  --mash-cursor: #9a948a;
+  --mash-name: #2a2419;
+  --mash-turn: #a84a26;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+/* The name is followed by the dashboard's cursor, fading gently. */
+.site-title {
+  font-weight: 600;
+  gap: 0.35em;
+  color: var(--mash-name);
+}
+.site-title::after {
+  content: "_";
+  margin-inline-start: -0.2em;
+  color: var(--mash-cursor);
+  animation: mash-cursor 1.6s ease-in-out infinite;
+}
+@keyframes mash-cursor {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  60%,
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-title::after {
+    animation: none;
+  }
+}
+/* The current page in the sidebar, as the dashboard marks its current section. */
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover,
+.sidebar-content a[aria-current="page"]:focus {
+  background-color: var(--mash-current);
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+}
+.sidebar-content .large {
+  font-weight: 600;
+}
+.hero h1 {
+  letter-spacing: -0.045em;
+}
+.hero .tagline {
+  max-width: 39rem;
+}
+/* The headline is two lines: what goes wrong, then the answer in clay. */
+.hero h1 span {
+  display: block;
+}
+.hero h1 .mash-turn {
+  color: var(--sl-color-accent);
+}
+/* The main action is the one clay button on the page; the two sit side by side. */
+.hero .actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.hero .sl-link-button {
+  justify-content: center;
+  font-weight: 600;
+}
+.hero .sl-link-button.primary {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+}
+.hero .sl-link-button.secondary {
+  border-color: var(--sl-color-gray-4);
+}
+/* Landing page tiles: one quiet surface, each with its icon in clay. */
+.card-grid .card {
+  border-radius: 0.625rem;
+  background-color: var(--sl-color-gray-6);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+/* A slight lift under the pointer; touch screens have no hover to answer. */
+@media (hover: hover) {
+  .card-grid .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--sl-color-gray-4);
+    box-shadow: 0 0.5rem 1.25rem -0.75rem rgb(0 0 0 / 0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-grid .card {
+    transition: none;
+  }
+  .card-grid .card:hover {
+    transform: none;
+  }
+}
+:root[data-theme="light"] .card-grid .card {
+  background-color: var(--sl-color-gray-7);
+}
+.card-grid .card .icon {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sl-color-accent);
+}
+.card-grid .card .title {
+  gap: 0.625rem;
+  color: var(--mash-turn);
+}
+.hero img {
+  border-radius: 2rem;
+}
+
+@media (width < 50rem) {
+  .sl-menu-button {
+    inset-inline-start: var(--sl-nav-pad-x);
+    inset-inline-end: auto;
+  }
+
+  [data-has-sidebar] header.header {
+    padding-inline-start: calc(
+      var(--sl-nav-pad-x) +
+      var(--sl-menu-button-size) +
+      var(--sl-nav-gap)
+    );
+    padding-inline-end: var(--sl-nav-pad-x);
+  }
+}
+
+/* Change pages immediately without fading the entire document. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Cards sit two across from a tablet's width up, not only on a wide desktop. */
+@media (min-width: 36rem) {
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* The MCP tool reference: one row per tool, as in the dashboard's tool
+   explorer, opening to its points and parameters. Nothing runs from here. */
+.sl-markdown-content .mash-tool {
+  margin-top: 0.625rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.625rem;
+  overflow: hidden;
+  scroll-margin-top: 5rem;
+}
+.sl-markdown-content .mash-tool.write {
+  border-style: dashed;
+}
+.sl-markdown-content .mash-tool[open] {
+  border-color: var(--sl-color-gray-3);
+}
+.mash-tool > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+.mash-tool > summary::-webkit-details-marker {
+  display: none;
+}
+/* Starlight draws its own marker before a summary; this row has one chevron. */
+.sl-markdown-content .mash-tool > summary::before,
+.sl-markdown-content .mash-tool > summary::marker {
+  content: none;
+}
+.mash-tool > summary::after {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline: auto 0.25rem;
+  border-right: 2px solid var(--sl-color-gray-3);
+  border-bottom: 2px solid var(--sl-color-gray-3);
+  rotate: 45deg;
+  transition: rotate 0.12s;
+}
+.mash-tool[open] > summary::after {
+  rotate: 225deg;
+}
+.mash-tool[open] > summary {
+  background: var(--sl-color-gray-6);
+}
+.mash-tool .badge {
+  flex: none;
+  padding: 0.125rem 0.5625rem;
+  border-radius: 0.3125rem;
+  background: var(--sl-color-gray-5);
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.mash-tool.read .badge {
+  background: var(--sl-color-blue-low);
+  color: var(--sl-color-blue-high);
+}
+.mash-tool > summary > code {
+  padding: 0;
+  background: none;
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-base);
+  font-weight: 600;
+}
+.mash-tool > summary:hover > code {
+  color: var(--sl-color-accent-high);
+}
+.mash-tool > summary .about {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+}
+.mash-tool.write > summary .about {
+  color: var(--sl-color-gray-3);
+}
+.sl-markdown-content .mash-tool > :not(summary) {
+  margin: 0.875rem 0.875rem 0;
+}
+.sl-markdown-content .mash-tool > :last-child:not(summary) {
+  margin-bottom: 1rem;
+}
+.sl-markdown-content .mash-tool h4 {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mash-tool .none {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+.sl-markdown-content .mash-tool .params {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+}
+.mash-tool .param {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.9fr) minmax(0, 2fr);
+  gap: 0.25rem 1rem;
+  align-items: start;
+  padding: 0.5625rem 0.75rem;
+  border-top: 1px solid var(--sl-color-gray-6);
+  font-size: var(--sl-text-sm);
+}
+.mash-tool .param:first-child {
+  border-top: 0;
+}
+.mash-tool .param .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5625rem;
+}
+.mash-tool .param .name > code {
+  padding: 0;
+  background: none;
+  color: var(--sl-color-white);
+  font-weight: 500;
+}
+.mash-tool .param .name > small {
+  color: var(--sl-color-gray-3);
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-xs);
+}
+.mash-tool .param .name > small code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.mash-tool .param .name > b {
+  color: var(--sl-color-accent-high);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+}
+.mash-tool .params .param .about {
+  color: var(--sl-color-gray-2);
+}
+.mash-tool .params .param .about small {
+  color: var(--sl-color-gray-3);
+}
+@media (width < 40rem) {
+  .mash-tool .param {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A subtree's heading reads as a menu item like its siblings; only the two
+   top sections are set as headings. */
+.sidebar-content ul ul summary .large {
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  font-weight: 400;
+}
+.sidebar-content ul ul summary:hover .large {
+  color: var(--sl-color-white);
+}
