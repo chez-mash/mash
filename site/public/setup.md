@@ -54,6 +54,11 @@ Windows x64, in PowerShell:
 irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 ```
 
+On Linux the prebuilt binary needs glibc 2.34 or newer (Ubuntu 22.04,
+Debian 12, RHEL 9 or later). On an older or a musl system the installer stops
+and says so: tell the person, and do not expect a source build to work there
+without a newer toolchain.
+
 Both install to the user's `.local/bin` directory and verify the release
 checksum. If that directory is not on `PATH`, call Mash by its full path for
 the rest of this page, and tell the person to add the directory to `PATH`.

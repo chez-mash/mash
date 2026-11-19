@@ -21,6 +21,25 @@ case "$(uname -s)-$(uname -m)" in
   Darwin-arm64) target=aarch64-apple-darwin ;;
   *) echo "mash: no prebuilt binary for $(uname -s) $(uname -m); build from source with cargo" >&2; exit 1 ;;
 esac
+# The Linux binaries are built against glibc 2.34; say so before downloading
+# something that would not start.
+if [ "$(uname -s)" = Linux ]; then
+  libc=$(getconf GNU_LIBC_VERSION 2> /dev/null || true)
+  case "$libc" in
+    "glibc "*.*)
+      found=${libc#glibc }
+      major=${found%%.*}
+      minor=${found#*.}
+      minor=${minor%%.*}
+      if [ "$major" -lt 2 ] || { [ "$major" -eq 2 ] && [ "$minor" -lt 34 ]; }; then
+        echo "mash: the prebuilt binary needs glibc 2.34 or newer and this system has $found (Ubuntu 22.04, Debian 12 and RHEL 9 are the oldest that work)" >&2
+        exit 1
+      fi ;;
+    *)
+      echo "mash: the prebuilt binary needs glibc 2.34 or newer, which this system does not appear to use (Alpine and other musl systems are not supported)" >&2
+      exit 1 ;;
+  esac
+fi
 if [ -n "${MASH_VERSION:-}" ]; then
   base="https://github.com/$repository/releases/download/$MASH_VERSION"
 else

@@ -22,7 +22,13 @@ cat > "$scratch/bin/uname" <<'SH'
 #!/usr/bin/env bash
 if [[ $1 == -s ]]; then echo Linux; else echo x86_64; fi
 SH
-chmod +x "$scratch/bin/curl" "$scratch/bin/uname"
+# The C library the fixture machine claims to have; empty stands for musl.
+cat > "$scratch/bin/getconf" <<'SH'
+#!/usr/bin/env bash
+[[ $1 == GNU_LIBC_VERSION && -n ${TEST_INSTALL_LIBC-glibc 2.34} ]] || exit 1
+echo "${TEST_INSTALL_LIBC-glibc 2.34}"
+SH
+chmod +x "$scratch/bin/curl" "$scratch/bin/uname" "$scratch/bin/getconf"
 export PATH="$scratch/bin:$PATH" MASH_INSTALL_DIR="$scratch/install"
 archive=mash-x86_64-unknown-linux-gnu.tar.gz
 printf 'cli fixture\n' > "$scratch/archive/mash"
@@ -36,6 +42,15 @@ sh "$repository/install.sh"
 cmp "$scratch/archive/mash" "$scratch/install/mash"
 cmp "$scratch/archive/mash-server" "$scratch/install/mash-server"
 [[ -x $scratch/install/mash && -x $scratch/install/mash-server ]]
+# A C library too old for the binary, or not glibc at all, stops the install
+# before anything is downloaded or replaced.
+for libc in 'glibc 2.33' 'glibc 1.99' ''; do
+    if TEST_INSTALL_LIBC="$libc" sh "$repository/install.sh" >"$scratch/output" 2>&1; then
+        echo "Installed on an unsupported C library: '$libc'." >&2; exit 1
+    fi
+    grep -q 'glibc 2.34 or newer' "$scratch/output"
+done
+TEST_INSTALL_LIBC='glibc 2.41' sh "$repository/install.sh" >/dev/null
 # A missing companion must be detected before replacing either installed file.
 printf 'replacement\n' > "$scratch/archive/mash"
 package mash

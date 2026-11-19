@@ -60,10 +60,6 @@ Both download a prebuilt release, verify its checksum and install to your
 user’s `.local/bin` directory; add it to `PATH` if needed. No Rust, Docker or
 administrator rights are required.
 
-> The first release is not published yet. Until it is, these commands and the
-> package managers below have nothing to download:
-> [build from source](#build-from-source) instead.
-
 Prefer a package manager?
 
 | Channel | Command |

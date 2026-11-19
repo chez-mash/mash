@@ -10,6 +10,9 @@
 set -euo pipefail
 
 version=${1#v}
+# A pre-release sorts before its release in apt only when written with a tilde:
+# 0.1.0~alpha comes before 0.1.0, where 0.1.0-alpha would come after it.
+version=${version/-/\~}
 dist=$(realpath "$2")
 repo=$3
 mkdir -p "$repo"

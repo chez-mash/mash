@@ -9,10 +9,6 @@ a release that uses a different database schema.
 
 ## Install the CLI
 
-> The first release is not published yet. Until it is, the installers and
-> package managers below have nothing to download:
-> [build from source](#build-from-source) instead.
-
 ### Recommended release installers
 
 These need no Rust. Prebuilt binaries cover
