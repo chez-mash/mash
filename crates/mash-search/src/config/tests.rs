@@ -11,7 +11,7 @@ fn remote_embedding_configuration_is_explicit_strict_and_keeps_credentials_unres
     let prefix = "version = 1\n[providers]\n";
     assert_eq!(
         parse_document(prefix.as_bytes()).unwrap().embeddings,
-        Embeddings::Local {}
+        Embeddings::Local { accelerated: false }
     );
     let base = format!(
         "{prefix}[embeddings]\nbackend = 'remote'\nurl = 'https://example.com/embed'\ntoken_env = 'MASH_TEST_NOT_PRESENT'\n"
@@ -26,7 +26,17 @@ fn remote_embedding_configuration_is_explicit_strict_and_keeps_credentials_unres
     assert!(mixed.runs_locally(0));
     assert!(mixed.runs_locally(255));
     assert!(!mixed.runs_locally(256));
-    assert!(Embeddings::Local {}.runs_locally(usize::MAX));
+    assert!(Embeddings::Local { accelerated: false }.runs_locally(usize::MAX));
+    // GPU embedding inside Mash is an explicit, local-only setting.
+    let accelerated = parse_document(
+        format!("{prefix}[embeddings]\nbackend = 'local'\naccelerated = true\n").as_bytes(),
+    )
+    .unwrap()
+    .embeddings;
+    assert_eq!(accelerated, Embeddings::Local { accelerated: true });
+    assert!(accelerated.accelerated() && accelerated.runs_locally(usize::MAX));
+    assert!(!Embeddings::default().accelerated() && !remote.accelerated());
+    assert!(parse_document(format!("{base}accelerated = true\n").as_bytes()).is_err());
     for setting in [
         base.replace("https://example.com/embed", "http://example.com/embed"),
         base.replace(

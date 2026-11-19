@@ -313,6 +313,8 @@ async fn index(
             SearchMode::Unavailable
         },
         embedding_error: views.inference_error,
+        embedding_engine: embeddings.accelerated_engine,
+        embedding_fallback: embeddings.acceleration_fallback,
         model_load_milliseconds: views.model_load_milliseconds,
         storage_setup_milliseconds,
         ingestion_milliseconds,

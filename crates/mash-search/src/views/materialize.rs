@@ -121,7 +121,7 @@ impl<'a> Writer<'a> {
             scope,
             model,
             pool: None,
-            execution: crate::config::Embeddings::Local {},
+            execution: crate::config::Embeddings::default(),
             reuse: true,
             words_survive_inference: false,
             build: Build::default(),

@@ -57,7 +57,8 @@ steps: download the models, change two settings, and index again.
    ```
 
    This downloads about 177 MB from `https://huggingface.co` into
-   `~/.mash/models` (Apple silicon also downloads a Core ML embedding model).
+   `~/.mash/models`. Apple silicon and Windows also download the unquantized
+   embedding model their GPU engines run, about 90 MB more.
    Set `HF_ENDPOINT` to download from a Hugging Face mirror instead, or pass
    `--models-dir PATH` to use another directory.
 

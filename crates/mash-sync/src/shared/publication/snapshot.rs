@@ -308,11 +308,10 @@ async fn embed_batch(
         pool,
         build,
         cached,
-        inference
-            .local
-            .map_or(&crate::config::Embeddings::Local {}, |config| {
-                &config.embeddings
-            }),
+        inference.local.map_or(
+            &crate::config::Embeddings::Local { accelerated: false },
+            |config| &config.embeddings,
+        ),
     )
     .await?;
     for (message, (vector, _)) in batch

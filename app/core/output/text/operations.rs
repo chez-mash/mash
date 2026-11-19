@@ -133,6 +133,17 @@ pub(super) fn index(out: &mut String, value: &IndexResponse) -> Result<(), serde
             value.reused_embeddings
         ),
     );
+    if let Some(reason) = &value.embedding_fallback {
+        line(
+            out,
+            &format!(
+                "GPU embedding was not used; embedded on the CPU: {}",
+                safe(reason)
+            ),
+        );
+    } else if let Some(engine) = value.embedding_engine {
+        line(out, &format!("Embedding engine: {engine}"));
+    }
     if let Some(error) = &value.embedding_error {
         line(
             out,

@@ -26,6 +26,7 @@ pub(super) use assets::{read_model_file, read_tokenizer_files, snapshot};
 pub struct Models {
     root: PathBuf,
     reranking: crate::config::Reranking,
+    accelerated_embedding: bool,
 }
 
 /// The configured remote reranker, or why this search cannot use it.
@@ -126,7 +127,14 @@ impl Models {
         Self {
             root,
             reranking: crate::config::Reranking::default(),
+            accelerated_embedding: false,
         }
+    }
+
+    /// Whether the indexer loaded by this handle tries the GPU first.
+    pub const fn with_accelerated_embedding(mut self, accelerated: bool) -> Self {
+        self.accelerated_embedding = accelerated;
+        self
     }
 
     /// Contextual reranking placement for searches loaded by this handle.
@@ -225,6 +233,7 @@ impl Models {
         }
         let selected = generations::select(&self.root)?;
         let key = indexer::AssetsKey {
+            accelerated: self.accelerated_embedding,
             root: selected.root.clone(),
             marker_modified: fs::metadata(self.root.join(MARKER_NAME))
                 .map_err(AppError::io)?
@@ -246,7 +255,11 @@ impl Models {
         let cache = indexer::current();
         let mut pool = match cache.as_ref().and_then(|cache| cache.take(&key)) {
             Some(pool) => pool,
-            None => EmbeddingPool::load_local(&selected.root, cache.is_some())?,
+            None => EmbeddingPool::load_local(
+                &selected.root,
+                cache.is_some(),
+                self.accelerated_embedding,
+            )?,
         };
         pool.assets_lease = selected.lease;
         Ok(Some(indexer::LoadedIndexer::new(pool, key, cache)))

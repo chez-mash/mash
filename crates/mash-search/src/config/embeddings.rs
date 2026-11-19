@@ -5,7 +5,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(tag = "backend", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Embeddings {
-    Local {},
+    Local {
+        /// Experimental. On Windows, embed through `DirectML` on the machine's
+        /// GPU while indexing, using the CPU when no usable GPU is found. Off
+        /// unless set; ignored on other systems.
+        // Left out of status output while off, as before the setting existed.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        accelerated: bool,
+    },
     Remote {
         url: String,
         token_env: String,
@@ -21,7 +28,7 @@ pub enum Embeddings {
 
 impl Default for Embeddings {
     fn default() -> Self {
-        Self::Local {}
+        Self::Local { accelerated: false }
     }
 }
 
@@ -41,9 +48,14 @@ impl Embeddings {
     /// Whether a batch of this many new texts is embedded by the local model.
     pub const fn runs_locally(&self, inputs: usize) -> bool {
         match self {
-            Self::Local {} => true,
+            Self::Local { .. } => true,
             Self::Remote { local_below, .. } => inputs < *local_below as usize,
         }
+    }
+
+    /// Whether local inference should try the machine's GPU first.
+    pub const fn accelerated(&self) -> bool {
+        matches!(self, Self::Local { accelerated: true })
     }
 
     pub fn validate(&self) -> Result<(), AppError> {

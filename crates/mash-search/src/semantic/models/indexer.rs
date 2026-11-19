@@ -20,6 +20,8 @@ struct CachedIndexer {
 
 #[derive(Clone, PartialEq, Eq)]
 pub(super) struct AssetsKey {
+    /// A pool loaded for the CPU is not the one a GPU request wants.
+    pub(super) accelerated: bool,
     pub(super) root: PathBuf,
     pub(super) marker_modified: Option<SystemTime>,
     pub(super) files: Vec<(String, u64, Option<SystemTime>)>,
@@ -130,6 +132,7 @@ impl LoadedIndexer {
             pool: Some(EmbeddingPool {
                 backend: crate::semantic::embeddings::EmbeddingPoolBackend::Fixture(state),
                 assets_lease: None,
+                fallback: None,
             }),
             cache: None,
         }
@@ -180,6 +183,7 @@ mod tests {
 
     fn key() -> AssetsKey {
         AssetsKey {
+            accelerated: false,
             root: PathBuf::from("/installed/generation-a"),
             marker_modified: Some(SystemTime::UNIX_EPOCH),
             files: vec![("model.onnx".to_owned(), 42, Some(SystemTime::UNIX_EPOCH))],
@@ -192,6 +196,7 @@ mod tests {
         EmbeddingPool {
             backend: EmbeddingPoolBackend::Fixture(std::sync::Arc::clone(&fixture.state)),
             assets_lease: None,
+            fallback: None,
         }
     }
 

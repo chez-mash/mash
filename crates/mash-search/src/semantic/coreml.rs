@@ -7,8 +7,8 @@ pub(super) mod reranker;
 use super::COREML_SEQUENCE_LENGTH;
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use super::{
-    COREML_BATCH_SIZE, COREML_CACHE_DIRECTORY, COREML_MODEL_FILE, EMBEDDING_MODEL,
-    EMBEDDING_REPOSITORY,
+    COREML_BATCH_SIZE, COREML_CACHE_DIRECTORY, EMBEDDING_MODEL, EMBEDDING_REPOSITORY,
+    FP32_MODEL_FILE,
     embeddings::EmbeddingGroup,
     models::{read_model_file, read_tokenizer_files, snapshot},
 };
@@ -144,7 +144,7 @@ fn build_coreml_embedding(
     let embedding_info = TextEmbedding::get_model_info(&EMBEDDING_MODEL)
         .map_err(|error| AppError::model(format!("unknown embedding model: {error}")))?;
     let mut embedding_model = UserDefinedEmbeddingModel::new(
-        read_model_file(&embedding_snapshot.join(COREML_MODEL_FILE))?,
+        read_model_file(&embedding_snapshot.join(FP32_MODEL_FILE))?,
         read_tokenizer_files(&embedding_snapshot)?,
     )
     .with_quantization(QuantizationMode::None);

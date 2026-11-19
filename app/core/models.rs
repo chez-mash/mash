@@ -240,6 +240,12 @@ pub struct IndexResponse {
     /// the affected messages are searchable by word only until a later pass.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) embedding_error: Option<String>,
+    /// With `[embeddings] accelerated`: the engine that embedded this pass, and
+    /// why it was the CPU when the GPU could not be used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(super) embedding_engine: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(super) embedding_fallback: Option<String>,
     pub(super) model_load_milliseconds: u64,
     pub(super) storage_setup_milliseconds: u64,
     pub(super) ingestion_milliseconds: u64,

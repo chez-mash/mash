@@ -17,6 +17,8 @@ pub(super) mod cpu;
 pub struct EmbeddingPool {
     pub(super) backend: EmbeddingPoolBackend,
     pub(super) assets_lease: Option<std::fs::File>,
+    /// Why the CPU is embedding although the GPU was asked for.
+    pub(super) fallback: Option<String>,
 }
 
 pub(super) enum EmbeddingPoolBackend {
@@ -26,6 +28,8 @@ pub(super) enum EmbeddingPoolBackend {
     Cpu(Vec<TextEmbedding>),
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     CoreMl(Box<CoreMlEmbeddingPool>),
+    #[cfg(windows)]
+    DirectMl(Box<TextEmbedding>),
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -43,6 +47,10 @@ pub struct EmbeddingSummary {
     /// its requests took end to end, including any worker start.
     pub remote_inferences: u64,
     pub remote_milliseconds: u64,
+    /// Where `[embeddings] accelerated` was asked for and the local model ran:
+    /// the engine that ran it, and why that was the CPU when it was.
+    pub accelerated_engine: Option<&'static str>,
+    pub acceleration_fallback: Option<String>,
 }
 
 pub use crate::progress::EmbeddingProgress;
@@ -116,16 +124,66 @@ impl EmbeddingPool {
             .collect())
     }
 
+    /// The engine embedding with this pool, as reports name it.
+    pub const fn engine(&self) -> &'static str {
+        match &self.backend {
+            #[cfg(any(test, feature = "test-support"))]
+            EmbeddingPoolBackend::Fixture(_) => "fixture",
+            #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+            EmbeddingPoolBackend::Cpu(_) => "cpu",
+            #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+            EmbeddingPoolBackend::CoreMl(_) => "core-ml",
+            #[cfg(windows)]
+            EmbeddingPoolBackend::DirectMl(_) => "directml",
+        }
+    }
+
+    /// Why the CPU embeds although the GPU was asked for, when that is so.
+    pub fn fallback(&self) -> Option<&str> {
+        self.fallback.as_deref()
+    }
+
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    pub(super) fn load_local(root: &Path, _watching: bool) -> Result<Self, AppError> {
+    pub(super) fn load_local(
+        root: &Path,
+        _watching: bool,
+        _accelerated: bool,
+    ) -> Result<Self, AppError> {
         Ok(Self {
             backend: EmbeddingPoolBackend::CoreMl(Box::new(CoreMlEmbeddingPool::load(root)?)),
             assets_lease: None,
+            fallback: None,
         })
     }
 
     #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
-    pub(super) fn load_local(root: &Path, watching: bool) -> Result<Self, AppError> {
+    pub(super) fn load_local(
+        root: &Path,
+        watching: bool,
+        accelerated: bool,
+    ) -> Result<Self, AppError> {
+        // The GPU is chosen here, before any batch runs, and never mid-index.
+        #[cfg(windows)]
+        let fallback = if accelerated {
+            match super::directml::load(root) {
+                Ok(model) => {
+                    return Ok(Self {
+                        backend: EmbeddingPoolBackend::DirectMl(Box::new(model)),
+                        assets_lease: None,
+                        fallback: None,
+                    });
+                }
+                Err(error) => Some(error.error.message),
+            }
+        } else {
+            None
+        };
+        // The setting does nothing where Mash has no GPU engine of its own.
+        #[cfg(not(windows))]
+        let fallback = {
+            let _ = accelerated;
+            None
+        };
         // Watchers favor a small persistent footprint over bulk throughput.
         // Keep the same waves and quantization batches regardless of concurrency.
         let worker_count = if watching { 1 } else { EMBEDDING_WORKERS };
@@ -135,6 +193,7 @@ impl EmbeddingPool {
         Ok(Self {
             backend: EmbeddingPoolBackend::Cpu(workers),
             assets_lease: None,
+            fallback,
         })
     }
 
@@ -150,6 +209,8 @@ impl EmbeddingPool {
             EmbeddingPoolBackend::Cpu(workers) => cpu::embed_wave(workers, groups),
             #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
             EmbeddingPoolBackend::CoreMl(embedding) => embedding.embed(groups),
+            #[cfg(windows)]
+            EmbeddingPoolBackend::DirectMl(model) => super::directml::embed(model, groups),
         }
     }
 }

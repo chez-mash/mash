@@ -11,7 +11,7 @@ const _: () = assert!(CACHE_ROWS.is_multiple_of(BATCH_ROWS));
 
 pub const fn batch_rows(execution: &crate::config::Embeddings) -> usize {
     match execution {
-        crate::config::Embeddings::Local {} => BATCH_ROWS,
+        crate::config::Embeddings::Local { .. } => BATCH_ROWS,
         crate::config::Embeddings::Remote { .. } => crate::semantic::remote::MAX_INPUTS,
     }
 }
@@ -55,7 +55,7 @@ pub async fn embed_units(
         // failed remote request still fails the batch.
         if execution.runs_locally(texts.len()) {
             let models = model.ok_or_else(AppError::models_missing)?;
-            embed_texts(models, pool, &texts, result).await?
+            embed_texts(models, pool, &texts, result, execution.accelerated()).await?
         } else {
             if result.remote.is_none() {
                 result.remote = Some(crate::semantic::remote::Client::new(execution)?);
@@ -104,6 +104,7 @@ pub async fn embed_texts(
     pool: &mut Option<LoadedIndexer>,
     texts: &[&str],
     result: &mut Build,
+    accelerated: bool,
 ) -> Result<Vec<Vec<f64>>, AppError> {
     if texts.is_empty() {
         return Ok(Vec::new());
@@ -120,7 +121,9 @@ pub async fn embed_texts(
         let mut loaded = match existing {
             Some(pool) => pool,
             None => crate::progress::during(crate::progress::Phase::ModelLoading, || {
-                Models::new(root).load_indexer()
+                Models::new(root)
+                    .with_accelerated_embedding(accelerated)
+                    .load_indexer()
             })?
             .ok_or_else(AppError::models_missing)?,
         };
@@ -131,6 +134,10 @@ pub async fn embed_texts(
         Ok((loaded, vectors, load_ms, elapsed(embed_started)))
     })
     .await?;
+    if accelerated {
+        result.embeddings.accelerated_engine = Some(loaded.engine());
+        result.embeddings.acceleration_fallback = loaded.fallback().map(str::to_owned);
+    }
     *pool = Some(loaded);
     result.model_load_milliseconds += load_ms;
     result.embedding_milliseconds += embed_ms;
@@ -182,6 +189,6 @@ mod tests {
         assert_eq!(placement(&remote(4), 4).await, worker);
         // Without a threshold even one text goes to the worker.
         assert_eq!(placement(&remote(0), 1).await, worker);
-        assert_eq!(placement(&Embeddings::Local {}, 9).await, local);
+        assert_eq!(placement(&Embeddings::default(), 9).await, local);
     }
 }

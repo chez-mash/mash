@@ -15,7 +15,9 @@ arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple
 Silicon (the default there), a configured GPU worker elsewhere, and the CPU
 last. Reranking defaults to the CPU everywhere, with a remote worker when
-configured. The Core ML reranking worker and the NVIDIA worker containers in
+configured. The Core ML reranking worker, DirectML embedding inside Mash on
+Windows (`[embeddings] accelerated = true`, falling back to the CPU before
+indexing starts when no usable GPU is found) and the NVIDIA workers in
 `deployment/` are experimental and off unless configured: say so wherever they
 are documented, and do not make them a default.
 `mash-server --reranking-worker ADDRESS` serves the reranking worker contract

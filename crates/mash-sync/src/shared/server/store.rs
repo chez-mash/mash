@@ -160,7 +160,7 @@ impl Store {
             silver,
             views,
             max_upload_bytes,
-            embeddings: crate::config::Embeddings::Local {},
+            embeddings: crate::config::Embeddings::default(),
             nodes: Arc::default(),
             views_writes: Arc::default(),
             replays: Arc::default(),

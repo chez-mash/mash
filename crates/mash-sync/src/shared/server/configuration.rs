@@ -359,7 +359,7 @@ mod tests {
             crate::config::Embeddings::Remote { .. }
         ));
         let default: Configuration = toml::from_str("version=1\nnodes=[]").unwrap();
-        assert_eq!(default.embeddings, crate::config::Embeddings::Local {});
+        assert_eq!(default.embeddings, crate::config::Embeddings::default());
     }
 
     #[test]

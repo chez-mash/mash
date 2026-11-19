@@ -22,11 +22,12 @@ pub(super) fn local(root: &Path) -> Result<(), AppError> {
         &info.additional_files,
     )?;
     reranker(root)?;
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    // The GPU engines need the unquantized model as well.
+    #[cfg(any(windows, all(target_os = "macos", target_arch = "aarch64")))]
     download(
         root,
         &info.model_code,
-        crate::semantic::COREML_MODEL_FILE,
+        crate::semantic::FP32_MODEL_FILE,
         &[],
     )?;
     Ok(())

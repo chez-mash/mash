@@ -4,6 +4,8 @@
 mod cleanup_experiment;
 #[cfg(any(test, all(target_os = "macos", target_arch = "aarch64")))]
 mod coreml;
+#[cfg(windows)]
+mod directml;
 mod embeddings;
 mod models;
 pub mod remote;
@@ -41,6 +43,7 @@ const EMBEDDING_THREADS_PER_WORKER: usize = 2;
 const COREML_BATCH_SIZE: usize = 32;
 #[cfg(any(test, all(target_os = "macos", target_arch = "aarch64")))]
 const COREML_SEQUENCE_LENGTH: usize = 512;
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-const COREML_MODEL_FILE: &str = "onnx/model.onnx";
+/// The unquantized model the GPU engines run: Core ML and DirectML.
+#[cfg(any(windows, all(target_os = "macos", target_arch = "aarch64")))]
+const FP32_MODEL_FILE: &str = "onnx/model.onnx";
 const COREML_CACHE_DIRECTORY: &str = "coreml-cache";

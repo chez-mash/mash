@@ -202,12 +202,15 @@ supported system, so no GPU is needed. Where Mash can use one, it is faster:
 | --- | --- | --- |
 | macOS, Apple silicon | GPU through Core ML, on by default | CPU by default; Core ML is opt-in (experimental) |
 | Linux x86-64 with an NVIDIA card | CPU by default; GPU with a worker container (experimental) | CPU by default; GPU with a worker container (experimental) |
-| Windows x64 with an NVIDIA card | CPU by default; GPU with a worker you run (experimental) | CPU by default; GPU with a worker you run (experimental) |
-| Linux ARM64, or an AMD or Intel GPU, or none | CPU | CPU |
+| Windows x64 with a DirectX 12 graphics card | CPU by default; GPU through DirectML, built in and opt-in (experimental) | CPU by default; with an NVIDIA card, GPU with a worker you run (experimental) |
+| Linux ARM64, Linux with an AMD or Intel GPU, or no GPU | CPU | CPU |
 
 - **Experimental** options are off until you configure them, and have been
-  tried on few machines: one Tesla T4 each for Linux and Windows, where
-  indexing ran about nine times faster than on four CPU cores.
+  tried on few machines: one Tesla T4 each for Linux and Windows. Against four
+  CPU cores, indexing ran about nine times faster with an NVIDIA worker and
+  about five times faster through DirectML.
+- On Windows with an NVIDIA card, a worker you run is the faster of the two
+  GPU options for indexing; DirectML needs nothing installed.
 - Any system can instead send this work to a GPU worker on
   [Modal](https://modal.com), also opt-in.
 
