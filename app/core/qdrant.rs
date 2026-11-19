@@ -172,16 +172,47 @@ pub(crate) struct Account {
 impl Account {
     fn current() -> Self {
         let variable = |name: &str| std::env::var(name).ok().filter(|value| !value.is_empty());
-        let user = match (variable("USERDOMAIN"), variable("USERNAME")) {
-            (Some(domain), Some(name)) => format!("{domain}\\{name}"),
-            (None, Some(name)) => name,
-            (_, None) => String::new(),
-        };
+        let reported = cfg!(windows).then(whoami).flatten();
         Self {
-            user,
+            user: account_name(reported, variable("USERDOMAIN"), variable("USERNAME")),
             system_drive: variable("SystemDrive").unwrap_or_else(|| "C:".into()),
             system_root: variable("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
         }
+    }
+}
+
+/// Why a started service did not answer, and where to read its output.
+fn not_ready(layout: &Layout, message: &str) -> AppError {
+    // A logon task runs only in a signed-in desktop session, so over SSH or on
+    // a server without one it is registered and never starts.
+    let desktop = if layout.platform.supervisor() == Supervisor::ScheduledTask {
+        ". On Windows it starts only while you are signed in at the desktop; without a desktop session, run Qdrant yourself as the installation guide describes"
+    } else {
+        ""
+    };
+    install_error(format!(
+        "{message} after it was started; read its output with `{}`{desktop}",
+        layout.logs()
+    ))
+}
+
+/// The account `whoami` reports, which is right where the environment is not:
+/// an SSH session on a machine outside a domain has `USERDOMAIN=WORKGROUP`.
+fn whoami() -> Option<String> {
+    let output = std::process::Command::new("whoami").output().ok()?;
+    output
+        .status
+        .success()
+        .then(|| String::from_utf8_lossy(&output.stdout).trim().to_owned())
+}
+
+/// `DOMAIN\user` from `whoami` when it answered, else from the environment.
+fn account_name(reported: Option<String>, domain: Option<String>, name: Option<String>) -> String {
+    match (reported.filter(|account| !account.is_empty()), domain, name) {
+        (Some(account), _, _) => account,
+        (None, Some(domain), Some(name)) => format!("{domain}\\{name}"),
+        (None, None, Some(name)) => name,
+        (None, _, None) => String::new(),
     }
 }
 
@@ -378,13 +409,7 @@ pub(crate) async fn install(
     }
     let answered = probe::ready(ports, host.ready_within)
         .await
-        .map_err(|error| {
-            install_error(format!(
-                "{} after it was started; read its output with `{}`",
-                error.error.message,
-                layout.logs()
-            ))
-        })?;
+        .map_err(|error| not_ready(layout, &error.error.message))?;
     let manifest = Manifest {
         version: version.to_owned(),
         asset: host.source.asset_name().to_owned(),

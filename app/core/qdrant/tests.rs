@@ -979,3 +979,24 @@ fn supervisor_reports_map_to_service_states() {
         assert_eq!(parse_state(Supervisor::ScheduledTask, true, output), state);
     }
 }
+
+#[test]
+fn the_logon_task_account_prefers_what_whoami_reports() {
+    // An SSH session on a machine outside a domain reports `WORKGROUP` as the
+    // domain, an account Windows cannot resolve when registering the task.
+    let workgroup = || Some("WORKGROUP".to_owned());
+    let name = || Some("administrator".to_owned());
+    assert_eq!(
+        super::account_name(Some("host\\administrator".into()), workgroup(), name()),
+        "host\\administrator"
+    );
+    assert_eq!(
+        super::account_name(None, workgroup(), name()),
+        "WORKGROUP\\administrator"
+    );
+    assert_eq!(
+        super::account_name(Some(String::new()), None, name()),
+        "administrator"
+    );
+    assert_eq!(super::account_name(None, workgroup(), None), "");
+}
