@@ -24,7 +24,7 @@ bin-dir = "{ bin }{ binary-ext }"
 pkg-fmt = "zip"
 
 [workspace.package]
-version = "0.7.0"
+version = "0.1.0-alpha"
 
 [workspace]
 members = ["app", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
