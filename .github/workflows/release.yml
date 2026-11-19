@@ -16,6 +16,10 @@ on:
         description: Build even though CI has not passed for this commit (artifacts only; never published)
         type: boolean
         default: false
+      republish:
+        description: A published release tag (for example v0.1.0-alpha) whose Homebrew and apt packages to publish again, without building
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -26,6 +30,8 @@ env:
 
 jobs:
   validated:
+    # Republishing package channels builds nothing, so it validates nothing.
+    if: ${{ !inputs.republish }}
     runs-on: ubuntu-latest
     steps:
       - name: Require successful CI and Windows runs for this commit
@@ -160,15 +166,28 @@ jobs:
           git add bucket/mash.json
           git commit -m "Scoop: mash ${GITHUB_REF_NAME}"
           git push origin HEAD:main
+
+  # Each package channel is its own job, so one failing does not hold back the
+  # other, and both can be run again for a release that is already published.
+  homebrew:
+    needs: publish
+    if: ${{ always() && (needs.publish.result == 'success' || inputs.republish) }}
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.republish || github.ref_name }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Update the Homebrew tap
         env:
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "$TAP_TOKEN" ]; then
             echo "HOMEBREW_TAP_TOKEN is not set; skipping the tap update."
             exit 0
           fi
-          python3 packaging/render.py "$GITHUB_REF_NAME" dist/SHA256SUMS \
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
+          python3 packaging/render.py "$TAG" dist/SHA256SUMS \
             packaging/homebrew/mash.rb.in mash.rb
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/mashium/homebrew-tap.git" tap
           mkdir -p tap/Formula
@@ -177,18 +196,21 @@ jobs:
           git config user.name "mash release"
           git config user.email "mash-release@users.noreply.github.com"
           git add Formula/mash.rb
-          git commit -m "mash ${GITHUB_REF_NAME}"
+          if git diff --cached --quiet; then
+            echo "The tap already has this formula."
+            exit 0
+          fi
+          git commit -m "mash ${TAG}"
           git push
 
   apt:
     needs: publish
+    if: ${{ always() && (needs.publish.result == 'success' || inputs.republish) }}
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.republish || github.ref_name }}
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          path: dist
-          merge-multiple: true
       - name: Publish .deb packages and the apt repository
         env:
           APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
@@ -198,6 +220,8 @@ jobs:
             echo "APT_GPG_PRIVATE_KEY is not set; skipping apt."
             exit 0
           fi
+          # The release's own archives, so this also works long after the build.
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern 'mash-*' --dir dist
           export GNUPGHOME="$RUNNER_TEMP/gnupg"
           mkdir -m 700 "$GNUPGHOME"
           printf '%s\n' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
@@ -210,11 +234,15 @@ jobs:
             git -C site remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             touch site/.nojekyll
           fi
-          packaging/apt/build-repo.sh "$GITHUB_REF_NAME" dist site/apt
-          gh release upload "$GITHUB_REF_NAME" dist/mash_*.deb --repo "$GITHUB_REPOSITORY"
+          packaging/apt/build-repo.sh "$TAG" dist site/apt
+          gh release upload "$TAG" dist/mash_*.deb --repo "$GITHUB_REPOSITORY" --clobber
           cd site
           git config user.name "mash release"
           git config user.email "mash-release@users.noreply.github.com"
           git add -A
-          git commit -m "apt: mash ${GITHUB_REF_NAME}"
+          if git diff --cached --quiet; then
+            echo "The apt repository already has this release."
+            exit 0
+          fi
+          git commit -m "apt: mash ${TAG}"
           git push origin gh-pages
