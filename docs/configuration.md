@@ -78,8 +78,8 @@ Indexing uses the fastest engine available to it, in this order:
 
 1. On an Apple Silicon Mac, Core ML, inside Mash. This is the default there
    and needs no setting.
-2. A GPU worker, when you configure one: on Modal, or, experimentally, as a
-   container on your own machine with an NVIDIA card. Mash cannot use an
+2. A GPU worker, when you configure one: on Modal, or, experimentally, on
+   your own Linux or Windows machine with an NVIDIA card. Mash cannot use an
    NVIDIA card without that worker.
 3. Otherwise, your CPU.
 
@@ -111,9 +111,11 @@ embeddings stay local, so semantic search still needs `mash models install`.
 
 The worker must implement Mash's model-specific contract; an arbitrary
 embedding API is not interchangeable. Changing the embedding recipe can require
-rebuilding search data. The worker runs on Modal. Running it as a container
-on your own machine with an NVIDIA card is experimental. Instructions are in
-`deployment/embeddings/README.md` in the source repository.
+rebuilding search data. The worker runs on Modal. Running it on your own
+Linux or Windows machine with an NVIDIA card is experimental. Instructions are
+in `deployment/embeddings/README.md` in the source repository. In one test on
+a Tesla T4, a worker embedded about 155 messages a second, where the same
+machine's four CPU cores managed about 18.
 
 An idle worker can take minutes to start. To keep routine refreshes quick, add
 `local_below` to the table:
@@ -209,11 +211,14 @@ timeout_milliseconds = 1500
 ```
 
 This sends the query and the excerpts being ranked to the worker. The worker
-runs on Modal. Running it yourself is experimental: as a container on a
+runs on Modal. Running it yourself is experimental: on a Linux or Windows
 machine with an NVIDIA card, or on an Apple Silicon Mac with
 `mash-server --reranking-worker 127.0.0.1:8000`. See
 `deployment/reranking/README.md` in the source repository. A worker on the
-same machine uses `url = "http://127.0.0.1:8000/rerank"`.
+same machine uses a loopback address such as
+`url = "http://127.0.0.1:8000/rerank"`, with the port you started it on. In
+one test on a Tesla T4, a worker reranked a search in 30 to 130 milliseconds,
+where the same machine's four CPU cores took 0.5 to 2 seconds.
 
 - Set the variable named by `token_env` in every process that searches: MCP
   servers, the dashboard and your shell. A Modal proxy token for the embedding
@@ -224,7 +229,19 @@ same machine uses `url = "http://127.0.0.1:8000/rerank"`.
   or the token is missing, that search reranks on your CPU. Failed requests are
   never retried.
 - `mash search --diagnostics` reports `reranker_engine` as `remote`, `cpu` or
-  `cpu-fallback`, with a `reranker_fallback` reason.
+  `cpu-fallback`, with a `reranker_fallback` reason:
+
+  | Reason | What happened |
+  | --- | --- |
+  | `timeout` | No reply within `timeout_milliseconds`, typically a worker still starting. |
+  | `unavailable` | The connection failed or the worker returned an error. |
+  | `credential-missing` | The `token_env` variable is not set in the searching process. |
+  | `recipe-mismatch` | The worker's reranking model differs from the installed one. |
+  | `invalid-response` | The reply did not match the request. |
+  | `input-limit` | The query or candidates exceed the worker's request limits. |
+
+  A worker that is not running reports `unavailable` on Linux. On
+  Windows it reports `timeout`, and each search waits that long first.
 - When searching by meaning is your default (`intent = "related-discussion"`
   with reranking), MCP and dashboard start, and the agent plugin's
   session-start refresh, send a text-free warm-up request to the worker. With

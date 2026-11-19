@@ -10,6 +10,7 @@ import zstandard
 from fastapi.testclient import TestClient
 
 import contract
+import server
 from contract import MAX_BODY_BYTES, REQUEST_ID_BYTES, Document
 from server import create_app
 from service import CPU, CUDA, Scores, load_engine
@@ -178,3 +179,20 @@ def test_requiring_a_gpu_fails_where_there_is_none() -> None:
     assert root is not None
     with pytest.raises(RuntimeError):
         load_engine(root, [CUDA])
+
+
+def test_the_model_directory_comes_from_the_environment_first(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv(server.MODEL_ENV, str(tmp_path / "chosen"))
+    assert server.model_root() == tmp_path / "chosen"
+
+
+def test_the_model_directory_is_the_image_one_only_where_it_exists(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv(server.MODEL_ENV, raising=False)
+    monkeypatch.setattr(server, "CONTAINER_MODEL_ROOT", tmp_path)
+    assert server.model_root() == tmp_path
+    monkeypatch.setattr(server, "CONTAINER_MODEL_ROOT", tmp_path / "absent")
+    assert server.model_root() == server.LOCAL_MODEL_ROOT

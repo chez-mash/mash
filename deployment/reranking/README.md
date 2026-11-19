@@ -2,8 +2,8 @@
 
 This optional worker scores search candidates for Mash's contextual reranking
 on an accelerator. Run it on Modal, or, experimentally, on hardware of your
-own: as a container on a machine with an NVIDIA card, or on an Apple Silicon
-Mac with the `mash-server` you already have. All three speak the same
+own: on a machine with an NVIDIA card, or on an Apple Silicon Mac with the
+`mash-server` you already have. All three speak the same
 contract, published in [`openapi.json`](openapi.json), and Mash cannot tell
 them apart. Local CPU reranking is the default and the offline path, and
 nothing here is used unless you configure it.
@@ -29,30 +29,66 @@ credential used for deployment separate from this invocation token. See
 
 ## On your own machine (experimental)
 
-The container has been built and timed on a cloud GPU, not yet run with
-Docker on a machine of our own. Expect rough edges and tell us what you find.
+Still experimental, and off unless you configure it. It has been run on one
+rented machine per system, each with a Tesla T4 and four CPU cores: a search's
+reranking took 30 to 130 milliseconds, against 0.5 to 2 seconds on that
+machine's CPU, with results in the same order.
 
-This needs Docker with the NVIDIA Container Toolkit. Build the image from this
-directory; the build downloads the pinned model, and a running worker never
-downloads anything.
+The commands below use port 8001 so this worker can run beside the
+[embedding worker](../embeddings/README.md), which uses 8000.
+
+### Linux, in a container
+
+This needs Docker with the NVIDIA Container Toolkit; `docker info` lists
+`nvidia` among its runtimes when both are in place. Build the image from this
+directory. The build downloads the pinned model and takes a minute or two; the
+image is about 7 GB, and a running worker never downloads anything.
 
 ```sh
 docker build -t mash-reranker .
 export MASH_RERANKING_TOKEN="$(openssl rand -hex 32)"
-docker run --gpus all -p 127.0.0.1:8000:8000 -e MASH_RERANKING_TOKEN mash-reranker
+docker run --gpus all -p 127.0.0.1:8001:8000 \
+  -e MASH_RERANKING_TOKEN -e MASH_RERANKING_REQUIRE_GPU=1 mash-reranker
 ```
 
-Point the node's `[reranking]` at `http://127.0.0.1:8000/rerank` with
-`token_env = "MASH_RERANKING_TOKEN"`. Mash accepts plain HTTP on loopback only;
-put the worker behind HTTPS to reach it from another machine.
+The worker logs `reranking with CUDAExecutionProvider` when it is ready.
+
+### Windows, without Docker
+
+Docker is not the route on Windows: Windows containers cannot use CUDA, and
+this image is a Linux one. Run the worker directly instead. It needs a current
+NVIDIA driver and [uv](https://docs.astral.sh/uv/); the CUDA libraries come
+with the Python packages. From this directory, in PowerShell:
+
+```powershell
+uv sync --locked --no-dev --group gpu
+uv run --no-dev --group gpu python server.py
+$env:MASH_RERANKING_TOKEN = -join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Maximum 256) })
+$env:MASH_RERANKING_REQUIRE_GPU = '1'
+uv run --no-dev --group gpu uvicorn --factory server:app_from_environment --host 127.0.0.1 --port 8001
+```
+
+The second command downloads the pinned model into `model` here, once. The
+worker stops when its window closes; keeping it running across logons is up to
+you.
+
+### Point Mash at it
+
+Set `[reranking]` in the node's configuration to
+`url = "http://127.0.0.1:8001/rerank"` with
+`token_env = "MASH_RERANKING_TOKEN"`, and set that variable to the same token
+wherever Mash searches. Mash accepts plain HTTP on loopback only; put the
+worker behind HTTPS to reach it from another machine.
 
 - The worker refuses to start without `MASH_RERANKING_TOKEN`, and answers only
   requests carrying it as a bearer token.
-- Its start-up log names the engine in use. Without a usable GPU it serves from
-  the container's CPU; set `MASH_RERANKING_REQUIRE_GPU=1` to make it fail
-  instead.
-- `MASH_RERANKING_MODEL_DIR` names a model directory other than the one in the
-  image.
+- `MASH_RERANKING_REQUIRE_GPU=1` makes the worker fail when it cannot use the
+  card. Without it, a worker that cannot reach the GPU serves from the CPU and
+  looks healthy; its start-up log names the engine in use.
+- `MASH_RERANKING_MODEL_DIR` names a model directory other than the default.
+- While the worker is stopped, searches rerank on the CPU. On Windows each of
+  those searches first waits out `timeout_milliseconds`, because a closed
+  local port is not refused at once there.
 
 ## On an Apple Silicon Mac (experimental)
 

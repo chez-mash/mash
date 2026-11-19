@@ -26,3 +26,6 @@
 *.db
 .beads-credential-key
 node_modules/
+
+# Models fetched for a worker run outside its container image.
+/deployment/*/model/

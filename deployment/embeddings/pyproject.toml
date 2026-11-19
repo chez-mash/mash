@@ -14,6 +14,17 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest>=9.0.3,<10", "ruff>=0.14", "ty>=0.0.1", "onnxruntime==1.23.2", "httpx>=0.28,<1"]
+# A worker run on an NVIDIA card without the container image; the extras bring
+# the CUDA and cuDNN libraries. It replaces the CPU runtime `dev` installs.
+gpu = ["onnxruntime-gpu[cuda,cudnn]==1.23.2"]
+
+[tool.uv]
+conflicts = [[{ group = "dev" }, { group = "gpu" }]]
+# Lock versions of the NVIDIA libraries that publish wheels for both systems.
+required-environments = [
+  "sys_platform == 'linux' and platform_machine == 'x86_64'",
+  "sys_platform == 'win32' and platform_machine == 'AMD64'",
+]
 
 [tool.ruff]
 target-version = "py312"

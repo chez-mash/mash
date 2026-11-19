@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -45,7 +46,7 @@ class Session(Protocol):
 
 
 def download_model(root: Path) -> None:
-    """Fetch the pinned model at image build time; workers never download."""
+    """Fetch the pinned model at image build or setup time; a running worker never downloads."""
     from huggingface_hub import snapshot_download
 
     snapshot_download(
@@ -119,6 +120,10 @@ def load_engine(root: Path, providers: Sequence[str]) -> Engine:
     wanted = [name for name in providers if name in installed]
     if not wanted:
         raise RuntimeError("none of the requested inference providers is installed")
+    if sys.platform == "win32" and CUDA in wanted:
+        # Windows does not search the folders the NVIDIA Python packages install
+        # their libraries into, so CUDA would otherwise be reported unavailable.
+        ort.preload_dlls()
     session = ort.InferenceSession(
         str(root / "onnx/model.onnx"), ort.SessionOptions(), providers=wanted
     )

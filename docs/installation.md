@@ -130,6 +130,11 @@ you log in. The JSON result has `"outcome": "installed"`.
 `mash status` shows the installed version and whether the service is running,
 under `local_qdrant.installed`.
 
+On Windows the logon task runs only while you are signed in at the desktop.
+On a machine you reach only over SSH, or a server nobody signs in to, the
+command reports that Qdrant did not become ready; start Qdrant yourself there,
+as [native Windows without Docker](#native-windows-without-docker) describes.
+
 Rerun the command at any time. It restarts a stopped service, restores missing
 files, and upgrades Qdrant when a newer Mash pins a newer release, without
 changing Qdrant's data. The outcome is `current` when nothing needs
