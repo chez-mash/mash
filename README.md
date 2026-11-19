@@ -65,7 +65,7 @@ Prefer a package manager?
 | Channel | Command |
 | --- | --- |
 | Homebrew | `brew install mashium/tap/mash` |
-| apt, Debian and Ubuntu | [add the Mash repository](docs/installation.md#package-manager-alternatives), then `sudo apt install mash` |
+| apt, Debian and Ubuntu | [add and pin the Mash repository](docs/installation.md#package-manager-alternatives) first: a plain `apt install mash` installs an unrelated Debian package |
 | Scoop | `scoop bucket add mashium https://github.com/mashium/mash`, then `scoop install mashium/mash` |
 | mise | `mise use -g github:mashium/mash` |
 | cargo-binstall | `cargo binstall --git https://github.com/mashium/mash mash` |

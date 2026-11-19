@@ -51,8 +51,13 @@ brew install mashium/tap/mash
 ```sh
 curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
 echo "deb [signed-by=/usr/share/keyrings/mash-archive-keyring.gpg] https://getmash.io/apt stable main" | sudo tee /etc/apt/sources.list.d/mash.list
+printf 'Package: mash\nPin: origin getmash.io\nPin-Priority: 1001\n' | sudo tee /etc/apt/preferences.d/mash
 sudo apt update && sudo apt install mash
 ```
+
+The third line matters: Debian and Ubuntu already have an unrelated package
+named `mash`, and without it `apt install mash` installs that one. Afterwards,
+`mash --version` should print a Mash version such as `mash 0.1.0-alpha`.
 
 **Scoop, Windows**
 
