@@ -192,6 +192,28 @@ The Linux and Windows test suites run on every push; macOS has no automated
 tests yet. If an agent's chats are missing or look wrong on your system,
 [open an issue](https://github.com/mashium/mash/issues).
 
+## Where the models run
+
+Search by meaning uses two local models: one embeds your chats while indexing,
+the other reranks results while searching. Both run on the CPU of every
+supported system, so no GPU is needed. Where Mash can use one, it is faster:
+
+| System | Embedding, while indexing | Reranking, while searching |
+| --- | --- | --- |
+| macOS, Apple silicon | GPU through Core ML, on by default | CPU by default; Core ML is opt-in (experimental) |
+| Linux x86-64 with an NVIDIA card | CPU by default; GPU with a worker container (experimental) | CPU by default; GPU with a worker container (experimental) |
+| Windows x64 with an NVIDIA card | CPU by default; GPU with a worker you run (experimental) | CPU by default; GPU with a worker you run (experimental) |
+| Linux ARM64, or an AMD or Intel GPU, or none | CPU | CPU |
+
+- **Experimental** options are off until you configure them, and have been
+  tried on few machines: one Tesla T4 each for Linux and Windows, where
+  indexing ran about nine times faster than on four CPU cores.
+- Any system can instead send this work to a GPU worker on
+  [Modal](https://modal.com), also opt-in.
+
+[Configuration](docs/configuration.md#embedding-inference) explains each
+option and how to turn it on.
+
 ## Build from source
 
 For platforms without a prebuilt release, or to run an unreleased revision.
