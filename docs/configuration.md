@@ -200,12 +200,13 @@ accelerated = true
 - Search-query embeddings stay on the CPU.
 - The setting does nothing on other systems.
 
-## Faster reranking on Apple Silicon (experimental)
+## Faster reranking on your GPU (experimental)
 
 Searches rerank their best candidates on your CPU by default, on every
-machine. On an Apple Silicon Mac, Mash can rerank through Core ML instead.
-This is experimental and off unless you turn it on: it has been measured on
-few machines, and its setting and behaviour may change.
+machine. Mash can rerank on the GPU instead: through Core ML on an Apple
+Silicon Mac, and through DirectML on Windows with any DirectX 12 graphics
+card. This is experimental and off unless you turn it on: it has been measured
+on few machines, and its setting and behaviour may change.
 
 ```toml
 [reranking]
@@ -217,16 +218,19 @@ accelerated = true
   meanwhile. Later searches use the worker; nothing needs installing or
   starting by hand.
 - The worker leaves by itself after 15 minutes without a search and starts
-  again when one needs it, which takes about 2 seconds.
-- The first start ever compiles the model, which takes a minute or two and
-  keeps about 2 GB beside the models. While running, the worker holds about
-  1 GB of memory.
+  again when one needs it, which takes a few seconds.
+- On a Mac, the first start ever compiles the model, which takes a minute or
+  two and keeps about 2 GB beside the models. While running, the worker holds
+  about 1 GB of memory.
+- On Windows the gain is smaller than on a Mac or with an NVIDIA worker: in
+  one test on a Tesla T4, a search's reranking took 0.2 to 0.6 seconds, where
+  the same machine's four CPU cores took 0.4 to 1.1.
 - `mash search --diagnostics` reports `reranker_engine` as `remote` when the
   worker answered and `cpu` while it is not up.
-- If Core ML cannot be used, searches stay on the CPU and Mash tries again
+- If the GPU cannot be used, searches stay on the CPU and Mash tries again
   after an hour. The worker's messages are in `reranking-worker.log` in the
   models directory.
-- The setting does nothing on other machines.
+- The setting does nothing on Linux.
 
 ## Remote reranking
 

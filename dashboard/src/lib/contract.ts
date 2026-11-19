@@ -912,6 +912,12 @@ export interface components {
         /** Format: uint32 */
         EmbeddingTextBudget: number;
         Embeddings: {
+            /**
+             * @description Experimental. On Windows, embed through `DirectML` on the machine's
+             *     GPU while indexing, using the CPU when no usable GPU is found. Off
+             *     unless set; ignored on other systems.
+             */
+            accelerated?: boolean;
             /** @constant */
             backend: "local";
         } | {
@@ -1521,10 +1527,10 @@ export interface components {
         RerankerFallback: "timeout" | "unavailable" | "invalid-response" | "credential-missing" | "recipe-mismatch" | "input-limit";
         Reranking: {
             /**
-             * @description Experimental. On Apple Silicon, rerank through a Core ML worker
-             *     that Mash starts when a search needs it and that exits when idle.
-             *     Searches use the CPU until it is ready. Off unless set; ignored
-             *     on other machines.
+             * @description Experimental. Rerank on the GPU through a worker that Mash starts
+             *     when a search needs it and that exits when idle: Core ML on Apple
+             *     Silicon, `DirectML` on Windows. Searches use the CPU until it is
+             *     ready. Off unless set; ignored on other machines.
              */
             accelerated?: boolean;
             /** @constant */

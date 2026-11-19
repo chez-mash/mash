@@ -120,7 +120,8 @@ searches.
 - One search process would pay that loading time on every run, which is why
   Core ML reranking lives in a worker and not inside `mash search`.
 - If Core ML fails, the worker logs it and serves from the CPU.
-- It listens on this machine only. On other platforms the same command serves
+- It listens on this machine only. On Windows the same command serves through
+  DirectML when the machine has a DirectX 12 graphics card. On Linux it serves
   from the CPU, which is useful for testing and no faster than searching
   without a worker.
 

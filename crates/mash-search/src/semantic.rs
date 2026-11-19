@@ -43,7 +43,7 @@ const EMBEDDING_THREADS_PER_WORKER: usize = 2;
 const COREML_BATCH_SIZE: usize = 32;
 #[cfg(any(test, all(target_os = "macos", target_arch = "aarch64")))]
 const COREML_SEQUENCE_LENGTH: usize = 512;
-/// The unquantized model the GPU engines run: Core ML and DirectML.
+/// The unquantized model the GPU engines run: Core ML and `DirectML`.
 #[cfg(any(windows, all(target_os = "macos", target_arch = "aarch64")))]
 const FP32_MODEL_FILE: &str = "onnx/model.onnx";
 const COREML_CACHE_DIRECTORY: &str = "coreml-cache";

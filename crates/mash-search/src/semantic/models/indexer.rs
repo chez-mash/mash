@@ -375,6 +375,10 @@ mod tests {
                     EmbeddingPoolBackend::CoreMl(pool) => {
                         std::ptr::from_ref(pool.as_ref()).cast::<()>()
                     }
+                    #[cfg(windows)]
+                    EmbeddingPoolBackend::DirectMl(model) => {
+                        std::ptr::from_ref(model.as_ref()).cast::<()>()
+                    }
                     EmbeddingPoolBackend::Fixture(_) => panic!("requires local inference"),
                 };
                 let models = Models::new(root);

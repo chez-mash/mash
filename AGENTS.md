@@ -15,16 +15,18 @@ arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple
 Silicon (the default there), a configured GPU worker elsewhere, and the CPU
 last. Reranking defaults to the CPU everywhere, with a remote worker when
-configured. The Core ML reranking worker, DirectML embedding inside Mash on
-Windows (`[embeddings] accelerated = true`, falling back to the CPU before
-indexing starts when no usable GPU is found) and the NVIDIA workers in
+configured. The Core ML and DirectML reranking workers, DirectML embedding
+inside Mash on Windows (`[embeddings] accelerated = true`, falling back to the
+CPU before indexing starts when no usable GPU is found) and the NVIDIA workers in
 `deployment/` are experimental and off unless configured: say so wherever they
 are documented, and do not make them a default.
 `mash-server --reranking-worker ADDRESS` serves the reranking worker contract
 (`deployment/reranking/openapi.json`) on loopback instead of the shared index:
-Core ML on Apple Silicon, CPU elsewhere. Core ML reranking lives only in a
-worker, because loading its compiled shapes costs a one-shot search seconds.
-With `[reranking] accelerated = true` (off by default, Apple Silicon only) a
+Core ML on Apple Silicon, DirectML on a Windows GPU, CPU elsewhere. GPU
+reranking lives only in a worker, because loading a model onto the device
+costs a one-shot search seconds.
+With `[reranking] accelerated = true` (off by default; Apple Silicon and
+Windows) a
 search or warm-up that finds no worker starts one from its own executable with
 the internal `__reranking-worker` argument, which is not part of either command
 line. That worker holds a lock in the models directory, publishes its loopback

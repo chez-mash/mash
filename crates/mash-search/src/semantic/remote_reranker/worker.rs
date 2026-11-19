@@ -1,6 +1,7 @@
 //! A reranking worker for this machine. It answers the frames the remote
-//! client sends, with Core ML on Apple Silicon and the CPU model elsewhere,
-//! so one long-lived process pays for model compilation instead of every search.
+//! client sends, with Core ML on Apple Silicon, `DirectML` on a Windows GPU and
+//! the CPU model elsewhere, so one long-lived process pays for loading the
+//! model onto the device instead of every search.
 use super::{
     MAX_DOCUMENT_BYTES, MAX_DOCUMENTS, MAX_QUERY_BYTES, MAX_SCORE_MAGNITUDE, RECIPE,
     REQUEST_ID_BYTES, REQUEST_MAGIC, RESPONSE_MAGIC,
@@ -35,6 +36,8 @@ pub struct Engine {
     cpu: Option<fastembed::TextRerank>,
     #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     accelerated: Option<crate::semantic::coreml::reranker::Pool>,
+    #[cfg(windows)]
+    accelerated: Option<fastembed::TextRerank>,
 }
 
 impl Engine {
@@ -52,10 +55,20 @@ impl Engine {
                 }
             }
         };
+        // The same model the CPU runs, on the GPU. A machine without a
+        // DirectX 12 card fails here, once.
+        #[cfg(windows)]
+        let accelerated = match crate::semantic::directml::load_reranker(root) {
+            Ok(model) => Some(model),
+            Err(error) => {
+                tracing::warn!(reason = %error.error.message, "DirectML reranking is unavailable; this worker uses CPU");
+                None
+            }
+        };
         let mut engine = Self {
             root: root.to_path_buf(),
             cpu: None,
-            #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+            #[cfg(any(windows, all(target_os = "macos", target_arch = "aarch64")))]
             accelerated,
         };
         if !engine.accelerated() {
@@ -65,9 +78,9 @@ impl Engine {
         Ok(engine)
     }
 
-    /// Whether scores come from Core ML and not the CPU model.
+    /// Whether scores come from the GPU engine and not the CPU model.
     pub const fn accelerated(&self) -> bool {
-        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        #[cfg(any(windows, all(target_os = "macos", target_arch = "aarch64")))]
         if self.accelerated.is_some() {
             return true;
         }
@@ -75,7 +88,13 @@ impl Engine {
     }
 
     pub const fn name(&self) -> &'static str {
-        if self.accelerated() { "core-ml" } else { "cpu" }
+        if !self.accelerated() {
+            "cpu"
+        } else if cfg!(windows) {
+            "directml"
+        } else {
+            "core-ml"
+        }
     }
 
     pub fn scores(&mut self, query: &str, documents: &[&str]) -> Result<Vec<f32>, AppError> {
@@ -107,26 +126,46 @@ impl Engine {
                 }
             }
         }
+        #[cfg(windows)]
+        if let Some(model) = &mut self.accelerated {
+            match model_scores(model, query, documents) {
+                Ok(scores) => return Ok(scores),
+                Err(error) => {
+                    tracing::warn!(reason = %error.error.message, "DirectML reranking failed; this worker now uses CPU");
+                    // Do not retry a failing device on every batch.
+                    self.accelerated = None;
+                }
+            }
+        }
         let cpu = match &mut self.cpu {
             Some(cpu) => cpu,
-            // Core ML has just failed; the CPU model was never loaded.
+            // The GPU engine has just failed; the CPU model was never loaded.
             empty => empty.insert(crate::semantic::models::load_reranker(&self.root)?),
         };
-        let results = cpu
-            .rerank(query, documents, false, Some(BATCH))
-            .map_err(|error| AppError::model(format!("reranking inference failed: {error}")))?;
-        let mut scores = vec![None; documents.len()];
-        for result in results {
-            *scores
-                .get_mut(result.index)
-                .ok_or_else(|| AppError::model("reranker returned an invalid document index"))? =
-                Some(result.score);
-        }
-        scores
-            .into_iter()
-            .collect::<Option<_>>()
-            .ok_or_else(|| AppError::model("reranker returned too few scores"))
+        model_scores(cpu, query, documents)
     }
+}
+
+/// One raw logit per document, in input order.
+fn model_scores(
+    model: &mut fastembed::TextRerank,
+    query: &str,
+    documents: &[&str],
+) -> Result<Vec<f32>, AppError> {
+    let results = model
+        .rerank(query, documents, false, Some(BATCH))
+        .map_err(|error| AppError::model(format!("reranking inference failed: {error}")))?;
+    let mut scores = vec![None; documents.len()];
+    for result in results {
+        *scores
+            .get_mut(result.index)
+            .ok_or_else(|| AppError::model("reranker returned an invalid document index"))? =
+            Some(result.score);
+    }
+    scores
+        .into_iter()
+        .collect::<Option<_>>()
+        .ok_or_else(|| AppError::model("reranker returned too few scores"))
 }
 
 /// Serve `POST /rerank` until the process ends. Plain HTTP, so loopback only;

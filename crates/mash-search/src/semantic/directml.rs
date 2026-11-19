@@ -1,10 +1,14 @@
-//! DirectML embedding on a Windows GPU: the unquantized model, dynamic shapes.
+//! `DirectML` on a Windows GPU: the unquantized embedding model and the
+//! reranker, both with dynamic shapes.
 use super::embeddings::EmbeddingGroup;
 use super::models::{read_model_file, read_tokenizer_files, snapshot};
-use super::{EMBEDDING_MODEL, EMBEDDING_REPOSITORY, FP32_MODEL_FILE};
+use super::{
+    EMBEDDING_MODEL, EMBEDDING_REPOSITORY, FP32_MODEL_FILE, RERANKER_MODEL, RERANKER_REPOSITORY,
+};
 use crate::AppError;
 use fastembed::{
-    InitOptionsUserDefined, QuantizationMode, TextEmbedding, UserDefinedEmbeddingModel,
+    InitOptionsUserDefined, QuantizationMode, RerankInitOptionsUserDefined, TextEmbedding,
+    TextRerank, UserDefinedEmbeddingModel, UserDefinedRerankingModel,
 };
 use ort::ep;
 use std::path::Path;
@@ -34,14 +38,7 @@ pub(super) fn load(root: &Path) -> Result<TextEmbedding, AppError> {
     let provider = ep::DirectML::default().build().error_on_failure();
     let options = InitOptionsUserDefined::default().with_execution_providers(vec![provider]);
     let mut embedding =
-        TextEmbedding::try_new_from_user_defined(model, options).map_err(|error| {
-            let detail = error.to_string();
-            if detail.contains("No devices detected") {
-                AppError::model("no DirectX 12 graphics card was found")
-            } else {
-                AppError::model(format!("DirectML could not load the model: {detail}"))
-            }
-        })?;
+        TextEmbedding::try_new_from_user_defined(model, options).map_err(unavailable)?;
     embedding
         .embed(vec!["warm up"], None)
         .map_err(|error| AppError::model(format!("DirectML could not run the model: {error}")))?;
@@ -61,4 +58,33 @@ pub(super) fn embed(
     model
         .embed(texts, Some(groups.len().max(1)))
         .map_err(|error| AppError::model(format!("DirectML embedding inference failed: {error}")))
+}
+
+/// The reranker the CPU runs, on the GPU, run once before it is offered.
+#[tracing::instrument(name = "load_directml_reranker", skip_all)]
+pub(crate) fn load_reranker(root: &Path) -> Result<TextRerank, AppError> {
+    let reranker_snapshot = snapshot(root, RERANKER_REPOSITORY)?;
+    let info = TextRerank::get_model_info(&RERANKER_MODEL);
+    let model = UserDefinedRerankingModel::new(
+        reranker_snapshot.join(info.model_file),
+        read_tokenizer_files(&reranker_snapshot)?,
+    );
+    let provider = ep::DirectML::default().build().error_on_failure();
+    let options = RerankInitOptionsUserDefined::default().with_execution_providers(vec![provider]);
+    let mut reranker =
+        TextRerank::try_new_from_user_defined(model, options).map_err(unavailable)?;
+    reranker
+        .rerank("warm up", &["warm up"], false, None)
+        .map_err(|error| AppError::model(format!("DirectML could not run the model: {error}")))?;
+    Ok(reranker)
+}
+
+/// Why a model could not be loaded on the GPU, in words a result can show.
+fn unavailable(error: fastembed::Error) -> AppError {
+    let detail = error.to_string();
+    if detail.contains("No devices detected") {
+        AppError::model("no DirectX 12 graphics card was found")
+    } else {
+        AppError::model(format!("DirectML could not load the model: {detail}"))
+    }
 }

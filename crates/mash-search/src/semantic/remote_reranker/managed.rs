@@ -1,4 +1,5 @@
-//! The reranking worker Mash runs for itself on Apple Silicon. A search or
+//! The reranking worker Mash runs for itself on Apple Silicon and, with a
+//! GPU, on Windows. A search or
 //! warm-up that finds none starts one in the background and reranks on the
 //! CPU meanwhile; the worker leaves again after an idle period. Nothing is
 //! installed and no supervisor is involved: a lock file says whether a worker
@@ -25,8 +26,8 @@ const LOG: &str = "reranking-worker.log";
 /// Long enough to cover the pauses inside a working session, short enough
 /// that the compiled models are not held once it ends.
 const IDLE: Duration = Duration::from_mins(15);
-/// A worker that could not use Core ML is not started again for this long:
-/// each attempt costs many seconds of compilation.
+/// A worker that could not use the GPU is not started again for this long:
+/// on Apple Silicon each attempt costs many seconds of compilation.
 const RETRY_AFTER_FAILURE: Duration = Duration::from_hours(1);
 /// Local inference takes a fraction of this; past it something is wrong and
 /// the search reranks on the CPU.
@@ -41,10 +42,13 @@ struct State {
     token: String,
 }
 
-/// Core ML reranking needs Apple Silicon. Elsewhere the worker would only
-/// move CPU inference behind a socket.
+/// Core ML needs Apple Silicon and `DirectML` needs Windows. Elsewhere the
+/// worker would only move CPU inference behind a socket.
 pub const fn supported() -> bool {
-    cfg!(all(target_os = "macos", target_arch = "aarch64"))
+    cfg!(any(
+        windows,
+        all(target_os = "macos", target_arch = "aarch64")
+    ))
 }
 
 /// A client for the running worker. With none running this starts one, unless
@@ -93,6 +97,41 @@ fn recently_failed(root: &Path) -> bool {
 }
 
 /// Run this executable again as a worker that outlives the calling process.
+///
+/// Windows hands a child every inheritable handle of its parent. A worker
+/// started directly would hold the pipe a caller reads this search's output
+/// from, and that caller would wait until the worker left. `Start-Process`
+/// launches it through the shell, which passes no handles on, in no window.
+#[cfg(windows)]
+fn start(root: &Path) {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let Ok(executable) = std::env::current_exe() else {
+        return;
+    };
+    let quoted = |path: &Path| path.to_string_lossy().replace('\'', "''");
+    let script = format!(
+        "Start-Process -WindowStyle Hidden -FilePath '{}' -ArgumentList '{ARGUMENT}', '\"{}\"'",
+        quoted(&executable),
+        quoted(root)
+    );
+    let mut command = std::process::Command::new("powershell.exe");
+    command
+        .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command"])
+        .arg(script)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .creation_flags(CREATE_NO_WINDOW);
+    if let Ok(mut child) = command.spawn() {
+        std::thread::spawn(move || {
+            let _ = child.wait();
+        });
+    }
+}
+
+/// Run this executable again as a worker that outlives the calling process.
+#[cfg(not(windows))]
 fn start(root: &Path) {
     let Ok(executable) = std::env::current_exe() else {
         return;
@@ -139,6 +178,9 @@ pub fn entry(args: impl IntoIterator<Item = OsString>) -> Option<i32> {
         Ok(()) => 0,
         Err(error) => {
             eprintln!("{}", error.error.message);
+            // Started through the shell there, a worker has no log on stderr.
+            #[cfg(windows)]
+            let _ = fs::write(root.join(LOG), &error.error.message);
             1
         }
     })
@@ -158,7 +200,7 @@ async fn run(root: &Path) -> Result<(), AppError> {
         failure => {
             let _ = fs::write(root.join(FAILED), b"");
             return Err(failure.err().unwrap_or_else(|| {
-                AppError::model("Core ML reranking is unavailable; searches keep using the CPU")
+                AppError::model("GPU reranking is unavailable; searches keep using the CPU")
             }));
         }
     };
