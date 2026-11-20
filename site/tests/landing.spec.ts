@@ -126,7 +126,7 @@ test("the hero's install picker follows the chosen system and method", async ({
   await install.getByRole("button", { name: "Linux", exact: true }).click();
   await expect(install.getByRole("button", { name: "Homebrew", exact: true })).toHaveCount(0);
   await install.getByRole("button", { name: "apt", exact: true }).click();
-  await expect(command).toHaveText(/sudo apt install mash$/);
+  await expect(command).toHaveText(/sudo apt install mash-cli$/);
 });
 
 test("the hero offers a prompt that hands setup to a coding agent", async ({

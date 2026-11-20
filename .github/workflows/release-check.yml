@@ -68,9 +68,8 @@ jobs:
         run: |
           curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
           echo "deb [signed-by=/usr/share/keyrings/mash-archive-keyring.gpg] https://getmash.io/apt stable main" | sudo tee /etc/apt/sources.list.d/mash.list
-          printf 'Package: mash\nPin: origin getmash.io\nPin-Priority: 1001\n' | sudo tee /etc/apt/preferences.d/mash
           sudo apt-get update
-          sudo apt-get install -y mash
+          sudo apt-get install -y mash-cli
           [ "$(mash --version)" = "mash ${TAG#v}" ]
 
   scoop:

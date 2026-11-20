@@ -51,13 +51,12 @@ brew install mashium/tap/mash
 ```sh
 curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
 echo "deb [signed-by=/usr/share/keyrings/mash-archive-keyring.gpg] https://getmash.io/apt stable main" | sudo tee /etc/apt/sources.list.d/mash.list
-printf 'Package: mash\nPin: origin getmash.io\nPin-Priority: 1001\n' | sudo tee /etc/apt/preferences.d/mash
-sudo apt update && sudo apt install mash
+sudo apt update && sudo apt install mash-cli
 ```
 
-The third line matters: Debian and Ubuntu already have an unrelated package
-named `mash`, and without it `apt install mash` installs that one. Afterwards,
-`mash --version` should print a Mash version such as `mash 0.1.1-alpha`.
+The package is `mash-cli` because Debian and Ubuntu already have an unrelated
+package named `mash`; the command it installs is still `mash`. The two cannot
+be installed together, and apt offers to remove the other one.
 
 **Scoop, Windows**
 
@@ -349,7 +348,7 @@ directory, with its size. With `--yes`, Mash:
 
 Then remove the program itself with whatever installed it. The last line of
 the output names the command: `brew uninstall mash`, `scoop uninstall mash`,
-`sudo apt remove mash`, `cargo uninstall mash`, or the files to delete after
+`sudo apt remove mash-cli`, `cargo uninstall mash`, or the files to delete after
 the install script.
 
 Mash never touches your agents' own chat histories, and history already

@@ -254,7 +254,7 @@ jobs:
           find "$pages" -mindepth 1 -maxdepth 1 ! -name .git ! -name apt -exec rm -rf {} +
           touch "$pages/.nojekyll"
           packaging/apt/build-repo.sh "$TAG" dist "$pages/apt"
-          gh release upload "$TAG" dist/mash_*.deb --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" dist/mash-cli_*.deb --repo "$GITHUB_REPOSITORY" --clobber
           cd "$pages"
           git config user.name "mash release"
           git config user.email "mash-release@users.noreply.github.com"
@@ -263,5 +263,5 @@ jobs:
             echo "The apt repository already has this release."
             exit 0
           fi
-          git commit -m "apt: mash ${TAG}"
+          git commit -m "apt: mash-cli ${TAG}"
           git push origin gh-pages

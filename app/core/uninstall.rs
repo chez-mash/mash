@@ -570,7 +570,7 @@ fn binary(executable: Option<&Path>) -> Binary {
     } else if text.contains("/.cargo/bin/") {
         "cargo uninstall mash".to_owned()
     } else if text == "/usr/bin/mash" {
-        "sudo apt remove mash".to_owned()
+        "sudo apt remove mash-cli".to_owned()
     } else {
         // The install script puts `mash-server` beside `mash`.
         let server = path.with_file_name(format!("mash-server{}", std::env::consts::EXE_SUFFIX));
@@ -800,7 +800,7 @@ mod tests {
                 "scoop uninstall mash",
             ),
             ("/home/me/.cargo/bin/mash", "cargo uninstall mash"),
-            ("/usr/bin/mash", "sudo apt remove mash"),
+            ("/usr/bin/mash", "sudo apt remove mash-cli"),
             (
                 "/home/me/.local/bin/mash",
                 "Delete /home/me/.local/bin/mash",

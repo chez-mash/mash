@@ -20,6 +20,11 @@ repo=$(realpath "$repo")
 signing=(--batch --yes)
 [[ -n "${APT_SIGNING_KEY:-}" ]] && signing+=(--local-user "$APT_SIGNING_KEY")
 
+# The package is mash-cli: Debian and Ubuntu have an unrelated package named
+# mash, which also installs /usr/bin/mash, hence Conflicts. Packages this
+# repository published under the old name are withdrawn.
+rm -rf -- "$repo/pool/main/m/mash"
+
 scratch=$(mktemp -d)
 trap 'rm -rf -- "$scratch"' EXIT
 
@@ -27,14 +32,16 @@ for pair in amd64:x86_64-unknown-linux-gnu arm64:aarch64-unknown-linux-gnu; do
   arch=${pair%%:*}
   target=${pair#*:}
   root="$scratch/$arch"
-  mkdir -p "$root/DEBIAN" "$root/usr/bin" "$root/usr/share/doc/mash"
+  mkdir -p "$root/DEBIAN" "$root/usr/bin" "$root/usr/share/doc/mash-cli"
   tar -xzf "$dist/mash-$target.tar.gz" -C "$root/usr/bin" mash mash-server
   chmod 755 "$root/usr/bin/mash" "$root/usr/bin/mash-server"
-  cp "$(dirname "$0")/copyright" "$root/usr/share/doc/mash/copyright"
+  cp "$(dirname "$0")/copyright" "$root/usr/share/doc/mash-cli/copyright"
   cat > "$root/DEBIAN/control" <<CONTROL
-Package: mash
+Package: mash-cli
 Version: $version
 Architecture: $arch
+Conflicts: mash
+Replaces: mash
 Maintainer: Mashium <mash-release@users.noreply.github.com>
 Homepage: https://github.com/mashium/mash
 Section: utils
@@ -45,10 +52,10 @@ Description: Search your coding agents' past conversations
  Also installs mash-server, the optional service for sharing an index between
  machines. Run "mash qdrant install", then "mash init", after installing.
 CONTROL
-  deb="mash_${version}_${arch}.deb"
+  deb="mash-cli_${version}_${arch}.deb"
   dpkg-deb --root-owner-group --build "$root" "$dist/$deb" >/dev/null
-  mkdir -p "$repo/pool/main/m/mash"
-  cp "$dist/$deb" "$repo/pool/main/m/mash/$deb"
+  mkdir -p "$repo/pool/main/m/mash-cli"
+  cp "$dist/$deb" "$repo/pool/main/m/mash-cli/$deb"
 done
 
 cd "$repo"
@@ -70,4 +77,4 @@ mv "$scratch/Release" dists/stable/Release
 gpg "${signing[@]}" --clearsign -o dists/stable/InRelease dists/stable/Release
 gpg "${signing[@]}" --detach-sign --armor -o dists/stable/Release.gpg dists/stable/Release
 gpg "${signing[@]}" --export ${APT_SIGNING_KEY:+"$APT_SIGNING_KEY"} > mash-archive-keyring.gpg
-echo "apt repository updated with mash $version in $repo"
+echo "apt repository updated with mash-cli $version in $repo"
