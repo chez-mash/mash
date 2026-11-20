@@ -1,0 +1,113 @@
+---
+source: app/silver/tests/snapshots.rs
+expression: "read(parse_claude,\ninclude_str!(\"../../../fixtures/claude-native-tools-2.1.296.jsonl\"))"
+---
+{
+  "created_at": 1791795600000,
+  "id": "22222222-2222-4222-8222-222222222222",
+  "messages": [
+    {
+      "content": "list the fixtures and check the importer",
+      "context": {
+        "kind": "root"
+      },
+      "created_at": 1791795600000,
+      "dialogue_text": null,
+      "id": "#0",
+      "ordinal": 0,
+      "role": "user"
+    },
+    {
+      "content": "Checking both.\nTool Bash: {\"command\":\"ls fixtures\",\"description\":\"List fixtures\"}\nTool mcp__mash__search: {\"limit\":3,\"query\":\"importer\"}",
+      "context": {
+        "id": "#0",
+        "kind": "parent"
+      },
+      "created_at": 1791795601000,
+      "dialogue_text": "Checking both.",
+      "id": "#1",
+      "ordinal": 1,
+      "role": "assistant",
+      "tools": {
+        "tool_calls": [
+          {
+            "call_id": "toolu_01A",
+            "input": {
+              "command": "ls fixtures",
+              "description": "List fixtures"
+            },
+            "name": "Bash"
+          },
+          {
+            "call_id": "toolu_01B",
+            "input": {
+              "limit": 3,
+              "query": "importer"
+            },
+            "name": "mcp__mash__search"
+          }
+        ]
+      }
+    },
+    {
+      "content": "claude.jsonl\ncodex.jsonl\nMCP error: index unavailable",
+      "context": {
+        "id": "#1",
+        "kind": "parent"
+      },
+      "created_at": 1791795602000,
+      "dialogue_text": "",
+      "id": "#2",
+      "ordinal": 2,
+      "role": "user",
+      "tools": {
+        "tool_results": [
+          {
+            "call_id": "toolu_01A",
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01B",
+            "is_error": true
+          }
+        ]
+      }
+    },
+    {
+      "content": "legacy result without an error flag",
+      "context": {
+        "id": "#2",
+        "kind": "parent"
+      },
+      "created_at": 1791795603000,
+      "dialogue_text": "",
+      "id": "#3",
+      "ordinal": 3,
+      "role": "user",
+      "tools": {
+        "tool_results": [
+          {
+            "call_id": "toolu_01C"
+          }
+        ]
+      }
+    },
+    {
+      "content": "The importer index is unavailable.",
+      "context": {
+        "id": "#3",
+        "kind": "parent"
+      },
+      "created_at": 1791795604000,
+      "dialogue_text": null,
+      "id": "#4",
+      "ordinal": 4,
+      "role": "assistant"
+    }
+  ],
+  "project": "/synthetic/mash",
+  "provider": "claude-code",
+  "repository": null,
+  "title": "list the fixtures and check the importer",
+  "updated_at": 1791795604000
+}

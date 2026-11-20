@@ -41,3 +41,6 @@ missing_errors_doc = { level = "allow", priority = 1 }
 missing_panics_doc = { level = "allow", priority = 1 }
 must_use_candidate = { level = "allow", priority = 1 }
 return_self_not_must_use = { level = "allow", priority = 1 }
+
+[dev-dependencies]
+insta = { version = "1.49.0", features = ["json"] }

@@ -8,6 +8,7 @@ use std::time::UNIX_EPOCH;
 mod claude_copies;
 mod indexing;
 mod parsing;
+mod snapshots;
 mod tools;
 
 fn write_claude_session(path: &Path, session: &str, message: &str) {

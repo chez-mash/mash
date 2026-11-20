@@ -34,6 +34,8 @@ pub mod parsers;
 pub mod prefix;
 pub mod records;
 pub mod revision;
+#[cfg(any(test, feature = "test-support"))]
+pub mod snapshot;
 pub mod source;
 pub mod sqlite_source;
 pub mod turns;

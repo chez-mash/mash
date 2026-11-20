@@ -801,3 +801,12 @@ fn antigravity_unknown_fields_and_step_types_are_skipped() {
         3
     );
 }
+
+#[test]
+fn antigravity_fixture_reads_as_its_snapshot() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = fixture::write(directory.path());
+    let source = super::discover(&path).unwrap().remove(0).identity;
+    let chat = parse(&source).unwrap().chat.unwrap();
+    insta::assert_json_snapshot!(crate::snapshot::snapshot(&chat));
+}

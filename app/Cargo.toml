@@ -52,6 +52,7 @@ schemars = "1.2"
 qrcode = { version = "0.14", default-features = false }
 
 [dev-dependencies]
+insta = { version = "1.49.0", features = ["json"] }
 mash-sync = { path = "../crates/mash-sync", features = ["test-support"] }
 mash-search = { path = "../crates/mash-search", features = ["test-support"] }
 mash-storage = { path = "../crates/mash-storage", features = ["test-support"] }

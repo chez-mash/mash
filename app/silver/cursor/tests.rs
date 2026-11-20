@@ -359,3 +359,11 @@ fn the_same_agent_under_two_workspace_folders_is_two_chats() {
     storage.commit_writer().unwrap();
     assert_eq!(storage.counts().unwrap().chats, 2);
 }
+
+#[test]
+fn cursor_agent_fixture_reads_as_its_snapshot() {
+    let root = tempfile::tempdir().unwrap();
+    let path = path(root.path());
+    drop(fixture(&path));
+    insta::assert_json_snapshot!(mash_silver::snapshot::snapshot(&parsed(&path)));
+}

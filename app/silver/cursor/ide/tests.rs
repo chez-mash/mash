@@ -504,3 +504,11 @@ fn a_chat_without_a_recorded_workspace_takes_the_folder_that_lists_it() {
         .unwrap();
     assert_eq!(parsed(&path).project.as_deref(), Some("/work/listed"));
 }
+
+#[test]
+fn cursor_ide_fixture_reads_as_its_snapshot() {
+    let root = tempfile::tempdir().unwrap();
+    let path = path(root.path());
+    drop(fixture(&path));
+    insta::assert_json_snapshot!(mash_silver::snapshot::snapshot(&parsed(&path)));
+}

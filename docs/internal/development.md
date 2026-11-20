@@ -36,6 +36,19 @@ Measured on Xenia on 2026-11-20, linking the debug `mash` binary took about
 keep the default linker. Turning it on or off changes the link flags, so the next build
 recompiles everything once.
 
+### Provider snapshots
+
+Each provider-format fixture in `fixtures/` (synthetic, never real history)
+is read by its reader in a snapshot test, and the chat and messages it
+yields are recorded as JSON with [insta](https://insta.rs): Claude and Codex
+in `app/silver/tests/snapshots.rs`, Cursor in `app/silver/cursor`, and
+Antigravity in `crates/mash-silver/src/antigravity`. Message IDs appear as
+their position (`#0`, `#1`, ...), because some providers derive them from the
+file's location. When a reader's output changes on purpose, rerun the test
+with `INSTA_UPDATE=always` (or `cargo insta review`, after
+`cargo install cargo-insta`) and review the `.snap` diff in the commit. A new
+fixture gets a snapshot test beside the reader's other tests.
+
 ### File length
 
 Handwritten production source files (Rust, TypeScript, Svelte, Python) stay

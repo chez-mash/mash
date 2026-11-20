@@ -1,0 +1,92 @@
+---
+source: app/silver/cursor/tests.rs
+expression: "mash_silver::snapshot::snapshot(&parsed(&path))"
+---
+{
+  "created_at": 1790762400000,
+  "id": "82ef04afd6aa543745b0f284",
+  "messages": [
+    {
+      "content": "How does the cBioPortal mutation importer work?",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": null,
+      "dialogue_text": "How does the cBioPortal mutation importer work?",
+      "id": "#0",
+      "ordinal": 0,
+      "role": "user"
+    },
+    {
+      "content": "It validates the study metadata before import.",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": null,
+      "dialogue_text": "It validates the study metadata before import.",
+      "id": "#1",
+      "ordinal": 1,
+      "role": "assistant"
+    },
+    {
+      "content": "private-system-model-context",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": null,
+      "dialogue_text": "",
+      "id": "#2",
+      "ordinal": 2,
+      "role": "system"
+    },
+    {
+      "content": "private-summary-model-context",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": null,
+      "dialogue_text": "",
+      "id": "#3",
+      "ordinal": 3,
+      "role": "user"
+    },
+    {
+      "content": "Fix the cBioPortal importer.",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": 1790762400001,
+      "dialogue_text": "Fix the cBioPortal importer.",
+      "id": "#4",
+      "ordinal": 4,
+      "role": "user"
+    },
+    {
+      "content": "[Thinking] private-reasoning-context",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": 1790762400002,
+      "dialogue_text": "",
+      "id": "#5",
+      "ordinal": 5,
+      "role": "assistant"
+    },
+    {
+      "content": "Validate structural variants and mutation metadata.",
+      "context": {
+        "kind": "linear"
+      },
+      "created_at": 1790762400002,
+      "dialogue_text": "Validate structural variants and mutation metadata.",
+      "id": "#6",
+      "ordinal": 6,
+      "role": "assistant"
+    }
+  ],
+  "project": "/work/cbioportal",
+  "provider": "cursor",
+  "repository": null,
+  "title": "cBioPortal importer validation",
+  "updated_at": 1790762400002
+}
