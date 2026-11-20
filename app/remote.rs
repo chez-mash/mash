@@ -362,10 +362,9 @@ pub(crate) async fn remove_service(layout: &Layout) -> Result<(), AppError> {
 fn service_failure(failure: crate::service::Failure) -> AppError {
     use crate::service::Failure;
     AppError::configuration(match failure {
-        Failure::TimedOut { program } => format!(
-            "`{program}` did not finish within {} s",
-            crate::service::COMMAND_TIMEOUT.as_secs()
-        ),
+        Failure::TimedOut { program, after } => {
+            format!("`{program}` did not finish within {} s", after.as_secs())
+        }
         Failure::Unavailable { program, .. } => {
             format!("`{program}` is required and was not found")
         }
@@ -391,28 +390,22 @@ async fn remove(layout: &Layout, port: u16) -> Result<(), AppError> {
 
 /// Run a helper to completion; its output is kept out of ours.
 pub async fn command(program: &str, arguments: &[&str]) -> Result<String, AppError> {
-    // A helper that stops to ask something would otherwise hang this command.
-    let running = tokio::process::Command::new(program)
-        .args(arguments)
-        .stdin(std::process::Stdio::null())
-        .kill_on_drop(true)
-        .output();
-    let output = tokio::time::timeout(std::time::Duration::from_secs(30), running)
+    use crate::service::Failure;
+    let invocation = format!("{program} {}", arguments.join(" "));
+    let output = crate::service::output(program, arguments, std::time::Duration::from_secs(30))
         .await
-        .map_err(|_| {
-            AppError::configuration(format!(
-                "`{program} {}` did not finish within 30 s",
-                arguments.join(" ")
-            ))
-        })?
-        .map_err(|_| {
-            AppError::configuration(format!("`{program}` is required and was not found"))
+        .map_err(|failure| {
+            AppError::configuration(match failure {
+                Failure::TimedOut { after, .. } => {
+                    format!("`{invocation}` did not finish within {} s", after.as_secs())
+                }
+                _ => format!("`{program}` is required and was not found"),
+            })
         })?;
     if !output.status.success() {
         let detail = String::from_utf8_lossy(&output.stderr);
         return Err(AppError::configuration(format!(
-            "`{program} {}` failed: {}",
-            arguments.join(" "),
+            "`{invocation}` failed: {}",
             detail.trim().lines().next().unwrap_or("no output")
         )));
     }
@@ -421,9 +414,7 @@ pub async fn command(program: &str, arguments: &[&str]) -> Result<String, AppErr
 
 /// Tailscale's command: the one on PATH, or on macOS the app's own copy.
 pub fn tailscale() -> &'static str {
-    let on_path = std::env::var_os("PATH").is_some_and(|path| {
-        std::env::split_paths(&path).any(|directory| directory.join("tailscale").is_file())
-    });
+    let on_path = crate::core::setup::which("tailscale").is_some();
     if !on_path && cfg!(target_os = "macos") && Path::new(TAILSCALE_APP).is_file() {
         TAILSCALE_APP
     } else {
@@ -579,19 +570,7 @@ fn read_token(path: &Path) -> Result<String, AppError> {
 }
 
 pub fn write_private(path: &Path, text: &str, mode: u32) -> Result<(), AppError> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(AppError::io)?;
-    }
-    std::fs::write(path, text).map_err(AppError::io)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode))
-            .map_err(AppError::io)?;
-    }
-    #[cfg(not(unix))]
-    let _ = mode;
-    Ok(())
+    crate::platform::write_private(path, text, mode).map_err(AppError::io)
 }
 
 /// The dashboard's command line: this executable, the paths this command was

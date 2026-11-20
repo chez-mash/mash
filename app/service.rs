@@ -55,18 +55,13 @@ impl Invocation {
 #[derive(Debug)]
 pub(crate) enum Failure {
     /// The program could not be started: no such manager here.
-    Unavailable {
-        program: String,
-        reason: String,
-    },
+    Unavailable { program: String, reason: String },
     TimedOut {
         program: String,
+        after: std::time::Duration,
     },
     /// The command ran and failed; `output` is its combined output.
-    Failed {
-        command: Invocation,
-        output: String,
-    },
+    Failed { command: Invocation, output: String },
     /// launchd's user domain could not be determined.
     NoUser,
 }
@@ -78,10 +73,9 @@ impl Failure {
             Self::Unavailable { program, reason } => {
                 format!("`{program}` could not be run ({reason})")
             }
-            Self::TimedOut { program } => format!(
-                "`{program}` did not finish within {} s",
-                COMMAND_TIMEOUT.as_secs()
-            ),
+            Self::TimedOut { program, after } => {
+                format!("`{program}` did not finish within {} s", after.as_secs())
+            }
             Self::Failed { command, output } => {
                 let detail: String = output.trim().chars().take(600).collect();
                 format!("`{}` failed: {detail}", command.display())
@@ -333,23 +327,36 @@ async fn launchd_domain(supervisor: Supervisor) -> Result<String, Failure> {
     Ok(format!("gui/{uid}"))
 }
 
-/// Run one command and return whether it succeeded, with its combined
-/// output; `Err` only when it could not be started or timed out.
-pub(crate) async fn run(command: &Invocation) -> Result<(bool, String), Failure> {
-    let child = tokio::process::Command::new(&command.program)
-        .args(&command.args)
+/// Run a helper to completion with no input, killed if it outlives
+/// `limit`: one that stops to ask something would otherwise hang Mash.
+/// `Err` only when it could not be started or timed out.
+pub(crate) async fn output(
+    program: impl AsRef<std::ffi::OsStr>,
+    args: &[impl AsRef<std::ffi::OsStr>],
+    limit: std::time::Duration,
+) -> Result<std::process::Output, Failure> {
+    let program = program.as_ref();
+    let running = tokio::process::Command::new(program)
+        .args(args)
         .stdin(std::process::Stdio::null())
         .kill_on_drop(true)
         .output();
-    let output = tokio::time::timeout(COMMAND_TIMEOUT, child)
+    tokio::time::timeout(limit, running)
         .await
         .map_err(|_| Failure::TimedOut {
-            program: command.program.clone(),
+            program: program.to_string_lossy().into_owned(),
+            after: limit,
         })?
         .map_err(|error| Failure::Unavailable {
-            program: command.program.clone(),
+            program: program.to_string_lossy().into_owned(),
             reason: error.to_string(),
-        })?;
+        })
+}
+
+/// Run one manager command and return whether it succeeded, with its
+/// combined output.
+pub(crate) async fn run(command: &Invocation) -> Result<(bool, String), Failure> {
+    let output = output(&command.program, &command.args, COMMAND_TIMEOUT).await?;
     let mut text = String::from_utf8_lossy(&output.stdout).into_owned();
     text.push_str(&String::from_utf8_lossy(&output.stderr));
     Ok((output.status.success(), text))

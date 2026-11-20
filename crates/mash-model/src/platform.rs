@@ -39,6 +39,33 @@ pub fn private_file(options: &mut fs::OpenOptions) {
     let _ = options;
 }
 
+/// Write `text` to `path`, creating its directory, readable only by the
+/// current user where the platform has Unix modes (`mode`, such as 0o600 or
+/// 0o644 for a definition a service manager reads). A new file never exists
+/// with wider permissions, and an existing one is narrowed too.
+pub fn write_private(path: &Path, text: &str, mode: u32) -> io::Result<()> {
+    use std::io::Write;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let mut options = fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(mode);
+    }
+    options.open(path)?.write_all(text.as_bytes())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
+    }
+    #[cfg(not(unix))]
+    let _ = mode;
+    Ok(())
+}
+
 /// Mash's own directory, `~/.mash`, on every platform: its configuration,
 /// index, models and Qdrant all live here, next to the agents' own folders.
 pub fn mash_home() -> Option<PathBuf> {
@@ -320,5 +347,23 @@ mod tests {
         assert_eq!(upper_drive("c:\\Users\\Ada"), "C:\\Users\\Ada");
         assert_eq!(upper_drive("/c:/Users"), "/c:/Users");
         assert_eq!(upper_drive("/home/ada"), "/home/ada");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn private_writes_create_the_directory_and_narrow_an_existing_file() {
+        use super::write_private;
+        use std::fs;
+        use std::os::unix::fs::PermissionsExt;
+        use std::path::Path;
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("nested/token.env");
+        write_private(&path, "A=1\n", 0o600).unwrap();
+        let mode = |path: &Path| fs::metadata(path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode(&path), 0o600);
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        write_private(&path, "B=2\n", 0o600).unwrap();
+        assert_eq!(mode(&path), 0o600);
+        assert_eq!(fs::read_to_string(&path).unwrap(), "B=2\n");
     }
 }

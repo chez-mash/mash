@@ -120,17 +120,7 @@ pub fn save_token(path: &std::path::Path, name: &str, token: &str) -> Result<(),
     text.push_str(&prefix);
     text.push_str(token);
     text.push('\n');
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(AppError::io)?;
-    }
-    std::fs::write(path, text).map_err(AppError::io)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))
-            .map_err(AppError::io)?;
-    }
-    Ok(())
+    crate::platform::write_private(path, &text, 0o600).map_err(AppError::io)
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]

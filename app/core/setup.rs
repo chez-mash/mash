@@ -618,19 +618,15 @@ pub(super) async fn run(
     program: &Path,
     arguments: &[impl AsRef<std::ffi::OsStr>],
 ) -> Result<(), String> {
-    let output = tokio::process::Command::new(program)
-        .args(arguments)
-        .stdin(std::process::Stdio::null())
-        .kill_on_drop(true)
-        .output();
-    match tokio::time::timeout(AGENT_TIMEOUT, output).await {
-        Err(_) => Err(format!(
-            "timed out after {} seconds",
-            AGENT_TIMEOUT.as_secs()
-        )),
-        Ok(Err(error)) => Err(error.to_string()),
-        Ok(Ok(output)) if output.status.success() => Ok(()),
-        Ok(Ok(output)) => {
+    use crate::service::Failure;
+    match crate::service::output(program, arguments, AGENT_TIMEOUT).await {
+        Err(Failure::TimedOut { after, .. }) => {
+            Err(format!("timed out after {} seconds", after.as_secs()))
+        }
+        Err(Failure::Unavailable { reason, .. }) => Err(reason),
+        Err(other) => Err(other.describe()),
+        Ok(output) if output.status.success() => Ok(()),
+        Ok(output) => {
             let text = String::from_utf8_lossy(&output.stderr);
             let text = if text.trim().is_empty() {
                 String::from_utf8_lossy(&output.stdout)

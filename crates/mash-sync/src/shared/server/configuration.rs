@@ -57,11 +57,7 @@ pub fn append_node(
     let path = added_nodes_path(configuration);
     let mut options = std::fs::OpenOptions::new();
     options.create(true).append(true);
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::OpenOptionsExt;
-        options.mode(0o600);
-    }
+    crate::platform::private_file(&mut options);
     let mut file = options
         .open(&path)
         .map_err(|_| AppError::configuration("could not write the added-nodes file"))?;

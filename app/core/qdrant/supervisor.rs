@@ -218,9 +218,9 @@ impl Control {
 /// A supervisor failure, worded for `mash qdrant install` and its uninstall.
 fn supervisor_failure(layout: &Layout, failure: Failure) -> AppError {
     match failure {
-        Failure::TimedOut { program } => install_error(format!(
+        Failure::TimedOut { program, after } => install_error(format!(
             "`{program}` did not finish within {} s",
-            crate::service::COMMAND_TIMEOUT.as_secs()
+            after.as_secs()
         )),
         Failure::Unavailable { program, reason } => install_error(format!(
             "could not run `{program}` ({reason}); `mash qdrant install` needs the user's service manager on this machine. Run Qdrant yourself, for example with Docker, as the installation guide describes"
