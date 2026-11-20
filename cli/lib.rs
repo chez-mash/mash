@@ -42,6 +42,25 @@ pub fn main_entry() -> i32 {
     execute(std::env::args_os(), &mut io::stdout(), &mut io::stderr())
 }
 
+/// Run an entry point on a thread with an 8 MiB stack, the Linux default.
+/// Windows gives the main thread 1 MiB, which `mash index` with shared
+/// publication overflowed in debug builds (`STATUS_STACK_OVERFLOW`,
+/// 0xc00000fd): their async state machines are large. The thread is named
+/// `main` so messages read as before, and a panic exits with 101, as Rust's
+/// own main does.
+pub fn with_main_stack(entry: fn() -> i32) -> i32 {
+    const STACK_BYTES: usize = 8 * 1024 * 1024;
+    match std::thread::Builder::new()
+        .name("main".to_owned())
+        .stack_size(STACK_BYTES)
+        .spawn(entry)
+    {
+        Ok(thread) => thread.join().unwrap_or(101),
+        // Without a thread, run where we are rather than not at all.
+        Err(_) => entry(),
+    }
+}
+
 /// Runs the standalone shared-index HTTP server with process arguments.
 #[must_use]
 pub fn server_main_entry() -> i32 {

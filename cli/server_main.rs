@@ -1,3 +1,3 @@
 fn main() {
-    std::process::exit(mash::server_main_entry());
+    std::process::exit(mash::with_main_stack(mash::server_main_entry));
 }
