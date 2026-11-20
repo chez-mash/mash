@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -14,9 +14,20 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     const file = await mark.evaluate((node) => getComputedStyle(node).maskImage.slice(5, -2));
     expect((await page.request.get(file)).ok()).toBe(true);
   }
-  await expect(page.locator(".card-grid .card")).toHaveCount(4);
-  await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Explore the docs"]);
-  await expect(page.locator(".hero .tagline a")).toHaveText("Try it →");
+  await expect(page.locator(".hero .tagline")).toHaveText(
+    "Search and memory for every coding agent.",
+  );
+  await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
+  await expect(page.locator(".mash-welcome h2")).toHaveText([
+    "Find it. However you remember it.",
+    "Meet Mashy. Ask your history anything.",
+    "Say it once. It’s there next time.",
+    "Fast by default. Faster on a GPU.",
+    "Self-hosted, end to end. No cloud. No account.",
+    "Written with <3 in Rust.",
+    "Give your agents a memory.",
+  ]);
+  await expect(page.locator(".mash-welcome .tiles article")).toHaveCount(5);
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
     "Try it",
@@ -124,4 +135,78 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   const setup = await request.get("/setup.md");
   expect(setup.ok()).toBe(true);
   expect(await setup.text()).toContain("mash init --yes");
+});
+
+/** Scrolls so that a scene has played the given share of its pinned stretch. */
+async function play(page: Page, heading: string, share: number): Promise<void> {
+  await page.locator(".mash-welcome .scene", { hasText: heading }).evaluate((scene, part) => {
+    const top = scene.getBoundingClientRect().top + scrollY;
+    scrollTo(0, top + part * (scene.getBoundingClientRect().height - innerHeight));
+  }, share);
+}
+
+test("scrolling plays the search scene: the query is typed, then results arrive", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
+  const query = scene.locator("[data-type]");
+  const results = scene.locator(".hits li");
+  // Before the scene is reached, nothing has been typed.
+  await expect(query).toHaveText("");
+  await play(page, "Find it.", 0.95);
+  // However far the scroll jumped, every letter is typed before a result shows.
+  await expect(query).toHaveText("why does checkout keep failing");
+  await expect(results).toHaveCount(3);
+  for (const result of await results.all()) await expect(result).toHaveCSS("opacity", "1");
+  await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1");
+});
+
+test("a scene's drawing draws itself, and undraws on the way back", async ({ page }) => {
+  await page.goto("/");
+  const strokes = page
+    .locator(".mash-welcome .scene", { hasText: "Meet Mashy." })
+    .locator(".art path");
+  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
+  await play(page, "Meet Mashy.", 0.2);
+  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "0px");
+  await page.evaluate(() => scrollTo(0, 0));
+  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
+});
+
+test("the Mashy conversation runs to its third answer", async ({ page }) => {
+  await page.goto("/");
+  const scene = page.locator(".mash-welcome .scene", { hasText: "Meet Mashy." });
+  await play(page, "Meet Mashy.", 0.97);
+  // The conversation plays at its own pace, so the last answer takes a few seconds.
+  await expect(scene.locator(".reply").last()).toHaveCSS("opacity", "1", { timeout: 20_000 });
+  // The suggestion that was picked has folded away with the others.
+  await expect(scene.locator(".follows")).toHaveCSS("opacity", "0");
+  await expect(scene.locator(".caps li").last()).toHaveText("Your model. It only reads.");
+});
+
+test("the welcome page shows everything without scripting", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("/");
+  const welcome = page.locator(".mash-welcome");
+  await expect(welcome.locator("[data-type]")).toHaveText("why does checkout keep failing");
+  await expect(welcome.locator(".hits li")).toHaveCount(3);
+  for (const result of await welcome.locator(".hits li").all()) await expect(result).toBeVisible();
+  await expect(welcome.locator(".reply").last()).toBeVisible();
+  await expect(welcome.locator(".ferris")).toBeVisible();
+  await expect(welcome.locator(".stats dt").first()).toHaveText("66 ms");
+  await context.close();
+});
+
+test("the welcome page fits a phone in every section", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 700 });
+  await page.goto("/");
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  for (let y = 0; y < height; y += 2100) {
+    await page.evaluate((to) => scrollTo(0, to), y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
 });

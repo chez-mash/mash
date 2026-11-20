@@ -20,6 +20,36 @@ automatically. Only top-level `docs/*.md` files are published. Keep engineering
 and maintenance notes in `docs/internal/`, outside the website and its search.
 Re-run the development command after editing source guides.
 
+## The welcome page
+
+The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
+(`Agents.astro`) and everything below them (`Welcome.astro`, styled by
+`site/src/styles/welcome.css`).
+
+- **Scenes.** Search, Mashy and memory each pin under the header while the
+  reader scrolls. `site/src/welcome.ts` draws the scene's drawing, moves the
+  heading aside for a panel, and brings in the panel's steps (`data-step`).
+  Drawings, a typed query and the panel keep a pace of their own, so a fast
+  scroll cannot skip them. The pacing constants are at the top of that file.
+- **Without scripting** every step and drawing shows, statically. The script
+  adds `motion` to the wrapper; all pinned and hidden states hang off it.
+- **Reduced motion.** The page animates whatever the device's motion setting
+  is. This was a deliberate choice by the project owner; honouring
+  `prefers-reduced-motion` means not calling `mountWelcome`.
+- **Drawings** are the SVG files in `site/src/drawings/`, inlined at build
+  time. Each `path` is one stroke, drawn in file order; `data-drop` places the
+  heading inside the drawing and `data-strength` is its opacity behind a
+  heading. Ferris is outlined from the public-domain artwork at rustacean.net.
+- **What the panels show** is made up and follows the demo's story (the
+  sign-in tokens decision, the checkout chats). Keep it that way: never put
+  real history on the page.
+- **The performance figures** are measurements, with their conditions in the
+  small print under them. The GPU figures come from the README and
+  `docs/configuration.md`. The 66 ms search was one exact-phrase search timed
+  by Mash's own diagnostics on a development machine on 2026-11-20 (1,137
+  chats, about 103,000 searchable messages); a common word took 0.8 to 1 s
+  there. Re-measure before changing a figure, and keep the small print true.
+
 ## Local preview and checks
 
 From `site/`, with Node 24 and pnpm installed:

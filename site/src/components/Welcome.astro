@@ -1,0 +1,451 @@
+---
+// The welcome page below the hero. Three scenes show the product as the
+// dashboard draws it (search, Mashy, memory), then come the performance
+// figures, privacy, the tiles, Rust and the closing call to action.
+//
+// Every project, chat and answer shown is made up, in the demo's own story.
+// The figures are measurements: see docs/internal/documentation-site.md
+// before changing one.
+import "../styles/welcome.css";
+import { Icon } from "@astrojs/starlight/components";
+import mashy from "../../../dashboard/public/mashy.png?url";
+import { agents } from "../../../dashboard/src/lib/agents.ts";
+import closeArt from "../drawings/close.svg?raw";
+import ferrisArt from "../drawings/ferris.svg?raw";
+import mashyArt from "../drawings/mashy.svg?raw";
+import memoryArt from "../drawings/memory.svg?raw";
+import privacyArt from "../drawings/privacy.svg?raw";
+import searchArt from "../drawings/search.svg?raw";
+import speedArt from "../drawings/speed.svg?raw";
+
+type AgentKey = keyof typeof agents;
+
+/** An agent's mark, in its own colour. */
+function mark(agent: AgentKey): string {
+  const { logo, tint } = agents[agent];
+  return `<span class="mark" style="background:${tint};mask-image:url(${logo});-webkit-mask-image:url(${logo})"></span>`;
+}
+
+/** A small line icon, on a 24 by 24 grid. */
+function line(paths: readonly string[], kind = "i"): string {
+  const drawn = paths.map((d) => `<path pathLength="1" d="${d}"/>`).join("");
+  const width = kind === "ico" ? 1.5 : 2;
+  return `<svg class="${kind}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${drawn}</svg>`;
+}
+
+const icon = {
+  agent: line(
+    [
+      "M7 9h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z",
+      "M12 5v4",
+      "M9.5 14h.01",
+      "M14.5 14h.01",
+    ],
+    "i agent",
+  ),
+  machine: line(["M5 6h14v9H5z", "M3 18h18"], "i machine"),
+  project: line(
+    ["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"],
+    "i project",
+  ),
+  search: line(["M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z", "m20 20-3.5-3.5"]),
+  decision: line(["m14 5 5 5", "M11.5 7.5l5 5", "M13 9l-9 9a1.4 1.4 0 0 0 2 2l9-9"], "i memory"),
+  evidence: line([
+    "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z",
+    "M14 3v5h5",
+    "M9 13h6",
+    "M9 17h6",
+  ]),
+  clear: line(["M4 7h16", "M9 7V4h6v3", "M6 7l1 13h10l1-13"]),
+  close: line(["M6 6l12 12", "M18 6 6 18"]),
+  send: line(["M12 19V5", "M6 11l6-6 6 6"]),
+  follow: line(["M5 5v6a3 3 0 0 0 3 3h10", "M14 10l4 4-4 4"]),
+};
+
+/** Larger icons that draw themselves as their tile arrives. */
+const drawn = {
+  plugin: line(["M6 8h12v4a6 6 0 0 1-12 0z", "M9 2.5V8", "M15 2.5V8", "M12 18v3.5"], "ico"),
+  offline: line(
+    ["M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 10.5a3.75 3.75 0 0 1-.5 7.5z", "M3.5 3.5l17 17"],
+    "ico",
+  ),
+  machines: line(
+    [
+      "M4 3.5h7a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z",
+      "M13 14h7a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V15a1 1 0 0 1 1-1z",
+      "M7.5 10v4.25a3 3 0 0 0 3 3H12",
+      "M16.5 14V9.75a3 3 0 0 0-3-3H12",
+    ],
+    "ico",
+  ),
+  export: line(
+    [
+      "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z",
+      "M14 3v5h5",
+      "M12 11v6",
+      "M9.5 14.5 12 17l2.5-2.5",
+    ],
+    "ico",
+  ),
+  laptop: line(["M5 6h14v9H5z", "M3 18h18"], "ico"),
+  server: line(
+    [
+      "M5 4.5h14a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z",
+      "M5 13h14a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V14a1 1 0 0 1 1-1z",
+      "M7.5 7.75h.01",
+      "M7.5 16.25h.01",
+    ],
+    "ico",
+  ),
+  off: line(
+    ["M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7z", "M8 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"],
+    "ico",
+  ),
+  masked: line(
+    [
+      "M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z",
+      "M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
+      "M3.5 3.5l17 17",
+    ],
+    "ico",
+  ),
+};
+
+interface Hit {
+  readonly agent: AgentKey;
+  readonly title: string;
+  readonly excerpt: string;
+  readonly machine: string;
+  readonly project: string;
+  readonly date: string;
+}
+
+const hits: readonly Hit[] = [
+  {
+    agent: "codex",
+    title: "Fix the flaky <mark>checkout</mark> test",
+    excerpt: "Reproduced: three failures in thirty runs. I changed the test to wait for the total…",
+    machine: "workstation",
+    project: "storefront",
+    date: "Nov 18",
+  },
+  {
+    agent: "claude-code",
+    title: "Review of the <mark>checkout</mark> outage",
+    excerpt:
+      "<mark>Checkout</mark> was down for forty minutes yesterday afternoon. Go through the logs…",
+    machine: "build-box",
+    project: "infra",
+    date: "Oct 9",
+  },
+  {
+    agent: "cursor",
+    title: "Offline cart for the mobile app",
+    excerpt:
+      "…so a dropped connection no longer loses what was in the basket at <mark>checkout</mark>.",
+    machine: "laptop",
+    project: "mobile-app",
+    date: "Nov 15",
+  },
+];
+
+const decision = "Sign-in uses fifteen-minute access tokens with a server-held refresh token.";
+const said = "ok, go with the tokens. keep the mobile app on the same scheme";
+const signIn = "Move sign-in to short-lived tokens";
+---
+
+<div class="mash-welcome not-content">
+  <section class="scene" data-steps="3" aria-labelledby="welcome-search">
+    <div class="stage">
+      <Fragment set:html={searchArt} />
+      <div class="head">
+        <span class="eyebrow">Search</span>
+        <h2 id="welcome-search">Find it. <span>However you remember it.</span></h2>
+      </div>
+      <div class="show">
+        <div class="panel" role="img" aria-label="The dashboard’s search, with example results from three agents on three machines">
+          <div class="field">
+            <span data-type>why does checkout keep failing</span>
+            <span class="go" set:html={icon.search} />
+          </div>
+          <ol class="hits steps">
+            {
+              hits.map((hit, step) => (
+                <li class="hit" data-step={step}>
+                  <h3>
+                    <Fragment set:html={mark(hit.agent)} />
+                    <span set:html={hit.title} />
+                  </h3>
+                  <p class="snip" set:html={hit.excerpt} />
+                  <p class="tags">
+                    <span class="elbow" />
+                    <span class="tag"><Fragment set:html={icon.agent} />{agents[hit.agent].name}</span>
+                    <span class="tag"><Fragment set:html={icon.machine} />{hit.machine}</span>
+                    <span class="tag"><Fragment set:html={icon.project} />{hit.project}</span>
+                    <time>{hit.date}</time>
+                  </p>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <ol class="caps">
+          <li data-step="0">By meaning.</li>
+          <li data-step="1">By the exact words.</li>
+          <li data-step="2">Across every agent and machine.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" data-steps="7" aria-labelledby="welcome-mashy">
+    <div class="stage">
+      <Fragment set:html={mashyArt} />
+      <div class="head">
+        <span class="eyebrow">Dashboard</span>
+        <h2 id="welcome-mashy">Meet Mashy. <span>Ask your history anything.</span></h2>
+      </div>
+      <div class="show">
+        <div class="panel" role="img" aria-label="The dashboard’s Mashy panel, with an example conversation of three questions">
+          <div class="who">
+            <img src={mashy} alt="" width="96" height="87" />
+            Mashy
+            <span class="tools"><Fragment set:html={icon.clear + icon.close} /></span>
+          </div>
+          <div class="talk steps grow">
+            <p class="asked" data-step="0">What did we decide about sign-in?</p>
+            <div class="reply" data-step="1">
+              <p>Fifteen-minute access tokens, with the refresh token held on the server.</p>
+              <blockquote>
+                “{said}”
+                <footer>
+                  — You, 19 Nov,
+                  <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
+                </footer>
+              </blockquote>
+            </div>
+            <p class="follows" data-step="2" data-until="3">
+              <span class="follow pick"><Fragment set:html={icon.follow} />Which chats mention tokens?</span>
+              <span class="follow"><Fragment set:html={icon.follow} />What else did we decide that week?</span>
+            </p>
+            <p class="asked" data-step="3">Which chats mention tokens?</p>
+            <div class="reply" data-step="4">
+              <p>Three chats, on two machines:</p>
+              <p class="found">
+                <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
+                <span class="tag round"><Fragment set:html={mark("codex")} />Rotate the deploy tokens</span>
+                <span class="tag round"><Fragment set:html={mark("cursor")} />Keep tokens out of the logs</span>
+              </p>
+            </div>
+            <p class="asked" data-step="5">What is still left to do?</p>
+            <div class="reply" data-step="6">
+              <p>One thing. The mobile app still has to keep its refresh token in the device keychain.</p>
+              <p class="found">
+                <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
+              </p>
+            </div>
+          </div>
+          <div class="compose">
+            <span>Ask Mashy about your past chats</span>
+            <span class="send" set:html={icon.send} />
+          </div>
+        </div>
+        <ol class="caps">
+          <li data-step="0">Ask in plain language.</li>
+          <li data-step="1">Every answer links to its chats.</li>
+          <li data-step="2">It suggests what to ask next.</li>
+          <li data-step="3">Pick one, and the conversation carries on.</li>
+          <li data-step="4">It looks across every agent and machine.</li>
+          <li data-step="5">Follow the thread to the end.</li>
+          <li data-step="6">Your model. It only reads.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" data-steps="3" aria-labelledby="welcome-memory">
+    <div class="stage">
+      <Fragment set:html={memoryArt} />
+      <div class="head">
+        <span class="eyebrow">Memory</span>
+        <h2 id="welcome-memory">Say it once. <span>It’s there next time.</span></h2>
+      </div>
+      <div class="show">
+        <div class="panel bare" role="img" aria-label="A sentence becoming a memory record, as the dashboard shows it, then appearing in the next session">
+          <div class="steps swap">
+            <p class="said" data-step="0">“{said}”</p>
+            <div class="rec" data-step="1">
+              <p class="state">decision / accepted / established</p>
+              <h3>{decision}</h3>
+              <p class="meta">storefront / laptop / recorded by Claude Code / Nov 19</p>
+              <p class="label"><Fragment set:html={icon.evidence} />evidence</p>
+              <div class="proof">
+                <p>{said}</p>
+                <p class="src"><span>you said this (endorsement)</span>open the message</p>
+              </div>
+            </div>
+            <div class="rec" data-step="2">
+              <p class="label"><Fragment set:html={mark("codex")} />Codex / new session</p>
+              <div class="row">
+                <Fragment set:html={icon.decision} />
+                <div>
+                  <p>{decision}</p>
+                  <small class="when">decision / Nov 19</small>
+                </div>
+              </div>
+              <p class="meta">Shown to the agent before you type anything.</p>
+            </div>
+          </div>
+        </div>
+        <ol class="caps">
+          <li data-step="0">You say it.</li>
+          <li data-step="1">Mash keeps it, with your words as proof.</li>
+          <li data-step="2">Your next session starts with it.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="speed backdrop" aria-labelledby="welcome-speed">
+    <Fragment set:html={speedArt} />
+    <div class="head">
+      <span class="eyebrow">Performance</span>
+      <h2 id="welcome-speed">Fast by default. <span>Faster on a GPU.</span></h2>
+    </div>
+    <dl class="stats" data-reveal>
+      <div>
+        <dt><b data-count="66">66</b><small> ms</small></dt>
+        <dd>for a whole search, at its quickest</dd>
+      </div>
+      <div>
+        <dt><b data-count="9">9</b>×</dt>
+        <dd>faster indexing on an NVIDIA GPU</dd>
+      </div>
+      <div>
+        <dt><b data-count="5">5</b>×</dt>
+        <dd>faster indexing on Windows, through DirectML</dd>
+      </div>
+      <div>
+        <dt><b data-count="30">30</b><small> ms</small></dt>
+        <dd>to rerank a search on a GPU, at its quickest</dd>
+      </div>
+    </dl>
+    <p class="fine">
+      66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages on
+      one Linux machine; a common word took up to a second there. GPU figures: one Tesla T4 against
+      four CPU cores, where reranking took 30 to 130 ms against 0.5 to 2 s. The NVIDIA and Windows
+      GPU options are experimental and off until you <a href="/configuration/">turn them on</a>. On
+      Apple silicon, indexing uses the GPU from the start.
+    </p>
+  </section>
+
+  <section class="privacy backdrop" aria-labelledby="welcome-privacy">
+    <div class="head">
+      <span class="eyebrow">Privacy</span>
+      <h2 id="welcome-privacy">Self-hosted, end to end. <span>No cloud. No account.</span></h2>
+    </div>
+    <Fragment set:html={privacyArt} />
+    <p class="blurb" data-words>
+      Your history stays on machines you own. Indexed there. Searched there. Shared only between
+      them, and only if you say so.
+    </p>
+    <ul class="trio" data-reveal>
+      <li>
+        <Fragment set:html={drawn.laptop} />
+        <h3>Runs on your machine</h3>
+        <p>Indexing and search happen locally and offline, with no service in between.</p>
+      </li>
+      <li>
+        <Fragment set:html={drawn.server} />
+        <h3>Your own server</h3>
+        <p>To search across machines, they share through a Mash server you host yourself. There is no Mash cloud.</p>
+      </li>
+      <li>
+        <Fragment set:html={drawn.off} />
+        <h3>Off until you turn it on</h3>
+        <p>Sharing, remote workers and Mashy are each a choice you make.</p>
+      </li>
+      <li>
+        <Fragment set:html={drawn.masked} />
+        <h3>Credentials masked</h3>
+        <p>Recognisable keys and tokens are hidden in results and in anything you share.</p>
+      </li>
+    </ul>
+    <p class="links"><a href="/privacy/">How Mash handles your history ›</a></p>
+  </section>
+
+  <section class="tiles" data-reveal aria-label="More about Mash">
+    <article class="wide">
+      <Fragment set:html={drawn.plugin} />
+      <h3>Works before you ask.</h3>
+      <p>A <a href="/plugin/">plugin for Claude Code and Codex</a> brings your history into every session.</p>
+    </article>
+    <article class="wide">
+      <Fragment set:html={drawn.offline} />
+      <h3>Offline.</h3>
+      <p>No service in between.</p>
+    </article>
+    <article>
+      <span class="ico os">
+        <Icon name="apple" />
+        <Icon name="linux" />
+        <Icon name="seti:windows" />
+      </span>
+      <h3>macOS. Linux. Windows.</h3>
+      <p>Wherever you work.</p>
+    </article>
+    <article>
+      <Fragment set:html={drawn.machines} />
+      <h3>Every machine.</h3>
+      <p>An optional <a href="/shared-index/">shared index</a>, on your own server.</p>
+    </article>
+    <article>
+      <Fragment set:html={drawn.export} />
+      <h3>Markdown. HTML. PDF.</h3>
+      <p>Export any chat.</p>
+    </article>
+  </section>
+
+  <section class="rust backdrop" aria-labelledby="welcome-rust">
+    <div class="head">
+      <span class="eyebrow">Open source</span>
+      <h2 id="welcome-rust">Written with <b class="turn">&lt;3</b> in Rust.</h2>
+    </div>
+    <Fragment set:html={ferrisArt} />
+    <div class="after" data-reveal>
+      <p class="blurb">
+        Mash is free and open source, under the MIT and Apache 2.0 licenses. Use it, read it, change
+        it, ship it. It is built in the open and driven by its community: ideas, issues and pull
+        requests are all welcome.
+      </p>
+      <p class="links">
+        <a href="https://github.com/mashium/mash">Read the source ›</a>
+        <a href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="close backdrop" aria-labelledby="welcome-close">
+    <Fragment set:html={closeArt} />
+    <div class="closing" data-reveal>
+      <h2 id="welcome-close">Give your agents <span class="turn">a memory.</span></h2>
+      <p class="actions">
+        <a class="button" href="/quick-start/">Get started</a>
+        <a href="/guides/">Read the docs ›</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<script>
+  import { mountWelcome } from "../welcome.ts";
+
+  let unmount: (() => void) | undefined;
+  // Runs on the first load and after each page change; leaving the page stops it.
+  document.addEventListener("astro:page-load", () => {
+    unmount?.();
+    unmount = undefined;
+    const root = document.querySelector<HTMLElement>(".mash-welcome");
+    if (root) unmount = mountWelcome(root, document.querySelector<HTMLElement>(".mash-hero"));
+  });
+</script>

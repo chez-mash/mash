@@ -5,7 +5,7 @@ test("internal links and browser history keep the current document alive", async
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   const origin = await page.evaluate(() => performance.timeOrigin);
-  await page.getByRole("link", { name: "Get started", exact: true }).click();
+  await page.locator(".hero").getByRole("link", { name: "Get started", exact: true }).click();
   await expect(page).toHaveURL(/\/quick-start\/$/);
   await expect(page.locator("h1")).toHaveText("Quick start");
   expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
