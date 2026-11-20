@@ -716,10 +716,14 @@
     gap: 0.75rem;
     width: auto;
   }
+  /* Stated outright, not inherited: these are Starlight's filled icons, which
+     take their colour from a property of their own when anything sets it. */
   .tiles .ico.os svg {
     width: auto;
     height: 100%;
     aspect-ratio: 1;
+    color: var(--clay);
+    fill: var(--clay);
   }
 
   .after,
