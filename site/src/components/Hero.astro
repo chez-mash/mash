@@ -1,7 +1,7 @@
 ---
-// The landing hero, which has the first screen to itself: the headline,
-// tagline and actions beside the logo, and at its foot a quiet card that hands
-// setup to a coding agent or shows the install command.
+// The landing hero: the logo at full size on the page's plain ground, then
+// Starlight's headline, tagline and actions, and under them a quiet card that
+// hands setup to a coding agent or shows the install command.
 import { Icon, LinkButton } from "@astrojs/starlight/components";
 import logoDark from "../../../assets/mash-logo-dark.svg?url";
 import logoLight from "../../../assets/mash-logo-light.svg?url";
@@ -382,18 +382,8 @@ const first = script;
     color: var(--sl-color-text-accent);
   }
 
-  /* The hero has the first screen to itself: the setup card sits at its foot,
-     and the agents' marks start below the screen's edge. */
   .mash-hero {
-    display: grid;
-    min-height: calc(100svh - var(--sl-nav-height) - 2rem);
     will-change: opacity, transform;
-  }
-  .stack {
-    min-height: 100%;
-  }
-  .mash-install {
-    margin-top: auto;
   }
   @media (min-width: 50rem) {
     .hero {
@@ -409,9 +399,7 @@ const first = script;
     }
     .stack {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-      --title: clamp(3rem, calc(0.25rem + 4.9vw), 5.25rem);
-      grid-template-rows: auto auto 1fr;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       grid-template-areas:
         "copy logo"
         "actions logo"
@@ -424,50 +412,24 @@ const first = script;
     .mash-logo {
       grid-area: logo;
       width: 100%;
-      /* The top of the butter pat is level with the top of the headline's
-         first line of letters. */
-      align-self: start;
-      margin-top: calc(var(--title) * 0.191);
-    }
-    /* The file has a margin above the pat: 3.8% of the logo's width. */
-    .mash-logo img {
-      margin-top: -3.8%;
+      /* Level with the headline's first line. */
+      margin-top: 0.5rem;
     }
     .copy {
       grid-area: copy;
       align-items: flex-start;
     }
-    .copy > * {
-      max-width: none;
-    }
     h1 {
-      font-size: var(--title);
-      line-height: 1.04;
-      letter-spacing: -0.02em;
+      font-size: clamp(2.5rem, calc(0.5rem + 3.6vw), 3.75rem);
     }
-    h1 :global(span) {
-      display: block;
-      white-space: nowrap;
-    }
-    .tagline {
-      max-width: 36ch;
-      font-size: clamp(1.25rem, calc(0.5rem + 1.2vw), 1.625rem);
-      line-height: 1.45;
-    }
-    .stack .actions {
+    .actions {
       grid-area: actions;
       justify-content: flex-start;
-      margin-top: 0.5rem;
-    }
-    .actions :global(.sl-link-button) {
-      padding: 0.875rem 1.75rem;
-      font-size: var(--sl-text-xl);
     }
     .mash-install {
       grid-area: install;
-      align-self: end;
       justify-self: center;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
     }
   }
 </style>
