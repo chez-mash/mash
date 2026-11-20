@@ -5,8 +5,8 @@
       "description": "Repository policy: product boundary, storage and search rules, and how changes are verified"
     },
     {
-      "path": "",
-      "description": "Which crate owns what, and the rule that a lower crate never refers to a higher one"
+      "path": "docs/internal/development.md",
+      "description": "The crate table, what each crate owns, and how changes are built and tested"
     },
     {
       "path": "docs/internal/database-migrations.md",
