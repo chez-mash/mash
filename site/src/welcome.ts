@@ -58,6 +58,8 @@ interface Scene extends Drawing {
   played: boolean;
   /** When the scene began holding the page at its end, or 0. */
   heldAt: number;
+  /** The scroll position at which the scene's stage stops being pinned. */
+  gate: number | undefined;
   /** When the drawing was last completed, or 0 while it is incomplete. */
   doneAt: number;
 }
@@ -106,6 +108,7 @@ function sceneIn(el: HTMLElement): Scene | undefined {
     doneAt: 0,
     played: false,
     heldAt: 0,
+    gate: undefined,
   };
 }
 
@@ -253,6 +256,8 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
         scene.drawn = undefined;
         scene.chars = 0;
         scene.doneAt = 0;
+        scene.heldAt = 0;
+        scene.gate = undefined;
         continue;
       }
       // The stage pins under the site's header for the scene's extra height: a
@@ -306,12 +311,16 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       // early, the page is held where the scene's stage is still pinned, and
       // the scene hurries a little, until its last step has arrived, its panel
       // has left and its drawing is undrawn.
+      // The hold is made by refusing the scroll itself (see `refuse` below),
+      // which leaves the page perfectly still. Only a scroll that cannot be
+      // refused, such as a flick's momentum or a dragged scrollbar, is put back.
       const pinEnds = scrollY + box.bottom - pinnedAt - tall;
+      scene.gate = pinEnds;
       const past = !scene.played && scene.shown !== undefined && scrollY > pinEnds + 1;
       if (past) scene.heldAt ||= now;
-      const holding = past && now - scene.heldAt < HOLD_LIMIT_MS;
+      const holding = !scene.played && scene.heldAt > 0 && now - scene.heldAt < HOLD_LIMIT_MS;
       if (holding) {
-        scrollTo({ top: pinEnds, behavior: "instant" });
+        if (past) scrollTo({ top: pinEnds, behavior: "instant" });
         more = true;
       }
       const pace = holding ? HELD_STEPS_PER_SECOND : STEPS_PER_SECOND;
@@ -346,6 +355,69 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     request();
   };
   addEventListener("scroll", request, { passive: true, signal: stop.signal });
+
+  // Whether a scene that has not finished is at its end, so that scrolling on
+  // is refused for now. Refusing starts the scene's hold.
+  const refuse = (): boolean => {
+    const now = performance.now();
+    for (const scene of scenes) {
+      if (scene.played || scene.shown === undefined || scene.gate === undefined) continue;
+      if (scrollY < scene.gate - 2) continue;
+      scene.heldAt ||= now;
+      if (now - scene.heldAt >= HOLD_LIMIT_MS) continue;
+      request();
+      return true;
+    }
+    return false;
+  };
+  const refusable = { passive: false, signal: stop.signal };
+  addEventListener(
+    "wheel",
+    (event) => {
+      if (event.deltaY <= 0) return;
+      if (refuse()) {
+        event.preventDefault();
+        return;
+      }
+      // A turn of the wheel that would carry the page over an unfinished
+      // scene's end stops exactly there, so nothing has to be put back.
+      for (const scene of scenes) {
+        if (scene.played || scene.shown === undefined || scene.gate === undefined) continue;
+        if (scrollY < scene.gate && scrollY + event.deltaY > scene.gate) {
+          event.preventDefault();
+          scene.heldAt ||= performance.now();
+          scrollTo({ top: scene.gate, behavior: "instant" });
+          return;
+        }
+      }
+    },
+    refusable,
+  );
+  let touchedAt = 0;
+  addEventListener(
+    "touchstart",
+    (event) => {
+      touchedAt = event.touches[0]?.clientY ?? 0;
+    },
+    { passive: true, signal: stop.signal },
+  );
+  addEventListener(
+    "touchmove",
+    (event) => {
+      const y = event.touches[0]?.clientY ?? touchedAt;
+      // A finger moving up the screen scrolls the page down.
+      if (y < touchedAt && event.cancelable && refuse()) event.preventDefault();
+    },
+    refusable,
+  );
+  addEventListener(
+    "keydown",
+    (event) => {
+      const down = [" ", "PageDown", "ArrowDown", "End"].includes(event.key);
+      if (down && !event.shiftKey && refuse()) event.preventDefault();
+    },
+    { signal: stop.signal },
+  );
   addEventListener("resize", remeasure, { signal: stop.signal });
   void document.fonts.ready.then(() => {
     if (!stop.signal.aborted) remeasure();
