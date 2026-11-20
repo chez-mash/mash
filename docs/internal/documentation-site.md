@@ -43,8 +43,8 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **What the panels show** is made up and follows the demo's story (the
   sign-in tokens decision, the checkout chats). Keep it that way: never put
   real history on the page.
-- **The performance figures** are measurements, with their conditions in the
-  small print under them. The GPU figures come from the README and
+- **The performance figures** are measurements, with their conditions folded
+  under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`. The 66 ms search was one exact-phrase search timed
   by Mash's own diagnostics on a development machine on 2026-11-20 (1,137
   chats, about 103,000 searchable messages); a common word took 0.8 to 1 s

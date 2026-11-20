@@ -520,8 +520,29 @@
     margin-top: 0.5rem;
     color: var(--ink-3);
   }
-  .speed .fine {
-    max-width: 46rem;
+  /* How the figures were measured stays one click away, folded shut. */
+  .measured {
+    max-width: 44rem;
+    font-size: 0.9375rem;
+  }
+  .measured summary {
+    display: inline-block;
+    color: var(--clay);
+    cursor: pointer;
+    list-style: none;
+  }
+  .measured summary::-webkit-details-marker {
+    display: none;
+  }
+  .measured summary::after {
+    content: " ›";
+  }
+  .measured[open] summary::after {
+    content: " ⌄";
+  }
+  .measured p {
+    margin-top: 0.75rem;
+    color: var(--ink-3);
   }
   /* What it does not need, as plain statements between the figures and their small print. */
   .light {

@@ -17,6 +17,7 @@ import memoryArt from "../drawings/memory.svg?raw";
 import privacyArt from "../drawings/privacy.svg?raw";
 import searchArt from "../drawings/search.svg?raw";
 import speedArt from "../drawings/speed.svg?raw";
+import Agents from "./Agents.astro";
 
 type AgentKey = keyof typeof agents;
 
@@ -161,6 +162,8 @@ const signIn = "Move sign-in to short-lived tokens";
 ---
 
 <div class="mash-welcome not-content">
+  <Agents />
+
   <section class="scene" data-steps="3" aria-labelledby="welcome-search">
     <div class="stage">
       <Fragment set:html={searchArt} />
@@ -341,7 +344,9 @@ const signIn = "Move sign-in to short-lived tokens";
       <li>Searching by words loads no models</li>
       <li>No cloud service behind it</li>
     </ul>
-    <p class="fine">
+    <details class="measured">
+      <summary>How these were measured</summary>
+      <p>
       66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages on
       one Linux machine; a common word took up to a second there. 20 MB: idle servers on that
       machine held 16 to 23 MB each, and 220 to 330 MB once they had loaded the models for searching
@@ -350,7 +355,8 @@ const signIn = "Move sign-in to short-lived tokens";
       The NVIDIA and Windows GPU options are experimental and off until you
       <a href="/configuration/">turn them on</a>. On Apple silicon, indexing uses the GPU from the
       start.
-    </p>
+      </p>
+    </details>
   </section>
 
   <section class="privacy backdrop" aria-labelledby="welcome-privacy">

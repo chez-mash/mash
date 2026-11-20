@@ -7,7 +7,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
 ---
 
 <div class="mash-agents not-content">
-  <ul aria-label="Supported agents">
+  <ul aria-label="Supported agents" data-reveal>
     {shown.map((key) => {
       const agent = agents[key];
       const mask = `url(${agent.logo})`;
@@ -24,6 +24,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
 <style>
   .mash-agents {
     margin-block: 1rem clamp(3rem, 8vw, 6rem);
+    padding-inline: 1.25rem;
   }
   ul {
     display: flex;
@@ -44,7 +45,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
     color: var(--sl-color-gray-4);
     font-size: var(--sl-text-xs);
   }
-  .mark {
+  .mash-agents .mark {
     display: block;
     width: 1.75rem;
     height: 1.75rem;

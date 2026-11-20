@@ -1,5 +1,5 @@
-<!-- A brain in three-quarter view, behind the memory scene. Each path is drawn by scroll in src/welcome.ts. -->
-<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0.04" data-strength="0.5" viewBox="60 20 640 600" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+<!-- A brain in three-quarter view with a light bulb over it, behind the memory scene. Each path is drawn by scroll in src/welcome.ts. -->
+<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0.17" data-strength="0.5" viewBox="60 -215 640 730" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
   <path pathLength="1" d="M168 372C160.3 355.7 149.3 323.3 150 300C150.7 276.7 159.3 252.3 172 232C184.7 211.7 204.7 193.0 226 178C247.3 163.0 274.0 150.3 300 142C326.0 133.7 355.0 129.3 382 128C409.0 126.7 436.7 128.7 462 134C487.3 139.3 512.7 148.3 534 160C555.3 171.7 575.3 187.0 590 204C604.7 221.0 616.0 241.7 622 262C628.0 282.3 629.7 306.7 626 326C622.3 345.3 613.0 365.0 600 378C587.0 391.0 567.0 398.7 548 404C529.0 409.3 502.0 404.0 486 410C470.0 416.0 467.0 431.3 452 440C437.0 448.7 416.3 458.3 396 462C375.7 465.7 350.3 465.7 330 462C309.7 458.3 289.7 449.7 274 440C258.3 430.3 249.0 411.0 236 404C223.0 397.0 207.3 403.3 196 398C184.7 392.7 175.7 388.3 168 372Z"/>
   <path pathLength="1" d="M214 170C223.3 161.3 247.3 131.7 270 118C292.7 104.3 321.7 94.0 350 88C378.3 82.0 411.3 80.0 440 82C468.7 84.0 498.0 90.3 522 100C546.0 109.7 568.0 125.3 584 140C600.0 154.7 612.3 180.0 618 188"/>
   <path pathLength="1" d="M236 404C245.3 398.7 270.3 380.0 292 372C313.7 364.0 341.3 360.0 366 356C390.7 352.0 417.7 354.3 440 348C462.3 341.7 490.0 323.0 500 318"/>
@@ -11,6 +11,13 @@
   <path pathLength="1" d="M318 418C327.7 415.7 357.3 405.0 376 404C394.7 403.0 421.0 410.7 430 412"/>
   <path pathLength="1" d="M486 410C488.3 418.7 489.7 449.3 500 462C510.3 474.7 532.0 484.7 548 486C564.0 487.3 585.0 480.3 596 470C607.0 459.7 613.3 439.3 614 424C614.7 408.7 602.3 385.7 600 378"/>
   <path pathLength="1" d="M512 440C518.7 442.0 538.3 453.3 552 452C565.7 450.7 587.0 435.3 594 432"/>
-  <path pathLength="1" d="M452 440C453.7 450.0 456.3 482.0 462 500C467.7 518.0 482.0 540.0 486 548"/>
-  <path pathLength="1" d="M500 462C501.3 470.0 503.3 495.7 508 510C512.7 524.3 524.7 541.7 528 548"/>
+  <path pathLength="1" d="M364 -18C342 -36 332 -58 332 -80A68 68 0 1 1 468 -80C468 -58 458 -36 436 -18V4H364Z"/>
+  <path pathLength="1" d="M370 20H430"/>
+  <path pathLength="1" d="M380 36H420"/>
+  <path pathLength="1" d="M386 -18V-56L400 -72L414 -56V-18"/>
+  <path pathLength="1" d="M400 -172V-196"/>
+  <path pathLength="1" d="M318 -146 302 -162"/>
+  <path pathLength="1" d="M482 -146 498 -162"/>
+  <path pathLength="1" d="M290 -80H266"/>
+  <path pathLength="1" d="M510 -80H534"/>
 </svg>

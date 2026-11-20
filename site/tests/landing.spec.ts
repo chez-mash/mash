@@ -28,6 +28,14 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Give your agents a memory.",
   ]);
   await expect(page.locator(".mash-welcome .tiles article")).toHaveCount(5);
+  // The marks rise in one after another when they come into view.
+  await marks.first().scrollIntoViewIfNeeded();
+  for (const mark of await marks.all()) await expect(mark).toHaveClass(/seen/);
+  // The conditions behind the figures are folded away, and open on request.
+  const measured = page.locator(".mash-welcome .measured");
+  await expect(measured.locator("p")).toBeHidden();
+  await measured.locator("summary").click();
+  await expect(measured.locator("p")).toContainText("experimental and off until you");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
     "Try it",
