@@ -126,7 +126,7 @@ pub(super) async fn handle_begin_backfill(
         operation_id: operation_id.to_owned(),
         group_id: group,
         node_id: node,
-        kind: "backfill_manifest".into(),
+        kind: crate::shared::sync::catalog::Kind::BackfillManifest,
         manifest_digest,
         decoded_bytes: begin.decoded_bytes,
         record_count: records,

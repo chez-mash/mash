@@ -1111,7 +1111,8 @@ configuration reproduces the first invalid state.
 [ProgressiveBackfill.tla](ProgressiveBackfill.tla) is a **partially implemented
 design contract**. The manifest transfer, durable membership table, coverage
 evidence, completion check, per-chat ordering and tombstone dominance
-exist in `crates/mash-sync/src/shared/sync/catalog.rs` and the `/v1/sync` handlers:
+exist in `crates/mash-sync/src/shared/sync/catalog.rs` (the backfill methods in
+`catalog/backfill.rs`) and the `/v1/sync` handlers (`crates/mash-server/src/sync/backfill.rs`):
 
 - While a baseline is active, every committed `/v1/sync` live publication records
   `live_revision` per chat in `backfill_members` and covers its baseline

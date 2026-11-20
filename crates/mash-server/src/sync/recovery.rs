@@ -6,6 +6,7 @@ use super::{
     commit_publication, epoch_millis, parse_start, prepare_backfill, silver_store, wire,
     write_events,
 };
+use crate::shared::sync::catalog::Kind;
 
 /// Periodic reclamation of abandoned receiving transfers. Runs independently of
 /// connections and restarts; the first sweep happens immediately.
@@ -132,20 +133,20 @@ pub(crate) async fn recover(app: &App) -> Result<usize, AppError> {
                 continue;
             }
         };
-        let result = match operation.kind.as_str() {
-            "publication" => {
+        let result = match &operation.kind {
+            Kind::Publication => {
                 recover_publication(app, &identity, &handle, &operation, &pieces).await
             }
-            "backfill_manifest" => apply_manifest(app, &identity, &handle, &operation, &pieces)
+            Kind::BackfillManifest => apply_manifest(app, &identity, &handle, &operation, &pieces)
                 .await
                 .map(|_| ()),
-            "attachment" => apply_attachment(app, &identity, &handle, &operation, &pieces)
+            Kind::Attachment => apply_attachment(app, &identity, &handle, &operation, &pieces)
                 .await
                 .map(|_| ()),
-            other => {
+            Kind::Unknown(other) => {
                 tracing::warn!(
                     operation = %row.operation_id,
-                    kind = other,
+                    kind = other.as_str(),
                     "durable synchronization operation has an unknown kind"
                 );
                 continue;

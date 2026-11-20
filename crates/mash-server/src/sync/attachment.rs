@@ -66,7 +66,7 @@ pub(super) async fn handle_begin_attachment(
         operation_id: operation_id.to_owned(),
         group_id: identity.group_id.clone(),
         node_id: identity.node_id.clone(),
-        kind: "attachment".into(),
+        kind: crate::shared::sync::catalog::Kind::Attachment,
         manifest_digest: begin.manifest_digest,
         decoded_bytes: begin.decoded_bytes,
         record_count: 1,

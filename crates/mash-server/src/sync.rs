@@ -5,7 +5,7 @@ use crate::AppError;
 use crate::files::{Availability, Metadata};
 use crate::shared::protocol::{self, Event};
 use crate::shared::silver_store;
-use crate::shared::sync::catalog::{self, Begin, BeginOutcome, Catalog, StoredChunk};
+use crate::shared::sync::catalog::{self, Begin, BeginOutcome, Catalog, Kind, StoredChunk};
 use crate::shared::sync::wire::{
     self, Accepted, AttachmentStored, BackfillComplete, Cancelled, Checkpoint, Chunk, CommitState,
     Credit, Failed, FinishBackfill, FinishUpload, Hello, Outcome, OutcomeState, Progress,
@@ -140,7 +140,6 @@ async fn run(app: App, identity: Identity, socket: WebSocket) -> Result<(), AppE
         let Some(body) = frame.body else {
             continue;
         };
-        let close = matches!(body, client_frame::Body::Hello(_));
         match body {
             client_frame::Body::Hello(hello) => {
                 handle_hello(&mut sink, &app, &identity, hello).await?;
@@ -197,9 +196,6 @@ async fn run(app: App, identity: Identity, socket: WebSocket) -> Result<(), AppE
                 handle_finish_backfill(&mut sink, &catalog, &identity, &operation_id, finish)
                     .await?;
             }
-        }
-        if close {
-            // Hello starts a session; keep the connection open for its operations.
         }
     }
 }
@@ -498,7 +494,7 @@ async fn handle_begin(
             operation_id: &operation_id_owned,
             group_id: &group,
             node_id: &node,
-            kind: "publication",
+            kind: &Kind::Publication,
             manifest_digest: &manifest,
             decoded_bytes,
             record_count,
@@ -583,7 +579,7 @@ struct OwnedBegin {
     operation_id: String,
     group_id: String,
     node_id: String,
-    kind: String,
+    kind: Kind,
     manifest_digest: String,
     decoded_bytes: u64,
     record_count: u32,
@@ -824,9 +820,9 @@ async fn handle_finish(
         )
         .await;
     }
-    match operation.kind.as_str() {
-        "publication" => {}
-        "backfill_manifest" => {
+    match &operation.kind {
+        Kind::Publication => {}
+        Kind::BackfillManifest => {
             return finish_manifest(
                 sink,
                 app,
@@ -838,7 +834,7 @@ async fn handle_finish(
             )
             .await;
         }
-        "attachment" => {
+        Kind::Attachment => {
             return finish_attachment(
                 sink,
                 app,
@@ -850,7 +846,7 @@ async fn handle_finish(
             )
             .await;
         }
-        _ => {
+        Kind::Unknown(_) => {
             return reject(
                 sink,
                 operation_id,
