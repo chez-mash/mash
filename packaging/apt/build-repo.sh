@@ -40,6 +40,7 @@ for pair in amd64:x86_64-unknown-linux-gnu arm64:aarch64-unknown-linux-gnu; do
 Package: mash-cli
 Version: $version
 Architecture: $arch
+Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
 Conflicts: mash
 Replaces: mash
 Maintainer: Mashium <mash-release@users.noreply.github.com>
