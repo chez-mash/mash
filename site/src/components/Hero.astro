@@ -1,7 +1,7 @@
 ---
-// The landing hero: the logo on the page's plain ground, then Starlight's
-// headline, tagline and actions, and under them a quiet card that hands setup
-// to a coding agent or shows the install command.
+// The landing hero: the logo at full size on the page's plain ground, then
+// Starlight's headline, tagline and actions, and under them a quiet card that
+// hands setup to a coding agent or shows the install command.
 import { Icon, LinkButton } from "@astrojs/starlight/components";
 import logoDark from "../../../assets/mash-logo-dark.svg?url";
 import logoLight from "../../../assets/mash-logo-light.svg?url";
@@ -128,7 +128,7 @@ const first = script;
               systems.map((system) => (
                 <button type="button" value={system.id} aria-pressed="false">
                   <Icon name={system.icon} size="0.9375rem" />
-                  {system.label}
+                  <span class="label">{system.label}</span>
                 </button>
               ))
             }
@@ -183,7 +183,7 @@ const first = script;
 
 <style>
   .mash-logo {
-    width: min(100%, 24rem);
+    width: min(100%, 55rem);
     align-self: center;
   }
   .mash-logo img {
@@ -218,14 +218,14 @@ const first = script;
     max-width: 50ch;
   }
   h1 {
-    font-size: clamp(2.25rem, calc(0.4rem + 7.6vw), 6.25rem);
-    line-height: 1.02;
+    font-size: clamp(var(--sl-text-3xl), calc(0.25rem + 5vw), var(--sl-text-6xl));
+    line-height: var(--sl-line-height-headings);
     font-weight: 600;
     color: var(--sl-color-white);
   }
   .tagline {
-    font-size: clamp(1.1875rem, calc(0.9rem + 1.4vw), 1.75rem);
-    color: var(--sl-color-gray-3);
+    font-size: clamp(var(--sl-text-base), calc(0.0625rem + 2vw), var(--sl-text-xl));
+    color: var(--sl-color-gray-2);
   }
 
   .mash-install {
@@ -233,7 +233,7 @@ const first = script;
     gap: 0.625rem;
     justify-items: center;
     min-width: 0;
-    width: min(100%, 34rem);
+    width: min(100%, 43rem);
     align-self: center;
   }
   .choices {
@@ -253,6 +253,35 @@ const first = script;
   }
   .choice:empty {
     display: none;
+  }
+  /* The system and the method sit side by side. Where there is no room for
+     both, the systems keep their marks and drop their names from view. */
+  .choices,
+  .choices .choice {
+    flex-wrap: nowrap;
+  }
+  @media (width < 40rem) {
+    .choices {
+      gap: 0.375rem;
+    }
+    .choice[data-pick="system"] .label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .choices .choice :global(button) {
+      padding-inline: 0.5rem;
+    }
+    /* The methods keep their names and drop their marks. */
+    .choice[data-pick="method"] :global(svg) {
+      display: none;
+    }
+  }
+  .choices {
+    max-width: 100%;
   }
   /* With scripting, one toggle picks which single command box shows. Without
      it there is no toggle, and both boxes show under their headings. */
@@ -286,7 +315,8 @@ const first = script;
     background: var(--sl-color-gray-5);
     color: var(--sl-color-white);
   }
-  /* A card, not a terminal: the prompt for an agent reads as a sentence. */
+  /* One box for the agent's prompt and for the install command: a single
+     monospace line that scrolls sideways when the screen is narrower than it. */
   .command {
     display: flex;
     align-items: center;
@@ -348,26 +378,16 @@ const first = script;
   .mash-install h2:not(:first-child) {
     margin-top: 0.75rem;
   }
-  /* The prompt is a sentence, so it is set as one and wraps instead of scrolling. */
-  code.wrap {
-    font: 400 var(--sl-text-base) / 1.4 var(--sl-font);
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
   .mash-install a {
     color: var(--sl-color-text-accent);
   }
 
-  /* The hero has the first screen to itself. */
   .mash-hero {
-    display: grid;
-    align-content: center;
-    min-height: calc(100svh - var(--sl-nav-height) - 6rem);
     will-change: opacity, transform;
   }
   @media (min-width: 50rem) {
     .hero {
-      padding-block: clamp(1.5rem, calc(0.5rem + 5vmin), 5rem);
+      padding-block: clamp(2.5rem, calc(1rem + 10vmin), 10rem);
     }
   }
 </style>

@@ -16,6 +16,10 @@ const UNDRAW_SECONDS = 1 / 3;
 const HOLD_MS = 500;
 /** The fastest the shown position may advance, in steps a second. */
 const STEPS_PER_SECOND = 1.5;
+/** The pace while the page is held at a scene's end waiting for it to finish. */
+const HELD_STEPS_PER_SECOND = 2.4;
+/** The longest a scene may hold the page, in case it never finishes. */
+const HOLD_LIMIT_MS = 8000;
 /** Letters a second for a typed query. */
 const TYPING_RATE = 22;
 /** Where, in steps, the heading starts to make way and where the panel is fully up. */
@@ -50,6 +54,10 @@ interface Scene extends Drawing {
   /** The share of the drawing drawn so far; unset while off screen. */
   drawn: number | undefined;
   chars: number;
+  /** Whether the scene has played through once; after that it never holds the page. */
+  played: boolean;
+  /** When the scene began holding the page at its end, or 0. */
+  heldAt: number;
   /** When the drawing was last completed, or 0 while it is incomplete. */
   doneAt: number;
 }
@@ -96,6 +104,8 @@ function sceneIn(el: HTMLElement): Scene | undefined {
     drawn: undefined,
     chars: 0,
     doneAt: 0,
+    played: false,
+    heldAt: 0,
   };
 }
 
@@ -208,7 +218,10 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     last = now;
 
     if (hero) {
-      const gone = clamp(scrollY / (hero.offsetHeight * 0.7));
+      // It stays whole until most of it has left the screen: the fade runs
+      // over the last stretch, as its bottom edge nears the top.
+      const stretch = vh * 0.4;
+      const gone = clamp((stretch - hero.getBoundingClientRect().bottom) / stretch);
       hero.style.opacity = String(1 - gone);
       hero.style.transform = `translateY(${gone * -32}px) scale(${1 - gone * 0.06})`;
     }
@@ -279,12 +292,28 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
         scene.typed.textContent = scene.query.slice(0, count);
         scene.typed.classList.toggle("caret", count < scene.query.length);
       }
+      // A scene plays to its end before the page moves on. Scrolled past
+      // early, the page is held where the scene's stage is still pinned, and
+      // the scene hurries a little, until its last step has arrived.
+      const pinEnds = scrollY + box.bottom - pinnedAt - tall;
+      const past = !scene.played && scene.shown !== undefined && scrollY > pinEnds + 1;
+      if (past) scene.heldAt ||= now;
+      const holding = past && now - scene.heldAt < HOLD_LIMIT_MS;
+      if (holding) {
+        scrollTo({ top: pinEnds, behavior: "instant" });
+        more = true;
+      }
+      const pace = holding ? HELD_STEPS_PER_SECOND : STEPS_PER_SECOND;
       if (scene.shown === undefined) scene.shown = goal;
       else if (goal > scene.shown) {
-        scene.shown += Math.min((goal - scene.shown) * 0.12, dt * STEPS_PER_SECOND);
+        scene.shown += Math.min(Math.max((goal - scene.shown) * 0.12, 0.004), dt * pace);
       } else scene.shown += (goal - scene.shown) * 0.2;
       if (Math.abs(goal - scene.shown) > 0.002) more = true;
       else scene.shown = goal;
+      if (scene.shown >= scene.steps + 0.3) {
+        scene.played = true;
+        scene.heldAt = 0;
+      }
 
       scene.el.style.setProperty("--t", String(smooth(PANEL_FROM, PANEL_UP, scene.shown)));
       if (scene.art) {
