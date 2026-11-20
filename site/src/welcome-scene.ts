@@ -19,7 +19,8 @@ export interface Scene {
   readonly index: number;
   readonly el: HTMLElement;
   readonly stage: HTMLElement;
-  readonly head: HTMLElement;
+  /** The heading, where the scene has one. */
+  readonly head: HTMLElement | null;
   readonly show: HTMLElement;
   readonly art: SVGSVGElement | null;
   readonly steps: number;
@@ -82,7 +83,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   const head = el.querySelector<HTMLElement>(".head");
   const show = el.querySelector<HTMLElement>(".show");
   const steps = Number(el.dataset.steps);
-  if (!stage || !head || !show || !Number.isFinite(steps) || steps < 1) return undefined;
+  if (!stage || !show || !Number.isFinite(steps) || steps < 1) return undefined;
   el.style.setProperty("--n", String(steps));
   const art = el.querySelector<SVGSVGElement>("svg.art");
   const strength = Number(art?.dataset.strength ?? 0.5);
@@ -96,7 +97,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   gsap.set(el, { "--t": 0, "--art": strength });
   draw(timeline, strokes, dots);
   const drawnAt = timeline.duration();
-  timeline.to({}, { duration: HOLD_SECONDS });
+  if (head) timeline.to({}, { duration: HOLD_SECONDS });
   const titledAt = timeline.duration();
 
   // The heading makes way for the panel, and the drawing recedes behind it.
@@ -141,7 +142,8 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   }
   const panelAt = timeline.duration();
 
-  // A step may bring its own parts in one by one (`data-each`).
+  // A step may bring its own parts in one by one (`data-each`, optionally the
+  // seconds between them).
   const each = (item: HTMLElement): HTMLElement[] =>
     item.dataset.each === undefined
       ? []
@@ -202,7 +204,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
       const from = at + (before.length > 0 ? 0.2 : 0);
       timeline.to(item, { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power2.out" }, from);
       each(item).forEach((part, i) => {
-        const when = from + 0.15 + i * 0.45;
+        const when = from + 0.15 + i * (Number(item.dataset.each) || 0.45);
         timeline.to(part, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, when);
         const icon = part.querySelectorAll("svg.ico path");
         timeline.to(icon, { autoAlpha: 1, duration: 0.08, ease: "none" }, when + 0.1);
@@ -261,7 +263,8 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
  */
 export function measure(scene: Scene): void {
   const gap = Number.parseFloat(getComputedStyle(scene.stage).rowGap) || 0;
-  const room = scene.stage.clientHeight - 16 - scene.head.offsetHeight - gap;
+  const above = scene.head ? scene.head.offsetHeight + gap : 0;
+  const room = scene.stage.clientHeight - 16 - above;
   const fit = Math.max(0.6, Math.min(1, room / scene.show.offsetHeight));
   scene.el.style.setProperty("--fit", String(fit));
   scene.el.classList.toggle("tight", fit < 1);
@@ -273,9 +276,9 @@ export function measure(scene: Scene): void {
     scene.stage.clientWidth -
     Number.parseFloat(style.paddingLeft) -
     Number.parseFloat(style.paddingRight);
-  const wide = scene.head.querySelector("h2")?.offsetWidth ?? scene.head.offsetWidth;
+  const wide = scene.head?.querySelector("h2")?.offsetWidth ?? inner;
   const grow = Math.max(0, Math.min(narrow ? 0.08 : 0.22, inner / wide - 1));
-  scene.head.style.setProperty("--grow", String(grow));
+  scene.head?.style.setProperty("--grow", String(grow));
   let drop = 0;
   if (scene.art) {
     // Measured without the drawing's own scaling.
@@ -293,7 +296,7 @@ export function measure(scene: Scene): void {
         box.height / 2 +
         tall / 2 -
         stage.height / 2 +
-        scene.head.offsetHeight * 0.54 +
+        (scene.head?.offsetHeight ?? 0) * 0.54 +
         12
       : tall * Number(scene.art.dataset.drop ?? 0);
   }

@@ -26,9 +26,9 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 (`Agents.astro`) and everything below them (`Welcome.astro`, styled by
 `site/src/styles/welcome.css`).
 
-- **Scenes.** Search, Mashy, memory, performance, privacy and Rust each pin
-  under the header while the reader scrolls; only the closing call to action
-  does not. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
+- **Scenes.** Search, Mashy, memory, performance, privacy, the tiles and Rust
+  each pin under the header while the reader scrolls; only the closing call
+  to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
   builds each one: it draws the scene's drawing, moves the heading aside for
   a panel, and brings in the panel's steps (`data-step`).
   Each scene is one GSAP timeline. The scroll does not scrub it: it names how

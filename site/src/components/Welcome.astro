@@ -425,7 +425,10 @@ const signIn = "Move sign-in to short-lived tokens";
     </div>
   </section>
 
-  <section class="tiles" data-reveal aria-label="More about Mash">
+  <section class="scene more" data-steps="1" aria-label="More about Mash">
+    <div class="stage">
+    <div class="show wide">
+    <div class="tiles" data-step="0" data-each="0.22">
     <article class="wide">
       <Fragment set:html={drawn.plugin} />
       <h3>Context, before you ask.</h3>
@@ -461,6 +464,9 @@ const signIn = "Move sign-in to short-lived tokens";
       <h3>Markdown. HTML. PDF.</h3>
       <p>Export any chat.</p>
     </article>
+    </div>
+    </div>
+    </div>
   </section>
 
   <section class="scene rust" data-steps="1" aria-labelledby="welcome-rust">

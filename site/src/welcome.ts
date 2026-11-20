@@ -202,6 +202,14 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
         continue;
       }
       scene.entered = true;
+      const last = scene.stepAt[scene.steps - 1] ?? scene.panelAt;
+      if (!scene.head) {
+        // Nothing to draw or title: its panel arrives as it nears its place,
+        // stays while it is pinned, and leaves in the last stretch.
+        const pinned = clamp((pinnedAt - box.top) / (box.height - tall));
+        go(scene, pinned > 0.8 ? scene.endAt : enter > 0.7 ? last : 0);
+        continue;
+      }
       if (box.top > pinnedAt) {
         // Rising into place: the drawing is drawn as it comes.
         go(scene, scene.drawnAt * clamp((enter - 0.25) / 0.75));
@@ -271,7 +279,7 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
     waiting = loose(root.querySelectorAll<HTMLElement>("[data-reveal] > *"));
     gsap.set(waiting, { autoAlpha: 0, y: 32, scale: 0.97 });
     gsap.set(loose(root.querySelectorAll("svg.ico path")), { drawSVG: "0%", autoAlpha: 0 });
-    gsap.set(root.querySelectorAll(".ico.os svg"), { autoAlpha: 0, y: 6 });
+    gsap.set(loose(root.querySelectorAll(".ico.os svg")), { autoAlpha: 0, y: 6 });
   }, root);
 
   for (const scene of scenes) measure(scene);
@@ -286,7 +294,8 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
     }
   });
   for (const scene of scenes) {
-    sized.observe(scene.head.querySelector("h2") ?? scene.head);
+    const heading = scene.head?.querySelector("h2") ?? scene.head;
+    if (heading) sized.observe(heading);
     sized.observe(scene.show);
   }
   stop.signal.addEventListener("abort", () => sized.disconnect());
@@ -315,7 +324,7 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       unkeep(scene);
       scene.el.classList.remove("tight");
       for (const name of ["--o", "--fit", "--lift"]) scene.el.style.removeProperty(name);
-      scene.head.style.removeProperty("--grow");
+      scene.head?.style.removeProperty("--grow");
       for (const pick of scene.el.querySelectorAll(".picked")) pick.classList.remove("picked");
     }
     for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);
