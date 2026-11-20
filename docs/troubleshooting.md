@@ -103,8 +103,8 @@ Both need Qdrant running to build search.
 
 ## My agent cannot find Mash
 
-`mash init` connects only Claude Code and Codex, and only when their CLI
-(`claude`, `codex`) is on `PATH`. Check each agent's `connection`:
+`mash init` connects only Claude Code, Codex and GitHub Copilot CLI, and only
+when their CLI (`claude`, `codex`, `copilot`) is on `PATH`. Check each agent's `connection`:
 
 ```sh
 mash status --installation

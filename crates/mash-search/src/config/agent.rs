@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 pub enum Agent {
     Codex,
     ClaudeCode,
+    // GitHub Copilot CLI. A doc comment here would turn the generated
+    // schema's flat enum into a `oneOf`.
+    Copilot,
 }
 
 impl Agent {
@@ -17,6 +20,7 @@ impl Agent {
         match self {
             Self::Codex => "codex",
             Self::ClaudeCode => "claude-code",
+            Self::Copilot => "copilot",
         }
     }
 
@@ -25,6 +29,7 @@ impl Agent {
         match self {
             Self::Codex => "codex",
             Self::ClaudeCode => "claude",
+            Self::Copilot => "copilot",
         }
     }
 
@@ -33,6 +38,8 @@ impl Agent {
         match self {
             Self::Codex => "codex mcp remove mash",
             Self::ClaudeCode => "claude mcp remove --scope user mash",
+            // Copilot's `mcp` commands edit user settings only; they take no scope.
+            Self::Copilot => "copilot mcp remove mash",
         }
     }
 
@@ -41,6 +48,7 @@ impl Agent {
         match self {
             Self::Codex => format!("codex mcp add mash -- {executable} mcp"),
             Self::ClaudeCode => format!("claude mcp add --scope user mash -- {executable} mcp"),
+            Self::Copilot => format!("copilot mcp add mash -- {executable} mcp"),
         }
     }
 
@@ -53,6 +61,9 @@ impl Agent {
             Self::Codex => {
                 "codex plugin marketplace add mashium/mash && codex plugin add mash@mash"
             }
+            Self::Copilot => {
+                "copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash"
+            }
         }
     }
 
@@ -61,6 +72,38 @@ impl Agent {
         match self {
             Self::Codex => "codex plugin remove mash@mash",
             Self::ClaudeCode => "claude plugin uninstall mash@mash",
+            Self::Copilot => "copilot plugin uninstall mash@mash",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Agent;
+
+    #[test]
+    fn agent_copilot_commands_are_user_level_and_leave_the_others_unchanged() {
+        let agent = Agent::Copilot;
+        assert_eq!(agent.as_str(), "copilot");
+        assert_eq!(agent.program(), "copilot");
+        assert_eq!(serde_json::to_string(&agent).unwrap(), "\"copilot\"");
+        assert_eq!(
+            agent.add_mcp("/bin/mash"),
+            "copilot mcp add mash -- /bin/mash mcp"
+        );
+        assert_eq!(agent.remove_mcp(), "copilot mcp remove mash");
+        assert_eq!(
+            agent.install_plugin(),
+            "copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash"
+        );
+        assert_eq!(agent.remove_plugin(), "copilot plugin uninstall mash@mash");
+        assert_eq!(
+            Agent::ClaudeCode.remove_mcp(),
+            "claude mcp remove --scope user mash"
+        );
+        assert_eq!(
+            Agent::Codex.remove_plugin(),
+            "codex plugin remove mash@mash"
+        );
     }
 }

@@ -4,7 +4,7 @@
 
 use super::*;
 
-/// A home where Mash is set up and both agents are connected, with stand-in
+/// A home where Mash is set up and all three agents are connected, with stand-in
 /// agent CLIs that log their calls. `plugin` is the exit status of their
 /// plugin commands.
 fn fixture(plugin: i32) -> (tempfile::TempDir, Vec<(&'static str, String)>) {
@@ -32,6 +32,14 @@ fn fixture(plugin: i32) -> (tempfile::TempDir, Vec<(&'static str, String)>) {
             ".codex/config.toml",
             "[mcp_servers.mash]\ncommand = \"mash\"\nargs = [\"mcp\"]\n\n[plugins.\"mash@mash\"]\nenabled = true\n",
         ),
+        (
+            ".copilot/mcp-config.json",
+            r#"{"mcpServers":{"mash":{"tools":["*"],"type":"local","command":"mash","args":["mcp"]}}}"#,
+        ),
+        (
+            ".copilot/config.json",
+            "// This file is managed automatically.\n{\"installedPlugins\":[{\"name\":\"mash\",\"marketplace\":\"mash\",\"cache_path\":\"/plugins/mash\",\"enabled\":true}]}\n",
+        ),
         (".claude/projects/p/chat.jsonl", "the agent's own history"),
     ] {
         let path = home.join(name);
@@ -40,7 +48,7 @@ fn fixture(plugin: i32) -> (tempfile::TempDir, Vec<(&'static str, String)>) {
     }
     let bin = home.join("bin");
     std::fs::create_dir(&bin).unwrap();
-    for agent in ["claude", "codex"] {
+    for agent in ["claude", "codex", "copilot"] {
         use std::os::unix::fs::PermissionsExt;
         let script = bin.join(agent);
         std::fs::write(
@@ -113,6 +121,11 @@ fn uninstall_plans_first_then_removes_what_mash_created() {
         plan["agents"][1]["plugin"]["command"],
         "codex plugin remove mash@mash"
     );
+    assert_eq!(plan["agents"][2]["agent"], "copilot");
+    assert_eq!(
+        plan["agents"][2]["mcp"]["command"],
+        "copilot mcp remove mash"
+    );
     assert!(
         plan["next"][0]
             .as_str()
@@ -134,6 +147,8 @@ fn uninstall_plans_first_then_removes_what_mash_created() {
         "claude plugin uninstall mash@mash",
         "codex mcp remove mash",
         "codex plugin remove mash@mash",
+        "copilot mcp remove mash",
+        "copilot plugin uninstall mash@mash",
     ] {
         assert!(calls.lines().any(|line| line == command), "{calls}");
     }

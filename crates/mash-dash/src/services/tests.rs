@@ -407,7 +407,8 @@ async fn services_installation_reports_local_setup_and_forwards_to_the_named_pee
         assert_eq!(response.status(), StatusCode::OK, "{machine}");
         let body = response.text().await.unwrap();
         let setup: crate::core::installation::Setup = serde_json::from_str(&body).unwrap();
-        assert_eq!(setup.agents.len(), 2, "{machine}");
+        // Codex, Claude Code and GitHub Copilot.
+        assert_eq!(setup.agents.len(), 3, "{machine}");
         assert_ne!(setup.build, "");
         assert!(
             !body.contains("\"path\""),

@@ -1985,7 +1985,7 @@ export interface components {
             build: string;
         };
         /** @enum {string} */
-        SetupAgent: "codex" | "claude-code";
+        SetupAgent: "codex" | "claude-code" | "copilot";
         /** @enum {string} */
         SetupState: "present" | "missing" | "disabled" | "invalid" | "outdated" | "unverified" | "not_configured" | "passed" | "failed";
         SharedConfig: {

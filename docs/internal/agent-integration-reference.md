@@ -10,7 +10,8 @@ mash status --installation --agent codex --agent claude-code
 mash status --installation --agent codex --probe
 ```
 
-The first command inspects local Codex and Claude Code user settings, installed
+The first command inspects local Codex, Claude Code and GitHub Copilot CLI user
+settings, installed
 Mash plugin/skill files, bundled hooks, hook trust records and the stdio MCP
 registration. Findings include the inspected path and a repair suggestion.
 The `resources` section checks the selected local database's schema, lists every
@@ -228,6 +229,21 @@ Observed with Copilot CLI 1.0.106 on 2026-11-20, by loading probe plugins with
   `--version-info` lists the hosts whose running sessions can be cited under
   `session_citations`, and the hooks tell Copilot to save only when `copilot`
   is listed, since a plugin can be newer than its binary.
-- **Not done.** `mash init` and `mash status --installation` do not connect or
-  inspect Copilot; it is added by hand (see `docs/plugin.md`). The PowerShell
-  hook commands are untested on Windows.
+- **Setup and inspection.** `mash init` connects Copilot with
+  `copilot mcp add mash -- <mash> mcp` (user level; the command has no scope
+  flag) and `copilot plugin marketplace add` then `copilot plugin install
+  mash@mash`. `mash status --installation` reads `~/.copilot` (or
+  `COPILOT_HOME`): the registration in `mcp-config.json`, where
+  `"type": "local"` is a stdio process, and `installedPlugins` in
+  `config.json`. That file opens with `//` comment lines before its JSON
+  object and holds sign-in tokens, so only the plugin entries are parsed and
+  nothing from it is reported. The entry's `cache_path` is taken as the plugin
+  root (for a directory marketplace it may be the source directory); the
+  manifest, skill stamp and `hooks/copilot.json` bash commands are checked
+  there. A workspace `.mcp.json` or `.github/mcp.json` that names `mash` is
+  reported as a possible override.
+- **Not done.** Memory backfill never runs Copilot headless, since each review
+  would spend premium requests: `--backfill-memory copilot` is refused and the
+  wizard does not offer it. A Mash server switched off with `copilot mcp
+  disable` is not detected. The PowerShell hook commands are untested on
+  Windows.

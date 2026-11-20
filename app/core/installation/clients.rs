@@ -1,6 +1,9 @@
 //! Inspect known user settings. Project overrides are surfaced rather than treated as active
 //! without the host's project-trust/profile/policy resolution.
-use super::{Agent, Client, Component, Environment, Expectation, State, executable, plugin, read};
+use super::{
+    Agent, Client, Component, Environment, Expectation, State, executable, plugin, read,
+    read_commented_json,
+};
 use serde::Deserialize;
 use std::{collections::BTreeMap, path::PathBuf};
 
@@ -84,6 +87,51 @@ struct Project {
     disabled_mcp_servers: Vec<String>,
 }
 
+/// Copilot's `mcp-config.json`, and a workspace `.mcp.json` or `.github/mcp.json`.
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CopilotMcp {
+    #[serde(default)]
+    mcp_servers: BTreeMap<String, Server>,
+}
+
+/// The one key Mash reads from Copilot's `config.json`, which also holds
+/// sign-in tokens under other keys.
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Copilot {
+    #[serde(default)]
+    installed_plugins: Vec<CopilotPlugin>,
+}
+
+#[derive(Deserialize)]
+struct CopilotPlugin {
+    name: Option<String>,
+    /// The installed copy, or the source directory of a local marketplace.
+    cache_path: Option<PathBuf>,
+    enabled: Option<bool>,
+}
+
+impl Copilot {
+    fn mash(&self) -> Vec<&CopilotPlugin> {
+        self.installed_plugins
+            .iter()
+            .filter(|plugin| plugin.name.as_deref() == Some("mash"))
+            .collect()
+    }
+}
+
+/// Whether a registration starts a local stdio process, which is all Mash
+/// can check. Copilot writes `"type": "local"` for one.
+fn is_stdio(agent: Agent, server: &Server) -> bool {
+    server.url.is_none()
+        && match server.transport.as_deref() {
+            None | Some("stdio") => true,
+            Some("local") => agent == Agent::Copilot,
+            Some(_) => false,
+        }
+}
+
 fn settings<T: serde::de::DeserializeOwned + Default>(
     client: &mut Client,
     path: &std::path::Path,
@@ -112,6 +160,7 @@ pub(super) fn inspect(
     let root = match agent {
         Agent::Codex => &environment.codex,
         Agent::ClaudeCode => &environment.claude,
+        Agent::Copilot => &environment.copilot,
     };
     let mut client = Client {
         agent,
@@ -132,6 +181,7 @@ pub(super) fn inspect(
     match agent {
         Agent::Codex => codex(&mut client, environment),
         Agent::ClaudeCode => claude(&mut client, environment),
+        Agent::Copilot => copilot(&mut client, environment),
     }
     if client.cli_path.is_none() {
         for finding in &mut client.findings {
@@ -276,6 +326,11 @@ pub(super) fn edited_files(environment: &Environment, agent: Agent) -> Vec<PathB
             environment.claude.join("settings.json"),
             environment.claude.join("plugins"),
         ],
+        Agent::Copilot => vec![
+            environment.copilot.join("mcp-config.json"),
+            environment.copilot.join("config.json"),
+            environment.copilot.join("installed-plugins"),
+        ],
     }
 }
 
@@ -303,6 +358,20 @@ pub(super) fn connection(environment: &Environment, agent: Agent) -> (bool, bool
                 super::plugin::claude_installed(environment),
             )
         }
+        Agent::Copilot => {
+            let mcp = read::<CopilotMcp>(&environment.copilot.join("mcp-config.json"))
+                .ok()
+                .flatten()
+                .unwrap_or_default();
+            let config = read_commented_json::<Copilot>(&environment.copilot.join("config.json"))
+                .ok()
+                .flatten()
+                .unwrap_or_default();
+            (
+                mcp.mcp_servers.contains_key("mash"),
+                !config.mash().is_empty(),
+            )
+        }
     }
 }
 
@@ -318,15 +387,15 @@ pub(super) fn registration(environment: &Environment, agent: Agent) -> super::Re
             .ok()
             .flatten()
             .and_then(|config| config.mcp_servers.get("mash").cloned()),
+        Agent::Copilot => read::<CopilotMcp>(&environment.copilot.join("mcp-config.json"))
+            .ok()
+            .flatten()
+            .and_then(|config| config.mcp_servers.get("mash").cloned()),
     };
     let Some(server) = server else {
         return super::Registration::Unknown;
     };
-    if server.url.is_some()
-        || server
-            .transport
-            .as_deref()
-            .is_some_and(|value| value != "stdio")
+    if !is_stdio(agent, &server)
         || server.cwd.is_some()
         || server
             .command
@@ -429,6 +498,79 @@ fn claude(client: &mut Client, environment: &Environment) {
     }
 }
 
+fn copilot(client: &mut Client, environment: &Environment) {
+    let path = environment.copilot.join("config.json");
+    let config: Copilot = match read_commented_json(&path) {
+        Ok(config) => config.unwrap_or_default(),
+        Err(message) => {
+            client.add(
+                Component::Configuration,
+                State::Invalid,
+                Some(&path),
+                message,
+                Some("Repair the agent settings file, then rerun mash status --installation."),
+            );
+            Copilot::default()
+        }
+    };
+    let mcp_path = environment.copilot.join("mcp-config.json");
+    let mcp: CopilotMcp = settings(client, &mcp_path);
+    let plugins = config.mash();
+    // An installed plugin without the flag counts as enabled: only an
+    // explicit `false` is known to switch it off.
+    client.expected |= mcp.mcp_servers.contains_key("mash")
+        || plugins.iter().any(|plugin| plugin.enabled != Some(false));
+    match plugins.as_slice() {
+        [] => plugin::missing(client, &path),
+        [installed] if installed.enabled == Some(false) => client.add(
+            Component::Plugin,
+            State::Disabled,
+            Some(&path),
+            "Mash plugin is disabled.",
+            Some("Enable the Mash plugin with Copilot's `copilot plugin enable` command."),
+        ),
+        [installed] => match &installed.cache_path {
+            Some(root) => {
+                plugin::inspect(client, &environment.copilot.join(root), environment, None);
+            }
+            None => client.add(
+                Component::Plugin,
+                State::Invalid,
+                Some(&path),
+                "The installed Mash plugin names no directory.",
+                Some("Reinstall the Mash plugin through the client."),
+            ),
+        },
+        _ => client.add(
+            Component::Plugin,
+            State::Unverified,
+            Some(&path),
+            "Multiple Mash plugin installations are registered.",
+            Some("Inspect the active Mash copy with `copilot plugin list`."),
+        ),
+    }
+    inspect_server(client, mcp.mcp_servers.get("mash"), &mcp_path, environment);
+    for relative in [".mcp.json", ".github/mcp.json"] {
+        let path = environment.cwd.join(relative);
+        match read::<CopilotMcp>(&path) {
+            Ok(Some(workspace)) if workspace.mcp_servers.contains_key("mash") => {
+                project_override(client, &path);
+            }
+            Err(message) => {
+                client.add(
+                    Component::Configuration,
+                    State::Unverified,
+                    Some(&path),
+                    message,
+                    Some("Check the workspace MCP settings in Copilot."),
+                );
+                client.launch = None;
+            }
+            _ => {}
+        }
+    }
+}
+
 fn project_override(client: &mut Client, path: &std::path::Path) {
     client.add(Component::Configuration, State::Unverified, Some(path),
         "Project settings may override this user-level inspection; effective client trust and settings are unverified. MCP probe skipped.",
@@ -461,12 +603,7 @@ fn inspect_server(
         );
         return;
     }
-    if server.url.is_some()
-        || server
-            .transport
-            .as_deref()
-            .is_some_and(|value| value != "stdio")
-    {
+    if !is_stdio(client.agent, server) {
         client.add(
             Component::Mcp,
             State::Unverified,

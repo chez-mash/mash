@@ -52,6 +52,8 @@ token budget. It does not start another agent or download models.
 The `mash init` wizard offers to backfill memory from chats active in the last
 3 days, using a signed-in Codex or Claude Code CLI that you select. **Backfill
 uses agent tokens and sends the selected chat text to that agent's service.**
+GitHub Copilot is not offered for it, because each review would spend premium
+requests.
 It is optional and separate from history indexing. Unattended `mash init --yes`
 does not request it, and normal conversations never perform it.
 

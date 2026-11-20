@@ -57,11 +57,14 @@ enum Command {
     ///
     /// Agents are connected through their own CLIs, which edit their user
     /// settings: ~/.claude.json, ~/.claude/settings.json and ~/.claude/plugins
-    /// for Claude Code, ~/.codex/config.toml and ~/.codex/plugins for Codex.
+    /// for Claude Code, ~/.codex/config.toml and ~/.codex/plugins for Codex,
+    /// ~/.copilot/mcp-config.json, ~/.copilot/config.json and
+    /// ~/.copilot/installed-plugins for GitHub Copilot CLI.
     /// The connected agents are recorded in Mash's config.toml, so
     /// `mash status --installation` reports them if they lose Mash. To undo,
     /// run `claude mcp remove --scope user mash`, `claude plugin uninstall
-    /// mash@mash`, `codex mcp remove mash` and `codex plugin remove mash@mash`.
+    /// mash@mash`, `codex mcp remove mash`, `codex plugin remove mash@mash`,
+    /// `copilot mcp remove mash` and `copilot plugin uninstall mash@mash`.
     /// `mash uninstall` lists everything Mash set up and removes it with --yes.
     Init {
         /// Accept defaults without prompting (also used automatically without a terminal).
@@ -76,7 +79,8 @@ enum Command {
         /// Skip the first index, which needs Qdrant running.
         #[arg(long)]
         no_index: bool,
-        /// Explicitly backfill memory with this signed-in agent (last 3 days by default).
+        /// Explicitly backfill memory with this signed-in agent, codex or
+        /// claude-code (last 3 days by default).
         #[arg(long, value_enum)]
         backfill_memory: Option<crate::core::installation::Agent>,
         /// Plugin marketplace to add: a GitHub owner/repo, URL or local path.
@@ -298,7 +302,8 @@ enum Command {
         "Remove what Mash created on this machine; without --yes, only list it.\n\n",
         "Lists, and with --yes removes: the services Mash set up (the Qdrant search ",
         "service and its data, the remote dashboard, an installed index watcher), ",
-        "its connections to Claude Code and Codex (through their own CLIs), and its ",
+        "its connections to Claude Code, Codex and GitHub Copilot (through their own ",
+        "CLIs), and its ",
         "index, models, configuration and saved tokens. ",
         "It never removes the mash executable (the last line says how), your agents' ",
         "own chat histories, history already published to a shared server, or files ",

@@ -24,7 +24,8 @@ Tell the person what setup will do, and get a yes before you continue:
   verified, reachable only from this machine, started again at each login.
 - Read the chat history files of every supported agent it finds on this
   machine, including the chat you are in now. Mash never changes those files.
-- Register Mash with the Claude Code and Codex command-line tools it finds, by
+- Register Mash with the Claude Code, Codex and GitHub Copilot command-line
+  tools it finds, by
   running those tools' own commands. This edits the agents' settings files;
   the result lists each file and the command that undoes it.
 
@@ -114,8 +115,8 @@ mash init --yes
 ```
 
 This finds supported agents' histories in their usual places, indexes the last
-90 days, and registers Mash with the Claude Code and Codex command-line tools
-it finds. It checks Qdrant first and changes nothing if Qdrant does not
+90 days, and registers Mash with the Claude Code, Codex and GitHub Copilot
+command-line tools it finds. It checks Qdrant first and changes nothing if Qdrant does not
 answer.
 
 Read the result:

@@ -329,7 +329,7 @@ async fn powershell(script: &str) -> Result<String, AppError> {
 /// agent's own CLI: the `undo` commands `mash init` lists.
 async fn agents(apply: bool) -> Vec<Connection> {
     let mut connections = Vec::new();
-    for agent in [Agent::ClaudeCode, Agent::Codex] {
+    for agent in [Agent::ClaudeCode, Agent::Codex, Agent::Copilot] {
         let (mcp, plugin) = crate::blocking(move || Ok(super::installation::connection(agent)))
             .await
             .unwrap_or((false, false));

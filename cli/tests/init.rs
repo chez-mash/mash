@@ -601,7 +601,11 @@ fn init_replaces_a_stale_registration_and_status_expects_recorded_agents() {
     // agents are connected for MCP only, and that still needs attention.
     let (code, report, _) = mash(&env, &["status", "--installation"]);
     assert_eq!(code, 1, "{report}");
-    for client in report["summary"]["clients"].as_array().unwrap() {
+    let clients = report["summary"]["clients"].as_array().unwrap();
+    // This machine has no Copilot CLI, so init did not connect or record it.
+    assert_eq!(clients[2]["agent"], "copilot", "{report}");
+    assert_eq!(clients[2]["expected"], false, "{report}");
+    for client in &clients[..2] {
         assert_eq!(client["connection"], "mcp-only", "{report}");
         assert!(
             client["next_action"]
@@ -628,6 +632,120 @@ fn init_replaces_a_stale_registration_and_status_expects_recorded_agents() {
         "{report}"
     );
     assert_eq!(report["clients"][1]["expectation"], "recorded");
+}
+
+/// A stand-in `copilot` that keeps its registration in Copilot's own
+/// `mcp-config.json`, with `"type": "local"` as the real CLI writes it.
+#[cfg(unix)]
+#[test]
+fn init_connects_github_copilot_through_its_own_cli() {
+    use std::os::unix::fs::PermissionsExt;
+    let (root, env) = fixture(false);
+    let home = root.path();
+    let settings = home.join(".copilot/mcp-config.json");
+    std::fs::create_dir_all(settings.parent().unwrap()).unwrap();
+    let script = home.join("bin/copilot");
+    std::fs::write(
+        &script,
+        format!(
+            "#!/bin/sh\necho \"copilot $*\" >> '{log}'\ncase \"$1 $2\" in\n\"mcp get\") [ -f '{settings}' ]; exit $?;;\n\"mcp add\") printf '{{\"mcpServers\":{{\"mash\":{{\"tools\":[\"*\"],\"type\":\"local\",\"command\":\"%s\",\"args\":[\"mcp\"]}}}}}}' \"$5\" > '{settings}'; exit 0;;\nesac\nexit 0\n",
+            log = home.join("calls.log").display(),
+            settings = settings.display(),
+        ),
+    )
+    .unwrap();
+    std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    let value = init(&env, &["--no-index"]);
+    let outcome = &value["agents"][2];
+    assert_eq!(outcome["agent"], "copilot", "{value}");
+    assert_eq!(outcome["mcp"]["state"], "done", "{value}");
+    assert_eq!(outcome["plugin"]["state"], "done", "{value}");
+    assert_eq!(
+        outcome["undo"],
+        serde_json::json!([
+            "copilot mcp remove mash",
+            "copilot plugin uninstall mash@mash"
+        ])
+    );
+    assert_eq!(
+        outcome["files"],
+        serde_json::json!([
+            settings,
+            home.join(".copilot/config.json"),
+            home.join(".copilot/installed-plugins")
+        ])
+    );
+    assert_eq!(
+        value["config"]["recorded_agents"],
+        serde_json::json!(["claude-code", "codex", "copilot"])
+    );
+    let calls = std::fs::read_to_string(home.join("calls.log")).unwrap();
+    let copilot: Vec<_> = calls
+        .lines()
+        .filter(|line| line.starts_with("copilot "))
+        .collect();
+    assert_eq!(copilot[0], "copilot mcp get mash", "{calls}");
+    // Copilot's `mcp add` takes no scope.
+    assert!(
+        copilot[1].starts_with("copilot mcp add mash -- ") && copilot[1].ends_with(" mcp"),
+        "{calls}"
+    );
+    assert_eq!(
+        copilot[2..],
+        [
+            "copilot plugin marketplace add mashium/mash",
+            "copilot plugin install mash@mash"
+        ],
+        "{calls}"
+    );
+
+    // The `local` registration runs this binary, so a rerun leaves it.
+    let again = init(&env, &["--no-index"]);
+    assert_eq!(
+        again["agents"][2]["mcp"]["state"], "already-present",
+        "{again}"
+    );
+    let (code, report, _) = mash(&env, &["status", "--installation"]);
+    assert_eq!(code, 1, "{report}");
+    let client = &report["summary"]["clients"][2];
+    assert_eq!(client["agent"], "copilot", "{report}");
+    assert_eq!(client["expected"], true, "{report}");
+    assert_eq!(client["connection"], "mcp-only", "{report}");
+    assert!(
+        client["next_action"]
+            .as_str()
+            .unwrap()
+            .contains("copilot plugin install mash@mash"),
+        "{report}"
+    );
+
+    // Copilot is never run headless to backfill memory, and the refusal
+    // comes before anything is started.
+    let before = std::fs::read_to_string(home.join("calls.log")).unwrap();
+    let (code, _, error) = mash(
+        &env,
+        &[
+            "init",
+            "--yes",
+            "--no-index",
+            "--no-agents",
+            "--backfill-memory",
+            "copilot",
+        ],
+    );
+    assert_ne!(code, 0);
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("premium requests"),
+        "{error}"
+    );
+    assert_eq!(
+        std::fs::read_to_string(home.join("calls.log")).unwrap(),
+        before
+    );
 }
 
 #[test]

@@ -169,6 +169,7 @@ async fn describe(state: &Dash) -> Result<Setup, AppError> {
     let integrations = [
         (Agent::ClaudeCode, "claude", config::Agent::ClaudeCode),
         (Agent::Codex, "codex", config::Agent::Codex),
+        (Agent::Copilot, "copilot", config::Agent::Copilot),
     ]
     .into_iter()
     .map(|(agent, program, recorded)| Integration {

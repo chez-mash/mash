@@ -217,17 +217,19 @@ pub(super) fn inspect(
     environment: &Environment,
     trust: Option<(&str, &Hooks)>,
 ) {
-    let path = root.join(match client.agent {
-        Agent::Codex => ".codex-plugin/plugin.json",
-        Agent::ClaudeCode => ".claude-plugin/plugin.json",
-    });
+    let (manifest, hook_file) = match client.agent {
+        Agent::Codex => (".codex-plugin/plugin.json", "hooks/hooks.json"),
+        Agent::ClaudeCode => (".claude-plugin/plugin.json", "hooks/hooks.json"),
+        Agent::Copilot => (".github/plugin/plugin.json", "hooks/copilot.json"),
+    };
+    let path = root.join(manifest);
     let expected = expected_stamp();
     match read::<Manifest>(&path) {
         Ok(Some(manifest)) if manifest.name == "mash" => {
             if manifest
                 .hooks
                 .as_deref()
-                .is_some_and(|path| path != "./hooks/hooks.json" && path != "hooks/hooks.json")
+                .is_some_and(|path| path.strip_prefix("./").unwrap_or(path) != hook_file)
                 || manifest
                     .skills
                     .as_deref()
@@ -290,7 +292,87 @@ pub(super) fn inspect(
             Some("Refresh the plugin and binary together; reload the skill and reconnect MCP."),
         ),
     }
-    hooks(client, root, environment, trust);
+    if client.agent == Agent::Copilot {
+        copilot_hooks(client, root, environment);
+    } else {
+        hooks(client, root, environment, trust);
+    }
+}
+
+#[derive(Deserialize)]
+struct CopilotHookFile {
+    hooks: BTreeMap<String, Vec<CopilotHook>>,
+}
+
+#[derive(Deserialize)]
+struct CopilotHook {
+    #[serde(rename = "type")]
+    kind: String,
+    bash: Option<String>,
+}
+
+/// Copilot loads `hooks/copilot.json`, in its own format: camelCase events,
+/// each a flat list of commands. Only the `bash` command is compared; the
+/// `powershell` one is untested on Windows.
+fn copilot_hooks(client: &mut Client, root: &Path, environment: &Environment) {
+    let path = root.join("hooks/copilot.json");
+    hook_dependencies(client, root, environment, &path);
+    let definition = match read::<CopilotHookFile>(&path) {
+        Ok(Some(definition)) => definition,
+        Ok(None) => {
+            client.add(
+                Component::Hooks,
+                State::Missing,
+                Some(&path),
+                "Bundled hook definitions are missing.",
+                Some("Reinstall the Mash plugin."),
+            );
+            return;
+        }
+        Err(message) => {
+            client.add(
+                Component::Hooks,
+                State::Invalid,
+                Some(&path),
+                message,
+                Some("Reinstall the Mash plugin."),
+            );
+            return;
+        }
+    };
+    for (event, script) in [
+        ("sessionStart", "session_start.py"),
+        ("userPromptSubmitted", "prompt_recall.py"),
+        ("postToolUse", "file_context.py"),
+    ] {
+        let expected_command = format!(
+            "sh \"${{COPILOT_PLUGIN_ROOT}}/hooks/python.sh\" \"${{COPILOT_PLUGIN_ROOT}}/hooks/{script}\" 2>/dev/null || true"
+        );
+        let matched = definition
+            .hooks
+            .get(event)
+            .into_iter()
+            .flatten()
+            .any(|hook| hook.kind == "command" && hook.bash.as_deref() == Some(&expected_command));
+        let script_path = root.join("hooks").join(script);
+        if matched && readable_file(&script_path) {
+            client.add(
+                Component::Hooks,
+                State::Present,
+                Some(&script_path),
+                &format!("{event} command and script found; hook execution has not been tested."),
+                None,
+            );
+        } else {
+            client.add(
+                Component::Hooks,
+                State::Missing,
+                Some(&path),
+                &format!("{event} bundled command or script is missing or modified."),
+                Some("Refresh the bundled Mash hooks; inspect intentional custom commands in the client."),
+            );
+        }
+    }
 }
 
 fn hooks(
@@ -300,7 +382,7 @@ fn hooks(
     trust: Option<(&str, &Hooks)>,
 ) {
     let path = root.join("hooks/hooks.json");
-    hook_dependencies(client, root, environment);
+    hook_dependencies(client, root, environment, &path);
     let definition = match read::<HookFile>(&path) {
         Ok(Some(definition)) => definition,
         Ok(None) => {
@@ -387,7 +469,12 @@ fn hooks(
     }
 }
 
-fn hook_dependencies(client: &mut Client, root: &Path, environment: &Environment) {
+fn hook_dependencies(
+    client: &mut Client,
+    root: &Path,
+    environment: &Environment,
+    definition: &Path,
+) {
     for helper in ["recall_common.py", "record_recall.py", "python.sh"] {
         let helper = root.join("hooks").join(helper);
         if !readable_file(&helper) {
@@ -408,7 +495,7 @@ fn hook_dependencies(client: &mut Client, root: &Path, environment: &Environment
         client.add(
             Component::Hooks,
             State::Missing,
-            Some(&root.join("hooks/hooks.json")),
+            Some(definition),
             "No Python 3 (python3, python or py) required by the bundled hooks is executable on this CLI's PATH.",
             Some("Install Python 3.9 or later and make it available to the agent's hook environment."),
         );

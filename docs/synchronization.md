@@ -46,8 +46,8 @@ error; start it again yourself.
 
 ## What the agent plugin does automatically
 
-The Mash plugin that `mash init` installs for Claude Code and Codex starts a
-low-priority catch-up index at session start, at most once every ten minutes.
+The Mash plugin that `mash init` installs for Claude Code, Codex and GitHub
+Copilot CLI starts a low-priority catch-up index at session start, at most once every ten minutes.
 The agent does not wait for it. If another indexing run is active, that attempt
 exits without changes.
 

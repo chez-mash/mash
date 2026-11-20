@@ -7,6 +7,7 @@ fn isolated(root: &Path) -> Command {
         .env("HOME", root)
         .env("CODEX_HOME", root.join(".codex"))
         .env("CLAUDE_CONFIG_DIR", root.join(".claude"))
+        .env("COPILOT_HOME", root.join(".copilot"))
         .env("XDG_CONFIG_HOME", root.join("config"))
         .env("XDG_DATA_HOME", root.join("data"))
         .env_remove("MASH_TRACE");
@@ -323,7 +324,7 @@ fn installation_names_the_repair_and_fails_for_a_required_agent_that_is_not_conn
 #[test]
 fn installation_probe_fails_for_missing_required_agent_integrations() {
     let root = tempfile::tempdir().unwrap();
-    for agent in ["claude-code", "codex"] {
+    for agent in ["claude-code", "codex", "copilot"] {
         let (code, value) = report(isolated(root.path()).args([
             "status",
             "--installation",

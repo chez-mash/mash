@@ -1,14 +1,13 @@
 # Use Mash with your agent
 
-Once connected, Claude Code and Codex can search your past chats themselves
-when you ask about earlier work. Mash connects to **Claude Code and Codex**;
-from either one you can search the history of every supported agent (Claude
-Code, Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity). GitHub
-Copilot CLI can use the same plugin and tools, added with
-[two commands](plugin.md#github-copilot-cli). For any other agent, see
+Once connected, Claude Code, Codex and GitHub Copilot CLI can search your past
+chats themselves when you ask about earlier work. Mash connects to **Claude
+Code, Codex and GitHub Copilot CLI**; from any of them you can search the
+history of every supported agent (Claude Code, Codex, GitHub Copilot, Cursor,
+OpenCode, and Antigravity). For any other agent, see
 [other MCP clients](#other-mcp-clients-and-manual-setup).
 
-## Connect Claude Code or Codex
+## Connect Claude Code, Codex or Copilot
 
 After [installing Mash and starting Qdrant](installation.md), run:
 
@@ -16,11 +15,10 @@ After [installing Mash and starting Qdrant](installation.md), run:
 mash init
 ```
 
-Then restart Claude Code or Codex so it loads the connection, and
-[try it](#try-it).
+Then restart the agent so it loads the connection, and [try it](#try-it).
 
-For each of the two agent CLIs found on your `PATH`, `mash init` installs two
-things, using the agent's own commands:
+For each of the three agent CLIs (`claude`, `codex`, `copilot`) found on your
+`PATH`, `mash init` installs two things, using the agent's own commands:
 
 - an **MCP server**: the Mash search tools the agent can call (MCP, the Model
   Context Protocol, is how agents run external tools);
@@ -30,8 +28,10 @@ things, using the agent's own commands:
   hooks that [keep new chats searchable](#keep-new-chats-searchable).
 
 Those commands edit the agent's user settings: `~/.claude.json`,
-`~/.claude/settings.json` and `~/.claude/plugins` for Claude Code, and
-`~/.codex/config.toml` and `~/.codex/plugins` for Codex. Mash also records
+`~/.claude/settings.json` and `~/.claude/plugins` for Claude Code;
+`~/.codex/config.toml` and `~/.codex/plugins` for Codex; and
+`~/.copilot/mcp-config.json`, `~/.copilot/config.json` and
+`~/.copilot/installed-plugins` for GitHub Copilot CLI. Mash also records
 the connected agents in its own `config.toml`, so that
 [`mash status --installation`](#confirm-the-connection) can report one that
 later loses its connection.
@@ -62,7 +62,8 @@ the chat's title, date, or a link as its source. It gives raw session and
 message IDs only if you ask for them.
 
 To invoke the skill explicitly, use `/mash:mash-history` in Claude Code. In
-Codex, select the plugin's `mash-history` skill or ask the agent to use Mash.
+Codex or Copilot, select the plugin's `mash-history` skill or ask the agent to
+use Mash.
 
 ## Confirm the connection
 
@@ -91,6 +92,7 @@ To check one agent and also launch its MCP server in a fresh process:
 ```bash
 mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
+mash status --installation --agent copilot --probe
 ```
 
 A successful probe verifies a new process, not the connection in an
@@ -120,6 +122,8 @@ claude mcp remove --scope user mash
 claude plugin uninstall mash@mash
 codex mcp remove mash
 codex plugin remove mash@mash
+copilot mcp remove mash
+copilot plugin uninstall mash@mash
 ```
 
 To remove Mash from the machine as well, see

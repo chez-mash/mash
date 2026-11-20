@@ -134,6 +134,9 @@ async fn execute_inner(
     let index = init.index;
     let agent = init.backfill_memory;
     let paths = request.paths.clone();
+    if let Some(agent) = agent {
+        setup::backfill::supported(agent)?;
+    }
     setup::preflight(&paths, init).await?;
     let mut response = setup::init(paths.clone(), init.clone()).await?;
     if index {

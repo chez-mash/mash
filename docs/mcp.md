@@ -1,6 +1,7 @@
 # Connect another MCP client
 
-`mash init` connects Claude Code and Codex for you; see [agent setup](agents.md).
+`mash init` connects Claude Code, Codex and GitHub Copilot CLI for you; see
+[agent setup](agents.md).
 Any other client that can start a local (stdio) MCP server can run `mash mcp`
 itself.
 

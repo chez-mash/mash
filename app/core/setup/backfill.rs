@@ -31,7 +31,21 @@ pub(crate) struct Outcome {
     message: String,
 }
 
+/// Backfill runs Codex or Claude Code headless. Copilot is deliberately not
+/// one of them: each review would spend the user's premium requests, and
+/// connecting Copilot to Mash is not a request to do that. `init` asks this
+/// before changing anything, and the wizard does not offer Copilot.
+pub(in crate::core) fn supported(agent: Agent) -> Result<(), AppError> {
+    match agent {
+        Agent::Codex | Agent::ClaudeCode => Ok(()),
+        Agent::Copilot => Err(AppError::usage(
+            "memory backfill runs with codex or claude-code; GitHub Copilot is not run headless because each review would spend premium requests",
+        )),
+    }
+}
+
 pub(in crate::core) async fn run(paths: Paths, agent: Agent) -> Result<Outcome, AppError> {
+    supported(agent)?;
     let policy = policy(paths.config.clone()).await?;
     if !policy.enabled {
         return Ok(outcome(
@@ -210,12 +224,12 @@ fn command(agent: Agent, directory: &Path, paths: &Paths) -> Result<Command, App
         }
     }
     args.push("mcp".into());
-    let program = match agent {
-        Agent::Codex => "codex",
-        Agent::ClaudeCode => "claude",
-    };
+    supported(agent)?;
+    let program = agent.program();
     let mut command = Command::new(super::which(program).unwrap_or_else(|| program.into()));
     match agent {
+        // Refused by `supported` above: Copilot has no headless backfill.
+        Agent::Copilot => {}
         Agent::Codex => {
             command.args([
                 "exec",
@@ -337,8 +351,12 @@ mod tests {
                     assert!(args.iter().any(|arg| arg == "--strict-mcp-config"));
                     assert!(args.iter().any(|arg| arg == "{\"disableAllHooks\":true}"));
                 }
+                Agent::Copilot => unreachable!("not in the list above"),
             }
         }
+        // Copilot is refused before any command is built.
+        assert!(supported(Agent::Copilot).is_err());
+        assert!(command(Agent::Copilot, directory.path(), &Paths::default()).is_err());
         let prompt = prompt(
             &capture::Task {
                 chat_id: "chat".into(),

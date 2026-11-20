@@ -94,7 +94,7 @@ or [start it by hand](docs/installation.md#run-qdrant-yourself).
 
 Mash finds supported histories in their usual locations and indexes the last
 90 days, including current sessions of supported agents. It also connects Mash
-to the Claude Code and Codex CLIs it finds.
+to the Claude Code, Codex and GitHub Copilot CLIs it finds.
 
 Word and phrase search works immediately. Want search by meaning instead?
 Run `mash models install` **before** the setup command below to add the optional

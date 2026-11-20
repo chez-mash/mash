@@ -49,8 +49,8 @@ things, one to a screen:
 1. **Which histories to index.** The agent histories found on this machine in
    their usual locations, each with a switch.
 2. **How far back.** The last 90 days, all history, or a number of days.
-3. **Which agents to connect.** Claude Code and Codex, when their
-   command-line tools are installed, so those agents can search your history
+3. **Which agents to connect.** Claude Code, Codex and GitHub Copilot, when
+   their command-line tools are installed, so those agents can search your history
    through Mash.
 4. **Review.** What will be written, and whether the search service answers.
 

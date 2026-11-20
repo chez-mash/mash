@@ -2,10 +2,9 @@
 
 The plugin is what makes an agent use Mash without being told to. It adds
 eleven skills, their slash commands, and hooks that bring earlier work into a session
-and keep the index current. `mash init` installs it for Claude Code and
-Codex; for GitHub Copilot CLI you add it with
-[two commands](#github-copilot-cli). This page says what you get and how to
-control it.
+and keep the index current. `mash init` installs it for Claude Code, Codex
+and [GitHub Copilot CLI](#github-copilot-cli). This page says what you get and
+how to control it.
 
 The plugin sits on top of the [MCP server](mcp.md), which gives the agent the
 Mash tools themselves. Without the plugin the tools still work when you ask
@@ -77,6 +76,7 @@ files it edited. To do it yourself:
 ```sh
 claude plugin marketplace add mashium/mash && claude plugin install mash@mash
 codex plugin marketplace add mashium/mash && codex plugin add mash@mash
+copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash
 ```
 
 Restart the agent afterwards. The plugin and the `mash` program are released
@@ -87,27 +87,35 @@ To remove it:
 ```sh
 claude plugin uninstall mash@mash
 codex plugin remove mash@mash
+copilot plugin uninstall mash@mash
 ```
 
 ## GitHub Copilot CLI
 
-`mash init` does not connect Copilot yet, so add the plugin and the Mash tools
-yourself:
+`mash init` connects Copilot as it does the other two: when the `copilot`
+command is on your `PATH`, it registers the Mash tools and installs the
+plugin, and `mash status --installation` reports on both. Start a new Copilot
+session afterwards. To do it yourself:
 
 ```sh
 copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash
 copilot mcp add mash -- mash mcp
 ```
 
-Start a new Copilot session afterwards. To check, `copilot plugin list` shows
-`mash@mash` and `copilot mcp list` shows `mash`; `mash status --installation`
-does not report on Copilot. To remove both:
+`copilot plugin list` then shows `mash@mash` and `copilot mcp list` shows
+`mash`. To remove both:
 
 ```sh
 copilot plugin uninstall mash@mash
 copilot mcp remove mash
 ```
 
+- Copilot keeps these in `~/.copilot` (or the directory `COPILOT_HOME`
+  names): the tools in `mcp-config.json`, the installed plugin in
+  `config.json` and `installed-plugins`.
+- `mash init --backfill-memory` does not accept Copilot. Reviewing old chats
+  that way would spend your premium requests, so only Claude Code and Codex
+  are offered for it.
 - Saving to [memory](records.md) from a Copilot session needs a `mash` that
   can read Copilot's running session. `mash --version-info` lists `copilot`
   under `session_citations` when it can; with an older `mash` the plugin

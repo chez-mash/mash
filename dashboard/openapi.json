@@ -5288,7 +5288,8 @@
       "SetupAgent": {
         "enum": [
           "codex",
-          "claude-code"
+          "claude-code",
+          "copilot"
         ],
         "type": "string"
       },

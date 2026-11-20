@@ -193,6 +193,7 @@ fn setup_summary(
         .map(|agent| match agent {
             Agent::ClaudeCode => "Claude Code",
             Agent::Codex => "Codex",
+            Agent::Copilot => "GitHub Copilot",
         })
         .collect::<Vec<_>>()
         .join(", ");
@@ -209,6 +210,8 @@ fn select_backfill(
     choices: &mut config::init::Choices,
 ) -> Result<(), Failure> {
     if init.backfill_memory.is_none() {
+        // GitHub Copilot is not offered: a headless review would spend the
+        // user's premium requests (see `setup::backfill::supported`).
         let available: Vec<_> = [
             ("Codex", "codex", Agent::Codex),
             ("Claude Code", "claude", Agent::ClaudeCode),
@@ -252,6 +255,7 @@ fn select_agents(init: &mut InitRequest) -> Result<(), Failure> {
         let available: Vec<_> = [
             ("Claude Code", "claude", Agent::ClaudeCode),
             ("Codex", "codex", Agent::Codex),
+            ("GitHub Copilot", "copilot", Agent::Copilot),
         ]
         .into_iter()
         .filter(|(_, command, _)| crate::core::setup::which(command).is_some())
@@ -262,7 +266,9 @@ fn select_agents(init: &mut InitRequest) -> Result<(), Failure> {
             .collect::<Vec<_>>();
         let defaults: Vec<_> = (0..labels.len()).collect();
         let selected = if labels.is_empty() {
-            eprintln!("No Claude Code or Codex CLI found. You can connect an agent later.");
+            eprintln!(
+                "No Claude Code, Codex or GitHub Copilot CLI found. You can connect an agent later."
+            );
             Vec::new()
         } else {
             MultiSelect::new("Which agents should get access to Mash search?", labels)

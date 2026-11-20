@@ -5,6 +5,7 @@ fn environment(root: &Path) -> Environment {
         home: root.to_path_buf(),
         codex: root.join(".codex"),
         claude: root.join(".claude"),
+        copilot: root.join(".copilot"),
         cwd: root.join("project"),
         path: std::ffi::OsString::new(),
     }
@@ -389,12 +390,13 @@ fn installation_multiple_codex_copies_are_ambiguous() {
         == State::Unverified));
 }
 
-/// An environment whose PATH has discovery-only `claude` and `codex` files.
+/// An environment whose PATH has discovery-only `claude`, `codex` and
+/// `copilot` files.
 #[cfg(unix)]
 fn with_agent_clis(root: &Path) -> Environment {
     let mut environment = environment(root);
     let bin = root.join("bin");
-    for agent in ["claude", "codex"] {
+    for agent in ["claude", "codex", "copilot"] {
         write(&bin.join(agent), "discovery-only test fixture");
         #[cfg(unix)]
         {
@@ -535,4 +537,271 @@ fn installation_mcp_without_the_plugin_is_mcp_only_with_the_plugin_commands() {
     );
     assert!(!action.contains("mash init"), "{action}");
     assert!(report.agents_need_attention());
+}
+
+/// Copilot's user settings as its own CLI leaves them: the registration with
+/// `"type": "local"`, and `config.json` behind its comment header, naming
+/// the installed copy `plugin`.
+#[cfg(unix)]
+fn write_copilot_settings(environment: &Environment, plugin: &Path, enabled: bool) {
+    write(
+        &environment.copilot.join("mcp-config.json"),
+        r#"{"mcpServers":{"mash":{"tools":["*"],"type":"local","command":"/bin/true","args":["mcp"]}}}"#,
+    );
+    let config = serde_json::json!({
+        "copilot_tokens": {"https://github.com:someone": "SECRET_COPILOT_TOKEN"},
+        "installedPlugins": [
+            {"name": "other", "marketplace": "elsewhere", "enabled": true},
+            {
+                "name": "mash",
+                "marketplace": "mash",
+                "version": "0.1.79",
+                "cache_path": plugin,
+                "installed_source": {"source": "github", "repo": "mashium/mash"},
+                "enabled": enabled
+            }
+        ]
+    });
+    write(
+        &environment.copilot.join("config.json"),
+        &format!(
+            "// User settings belong in settings.json.\n// This file is managed automatically.\n{config}\n"
+        ),
+    );
+}
+
+/// The installed plugin copy, built from the repository's own files.
+#[cfg(unix)]
+fn write_copilot_plugin(plugin: &Path) {
+    write(
+        &plugin.join(".github/plugin/plugin.json"),
+        include_str!("../../../plugins/mash/.github/plugin/plugin.json"),
+    );
+    write(
+        &plugin.join("skills/mash-history/contract.json"),
+        include_str!("../../../plugins/mash/skills/mash-history/contract.json"),
+    );
+    write(&plugin.join("skills/mash-history/SKILL.md"), "mash-history");
+    write(
+        &plugin.join("hooks/copilot.json"),
+        include_str!("../../../plugins/mash/hooks/copilot.json"),
+    );
+    for name in [
+        "session_start.py",
+        "prompt_recall.py",
+        "file_context.py",
+        "recall_common.py",
+        "record_recall.py",
+        "python.sh",
+    ] {
+        write(&plugin.join("hooks").join(name), "# script");
+    }
+}
+
+#[cfg(unix)]
+fn states(client: &Client, component: Component) -> Vec<State> {
+    client
+        .findings
+        .iter()
+        .filter(|finding| finding.component == component)
+        .map(|finding| finding.state)
+        .collect()
+}
+
+#[cfg(unix)]
+#[test]
+fn installation_complete_copilot_user_setup_has_no_attention_findings() {
+    let root = tempfile::tempdir().unwrap();
+    let mut environment = environment(root.path());
+    environment.path = "/usr/bin:/bin".into();
+    let plugin = environment.copilot.join("installed-plugins/mash/mash");
+    write_copilot_settings(&environment, &plugin, true);
+    write_copilot_plugin(&plugin);
+    // Unnamed, Copilot is expected because its own settings name Mash.
+    let report = collect(Some(&environment), &[], &[]);
+    assert_eq!(report.summary.attention, 0, "{report:?}");
+    let client = &report.clients[2];
+    assert_eq!(client.agent, Agent::Copilot);
+    assert!(client.expected && client.expectation == Expectation::Configured);
+    assert!(client.launch.is_some());
+    assert_eq!(states(client, Component::Plugin), [State::Present]);
+    assert_eq!(states(client, Component::Skill), [State::Present]);
+    assert_eq!(states(client, Component::Hooks), [State::Present; 3]);
+    assert_eq!(states(client, Component::Mcp), [State::Present]);
+    assert_eq!(report.summary.clients[2].connection, Connection::Full);
+    assert!(
+        !serde_json::to_string(&report)
+            .unwrap()
+            .contains("SECRET_COPILOT_TOKEN")
+    );
+    assert_eq!(
+        clients::connection(&environment, Agent::Copilot),
+        (true, true)
+    );
+    assert_eq!(
+        clients::edited_files(&environment, Agent::Copilot),
+        [
+            environment.copilot.join("mcp-config.json"),
+            environment.copilot.join("config.json"),
+            environment.copilot.join("installed-plugins"),
+        ]
+    );
+
+    // A hook whose command was edited, and a script that is gone.
+    let hooks = plugin.join("hooks/copilot.json");
+    let text = std::fs::read_to_string(&hooks).unwrap();
+    write(
+        &hooks,
+        &text.replace("prompt_recall.py\\\" 2>", "other.py\\\" 2>"),
+    );
+    std::fs::remove_file(plugin.join("hooks/file_context.py")).unwrap();
+    let report = collect(Some(&environment), &[Agent::Copilot], &[]);
+    assert_eq!(
+        states(&report.clients[0], Component::Hooks),
+        [State::Present, State::Missing, State::Missing]
+    );
+    assert_eq!(report.summary.clients[0].connection, Connection::McpOnly);
+}
+
+#[cfg(unix)]
+#[test]
+fn installation_copilot_without_the_plugin_is_mcp_only_with_its_plugin_commands() {
+    let root = tempfile::tempdir().unwrap();
+    let environment = with_agent_clis(root.path());
+    write(
+        &environment.copilot.join("mcp-config.json"),
+        r#"{"mcpServers":{"mash":{"tools":["*"],"type":"local","command":"/bin/true","args":["mcp"]}}}"#,
+    );
+    // Other plugins are installed, and the file still has its comment header.
+    write(
+        &environment.copilot.join("config.json"),
+        "// This file is managed automatically.\n{\"installedPlugins\":[{\"name\":\"other\",\"enabled\":true}]}",
+    );
+    let report = collect(Some(&environment), &[], &[]);
+    let client = &report.clients[2];
+    assert!(client.expected);
+    assert_eq!(states(client, Component::Plugin), [State::Missing]);
+    assert_eq!(states(client, Component::Mcp), [State::Present]);
+    assert_eq!(states(client, Component::Configuration), Vec::new());
+    let summary = &report.summary.clients[2];
+    assert_eq!(summary.connection, Connection::McpOnly);
+    assert_eq!(summary.missing, [Component::Plugin]);
+    let action = summary.next_action.as_deref().unwrap();
+    assert!(
+        action.contains(
+            "copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash"
+        ),
+        "{action}"
+    );
+    assert_eq!(
+        clients::connection(&environment, Agent::Copilot),
+        (true, false)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn installation_copilot_disabled_plugin_is_reported() {
+    let root = tempfile::tempdir().unwrap();
+    let mut environment = environment(root.path());
+    environment.path = "/usr/bin:/bin".into();
+    let plugin = environment.copilot.join("installed-plugins/mash/mash");
+    write_copilot_settings(&environment, &plugin, false);
+    write_copilot_plugin(&plugin);
+    let report = collect(Some(&environment), &[], &[]);
+    let client = &report.clients[2];
+    // The MCP registration alone still makes the integration expected.
+    assert!(client.expected);
+    assert_eq!(states(client, Component::Plugin), [State::Disabled]);
+    assert_eq!(states(client, Component::Hooks), Vec::new());
+    assert_eq!(report.summary.clients[2].connection, Connection::McpOnly);
+    assert!(report.agents_need_attention());
+}
+
+#[test]
+fn installation_copilot_unreadable_or_malformed_config_is_a_finding() {
+    let root = tempfile::tempdir().unwrap();
+    let environment = environment(root.path());
+    let config = environment.copilot.join("config.json");
+    for content in [
+        "// This file is managed automatically.\n{\"installedPlugins\": SECRET_VALUE_INVALID",
+        "// only a comment",
+        "",
+        "{\"installedPlugins\":{\"name\":\"mash\"}}",
+    ] {
+        write(&config, content);
+        let report = collect(Some(&environment), &[Agent::Copilot], &[]);
+        assert!(
+            report.clients[0].findings.iter().any(|finding| {
+                finding.component == Component::Configuration
+                    && finding.state == State::Invalid
+                    && finding.path.as_deref() == Some(config.as_path())
+            }),
+            "{content}: {report:?}"
+        );
+        assert!(report.summary.attention > 0);
+        assert!(
+            !serde_json::to_string(&report)
+                .unwrap()
+                .contains("SECRET_VALUE_INVALID")
+        );
+        assert_eq!(
+            clients::connection(&environment, Agent::Copilot),
+            (false, false)
+        );
+    }
+    // A directory in the file's place cannot be read at all.
+    std::fs::remove_file(&config).unwrap();
+    std::fs::create_dir(&config).unwrap();
+    let report = collect(Some(&environment), &[Agent::Copilot], &[]);
+    assert!(report.clients[0].findings.iter().any(|finding| {
+        finding.component == Component::Configuration && finding.state == State::Invalid
+    }));
+}
+
+#[cfg(unix)]
+#[test]
+fn installation_copilot_local_transport_is_an_inspectable_registration() {
+    let root = tempfile::tempdir().unwrap();
+    let environment = environment(root.path());
+    let path = environment.copilot.join("mcp-config.json");
+    let register = |command: &str, kind: &str| {
+        write(
+            &path,
+            &serde_json::json!({"mcpServers":{"mash":{"tools":["*"],"type":kind,"command":command,"args":["mcp"]}}})
+                .to_string(),
+        );
+    };
+    assert_eq!(
+        clients::registration(&environment, Agent::Copilot),
+        Registration::Unknown
+    );
+    register("/old/mash", "local");
+    assert_eq!(
+        clients::registration(&environment, Agent::Copilot),
+        Registration::Stale {
+            command: "/old/mash".into()
+        }
+    );
+    let current = std::env::current_exe().unwrap();
+    register(&current.to_string_lossy(), "local");
+    assert_eq!(
+        clients::registration(&environment, Agent::Copilot),
+        Registration::Current
+    );
+    // A remote transport stays uninspectable, and `local` means stdio for
+    // Copilot only.
+    register("/old/mash", "http");
+    assert_eq!(
+        clients::registration(&environment, Agent::Copilot),
+        Registration::Unknown
+    );
+    write(
+        &environment.home.join(".claude.json"),
+        r#"{"mcpServers":{"mash":{"type":"local","command":"/old/mash"}}}"#,
+    );
+    assert_eq!(
+        clients::registration(&environment, Agent::ClaudeCode),
+        Registration::Unknown
+    );
 }

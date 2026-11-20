@@ -18,7 +18,7 @@ Every command prints JSON; `--help` and `--version` print plain text. To read co
 | Command | What it does | Most useful options |
 | --- | --- | --- |
 | `mash qdrant install` | Downloads, verifies and starts the local search service. Rerun it to repair or upgrade; its data is kept. | |
-| `mash init` | Sets up Mash: writes configuration for the histories it finds, connects Claude Code and Codex, and indexes. | `--yes` accepts the defaults without prompts. `--no-index` configures without the search service running. `--no-agents` leaves agent settings unchanged. `--force` replaces an existing configuration, kept as `config.toml.previous`. |
+| `mash init` | Sets up Mash: writes configuration for the histories it finds, connects Claude Code, Codex and GitHub Copilot CLI, and indexes. | `--yes` accepts the defaults without prompts. `--no-index` configures without the search service running. `--no-agents` leaves agent settings unchanged. `--force` replaces an existing configuration, kept as `config.toml.previous`. |
 | `mash search 'QUERY'` | Searches indexed chats or messages. | `--intent exact-mention` or `--intent related-discussion`, `--unit messages`, `--days N`, `--provider PROVIDER`, `--limit N`. See [search filters](search.md). |
 | `mash list-chats` | Lists chats, most recently active first. | `--title-contains 'part of the title'`, `--provider PROVIDER`, `--limit N`. |
 | `mash view MESSAGE_ID` | Returns one message. | `--context N` adds up to N messages before and after. |

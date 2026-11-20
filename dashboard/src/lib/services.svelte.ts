@@ -119,7 +119,7 @@ export interface SetupStep {
   remediation: string | null;
 }
 export interface AgentSetup {
-  agent: "codex" | "claude-code";
+  agent: Wire["SetupAgent"];
   expected: boolean;
   connected: boolean;
   steps: SetupStep[];

@@ -356,7 +356,7 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
         Vec::new()
     };
     if agents.is_empty() && request.agents {
-        next.push("No Claude Code or Codex CLI was found on PATH. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
+        next.push("No Claude Code, Codex or GitHub Copilot CLI was found on PATH. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
     }
     record_agents(&mut config, &agents, &mut next).await;
     if !request.index {
@@ -506,7 +506,11 @@ async fn register(
     selected: Option<&[Agent]>,
 ) -> Vec<AgentOutcome> {
     let mut outcomes = Vec::new();
-    for (kind, install) in [(Agent::ClaudeCode, "install"), (Agent::Codex, "add")] {
+    for (kind, install) in [
+        (Agent::ClaudeCode, "install"),
+        (Agent::Codex, "add"),
+        (Agent::Copilot, "install"),
+    ] {
         if selected.is_some_and(|agents| !agents.contains(&kind)) {
             continue;
         }

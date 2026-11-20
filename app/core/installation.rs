@@ -371,6 +371,7 @@ struct Environment {
     home: PathBuf,
     codex: PathBuf,
     claude: PathBuf,
+    copilot: PathBuf,
     cwd: PathBuf,
     path: std::ffi::OsString,
 }
@@ -383,6 +384,8 @@ impl Environment {
                 .map_or_else(|| home.join(".codex"), PathBuf::from),
             claude: std::env::var_os("CLAUDE_CONFIG_DIR")
                 .map_or_else(|| home.join(".claude"), PathBuf::from),
+            copilot: std::env::var_os("COPILOT_HOME")
+                .map_or_else(|| home.join(".copilot"), PathBuf::from),
             home,
             cwd: std::env::current_dir().ok()?,
             path: std::env::var_os("PATH").unwrap_or_default(),
@@ -470,11 +473,11 @@ fn collect(environment: Option<&Environment>, agents: &[Agent], recorded: &[Agen
         },
         clients: vec![],
         resources: None,
-        scope: "Local Codex and Claude Code user settings and current-project override detection. Managed settings, profiles, remote hosts and other clients are not certified.",
+        scope: "Local Codex, Claude Code and GitHub Copilot CLI user settings and current-project override detection. Managed settings, profiles, remote hosts and other clients are not certified.",
         runtime: "Existing agent sessions, loaded plugins and live hook execution are unverified. Restart the agent after repairs. A probe tests a new process only.",
     };
     if let Some(environment) = environment {
-        for agent in [Agent::Codex, Agent::ClaudeCode] {
+        for agent in [Agent::Codex, Agent::ClaudeCode, Agent::Copilot] {
             if agents.is_empty() || agents.contains(&agent) {
                 report.clients.push(clients::inspect(
                     environment,
@@ -608,6 +611,35 @@ pub(super) async fn inspect(
 
 /// Bounded reads and deliberately generic parse failures keep credentials out of diagnostics.
 fn read<T: serde::de::DeserializeOwned>(path: &Path) -> Result<Option<T>, &'static str> {
+    let Some(bytes) = read_bytes(path)? else {
+        return Ok(None);
+    };
+    parse(path, &bytes).map(Some)
+}
+
+/// Copilot's `config.json` is a JSON object after leading `//` comment lines.
+/// It also holds sign-in tokens: only the typed fields are kept, and a
+/// failure reports nothing from the file.
+fn read_commented_json<T: serde::de::DeserializeOwned>(
+    path: &Path,
+) -> Result<Option<T>, &'static str> {
+    let Some(bytes) = read_bytes(path)? else {
+        return Ok(None);
+    };
+    let mut text = std::str::from_utf8(&bytes).map_err(|_| "Settings file is not UTF-8.")?;
+    loop {
+        text = text.trim_start();
+        if !text.starts_with("//") {
+            break;
+        }
+        text = text.split_once('\n').map_or("", |(_, rest)| rest);
+    }
+    serde_json::from_str(text)
+        .map(Some)
+        .map_err(|_| "Invalid or unsupported JSON settings; inspect the file in the agent client.")
+}
+
+fn read_bytes(path: &Path) -> Result<Option<Vec<u8>>, &'static str> {
     use std::io::Read;
     let file = match std::fs::File::open(path) {
         Ok(file) => file,
@@ -621,16 +653,20 @@ fn read<T: serde::de::DeserializeOwned>(path: &Path) -> Result<Option<T>, &'stat
     if bytes.len() > 4 * 1024 * 1024 {
         return Err("Settings file exceeds the 4 MiB inspection limit.");
     }
+    Ok(Some(bytes))
+}
+
+fn parse<T: serde::de::DeserializeOwned>(path: &Path, bytes: &[u8]) -> Result<T, &'static str> {
     if path
         .extension()
         .is_some_and(|extension| extension == "toml")
     {
-        let text = std::str::from_utf8(&bytes).map_err(|_| "Settings file is not UTF-8.")?;
-        toml::from_str(text).map(Some).map_err(
+        let text = std::str::from_utf8(bytes).map_err(|_| "Settings file is not UTF-8.")?;
+        toml::from_str(text).map_err(
             |_| "Invalid or unsupported TOML settings; inspect the file in the agent client.",
         )
     } else {
-        serde_json::from_slice(&bytes).map(Some).map_err(
+        serde_json::from_slice(bytes).map_err(
             |_| "Invalid or unsupported JSON settings; inspect the file in the agent client.",
         )
     }

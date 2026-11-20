@@ -251,9 +251,9 @@ In a terminal, `mash init` opens a setup wizard:
    server, or set up sharing later.
 2. Select detected histories, or add or replace a provider's history path.
 3. Choose the last 90 days, all history, or a custom number of days.
-4. Select Claude Code and Codex integrations found on `PATH`.
+4. Select Claude Code, Codex and GitHub Copilot integrations found on `PATH`.
 5. Optionally backfill memory from chats active in the last 3 days using a
-   selected signed-in agent. It runs here after indexing, uses agent tokens,
+   selected signed-in agent (Claude Code or Codex). It runs here after indexing, uses agent tokens,
    and sends selected chat text to that agent's service. Older chats are never
    assigned to future conversations. See [memory backfill](records.md#backfill-earlier-memory).
 6. Review the summary and confirm. You can save configuration only or cancel.
@@ -341,7 +341,7 @@ directory, with its size. With `--yes`, Mash:
 
 1. stops and removes the services it set up: the search service and its data,
    the [remote dashboard](dashboard.md), and an installed index watcher;
-2. disconnects Claude Code and Codex through their own commands, the ones
+2. disconnects Claude Code, Codex and GitHub Copilot through their own commands, the ones
    under [disconnect an agent](agents.md#disconnect-an-agent);
 3. deletes its index (Mash's copy of your chats), models, configuration and
    saved tokens.
