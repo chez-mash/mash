@@ -312,6 +312,8 @@
   }
   .reply {
     display: grid;
+    /* One column no wider than the panel, however long a line inside it is. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.625rem;
     color: var(--ink);
   }
@@ -346,6 +348,7 @@
   /* The chats behind an answer, in the order they happened. */
   .story {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.25rem;
     padding-left: 0.75rem;
     border-left: 1px solid var(--line);
