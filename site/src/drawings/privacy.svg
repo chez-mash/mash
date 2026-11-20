@@ -1,5 +1,5 @@
 <!-- A laptop with a padlock, for the privacy section. Each path is drawn by scroll in src/welcome.ts. -->
-<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.9" viewBox="40 120 666 410" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.45" viewBox="40 120 666 410" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
   <path d="M153 150H593A22 22 0 0 1 615 172V450H131V172A22 22 0 0 1 153 150Z"/>
   <path d="M71 450H675V470A28 28 0 0 1 647 498H99A28 28 0 0 1 71 470Z"/>
   <path d="M318 450V456A10 10 0 0 0 328 466H418A10 10 0 0 0 428 456V450"/>

@@ -28,6 +28,8 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Give your agents a memory.",
   ]);
   await expect(page.locator(".mash-welcome .tiles article")).toHaveCount(5);
+  // Every section with a drawing but the last pins and plays the same way.
+  await expect(page.locator(".mash-welcome .scene")).toHaveCount(6);
   // The marks rise in one after another when they come into view.
   await marks.first().scrollIntoViewIfNeeded();
   for (const mark of await marks.all()) await expect(mark).toHaveClass(/seen/);

@@ -336,12 +336,14 @@ const signIn = "Move sign-in to short-lived tokens";
     </div>
   </section>
 
-  <section class="speed backdrop" aria-labelledby="welcome-speed">
+  <section class="scene speed" data-steps="1" aria-labelledby="welcome-speed">
+    <div class="stage">
     <Fragment set:html={speedArt} />
     <div class="head">
       <span class="eyebrow">Performance</span>
       <h2 id="welcome-speed">Fast, and light on your machine.</h2>
     </div>
+    <div class="show wide">
     <dl class="stats" data-reveal>
       <div>
         <dt><b data-count="66">66</b><small> ms</small></dt>
@@ -377,19 +379,24 @@ const signIn = "Move sign-in to short-lived tokens";
         experimental and off until you <a href="/configuration/">turn them on</a>.
       </p>
     </details>
+    </div>
+    </div>
   </section>
 
-  <section class="privacy backdrop" aria-labelledby="welcome-privacy">
+  <section class="scene privacy" data-steps="2" aria-labelledby="welcome-privacy">
+    <div class="stage">
+    <Fragment set:html={privacyArt} />
     <div class="head">
       <span class="eyebrow">Privacy</span>
       <h2 id="welcome-privacy">Self-hosted, end to end. <span>No cloud. No account.</span></h2>
     </div>
-    <Fragment set:html={privacyArt} />
-    <p class="blurb" data-words>
+    <div class="show wide">
+    <div class="steps swap">
+    <p class="blurb" data-step="0">
       Your history stays on machines you own. Indexed there. Searched there. Shared only between
       them, and only if you say so.
     </p>
-    <ul class="trio" data-reveal>
+    <ul class="trio" data-step="1">
       <li>
         <Fragment set:html={drawn.laptop} />
         <h3>Runs on your machine</h3>
@@ -411,7 +418,10 @@ const signIn = "Move sign-in to short-lived tokens";
         <p>Recognisable keys and tokens are hidden in results and in anything you share.</p>
       </li>
     </ul>
+    </div>
     <p class="links"><a href="/privacy/">How Mash handles your history ›</a></p>
+    </div>
+    </div>
   </section>
 
   <section class="tiles" data-reveal aria-label="More about Mash">
@@ -452,13 +462,14 @@ const signIn = "Move sign-in to short-lived tokens";
     </article>
   </section>
 
-  <section class="rust backdrop" aria-labelledby="welcome-rust">
+  <section class="scene rust" data-steps="1" aria-labelledby="welcome-rust">
+    <div class="stage">
+    <Fragment set:html={ferrisArt} />
     <div class="head">
       <span class="eyebrow">Open source</span>
       <h2 id="welcome-rust">Written with <b class="turn">&lt;3</b> in Rust.</h2>
     </div>
-    <Fragment set:html={ferrisArt} />
-    <div class="after" data-reveal>
+    <div class="show wide after" data-reveal>
       <p class="blurb">
         Mash is free and open source, under the MIT and Apache 2.0 licenses. Use it, read it, change
         it, ship it. It is built in the open and driven by its community: ideas, issues and pull
@@ -468,6 +479,7 @@ const signIn = "Move sign-in to short-lived tokens";
         <a href="https://github.com/mashium/mash">Read the source ›</a>
         <a href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
       </p>
+    </div>
     </div>
   </section>
 
