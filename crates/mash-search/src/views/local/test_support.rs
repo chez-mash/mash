@@ -3,8 +3,10 @@ use super::{Local, Path, ResolvedConfig, Storage, build};
 
 pub fn qdrant_configuration() -> crate::config::QdrantConfig {
     crate::config::QdrantConfig {
-        url: std::env::var("MASH_TEST_QDRANT_URL").unwrap(),
-        grpc_url: std::env::var("MASH_TEST_QDRANT_GRPC_URL").unwrap(),
+        url: mash_model::test_support::qdrant::endpoints().url.clone(),
+        grpc_url: mash_model::test_support::qdrant::endpoints()
+            .grpc_url()
+            .to_owned(),
         ..Default::default()
     }
 }

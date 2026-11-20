@@ -25,8 +25,10 @@ preserve silver, and repair through replay. It is included in the existing CI
 Qdrant test selection. It does not terminate a process or simulate power loss;
 the separate persisted-restart contract covers process termination.
 
-Run locally through `agent-test` with `MASH_TEST_QDRANT_URL` pointing to a
-disposable, memory-limited Qdrant 1.20+ service:
+Run locally through `agent-test`. With Docker available, each test starts a
+disposable, memory-limited Qdrant 1.20 container itself; otherwise set
+`MASH_TEST_QDRANT_URL` and `MASH_TEST_QDRANT_GRPC_URL` to one you run (see the
+development guide):
 
 ```bash
 agent-test env TMPDIR=/home/james/scratch/achi-tmp \
@@ -44,9 +46,10 @@ existing deadlines even inside the per-job memory budget.
 ## Direct local Qdrant acceptance
 
 Local CLI/MCP calls Qdrant directly; it does not start an Axum service. Run the
-local lifecycle tests against one disposable Qdrant instance, with both
+local lifecycle tests against a disposable Qdrant: a container each test
+starts when Docker is available, or one instance named by both
 `MASH_TEST_QDRANT_URL` (REST reads/setup) and `MASH_TEST_QDRANT_GRPC_URL`
-(point mutations) set to that instance:
+(point mutations):
 
 ```bash
 agent-test env TMPDIR=/home/james/scratch/achi-tmp \

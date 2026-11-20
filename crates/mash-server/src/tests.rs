@@ -532,8 +532,8 @@ impl Service {
         let views = if matches!(backend, TestBackend::Qdrant) {
             crate::views::qdrant::Store::connect(
                 (
-                    &std::env::var("MASH_TEST_QDRANT_URL").unwrap(),
-                    &std::env::var("MASH_TEST_QDRANT_GRPC_URL").unwrap(),
+                    &mash_model::test_support::qdrant::endpoints().url,
+                    mash_model::test_support::qdrant::endpoints().grpc_url(),
                 ),
                 None,
                 &[group.clone(), format!("{group}-other")],
@@ -749,7 +749,7 @@ impl Service {
                 reqwest::Client::new()
                     .delete(format!(
                         "{}/collections/mash_views_{}_{suffix}",
-                        std::env::var("MASH_TEST_QDRANT_URL").unwrap(),
+                        mash_model::test_support::qdrant::endpoints().url.clone(),
                         blake3::hash(group.as_bytes()).to_hex()
                     ))
                     .send()

@@ -264,17 +264,25 @@ The installed August 2026 nightly can hit a [Clippy compiler crash](https://gith
 when checking async code. On that toolchain, use
 `RUSTFLAGS=-Znext-solver=no cargo clippy --all-targets -- -D warnings`.
 
-The storage integration tests require disposable Qdrant 1.20+ in
-`MASH_TEST_QDRANT_URL` and its gRPC endpoint in `MASH_TEST_QDRANT_GRPC_URL`.
-Tests start real HTTP services and create/remove isolated
-collections for their owned groups:
+The storage integration tests are ignored by default and need Qdrant 1.20+.
+With Docker available, nothing else is needed: each test process starts its own
+disposable `qdrant/qdrant:v1.20.0` container through
+[testcontainers](https://github.com/testcontainers/testcontainers-rs)
+(`mash_model::test_support::qdrant`), capped at 2 GiB and two CPUs, labelled
+`mash.test=qdrant` and `mash.test.owner`, and removed by a reaper process when
+the test process exits, including after a timeout or kill. Starting one takes
+about half a second with the image cached. To use a Qdrant you run instead (CI's
+service, Windows' native Qdrant), set both `MASH_TEST_QDRANT_URL` and
+`MASH_TEST_QDRANT_GRPC_URL`; then no container starts. Tests start real HTTP
+services and create/remove isolated collections for their owned groups:
 
 ```bash
 MASH_TEST_MODELS_DIR='/path/to/explicitly-installed-models' \
-  MASH_TEST_QDRANT_URL='http://localhost:6333/' \
-  MASH_TEST_QDRANT_GRPC_URL='http://localhost:6334/' \
   cargo nextest run --run-ignored only --no-tests fail -j 2 -E 'test(qdrant)'
 ```
+
+Docker containers run outside `agent-test`'s memory budget, which is why each
+one carries its own limit; keep `-j` low on a shared machine.
 
 The real-model integration tests are ignored by default and require
 `MASH_TEST_MODELS_DIR` pointing at assets created by `mash models install`.

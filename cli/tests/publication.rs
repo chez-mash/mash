@@ -343,6 +343,12 @@ fn spawn_crash_server(
         std::fs::write(&path, toml::to_string(&config).unwrap()).unwrap();
     }
     let mut command = std::process::Command::new(assert_cmd::cargo::cargo_bin!("mash-server"));
+    // The server reads its Qdrant from the variables its configuration names;
+    // pass this test's, which may be a container started for it.
+    let qdrant = mash_model::test_support::qdrant::endpoints();
+    command
+        .env("MASH_TEST_QDRANT_URL", &qdrant.url)
+        .env("MASH_TEST_QDRANT_GRPC_URL", qdrant.grpc_url());
     command
         .args(["--server-config", path.to_str().unwrap()])
         .stdin(std::process::Stdio::piped())

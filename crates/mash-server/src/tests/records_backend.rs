@@ -20,7 +20,7 @@ async fn documents(service: &Service) -> Value {
     let response: Value = reqwest::Client::new()
         .post(format!(
             "{}/collections/mash_views_{}_messages/points/scroll",
-            std::env::var("MASH_TEST_QDRANT_URL").unwrap(),
+            mash_model::test_support::qdrant::endpoints().url.clone(),
             blake3::hash(service.group.as_bytes()).to_hex()
         ))
         .json(&json!({"limit":100,"with_payload":true,"with_vector":true}))

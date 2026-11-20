@@ -8,7 +8,7 @@ publish = false
 
 [features]
 # Fixtures the tests of other workspace crates need.
-test-support = ["dep:axum"]
+test-support = ["dep:axum", "dep:testcontainers"]
 
 [dependencies]
 axum = { version = "0.8", features = ["ws"], optional = true }
@@ -23,6 +23,8 @@ schemars = "1.2"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.149", features = ["raw_value"] }
 tempfile = "3.27.0"
+# Disposable Qdrant containers for backend tests (test-support only).
+testcontainers = { version = "0.28.0", default-features = false, features = ["blocking"], optional = true }
 tokio = { version = "1", features = ["rt", "sync", "macros", "time", "net"] }
 url = "2.5.8"
 

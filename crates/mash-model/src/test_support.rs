@@ -4,6 +4,8 @@ use std::path::Path;
 use std::time::Duration;
 
 #[cfg(feature = "test-support")]
+pub mod qdrant;
+#[cfg(feature = "test-support")]
 pub mod vector;
 
 /// Bound for a wait that only guards against a hung test. Completion or an

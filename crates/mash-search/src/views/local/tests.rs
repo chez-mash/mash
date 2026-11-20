@@ -15,8 +15,10 @@ impl Fixture {
         let config = directory.path().join("config.toml");
         std::fs::write(&config, "version = 1\n[providers]\n").unwrap();
         let mut configuration = crate::config::load(Some(&config)).unwrap();
-        configuration.qdrant.url = std::env::var("MASH_TEST_QDRANT_URL").unwrap();
-        configuration.qdrant.grpc_url = std::env::var("MASH_TEST_QDRANT_GRPC_URL").unwrap();
+        configuration.qdrant.url = mash_model::test_support::qdrant::endpoints().url.clone();
+        configuration.qdrant.grpc_url = mash_model::test_support::qdrant::endpoints()
+            .grpc_url()
+            .to_owned();
         configuration.views.build.representations =
             crate::views::config::Representations::LexicalOnly;
         let database = directory.path().join("silver.sqlite3");

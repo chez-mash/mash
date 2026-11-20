@@ -172,9 +172,10 @@ pub(super) fn configure_qdrant(config: &Path) {
     let mut document: toml::Value =
         toml::from_str(&std::fs::read_to_string(config).unwrap()).unwrap();
     let qdrant = toml::Value::try_from(toml::toml! {
-        url = (std::env::var("MASH_TEST_QDRANT_URL").expect("disposable Qdrant REST endpoint"))
-        grpc_url = (std::env::var("MASH_TEST_QDRANT_GRPC_URL").expect("disposable Qdrant gRPC endpoint"))
-    }).unwrap();
+        url = (mash_model::test_support::qdrant::endpoints().url.clone())
+        grpc_url = (mash_model::test_support::qdrant::endpoints().grpc_url().to_owned())
+    })
+    .unwrap();
     document
         .as_table_mut()
         .unwrap()
@@ -209,7 +210,7 @@ pub(super) fn local_gold_points(database: &Path, node: &str) -> Vec<Value> {
         blake3::hash(group.as_bytes()).to_hex()
     );
     tokio::runtime::Runtime::new().unwrap().block_on(async {
-        let origin = std::env::var("MASH_TEST_QDRANT_URL").unwrap();
+        let origin = mash_model::test_support::qdrant::endpoints().url.clone();
         let client = reqwest::Client::new();
         let mut points = Vec::new();
         let mut offset = Value::Null;

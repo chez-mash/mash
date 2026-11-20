@@ -32,7 +32,7 @@ impl Fixture {
         Self::write_codex(&codex);
         let group = format!("routing-{}", root.file_name().unwrap().to_string_lossy());
         let backend = if start_server {
-            std::env::var("MASH_TEST_QDRANT_URL").ok()
+            Some(mash_model::test_support::qdrant::endpoints().url.clone())
         } else {
             None
         };

@@ -32,8 +32,10 @@ impl Fixture {
         let mut random = [0u8; 16];
         getrandom::fill(&mut random).unwrap();
         let group = format!("qdrant-test-{}", hex::encode(random));
-        let url = std::env::var("MASH_TEST_QDRANT_URL").unwrap();
-        let grpc_url = std::env::var("MASH_TEST_QDRANT_GRPC_URL").unwrap();
+        let url = mash_model::test_support::qdrant::endpoints().url.clone();
+        let grpc_url = mash_model::test_support::qdrant::endpoints()
+            .grpc_url()
+            .to_owned();
         let identity = Scope {
             group_id: group.clone(),
             node_id: "node".into(),

@@ -59,6 +59,12 @@ impl Server {
         }
         std::fs::write(&path, toml::to_string(&config).unwrap()).unwrap();
         let mut command = std::process::Command::new(assert_cmd::cargo::cargo_bin!("mash-server"));
+        // The server reads its Qdrant from the variables its configuration names;
+        // pass this test's, which may be a container started for it.
+        let qdrant = mash_model::test_support::qdrant::endpoints();
+        command
+            .env("MASH_TEST_QDRANT_URL", &qdrant.url)
+            .env("MASH_TEST_QDRANT_GRPC_URL", qdrant.grpc_url());
         command
             .args(["--server-config", path.to_str().unwrap()])
             .stdin(Stdio::piped())
@@ -186,7 +192,7 @@ async fn qdrant_default_server_configuration_starts_and_creates_group_collection
     let server = Server::new(root.path(), &group, &["node"]);
     let document = std::fs::read_to_string(root.path().join("server.toml")).unwrap();
     assert!(!document.contains("backend"));
-    let origin = std::env::var("MASH_TEST_QDRANT_URL").unwrap();
+    let origin = mash_model::test_support::qdrant::endpoints().url.clone();
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
@@ -288,8 +294,9 @@ async fn qdrant_server_views_activation_rejects_conflicting_startup_and_survives
         client
             .delete(format!(
                 "{}/collections/mash_views_{}_{kind}",
-                std::env::var("MASH_TEST_QDRANT_URL")
-                    .unwrap()
+                mash_model::test_support::qdrant::endpoints()
+                    .url
+                    .clone()
                     .trim_end_matches('/'),
                 blake3::hash(group.as_bytes()).to_hex(),
             ))
@@ -431,7 +438,7 @@ fn qdrant_server_rejects_invalid_settings_before_network_access() {
 
 pub fn cleanup_group(group: &str) {
     tokio::runtime::Runtime::new().unwrap().block_on(async {
-        let origin = std::env::var("MASH_TEST_QDRANT_URL").unwrap();
+        let origin = mash_model::test_support::qdrant::endpoints().url.clone();
         let client = reqwest::Client::new();
         for kind in ["state", "messages"] {
             let collection = format!(
