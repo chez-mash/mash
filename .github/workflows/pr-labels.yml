@@ -1,0 +1,42 @@
+name: PR labels
+
+# Label pull requests from facts alone: changed paths and the template's
+# Intent and AI assistance sections (.github/scripts/pr-labels).
+#
+# pull_request_target lets pull requests from forks be labelled. It checks out
+# the base branch only and never runs the pull request's code; the script
+# reads the pull request through the API.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Pull request number
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: pr-labels-${{ github.event.pull_request.number || inputs.pull_request }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the base branch
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - name: Apply labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number || inputs.pull_request }}
+        run: .github/scripts/pr-labels "$NUMBER"

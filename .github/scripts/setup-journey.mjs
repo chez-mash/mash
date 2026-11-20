@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 // Only run on disposable hosted runners. Local validation uses explicit temporary roots.
 const local = process.argv.includes('--prepare-only');
 const journey = process.env.UX_JOURNEY ?? 'setup';
-if (!['setup', 'records'].includes(journey)) throw new Error('Unknown journey');
+if (!['setup', 'agent', 'records'].includes(journey)) throw new Error('Unknown journey');
 if (!local && process.env.GITHUB_ACTIONS !== 'true') {
   throw new Error('Live preparation requires a disposable GitHub Actions runner.');
 }
@@ -21,7 +21,8 @@ await mkdir(join(work, 'docs'), { recursive: true });
 await mkdir(join(report, 'user-docs', 'docs'), { recursive: true });
 await mkdir(join(work, 'assets'), { recursive: true });
 await mkdir(join(report, 'user-docs', 'assets'), { recursive: true });
-const files = ['README.md', 'assets/mash-logo-dark.svg', 'assets/mash-logo-light.svg', ...(await readdir('docs')).filter(n => n.endsWith('.md')).map(n => `docs/${n}`)];
+// The agent journey starts from the published setup page alone.
+const files = journey === 'agent' ? [] : ['README.md', 'assets/mash-logo-dark.svg', 'assets/mash-logo-light.svg', ...(await readdir('docs')).filter(n => n.endsWith('.md')).map(n => `docs/${n}`)];
 const documents = {};
 for (const file of files) {
   const content = await readFile(file);
@@ -59,7 +60,7 @@ await writeFile(join(report, 'metadata.json'), JSON.stringify({
   fixture: 'synthetic Claude history, no real user data',
   isolation: 'disposable hosted VM; source-free starting directory, not a filesystem sandbox',
 }, null, 2));
-const prompt = await readFile(`.github/ux/${journey === 'records' ? 'records' : 'setup'}-tester.md`, 'utf8');
+const prompt = await readFile(`.github/ux/${journey}-tester.md`, 'utf8');
 await writeFile(join(report, 'prompt.md'), `${prompt}\n\nYour platform: ${process.env.UX_PLATFORM ?? process.platform}.\nStarting directory: ${resolve(work)}\nJournal: ${resolve(join(report, 'journal.md'))}\n`);
 if (!local) {
   if (!process.env.GITHUB_ENV) throw new Error('GITHUB_ENV is required.');

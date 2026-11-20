@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       journey:
-        description: Released setup or candidate record lifecycle
+        description: Released setup from the guides, released setup from the agent page, or candidate record lifecycle
         type: choice
-        options: [setup, records]
+        options: [setup, agent, records]
         default: setup
 
 permissions:
@@ -64,7 +64,7 @@ jobs:
       fail-fast: false
       max-parallel: 6
       matrix:
-        os: [ubuntu-latest, macos-26, windows-latest]
+        os: ${{ fromJSON(inputs.journey == 'agent' && '["ubuntu-latest","ubuntu-24.04-arm","macos-26","windows-latest"]' || '["ubuntu-latest","macos-26","windows-latest"]') }}
         tester: ${{ fromJSON(inputs.journey == 'records' && '["a","b"]' || '["a"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -86,6 +86,7 @@ jobs:
             !/docs/internal/
             /.github/scripts/setup-journey.mjs
             /.github/ux/setup-tester.md
+            /.github/ux/agent-tester.md
             /.github/ux/records-tester.md
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:

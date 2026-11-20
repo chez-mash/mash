@@ -1,0 +1,8 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax"],
+  "effort": "base",
+  "autoReview": ["open"],
+  "statusCheck": true,
+  "ignorePatterns": "site/**\nCargo.lock\ndashboard/pnpm-lock.yaml\ndashboard/openapi.json\ndashboard/src/lib/contract.ts\ndocs/internal/shared-server-openapi.json\ncrates/mash-storage/src/storage/generated/**\ndeployment/**/uv.lock\nfixtures/**\nbucket/**"
+}

@@ -1,0 +1,25 @@
+name: Issue triage
+
+# Label every issue opened by someone outside the organisation as
+# "awaiting triage", so new reports are easy to find.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    if: >-
+      github.event.issue.author_association != 'OWNER' &&
+      github.event.issue.author_association != 'MEMBER'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add awaiting triage label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: gh issue edit "$NUMBER" --repo "$REPO" --add-label "awaiting triage"

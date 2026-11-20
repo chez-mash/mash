@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Create or update the repository's labels from .github/labels.tsv
+# (name, colour, description). It never deletes a label.
+#
+# Usage: .github/scripts/sync-labels [OWNER/REPO]
+set -euo pipefail
+repo=${1:-mashium/mash}
+while IFS=$'\t' read -r name colour description; do
+	[[ -n $name ]] || continue
+	gh label create "$name" --repo "$repo" --color "$colour" --description "$description" --force
+done <"$(dirname "$0")/../labels.tsv"

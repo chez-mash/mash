@@ -126,6 +126,7 @@ jobs:
         run: |
           TMPDIR="$RUNNER_TEMP" bash tools/test-dev-api.sh
           TMPDIR="$RUNNER_TEMP" bash tools/test-dev-build.sh
+          bash tools/test-pr-labels.sh
       - name: Verify Ansible fleet policy and cross-session exclusion
         env:
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/mash-ansible-runtime

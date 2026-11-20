@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "description": "Repository policy: product boundary, storage and search rules, and how changes are verified"
+    },
+    {
+      "path": "",
+      "description": "Which crate owns what, and the rule that a lower crate never refers to a higher one"
+    },
+    {
+      "path": "docs/internal/database-migrations.md",
+      "description": "How the SQLite schema is migrated and which starting versions are supported"
+    }
+  ]
+}

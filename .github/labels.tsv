@@ -1,0 +1,20 @@
+awaiting triage	fbca04	New issue not yet reviewed by a maintainer
+category:fix	1d76db	Something did not work as documented
+category:feature	1d76db	New behaviour a user can see
+category:performance	1d76db	Speed, memory or disk; results meant to stay the same
+category:refactor	1d76db	No behaviour change
+category:docs	1d76db	Docs or website only
+category:tooling	1d76db	CI, scripts, packaging or dependencies
+area:cli	0e8a16	The mash command line and application core
+area:search	0e8a16	Search, ranking, embedding and reranking
+area:history	0e8a16	Reading agents' chat histories
+area:storage	0e8a16	The SQLite index, Qdrant publication and sharing
+area:server	0e8a16	The shared server, fleet tooling and GPU workers
+area:agents	0e8a16	The MCP server and agent plugins
+area:dashboard	0e8a16	The web dashboard
+area:install	0e8a16	Installers, packages and releases
+touches:schema	d93f0b	Changes the SQLite schema or its migrations
+touches:contract	d93f0b	Changes a committed API or tool contract
+touches:protocol	d93f0b	Changes a TLA+ protocol model
+needs:intent	e99695	The description does not say what kind of change this is
+needs:ai-disclosure	e99695	The description lacks the AI assistance section
