@@ -150,6 +150,10 @@ and never panics. Await shared HTTP I/O and model-work boundaries. Keep Rusqlite
 parsing, and local inference on blocking workers; bound model work and serialize
 MCP mutations while permitting read concurrency. Add a dependency only when it
 is smaller and clearer than a local implementation of the required behavior.
+Keep handwritten production files within 500 lines (`tools/check_file_lines.py`;
+the files in its baseline may only shrink) and suppress long-function lints with
+`#[expect]`, never `#[allow]`. Drive user services through `app/service.rs` and
+put file, path and process plumbing in `mash-model`'s `platform` module.
 
 Use typed Rust models for known serialized schemas throughout the application.
 Use enums for providers, roles, phases, states, modes, and other known alternatives;
