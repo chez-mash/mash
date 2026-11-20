@@ -1,34 +1,17 @@
-Package: mash
-Architecture: arm64
-Version: 0.1.0~alpha
-Priority: optional
-Section: utils
-Maintainer: Mashium <mash-release@users.noreply.github.com>
-Filename: pool/main/m/mash/mash_0.1.0~alpha_arm64.deb
-Size: 36392946
-MD5sum: 4e8e04aa56d5d1853e4b688c16f2a722
-SHA1: f5adf0460d3efd168377574a3cf8e01a68fc8b1e
-SHA256: 3576b3bfc1d63cfbfc4922089008925a239a58ada3fde5f5e7aab557b3f18f5f
-SHA512: 972455ab74f78c9829498689a09345ed517feb50f63dc4517efcfaae4668a04e20e9d552400af072bd43935eadc27151dcfc2b26cf7ea8083a6bf7cee339e525
-Homepage: https://github.com/mashium/mash
-Description: Search your coding agents' past conversations
- Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
- chat histories locally and searches them from a JSON CLI and an MCP server.
- Also installs mash-server, the optional service for sharing an index between
- machines. Run "mash qdrant install", then "mash init", after installing.
-
-Package: mash
+Package: mash-cli
 Architecture: arm64
 Version: 0.1.1~alpha
 Priority: optional
 Section: utils
 Maintainer: Mashium <mash-release@users.noreply.github.com>
-Filename: pool/main/m/mash/mash_0.1.1~alpha_arm64.deb
-Size: 36576844
-MD5sum: 2ceed53a0520fb2c03fdffccf96befbf
-SHA1: a5ef95ecbcb619ca7b52f07ba055c76bb694eb72
-SHA256: 3f3e5380de8c7f1cba00e8f6abecdb361d63c07ae2018b45238f5fffe638454f
-SHA512: b7248b565c8959427f1beb4241530c2cfd7bb8f019502b5316d9bc4857701edcafbcaf35da5a76689955eb3572927779e4852345d3c96c814dcf8a8a17488bae
+Conflicts: mash
+Replaces: mash
+Filename: pool/main/m/mash-cli/mash-cli_0.1.1~alpha_arm64.deb
+Size: 36576848
+MD5sum: da19b391c2c35e4284b3273b689d163d
+SHA1: 7140b2986506bdd465fb7b1ca4910e2f1558daf0
+SHA256: 443bf1a007eb061d42ebbe37dc71b015a75a8315e7312bd26a13ebbca15e4b46
+SHA512: abf700f0387c73c630a24c23de628c1d06c86a260a2ab7f93c86c56791d6c482222144c5103aeb9b30faacc47be54c7109734d8bc1b7cd354c73303c401d6e7d
 Homepage: https://github.com/mashium/mash
 Description: Search your coding agents' past conversations
  Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
