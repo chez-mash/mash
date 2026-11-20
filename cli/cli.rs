@@ -14,6 +14,8 @@ use serde::Serialize;
 use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
+mod request;
+mod watch;
 mod wizard;
 
 /// The flag that prints what `--version` leaves out; tools read it.
@@ -462,43 +464,6 @@ struct SearchArguments {
     filter: Option<String>,
 }
 
-impl SearchArguments {
-    pub(crate) fn into_selection(self) -> Result<crate::search_filter::Selection, AppError> {
-        let filter = self
-            .filter
-            .map(|json| {
-                if json.len() > 65536 {
-                    return Err(AppError::usage("search filter exceeds 64 KiB"));
-                }
-                serde_json::from_str(&json)
-                    .map_err(|_| AppError::usage("invalid structured search filter"))
-            })
-            .transpose()?;
-        Ok(crate::search_filter::Selection {
-            match_mode: self.match_mode,
-            sort: self.sort,
-            provider: self.provider,
-            days: self.days,
-            node: self.node,
-            role: self.role,
-            chat: self.chat,
-            project: self.project,
-            repository: self.repository,
-            after: self
-                .after
-                .as_deref()
-                .map(crate::search_filter::timestamp)
-                .transpose()?,
-            before: self
-                .before
-                .as_deref()
-                .map(crate::search_filter::timestamp)
-                .transpose()?,
-            filter,
-        })
-    }
-}
-
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub(super) enum Response {
@@ -534,222 +499,6 @@ pub(super) enum Response {
     InitCancelled {
         cancelled: bool,
     },
-}
-
-impl Cli {
-    fn paths(&self) -> Paths {
-        Paths {
-            config: self.config.clone(),
-            db: self.db.clone(),
-            models_dir: self.models_dir.clone(),
-        }
-    }
-
-    #[expect(
-        clippy::too_many_lines,
-        reason = "Keep the mechanical CLI-to-core command mapping together."
-    )]
-    fn into_request(self) -> Result<Request, AppError> {
-        let paths = self.paths();
-        let operation = match self.command {
-            Command::Init {
-                force,
-                no_agents,
-                no_index,
-                backfill_memory,
-                marketplace,
-                join,
-                yes: _,
-            } => Operation::Init(crate::core::InitRequest {
-                force,
-                agents: !no_agents,
-                index: !no_index,
-                marketplace,
-                plan: join
-                    .map(|text| {
-                        let join = crate::shared::join::Join::decode(&text)?;
-                        crate::core::join_plan(&paths, &join)
-                    })
-                    .transpose()?,
-                selected_agents: None,
-                backfill_memory,
-            }),
-            Command::ListChats {
-                input,
-                local,
-                shared,
-                diagnostics,
-            } => Operation::ListChats {
-                input,
-                local,
-                shared,
-                diagnostics,
-            },
-            Command::Index {
-                rebuild_local_views,
-                full,
-                provider,
-                since_days,
-                all_history,
-                reread,
-                backfill,
-                ..
-            } => Operation::Index(IndexRequest {
-                mode: crate::core::IndexMode::from_rebuild_flag(rebuild_local_views),
-                full,
-                provider,
-                since_days,
-                all_history,
-                reading: if reread {
-                    crate::core::Reading::Everything
-                } else {
-                    crate::core::Reading::Changed
-                },
-                defer_publication: false,
-                backfill,
-            }),
-            Command::Search {
-                shared_vector_search,
-                shared_hnsw_ef,
-                query,
-                intent,
-                limit,
-                offset,
-                unit,
-                fusion_rank_constant,
-                lexical_weight,
-                semantic_weight,
-                recency_weight,
-                ranking,
-                diagnostics,
-                filters,
-                shared,
-                local,
-                ..
-            } => Operation::Search {
-                shared_vector_search: shared_vector_search
-                    .map(|algorithm| algorithm.request(shared_hnsw_ef))
-                    .transpose()?,
-                ranking,
-                query,
-                intent,
-                limit,
-                offset,
-                unit,
-                diagnostics,
-                fusion: crate::views::config::FusionOverrides {
-                    rank_constant: fusion_rank_constant,
-                    lexical_weight,
-                    semantic_weight,
-                    recency_weight,
-                },
-                filters: Box::new(filters.into_selection()?),
-                shared,
-                local,
-            },
-            Command::View {
-                id,
-                context,
-                shared,
-            } => Operation::View {
-                id,
-                context,
-                shared,
-            },
-            Command::Status {
-                installation,
-                agent,
-                probe,
-                shared,
-                coverage,
-                scope,
-            } => {
-                if installation {
-                    Operation::Installation {
-                        agents: agent,
-                        probe: if probe {
-                            Some(crate::mcp::guidance::fingerprint().map_err(|_| {
-                                AppError::internal("cannot encode this CLI's MCP contract")
-                            })?)
-                        } else {
-                            None
-                        },
-                    }
-                } else {
-                    Operation::Status {
-                        shared,
-                        coverage: coverage.then_some(*scope),
-                    }
-                }
-            }
-            Command::Doctor => Operation::Doctor,
-            Command::Forget { id } => Operation::Forget { id },
-            Command::Query {
-                sql,
-                request,
-                limit,
-                shared,
-                node,
-                timeout_seconds,
-            } => {
-                let parsed = |request: String| {
-                    serde_json::from_str(&request)
-                        .map_err(|error| AppError::usage(format!("invalid query request: {error}")))
-                };
-                if shared {
-                    let Some(request) = request else {
-                        return Err(AppError::usage("--shared requires --request"));
-                    };
-                    Operation::QueryShared {
-                        request: parsed(request)?,
-                        node,
-                    }
-                } else if let Some(request) = request {
-                    Operation::QueryStructured {
-                        request: parsed(request)?,
-                        timeout_seconds,
-                    }
-                } else {
-                    Operation::QuerySilver {
-                        sql: sql.unwrap_or_default(),
-                        limit: limit.unwrap_or(200),
-                        timeout_seconds,
-                    }
-                }
-            }
-            Command::Export { directory } => Operation::ExportSilver { directory },
-            Command::Import {
-                directory,
-                into,
-                keep_identity,
-            } => Operation::ImportSilver {
-                directory,
-                database: into,
-                keep_identity,
-            },
-            Command::Models {
-                command: ModelsCommand::Install,
-            } => Operation::ModelsInstall,
-            Command::Qdrant {
-                command: QdrantCommand::Install,
-            } => Operation::QdrantInstall,
-            Command::Qdrant {
-                command: QdrantCommand::Uninstall { delete_storage },
-            } => Operation::QdrantUninstall { delete_storage },
-            Command::Uninstall { yes, keep_history } => {
-                Operation::Uninstall(crate::core::uninstall::Request {
-                    apply: yes,
-                    keep_history,
-                })
-            }
-            Command::Mcp { .. } | Command::Dash { .. } => {
-                return Err(AppError::usage(
-                    "server commands must run as process commands",
-                ));
-            }
-        };
-        Ok(Request { paths, operation })
-    }
 }
 
 /// Serve the dashboard, or set up its remote access.
@@ -957,18 +706,6 @@ fn help_paths(arguments: &[OsString]) -> Paths {
     )
 }
 
-#[derive(serde::Serialize)]
-struct WatchRole {
-    event: WatchRoleEvent,
-    role: crate::watch::Role,
-}
-
-#[derive(serde::Serialize)]
-enum WatchRoleEvent {
-    #[serde(rename = "watch-role")]
-    Role,
-}
-
 async fn run_parsed(mut cli: Cli) -> Result<Response, AppError> {
     if let Command::Init { yes, join, .. } = &cli.command {
         use std::io::IsTerminal;
@@ -988,77 +725,7 @@ async fn run_parsed(mut cli: Cli) -> Result<Response, AppError> {
     {
         *watch = false;
         let debounce = *debounce_ms;
-        let request = cli.into_request()?;
-        let paths = request.paths.clone();
-        let lease = std::sync::Arc::new(
-            crate::blocking(move || {
-                crate::runtime::Lease::register(&paths, crate::runtime::Kind::IndexWatch)
-            })
-            .await?,
-        );
-        let (stop, shutdown) = tokio::sync::watch::channel(false);
-        let monitor = lease.clone();
-        let signal = tokio::spawn(async move {
-            let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
-            loop {
-                tokio::select! {
-                    _ = tokio::signal::ctrl_c() => break,
-                    _ = interval.tick() => {
-                        let lease = monitor.clone();
-                        if crate::blocking(move || lease.ensure_current()).await.is_err() {
-                            break;
-                        }
-                    }
-                }
-            }
-            let _ = stop.send(true);
-        });
-        let role = |role| {
-            let _ = crate::write_json(
-                &mut std::io::stderr(),
-                &WatchRole {
-                    event: WatchRoleEvent::Role,
-                    role,
-                },
-            );
-        };
-        let admission = lease.clone();
-        // Watch collects state continuously; publish out of band so a slow
-        // server never blocks the next indexing pass.
-        let mut watch_request = request.clone();
-        if let crate::core::Request {
-            operation: crate::core::Operation::Index(index),
-            ..
-        } = &mut watch_request
-        {
-            index.defer_publication = true;
-        }
-        let result =
-            crate::watch::run(watch_request.clone(), debounce, shutdown, role, move || {
-                let request = watch_request.clone();
-                let lease = admission.clone();
-                async move {
-                    crate::blocking(move || lease.ensure_current()).await?;
-                    let response = core::execute(request).await?;
-                    let retry = response.needs_retry();
-                    let mut stdout = std::io::stdout();
-                    crate::write_json(&mut stdout, &response)?;
-                    stdout
-                        .flush()
-                        .map_err(|_| AppError::internal("flush watch output"))?;
-                    Ok(retry)
-                }
-            })
-            .await;
-        signal.abort();
-        // The monitor holds the lease; it must be gone before a restart.
-        let _ = signal.await;
-        result?;
-        let executable = lease.executable().to_path_buf();
-        if let Err(reason) = crate::blocking(move || lease.ensure_current()).await {
-            return Ok(Response::WatchReplaced { reason, executable });
-        }
-        return Ok(Response::WatchStopped { watching: false });
+        return watch::run(cli, debounce).await;
     }
     core::execute(cli.into_request()?)
         .await
