@@ -53,11 +53,14 @@ iterate:
 	@test -n "$${FOCUS}" || (echo 'Set FOCUS to a nextest filter for the changed behavior'; exit 2)
 	env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=1 RUSTC_WRAPPER= MASH_ITERATE_LAUNCHER="$(DEV_RUN)" MASH_ITERATE_PACKAGE="$(PACKAGE)" bash tools/build-dev-linux.sh --focused "$${FOCUS}" $(if $(filter all,$(TARGETS)),--all-targets,)
 
+# The same linker as `make iterate`, so both share one warm cache.
+DEV_LINKER := $(if $(shell command -v mold 2>/dev/null),CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=mold",)
+
 # A debug `mash` for trying a change by hand, with the same warm incremental
 # cache settings as `make iterate`. Prints the binary's path.
 .PHONY: dev-build
 dev-build:
-	$(DEV_RUN) env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=1 RUSTC_WRAPPER= cargo build-clif --locked --bin mash $(CARGO_ARGS)
+	$(DEV_RUN) env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=1 RUSTC_WRAPPER= $(DEV_LINKER) cargo build-clif --locked --bin mash $(CARGO_ARGS)
 	@echo "$(DEV_TARGET_DIR)/debug/mash"
 
 validate-dev:

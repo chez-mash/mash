@@ -18,6 +18,13 @@ case "${1:-}" in
     '') [[ $# == 0 ]] || exit 2 ;;
     *) echo 'usage: build-dev-linux.sh [--focused NEXTEST_FILTER [--all-targets] | --validate-only]' >&2; exit 2 ;;
 esac
+# mold links the large debug and test binaries about a third faster than the
+# default rust-lld (about 2 s instead of 3 s for mash on Xenia). Every mode
+# uses it, so a release build reuses a validation run's receipt; published
+# releases are built by CI with the default linker.
+if command -v mold >/dev/null; then
+    export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="${CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS:+$CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS }-C link-arg=-fuse-ld=mold"
+fi
 : "${CARGO_TARGET_DIR:?Set the persistent target directory}"
 : "${TMPDIR:?Set the disk-backed test temporary directory}"
 mkdir -p "$CARGO_TARGET_DIR"
@@ -83,7 +90,7 @@ validation_key() {
         cargo --version || return
         # Hash effective compiler/profile settings without retaining raw env values.
         env -0 | LC_ALL=C sort -z | LC_ALL=C grep -zE '^(CARGO_|RUST|MASH_TEST_|MASH_CONTRACT_BASE=|CC=|CXX=|CFLAGS=|CXXFLAGS=|AR=|SCCACHE_)' || return
-        printf '%s\n' "target=$CARGO_TARGET_DIR" "flags=${RUSTFLAGS:-}" "wrapper=${RUSTC_WRAPPER:-}" "toolchain=${RUSTUP_TOOLCHAIN:-}" "build_target=${CARGO_BUILD_TARGET:-}" "incremental=${CARGO_INCREMENTAL:-}" "encoded_flags=${CARGO_ENCODED_RUSTFLAGS:-}"
+        printf '%s\n' "target=$CARGO_TARGET_DIR" "flags=${RUSTFLAGS:-}" "target_flags=${CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS:-}" "wrapper=${RUSTC_WRAPPER:-}" "toolchain=${RUSTUP_TOOLCHAIN:-}" "build_target=${CARGO_BUILD_TARGET:-}" "incremental=${CARGO_INCREMENTAL:-}" "encoded_flags=${CARGO_ENCODED_RUSTFLAGS:-}"
     } | sha256sum | cut -d ' ' -f 1
 }
 key=$(validation_key)

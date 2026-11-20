@@ -25,6 +25,17 @@ results, opening a matching transcript without a document reload, and browser
 errors. The target needs current Qdrant views and available query models.
 On Xenia, run these workloads through `agent-test` as for other tests.
 
+### Linker
+
+On x86-64 Linux, `make iterate`, `make validate-dev`, `make dev-build` and the
+fleet's release builds (`tools/build-dev-linux.sh`) link with
+[mold](https://github.com/rui314/mold) when it is installed
+(`apt-get install mold`), and with Rust's default `rust-lld` otherwise.
+Measured on Xenia on 2026-11-20, linking the debug `mash` binary took about
+2 s with mold against 3 s with `rust-lld`. CI and the published releases
+keep the default linker. Turning it on or off changes the link flags, so the next build
+recompiles everything once.
+
 ### File length
 
 Handwritten production source files (Rust, TypeScript, Svelte, Python) stay
