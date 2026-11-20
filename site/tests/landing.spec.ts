@@ -22,7 +22,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Find it. However you remember it.",
     "Meet Mashy. Ask your history anything.",
     "Say it once. It’s there next time.",
-    "Fast, and light on your machine. Faster still on a GPU.",
+    "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
     "Written with <3 in Rust.",
     "Give your agents a memory.",

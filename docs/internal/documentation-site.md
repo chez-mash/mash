@@ -48,7 +48,8 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   real history on the page.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
-  `docs/configuration.md`. The 66 ms search was one exact-phrase search timed
+  `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA
+  worker and GPU reranking are experimental and opt-in, and the page says which. The 66 ms search was one exact-phrase search timed
   by Mash's own diagnostics on a development machine on 2026-11-20 (1,137
   chats, about 103,000 searchable messages); a common word took 0.8 to 1 s
   there. The 20 MB is the resident memory of idle `mash mcp` processes on the

@@ -319,7 +319,7 @@ const signIn = "Move sign-in to short-lived tokens";
     <Fragment set:html={speedArt} />
     <div class="head">
       <span class="eyebrow">Performance</span>
-      <h2 id="welcome-speed">Fast, and light on your machine. <span>Faster still on a GPU.</span></h2>
+      <h2 id="welcome-speed">Fast, and light on your machine.</h2>
     </div>
     <dl class="stats" data-reveal>
       <div>
@@ -331,12 +331,12 @@ const signIn = "Move sign-in to short-lived tokens";
         <dd>of memory for an idle Mash server in your agent</dd>
       </div>
       <div>
-        <dt><b data-count="9">9</b>×</dt>
-        <dd>faster indexing on an NVIDIA GPU</dd>
+        <dt><b data-count="5">5</b>×</dt>
+        <dd>faster indexing on a Windows graphics card</dd>
       </div>
       <div>
-        <dt><b data-count="30">30</b><small> ms</small></dt>
-        <dd>to rerank a search on a GPU, at its quickest</dd>
+        <dt><b data-count="9">9</b>×</dt>
+        <dd>faster indexing with an NVIDIA worker</dd>
       </div>
     </dl>
     <ul class="light">
@@ -347,14 +347,13 @@ const signIn = "Move sign-in to short-lived tokens";
     <details class="measured">
       <summary>How these were measured</summary>
       <p>
-      66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages on
-      one Linux machine; a common word took up to a second there. 20 MB: idle servers on that
-      machine held 16 to 23 MB each, and 220 to 330 MB once they had loaded the models for searching
-      by meaning. GPU figures: one Tesla T4 against four CPU cores, where reranking took 30 to 130
-      ms against 0.5 to 2 s, and indexing through DirectML on Windows ran about five times faster.
-      The NVIDIA and Windows GPU options are experimental and off until you
-      <a href="/configuration/">turn them on</a>. On Apple silicon, indexing uses the GPU from the
-      start.
+        66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages
+        on one Linux machine; a common word took up to a second there. 20 MB: idle servers on that
+        machine held 16 to 23 MB each, and 220 to 330 MB once they had loaded the models for
+        searching by meaning. GPU figures: one Tesla T4 against four CPU cores. On Windows, indexing
+        uses a DirectX 12 graphics card by itself, as it uses the GPU on Apple silicon. The NVIDIA
+        worker, and reranking on a GPU (30 to 130 ms a search in that test, against 0.5 to 2 s), are
+        experimental and off until you <a href="/configuration/">turn them on</a>.
       </p>
     </details>
   </section>
