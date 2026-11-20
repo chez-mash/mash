@@ -87,7 +87,13 @@ const drawn = {
     ],
     "ico",
   ),
-  laptop: line(["M5 6h14v9H5z", "M3 18h18"], "ico"),
+  laptop: line(
+    [
+      "M6 5h12a1 1 0 0 1 1 1v9H5V6a1 1 0 0 1 1-1z",
+      "M2.5 15h19v1.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z",
+    ],
+    "ico",
+  ),
   server: line(
     [
       "M5 4.5h14a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z",
@@ -310,7 +316,7 @@ const signIn = "Move sign-in to short-lived tokens";
     <Fragment set:html={speedArt} />
     <div class="head">
       <span class="eyebrow">Performance</span>
-      <h2 id="welcome-speed">Fast by default. <span>Faster on a GPU.</span></h2>
+      <h2 id="welcome-speed">Fast, and light on your machine. <span>Faster still on a GPU.</span></h2>
     </div>
     <dl class="stats" data-reveal>
       <div>
@@ -318,24 +324,32 @@ const signIn = "Move sign-in to short-lived tokens";
         <dd>for a whole search, at its quickest</dd>
       </div>
       <div>
-        <dt><b data-count="9">9</b>×</dt>
-        <dd>faster indexing on an NVIDIA GPU</dd>
+        <dt><b data-count="20">20</b><small> MB</small></dt>
+        <dd>of memory for an idle Mash server in your agent</dd>
       </div>
       <div>
-        <dt><b data-count="5">5</b>×</dt>
-        <dd>faster indexing on Windows, through DirectML</dd>
+        <dt><b data-count="9">9</b>×</dt>
+        <dd>faster indexing on an NVIDIA GPU</dd>
       </div>
       <div>
         <dt><b data-count="30">30</b><small> ms</small></dt>
         <dd>to rerank a search on a GPU, at its quickest</dd>
       </div>
     </dl>
+    <ul class="light">
+      <li>No GPU needed</li>
+      <li>Searching by words loads no models</li>
+      <li>No cloud service behind it</li>
+    </ul>
     <p class="fine">
       66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages on
-      one Linux machine; a common word took up to a second there. GPU figures: one Tesla T4 against
-      four CPU cores, where reranking took 30 to 130 ms against 0.5 to 2 s. The NVIDIA and Windows
-      GPU options are experimental and off until you <a href="/configuration/">turn them on</a>. On
-      Apple silicon, indexing uses the GPU from the start.
+      one Linux machine; a common word took up to a second there. 20 MB: idle servers on that
+      machine held 16 to 23 MB each, and 220 to 330 MB once they had loaded the models for searching
+      by meaning. GPU figures: one Tesla T4 against four CPU cores, where reranking took 30 to 130
+      ms against 0.5 to 2 s, and indexing through DirectML on Windows ran about five times faster.
+      The NVIDIA and Windows GPU options are experimental and off until you
+      <a href="/configuration/">turn them on</a>. On Apple silicon, indexing uses the GPU from the
+      start.
     </p>
   </section>
 

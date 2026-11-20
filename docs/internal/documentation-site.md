@@ -48,7 +48,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   `docs/configuration.md`. The 66 ms search was one exact-phrase search timed
   by Mash's own diagnostics on a development machine on 2026-11-20 (1,137
   chats, about 103,000 searchable messages); a common word took 0.8 to 1 s
-  there. Re-measure before changing a figure, and keep the small print true.
+  there. The 20 MB is the resident memory of idle `mash mcp` processes on the
+  same machine that day (16 to 23 MB each; 220 to 330 MB once one had loaded
+  the models). The local Qdrant held 2.4 to 2.9 GB for that index of about
+  795,000 messages, so the page makes no claim about memory in use overall.
+  Re-measure before changing a figure, and keep the small print true.
 
 ## Local preview and checks
 

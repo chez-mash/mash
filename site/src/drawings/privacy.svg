@@ -1,9 +1,9 @@
 <!-- A laptop with a padlock, for the privacy section. Each path is drawn by scroll in src/welcome.ts. -->
-<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.9" viewBox="30 120 686 430" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path pathLength="1" d="M175 150H571A22 22 0 0 1 593 172V440H153V172A22 22 0 0 1 175 150Z"/>
-  <path pathLength="1" d="M113 440H633L683 500Q690 522 665 522H81Q56 522 63 500Z"/>
-  <path pathLength="1" d="M323 492H423"/>
-  <path pathLength="1" d="M343 286H403A10 10 0 0 1 413 296V346A10 10 0 0 1 403 356H343A10 10 0 0 1 333 346V296A10 10 0 0 1 343 286Z"/>
-  <path pathLength="1" d="M348 286V266A25 25 0 0 1 398 266V286"/>
-  <path pathLength="1" d="M373 314V330"/>
+<svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.9" viewBox="40 120 666 410" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path pathLength="1" d="M153 150H593A22 22 0 0 1 615 172V450H131V172A22 22 0 0 1 153 150Z"/>
+  <path pathLength="1" d="M71 450H675V470A28 28 0 0 1 647 498H99A28 28 0 0 1 71 470Z"/>
+  <path pathLength="1" d="M318 450V456A10 10 0 0 0 328 466H418A10 10 0 0 0 428 456V450"/>
+  <path pathLength="1" d="M337 290H409A12 12 0 0 1 421 302V356A12 12 0 0 1 409 368H337A12 12 0 0 1 325 356V302A12 12 0 0 1 337 290Z"/>
+  <path pathLength="1" d="M345 290V266A28 28 0 0 1 401 266V290"/>
+  <path pathLength="1" d="M373 320V340"/>
 </svg>
