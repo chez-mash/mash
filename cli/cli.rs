@@ -529,7 +529,8 @@ pub(super) enum Response {
         reason: AppError,
         executable: PathBuf,
     },
-    McpStopped,
+    /// `mcp` or `dash` ran until it was stopped.
+    ServerStopped,
     InitCancelled {
         cancelled: bool,
     },
@@ -900,7 +901,7 @@ where
             models_dir: cli.models_dir,
         };
         dash(&runtime, paths, cli.command)?;
-        Ok(Response::McpStopped)
+        Ok(Response::ServerStopped)
     } else if let Command::Mcp { lean } = cli.command {
         let paths = Paths {
             config: cli.config,
@@ -913,7 +914,7 @@ where
             crate::mcp::Offered::All
         };
         runtime.block_on(crate::mcp::run(paths, offered))?;
-        Ok(Response::McpStopped)
+        Ok(Response::ServerStopped)
     } else {
         runtime.block_on(async {
             let response = run_parsed(cli).await;

@@ -79,7 +79,7 @@ where
     let arguments: Vec<OsString> = args.into_iter().map(Into::into).collect();
     match cli::run(arguments.clone()) {
         // MCP owns stdout for its entire session, including shutdown.
-        Ok(cli::Response::McpStopped) => 0,
+        Ok(cli::Response::ServerStopped) => 0,
         // The async runtime and its lease are gone; start the replacement.
         Ok(cli::Response::WatchReplaced { reason, executable }) => {
             let _ = write_json(stderr, &reason);
@@ -111,7 +111,7 @@ where
                     } else if value.needs_retry() {
                         9
                     } else {
-                        i32::from(value.agents_need_attention())
+                        i32::from(value.reports_problem())
                     }
                 }
                 _ => 0,

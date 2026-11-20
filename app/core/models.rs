@@ -271,10 +271,11 @@ pub struct BackfillSummary {
 }
 
 impl Response {
-    /// An installation report where an expected agent needs attention, an
-    /// `init` that left a stale agent registration in place, a `doctor` that
-    /// found a problem, or an `uninstall` with a failed step: exit status 1.
-    pub fn agents_need_attention(&self) -> bool {
+    /// Whether the command completed but found a problem, so it exits 1: an
+    /// installation report where an expected agent needs attention, an `init`
+    /// that left a stale agent registration in place, a `doctor` that found a
+    /// problem, or an `uninstall` with a failed step.
+    pub fn reports_problem(&self) -> bool {
         match self {
             Self::Installation(report) => report.agents_need_attention(),
             Self::Doctor(report) => !report.healthy(),
