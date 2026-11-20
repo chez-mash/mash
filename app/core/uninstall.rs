@@ -11,6 +11,9 @@ use super::installation::Agent;
 use super::models::Paths;
 use crate::AppError;
 
+/// The watcher service `mash-fleet watch start` installs, per manager.
+const WATCHER_UNIT: &str = "mash-index-watch.service";
+const WATCHER_LABEL: &str = "dev.mash.index-watch";
 const WATCHER_TASK: &str = "mash-index-watch";
 
 #[derive(Debug, Clone, Copy)]
@@ -276,53 +279,58 @@ fn outcome<T>(result: Result<T, AppError>) -> Outcome {
     }
 }
 
-/// The watcher job, where this machine's service manager can show one.
+/// The watcher job `mash-fleet watch start` installs, where this machine's
+/// service manager has one.
 async fn watcher(apply: bool) -> Option<Service> {
-    if cfg!(windows) {
-        // A scheduled task has no definition file; ask the task scheduler.
-        let query = format!(
-            "if (Get-ScheduledTask -TaskName '{WATCHER_TASK}' -ErrorAction SilentlyContinue) {{ 'present' }}"
-        );
-        if !powershell(&query).await.ok()?.contains("present") {
+    use crate::service::{ServiceState, Supervisor, UserService};
+    let service = if cfg!(windows) {
+        UserService {
+            supervisor: Supervisor::ScheduledTask,
+            name: WATCHER_TASK.to_owned(),
+            // The task is registered without a definition file here.
+            definition: PathBuf::new(),
+            windows_cleanup: None,
+        }
+    } else {
+        // A unit file or property list on disk says it is installed.
+        let definition = crate::watch::installed_definition()?;
+        UserService {
+            supervisor: if cfg!(target_os = "macos") {
+                Supervisor::LaunchAgent
+            } else {
+                Supervisor::SystemdUser
+            },
+            name: if cfg!(target_os = "macos") {
+                WATCHER_LABEL
+            } else {
+                WATCHER_UNIT
+            }
+            .to_owned(),
+            definition,
+            windows_cleanup: None,
+        }
+    };
+    if service.supervisor == Supervisor::ScheduledTask {
+        // A scheduled task has no file to look for, so ask the scheduler.
+        let state = crate::service::state(&service).await.ok()?;
+        if matches!(state, ServiceState::NotInstalled | ServiceState::Unknown) {
             return None;
         }
-        let remove = format!(
-            "Stop-ScheduledTask -TaskName '{WATCHER_TASK}' -ErrorAction SilentlyContinue; Unregister-ScheduledTask -TaskName '{WATCHER_TASK}' -Confirm:$false -ErrorAction Stop"
-        );
-        return Some(Service {
-            kind: ServiceKind::Watcher,
-            name: WATCHER_TASK.to_owned(),
-            outcome: if apply {
-                outcome(powershell(&remove).await)
-            } else {
-                Outcome::Planned
-            },
-        });
     }
-    let layout = crate::remote::watcher_layout(crate::watch::installed_definition()?)?;
     Some(Service {
         kind: ServiceKind::Watcher,
-        name: layout.service().to_owned(),
+        name: service.name.clone(),
         outcome: if apply {
-            outcome(crate::remote::remove_service(&layout).await)
+            match crate::service::remove(&service).await {
+                Ok(()) => Outcome::Removed,
+                Err(failure) => Outcome::Failed {
+                    message: failure.describe(),
+                },
+            }
         } else {
             Outcome::Planned
         },
     })
-}
-
-async fn powershell(script: &str) -> Result<String, AppError> {
-    crate::remote::command(
-        "powershell.exe",
-        &[
-            "-NoLogo",
-            "-NoProfile",
-            "-NonInteractive",
-            "-Command",
-            script,
-        ],
-    )
-    .await
 }
 
 /// Each agent whose user settings still name Mash, disconnected through the

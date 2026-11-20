@@ -148,6 +148,19 @@ impl Layout {
             Supervisor::Launchd => self.log.display().to_string(),
         }
     }
+
+    /// The service as the shared service-manager code drives it.
+    pub(crate) fn user_service(&self) -> crate::service::UserService {
+        crate::service::UserService {
+            supervisor: match self.supervisor {
+                Supervisor::Systemd => crate::service::Supervisor::SystemdUser,
+                Supervisor::Launchd => crate::service::Supervisor::LaunchAgent,
+            },
+            name: self.service().to_owned(),
+            definition: self.unit_file.clone(),
+            windows_cleanup: None,
+        }
+    }
 }
 
 pub async fn run(paths: Paths, options: Options, action: Action) -> Result<(), AppError> {
@@ -286,53 +299,9 @@ pub fn write_definition(
 
 /// Load the written definition and start the service, replacing a running one.
 pub async fn start(layout: &Layout) -> Result<(), AppError> {
-    match layout.supervisor {
-        Supervisor::Systemd => {
-            let unit = layout.name.unit;
-            for arguments in [
-                vec!["--user", "daemon-reload"],
-                vec!["--user", "enable", "--quiet", unit],
-                vec!["--user", "restart", unit],
-            ] {
-                command("systemctl", &arguments).await?;
-            }
-        }
-        Supervisor::Launchd => {
-            let (domain, target) = launchd_target(layout.name.label).await?;
-            let definition = layout.unit_file.display().to_string();
-            unload(&target).await;
-            command("launchctl", &["enable", &target]).await?;
-            command("launchctl", &["bootstrap", &domain, &definition]).await?;
-            // A domain in on-demand mode defers RunAtLoad; this starts it now.
-            command("launchctl", &["kickstart", &target]).await?;
-        }
-    }
-    Ok(())
-}
-
-/// This user's launchd domain and the service's name within it.
-async fn launchd_target(label: &str) -> Result<(String, String), AppError> {
-    let uid = command("id", &["-u"]).await?;
-    let uid = uid.trim();
-    if uid.is_empty() || !uid.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(AppError::configuration(
-            "could not determine this user's ID for launchd",
-        ));
-    }
-    Ok((format!("gui/{uid}"), format!("gui/{uid}/{label}")))
-}
-
-/// Unload the launch agent and wait until launchd has let go of it; loading a
-/// definition while the old one is still unloading fails.
-async fn unload(target: &str) {
-    // A service that is not loaded is the wanted outcome.
-    let _ = command("launchctl", &["bootout", target]).await;
-    for _ in 0..40 {
-        if command("launchctl", &["print", target]).await.is_err() {
-            return;
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
-    }
+    crate::service::perform(&layout.user_service(), crate::service::Step::Start)
+        .await
+        .map_err(service_failure)
 }
 
 /// Where `mash dash remote` keeps the dashboard service's files.
@@ -362,27 +331,6 @@ fn served_port(definition: &str) -> Option<u16> {
     digits.parse().ok()
 }
 
-/// The watcher service `mash-fleet watch start` installs, as a user service
-/// this machine's own manager can stop and remove.
-pub(crate) fn watcher_layout(definition: PathBuf) -> Option<Layout> {
-    const WATCHER: ServiceName = ServiceName {
-        unit: "mash-index-watch.service",
-        label: "dev.mash.index-watch",
-        description: "Mash index watcher",
-        written_by: "mash-fleet watch start",
-    };
-    let home = crate::platform::mash_home()?;
-    let mut layout = Layout::resolve(
-        Supervisor::current()?,
-        WATCHER,
-        home.join("watch.env"),
-        home.join("watch.log"),
-    )
-    .ok()?;
-    layout.unit_file = definition;
-    Some(layout)
-}
-
 /// Stop the service, remove its definition and take down its address. A
 /// service that is already gone is the wanted outcome.
 pub async fn uninstall(layout: &Layout, port: u16) -> Result<(), AppError> {
@@ -393,31 +341,41 @@ pub async fn uninstall(layout: &Layout, port: u16) -> Result<(), AppError> {
     Ok(())
 }
 
-/// Stop a user service and remove its definition from its manager.
+/// Stop a user service and remove its definition from its manager. A
+/// manager that cannot be reached here still leaves no definition behind.
 pub(crate) async fn remove_service(layout: &Layout) -> Result<(), AppError> {
-    match layout.supervisor {
-        Supervisor::Systemd => {
-            let _ = command(
-                "systemctl",
-                &["--user", "disable", "--now", layout.name.unit],
-            )
-            .await;
-        }
-        Supervisor::Launchd => {
-            if let Ok((_, target)) = launchd_target(layout.name.label).await {
-                unload(&target).await;
+    use crate::service::Failure;
+    match crate::service::remove(&layout.user_service()).await {
+        Ok(()) => Ok(()),
+        Err(Failure::NoUser | Failure::Unavailable { .. } | Failure::TimedOut { .. }) => {
+            match std::fs::remove_file(&layout.unit_file) {
+                Ok(()) => Ok(()),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                Err(error) => Err(AppError::io(error)),
             }
         }
+        Err(failure) => Err(service_failure(failure)),
     }
-    match std::fs::remove_file(&layout.unit_file) {
-        Ok(()) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(error) => return Err(AppError::io(error)),
-    }
-    if layout.supervisor == Supervisor::Systemd {
-        let _ = command("systemctl", &["--user", "daemon-reload"]).await;
-    }
-    Ok(())
+}
+
+/// A service manager failure, worded as the other helper commands here are.
+fn service_failure(failure: crate::service::Failure) -> AppError {
+    use crate::service::Failure;
+    AppError::configuration(match failure {
+        Failure::TimedOut { program } => format!(
+            "`{program}` did not finish within {} s",
+            crate::service::COMMAND_TIMEOUT.as_secs()
+        ),
+        Failure::Unavailable { program, .. } => {
+            format!("`{program}` is required and was not found")
+        }
+        Failure::NoUser => "could not determine this user's ID for launchd".to_owned(),
+        Failure::Failed { command, output } => format!(
+            "`{}` failed: {}",
+            command.display(),
+            output.trim().lines().next().unwrap_or("no output")
+        ),
+    })
 }
 
 async fn remove(layout: &Layout, port: u16) -> Result<(), AppError> {

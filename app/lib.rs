@@ -55,6 +55,7 @@ mod storage_tests;
 pub use mash_storage::records;
 pub mod remote;
 pub mod runtime;
+pub(crate) mod service;
 #[cfg(test)]
 use mash_model::test_support;
 pub use mash_storage::storage;
