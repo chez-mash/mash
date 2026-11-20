@@ -38,7 +38,7 @@
 519 crates/mash-sync/src/shared/server/store/sync.rs
 793 crates/mash-sync/src/shared/silver_store/apply.rs
 1195 crates/mash-sync/src/shared/sync/catalog.rs
-1387 crates/mash-sync/src/shared/sync/client.rs
+1088 crates/mash-sync/src/shared/sync/client.rs
 1147 crates/mash-sync/src/shared/sync/wire.rs
 647 dashboard/src/components/TranscriptView.svelte
 526 dashboard/src/demo/backend.ts
