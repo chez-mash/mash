@@ -43,5 +43,4 @@
 647 dashboard/src/components/TranscriptView.svelte
 526 dashboard/src/demo/backend.ts
 512 dashboard/src/demo/history.ts
-627 site/src/welcome.ts
 650 tools/ux-session.py
