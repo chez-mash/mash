@@ -277,6 +277,19 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   for (const scene of scenes) measure(scene);
   place(true);
   addEventListener("scroll", request, { passive: true, signal: stop.signal });
+  // Whenever a heading or panel changes size, fit it again: a web font that
+  // arrives after the page was built makes a heading wider than it measured.
+  const sized = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const scene = scenes.find((one) => one.el.contains(entry.target));
+      if (scene) measure(scene);
+    }
+  });
+  for (const scene of scenes) {
+    sized.observe(scene.head.querySelector("h2") ?? scene.head);
+    sized.observe(scene.show);
+  }
+  stop.signal.addEventListener("abort", () => sized.disconnect());
   // Small print opened inside a panel makes it taller: fit it again.
   root.addEventListener(
     "toggle",
@@ -336,11 +349,8 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     },
     { signal: stop.signal },
   );
-  if (document.fonts.status !== "loaded") {
-    void document.fonts.ready.then(() => {
-      if (!stop.signal.aborted) rebuild();
-    });
-  }
+  // Fonts are fetched when first used, which can be after this runs.
+  document.fonts.addEventListener("loadingdone", rebuild, { signal: stop.signal });
   return () => {
     stop.abort();
     unbuild();
