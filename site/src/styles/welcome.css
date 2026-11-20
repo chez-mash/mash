@@ -472,15 +472,9 @@
   .close .art {
     display: none;
   }
-  .ferris path {
-    fill: var(--ground);
-  }
+  /* Ferris is strokes only; the eyes and smile are solid. */
   .ferris .dot {
     fill: currentColor;
-    stroke: none;
-  }
-  .ferris .glint {
-    fill: var(--ground);
     stroke: none;
   }
 

@@ -40,6 +40,9 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   time. Each `path` is one stroke, drawn in file order; `data-drop` places the
   heading inside the drawing and `data-strength` is its opacity behind a
   heading. Ferris is outlined from the public-domain artwork at rustacean.net.
+  Drawings are strokes only: never fill a shape with the page's background
+  colour to hide lines behind it, because dark-mode browser extensions recolour
+  SVG fills and backgrounds differently and the shape turns solid.
 - **What the panels show** is made up and follows the demo's story (the
   sign-in tokens decision, the checkout chats). Keep it that way: never put
   real history on the page.
