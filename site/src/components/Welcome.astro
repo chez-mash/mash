@@ -66,10 +66,8 @@ const icon = {
 /** Larger icons that draw themselves as their tile arrives. */
 const drawn = {
   plugin: line(["M6 8h12v4a6 6 0 0 1-12 0z", "M9 2.5V8", "M15 2.5V8", "M12 18v3.5"], "ico"),
-  offline: line(
-    ["M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 10.5a3.75 3.75 0 0 1-.5 7.5z", "M3.5 3.5l17 17"],
-    "ico",
-  ),
+  // Two ways of matching, merged into one ranked list.
+  hybrid: line(["M3 6h5c4 0 4 6 8 6h5", "M3 18h5c4 0 4-6 8-6", "M17.5 8.5 21 12l-3.5 3.5"], "ico"),
   machines: line(
     [
       "M4 3.5h7a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z",
@@ -400,9 +398,12 @@ const signIn = "Move sign-in to short-lived tokens";
       <p>A <a href="/plugin/">plugin for Claude Code and Codex</a> brings your history into every session.</p>
     </article>
     <article class="wide">
-      <Fragment set:html={drawn.offline} />
-      <h3>Offline.</h3>
-      <p>No service in between.</p>
+      <Fragment set:html={drawn.hybrid} />
+      <h3>Hybrid retrieval.</h3>
+      <p>
+        BM25 and embeddings, fused, then <a href="/search/">reranked by a cross-encoder</a>. On
+        Qdrant.
+      </p>
     </article>
     <article>
       <span class="ico os">
