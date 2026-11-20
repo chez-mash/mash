@@ -190,3 +190,33 @@ fn uninstall_keeps_history_on_request_and_exits_1_when_a_step_fails() {
         "{done}"
     );
 }
+
+#[test]
+fn uninstall_disconnects_github_copilot_through_its_own_cli() {
+    let (root, env) = fixture(0);
+    let home = root.path();
+    // Copilot's settings alone, read past the `//` header of its config.json.
+    std::fs::remove_file(home.join(".claude.json")).unwrap();
+    std::fs::remove_dir_all(home.join(".claude/plugins")).unwrap();
+    std::fs::remove_dir_all(home.join(".codex")).unwrap();
+    let (code, plan) = uninstall(&env, &[]);
+    assert_eq!(code, Some(0), "{plan}");
+    let expected = serde_json::json!({
+        "agent": "copilot",
+        "mcp": {"command": "copilot mcp remove mash", "outcome": {"state": "planned"}},
+        "plugin": {"command": "copilot plugin uninstall mash@mash", "outcome": {"state": "planned"}},
+    });
+    assert_eq!(plan["agents"], serde_json::json!([expected]), "{plan}");
+    assert!(!home.join("calls.log").exists());
+
+    let (code, done) = uninstall(&env, &["--yes"]);
+    assert_eq!(code, Some(0), "{done}");
+    assert_eq!(done["agents"][0]["mcp"]["outcome"]["state"], "removed");
+    assert_eq!(done["agents"][0]["plugin"]["outcome"]["state"], "removed");
+    assert_eq!(
+        std::fs::read_to_string(home.join("calls.log")).unwrap(),
+        "copilot mcp remove mash\ncopilot plugin uninstall mash@mash\n"
+    );
+    // Mash never edits Copilot's own files; its CLI does.
+    assert!(home.join(".copilot/config.json").exists());
+}
