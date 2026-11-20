@@ -24,7 +24,6 @@ fn assert_diagnostics(
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_unavailable_shared_publication_is_a_retryable_mcp_result_with_pending_progress() {
     let dir = tempfile::tempdir().unwrap();
     let config = dir.path().join("config.toml");
@@ -76,7 +75,6 @@ async fn qdrant_unavailable_shared_publication_is_a_retryable_mcp_result_with_pe
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_partial_indexing_streams_retry_status_before_mcp_error_and_recovers() {
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("broken.jsonl");

@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn export_imports_history_offline_and_requires_explicit_views_rebuild() {
     let root = tempfile::tempdir().unwrap();
     let provider = root.path().join("provider");

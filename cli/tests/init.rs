@@ -73,7 +73,6 @@ fn init(env: &[(&str, String)], arguments: &[&str]) -> Value {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn init_configures_registers_and_indexes_detected_history() {
     let (root, env) = fixture(false);
     let home = root.path();

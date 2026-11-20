@@ -127,7 +127,6 @@ fn query(text: &str) -> crate::views::retrieval::Search {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_empty_projection_preserves_silver_and_removes_search_point() {
     let fixture = Fixture::new();
     for projection in ["", "native sentinel", "", "native restored"] {
@@ -172,7 +171,6 @@ async fn local_qdrant_empty_projection_preserves_silver_and_removes_search_point
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_exact_uses_certified_recipe_without_activating_dense_changes() {
     let mut fixture = Fixture::new();
     fixture.write("native sentinel");
@@ -218,7 +216,6 @@ async fn local_qdrant_exact_uses_certified_recipe_without_activating_dense_chang
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_word_retrieval_requires_every_word_in_any_order_without_models() {
     let fixture = Fixture::new();
     fixture.write("rotate the application logs daily");
@@ -245,7 +242,6 @@ async fn local_qdrant_word_retrieval_requires_every_word_in_any_order_without_mo
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_reader_rejects_replaced_silver_with_the_same_certificate() {
     let fixture = Fixture::new();
     fixture.write("native sentinel");
@@ -265,7 +261,6 @@ async fn local_qdrant_reader_rejects_replaced_silver_with_the_same_certificate()
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_failed_inference_keeps_word_search_and_leaves_dense_uncertified() {
     let mut fixture = Fixture::new();
     fixture.write("retained sentinel");
@@ -339,7 +334,6 @@ async fn local_qdrant_failed_inference_keeps_word_search_and_leaves_dense_uncert
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_replay_preserves_silver_and_rejects_stale_or_hidden_results() {
     let fixture = Fixture::new();
     fixture.write("idempotency redis4");
@@ -439,7 +433,6 @@ async fn local_qdrant_replay_preserves_silver_and_rejects_stale_or_hidden_result
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_qdrant_copied_silver_has_no_certificate_in_the_original_namespace() {
     let fixture = Fixture::new();
     fixture.write("original sentinel");

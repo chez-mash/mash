@@ -4,7 +4,6 @@ mod incomplete;
 mod rebuild;
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn users_only_cli_index_keeps_assistant_lexical_search_without_model_assets() {
     let root = tempfile::tempdir().unwrap();
     let provider = root.path().join("provider");
@@ -48,7 +47,6 @@ fn users_only_cli_index_keeps_assistant_lexical_search_without_model_assets() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn lexical_only_cli_indexes_without_models_and_rejects_hybrid_overrides() {
     let root = tempfile::tempdir().unwrap();
     let config = root.path().join("node.toml");
@@ -140,7 +138,6 @@ fn index_without_models_still_reads_history_and_is_not_a_model_error() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn index_without_pending_embeddings_validates_but_does_not_load_models() {
     let directory = tempfile::tempdir().expect("temporary directory");
     let database = directory.path().join("mash.sqlite3");

@@ -259,7 +259,6 @@ fn claude_copy_reconciliation() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn local_destination_never_publishes() {
     let fixture = Fixture::new();
     fixture.configure("local", "local");
@@ -298,7 +297,6 @@ fn shared_only_configuration_is_rejected_before_opening_sqlite() {
 }
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to disposable Qdrant"]
 fn qdrant_publication_forget_before_initial_delivery_is_durable() {
     let fixture = Fixture::new();
     fixture.configure("both", "first-delivery");

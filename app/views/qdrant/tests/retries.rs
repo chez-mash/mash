@@ -2,7 +2,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_retry_rejects_changed_or_missing_canonical_messages() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -54,7 +53,6 @@ async fn qdrant_retry_rejects_changed_or_missing_canonical_messages() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_retry_removes_documents_deleted_by_an_interrupted_publication() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -113,7 +111,6 @@ async fn qdrant_retry_removes_documents_deleted_by_an_interrupted_publication() 
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_concurrent_publications_keep_views_with_the_latest_accepted_silver() {
     for newer_first in [false, true] {
         let fixture = Fixture::new(VectorIndex::default()).await;
@@ -169,7 +166,6 @@ async fn qdrant_concurrent_publications_keep_views_with_the_latest_accepted_silv
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_native_cleanup_preserves_other_nodes() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let other = Scope {

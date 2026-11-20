@@ -3,7 +3,6 @@ use crate::provider::Provider;
 use crate::search_filter::Selection;
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_message_candidates_intersect_thread_provider_and_time_selections() {
     let directory = tempfile::tempdir().unwrap();
     let database = directory.path().join("index.sqlite3");

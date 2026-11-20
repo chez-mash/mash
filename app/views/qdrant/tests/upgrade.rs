@@ -3,7 +3,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
 async fn qdrant_sparse_era_views_upgrade_in_place_without_republishing() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture

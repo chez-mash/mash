@@ -2,7 +2,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_silver_revision_tracks_canonical_changes_and_atomic_publication() {
     let service = Service::qdrant(384).await;
     assert!(service.state().await.silver_revision.is_none());

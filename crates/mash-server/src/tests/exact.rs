@@ -155,7 +155,6 @@ async fn search(service: &Service, token: &str, input: &Search) -> Candidates {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_exact_mentions_page_before_limits_preserve_silver_and_merge_without_models() {
     let token = std::env::var("HOME").unwrap();
     let service = Service::with_parameters(true, 384, 64 * 1024 * 1024, &token).await;
@@ -407,7 +406,6 @@ async fn verify_core(service: &Service) {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_exact_broad_queries_fail_explicitly_and_filters_restore_complete_results() {
     let service = Service::qdrant(384).await;
     let setup = events(1);

@@ -14,7 +14,6 @@ fn search_messages(fixture: &Fixture) -> Vec<crate::views::documents::SearchMess
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_materializer_prefetch_preserves_inference_batches_and_retry() {
     let model = model();
     let calls = &model.state.calls;
@@ -83,7 +82,6 @@ async fn qdrant_materializer_prefetch_preserves_inference_batches_and_retry() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_empty_projection_publication_preserves_silver_and_removes_search_point() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     for (step, visible) in [false, true, false, true].into_iter().enumerate() {
@@ -125,7 +123,6 @@ async fn qdrant_empty_projection_publication_preserves_silver_and_removes_search
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_materializer_reuses_chat_vectors_after_metadata_edits_without_a_model() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let model = model();
@@ -170,7 +167,6 @@ async fn qdrant_materializer_reuses_chat_vectors_after_metadata_edits_without_a_
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_chat_window_reuses_sparse_dense_inputs_across_row_batches() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let model = model();
@@ -254,7 +250,6 @@ async fn overwrite_payload(fixture: &Fixture, message: &str, payload: serde_json
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_chat_window_leaves_matching_documents_alone_and_rewrites_the_rest() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let model = model();
@@ -326,7 +321,6 @@ async fn qdrant_chat_window_leaves_matching_documents_alone_and_rewrites_the_res
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_materializer_reuse_tracks_prepared_title_and_parent_context() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let store = fixture
@@ -366,7 +360,6 @@ async fn qdrant_materializer_reuse_tracks_prepared_title_and_parent_context() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_materializer_reuse_requires_matching_source_model_and_input() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let model = model();
@@ -415,7 +408,6 @@ async fn qdrant_materializer_reuse_requires_matching_source_model_and_input() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_materializer_rejects_corrupt_cached_evidence_and_repairs_it() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let model = model();

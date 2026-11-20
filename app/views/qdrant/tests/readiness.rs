@@ -54,7 +54,6 @@ async fn forward(State(proxy): State<Proxy>, request: Request<Body>) -> Response
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_publication_searches_applied_data_while_optimizer_stays_busy() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let proxy = Proxy {
@@ -138,7 +137,6 @@ async fn qdrant_publication_searches_applied_data_while_optimizer_stays_busy() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_search_remains_available_during_other_node_publication() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let mut other = fixture.identity.clone();

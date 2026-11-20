@@ -24,7 +24,6 @@ fn assert_native_attachment(result: &CallToolResult, media_type: &str) {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_sdk_attachments_survive_restart_and_source_removal_and_fail_closed_after_forget() {
     let root = tempfile::tempdir().unwrap();
     let chats = root.path().join("chats");

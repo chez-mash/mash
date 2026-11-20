@@ -1,7 +1,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_http_vector_overrides_do_not_change_data_or_group_defaults() {
     let service = Service::qdrant(384).await;
     service

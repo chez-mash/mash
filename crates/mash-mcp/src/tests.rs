@@ -22,7 +22,6 @@ mod view;
 mod workflows;
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn exact_mcp_search_bypasses_model_permits_and_preserves_completed_silver() {
     let directory = tempfile::tempdir().unwrap();
     let database = directory.path().join("index.sqlite3");
@@ -218,7 +217,6 @@ async fn wire_next(
     clippy::too_many_lines,
     reason = "wire-level handshake, live progress, token omission, and failure form one session"
 )]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_indexing_streams_correlated_progress_before_the_tool_result() {
     let dir = tempfile::tempdir().unwrap();
     let config = dir.path().join("config.toml");

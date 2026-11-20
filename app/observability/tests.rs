@@ -4,7 +4,6 @@ use std::sync::{Arc, Mutex};
 use tracing::instrument::WithSubscriber;
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_partial_index_result_is_traced_as_incomplete_without_source_text() {
     let directory = tempfile::tempdir().unwrap();
     let source = directory.path().join("source-canary.jsonl");

@@ -120,7 +120,6 @@ async fn reply(
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn exact_core_shared_and_fallback_paths_are_model_free_and_query_only() {
     let root = tempfile::tempdir().unwrap();
     let database = root.path().join("local.sqlite3");

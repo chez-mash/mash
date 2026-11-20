@@ -2,7 +2,6 @@ use super::*;
 use crate::silver::certificate::{Certificate, Completeness, INTERPRETATION_VERSION};
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_source_silver_lifecycle() {
     contract(Service::qdrant(384).await).await;
 }

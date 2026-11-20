@@ -16,7 +16,6 @@ async fn call(
 }
 
 #[tokio::test]
-#[ignore = "requires MASH_TEST_QDRANT_URL with disposable Qdrant 1.20+"]
 #[expect(
     clippy::too_many_lines,
     reason = "one flow proves membership, ownership and retrieval over the transport"

@@ -182,7 +182,6 @@ fn server_rejects_relative_silver_dir_before_backend_access() {
 }
 
 #[tokio::test]
-#[ignore = "requires MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
 async fn qdrant_default_server_configuration_starts_and_creates_group_collections() {
     let root = tempfile::tempdir().unwrap();
     let group = format!(
@@ -219,7 +218,6 @@ async fn qdrant_default_server_configuration_starts_and_creates_group_collection
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_server_views_activation_rejects_conflicting_startup_and_survives_restart() {
     let root = tempfile::tempdir().unwrap();
     let group = format!(
@@ -232,6 +230,14 @@ async fn qdrant_server_views_activation_rejects_conflicting_startup_and_survives
             .unwrap()
             .args(["--server-config", path.to_str().unwrap()])
             .env("MASH_TEST_TOKEN_0", token("node"))
+            .env(
+                "MASH_TEST_QDRANT_URL",
+                &mash_model::test_support::qdrant::endpoints().url,
+            )
+            .env(
+                "MASH_TEST_QDRANT_GRPC_URL",
+                mash_model::test_support::qdrant::endpoints().grpc_url(),
+            )
             .timeout(super::HANG_GUARD)
             .output()
             .unwrap()
@@ -460,7 +466,6 @@ pub fn cleanup_group(group: &str) {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 fn a_test_server_exits_when_its_test_goes_away() {
     let root = tempfile::tempdir().unwrap();
     let group = format!(

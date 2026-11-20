@@ -803,7 +803,6 @@ async fn http_pool_reuses_connections_without_caching_node_credentials() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_candidates_use_the_shared_query_vector_and_keep_context_out_of_search() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("local.sqlite3");
@@ -832,7 +831,6 @@ async fn local_candidates_use_the_shared_query_vector_and_keep_context_out_of_se
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn local_rich_filters_apply_before_lexical_and_semantic_candidate_limits() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("filters.sqlite3");

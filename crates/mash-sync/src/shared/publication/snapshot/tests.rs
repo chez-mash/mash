@@ -34,7 +34,6 @@ async fn prepared_snapshot(
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_publication_reuses_local_vectors_and_survives_missing_local_views() {
     let directory = tempfile::tempdir().unwrap();
     let database = seed(directory.path());
@@ -65,7 +64,6 @@ async fn qdrant_publication_reuses_local_vectors_and_survives_missing_local_view
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_publication_reuse_obeys_target_recipe_and_model() {
     let directory = tempfile::tempdir().unwrap();
     let database = seed(directory.path());
@@ -90,7 +88,6 @@ async fn qdrant_publication_reuse_obeys_target_recipe_and_model() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_publication_reuse_obeys_redacted_snapshot_input() {
     let directory = tempfile::tempdir().unwrap();
     let database = seed(directory.path());

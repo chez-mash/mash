@@ -446,7 +446,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
     async fn qdrant_status_rejects_a_changed_silver_snapshot() {
         let root = tempfile::tempdir().unwrap();
         let database = root.path().join("silver.sqlite3");

@@ -89,7 +89,6 @@ enum Completeness {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn incomplete_index_progress_matches_exit_status_and_recovers_after_source_repair() {
     let directory = tempfile::tempdir().unwrap();
     let config = directory.path().join("config.toml");
@@ -209,7 +208,6 @@ fn assert_readiness(
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn rejected_source_preserves_cli_search_and_offline_views_rebuild() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("provider");

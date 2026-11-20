@@ -70,7 +70,6 @@ impl Watching {
 
 #[cfg(unix)]
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_runtime_upgrade_stops_idle_and_standby_cli_watchers() {
     let root = tempfile::tempdir().unwrap();
     let sources = root.path().join("history");
@@ -218,7 +217,6 @@ fn configure(root: &Path, sources: &Path) {
 // Bounding the write burst needs SIGSTOP/SIGCONT, which Windows lacks.
 #[cfg(unix)]
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_watcher_coalesces_writes_tracks_atomic_replacement_and_deletion() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -281,7 +279,6 @@ fn qdrant_watcher_coalesces_writes_tracks_atomic_replacement_and_deletion() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_watcher_recovers_missing_roots_and_reloads_configuration() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -311,7 +308,6 @@ fn qdrant_watcher_recovers_missing_roots_and_reloads_configuration() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_mcp_indexes_only_on_explicit_request_and_stops_when_session_closes() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
@@ -477,7 +473,6 @@ impl Elected {
 
 #[cfg(unix)]
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_killed_leader_fails_over_to_a_standby_that_indexes_changes_from_the_gap() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();

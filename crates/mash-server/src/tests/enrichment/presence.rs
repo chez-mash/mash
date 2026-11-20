@@ -57,7 +57,6 @@ async fn publish(service: &Service, events: &[Event]) -> Upload {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_metadata_presence_rejects_contradictions_without_publication_and_accepts_legacy_absence()
  {
     let service = Service::qdrant(384).await;

@@ -2,7 +2,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
 async fn qdrant_core_chat_catalog_dedup_replacement_delete_and_forget() {
     let token = std::env::var("PATH").unwrap();
     contract(

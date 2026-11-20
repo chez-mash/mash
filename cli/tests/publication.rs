@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 #[expect(clippy::too_many_lines)]
 fn qdrant_publication_retries_no_change_index_and_offline_forget_through_cli() {
     let dir = tempfile::tempdir().expect("temp");
@@ -127,13 +126,11 @@ fn qdrant_publication_retries_no_change_index_and_offline_forget_through_cli() {
 }
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn qdrant_backfill_command_publishes_a_baseline_through_the_cli() {
     assert_cli_baseline_acknowledged(false);
 }
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn qdrant_backfill_command_acknowledges_a_changed_destination() {
     assert_cli_baseline_acknowledged(true);
 }
@@ -281,7 +278,6 @@ fn assert_cli_baseline_acknowledged(previous_destination: bool) {
 }
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn released_server_no_longer_exposes_legacy_mutation_routes() {
     let dir = tempfile::tempdir().expect("temp");
     let group = format!(
@@ -408,7 +404,6 @@ fn write_client_config(path: &Path, group: &str, api_url: &str) {
 }
 
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn a_server_crash_after_silver_commit_converges_after_restart() {
     let dir = tempfile::tempdir().expect("temp");
     let database = dir.path().join("local.sqlite3");
@@ -499,7 +494,6 @@ fn a_server_crash_after_silver_commit_converges_after_restart() {
 
 /// A large first publication picks the baseline strategy without a flag.
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn index_chooses_a_baseline_automatically_for_a_large_first_publish() {
     let dir = tempfile::tempdir().expect("temp");
     let database = dir.path().join("local.sqlite3");
@@ -572,7 +566,6 @@ fn index_chooses_a_baseline_automatically_for_a_large_first_publish() {
 /// A crash after the server published but before the client acknowledged leaves
 /// the local journal pending; the next run acknowledges without republishing.
 #[test]
-#[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
 fn a_crash_before_acknowledgement_recovers_without_republishing() {
     let dir = tempfile::tempdir().expect("temp");
     let database = dir.path().join("local.sqlite3");

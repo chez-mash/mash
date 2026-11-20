@@ -1,19 +1,16 @@
 use super::*;
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn cli_masks_archived_credentials_without_changing_local_history() {
     cli_output_redaction(true);
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn output_redaction_can_be_turned_off_in_configuration() {
     cli_output_redaction(false);
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn private_spans_never_reach_silver_or_its_views() {
     let root = tempfile::tempdir().unwrap();
     let chats = root.path().join("chats");

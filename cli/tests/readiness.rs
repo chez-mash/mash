@@ -429,7 +429,6 @@ fn current_views_readiness_does_not_require_query_model_assets() {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn exact_status_uses_lexical_certification_without_models_or_dense_coverage() {
     let fixture = NodeFixture::new();
     let config = fixture.config.clone();
@@ -483,7 +482,6 @@ fn exact_status_uses_lexical_certification_without_models_or_dense_coverage() {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn status_with_completed_context_only_index_needs_no_embeddings() {
     let fixture = NodeFixture::new();
     fixture.seed(Some(""));
@@ -499,7 +497,6 @@ fn status_with_completed_context_only_index_needs_no_embeddings() {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn explicit_empty_index_reports_ready_without_loading_models() {
     let directory = tempfile::tempdir().unwrap();
     let models = directory.path().join("models");

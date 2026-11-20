@@ -50,7 +50,6 @@ fn ids(page: &serde_json::Value) -> Vec<String> {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn sdk_search_pages_continue_from_next_offset() {
     let directory = tempfile::tempdir().unwrap();
     let database = directory.path().join("silver.sqlite3");

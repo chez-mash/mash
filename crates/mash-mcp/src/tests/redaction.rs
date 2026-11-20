@@ -1,7 +1,6 @@
 use super::*;
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 async fn qdrant_sdk_outputs_mask_credentials_in_view_discovery_and_search() {
     let root = tempfile::tempdir().unwrap();
     let chats = root.path().join("chats");

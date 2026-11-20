@@ -8,7 +8,6 @@ fn built_in_views_rebuild_wire_key_replaces_gold_without_aliases() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn lexical_views_rebuild_streams_mcp_progress_without_models_sources_or_shared_service() {
     let directory = tempfile::tempdir().unwrap();
     let database = directory.path().join("index.sqlite3");

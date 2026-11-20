@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "requires disposable Qdrant REST/gRPC endpoints"]
 fn qdrant_view_returns_structured_tool_calls_and_results() {
     let root = tempfile::tempdir().unwrap();
     let provider = root.path().join("provider");

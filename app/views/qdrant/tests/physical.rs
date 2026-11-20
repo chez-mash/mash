@@ -42,7 +42,6 @@ async fn topology(fixture: &Fixture) -> Topology {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_rejects_incompatible_physical_graph_without_resetting_or_republishing_history() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -159,7 +158,6 @@ async fn planner(fixture: &Fixture) -> Planner {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_hnsw_planner_activation_preserves_publications_and_canonical_history() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     assert_eq!(planner(&fixture).await, Planner::new(10, 1024));

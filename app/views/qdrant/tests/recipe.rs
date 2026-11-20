@@ -151,7 +151,6 @@ fn exact(fixture: &Fixture) -> protocol::Search {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_freshness_revokes_source_certificate_after_forget() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -184,7 +183,6 @@ async fn qdrant_freshness_revokes_source_certificate_after_forget() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 #[expect(clippy::too_many_lines)]
 async fn qdrant_dimension_switch_preserves_silver_lexical_and_requires_rebuilding_views() {
     for memory in [MemoryTier::Cached, MemoryTier::Cold, MemoryTier::Durable] {
@@ -327,7 +325,6 @@ async fn qdrant_dimension_switch_preserves_silver_lexical_and_requires_rebuildin
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 #[expect(clippy::too_many_lines)]
 async fn qdrant_artifact_switch_replaces_vectors_without_changing_silver() {
     use crate::views::config::{Build, Representations};
@@ -456,7 +453,6 @@ async fn qdrant_artifact_switch_replaces_vectors_without_changing_silver() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_source_recipe_pinning_rejects_mismatches_and_mixed_retained_vectors() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -542,7 +538,6 @@ async fn qdrant_source_recipe_pinning_rejects_mismatches_and_mixed_retained_vect
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_empty_title_recipe_bootstrap_and_duplicate_refresh_stay_current() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let title = titled();
@@ -577,7 +572,6 @@ async fn qdrant_empty_title_recipe_bootstrap_and_duplicate_refresh_stay_current(
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_provider_and_role_indexes_are_required_on_existing_collections() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let open = || async {
@@ -631,7 +625,6 @@ async fn qdrant_provider_and_role_indexes_are_required_on_existing_collections()
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_read_open_does_not_create_missing_collections_or_vector_fields() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     let absent = format!("{}-absent", fixture.identity.group_id);

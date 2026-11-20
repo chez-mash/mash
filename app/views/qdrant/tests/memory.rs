@@ -50,7 +50,6 @@ async fn assert_policy(fixture: &Fixture, memory: MemoryTier) {
 }
 
 #[tokio::test]
-#[ignore = "requires MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
 async fn durable_memory_activation_preserves_publications_and_is_idempotent() {
     let fixture = Fixture::with_memory(VectorIndex::default(), MemoryTier::Cached).await;
     fixture
@@ -148,7 +147,6 @@ async fn assert_filters_and_context(fixture: &Fixture) {
 }
 
 #[tokio::test]
-#[ignore = "requires MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
 async fn cached_and_cold_indexes_preserve_search_and_data_across_reopen_mismatch_and_forget() {
     for memory in [MemoryTier::Cached, MemoryTier::Cold, MemoryTier::Durable] {
         for index in [VectorIndex::Exact {}, VectorIndex::Hnsw { ef_runtime: 200 }] {

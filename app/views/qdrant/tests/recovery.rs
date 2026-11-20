@@ -23,7 +23,6 @@ async fn reconnect(fixture: &Fixture) -> Server {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_lost_views_is_reported_and_a_resent_snapshot_rebuilds_it() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -75,7 +74,6 @@ async fn qdrant_lost_views_is_reported_and_a_resent_snapshot_rebuilds_it() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_publication_commits_silver_before_views_and_stale_views_is_never_current() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -119,7 +117,6 @@ async fn qdrant_publication_commits_silver_before_views_and_stale_views_is_never
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_replay_interruption_never_leaves_current_metadata_and_retry_repairs() {
     use crate::shared::server::store::ReplayFault;
 
@@ -184,7 +181,6 @@ async fn qdrant_replay_interruption_never_leaves_current_metadata_and_retry_repa
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_replay_reconstructs_all_views_from_shared_silver() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     fixture
@@ -230,7 +226,6 @@ async fn qdrant_replay_reconstructs_all_views_from_shared_silver() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_retire_removes_a_node_and_another_database_can_publish_under_its_name() {
     use crate::shared::server::store::RetireFault;
 

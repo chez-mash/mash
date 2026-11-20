@@ -183,23 +183,12 @@ jobs:
           cargo nextest run --profile ci --run-ignored only --no-tests fail -j 2
           -E 'test(cli_forwards_shared_vector_overrides) or test(mcp_protocol_forwards_vector_overrides) or test(real_models_index_and_run_hybrid_search) or test(real_models_mcp_) or test(real_models_shared_context_failure) or test(real_models_thread_discovery_and_scoped_messages) or test(real_model_length_aware_batches_preserve_quantized_vectors) or test(query_focused_reranking_preserves_paraphrases_and_reveals_late_evidence) or test(small_rerank_batches_preserve_scores_and_document_indices) or test(cached_local_models_preserve_results_and_validate_changed_assets) or test(merged_search_requests_shared_candidates_while_local_sqlite_is_blocked) or test(labeled_synthetic_relevance_matrix)'
       - run: cargo test --doc
-      - name: Verify local Qdrant public interfaces and inference recovery
+      # The Qdrant tests run in the main nextest step above, against this job's
+      # Qdrant service; these are the ones that also need the installed models.
+      - name: Verify Qdrant search that also needs the installed models
         run: >-
           cargo nextest run --profile ci --run-ignored only --no-tests fail -j 2
-          -E 'test(exact_mcp_search_bypasses_model_permits) or test(sdk_search_pages_continue) or test(sdk_compact_and_extended_output) or test(sdk_decision_workflow) or test(exact_core_shared_and_fallback) or test(local_candidates_use_the_shared_query_vector) or test(local_rich_filters_apply_before) or test(local_message_candidates_intersect) or test(lexical_views_rebuild_streams_mcp_progress)'
-      - name: Verify local and shared Qdrant publication and retrieval
-        run: cargo nextest run --profile ci --run-ignored only --no-tests fail -j 2 -E 'test(qdrant)'
-        env:
-          MASH_TEST_QDRANT_URL: http://localhost:6333
-          MASH_TEST_QDRANT_GRPC_URL: http://localhost:6334
-      - name: Verify CLI Qdrant readiness and archives
-        run: >-
-          cargo nextest run --profile ci --run-ignored only --no-tests fail -j 2
-          -E 'test(status_with_completed_embeddings) or test(current_views_readiness) or test(exact_status_uses_lexical_certification) or test(status_with_completed_context_only) or test(explicit_empty_index_reports_ready) or test(export_imports_history_offline) or test(users_only_cli_index) or test(lexical_only_cli_indexes) or test(index_without_pending_embeddings) or test(incomplete_index_progress) or test(rejected_source_preserves_cli) or test(init_configures_registers_and_indexes) or test(local_destination_never_publishes)'
-      - name: Verify local Qdrant search presentation and privacy
-        run: >-
-          cargo nextest run --profile ci --run-ignored only --no-tests fail -j 2
-          -E 'test(exact_cli_thread_excerpts) or test(cli_search_pages_partition) or test(exact_cli_search_needs_no_models) or test(exact_search_requires_every_word_and_explains_an_empty_result) or test(cli_masks_archived_credentials) or test(output_redaction_can_be_turned_off) or test(private_spans_never_reach_silver) or test(core_retrieves_native_cursor_threads)'
+          -E '(test(exact_mcp_search_bypasses_model_permits) or test(sdk_search_pages_continue) or test(sdk_compact_and_extended_output) or test(sdk_decision_workflow) or test(exact_core_shared_and_fallback) or test(local_candidates_use_the_shared_query_vector) or test(local_rich_filters_apply_before) or test(local_message_candidates_intersect) or test(lexical_views_rebuild_streams_mcp_progress)) or (test(qdrant)) or (test(status_with_completed_embeddings) or test(current_views_readiness) or test(exact_status_uses_lexical_certification) or test(status_with_completed_context_only) or test(explicit_empty_index_reports_ready) or test(export_imports_history_offline) or test(users_only_cli_index) or test(lexical_only_cli_indexes) or test(index_without_pending_embeddings) or test(incomplete_index_progress) or test(rejected_source_preserves_cli) or test(init_configures_registers_and_indexes) or test(local_destination_never_publishes)) or (test(exact_cli_thread_excerpts) or test(cli_search_pages_partition) or test(exact_cli_search_needs_no_models) or test(exact_search_requires_every_word_and_explains_an_empty_result) or test(cli_masks_archived_credentials) or test(output_redaction_can_be_turned_off) or test(private_spans_never_reach_silver) or test(core_retrieves_native_cursor_threads))'
       - name: Verify Qdrant restart and snapshot restoration
         env:
           MASH_TEST_RESTART_OWNER: ${{ github.run_id }}-${{ github.run_attempt }}-restart

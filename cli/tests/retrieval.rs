@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn exact_cli_thread_excerpts_show_the_literal_and_preserve_canonical_view() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("claude");
@@ -94,7 +93,6 @@ fn exact_cli_thread_excerpts_show_the_literal_and_preserve_canonical_view() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn cli_search_pages_partition_one_ranked_list() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("claude");
@@ -230,7 +228,6 @@ fn cli_search_pages_outside_the_ranked_window_are_usage_errors() {
 }
 
 #[test]
-#[ignore = "requires disposable Qdrant"]
 fn exact_cli_search_needs_no_models_and_query_defaults_do_not_modify_the_index() {
     let directory = tempfile::tempdir().unwrap();
     let config = directory.path().join("config.toml");
@@ -443,7 +440,6 @@ fn search_without_models_fails_before_database_access() {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn qdrant_search_with_missing_embeddings_recommends_index_without_loading_models() {
     let directory = tempfile::tempdir().expect("temporary directory");
     let models = directory.path().join("models");
@@ -477,7 +473,6 @@ fn qdrant_search_with_missing_embeddings_recommends_index_without_loading_models
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn qdrant_merged_search_requires_explicit_indexing_before_inference_or_http() {
     let directory = tempfile::tempdir().unwrap();
     let models = directory.path().join("models");
@@ -605,7 +600,6 @@ fn view_returns_context_only_canonical_content_without_models() {
 }
 
 #[test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 fn exact_search_requires_every_word_and_explains_an_empty_result() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("claude");

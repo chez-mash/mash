@@ -3,7 +3,6 @@ use super::*;
 use crate::shared::protocol::{Batch, ChatRecord, Event, MessageRecord, Start};
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_large_native_tool_context_survives_publication_and_view() {
     let service = Service::qdrant(384).await;
     let content = "largepatchcanary\n".repeat(600_000);

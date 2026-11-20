@@ -54,7 +54,6 @@ fn contradict(storage: &mut crate::storage::Storage, first: &crate::records::Rec
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 #[expect(
     clippy::too_many_lines,
     reason = "Keep the ordered publication, retry and privacy sequence visible together."

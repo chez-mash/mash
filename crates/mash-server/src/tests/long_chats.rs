@@ -180,7 +180,6 @@ async fn documents(service: &Service) -> u64 {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn qdrant_long_chat_delta_publishes_only_changed_messages() {
     let length = environment("MASH_TEST_LONG_CHAT_MESSAGES", 300);
     let bytes = environment("MASH_TEST_LONG_CHAT_MESSAGE_BYTES", 2048);

@@ -264,8 +264,10 @@ The installed August 2026 nightly can hit a [Clippy compiler crash](https://gith
 when checking async code. On that toolchain, use
 `RUSTFLAGS=-Znext-solver=no cargo clippy --all-targets -- -D warnings`.
 
-The storage integration tests are ignored by default and need Qdrant 1.20+.
-With Docker available, nothing else is needed: each test process starts its own
+The storage integration tests need Qdrant 1.20+ and run with the rest of the
+suite; only those that also need installed models, the server binary or
+container restarts stay ignored. With Docker available, nothing else is
+needed: each test process starts its own
 disposable `qdrant/qdrant:v1.20.0` container through
 [testcontainers](https://github.com/testcontainers/testcontainers-rs)
 (`mash_model::test_support::qdrant`), capped at 2 GiB and two CPUs, labelled
@@ -273,8 +275,10 @@ disposable `qdrant/qdrant:v1.20.0` container through
 the test process exits, including after a timeout or kill. Starting one takes
 about half a second with the image cached. To use a Qdrant you run instead (CI's
 service, Windows' native Qdrant), set both `MASH_TEST_QDRANT_URL` and
-`MASH_TEST_QDRANT_GRPC_URL`; then no container starts. Tests start real HTTP
-services and create/remove isolated collections for their owned groups:
+`MASH_TEST_QDRANT_GRPC_URL`; then no container starts. Without Docker and without
+those variables, a Qdrant test fails and says how to provide one. Tests start
+real HTTP services and create/remove isolated collections for their owned
+groups. The ignored ones that also need models run with:
 
 ```bash
 MASH_TEST_MODELS_DIR='/path/to/explicitly-installed-models' \
@@ -282,7 +286,11 @@ MASH_TEST_MODELS_DIR='/path/to/explicitly-installed-models' \
 ```
 
 Docker containers run outside `agent-test`'s memory budget, which is why each
-one carries its own limit; keep `-j` low on a shared machine.
+one carries its own limit; keep `-j` low on a shared machine. `make
+test-cleanup` removes test containers left behind (anything labelled
+`mash.test`, never a Qdrant you run, and never one whose test process is still
+running); `make test-cleanup OWNER=ID` removes one run's. Collections a failed
+test leaves in a Qdrant you run yourself are not removed automatically.
 
 The real-model integration tests are ignored by default and require
 `MASH_TEST_MODELS_DIR` pointing at assets created by `mash models install`.

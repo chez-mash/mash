@@ -69,7 +69,6 @@ pub(super) fn decision_history(root: &std::path::Path) -> Paths {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL and MASH_TEST_QDRANT_GRPC_URL"]
 async fn sdk_decision_workflow_discovers_scopes_and_reads_user_approval_in_four_calls() {
     let root = tempfile::tempdir().unwrap();
     let paths = decision_history(root.path());

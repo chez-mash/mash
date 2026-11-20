@@ -2,7 +2,6 @@ use super::*;
 use crate::views::readiness::State;
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_flexible_lexical_search_matches_prefixes_and_typos() {
     use crate::views::matching::{Kind, Mode};
     let fixture = Fixture::new(VectorIndex::default()).await;
@@ -122,7 +121,6 @@ async fn lexical(fixture: &Fixture, server: &Server, text: &str) -> usize {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
 async fn qdrant_exact_search_follows_silver_and_survives_recipe_changes() {
     let fixture = Fixture::new(VectorIndex::default()).await;
     assert!(

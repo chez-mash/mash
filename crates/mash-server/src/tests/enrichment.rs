@@ -3,7 +3,6 @@ use crate::silver::enrichment::{Evidence, Origin, SourceField, VERSION};
 mod presence;
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_enrichment_catalog_search_replacement_and_validation() {
     contract(
         Service::qdrant(384).await,
@@ -14,7 +13,6 @@ async fn qdrant_enrichment_catalog_search_replacement_and_validation() {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_native_field_origins_round_trip_in_catalog_search_and_replacement() {
     let expected = Evidence {
         version: VERSION,
@@ -53,7 +51,6 @@ fn evidence() -> Evidence {
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_selected_title_origins_round_trip_and_reject_invalid_message_references() {
     use crate::provider::Provider;
     for (provider, origin) in [
@@ -78,7 +75,6 @@ async fn qdrant_selected_title_origins_round_trip_and_reject_invalid_message_ref
 }
 
 #[tokio::test]
-#[ignore = "requires disposable Qdrant"]
 async fn qdrant_timestamp_evidence_round_trips_and_rejects_invalid_rules_and_ids() {
     use crate::silver::enrichment::{Boundary, TimestampField, TimestampOrigin, Timestamps};
     for provider in [
