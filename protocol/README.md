@@ -907,7 +907,8 @@ Known implementation/model gaps, recorded in Beads:
    `views_pending` and fail the request instead of being logged and ignored, so
    a later baseline cannot overwrite a chat whose live revision was
    never recorded.
-2. Startup recovery is implemented: `server::sync::recover` runs before the
+2. Startup recovery is implemented: `server::sync::recover` (defined in
+   `crates/mash-server/src/sync/recovery.rs` and re-exported from `sync`) runs before the
    listener serves and resumes `queued_for_apply`, `applying` and
    `views_pending` rows for every configured node, including
    attachment and backfill-manifest operations. It uses the ordinary mutation
@@ -1150,7 +1151,7 @@ equality and spool release in terminal states. Ordinary publication uses the inc
 are enforced and tested at the storage boundary. Multi-session and
 restored-baseline ordering remain outside the model.
 
-The client can drive a baseline end to end: `sync::client::upload_backfill`
+The client can drive a baseline end to end: `sync::client::upload_backfill_plan`
 encodes the frozen batch's chat membership as the manifest, streams
 `BeginBackfill`/chunks/`FinishUpload`, sends the batch as a `BackfillBatch`
 publication, then drives `FinishBackfill` and waits for `BackfillComplete`.

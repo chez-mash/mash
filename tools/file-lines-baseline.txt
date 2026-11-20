@@ -24,7 +24,7 @@
 1183 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
 650 crates/mash-server/src/lib.rs
-2317 crates/mash-server/src/sync.rs
+1574 crates/mash-server/src/sync.rs
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
 574 crates/mash-storage/src/records.rs
