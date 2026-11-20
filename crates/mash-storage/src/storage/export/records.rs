@@ -18,7 +18,7 @@ fn json<T: DeserializeOwned>(row: &Row<'_>, name: &str) -> Result<T, AppError> {
 fn tools(row: &Row<'_>) -> Result<crate::tools::Activity, AppError> {
     crate::tools::Activity::decode(get::<Option<String>>(row, "metadata")?.as_deref())
 }
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "exhaustive typed canonical table mapping at the archive boundary"
 )]
@@ -210,7 +210,7 @@ fn retained_attachments(row: &Row<'_>) -> Result<Vec<crate::attachments::Metadat
         .collect()
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "exhaustive typed record mapping for the portable silver format"
 )]

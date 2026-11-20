@@ -689,7 +689,7 @@ async fn setup_runs_only_where_the_dashboard_is_private_and_against_the_file_it_
 }
 
 #[tokio::test]
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn settings_are_changed_only_where_the_dashboard_is_private() {
     let directory = tempfile::tempdir().unwrap();
     let config = directory.path().join("config.toml");

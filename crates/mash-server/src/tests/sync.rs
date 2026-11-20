@@ -197,7 +197,7 @@ async fn websocket_requires_authentication_before_upgrade() {
 }
 
 #[tokio::test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one end-to-end flow proves resume, apply failure and durable receipt"
 )]
@@ -501,7 +501,7 @@ async fn upload_piece(
 }
 
 #[tokio::test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one flow proves manifest installation, coverage and rejection"
 )]
@@ -666,7 +666,7 @@ fn baseline_batch() -> (Start, Vec<Event>, Vec<wire::BackfillMember>) {
 
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one flow proves revision guard, coverage and baseline completion"
 )]
@@ -1066,7 +1066,7 @@ fn summarize(label: &str, mut samples: Vec<std::time::Duration>, bytes: usize) -
 
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one comparative measurement of both mutation transports"
 )]
@@ -1260,7 +1260,7 @@ async fn publish_over_socket(
 /// the live chat wins, and a live tombstone keeps the deletion.
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one flow freezes a baseline, edits live, deletes live and replays the baseline"
 )]
@@ -1923,7 +1923,7 @@ async fn periodic_apply_retry_finishes_queued_publications() {
 /// before the second batch is even sent.
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one flow proves per-batch commits and progressive visibility"
 )]
@@ -2210,7 +2210,7 @@ async fn two_nodes_publish_concurrently_without_interference() {
 /// the next revision under the node lock, and coverage must end complete.
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL with Qdrant 1.20+"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one end-to-end ordering scenario: plan, upload, coverage, freshness"
 )]

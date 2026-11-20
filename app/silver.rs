@@ -237,7 +237,7 @@ fn index_provider_inner(
     )
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "keep parser admission, producer/consumer and transaction boundaries in one scope"
 )]

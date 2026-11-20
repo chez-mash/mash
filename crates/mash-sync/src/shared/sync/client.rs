@@ -177,10 +177,6 @@ fn outcome_error(failed: &wire::Failed) -> AppError {
 }
 
 /// Upload one sealed publication batch through the typed WebSocket transport.
-#[allow(
-    clippy::too_many_lines,
-    reason = "one resumable protocol session with explicit server outcomes"
-)]
 pub async fn upload(
     config: &SharedConfig,
     file: &tempfile::NamedTempFile,
@@ -320,10 +316,6 @@ async fn ensure_session<'a>(
         .ok_or_else(|| AppError::internal("publisher session disappeared"))
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "one resumable protocol session with explicit server outcomes"
-)]
 pub async fn upload_with_token(
     config: &SharedConfig,
     file: &tempfile::NamedTempFile,
@@ -339,10 +331,6 @@ pub async fn upload_with_token(
 
 /// Publish an already-encoded batch through the shared publisher session. The
 /// spool-reading entry point above and the benchmarks both land here.
-#[allow(
-    clippy::too_many_lines,
-    reason = "one resumable protocol session with explicit server outcomes"
-)]
 pub async fn upload_encoded_with_token(
     config: &SharedConfig,
     token: String,
@@ -387,7 +375,7 @@ pub async fn upload_encoded_with_token(
 }
 
 /// Run one publication on an established session.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one resumable protocol operation with explicit server outcomes"
 )]
@@ -573,7 +561,7 @@ pub async fn upload_attachment(
 }
 
 /// Same transport with an explicit credential, so tests do not mutate process env.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one handshake, begin, chunk and acknowledgement sequence"
 )]
@@ -931,7 +919,7 @@ pub fn plan_backfill(
     plan_backfill_bounded(start, events, limits, wire::DEFAULT_MAX_DECODED_BYTES)
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "grouping, ordering, packing and manifest assembly in one pure planner"
 )]
@@ -1115,7 +1103,7 @@ pub fn backfill_lanes() -> usize {
 /// concurrently; each session carries one active operation.
 /// Returns the greatest acknowledged server revision. Baseline coverage does
 /// not prove node-wide views readiness; callers must read freshness for that.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     clippy::too_many_arguments,
     reason = "one baseline session: manifest, per-batch commits, completion"

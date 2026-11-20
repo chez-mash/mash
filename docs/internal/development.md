@@ -38,6 +38,10 @@ shrink but not grow. When one shrinks, run
 fails until you do, so the list only gets shorter. Never add a file to it:
 split the file instead.
 
+Functions get the same treatment: suppress `clippy::too_many_lines` or
+`clippy::too_many_arguments` with `#[expect(..., reason = "...")]`, never
+`#[allow]`, so Clippy fails once a function no longer needs it.
+
 ### Rust checks
 
 [Correctness checks](verification.md) describes generated Proptest

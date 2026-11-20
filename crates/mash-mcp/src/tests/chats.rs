@@ -2,7 +2,7 @@ use super::*;
 
 #[tokio::test]
 #[ignore = "requires installed MASH_TEST_MODELS_DIR and disposable Qdrant REST/gRPC endpoints"]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "keep the MCP index/discovery/search journey and owned-backend cleanup together"
 )]

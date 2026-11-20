@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 #[ignore = "requires MASH_TEST_QDRANT_URL pointing to an expendable Qdrant instance"]
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 fn qdrant_publication_retries_no_change_index_and_offline_forget_through_cli() {
     let dir = tempfile::tempdir().expect("temp");
     let database = dir.path().join("local.sqlite3");
@@ -138,7 +138,7 @@ fn qdrant_backfill_command_acknowledges_a_changed_destination() {
     assert_cli_baseline_acknowledged(true);
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "verify baseline receipts through CLI and shared status"
 )]

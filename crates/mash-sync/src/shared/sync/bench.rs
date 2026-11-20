@@ -25,7 +25,7 @@ const LINK_MBPS: &[f64] = &[10.0, 50.0, 200.0];
 
 /// Deterministic but varied text; identical bodies would let zstd collapse the
 /// whole batch and overstate compression gains.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "the word and path tables are the corpus definition"
 )]
@@ -149,10 +149,6 @@ fn vector(seed: u64) -> Vec<f64> {
         .collect()
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "one deterministic corpus definition documents every field the codec carries"
-)]
 fn corpus() -> Vec<Event> {
     let mut chats = Vec::with_capacity(CHATS);
     let mut messages = Vec::with_capacity(CHATS * MESSAGES_PER_CHAT);
@@ -335,7 +331,7 @@ fn equivalent(left: &serde_json::Value, right: &serde_json::Value) -> bool {
 }
 
 #[test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one benchmark reports every measured and projected metric together"
 )]

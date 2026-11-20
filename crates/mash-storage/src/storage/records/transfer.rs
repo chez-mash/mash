@@ -251,7 +251,7 @@ impl Import {
         })
     }
 
-    #[allow(
+    #[expect(
         clippy::too_many_lines,
         reason = "exhaustive typed canonical import mapping"
     )]

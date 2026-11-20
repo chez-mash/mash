@@ -307,7 +307,7 @@ impl Store {
     /// documents stay. Remove those it replaced without a successor, and carry
     /// the evidence forward only from views built for exactly the chat this
     /// upload amended. `written` is the evidence of the supplied messages.
-    #[allow(
+    #[expect(
         clippy::too_many_arguments,
         reason = "one chat's amendment, its written documents and the views being certified"
     )]

@@ -136,7 +136,7 @@ async fn assert_scoped(
     );
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one backend fixture verifies discovery, merged search and ranking overrides"
 )]

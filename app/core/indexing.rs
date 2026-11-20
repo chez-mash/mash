@@ -183,7 +183,7 @@ async fn rebuild_local(
 }
 
 #[tracing::instrument(name = "local_index", skip_all)]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one response assembles ingestion and projection metrics after the silver commit"
 )]

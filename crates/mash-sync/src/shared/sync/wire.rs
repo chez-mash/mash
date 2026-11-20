@@ -850,7 +850,7 @@ pub fn manifest_digest(
     manifest.finalize().to_hex().to_string()
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one bounded encoder that counts every publication event kind the same way"
 )]

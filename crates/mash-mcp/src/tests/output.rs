@@ -106,7 +106,7 @@ fn presentation_bytes(response: &CallToolResult) {
 }
 
 #[tokio::test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one SDK session checks presentation and canonical evidence"
 )]

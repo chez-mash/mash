@@ -323,7 +323,7 @@ fn backfill_identity_is_immutable_across_sessions() {
 
 /// Model-based property test: random operation sequences must preserve the
 /// catalog invariants the TLA+ models state. Independent expected state.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one model-based sequence applies and checks every catalog transition"
 )]

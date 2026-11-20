@@ -214,7 +214,7 @@ async fn wire_next(
 }
 
 #[tokio::test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "wire-level handshake, live progress, token omission, and failure form one session"
 )]
@@ -410,7 +410,7 @@ fn assert_filter_schema(tools: &[rmcp::model::Tool]) {
 }
 
 #[tokio::test]
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "exercise a complete SDK session including explicit index readiness"
 )]

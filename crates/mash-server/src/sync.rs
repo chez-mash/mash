@@ -71,7 +71,7 @@ async fn connection(app: App, identity: Identity, socket: WebSocket) {
     }
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one connection state machine keeps frame handling and shutdown together"
 )]
@@ -319,7 +319,7 @@ async fn handle_hello(
     Ok(())
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "begin validates metadata, mode and manifest before one durable insert"
 )]
@@ -643,7 +643,7 @@ async fn accepted(sink: &mut Sink, operation_id: &str) -> Result<(), AppError> {
     .await
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "piece validation, durability and flow control share one receive step"
 )]
@@ -775,7 +775,7 @@ async fn handle_chunk(
     }
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one transaction boundary: receipt verification, silver commit and outcome"
 )]
@@ -1112,7 +1112,7 @@ struct CommitInput {
     silver: Option<tokio::sync::mpsc::Sender<i64>>,
 }
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "reserve, atomic silver commit, coverage evidence, certification and receipt"
 )]

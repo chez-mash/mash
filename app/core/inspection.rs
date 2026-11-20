@@ -107,10 +107,6 @@ pub(super) async fn qdrant_unavailable(
     error
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "one status report assembles local, coverage and shared sections"
-)]
 pub(super) async fn status(
     configuration: &ResolvedConfig,
     database: &Path,
@@ -322,10 +318,6 @@ fn missing_message(id: &str, unmatched: crate::storage::UnmatchedId) -> AppError
     })
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "one local status report assembles readiness, counts and artifacts"
-)]
 fn local_status(
     database_path: &Path,
     models_dir: &Path,

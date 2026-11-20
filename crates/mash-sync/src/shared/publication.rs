@@ -395,10 +395,6 @@ async fn acquire_publish_lock(
     }
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "keep the consistent SQLite capture, bounded spool and acknowledgement together"
-)]
 async fn publish_result(
     path: &Path,
     config: &SharedConfig,

@@ -507,7 +507,7 @@ impl Service {
         .await
     }
 
-    #[allow(
+    #[expect(
         clippy::too_many_lines,
         reason = "one explicit shared-service fixture for every server test"
     )]
@@ -826,7 +826,7 @@ async fn authorization_and_request_limits_apply_before_database_access() {
     assert_eq!(oversized.status(), StatusCode::PAYLOAD_TOO_LARGE);
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn http_storage_contract(service: Service) {
     let events = snapshot(1);
     let initial = service.upload(FIRST, &events).await;

@@ -245,7 +245,7 @@ impl Local {
 }
 
 /// Caller retains local writer admission from ingestion through certification.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "keep invalidation, awaited mutations and final certification in one coordinator"
 )]

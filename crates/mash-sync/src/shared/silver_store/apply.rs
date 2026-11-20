@@ -42,7 +42,7 @@ pub fn write(
     )
 }
 
-#[allow(
+#[expect(
     clippy::too_many_arguments,
     reason = "one transaction needs identity, file, build, progress, receipt and rebase"
 )]
@@ -561,7 +561,7 @@ impl Upload<'_> {
 }
 
 /// Validate and stage the complete upload; the caller owns commit or rollback.
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "one protocol boundary: validate every event before the transaction commits"
 )]

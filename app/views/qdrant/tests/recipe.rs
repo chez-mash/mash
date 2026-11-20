@@ -185,7 +185,7 @@ async fn qdrant_freshness_revokes_source_certificate_after_forget() {
 
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn qdrant_dimension_switch_preserves_silver_lexical_and_requires_rebuilding_views() {
     for memory in [MemoryTier::Cached, MemoryTier::Cold, MemoryTier::Durable] {
         let fixture = Fixture::with_memory(VectorIndex::default(), memory).await;
@@ -328,7 +328,7 @@ async fn qdrant_dimension_switch_preserves_silver_lexical_and_requires_rebuildin
 
 #[tokio::test]
 #[ignore = "requires disposable MASH_TEST_QDRANT_URL"]
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn qdrant_artifact_switch_replaces_vectors_without_changing_silver() {
     use crate::views::config::{Build, Representations};
     let fixture = Fixture::new(VectorIndex::default()).await;

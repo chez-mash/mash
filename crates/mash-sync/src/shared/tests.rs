@@ -475,10 +475,6 @@ async fn deferred_publication_queues_without_blocking_the_indexing_task() {
 }
 
 #[tokio::test]
-#[allow(
-    clippy::too_many_lines,
-    reason = "one embedded WebSocket server proves the full publication exchange"
-)]
 async fn websocket_publication_streams_a_complete_snapshot_before_acknowledging() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("local.sqlite3");

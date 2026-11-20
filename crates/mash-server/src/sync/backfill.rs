@@ -6,7 +6,7 @@ use super::{
     protocol, reject, send, server_frame, wire,
 };
 
-#[allow(
+#[expect(
     clippy::too_many_lines,
     reason = "baseline identity, staleness and manifest checks before one durable insert"
 )]
