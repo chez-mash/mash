@@ -17,7 +17,7 @@
 import { gsap } from "gsap";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { draw, measure, parts, type Scene, sceneIn, wordsOf } from "./welcome-scene";
+import { draw, measure, parts, type Scene, sceneIn } from "./welcome-scene";
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
 // A drawing may have no filled shapes and a tile no icon: empty targets are expected.
@@ -47,6 +47,8 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   const stop = new AbortController();
   let scenes: Scene[] = [];
   const backdrops: Backdrop[] = [];
+  /** Tiles and facts outside the scenes that have not come into view yet. */
+  let waiting: HTMLElement[] = [];
   /** Text this script rewrites, to put back as it was. */
   const rewritten = new Map<HTMLElement, string>();
   /** The scene being kept on screen to finish, if any. */
@@ -131,6 +133,32 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
         duration: settled ? 0 : 0.35,
         ease: "power1.out",
         overwrite: true,
+      });
+    }
+
+    // Tiles and facts rise in as they come into view, each a little after its
+    // neighbour, and their small icons draw themselves. Not while a kept scene
+    // covers the screen: they wait until the reader can see them.
+    if (!keeper && waiting.length > 0) {
+      const arrived = waiting.filter((item) => {
+        const box = item.getBoundingClientRect();
+        return box.top < vh * 0.98 && box.bottom > 0;
+      });
+      waiting = waiting.filter((item) => !arrived.includes(item));
+      arrived.forEach((item, i) => {
+        item.classList.add("seen");
+        const delay = i * 0.14;
+        gsap.to(item, { autoAlpha: 1, y: 0, scale: 1, duration: 0.9, ease: "power3.out", delay });
+        const icon = item.querySelectorAll("svg.ico path");
+        gsap.to(icon, { autoAlpha: 1, duration: 0.12, delay: delay + 0.35 });
+        gsap.to(icon, { drawSVG: "100%", duration: 1, ease: "power2.inOut", delay: delay + 0.35 });
+        gsap.to(item.querySelectorAll(".ico.os svg"), {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.6,
+          delay: delay + 0.45,
+          stagger: 0.15,
+        });
       });
     }
 
@@ -239,77 +267,11 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       });
     }
 
-    // A sentence lights up word by word as it is read.
-    for (const sentence of loose(root.querySelectorAll<HTMLElement>("[data-words]"))) {
-      const words = wordsOf(sentence);
-      ScrollTrigger.create({
-        trigger: sentence,
-        start: "top 80%",
-        end: "bottom 55%",
-        onUpdate: (self) => {
-          const lit = Math.ceil(self.progress * words.length);
-          words.forEach((word, i) => {
-            word.classList.toggle("lit", i < lit);
-          });
-        },
-      });
-    }
-
-    // Tiles and facts rise in as they arrive, each a little after its
-    // neighbour, and their small icons draw themselves.
-    const arrivals = loose(root.querySelectorAll<HTMLElement>("[data-reveal] > *"));
-    gsap.set(arrivals, { autoAlpha: 0, y: 32, scale: 0.97 });
+    // Tiles and facts outside the scenes start hidden; `place` brings them in.
+    waiting = loose(root.querySelectorAll<HTMLElement>("[data-reveal] > *"));
+    gsap.set(waiting, { autoAlpha: 0, y: 32, scale: 0.97 });
     gsap.set(loose(root.querySelectorAll("svg.ico path")), { drawSVG: "0%", autoAlpha: 0 });
     gsap.set(root.querySelectorAll(".ico.os svg"), { autoAlpha: 0, y: 6 });
-    ScrollTrigger.batch(arrivals, {
-      start: "top 98%",
-      once: true,
-      onEnter: (batch) => {
-        gsap.to(batch, {
-          autoAlpha: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "power3.out",
-          stagger: 0.08,
-        });
-        batch.forEach((item, i) => {
-          item.classList.add("seen");
-          const icon = item.querySelectorAll("svg.ico path");
-          const delay = 0.35 + i * 0.08;
-          gsap.to(icon, { autoAlpha: 1, duration: 0.12, delay });
-          gsap.to(icon, { drawSVG: "100%", duration: 1, ease: "power2.inOut", delay });
-          gsap.to(item.querySelectorAll(".ico.os svg"), {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.6,
-            delay: delay + 0.1,
-            stagger: 0.15,
-          });
-        });
-      },
-    });
-
-    // Figures count to their value when they arrive.
-    for (const figure of loose(root.querySelectorAll<HTMLElement>("[data-count]"))) {
-      const to = Number(figure.dataset.count);
-      const count = { value: to >= 20 ? to * 6 : 1 };
-      ScrollTrigger.create({
-        trigger: figure,
-        start: "top 90%",
-        once: true,
-        onEnter: () => {
-          gsap.to(count, {
-            value: to,
-            duration: 1.4,
-            ease: "power2.inOut",
-            onUpdate: () => {
-              figure.textContent = String(Math.round(count.value));
-            },
-          });
-        },
-      });
-    }
   }, root);
 
   for (const scene of scenes) measure(scene);
@@ -340,6 +302,7 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       unkeep(scene);
       scene.el.classList.remove("tight");
       for (const name of ["--o", "--fit", "--lift"]) scene.el.style.removeProperty(name);
+      scene.head.style.removeProperty("--grow");
       for (const pick of scene.el.querySelectorAll(".picked")) pick.classList.remove("picked");
     }
     for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);

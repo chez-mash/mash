@@ -141,7 +141,14 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   }
   const panelAt = timeline.duration();
 
+  // A step may bring its own parts in one by one (`data-each`).
+  const each = (item: HTMLElement): HTMLElement[] =>
+    item.dataset.each === undefined
+      ? []
+      : [...item.children].filter((c) => c instanceof HTMLElement);
   for (const item of stepped) {
+    gsap.set(each(item), { autoAlpha: 0, y: 18 });
+    gsap.set(item.querySelectorAll("[data-each] svg.ico path"), { drawSVG: "0%", autoAlpha: 0 });
     gsap.set(
       item,
       inThread(item)
@@ -192,11 +199,15 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
           at,
         );
       }
-      timeline.to(
-        item,
-        { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power2.out" },
-        at + (before.length > 0 ? 0.2 : 0),
-      );
+      const from = at + (before.length > 0 ? 0.2 : 0);
+      timeline.to(item, { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power2.out" }, from);
+      each(item).forEach((part, i) => {
+        const when = from + 0.15 + i * 0.45;
+        timeline.to(part, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, when);
+        const icon = part.querySelectorAll("svg.ico path");
+        timeline.to(icon, { autoAlpha: 1, duration: 0.08, ease: "none" }, when + 0.1);
+        timeline.to(icon, { drawSVG: "100%", duration: 0.6, ease: "power2.inOut" }, when + 0.1);
+      });
     }
     stepAt.push(timeline.duration());
   }
@@ -254,6 +265,17 @@ export function measure(scene: Scene): void {
   const fit = Math.max(0.6, Math.min(1, room / scene.show.offsetHeight));
   scene.el.style.setProperty("--fit", String(fit));
   scene.el.classList.toggle("tight", fit < 1);
+  // The heading is enlarged while it has the screen to itself, but never past
+  // the screen's edges: a long one-line heading grows only as far as it fits.
+  const narrow = matchMedia("(max-width: 48rem)").matches;
+  const style = getComputedStyle(scene.stage);
+  const inner =
+    scene.stage.clientWidth -
+    Number.parseFloat(style.paddingLeft) -
+    Number.parseFloat(style.paddingRight);
+  const wide = scene.head.querySelector("h2")?.offsetWidth ?? scene.head.offsetWidth;
+  const grow = Math.max(0, Math.min(narrow ? 0.08 : 0.22, inner / wide - 1));
+  scene.head.style.setProperty("--grow", String(grow));
   let drop = 0;
   if (scene.art) {
     // Measured without the drawing's own scaling.
@@ -265,7 +287,7 @@ export function measure(scene: Scene): void {
     const view = scene.art.viewBox.baseVal;
     const tall = Math.min(box.height, (box.width * view.height) / view.width);
     // With room, the heading sits inside the drawing; on a narrow screen, under it.
-    drop = matchMedia("(max-width: 48rem)").matches
+    drop = narrow
       ? box.top -
         stage.top +
         box.height / 2 +

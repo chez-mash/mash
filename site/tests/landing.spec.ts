@@ -237,6 +237,18 @@ test("a scene's drawing draws itself, and undraws on the way back", async ({ pag
   await expect(strokes.last()).toHaveCSS("opacity", "0");
 });
 
+test("a scene's enlarged heading stays inside the screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 700 });
+  await page.goto("/");
+  await play(page, "Fast, and light", 0.1);
+  const heading = page.getByRole("heading", { name: "Fast, and light on your machine." });
+  await expect(async () => {
+    const box = await heading.boundingBox();
+    expect(box?.x).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(1000);
+  }).toPass();
+});
+
 test("the Mashy conversation runs to its third answer", async ({ page }) => {
   await page.goto("/");
   const scene = page.locator(".mash-welcome .scene", { hasText: "Meet Mashy." });
