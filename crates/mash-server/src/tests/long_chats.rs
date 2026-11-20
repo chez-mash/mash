@@ -106,18 +106,22 @@ struct Node {
     service: Service,
 }
 
+/// An environment variable every test process already has, used as the node
+/// token so the production publisher reads it without this test changing
+/// process state. It must be printable ASCII under the 4096-byte token limit,
+/// which a Windows runner's PATH exceeds.
+const TOKEN_ENV: &str = if cfg!(windows) { "OS" } else { "HOME" };
+
 impl Node {
-    /// The token lives in an existing environment variable so the production
-    /// publisher reads it without this test changing process state.
     async fn new() -> Self {
-        let token = std::env::var("PATH").unwrap();
+        let token = std::env::var(TOKEN_ENV).unwrap();
         let service = Service::with_parameters(true, 384, 1 << 30, &token).await;
         Self {
             config: crate::config::SharedConfig {
                 group_id: service.first.group_id.clone(),
                 node_id: service.first.node_id.clone(),
                 api_url: service.url.clone(),
-                token_env: "PATH".into(),
+                token_env: TOKEN_ENV.into(),
                 publication_redaction: crate::redaction::Policy::ON,
             },
             service,
@@ -144,7 +148,7 @@ impl Node {
     }
 
     async fn node(&self) -> Value {
-        let token = std::env::var("PATH").unwrap();
+        let token = std::env::var(TOKEN_ENV).unwrap();
         let freshness = self.service.get("freshness", &token).await;
         freshness["nodes"]
             .as_array()
