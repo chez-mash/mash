@@ -1,32 +1,42 @@
 /**
- * Plays the welcome page as the reader scrolls: each scene pins under the
- * header, its drawing draws itself, its heading makes way for a panel, and the
- * panel's steps arrive one after another. Drawings and panels keep a pace of
- * their own, so a fast scroll cannot skip them.
+ * Plays the welcome page as the reader scrolls, with GSAP.
+ *
+ * Each scene pins under the header and owns one timeline: its drawing is
+ * drawn, its heading makes way for a panel, the panel's steps arrive one after
+ * another, then the panel leaves and the drawing is undrawn. The scroll does
+ * not scrub that timeline. It only says how far the scene should have got, and
+ * the timeline plays there at its own pace, forwards or backwards, so a fast
+ * scroll cannot skip anything.
+ *
+ * A scene scrolled past before it has finished is kept fixed on screen until
+ * it has, and the scenes after it wait their turn. Nothing here ever moves or
+ * refuses the page's own scroll: Safari ignores that mid-gesture and shakes.
  *
  * Without this script the page shows everything, statically.
  */
+import { gsap } from "gsap";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
+// A drawing may have no filled shapes and a tile no icon: empty targets are expected.
+gsap.config({ nullTargetWarn: false });
 
 /** How much later each stroke of a drawing starts than the one before, in strokes. */
 const STAGGER = 0.12;
-/** The quickest a whole drawing may be drawn, and undrawn, in seconds. */
+/** Seconds a whole drawing takes to draw. */
 const DRAW_SECONDS = 1;
-const UNDRAW_SECONDS = 0.7;
 /** How long a finished drawing has the screen to itself before its panel rises. */
-const HOLD_MS = 500;
-/** The fastest the shown position may advance, in steps a second. */
-const STEPS_PER_SECOND = 1.5;
-/** The pace of a scene kept on screen to finish after the page has scrolled on. */
-const HELD_STEPS_PER_SECOND = 2.4;
-/** The longest a scene may stay on screen after its place, in case it never finishes. */
-const HOLD_LIMIT_MS = 8000;
-/** How long a kept scene takes to fade once it has finished. */
-const RELEASE_MS = 280;
+const HOLD_SECONDS = 0.5;
 /** Letters a second for a typed query. */
 const TYPING_RATE = 22;
-/** Where, in steps, the heading starts to make way and where the panel is fully up. */
-const PANEL_FROM = 0.45;
-const PANEL_UP = 0.8;
+/** How much faster than written a timeline runs backwards, and when kept. */
+const REWIND = 2.2;
+const KEPT_PACE = 1.6;
+/** How faint a drawing is behind its panel. */
+const FAINT = 0.13;
+/** Screens past its end at which a kept scene gives up and lets go. */
+const LET_GO_SCREENS = 1.5;
 
 const clamp = (x: number): number => Math.min(1, Math.max(0, x));
 
@@ -36,94 +46,204 @@ function smooth(from: number, to: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-interface Drawing {
+interface Scene {
+  readonly index: number;
   readonly el: HTMLElement;
-  readonly art: SVGSVGElement | null;
-  readonly strokes: readonly SVGElement[];
-  readonly dots: readonly SVGElement[];
-}
-
-interface Scene extends Drawing {
-  readonly steps: number;
   readonly stage: HTMLElement;
   readonly head: HTMLElement;
   readonly show: HTMLElement;
-  readonly stepped: readonly HTMLElement[];
-  readonly typed: HTMLElement | null;
-  readonly query: string;
-  /** The position shown, in steps, trailing the scroll; unset while off screen. */
-  shown: number | undefined;
-  /** The share of the drawing drawn so far; unset while off screen. */
-  drawn: number | undefined;
-  chars: number;
-  /** Whether the scene has let go for this pass: scrolled far past, or kept too long. */
-  letGo: boolean;
-  /** When the scene began being kept on screen past its place, or 0. */
-  heldAt: number;
-  /** When a kept scene finished and began to fade, or 0. */
-  releasedAt: number;
-  /** When the drawing was last completed, or 0 while it is incomplete. */
-  doneAt: number;
+  readonly art: SVGSVGElement | null;
+  readonly steps: number;
+  readonly timeline: gsap.core.Timeline;
+  /** Timeline times: drawing done, heading alone, panel up, each step shown, the end. */
+  readonly drawnAt: number;
+  readonly titledAt: number;
+  readonly panelAt: number;
+  readonly stepAt: readonly number[];
+  readonly endAt: number;
+  /** Where the timeline was last sent. */
+  target: number;
+  /** Whether the reader has had the scene on screen during this pass. */
+  entered: boolean;
+  /** Whether it is fixed on screen after its place, finishing. */
+  kept: boolean;
 }
 
-function drawingIn(el: HTMLElement): Drawing {
+/** A drawing outside the scenes, drawn and undrawn by its own place on screen. */
+interface Backdrop {
+  readonly art: SVGSVGElement;
+  readonly timeline: gsap.core.Timeline;
+  shown: number;
+}
+
+/** The strokes of a drawing, and the shapes that fill in once they are drawn. */
+function parts(art: Element | null): { strokes: SVGElement[]; dots: SVGElement[] } {
+  if (!art) return { strokes: [], dots: [] };
   return {
-    el,
-    art: el.querySelector<SVGSVGElement>("svg.art"),
-    strokes: [...el.querySelectorAll<SVGElement>(".art path:not(.dot, .glint)")],
-    dots: [...el.querySelectorAll<SVGElement>(".art circle, .art .dot, .art .glint")],
+    strokes: [...art.querySelectorAll<SVGElement>("path:not(.dot, .glint)")],
+    dots: [...art.querySelectorAll<SVGElement>("circle, .dot, .glint")],
   };
 }
 
-/** Draws a share of a drawing: strokes in turn, filled shapes once the last is done. */
-function trace(drawing: Drawing, amount: number): void {
-  const whole = 1 + (drawing.strokes.length - 1) * STAGGER;
-  const drawn = amount * whole;
-  drawing.strokes.forEach((stroke, i) => {
-    const part = clamp(drawn - i * STAGGER);
-    stroke.style.strokeDashoffset = String(1 - part);
-    stroke.style.opacity = part > 0 ? "1" : "0";
+/** Appends drawing the strokes one after another, then the filled shapes. */
+function draw(timeline: gsap.core.Timeline, strokes: SVGElement[], dots: SVGElement[]): void {
+  gsap.set(strokes, { drawSVG: "0%", autoAlpha: 0 });
+  gsap.set(dots, { autoAlpha: 0 });
+  const at = timeline.duration();
+  const one = DRAW_SECONDS / (1 + Math.max(0, strokes.length - 1) * STAGGER);
+  strokes.forEach((stroke, i) => {
+    // Shown only once it has begun, so a round cap never sits there as a dot.
+    timeline.to(stroke, { autoAlpha: 1, duration: 0.04, ease: "none" }, at + i * one * STAGGER);
+    timeline.to(stroke, { drawSVG: "100%", duration: one, ease: "none" }, "<");
   });
-  for (const dot of drawing.dots) dot.style.opacity = drawn >= whole - 0.02 ? "1" : "0";
+  if (dots.length > 0) timeline.to(dots, { autoAlpha: 1, duration: 0.2, ease: "none" });
 }
 
-function sceneIn(el: HTMLElement): Scene | undefined {
+/** Appends undrawing them, last stroke first. */
+function undraw(timeline: gsap.core.Timeline, strokes: SVGElement[], dots: SVGElement[]): void {
+  if (dots.length > 0) timeline.to(dots, { autoAlpha: 0, duration: 0.12, ease: "none" });
+  const at = timeline.duration();
+  const one = 0.7 / (1 + Math.max(0, strokes.length - 1) * STAGGER);
+  [...strokes].reverse().forEach((stroke, i) => {
+    timeline.to(stroke, { drawSVG: "0%", duration: one, ease: "none" }, at + i * one * STAGGER);
+    timeline.to(stroke, { autoAlpha: 0, duration: 0.04, ease: "none" }, ">-0.04");
+  });
+}
+
+/** Builds one scene's whole performance as a paused timeline. */
+function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   const stage = el.querySelector<HTMLElement>(".stage");
   const head = el.querySelector<HTMLElement>(".head");
   const show = el.querySelector<HTMLElement>(".show");
   const steps = Number(el.dataset.steps);
   if (!stage || !head || !show || !Number.isFinite(steps) || steps < 1) return undefined;
   el.style.setProperty("--n", String(steps));
+  const art = el.querySelector<SVGSVGElement>("svg.art");
+  const strength = Number(art?.dataset.strength ?? 0.5);
+  const { strokes, dots } = parts(art);
+  const stepped = [...el.querySelectorAll<HTMLElement>("[data-step]")];
+  const inThread = (item: HTMLElement): boolean =>
+    item.parentElement?.classList.contains("grow") === true;
+  const timeline = gsap.timeline({ paused: true });
+
+  // The drawing, then a moment with the heading alone.
+  gsap.set(el, { "--t": 0, "--art": strength });
+  draw(timeline, strokes, dots);
+  const drawnAt = timeline.duration();
+  timeline.to({}, { duration: HOLD_SECONDS });
+  const titledAt = timeline.duration();
+
+  // The heading makes way for the panel, and the drawing recedes behind it.
+  timeline.to(el, { "--t": 1, "--art": FAINT, duration: 0.55, ease: "power2.inOut" });
   const typed = el.querySelector<HTMLElement>("[data-type]");
+  const query = typed?.textContent ?? "";
+  const typing = { letters: 0 };
+  if (typed) {
+    timeline.to(typing, {
+      letters: query.length,
+      duration: query.length / TYPING_RATE,
+      ease: "none",
+    });
+  }
+  const panelAt = timeline.duration();
+
+  for (const item of stepped) {
+    gsap.set(
+      item,
+      inThread(item)
+        ? { height: 0, marginTop: 0, autoAlpha: 0, y: 14 }
+        : { autoAlpha: 0, y: 26, scale: 0.97 },
+    );
+  }
+
+  // The steps. In a thread each turn takes its room as it arrives, pushing
+  // older ones up; elsewhere a step joins the ones before it or, where they
+  // share one place, takes over from the last.
+  const stepAt: number[] = [];
+  const picks: { readonly pick: HTMLElement; readonly at: number }[] = [];
+  for (let step = 0; step < steps; step++) {
+    let at = timeline.duration();
+    // Suggestions: the one chosen lights up, then they fold away.
+    const folding = stepped.filter((item) => Number(item.dataset.until) === step);
+    for (const item of folding) {
+      const pick = item.querySelector<HTMLElement>(".pick");
+      if (pick) picks.push({ pick, at });
+      timeline.to(
+        item,
+        { height: 0, marginTop: 0, autoAlpha: 0, duration: 0.35, ease: "power2.inOut" },
+        at + 0.45,
+      );
+    }
+    if (folding.length > 0) at += 0.7;
+    for (const item of stepped) {
+      if (Number(item.dataset.step) !== step) continue;
+      if (inThread(item)) {
+        timeline.to(
+          item,
+          { height: "auto", marginTop: 12, autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          at,
+        );
+        continue;
+      }
+      const parent = item.parentElement;
+      const before = parent?.matches(".caps, .swap")
+        ? stepped.filter(
+            (other) => other.parentElement === parent && Number(other.dataset.step) === step - 1,
+          )
+        : [];
+      if (before.length > 0) {
+        timeline.to(
+          before,
+          { autoAlpha: 0, y: -26, scale: 0.97, duration: 0.3, ease: "power2.in" },
+          at,
+        );
+      }
+      timeline.to(
+        item,
+        { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power2.out" },
+        at + (before.length > 0 ? 0.2 : 0),
+      );
+    }
+    stepAt.push(timeline.duration());
+  }
+
+  // The panel leaves, the drawing comes back to strength and is undrawn.
+  timeline.to(el, { "--t": 0, "--art": strength, duration: 0.45, ease: "power2.inOut" });
+  undraw(timeline, strokes, dots);
+  const endAt = timeline.duration();
+
+  // What follows the timeline without being tweened: the letters typed so
+  // far, and which suggestion has been picked.
+  const follow = (): void => {
+    if (typed) {
+      const count = Math.floor(typing.letters + 0.001);
+      typed.textContent = query.slice(0, count);
+      typed.classList.toggle("caret", count < query.length);
+    }
+    const now = timeline.time();
+    for (const { pick, at } of picks) pick.classList.toggle("picked", now >= at);
+  };
+  timeline.eventCallback("onUpdate", follow);
+  follow();
+
   return {
-    ...drawingIn(el),
-    steps,
+    index,
+    el,
     stage,
     head,
     show,
-    stepped: [...el.querySelectorAll<HTMLElement>("[data-step]")],
-    typed,
-    query: typed?.textContent ?? "",
-    shown: undefined,
-    drawn: undefined,
-    chars: 0,
-    doneAt: 0,
-    letGo: false,
-    heldAt: 0,
-    releasedAt: 0,
+    art,
+    steps,
+    timeline,
+    drawnAt,
+    titledAt,
+    panelAt,
+    stepAt,
+    endAt,
+    target: 0,
+    entered: false,
+    kept: false,
   };
-}
-
-/** Splits a sentence into words that light up as it is read. */
-function wordsOf(sentence: HTMLElement): HTMLElement[] {
-  const words = (sentence.textContent ?? "").trim().split(/\s+/);
-  const spans = words.map((word) => {
-    const span = document.createElement("span");
-    span.textContent = word;
-    return span;
-  });
-  sentence.replaceChildren(...spans.flatMap((span, i) => (i === 0 ? [span] : [" ", span])));
-  return spans;
 }
 
 /**
@@ -161,272 +281,347 @@ function measure(scene: Scene): void {
   scene.el.style.setProperty("--lift", `${lift}px`);
 }
 
-/** Places a scene's steps and captions for the position shown. */
-function place(scene: Scene, shown: number): void {
-  for (const item of scene.stepped) {
-    const step = Number(item.dataset.step);
-    const x = shown - 1 - step;
-    const arrive = smooth(-0.2, 0.3, x);
-    const parent = item.parentElement;
-    if (parent?.classList.contains("grow")) {
-      // A thread: each turn takes its room as it arrives, pushing older ones
-      // up, and suggestions fold away once one of them has been picked.
-      const until = item.dataset.until === undefined ? undefined : Number(item.dataset.until);
-      const leave = until === undefined ? 0 : smooth(-0.25, 0.15, shown - 1 - until);
-      const here = arrive * (1 - leave);
-      item.style.opacity = String(here);
-      item.style.maxHeight = `${here * item.scrollHeight}px`;
-      item.style.marginTop = `${here * 12}px`;
-      item.style.transform = `translateY(${(1 - arrive) * 14}px)`;
-      if (until !== undefined) {
-        item.querySelector(".pick")?.classList.toggle("picked", shown - 1 - until > -0.7);
-      }
-      continue;
+/** Splits a sentence into words that light up as it is read. */
+function wordsOf(sentence: HTMLElement): HTMLElement[] {
+  const words = (sentence.textContent ?? "").trim().split(/\s+/);
+  const spans = words.map((word) => {
+    const span = document.createElement("span");
+    span.textContent = word;
+    return span;
+  });
+  sentence.replaceChildren(...spans.flatMap((span, i) => (i === 0 ? [span] : [" ", span])));
+  return spans;
+}
+
+/** Builds the page's motion for the current layout; returns what removes it. */
+function build(root: HTMLElement, hero: HTMLElement | null): () => void {
+  const stop = new AbortController();
+  let scenes: Scene[] = [];
+  const backdrops: Backdrop[] = [];
+  /** Text this script rewrites, to put back as it was. */
+  const rewritten = new Map<HTMLElement, string>();
+  /** The scene being kept on screen to finish, if any. */
+  let keeper: Scene | null = null;
+
+  const unkeep = (scene: Scene): void => {
+    scene.kept = false;
+    scene.el.classList.remove("kept");
+    scene.stage.style.left = "";
+    scene.stage.style.width = "";
+    if (keeper === scene) keeper = null;
+  };
+
+  /** Plays a scene's timeline to a time, at its own pace. */
+  const send = (scene: Scene, time: number): void => {
+    if (Math.abs(time - scene.target) < 0.001) return;
+    scene.target = time;
+    const from = scene.timeline.time();
+    scene.timeline.tweenTo(time, {
+      duration: Math.abs(time - from) / (time < from ? REWIND : 1),
+      ease: "none",
+      overwrite: true,
+    });
+  };
+
+  /** Puts a scene's timeline at a time at once: for a scene nobody is watching. */
+  const put = (scene: Scene, time: number): void => {
+    gsap.killTweensOf(scene.timeline);
+    scene.target = time;
+    if (scene.timeline.time() !== time) scene.timeline.time(time);
+  };
+
+  /** Keeps a scene where it was pinned until it has played out, then fades it. */
+  const keep = (scene: Scene, box: DOMRect): void => {
+    scene.kept = true;
+    keeper = scene;
+    scene.el.classList.add("kept");
+    scene.stage.style.left = `${box.left}px`;
+    scene.stage.style.width = `${box.width}px`;
+    scene.el.style.setProperty("--o", "1");
+    for (const later of scenes) if (later.index > scene.index) put(later, 0);
+    scene.target = scene.endAt;
+    scene.timeline.tweenTo(scene.endAt, {
+      duration: (scene.endAt - scene.timeline.time()) / KEPT_PACE,
+      ease: "none",
+      overwrite: true,
+      onComplete: () => {
+        if (!scene.kept) return;
+        gsap.to(scene.el, {
+          "--o": 0,
+          duration: 0.28,
+          ease: "none",
+          onComplete: () => {
+            unkeep(scene);
+            scene.entered = false;
+            place(false);
+          },
+        });
+      },
+    });
+  };
+
+  /**
+   * Reads the scroll and says where everything should be. `settled` puts it
+   * there at once, for a page just loaded or laid out afresh.
+   */
+  function place(settled: boolean): void {
+    const vh = innerHeight;
+
+    for (const backdrop of backdrops) {
+      // By the drawing's own place on screen, so a section taller than the
+      // screen behaves like a short one: drawn as the drawing rises into
+      // view, undrawn as it leaves by the top, and the reverse on the way up.
+      const box = backdrop.art.getBoundingClientRect();
+      const arriving = clamp((vh * 0.92 - box.top) / (vh * 0.45));
+      const leaving = clamp((vh * 0.3 - box.bottom) / (vh * 0.25));
+      const wanted = arriving * (1 - leaving);
+      if (!settled && Math.abs(wanted - backdrop.shown) < 0.001) continue;
+      backdrop.shown = wanted;
+      gsap.to(backdrop.timeline, {
+        progress: wanted,
+        duration: settled ? 0 : 0.35,
+        ease: "power1.out",
+        overwrite: true,
+      });
     }
-    // Elsewhere neighbours cross-fade: one leaves as the next arrives.
-    const swaps = parent?.matches(".caps, .swap") === true && step < scene.steps - 1;
-    const leave = swaps ? smooth(0.5, 0.95, x) : 0;
-    const here = arrive * (1 - leave);
-    item.style.opacity = String(here);
-    item.style.transform = `translateY(${(1 - arrive) * 26 - leave * 26}px) scale(${0.97 + 0.03 * here})`;
+
+    for (const scene of scenes) {
+      // A scene kept on screen covers what follows; those scenes wait their turn.
+      if (keeper && scene.index > keeper.index) continue;
+      const go = settled ? put : send;
+      const box = scene.el.getBoundingClientRect();
+      const pinnedAt = Number.parseFloat(getComputedStyle(scene.stage).top) || 0;
+      const tall = scene.stage.offsetHeight;
+      const pinEnds = scrollY + box.bottom - pinnedAt - tall;
+      const past = scrollY > pinEnds + 1;
+      const near = scrollY <= pinEnds + LET_GO_SCREENS * vh;
+
+      if (scene.kept) {
+        if (past && near) continue;
+        // Scrolled back into it, or so far past that the reader has plainly moved on.
+        if (past) put(scene, scene.endAt);
+        unkeep(scene);
+      }
+
+      const enter = clamp((vh - box.top) / vh);
+      const exit = clamp((pinnedAt + tall - box.bottom) / tall);
+      const visible = smooth(0.35, 0.95, enter) * (1 - smooth(0.1, 0.7, exit));
+      scene.el.style.setProperty("--o", String(visible));
+      const onScreen = box.bottom > 0 && box.top < vh;
+
+      if (past) {
+        const unfinished = scene.timeline.time() < scene.endAt - 0.02;
+        if (scene.entered && unfinished && near && !keeper && !settled) keep(scene, box);
+        else if (onScreen) go(scene, scene.endAt);
+        else {
+          put(scene, scene.endAt);
+          scene.entered = false;
+        }
+        continue;
+      }
+      if (!onScreen) {
+        // Not reached yet: at its very beginning.
+        put(scene, 0);
+        scene.entered = false;
+        continue;
+      }
+      scene.entered = true;
+      if (box.top > pinnedAt) {
+        // Rising into place: the drawing is drawn as it comes.
+        go(scene, scene.drawnAt * clamp((enter - 0.25) / 0.75));
+        continue;
+      }
+      // Pinned: a part and a half for the heading alone, one per step, and a
+      // last one to leave by.
+      const raw = clamp((pinnedAt - box.top) / (box.height - tall)) * (scene.steps + 2.5);
+      const position = raw < 1.5 ? raw / 1.5 : raw - 0.5;
+      let time = scene.titledAt;
+      if (position >= scene.steps + 1.2) time = scene.endAt;
+      else if (position >= 0.45) {
+        const reached = Math.min(scene.steps, Math.floor(position - 0.8) + 1);
+        time = scene.stepAt[reached - 1] ?? scene.panelAt;
+      }
+      go(scene, time);
+    }
   }
+
+  let queued = 0;
+  const request = (): void => {
+    if (queued !== 0) return;
+    queued = requestAnimationFrame(() => {
+      queued = 0;
+      place(false);
+    });
+  };
+
+  const context = gsap.context(() => {
+    scenes = [...root.querySelectorAll<HTMLElement>(".scene")].flatMap((el, index) => {
+      const typed = el.querySelector<HTMLElement>("[data-type]");
+      if (typed) rewritten.set(typed, typed.textContent ?? "");
+      const scene = sceneIn(el, index);
+      return scene ? [scene] : [];
+    });
+
+    for (const section of root.querySelectorAll<HTMLElement>(".backdrop")) {
+      const art = section.querySelector<SVGSVGElement>("svg.art");
+      if (!art) continue;
+      const strength = art.dataset.strength;
+      if (strength) section.style.setProperty("--art", strength);
+      const timeline = gsap.timeline({ paused: true });
+      const { strokes, dots } = parts(art);
+      draw(timeline, strokes, dots);
+      backdrops.push({ art, timeline, shown: 0 });
+    }
+
+    // The hero stays whole until most of it has left the screen: the fade
+    // runs over the last stretch, as its bottom edge nears the top.
+    if (hero) {
+      gsap.to(hero, {
+        opacity: 0,
+        y: -32,
+        scale: 0.94,
+        ease: "none",
+        scrollTrigger: { trigger: hero, start: "bottom 40%", end: "bottom top", scrub: true },
+      });
+    }
+
+    // A sentence lights up word by word as it is read.
+    const sentence = root.querySelector<HTMLElement>("[data-words]");
+    if (sentence) {
+      rewritten.set(sentence, sentence.textContent ?? "");
+      const words = wordsOf(sentence);
+      ScrollTrigger.create({
+        trigger: sentence,
+        start: "top 80%",
+        end: "bottom 55%",
+        onUpdate: (self) => {
+          const lit = Math.ceil(self.progress * words.length);
+          words.forEach((word, i) => {
+            word.classList.toggle("lit", i < lit);
+          });
+        },
+      });
+    }
+
+    // Tiles and facts rise in as they arrive, each a little after its
+    // neighbour, and their small icons draw themselves.
+    const arrivals = [...root.querySelectorAll<HTMLElement>("[data-reveal] > *")];
+    gsap.set(arrivals, { autoAlpha: 0, y: 32, scale: 0.97 });
+    gsap.set(root.querySelectorAll("svg.ico path"), { drawSVG: "0%", autoAlpha: 0 });
+    gsap.set(root.querySelectorAll(".ico.os svg"), { autoAlpha: 0, y: 6 });
+    ScrollTrigger.batch(arrivals, {
+      start: "top 98%",
+      once: true,
+      onEnter: (batch) => {
+        gsap.to(batch, {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          stagger: 0.08,
+        });
+        batch.forEach((item, i) => {
+          item.classList.add("seen");
+          const icon = item.querySelectorAll("svg.ico path");
+          const delay = 0.35 + i * 0.08;
+          gsap.to(icon, { autoAlpha: 1, duration: 0.12, delay });
+          gsap.to(icon, { drawSVG: "100%", duration: 1, ease: "power2.inOut", delay });
+          gsap.to(item.querySelectorAll(".ico.os svg"), {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.6,
+            delay: delay + 0.1,
+            stagger: 0.15,
+          });
+        });
+      },
+    });
+
+    // Figures count to their value when they arrive.
+    for (const figure of root.querySelectorAll<HTMLElement>("[data-count]")) {
+      rewritten.set(figure, figure.textContent ?? "");
+      const to = Number(figure.dataset.count);
+      const count = { value: to >= 20 ? to * 6 : 1 };
+      ScrollTrigger.create({
+        trigger: figure,
+        start: "top 90%",
+        once: true,
+        onEnter: () => {
+          gsap.to(count, {
+            value: to,
+            duration: 1.4,
+            ease: "power2.inOut",
+            onUpdate: () => {
+              figure.textContent = String(Math.round(count.value));
+            },
+          });
+        },
+      });
+    }
+  }, root);
+
+  for (const scene of scenes) measure(scene);
+  place(true);
+  addEventListener("scroll", request, { passive: true, signal: stop.signal });
+  addEventListener(
+    "resize",
+    () => {
+      for (const scene of scenes) measure(scene);
+      request();
+    },
+    { signal: stop.signal },
+  );
+
+  return () => {
+    stop.abort();
+    if (queued !== 0) cancelAnimationFrame(queued);
+    for (const scene of scenes) {
+      gsap.killTweensOf([scene.timeline, scene.el]);
+      unkeep(scene);
+      scene.el.classList.remove("tight");
+      for (const name of ["--o", "--fit", "--lift"]) scene.el.style.removeProperty(name);
+      for (const pick of scene.el.querySelectorAll(".picked")) pick.classList.remove("picked");
+    }
+    for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);
+    context.revert();
+    for (const [el, text] of rewritten) {
+      el.textContent = text;
+      el.classList.remove("caret");
+    }
+    for (const item of root.querySelectorAll(".seen")) item.classList.remove("seen");
+  };
 }
 
 /** Starts the page; returns what stops it again. */
 export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () => void {
   const stop = new AbortController();
   root.classList.add("motion");
-
-  const scenes = [...root.querySelectorAll<HTMLElement>(".scene")].flatMap((el) => {
-    const scene = sceneIn(el);
-    return scene ? [scene] : [];
-  });
-  const backdrops = [...root.querySelectorAll<HTMLElement>(".backdrop")].map(drawingIn);
-  for (const backdrop of backdrops) {
-    const strength = backdrop.art?.dataset.strength;
-    if (strength) backdrop.el.style.setProperty("--art", strength);
-  }
-  const sentence = root.querySelector<HTMLElement>("[data-words]");
-  const words = sentence ? wordsOf(sentence) : [];
-
-  let last = performance.now();
-  let queued = 0;
-  const request = (): void => {
-    if (queued === 0) queued = requestAnimationFrame(frame);
+  let unbuild = build(root, hero);
+  // Heights are measured into the timelines, so a new layout needs new ones.
+  // A phone's address bar changes only the height: that is not a new layout.
+  let wide = innerWidth;
+  const rebuild = (): void => {
+    unbuild();
+    unbuild = build(root, hero);
   };
-
-  function frame(now: number): void {
-    queued = 0;
-    let more = false;
-    const vh = innerHeight;
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-
-    if (hero) {
-      // It stays whole until most of it has left the screen: the fade runs
-      // over the last stretch, as its bottom edge nears the top.
-      const stretch = vh * 0.4;
-      const gone = clamp((stretch - hero.getBoundingClientRect().bottom) / stretch);
-      hero.style.opacity = String(1 - gone);
-      hero.style.transform = `translateY(${gone * -32}px) scale(${1 - gone * 0.06})`;
-    }
-
-    if (sentence) {
-      const box = sentence.getBoundingClientRect();
-      const read = clamp((vh * 0.8 - box.top) / (box.height + vh * 0.25));
-      const lit = Math.ceil(read * words.length);
-      words.forEach((word, i) => {
-        word.classList.toggle("lit", i < lit);
-      });
-    }
-
-    for (const backdrop of backdrops) {
-      if (!backdrop.art) continue;
-      // By the drawing's own place on screen, so a section taller than the
-      // screen behaves like a short one, in both directions: drawn as the
-      // drawing rises into view, undrawn as it leaves by the top, and the
-      // reverse on the way back up.
-      const box = backdrop.art.getBoundingClientRect();
-      const arriving = clamp((vh * 0.92 - box.top) / (vh * 0.45));
-      const leaving = clamp((vh * 0.3 - box.bottom) / (vh * 0.25));
-      trace(backdrop, arriving * (1 - leaving));
-    }
-
-    // A scene kept on screen covers what follows; those scenes wait their turn.
-    let covered = false;
-    for (const scene of scenes) {
-      const box = scene.el.getBoundingClientRect();
-      if (scene.heldAt === 0 && (box.bottom < -vh || box.top > 2 * vh)) {
-        // Well out of sight: forget where it was, and leave the drawing undrawn.
-        if (scene.drawn !== undefined) trace(scene, 0);
-        scene.shown = undefined;
-        scene.drawn = undefined;
-        scene.chars = 0;
-        scene.doneAt = 0;
-        scene.letGo = false;
-        continue;
-      }
-      // The stage pins under the site's header for the scene's extra height: a
-      // part and a half for the heading alone, one part per step, and a last
-      // part in which the panel leaves and the drawing is undrawn.
-      const pinnedAt = Number.parseFloat(getComputedStyle(scene.stage).top) || 0;
-      const tall = scene.stage.offsetHeight;
-      const enter = clamp((vh - box.top) / vh);
-      const exit = clamp((pinnedAt + tall - box.bottom) / tall);
-      const raw = clamp((pinnedAt - box.top) / (box.height - tall)) * (scene.steps + 2.5);
-      const position = covered ? 0 : raw < 1.5 ? raw / 1.5 : raw - 0.5;
-
-      // The drawing takes its own time, however fast the scroll: drawn as the
-      // scene arrives, undrawn in its last part once the panel has gone.
-      const closing = clamp((scene.shown ?? position) - (scene.steps + 1));
-      const wanted =
-        (covered ? 0 : clamp((enter - 0.25) / 0.75) * 0.55 + clamp(raw / 0.3) * 0.45) *
-        (1 - smooth(0.3, 0.9, closing));
-      scene.drawn =
-        scene.drawn === undefined
-          ? wanted
-          : scene.drawn +
-            Math.max(-dt / UNDRAW_SECONDS, Math.min(dt / DRAW_SECONDS, wanted - scene.drawn));
-      if (Math.abs(wanted - scene.drawn) > 0.002) more = true;
-      else scene.drawn = wanted;
-      if (scene.drawn > 0.995) scene.doneAt ||= now;
-      else scene.doneAt = 0;
-
-      // What is shown trails the scroll at a limited pace. The panel waits for
-      // the finished drawing, and its first step for a typed query's last letter.
-      const waiting = !(scene.doneAt > 0 && now - scene.doneAt > HOLD_MS);
-      const held = scene.art !== null && closing === 0 && waiting;
-      let goal = held ? Math.min(position, PANEL_FROM) : position;
-      if (held && position > PANEL_FROM) more = true;
-      if (scene.typed) {
-        const up = scene.shown !== undefined && scene.shown >= 0.7;
-        scene.chars = up ? Math.min(scene.query.length, scene.chars + dt * TYPING_RATE) : 0;
-        if (scene.chars < scene.query.length) {
-          if (goal > PANEL_UP) more = true;
-          goal = Math.min(goal, PANEL_UP);
-        }
-        const count = Math.floor(scene.chars);
-        scene.typed.textContent = scene.query.slice(0, count);
-        scene.typed.classList.toggle("caret", count < scene.query.length);
-      }
-      // A scene plays to its end, drawing undrawn, before the next one shows,
-      // on every pass. Scrolled past early, its stage is kept fixed on
-      // screen, over whatever the page has moved on to, and hurries a
-      // little until it is done. The page's own scroll is never touched, so
-      // nothing can shake. Scrolled a long way past, the reader has plainly
-      // moved on, and the scene lets go.
-      const pinEnds = scrollY + box.bottom - pinnedAt - tall;
-      const finished =
-        scene.shown !== undefined &&
-        scene.shown >= scene.steps + 1.9 &&
-        (scene.art === null || (scene.drawn ?? 0) <= 0.03);
-      const past = !covered && scene.shown !== undefined && scrollY > pinEnds + 1;
-      if (scrollY > pinEnds + 1.5 * vh) scene.letGo = true;
-      if (scene.heldAt > 0 && now - scene.heldAt > HOLD_LIMIT_MS) scene.letGo = true;
-      if (past && !finished && !scene.letGo) scene.heldAt ||= now;
-      const holding = scene.heldAt > 0 && !finished && !scene.letGo;
-      if (scene.heldAt > 0 && !holding) scene.releasedAt ||= now;
-      const fading = scene.releasedAt > 0 ? clamp((now - scene.releasedAt) / RELEASE_MS) : 0;
-      if (fading >= 1) {
-        scene.heldAt = 0;
-        scene.releasedAt = 0;
-      }
-      const kept = scene.heldAt > 0;
-      if (kept !== scene.el.classList.contains("kept")) {
-        scene.el.classList.toggle("kept", kept);
-        // Fixed where it was pinned: same place, same width.
-        scene.stage.style.left = kept ? `${box.left}px` : "";
-        scene.stage.style.width = kept ? `${box.width}px` : "";
-      }
-      if (kept) {
-        more = true;
-        covered = true;
-      }
-      const visible = smooth(0.35, 0.95, enter) * (1 - smooth(0.1, 0.7, exit));
-      scene.el.style.setProperty("--o", String(kept ? 1 - fading : visible));
-      const pace = holding ? HELD_STEPS_PER_SECOND : STEPS_PER_SECOND;
-      if (scene.shown === undefined) scene.shown = goal;
-      else if (goal > scene.shown) {
-        scene.shown += Math.min(Math.max((goal - scene.shown) * 0.12, 0.004), dt * pace);
-      } else scene.shown += (goal - scene.shown) * 0.2;
-      if (Math.abs(goal - scene.shown) > 0.002) more = true;
-      else scene.shown = goal;
-
-      const gone = smooth(0, 0.35, clamp(scene.shown - (scene.steps + 1)));
-      const up = smooth(PANEL_FROM, PANEL_UP, scene.shown) * (1 - gone);
-      scene.el.style.setProperty("--t", String(up));
-      if (scene.art) {
-        // Strong behind the heading, faint behind the panel, strong again to be undrawn.
-        const strength = Number(scene.art.dataset.strength ?? 0.5);
-        const behind = smooth(0.6, 1.1, scene.shown) * (1 - gone);
-        scene.el.style.setProperty("--art", String(strength - (strength - 0.13) * behind));
-        trace(scene, scene.drawn);
-      }
-      place(scene, scene.shown);
-    }
-    if (more) request();
-  }
-
-  const remeasure = (): void => {
-    for (const scene of scenes) measure(scene);
-    request();
-  };
-  addEventListener("scroll", request, { passive: true, signal: stop.signal });
-
-  void document.fonts.ready.then(() => {
-    if (!stop.signal.aborted) remeasure();
-  });
-  remeasure();
-
-  // Tiles and facts rise in as they arrive, each a little after its neighbour.
-  const arrivals = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add("seen");
-        arrivals.unobserve(entry.target);
-      }
+  addEventListener(
+    "resize",
+    () => {
+      if (innerWidth === wide) return;
+      wide = innerWidth;
+      rebuild();
     },
-    { threshold: 0.2 },
+    { signal: stop.signal },
   );
-  for (const item of root.querySelectorAll<HTMLElement>("[data-reveal] > *")) {
-    const order = [...(item.parentElement?.children ?? [])].indexOf(item) % 6;
-    item.classList.add("reveal");
-    item.style.setProperty("--d", String(order));
-    arrivals.observe(item);
+  if (document.fonts.status !== "loaded") {
+    void document.fonts.ready.then(() => {
+      if (!stop.signal.aborted) rebuild();
+    });
   }
-
-  // Figures count to their value when they arrive.
-  const counted = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        const figure = entry.target;
-        if (!entry.isIntersecting || !(figure instanceof HTMLElement)) continue;
-        counted.unobserve(figure);
-        const to = Number(figure.dataset.count);
-        const from = to >= 20 ? to * 6 : 1;
-        const began = performance.now();
-        const tick = (now: number): void => {
-          if (stop.signal.aborted) return;
-          const k = smooth(0, 1, (now - began) / 1400);
-          figure.textContent = String(Math.round(from + (to - from) * k));
-          if (k < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }
-    },
-    { threshold: 0.6 },
-  );
-  for (const figure of root.querySelectorAll("[data-count]")) counted.observe(figure);
-
   return () => {
     stop.abort();
-    arrivals.disconnect();
-    counted.disconnect();
-    if (queued !== 0) cancelAnimationFrame(queued);
-    if (hero) {
-      hero.style.opacity = "";
-      hero.style.transform = "";
-    }
+    unbuild();
+    root.classList.remove("motion");
   };
 }

@@ -1,8 +1,8 @@
 <!-- A potato masher, behind the closing call to action. Each path is drawn by scroll in src/welcome.ts. -->
 <svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.3" viewBox="0 0 746 686" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path pathLength="1" d="M353 40H393A20 20 0 0 1 413 60V280A20 20 0 0 1 393 300H353A20 20 0 0 1 333 280V60A20 20 0 0 1 353 40Z"/>
-  <path pathLength="1" d="M360 300V370C360 420 250 410 250 470"/>
-  <path pathLength="1" d="M386 300V370C386 420 496 410 496 470"/>
-  <path pathLength="1" d="M253 470H493A30 30 0 0 1 523 500V580A30 30 0 0 1 493 610H253A30 30 0 0 1 223 580V500A30 30 0 0 1 253 470Z"/>
-  <path pathLength="1" d="M258 540 296 508 335 572 373 508 411 572 450 508 488 540"/>
+  <path d="M353 40H393A20 20 0 0 1 413 60V280A20 20 0 0 1 393 300H353A20 20 0 0 1 333 280V60A20 20 0 0 1 353 40Z"/>
+  <path d="M360 300V370C360 420 250 410 250 470"/>
+  <path d="M386 300V370C386 420 496 410 496 470"/>
+  <path d="M253 470H493A30 30 0 0 1 523 500V580A30 30 0 0 1 493 610H253A30 30 0 0 1 223 580V500A30 30 0 0 1 253 470Z"/>
+  <path d="M258 540 296 508 335 572 373 508 411 572 450 508 488 540"/>
 </svg>

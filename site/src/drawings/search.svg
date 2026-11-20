@@ -1,10 +1,10 @@
 <!-- A magnifying glass, behind the search scene. Each path is drawn by scroll in src/welcome.ts. -->
 <svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="-0.06" data-strength="0.5" viewBox="0 0 746 686" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path pathLength="1" d="M623 300A250 250 0 1 1 123 300A250 250 0 1 1 623 300"/>
-  <path pathLength="1" d="M205 300A168 168 0 0 1 300 148"/>
-  <path pathLength="1" d="M538 492 562 468 690 596A17 17 0 0 1 666 620Z"/>
-  <path pathLength="1" d="M664 70V140"/>
-  <path pathLength="1" d="M629 105H699"/>
-  <path pathLength="1" d="M70 560V606"/>
-  <path pathLength="1" d="M47 583H93"/>
+  <path d="M623 300A250 250 0 1 1 123 300A250 250 0 1 1 623 300"/>
+  <path d="M205 300A168 168 0 0 1 300 148"/>
+  <path d="M538 492 562 468 690 596A17 17 0 0 1 666 620Z"/>
+  <path d="M664 70V140"/>
+  <path d="M629 105H699"/>
+  <path d="M70 560V606"/>
+  <path d="M47 583H93"/>
 </svg>

@@ -1,7 +1,7 @@
 <!-- A lightning bolt, behind the performance figures. Each path is drawn by scroll in src/welcome.ts. -->
 <svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0" data-strength="0.26" viewBox="0 0 746 686" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path pathLength="1" d="M430 40 196 384H350L300 646 560 296H404Z"/>
-  <path pathLength="1" d="M60 210H190"/>
-  <path pathLength="1" d="M30 330H150"/>
-  <path pathLength="1" d="M80 450H220"/>
+  <path d="M430 40 196 384H350L300 646 560 296H404Z"/>
+  <path d="M60 210H190"/>
+  <path d="M30 330H150"/>
+  <path d="M80 450H220"/>
 </svg>

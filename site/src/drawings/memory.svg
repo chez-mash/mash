@@ -1,20 +1,20 @@
 <!-- A brain in the manner of the emoji, round lobes and a few folds, with a light bulb over it, behind the memory scene. Each path is drawn by scroll in src/welcome.ts. -->
 <svg xmlns="http://www.w3.org/2000/svg" class="art" aria-hidden="true" data-drop="0.17" data-strength="0.5" viewBox="60 -215 640 730" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path pathLength="1" d="M178.1 369.2A62.4 62.4 0 0 1 156.3 267.5A66.2 66.2 0 0 1 215.1 174.2A78.3 78.3 0 0 1 334.4 121.2A83.5 83.5 0 0 1 473.4 126.6A76.3 76.3 0 0 1 584.5 188.5A64.5 64.5 0 0 1 629.9 285.9A59.6 59.6 0 0 1 598.1 380.0C560 404 520 404 496 412C470 440 420 456 372 454C318 452 262 424 178.1 369.2Z"/>
-  <path pathLength="1" d="M156.3 267.5Q196.0 264.9 231.4 294.0"/>
-  <path pathLength="1" d="M215.1 174.2Q237.1 198.4 275.4 199.9"/>
-  <path pathLength="1" d="M473.4 126.6Q465.8 161.7 429.2 183.2"/>
-  <path pathLength="1" d="M584.5 188.5Q552.4 199.0 534.4 233.7"/>
-  <path pathLength="1" d="M629.9 285.9Q593.4 295.1 555.2 276.3"/>
-  <path pathLength="1" d="M178.1 369.2C262 372 330 356 420 356"/>
-  <path pathLength="1" d="M496 412C504 462 548 478 590 458C612 446 616 414 602 388"/>
-  <path pathLength="1" d="M364 -18C342 -36 332 -58 332 -80A68 68 0 1 1 468 -80C468 -58 458 -36 436 -18V4H364Z"/>
-  <path pathLength="1" d="M370 20H430"/>
-  <path pathLength="1" d="M380 36H420"/>
-  <path pathLength="1" d="M386 -18V-56L400 -72L414 -56V-18"/>
-  <path pathLength="1" d="M400 -172V-196"/>
-  <path pathLength="1" d="M318 -146 302 -162"/>
-  <path pathLength="1" d="M482 -146 498 -162"/>
-  <path pathLength="1" d="M290 -80H266"/>
-  <path pathLength="1" d="M510 -80H534"/>
+  <path d="M178.1 369.2A62.4 62.4 0 0 1 156.3 267.5A66.2 66.2 0 0 1 215.1 174.2A78.3 78.3 0 0 1 334.4 121.2A83.5 83.5 0 0 1 473.4 126.6A76.3 76.3 0 0 1 584.5 188.5A64.5 64.5 0 0 1 629.9 285.9A59.6 59.6 0 0 1 598.1 380.0C560 404 520 404 496 412C470 440 420 456 372 454C318 452 262 424 178.1 369.2Z"/>
+  <path d="M156.3 267.5Q196.0 264.9 231.4 294.0"/>
+  <path d="M215.1 174.2Q237.1 198.4 275.4 199.9"/>
+  <path d="M473.4 126.6Q465.8 161.7 429.2 183.2"/>
+  <path d="M584.5 188.5Q552.4 199.0 534.4 233.7"/>
+  <path d="M629.9 285.9Q593.4 295.1 555.2 276.3"/>
+  <path d="M178.1 369.2C262 372 330 356 420 356"/>
+  <path d="M496 412C504 462 548 478 590 458C612 446 616 414 602 388"/>
+  <path d="M364 -18C342 -36 332 -58 332 -80A68 68 0 1 1 468 -80C468 -58 458 -36 436 -18V4H364Z"/>
+  <path d="M370 20H430"/>
+  <path d="M380 36H420"/>
+  <path d="M386 -18V-56L400 -72L414 -56V-18"/>
+  <path d="M400 -172V-196"/>
+  <path d="M318 -146 302 -162"/>
+  <path d="M482 -146 498 -162"/>
+  <path d="M290 -80H266"/>
+  <path d="M510 -80H534"/>
 </svg>

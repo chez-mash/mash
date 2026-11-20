@@ -29,8 +29,17 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **Scenes.** Search, Mashy and memory each pin under the header while the
   reader scrolls. `site/src/welcome.ts` draws the scene's drawing, moves the
   heading aside for a panel, and brings in the panel's steps (`data-step`).
-  Drawings, a typed query and the panel keep a pace of their own, so a fast
-  scroll cannot skip them. The pacing constants are at the top of that file.
+  Each scene is one GSAP timeline. The scroll does not scrub it: it names how
+  far the scene should have got, and the timeline plays there at its own pace,
+  so a fast scroll cannot skip anything. A scene scrolled past unfinished gets
+  the class `kept` and stays fixed on screen until it has played out. The
+  script never moves or refuses the page's scroll, because Safari ignores that
+  mid-gesture and the page shakes. The pacing constants are at the top of that
+  file.
+- **GSAP** (with its ScrollTrigger and DrawSVG plugins) drives the motion. Its
+  licence is GSAP's own no-charge licence, not an open-source one; it covers
+  this use. Timelines hold measured heights, so they are rebuilt when the
+  window's width changes.
 - **Without scripting** every step and drawing shows, statically. The script
   adds `motion` to the wrapper; all pinned and hidden states hang off it.
 - **Reduced motion.** The page animates whatever the device's motion setting

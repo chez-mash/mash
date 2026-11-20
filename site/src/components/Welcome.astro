@@ -29,7 +29,7 @@ function mark(agent: AgentKey): string {
 
 /** A small line icon, on a 24 by 24 grid. */
 function line(paths: readonly string[], kind = "i"): string {
-  const drawn = paths.map((d) => `<path pathLength="1" d="${d}"/>`).join("");
+  const drawn = paths.map((d) => `<path d="${d}"/>`).join("");
   const width = kind === "ico" ? 1.5 : 2;
   return `<svg class="${kind}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${drawn}</svg>`;
 }

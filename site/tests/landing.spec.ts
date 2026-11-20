@@ -215,7 +215,7 @@ test("a scene scrolled past early stays on screen until it has played out", asyn
     await expect(scene.locator("[data-type]")).toHaveText("why does checkout keep failing");
     await expect(scene.locator(".hits li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
     await expect(scene).toHaveClass(/kept/);
-    await expect(strokes.first()).toHaveCSS("stroke-dashoffset", "1px", { timeout: 15_000 });
+    await expect(strokes.first()).toHaveCSS("opacity", "0", { timeout: 15_000 });
     // Then it lets go, and the page was never moved.
     await expect(scene).not.toHaveClass(/kept/);
     expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
@@ -227,11 +227,11 @@ test("a scene's drawing draws itself, and undraws on the way back", async ({ pag
   const strokes = page
     .locator(".mash-welcome .scene", { hasText: "Meet Mashy." })
     .locator(".art path");
-  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
+  await expect(strokes.last()).toHaveCSS("opacity", "0");
   await play(page, "Meet Mashy.", 0.2);
-  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "0px");
+  await expect(strokes.last()).toHaveCSS("opacity", "1");
   await page.evaluate(() => scrollTo(0, 0));
-  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
+  await expect(strokes.last()).toHaveCSS("opacity", "0");
 });
 
 test("the Mashy conversation runs to its third answer", async ({ page }) => {
