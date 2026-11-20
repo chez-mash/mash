@@ -78,8 +78,8 @@ Indexing uses the fastest engine available to it, in this order:
 
 1. On an Apple Silicon Mac, Core ML, inside Mash. This is the default there
    and needs no setting.
-2. On Windows, your GPU through DirectML, inside Mash, when you turn it on
-   (experimental; see [below](#gpu-embedding-on-windows-experimental)).
+2. On Windows, your GPU through DirectML, inside Mash. This is the default
+   there too; see [below](#gpu-embedding-on-windows).
 3. A GPU worker, when you configure one: on Modal, or, experimentally, on
    your own Linux or Windows machine with an NVIDIA card. On Linux, Mash
    cannot use an NVIDIA card without that worker.
@@ -172,29 +172,32 @@ other output. Choose a service you trust with your history. Each question
 makes a few requests, which that service bills to your key; a failed request
 is never retried.
 
-## GPU embedding on Windows (experimental)
+## GPU embedding on Windows
 
-On Windows, Mash can embed on your GPU while indexing, through DirectML. It
-works with any DirectX 12 graphics card (NVIDIA, AMD or Intel) and needs
-nothing installed beyond the card's normal driver. It is experimental and off
-unless you turn it on: it has been measured on one machine, and its setting
-and behaviour may change.
+On Windows, Mash embeds on your GPU while indexing, through DirectML. It works
+with any DirectX 12 graphics card (NVIDIA, AMD or Intel), needs nothing
+installed beyond the card's normal driver, and is on without any setting. It
+has been measured on one machine so far. To keep indexing on the CPU:
 
 ```toml
 [embeddings]
 backend = "local"
-accelerated = true
+accelerated = false
 ```
 
 - Run `mash models install` once after upgrading, so the model the GPU runs is
-  present; it adds about 90 MB to the download on Windows.
+  present; it adds about 90 MB to the download on Windows. Until then Mash
+  embeds on the CPU and says so.
 - `mash index` reports `"embedding_engine": "directml"` when the GPU did the
   work. When Mash cannot use a GPU, it decides so before indexing starts,
   embeds on the CPU, and reports `"embedding_engine": "cpu"` with the reason
-  in `embedding_fallback`.
+  in `embedding_fallback`. A machine with no graphics card, such as most
+  virtual machines, reports this on every index; `accelerated = false` stops
+  the attempt and the report.
 - In one test on a Tesla T4, indexing embedded about 90 messages
   a second, where the same machine's four CPU cores managed about 17. A weak
-  integrated GPU may be slower than your CPU; compare both before keeping it.
+  integrated GPU may be slower than your CPU; if indexing got slower, turn it
+  off.
 - DirectML needs the card's ordinary display driver. A data-center card left
   in compute-only mode by its driver is not visible to it; the CPU is used.
 - Search-query embeddings stay on the CPU.

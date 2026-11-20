@@ -931,9 +931,9 @@ export interface components {
         EmbeddingTextBudget: number;
         Embeddings: {
             /**
-             * @description Experimental. On Windows, embed through `DirectML` on the machine's
-             *     GPU while indexing, using the CPU when no usable GPU is found. Off
-             *     unless set; ignored on other systems.
+             * @description On Windows, embed through `DirectML` on the machine's GPU while
+             *     indexing, using the CPU when no usable GPU is found. On unless set
+             *     to false there; ignored on other systems.
              */
             accelerated?: boolean;
             /** @constant */

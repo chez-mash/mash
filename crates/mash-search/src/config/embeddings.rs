@@ -6,11 +6,14 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "backend", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Embeddings {
     Local {
-        /// Experimental. On Windows, embed through `DirectML` on the machine's
-        /// GPU while indexing, using the CPU when no usable GPU is found. Off
-        /// unless set; ignored on other systems.
-        // Left out of status output while off, as before the setting existed.
-        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        /// On Windows, embed through `DirectML` on the machine's GPU while
+        /// indexing, using the CPU when no usable GPU is found. On unless set
+        /// to false there; ignored on other systems.
+        // Left out of status output while it holds this system's default:
+        // `Clone::clone` skips a true value, `Not::not` a false one.
+        #[serde(default = "accelerated_by_default")]
+        #[cfg_attr(windows, serde(skip_serializing_if = "Clone::clone"))]
+        #[cfg_attr(not(windows), serde(skip_serializing_if = "std::ops::Not::not"))]
         accelerated: bool,
     },
     Remote {
@@ -28,8 +31,16 @@ pub enum Embeddings {
 
 impl Default for Embeddings {
     fn default() -> Self {
-        Self::Local { accelerated: false }
+        Self::Local {
+            accelerated: accelerated_by_default(),
+        }
     }
+}
+
+/// Windows has a GPU engine inside Mash that needs nothing installed and falls
+/// back to the CPU by itself, so it is used there unless turned off.
+const fn accelerated_by_default() -> bool {
+    cfg!(windows)
 }
 
 const fn default_timeout() -> u32 {

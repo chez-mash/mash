@@ -9,10 +9,16 @@ use super::*;
 #[test]
 fn remote_embedding_configuration_is_explicit_strict_and_keeps_credentials_unresolved() {
     let prefix = "version = 1\n[providers]\n";
+    // With no setting, the GPU inside Mash is used where there is one: on Windows.
+    let unset = parse_document(prefix.as_bytes()).unwrap().embeddings;
+    assert_eq!(unset, Embeddings::default());
     assert_eq!(
-        parse_document(prefix.as_bytes()).unwrap().embeddings,
-        Embeddings::Local { accelerated: false }
+        unset,
+        Embeddings::Local {
+            accelerated: cfg!(windows)
+        }
     );
+    assert_eq!(unset.accelerated(), cfg!(windows));
     let base = format!(
         "{prefix}[embeddings]\nbackend = 'remote'\nurl = 'https://example.com/embed'\ntoken_env = 'MASH_TEST_NOT_PRESENT'\n"
     );
@@ -27,7 +33,14 @@ fn remote_embedding_configuration_is_explicit_strict_and_keeps_credentials_unres
     assert!(mixed.runs_locally(255));
     assert!(!mixed.runs_locally(256));
     assert!(Embeddings::Local { accelerated: false }.runs_locally(usize::MAX));
-    // GPU embedding inside Mash is an explicit, local-only setting.
+    // GPU embedding inside Mash is a local-only setting, and either value can be stated.
+    let stated_off = parse_document(
+        format!("{prefix}[embeddings]\nbackend = 'local'\naccelerated = false\n").as_bytes(),
+    )
+    .unwrap()
+    .embeddings;
+    assert_eq!(stated_off, Embeddings::Local { accelerated: false });
+    assert!(!stated_off.accelerated());
     let accelerated = parse_document(
         format!("{prefix}[embeddings]\nbackend = 'local'\naccelerated = true\n").as_bytes(),
     )
@@ -35,7 +48,13 @@ fn remote_embedding_configuration_is_explicit_strict_and_keeps_credentials_unres
     .embeddings;
     assert_eq!(accelerated, Embeddings::Local { accelerated: true });
     assert!(accelerated.accelerated() && accelerated.runs_locally(usize::MAX));
-    assert!(!Embeddings::default().accelerated() && !remote.accelerated());
+    assert!(!remote.accelerated());
+    // A value that is this system's default is left out when the setting is written back.
+    let written = |accelerated| {
+        serde_json::to_value(Embeddings::Local { accelerated }).unwrap()["accelerated"].clone()
+    };
+    assert!(written(cfg!(windows)).is_null());
+    assert_eq!(written(!cfg!(windows)), serde_json::json!(!cfg!(windows)));
     assert!(parse_document(format!("{base}accelerated = true\n").as_bytes()).is_err());
     for setting in [
         base.replace("https://example.com/embed", "http://example.com/embed"),

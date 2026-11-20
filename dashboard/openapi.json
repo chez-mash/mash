@@ -1787,7 +1787,7 @@
             "additionalProperties": false,
             "properties": {
               "accelerated": {
-                "description": "Experimental. On Windows, embed through `DirectML` on the machine's\nGPU while indexing, using the CPU when no usable GPU is found. Off\nunless set; ignored on other systems.",
+                "description": "On Windows, embed through `DirectML` on the machine's GPU while\nindexing, using the CPU when no usable GPU is found. On unless set\nto false there; ignored on other systems.",
                 "type": "boolean"
               },
               "backend": {

@@ -13,13 +13,14 @@ address.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple
-Silicon (the default there), a configured GPU worker elsewhere, and the CPU
-last. Reranking defaults to the CPU everywhere, with a remote worker when
-configured. The Core ML and DirectML reranking workers, DirectML embedding
-inside Mash on Windows (`[embeddings] accelerated = true`, falling back to the
-CPU before indexing starts when no usable GPU is found) and the NVIDIA workers in
-`deployment/` are experimental and off unless configured: say so wherever they
-are documented, and do not make them a default.
+Silicon and DirectML inside Mash on a Windows GPU (the defaults there;
+DirectML falls back to the CPU before indexing starts when no usable GPU is
+found, and `[embeddings] accelerated = false` turns it off), a configured GPU
+worker elsewhere, and the CPU last. Reranking defaults to the CPU everywhere,
+with a remote worker when configured. The Core ML and DirectML reranking
+workers and the NVIDIA workers in `deployment/` are experimental and off unless
+configured: say so wherever they are documented, and do not make them a
+default.
 `mash-server --reranking-worker ADDRESS` serves the reranking worker contract
 (`deployment/reranking/openapi.json`) on loopback instead of the shared index:
 Core ML on Apple Silicon, DirectML on a Windows GPU, CPU elsewhere. GPU

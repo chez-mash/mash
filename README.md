@@ -202,13 +202,16 @@ supported system, so no GPU is needed. Where Mash can use one, it is faster:
 | --- | --- | --- |
 | macOS, Apple silicon | GPU through Core ML, on by default | CPU by default; Core ML is opt-in (experimental) |
 | Linux x86-64 with an NVIDIA card | CPU by default; GPU with a worker container (experimental) | CPU by default; GPU with a worker container (experimental) |
-| Windows x64 with a DirectX 12 graphics card | CPU by default; GPU through DirectML, built in and opt-in (experimental) | CPU by default; GPU through DirectML, built in and opt-in (experimental) |
+| Windows x64 with a DirectX 12 graphics card | GPU through DirectML, on by default | CPU by default; GPU through DirectML, built in and opt-in (experimental) |
 | Linux ARM64, Linux with an AMD or Intel GPU, or no GPU | CPU | CPU |
 
-- **Experimental** options are off until you configure them, and have been
-  tried on few machines: one Tesla T4 each for Linux and Windows. Against four
-  CPU cores, indexing ran about nine times faster with an NVIDIA worker and
-  about five times faster through DirectML.
+- **Experimental** options are off until you configure them. All the GPU
+  paths outside Apple silicon have been tried on few machines: one Tesla T4
+  each for Linux and Windows. Against four CPU cores, indexing ran about nine
+  times faster with an NVIDIA worker and about five times faster through
+  DirectML.
+- On Windows, indexing falls back to the CPU by itself when there is no usable
+  graphics card, and `accelerated = false` under `[embeddings]` keeps it there.
 - On Windows with an NVIDIA card, a
   [worker you run](deployment/embeddings/README.md) is faster than DirectML
   for both indexing and reranking; DirectML needs nothing installed.
