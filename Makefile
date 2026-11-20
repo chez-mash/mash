@@ -48,6 +48,11 @@ protocol-check:
 deny:
 	cargo deny check
 
+# Remove containers tests left running (labelled mash.test); never a real Qdrant.
+.PHONY: test-cleanup
+test-cleanup:
+	bash tools/clean-test-containers.sh $(OWNER)
+
 .PHONY: iterate validate-dev
 iterate:
 	@test -n "$${FOCUS}" || (echo 'Set FOCUS to a nextest filter for the changed behavior'; exit 2)
