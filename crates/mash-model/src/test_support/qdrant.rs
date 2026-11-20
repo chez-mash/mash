@@ -10,10 +10,13 @@
 //! timeout or SIGKILL, which testcontainers' own cleanup on drop does not
 //! cover: the container is never dropped here.
 use std::sync::OnceLock;
-use std::time::Duration;
 
+// Only the Unix container path uses these; elsewhere a Qdrant must be named.
+#[cfg(unix)]
 const IMAGE: &str = "qdrant/qdrant";
+#[cfg(unix)]
 const TAG: &str = "v1.20.0";
+#[cfg(unix)]
 const MEMORY_BYTES: i64 = 2 * 1024 * 1024 * 1024;
 
 /// Where a test's Qdrant answers.
@@ -54,6 +57,7 @@ pub fn endpoints() -> &'static Endpoints {
 
 #[cfg(unix)]
 fn start() -> Endpoints {
+    use std::time::Duration;
     use testcontainers::core::{IntoContainerPort, WaitFor};
     use testcontainers::runners::SyncRunner;
     use testcontainers::{GenericImage, ImageExt};
