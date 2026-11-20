@@ -339,18 +339,7 @@ impl Mash {
         &self,
         operation: Operation,
     ) -> Result<core::Response, crate::AppError> {
-        let guard = if matches!(
-            operation,
-            Operation::Index(_)
-                | Operation::RecordMutation(_)
-                | Operation::ExtractRecords(_)
-                | Operation::Forget { .. }
-                | Operation::ModelsInstall
-                | Operation::QdrantInstall
-                | Operation::QdrantUninstall { .. }
-                | Operation::ExportSilver { .. }
-                | Operation::ImportSilver { .. }
-        ) {
+        let guard = if operation.writes() {
             Some(self.gate.lock().await)
         } else {
             None

@@ -12,6 +12,7 @@ mod inspection;
 pub mod installation;
 mod maintenance;
 mod models;
+mod operation;
 pub mod output;
 pub(crate) mod qdrant;
 mod search;
@@ -44,36 +45,7 @@ async fn execute_admitted(
     capacity: Option<&tokio::sync::Semaphore>,
 ) -> Result<Response, AppError> {
     use tracing::Instrument;
-    let operation = match &request.operation {
-        Operation::RecordMutation(_) | Operation::ExtractRecords(_) => "record_mutation",
-        Operation::Records(_)
-        | Operation::Record(_)
-        | Operation::RecallRecords(_)
-        | Operation::RecordCapture(_)
-        | Operation::RecordMatches(_)
-        | Operation::ExtractionCheckpoint(_) => "records",
-        Operation::Init(_) => "init",
-        Operation::Index(_) => "index",
-        Operation::ListChats { .. } | Operation::DashboardCatalog { .. } => "list_chats",
-        Operation::Search { .. } => "search",
-        Operation::View { .. } | Operation::ChatMessages { .. } | Operation::ChatContext { .. } => {
-            "view"
-        }
-        Operation::Status { .. } | Operation::Installation { .. } => "status",
-        Operation::Doctor => "doctor",
-        Operation::Forget { .. } => "forget",
-        Operation::QuerySilver { .. }
-        | Operation::QueryStructured { .. }
-        | Operation::QueryShared { .. } => "query",
-        Operation::ModelsInstall => "models_install",
-        Operation::QdrantInstall => "qdrant_install",
-        Operation::QdrantUninstall { .. } => "qdrant_uninstall",
-        Operation::Uninstall(_) => "uninstall",
-        Operation::ExportSilver { .. } => "export_silver",
-        Operation::ImportSilver { .. } => "import_silver",
-        Operation::ListAttachments { .. } => "list_attachments",
-        Operation::GetAttachment { .. } => "get_attachment",
-    };
+    let operation = request.operation.name();
     async {
         let started = std::time::Instant::now();
         let capture = matches!(&request.operation, Operation::Search { diagnostics: true, .. })

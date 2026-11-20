@@ -1,7 +1,7 @@
 # Files longer than the 500-line limit when it was introduced, with their
 # length then. Each may shrink but not grow; lower its entry as it shrinks
 # (python3 tools/check_file_lines.py --update). Do not add files.
-656 app/core.rs
+628 app/core.rs
 715 app/core/doctor.rs
 707 app/core/installation.rs
 711 app/core/installation/clients.rs
@@ -19,7 +19,7 @@
 579 crates/mash-dash/src/services.rs
 538 crates/mash-fleet/src/inventory.rs
 522 crates/mash-mcp/src/guidance.rs
-903 crates/mash-mcp/src/lib.rs
+892 crates/mash-mcp/src/lib.rs
 501 crates/mash-search/src/views/materialize.rs
 1185 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
