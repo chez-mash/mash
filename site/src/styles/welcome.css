@@ -816,6 +816,13 @@
   .scene.tight .stage {
     align-content: start;
   }
+  /* A scene scrolled past before it finished stays where it was pinned, over
+     whatever the page has moved on to, until it has played out. */
+  .scene.kept .stage {
+    position: fixed;
+    z-index: 2;
+    background: var(--ground);
+  }
   .stage::before {
     content: "";
     position: absolute;

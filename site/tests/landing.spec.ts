@@ -184,39 +184,42 @@ test("scrolling plays the search scene: the query is typed, then results arrive"
   await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1");
 });
 
-test("a scene holds the page until it has played to its end", async ({ page }) => {
+test("a scene scrolled past early stays on screen until it has played out", async ({ page }) => {
   await page.goto("/");
   const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
+  const stage = scene.locator(".stage");
   // Where the scene's stage stops being pinned.
   const pinEnds = () =>
     scene.evaluate((element) => {
-      const stage = element.querySelector<HTMLElement>(".stage");
-      if (!stage) throw new Error("no stage");
-      const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
-      return scrollY + element.getBoundingClientRect().bottom - pinnedAt - stage.offsetHeight;
+      const pinned = element.querySelector<HTMLElement>(".stage");
+      if (!pinned) throw new Error("no stage");
+      const pinnedAt = Number.parseFloat(getComputedStyle(pinned).top);
+      return scrollY + element.getBoundingClientRect().bottom - pinnedAt - pinned.offsetHeight;
     });
-  // Arrive at the scene, then try to scroll well past it before it has played.
-  await play(page, "Find it.", 0.05);
-  await expect(scene.locator("[data-type]")).toHaveText("");
-  const end = await pinEnds();
-  await page.evaluate((to) => scrollTo(0, to), end + 500);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(end + 1);
-  // Held there, it finishes: the query is typed and every result arrives.
-  await expect(scene.locator("[data-type]")).toHaveText("why does checkout keep failing");
-  await expect(scene.locator(".hits li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
-  // Still held, its drawing is undrawn before the page is let go.
   const strokes = scene.locator(".art path");
-  await expect(strokes.first()).toHaveCSS("stroke-dashoffset", "1px", { timeout: 15_000 });
-  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(end + 1);
-  // Then the page moves on, and the scene does not hold it a second time.
-  await page.evaluate((to) => scrollTo(0, to), end + 500);
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
-  await play(page, "Find it.", 0.05);
-  await page.evaluate((to) => scrollTo(0, to), end + 500);
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
+  // Twice over: the scene does this on every pass, not only the first.
+  for (const pass of [1, 2]) {
+    await play(page, "Find it.", 0.05);
+    const end = await pinEnds();
+    const pinnedAt = await stage.evaluate((element) => element.getBoundingClientRect().top);
+    // Scroll well past it before it has played. The page goes where it was sent.
+    await page.evaluate((to) => scrollTo(0, to), end + 500);
+    await expect(scene, `pass ${pass}`).toHaveClass(/kept/);
+    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
+    // The stage has not moved, and it finishes there: the query is typed,
+    // every result arrives, and the drawing is undrawn.
+    expect(await stage.evaluate((element) => element.getBoundingClientRect().top)).toBeCloseTo(
+      pinnedAt,
+      0,
+    );
+    await expect(scene.locator("[data-type]")).toHaveText("why does checkout keep failing");
+    await expect(scene.locator(".hits li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
+    await expect(scene).toHaveClass(/kept/);
+    await expect(strokes.first()).toHaveCSS("stroke-dashoffset", "1px", { timeout: 15_000 });
+    // Then it lets go, and the page was never moved.
+    await expect(scene).not.toHaveClass(/kept/);
+    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
+  }
 });
 
 test("a scene's drawing draws itself, and undraws on the way back", async ({ page }) => {

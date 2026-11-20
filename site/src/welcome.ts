@@ -16,10 +16,12 @@ const UNDRAW_SECONDS = 0.7;
 const HOLD_MS = 500;
 /** The fastest the shown position may advance, in steps a second. */
 const STEPS_PER_SECOND = 1.5;
-/** The pace while the page is held at a scene's end waiting for it to finish. */
+/** The pace of a scene kept on screen to finish after the page has scrolled on. */
 const HELD_STEPS_PER_SECOND = 2.4;
-/** The longest a scene may hold the page, in case it never finishes. */
+/** The longest a scene may stay on screen after its place, in case it never finishes. */
 const HOLD_LIMIT_MS = 8000;
+/** How long a kept scene takes to fade once it has finished. */
+const RELEASE_MS = 280;
 /** Letters a second for a typed query. */
 const TYPING_RATE = 22;
 /** Where, in steps, the heading starts to make way and where the panel is fully up. */
@@ -54,12 +56,12 @@ interface Scene extends Drawing {
   /** The share of the drawing drawn so far; unset while off screen. */
   drawn: number | undefined;
   chars: number;
-  /** Whether the scene has played through once; after that it never holds the page. */
-  played: boolean;
-  /** When the scene began holding the page at its end, or 0. */
+  /** Whether the scene has let go for this pass: scrolled far past, or kept too long. */
+  letGo: boolean;
+  /** When the scene began being kept on screen past its place, or 0. */
   heldAt: number;
-  /** The scroll position at which the scene's stage stops being pinned. */
-  gate: number | undefined;
+  /** When a kept scene finished and began to fade, or 0. */
+  releasedAt: number;
   /** When the drawing was last completed, or 0 while it is incomplete. */
   doneAt: number;
 }
@@ -106,9 +108,9 @@ function sceneIn(el: HTMLElement): Scene | undefined {
     drawn: undefined,
     chars: 0,
     doneAt: 0,
-    played: false,
+    letGo: false,
     heldAt: 0,
-    gate: undefined,
+    releasedAt: 0,
   };
 }
 
@@ -247,17 +249,18 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       trace(backdrop, arriving * (1 - leaving));
     }
 
+    // A scene kept on screen covers what follows; those scenes wait their turn.
+    let covered = false;
     for (const scene of scenes) {
       const box = scene.el.getBoundingClientRect();
-      if (box.bottom < -vh || box.top > 2 * vh) {
+      if (scene.heldAt === 0 && (box.bottom < -vh || box.top > 2 * vh)) {
         // Well out of sight: forget where it was, and leave the drawing undrawn.
         if (scene.drawn !== undefined) trace(scene, 0);
         scene.shown = undefined;
         scene.drawn = undefined;
         scene.chars = 0;
         scene.doneAt = 0;
-        scene.heldAt = 0;
-        scene.gate = undefined;
+        scene.letGo = false;
         continue;
       }
       // The stage pins under the site's header for the scene's extra height: a
@@ -268,17 +271,13 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       const enter = clamp((vh - box.top) / vh);
       const exit = clamp((pinnedAt + tall - box.bottom) / tall);
       const raw = clamp((pinnedAt - box.top) / (box.height - tall)) * (scene.steps + 2.5);
-      const position = raw < 1.5 ? raw / 1.5 : raw - 0.5;
-      scene.el.style.setProperty(
-        "--o",
-        String(smooth(0.35, 0.95, enter) * (1 - smooth(0.1, 0.7, exit))),
-      );
+      const position = covered ? 0 : raw < 1.5 ? raw / 1.5 : raw - 0.5;
 
       // The drawing takes its own time, however fast the scroll: drawn as the
       // scene arrives, undrawn in its last part once the panel has gone.
       const closing = clamp((scene.shown ?? position) - (scene.steps + 1));
       const wanted =
-        (clamp((enter - 0.25) / 0.75) * 0.55 + clamp(raw / 0.3) * 0.45) *
+        (covered ? 0 : clamp((enter - 0.25) / 0.75) * 0.55 + clamp(raw / 0.3) * 0.45) *
         (1 - smooth(0.3, 0.9, closing));
       scene.drawn =
         scene.drawn === undefined
@@ -307,22 +306,41 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
         scene.typed.textContent = scene.query.slice(0, count);
         scene.typed.classList.toggle("caret", count < scene.query.length);
       }
-      // A scene plays to its end before the page moves on. Scrolled past
-      // early, the page is held where the scene's stage is still pinned, and
-      // the scene hurries a little, until its last step has arrived, its panel
-      // has left and its drawing is undrawn.
-      // The hold is made by refusing the scroll itself (see `refuse` below),
-      // which leaves the page perfectly still. Only a scroll that cannot be
-      // refused, such as a flick's momentum or a dragged scrollbar, is put back.
+      // A scene plays to its end, drawing undrawn, before the next one shows,
+      // on every pass. Scrolled past early, its stage is kept fixed on
+      // screen, over whatever the page has moved on to, and hurries a
+      // little until it is done. The page's own scroll is never touched, so
+      // nothing can shake. Scrolled a long way past, the reader has plainly
+      // moved on, and the scene lets go.
       const pinEnds = scrollY + box.bottom - pinnedAt - tall;
-      scene.gate = pinEnds;
-      const past = !scene.played && scene.shown !== undefined && scrollY > pinEnds + 1;
-      if (past) scene.heldAt ||= now;
-      const holding = !scene.played && scene.heldAt > 0 && now - scene.heldAt < HOLD_LIMIT_MS;
-      if (holding) {
-        if (past) scrollTo({ top: pinEnds, behavior: "instant" });
-        more = true;
+      const finished =
+        scene.shown !== undefined &&
+        scene.shown >= scene.steps + 1.9 &&
+        (scene.art === null || (scene.drawn ?? 0) <= 0.03);
+      const past = !covered && scene.shown !== undefined && scrollY > pinEnds + 1;
+      if (scrollY > pinEnds + 1.5 * vh) scene.letGo = true;
+      if (scene.heldAt > 0 && now - scene.heldAt > HOLD_LIMIT_MS) scene.letGo = true;
+      if (past && !finished && !scene.letGo) scene.heldAt ||= now;
+      const holding = scene.heldAt > 0 && !finished && !scene.letGo;
+      if (scene.heldAt > 0 && !holding) scene.releasedAt ||= now;
+      const fading = scene.releasedAt > 0 ? clamp((now - scene.releasedAt) / RELEASE_MS) : 0;
+      if (fading >= 1) {
+        scene.heldAt = 0;
+        scene.releasedAt = 0;
       }
+      const kept = scene.heldAt > 0;
+      if (kept !== scene.el.classList.contains("kept")) {
+        scene.el.classList.toggle("kept", kept);
+        // Fixed where it was pinned: same place, same width.
+        scene.stage.style.left = kept ? `${box.left}px` : "";
+        scene.stage.style.width = kept ? `${box.width}px` : "";
+      }
+      if (kept) {
+        more = true;
+        covered = true;
+      }
+      const visible = smooth(0.35, 0.95, enter) * (1 - smooth(0.1, 0.7, exit));
+      scene.el.style.setProperty("--o", String(kept ? 1 - fading : visible));
       const pace = holding ? HELD_STEPS_PER_SECOND : STEPS_PER_SECOND;
       if (scene.shown === undefined) scene.shown = goal;
       else if (goal > scene.shown) {
@@ -330,10 +348,6 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       } else scene.shown += (goal - scene.shown) * 0.2;
       if (Math.abs(goal - scene.shown) > 0.002) more = true;
       else scene.shown = goal;
-      if (scene.shown >= scene.steps + 1.9 && (scene.art === null || scene.drawn <= 0.03)) {
-        scene.played = true;
-        scene.heldAt = 0;
-      }
 
       const gone = smooth(0, 0.35, clamp(scene.shown - (scene.steps + 1)));
       const up = smooth(PANEL_FROM, PANEL_UP, scene.shown) * (1 - gone);
@@ -356,69 +370,6 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
   };
   addEventListener("scroll", request, { passive: true, signal: stop.signal });
 
-  // Whether a scene that has not finished is at its end, so that scrolling on
-  // is refused for now. Refusing starts the scene's hold.
-  const refuse = (): boolean => {
-    const now = performance.now();
-    for (const scene of scenes) {
-      if (scene.played || scene.shown === undefined || scene.gate === undefined) continue;
-      if (scrollY < scene.gate - 2) continue;
-      scene.heldAt ||= now;
-      if (now - scene.heldAt >= HOLD_LIMIT_MS) continue;
-      request();
-      return true;
-    }
-    return false;
-  };
-  const refusable = { passive: false, signal: stop.signal };
-  addEventListener(
-    "wheel",
-    (event) => {
-      if (event.deltaY <= 0) return;
-      if (refuse()) {
-        event.preventDefault();
-        return;
-      }
-      // A turn of the wheel that would carry the page over an unfinished
-      // scene's end stops exactly there, so nothing has to be put back.
-      for (const scene of scenes) {
-        if (scene.played || scene.shown === undefined || scene.gate === undefined) continue;
-        if (scrollY < scene.gate && scrollY + event.deltaY > scene.gate) {
-          event.preventDefault();
-          scene.heldAt ||= performance.now();
-          scrollTo({ top: scene.gate, behavior: "instant" });
-          return;
-        }
-      }
-    },
-    refusable,
-  );
-  let touchedAt = 0;
-  addEventListener(
-    "touchstart",
-    (event) => {
-      touchedAt = event.touches[0]?.clientY ?? 0;
-    },
-    { passive: true, signal: stop.signal },
-  );
-  addEventListener(
-    "touchmove",
-    (event) => {
-      const y = event.touches[0]?.clientY ?? touchedAt;
-      // A finger moving up the screen scrolls the page down.
-      if (y < touchedAt && event.cancelable && refuse()) event.preventDefault();
-    },
-    refusable,
-  );
-  addEventListener(
-    "keydown",
-    (event) => {
-      const down = [" ", "PageDown", "ArrowDown", "End"].includes(event.key);
-      if (down && !event.shiftKey && refuse()) event.preventDefault();
-    },
-    { signal: stop.signal },
-  );
-  addEventListener("resize", remeasure, { signal: stop.signal });
   void document.fonts.ready.then(() => {
     if (!stop.signal.aborted) remeasure();
   });
