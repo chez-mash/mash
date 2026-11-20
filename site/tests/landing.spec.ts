@@ -15,7 +15,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     expect((await page.request.get(file)).ok()).toBe(true);
   }
   await expect(page.locator(".hero .tagline")).toHaveText(
-    "Search and memory for every coding agent.",
+    "Search, memory and context for every AI coding agent.",
   );
   await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([

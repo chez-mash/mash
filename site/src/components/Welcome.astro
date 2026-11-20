@@ -394,12 +394,15 @@ const signIn = "Move sign-in to short-lived tokens";
   <section class="tiles" data-reveal aria-label="More about Mash">
     <article class="wide">
       <Fragment set:html={drawn.plugin} />
-      <h3>Works before you ask.</h3>
-      <p>A <a href="/plugin/">plugin for Claude Code and Codex</a> brings your history into every session.</p>
+      <h3>Context, before you ask.</h3>
+      <p>
+        A <a href="/plugin/">plugin for Claude Code and Codex</a> retrieves what you decided and
+        discussed into every session.
+      </p>
     </article>
     <article class="wide">
       <Fragment set:html={drawn.hybrid} />
-      <h3>Hybrid retrieval.</h3>
+      <h3>RAG over your own history.</h3>
       <p>
         BM25 and embeddings, fused, then <a href="/search/">reranked by a cross-encoder</a>. On
         Qdrant.
