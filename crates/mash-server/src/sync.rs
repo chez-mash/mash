@@ -483,69 +483,26 @@ async fn handle_begin(
         )
         .await;
     };
-    let manifest = begin.manifest_digest;
-    let decoded_bytes = begin.decoded_bytes;
-    let record_count = begin.record_count;
-    let group = identity.group_id.clone();
-    let node = identity.node_id.clone();
-    let operation_id_owned = operation_id.to_owned();
-    let result = catalog(handle, move |catalog| {
-        catalog.begin(&Begin {
-            operation_id: &operation_id_owned,
-            group_id: &group,
-            node_id: &node,
-            kind: &Kind::Publication,
-            manifest_digest: &manifest,
-            decoded_bytes,
-            record_count,
-            start_json: &start_json,
-        })
-    })
-    .await;
-    let operation = match result {
-        Ok(BeginOutcome::New(operation) | BeginOutcome::Existing(operation)) => operation,
-        Err(error) => {
-            return send(
-                sink,
-                operation_id,
-                server_frame::Body::Rejected(Failed {
-                    phase: "begin".into(),
-                    code: "begin_rejected".into(),
-                    commit_state: CommitState::NotCommitted as i32,
-                    retryable: error.error.retryable,
-                    recovery_action: "reconnect and resume with the same operation".into(),
-                    kind: error.error.kind.name(),
-                    message: error.error.message,
-                }),
-            )
-            .await;
-        }
+    let owned = OwnedBegin {
+        operation_id: operation_id.to_owned(),
+        group_id: identity.group_id.clone(),
+        node_id: identity.node_id.clone(),
+        kind: Kind::Publication,
+        manifest_digest: begin.manifest_digest,
+        decoded_bytes: begin.decoded_bytes,
+        record_count: begin.record_count,
+        start_json,
     };
+    let Some(operation) = begin_in_catalog(sink, handle, operation_id, owned).await? else {
+        return Ok(());
+    };
+    // A publication the node has already superseded is not acknowledged again.
     if operation.state == catalog::State::Published
         && reject_superseded(sink, app, identity, operation_id, &operation, "begin").await?
     {
         return Ok(());
     }
-    if operation.state == catalog::State::Published {
-        return send(
-            sink,
-            operation_id,
-            server_frame::Body::Outcome(outcome(&operation, CommitState::Committed)),
-        )
-        .await;
-    }
-    if operation.next_sequence > 0 {
-        send(
-            sink,
-            operation_id,
-            server_frame::Body::Checkpoint(Checkpoint {
-                sequence: operation.next_sequence - 1,
-                decoded_offset: operation.decoded_offset,
-            }),
-        )
-        .await?;
-    }
-    accepted(sink, operation_id).await
+    finish_begin(sink, operation_id, operation).await
 }
 
 async fn finish_begin(
@@ -586,12 +543,14 @@ struct OwnedBegin {
     start_json: String,
 }
 
-async fn begin_operation(
+/// Record the operation in the catalog, or reply that it was rejected and
+/// return `None`.
+async fn begin_in_catalog(
     sink: &mut Sink,
     handle: &CatalogHandle,
     operation_id: &str,
     begin: OwnedBegin,
-) -> Result<(), AppError> {
+) -> Result<Option<catalog::Operation>, AppError> {
     let result = catalog(handle, move |catalog| {
         catalog.begin(&Begin {
             operation_id: &begin.operation_id,
@@ -606,9 +565,7 @@ async fn begin_operation(
     })
     .await;
     match result {
-        Ok(BeginOutcome::New(operation) | BeginOutcome::Existing(operation)) => {
-            finish_begin(sink, operation_id, operation).await
-        }
+        Ok(BeginOutcome::New(operation) | BeginOutcome::Existing(operation)) => Ok(Some(operation)),
         Err(error) => {
             send(
                 sink,
@@ -623,8 +580,21 @@ async fn begin_operation(
                     message: error.error.message,
                 }),
             )
-            .await
+            .await?;
+            Ok(None)
         }
+    }
+}
+
+async fn begin_operation(
+    sink: &mut Sink,
+    handle: &CatalogHandle,
+    operation_id: &str,
+    begin: OwnedBegin,
+) -> Result<(), AppError> {
+    match begin_in_catalog(sink, handle, operation_id, begin).await? {
+        Some(operation) => finish_begin(sink, operation_id, operation).await,
+        None => Ok(()),
     }
 }
 
