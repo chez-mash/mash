@@ -59,6 +59,12 @@ fn service_definition(home: &Path) -> Option<PathBuf> {
     }
 }
 
+/// The watcher service definition on this machine, when one is installed.
+pub(crate) fn installed_definition() -> Option<PathBuf> {
+    let home = directories::BaseDirs::new()?.home_dir().to_path_buf();
+    service_definition(&home).filter(|definition| definition.is_file())
+}
+
 /// The installed watcher service, if any, and whether a watcher runs for
 /// `database`. A definition for another database's watcher also counts.
 pub(crate) fn service(database: &Path) -> Option<Service> {

@@ -549,6 +549,29 @@ pub(crate) async fn uninstall(
     })
 }
 
+/// What `uninstall` would act on: the registered service's name, when one is
+/// registered, and the directories holding the installation and its data.
+/// `None` when Mash installed no Qdrant. Changes nothing.
+pub(crate) fn installed(host: &Host) -> Option<(Option<String>, Vec<PathBuf>)> {
+    let layout = &host.layout;
+    let manifest = read_manifest(&layout.root).ok().flatten();
+    let definition = manifest.as_ref().map_or_else(
+        || layout.definition(),
+        |manifest| manifest.definition.clone(),
+    );
+    if !layout.root.exists() && !definition.exists() {
+        return None;
+    }
+    let service = (definition.is_file() || manifest.is_some())
+        .then(|| manifest.map_or_else(|| layout.service.clone(), |manifest| manifest.service));
+    let mut directories = vec![layout.root.clone()];
+    if layout.data != layout.root {
+        directories.push(layout.data.clone());
+    }
+    directories.retain(|directory| directory.exists());
+    Some((service, directories))
+}
+
 /// The installed service for `mash status`, or `None` when Mash installed
 /// none. Never downloads, starts or changes anything.
 pub(crate) async fn report() -> Option<Managed> {

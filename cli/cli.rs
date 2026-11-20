@@ -61,8 +61,8 @@ enum Command {
     /// The connected agents are recorded in Mash's config.toml, so
     /// `mash status --installation` reports them if they lose Mash. To undo,
     /// run `claude mcp remove --scope user mash`, `claude plugin uninstall
-    /// mash@mash`, `codex mcp remove mash` and `codex plugin remove mash@mash`,
-    /// then delete Mash's configuration and data directories.
+    /// mash@mash`, `codex mcp remove mash` and `codex plugin remove mash@mash`.
+    /// `mash uninstall` lists everything Mash set up and removes it with --yes.
     Init {
         /// Accept defaults without prompting (also used automatically without a terminal).
         #[arg(short = 'y', long)]
@@ -292,6 +292,27 @@ enum Command {
     Qdrant {
         #[command(subcommand)]
         command: QdrantCommand,
+    },
+    /// Remove what Mash created on this machine; without --yes, only list it.
+    #[command(long_about = concat!(
+        "Remove what Mash created on this machine; without --yes, only list it.\n\n",
+        "Lists, and with --yes removes: the services Mash set up (the Qdrant search ",
+        "service and its data, the remote dashboard, an installed index watcher), ",
+        "its connections to Claude Code and Codex (through their own CLIs), and its ",
+        "index, models, configuration and saved tokens. ",
+        "It never removes the mash executable (the last line says how), your agents' ",
+        "own chat histories, history already published to a shared server, or files ",
+        "in Mash's directory that these commands did not create. ",
+        "Exits 1 when a step fails; running it again retries what is left.",
+    ))]
+    Uninstall {
+        /// Carry out the removal. Without it nothing changes.
+        #[arg(short = 'y', long)]
+        yes: bool,
+        /// Keep the index, its search data, the configuration and saved tokens,
+        /// for reinstalling later.
+        #[arg(long)]
+        keep_history: bool,
     },
     /// Serve search tools over the stdio MCP protocol.
     Mcp {
@@ -709,6 +730,12 @@ impl Cli {
             Command::Qdrant {
                 command: QdrantCommand::Uninstall { delete_storage },
             } => Operation::QdrantUninstall { delete_storage },
+            Command::Uninstall { yes, keep_history } => {
+                Operation::Uninstall(crate::core::uninstall::Request {
+                    apply: yes,
+                    keep_history,
+                })
+            }
             Command::Mcp { .. } | Command::Dash { .. } => {
                 return Err(AppError::usage(
                     "server commands must run as process commands",
@@ -1301,6 +1328,7 @@ mod tests {
                 "import",
                 "models",
                 "qdrant",
+                "uninstall",
                 "mcp",
                 "dash"
             ]

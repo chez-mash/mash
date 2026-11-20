@@ -122,6 +122,9 @@ codex mcp remove mash
 codex plugin remove mash@mash
 ```
 
+To remove Mash from the machine as well, see
+[uninstall](installation.md#uninstall).
+
 ## Other MCP clients and manual setup
 
 Any other client that supports stdio MCP servers can run `mash mcp`. Use the

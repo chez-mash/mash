@@ -446,6 +446,7 @@ pub fn render(
         }
         Response::QdrantInstall(value) => json(&mut out, "Qdrant install", value)?,
         Response::QdrantUninstall(value) => json(&mut out, "Qdrant uninstall", value)?,
+        Response::Uninstall(value) => json(&mut out, "Uninstall", value)?,
         Response::ExportSilver(value) => operations::exported(&mut out, value)?,
         Response::ImportSilver(value) => operations::imported(&mut out, value)?,
         Response::ListAttachments(value) => operations::attachments(&mut out, value)?,

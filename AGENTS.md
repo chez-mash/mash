@@ -6,7 +6,9 @@ mash is a Rust CLI with JSON output and stdio MCP server for local agent histori
 Node and server configuration is strict TOML only. Do not add JSON compatibility or conversion.
 Keep the CLI command surface limited to `init`, `index`, `search`, `list-chats`, `view`,
 `status`, `doctor` (read-only: names what is wrong and the repair), `forget`, `query` (read-only), `export`, `import`, `models install`, `qdrant install`
-(with its matching `qdrant uninstall`), `mcp`, and `dash`
+(with its matching `qdrant uninstall`), `uninstall` (a plan unless `--yes`: removes Mash's
+services, agent connections, index, models and configuration, never the executable,
+the agents' own histories or files in `~/.mash` it did not create), `mcp`, and `dash`
 (the local web dashboard: history is read-only; service management is opt-in),
 with `dash remote` to keep it running behind a sign-in at a private Tailscale
 address.

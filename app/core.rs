@@ -16,6 +16,7 @@ pub mod output;
 pub(crate) mod qdrant;
 mod search;
 pub mod setup;
+pub mod uninstall;
 
 pub use chats::DashboardCatalog;
 #[cfg(any(test, feature = "test-support"))]
@@ -67,6 +68,7 @@ async fn execute_admitted(
         Operation::ModelsInstall => "models_install",
         Operation::QdrantInstall => "qdrant_install",
         Operation::QdrantUninstall { .. } => "qdrant_uninstall",
+        Operation::Uninstall(_) => "uninstall",
         Operation::ExportSilver { .. } => "export_silver",
         Operation::ImportSilver { .. } => "import_silver",
         Operation::ListAttachments { .. } => "list_attachments",
@@ -164,6 +166,13 @@ async fn execute_operation(
             .boxed()
             .await
             .map(Response::Installation);
+    }
+    // Uninstalling must work when the configuration no longer loads.
+    if let Operation::Uninstall(uninstall) = &request.operation {
+        return uninstall::run(request.paths.clone(), *uninstall)
+            .boxed()
+            .await
+            .map(Response::Uninstall);
     }
     let path = request.paths.config;
     let configuration = crate::blocking(move || config::load(path.as_deref())).await?;
@@ -608,6 +617,9 @@ async fn dispatch(
                 .map(Response::QdrantUninstall)
         }
         Operation::Init(_) => Err(AppError::internal("init runs before configuration loads")),
+        Operation::Uninstall(_) => Err(AppError::internal(
+            "uninstall runs before configuration loads",
+        )),
     }
 }
 

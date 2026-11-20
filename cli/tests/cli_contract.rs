@@ -23,5 +23,6 @@ mod redaction;
 mod retrieval;
 mod shared_server;
 mod tools;
+mod uninstall;
 mod vector_overrides;
 mod watch_flow;

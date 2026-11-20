@@ -135,6 +135,19 @@ fn claude_directory_root(id: &str, environment: &Environment) -> Option<PathBuf>
     Some(root)
 }
 
+/// Whether Claude Code's plugin registry lists a Mash plugin installation.
+pub(super) fn claude_installed(environment: &Environment) -> bool {
+    read::<Installed>(&environment.claude.join("plugins/installed_plugins.json"))
+        .ok()
+        .flatten()
+        .is_some_and(|installed| {
+            installed
+                .plugins
+                .iter()
+                .any(|(id, installs)| id.starts_with("mash@") && !installs.is_empty())
+        })
+}
+
 pub(super) fn claude_install(client: &mut Client, id: &str, environment: &Environment) {
     let path = environment.claude.join("plugins/installed_plugins.json");
     match read::<Installed>(&path) {

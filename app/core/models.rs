@@ -158,6 +158,8 @@ pub enum Operation {
     QdrantUninstall {
         delete_storage: bool,
     },
+    /// Remove what Mash created on this machine, or report that plan.
+    Uninstall(super::uninstall::Request),
     ExportSilver {
         directory: PathBuf,
     },
@@ -202,6 +204,7 @@ pub enum Response {
     ModelsInstall(ModelsInstallResponse),
     QdrantInstall(super::qdrant::InstallResponse),
     QdrantUninstall(super::qdrant::UninstallResponse),
+    Uninstall(super::uninstall::Response),
     ExportSilver(crate::export::Exported),
     ImportSilver(crate::export::Imported),
     ListAttachments(crate::attachments::Listing),
@@ -269,13 +272,14 @@ pub struct BackfillSummary {
 
 impl Response {
     /// An installation report where an expected agent needs attention, an
-    /// `init` that left a stale agent registration in place, or a `doctor`
-    /// that found a problem: exit status 1.
+    /// `init` that left a stale agent registration in place, a `doctor` that
+    /// found a problem, or an `uninstall` with a failed step: exit status 1.
     pub fn agents_need_attention(&self) -> bool {
         match self {
             Self::Installation(report) => report.agents_need_attention(),
             Self::Doctor(report) => !report.healthy(),
             Self::Init(result) => result.left_stale_registration(),
+            Self::Uninstall(result) => result.incomplete(),
             _ => false,
         }
     }

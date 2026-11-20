@@ -358,7 +358,7 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
     if agents.is_empty() && request.agents {
         next.push("No Claude Code or Codex CLI was found on PATH. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
     }
-    record_agents(&mut config, &agents, &paths, &mut next).await;
+    record_agents(&mut config, &agents, &mut next).await;
     if !request.index {
         // Indexing reports an unreadable configuration itself.
         let path = config.path.clone();
@@ -383,7 +383,6 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
 async fn record_agents(
     config: &mut ConfigOutcome,
     agents: &[AgentOutcome],
-    paths: &Paths,
     next: &mut Vec<String>,
 ) {
     let connected: Vec<Agent> = agents
@@ -415,15 +414,7 @@ async fn record_agents(
     }
     next.extend(agent_next_steps(agents));
     if !agents.is_empty() {
-        let data = paths
-            .db
-            .clone()
-            .unwrap_or_else(super::default_database_path);
-        next.push(format!(
-            "To undo agent setup, run each agent's `undo` commands; to remove Mash's own files, also delete {} and {}.",
-            config.path.display(),
-            data.parent().unwrap_or(&data).display()
-        ));
+        next.push("To undo agent setup, run each agent's `undo` commands. To remove everything Mash set up here, run `mash uninstall`: it lists what it would remove and changes nothing without --yes.".to_owned());
     }
 }
 
@@ -619,7 +610,10 @@ async fn step(program: &Path, arguments: &[OsString]) -> Step {
     }
 }
 
-async fn run(program: &Path, arguments: &[impl AsRef<std::ffi::OsStr>]) -> Result<(), String> {
+pub(super) async fn run(
+    program: &Path,
+    arguments: &[impl AsRef<std::ffi::OsStr>],
+) -> Result<(), String> {
     let output = tokio::process::Command::new(program)
         .args(arguments)
         .stdin(std::process::Stdio::null())

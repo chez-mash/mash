@@ -527,6 +527,14 @@ pub(super) fn registration(agent: Agent) -> Registration {
     })
 }
 
+/// Whether `agent`'s user settings hold a Mash MCP registration and a Mash
+/// plugin, in that order.
+pub(super) fn connection(agent: Agent) -> (bool, bool) {
+    Environment::discover().map_or((false, false), |environment| {
+        clients::connection(&environment, agent)
+    })
+}
+
 /// The files an agent's own CLI edits when `init` registers Mash with it.
 pub(super) fn edited_files(agent: Agent) -> Vec<PathBuf> {
     Environment::discover().map_or_default(|environment| clients::edited_files(&environment, agent))

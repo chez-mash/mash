@@ -162,14 +162,7 @@ pub async fn run(paths: Paths, options: Options, action: Action) -> Result<(), A
             "a public address needs --port 443, 8443 or 10000, the ports Tailscale Funnel can publish",
         ));
     }
-    let home = crate::platform::mash_home()
-        .ok_or_else(|| AppError::configuration("cannot find the home directory"))?;
-    let layout = Layout::resolve(
-        supervisor,
-        DASHBOARD,
-        home.join("dashboard.env"),
-        home.join("dashboard.log"),
-    )?;
+    let layout = dashboard_layout(supervisor)?;
     if matches!(action, Action::Remove) {
         return remove(&layout, port).await;
     }
@@ -342,9 +335,66 @@ async fn unload(target: &str) {
     }
 }
 
+/// Where `mash dash remote` keeps the dashboard service's files.
+fn dashboard_layout(supervisor: Supervisor) -> Result<Layout, AppError> {
+    let home = crate::platform::mash_home()
+        .ok_or_else(|| AppError::configuration("cannot find the home directory"))?;
+    Layout::resolve(
+        supervisor,
+        DASHBOARD,
+        home.join("dashboard.env"),
+        home.join("dashboard.log"),
+    )
+}
+
+/// The dashboard service `mash dash remote` set up here, if its definition is
+/// present, with the port that definition serves. Changes nothing.
+pub(crate) fn installed() -> Option<(Layout, Option<u16>)> {
+    let layout = dashboard_layout(Supervisor::current()?).ok()?;
+    let definition = std::fs::read_to_string(&layout.unit_file).ok()?;
+    Some((layout, served_port(&definition)))
+}
+
+/// The loopback port a dashboard service definition listens on.
+fn served_port(definition: &str) -> Option<u16> {
+    let (_, rest) = definition.split_once("127.0.0.1:")?;
+    let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+    digits.parse().ok()
+}
+
+/// The watcher service `mash-fleet watch start` installs, as a user service
+/// this machine's own manager can stop and remove.
+pub(crate) fn watcher_layout(definition: PathBuf) -> Option<Layout> {
+    const WATCHER: ServiceName = ServiceName {
+        unit: "mash-index-watch.service",
+        label: "dev.mash.index-watch",
+        description: "Mash index watcher",
+        written_by: "mash-fleet watch start",
+    };
+    let home = crate::platform::mash_home()?;
+    let mut layout = Layout::resolve(
+        Supervisor::current()?,
+        WATCHER,
+        home.join("watch.env"),
+        home.join("watch.log"),
+    )
+    .ok()?;
+    layout.unit_file = definition;
+    Some(layout)
+}
+
 /// Stop the service, remove its definition and take down its address. A
 /// service that is already gone is the wanted outcome.
 pub async fn uninstall(layout: &Layout, port: u16) -> Result<(), AppError> {
+    remove_service(layout).await?;
+    // Removing the handler takes a public address down with it.
+    let https = format!("--https={port}");
+    let _ = command(tailscale(), &["serve", &https, "off"]).await;
+    Ok(())
+}
+
+/// Stop a user service and remove its definition from its manager.
+pub(crate) async fn remove_service(layout: &Layout) -> Result<(), AppError> {
     match layout.supervisor {
         Supervisor::Systemd => {
             let _ = command(
@@ -367,9 +417,6 @@ pub async fn uninstall(layout: &Layout, port: u16) -> Result<(), AppError> {
     if layout.supervisor == Supervisor::Systemd {
         let _ = command("systemctl", &["--user", "daemon-reload"]).await;
     }
-    // Removing the handler takes a public address down with it.
-    let https = format!("--https={port}");
-    let _ = command(tailscale(), &["serve", &https, "off"]).await;
     Ok(())
 }
 

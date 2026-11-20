@@ -333,13 +333,39 @@ build the web interface first), [agent-assisted recall](agents.md), or
 ## Uninstall
 
 ```sh
-mash qdrant uninstall
+mash uninstall          # lists what would be removed and changes nothing
+mash uninstall --yes    # removes it
 ```
 
-This stops the search service, removes it from your login items and deletes
-the program, but keeps Qdrant's data. Add `--delete-storage` to delete the data
-too; it holds only Mash's search data, which
-`mash index --rebuild-local-views --full` rebuilds from your index.
+The first command prints the plan: each service, agent connection, file and
+directory, with its size. With `--yes`, Mash:
 
-To disconnect an agent, run the `undo` commands that `mash init` printed for
-it.
+1. stops and removes the services it set up: the search service and its data,
+   the [remote dashboard](dashboard.md), and an installed index watcher;
+2. disconnects Claude Code and Codex through their own commands, the ones
+   under [disconnect an agent](agents.md#disconnect-an-agent);
+3. deletes its index (Mash's copy of your chats), models, configuration and
+   saved tokens.
+
+Then remove the program itself with whatever installed it. The last line of
+the output names the command: `brew uninstall mash`, `scoop uninstall mash`,
+`sudo apt remove mash`, `cargo uninstall mash`, or the files to delete after
+the install script.
+
+Mash never touches your agents' own chat histories, and history already
+published to a [shared index](shared-index.md) stays on that server. Files in
+`~/.mash` that these commands did not create are listed and left in place.
+
+To keep a copy of your indexed history first, run
+[`mash export DIRECTORY`](upgrades.md). To reinstall later without indexing
+again, add `--keep-history`: the index, its search data, the configuration and
+saved tokens stay, and everything else goes.
+
+A step that fails is marked `failed` with the reason, and the command exits 1;
+running it again retries what is left. Restart your agents afterwards so they
+stop loading Mash.
+
+To remove only the search service, run `mash qdrant uninstall`. It keeps
+Qdrant's data unless you add `--delete-storage`; that data holds only Mash's
+search data, which `mash index --rebuild-local-views --full` rebuilds from
+your index.

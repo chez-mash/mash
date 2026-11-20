@@ -279,6 +279,33 @@ pub(super) fn edited_files(environment: &Environment, agent: Agent) -> Vec<PathB
     }
 }
 
+/// Whether an agent's user settings hold a Mash MCP registration and a Mash
+/// plugin, in that order: what the `undo` commands of `mash init` remove.
+pub(super) fn connection(environment: &Environment, agent: Agent) -> (bool, bool) {
+    match agent {
+        Agent::Codex => {
+            let config = read::<Codex>(&environment.codex.join("config.toml"))
+                .ok()
+                .flatten()
+                .unwrap_or_default();
+            (
+                config.mcp_servers.contains_key("mash"),
+                config.plugins.keys().any(|key| key.starts_with("mash@")),
+            )
+        }
+        Agent::ClaudeCode => {
+            let mcp = read::<ClaudeMcp>(&claude_mcp_path(environment))
+                .ok()
+                .flatten()
+                .unwrap_or_default();
+            (
+                mcp.mcp_servers.contains_key("mash"),
+                super::plugin::claude_installed(environment),
+            )
+        }
+    }
+}
+
 /// The user-level Mash registration `mash init` would leave in place, or
 /// the command of one it must replace.
 pub(super) fn registration(environment: &Environment, agent: Agent) -> super::Registration {
