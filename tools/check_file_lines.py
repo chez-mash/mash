@@ -35,6 +35,7 @@ GENERATED_MARKERS = (
     "Do not make direct changes",
 )
 INLINE_TESTS = re.compile(r"(pub(\([^)]*\))? )?mod \w+ \{")
+TEST_DECLARATION = re.compile(r"(pub(\([^)]*\))? )?mod \w+;")
 
 
 @dataclass(frozen=True)
@@ -53,13 +54,22 @@ def budgeted(path: str, text: str) -> bool:
 
 
 def counted_lines(path: str, text: str) -> int:
-    """Physical lines, without a Rust file's trailing inline test module."""
+    """Physical lines, without a Rust file's test modules: a trailing inline
+    `#[cfg(test)] mod ... {` block, and `#[cfg(test)] mod ...;` declarations
+    of tests kept in their own file."""
     lines = text.splitlines()
-    if path.endswith(".rs"):
-        for index, line in enumerate(lines[:-1]):
-            if line.startswith("#[cfg(test)]") and INLINE_TESTS.match(lines[index + 1]):
-                return index
-    return len(lines)
+    if not path.endswith(".rs"):
+        return len(lines)
+    count = len(lines)
+    for index, line in enumerate(lines[:-1]):
+        if not line.startswith("#[cfg(test)]"):
+            continue
+        following = lines[index + 1]
+        if INLINE_TESTS.match(following):
+            return index - (len(lines) - count)
+        if TEST_DECLARATION.match(following):
+            count -= 2
+    return count
 
 
 def read_baseline(text: str) -> dict[str, int]:

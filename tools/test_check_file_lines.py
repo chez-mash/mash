@@ -37,6 +37,13 @@ class FileLinesTests(unittest.TestCase):
         )
         self.assertEqual(measured, {"app/core.rs": 10})
 
+    def test_a_test_module_kept_in_its_own_file_counts_the_same_as_inline(self):
+        inline = lines(10) + "#[cfg(test)]\nmod tests {\n" + lines(5) + "}\n"
+        declared = lines(4) + "#[cfg(test)]\nmod tests;\n" + lines(6)
+        self.assertEqual(
+            measure({"a.rs": inline, "b.rs": declared}), {"a.rs": 10, "b.rs": 10}
+        )
+
     def test_a_recorded_file_may_not_grow_and_must_be_lowered_as_it_shrinks(self):
         baseline = {"app/big.rs": 900}
         failures, _ = check({"app/big.rs": 901}, baseline)
