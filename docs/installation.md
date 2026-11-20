@@ -57,7 +57,7 @@ sudo apt update && sudo apt install mash
 
 The third line matters: Debian and Ubuntu already have an unrelated package
 named `mash`, and without it `apt install mash` installs that one. Afterwards,
-`mash --version` should print a Mash version such as `mash 0.1.0-alpha`.
+`mash --version` should print a Mash version such as `mash 0.1.1-alpha`.
 
 **Scoop, Windows**
 
