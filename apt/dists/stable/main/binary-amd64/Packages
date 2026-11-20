@@ -5,11 +5,11 @@ Priority: optional
 Section: utils
 Maintainer: Mashium <mash-release@users.noreply.github.com>
 Filename: pool/main/m/mash/mash_0.1.0~alpha_amd64.deb
-Size: 34613288
-MD5sum: 849e83565c87d96749f194e1d213b368
-SHA1: e8a5f7ff30b14e8cc11750fc537f3a0d86dc1ad2
-SHA256: 4f06b7262f24e626c68a45798554e69c787249bfe1e8fd610d35ed05fc0b69ca
-SHA512: 541655c26992db27911fd410efd2e6834426875064aae72d8646dfb06d9d9d4ab6456930fb4665de43ab18fd1cadd2156db14626789d91f210218ef9c4ec0b1a
+Size: 34613354
+MD5sum: 24d9cacb4d491eb7a7d9b0c3f150af04
+SHA1: 1d853029cea29d99371375d62fc23543d3ac76da
+SHA256: e42bcbd393dc3c649caa3e993651c0b37b3fc973e46a2efb095fec1b5b3ed002
+SHA512: 2f30d244da176c0337b7bf920b760c9bd8bdce41944c6d4b5d3e2ea18820c655cd98f28965905f6110c6a06fff4ec3e76c860574ce5c4272bbc0ab7a7443f41a
 Homepage: https://github.com/mashium/mash
 Description: Search your coding agents' past conversations
  Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity

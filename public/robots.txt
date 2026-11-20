@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://getmash.io/sitemap-index.xml
