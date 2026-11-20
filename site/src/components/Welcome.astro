@@ -61,6 +61,8 @@ const icon = {
   close: line(["M6 6l12 12", "M18 6 6 18"]),
   send: line(["M12 19V5", "M6 11l6-6 6 6"]),
   follow: line(["M5 5v6a3 3 0 0 0 3 3h10", "M14 10l4 4-4 4"]),
+  preference: line(["M4 7h9", "M17 7h3", "M15 5v4", "M4 17h3", "M11 17h9", "M9 15v4"], "i memory"),
+  more: line(["m9 6 6 6-6 6"]),
 };
 
 /** Larger icons that draw themselves as their tile arrives. */
@@ -213,43 +215,64 @@ const signIn = "Move sign-in to short-lived tokens";
         <h2 id="welcome-mashy">Meet Mashy. <span>Ask your history anything.</span></h2>
       </div>
       <div class="show">
-        <div class="panel" role="img" aria-label="The dashboard’s Mashy panel, with an example conversation of three questions">
+        <div class="panel" role="img" aria-label="The dashboard’s Mashy panel, with an example conversation: why an outage happened, what was decided afterwards, and whether it has happened since">
           <div class="who">
             <img src={mashy} alt="" width="96" height="87" />
             Mashy
             <span class="tools"><Fragment set:html={icon.clear + icon.close} /></span>
           </div>
           <div class="talk steps grow">
-            <p class="asked" data-step="0">What did we decide about sign-in?</p>
+            <p class="asked" data-step="0">Why did checkout go down last month?</p>
             <div class="reply" data-step="1">
-              <p>Fifteen-minute access tokens, with the refresh token held on the server.</p>
+              <p class="looked"><Fragment set:html={icon.search} />Searched 14 chats on 3 machines</p>
+              <p>
+                A migration held a write lock on the orders table for forty minutes on 9 Oct. It was
+                not traffic. Three agents worked on it that day:
+              </p>
+              <ol class="story">
+                <li>
+                  <time>14:10</time><Fragment set:html={mark("claude-code")} />
+                  <span>Review of the checkout outage</span><em>build-box</em>
+                </li>
+                <li>
+                  <time>15:02</time><Fragment set:html={mark("codex")} />
+                  <span>Rewrite the orders migration</span><em>workstation</em>
+                </li>
+                <li>
+                  <time>16:40</time><Fragment set:html={mark("cursor")} />
+                  <span>Add a lock check to CI</span><em>laptop</em>
+                </li>
+              </ol>
               <blockquote>
-                “{said}”
-                <footer>
-                  — You, 19 Nov,
-                  <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
-                </footer>
+                “the lock came from the migration, not from load”
+                <footer>— Claude Code, 9 Oct 14:31</footer>
               </blockquote>
             </div>
             <p class="follows" data-step="2" data-until="3">
-              <span class="follow pick"><Fragment set:html={icon.follow} />Which chats mention tokens?</span>
-              <span class="follow"><Fragment set:html={icon.follow} />What else did we decide that week?</span>
+              <span class="follow pick"><Fragment set:html={icon.follow} />What did we decide afterwards?</span>
+              <span class="follow"><Fragment set:html={icon.follow} />Who fixed it?</span>
             </p>
-            <p class="asked" data-step="3">Which chats mention tokens?</p>
+            <p class="asked" data-step="3">What did we decide afterwards?</p>
             <div class="reply" data-step="4">
-              <p>Three chats, on two machines:</p>
-              <p class="found">
-                <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
-                <span class="tag round"><Fragment set:html={mark("codex")} />Rotate the deploy tokens</span>
-                <span class="tag round"><Fragment set:html={mark("cursor")} />Keep tokens out of the logs</span>
-              </p>
+              <p class="looked"><Fragment set:html={icon.search} />Read 2 memories</p>
+              <p>One rule, saved to memory in your own words:</p>
+              <div class="recall">
+                <Fragment set:html={icon.preference} />
+                <div>
+                  <p>Never take a write lock on the orders table in a migration.</p>
+                  <small>preference / Oct 9 / “never again. no write locks in migrations”</small>
+                </div>
+              </div>
             </div>
-            <p class="asked" data-step="5">What is still left to do?</p>
+            <p class="asked" data-step="5">Has it happened since?</p>
             <div class="reply" data-step="6">
-              <p>One thing. The mobile app still has to keep its refresh token in the device keychain.</p>
+              <p class="looked"><Fragment set:html={icon.search} />Searched 6 weeks of chats</p>
+              <p>No. Two migrations since, and both agents were shown the rule first:</p>
               <p class="found">
-                <span class="tag round"><Fragment set:html={mark("claude-code")} />{signIn}</span>
+                <span class="tag round"><Fragment set:html={mark("codex")} />Rename the billing tables</span>
+                <span class="tag round"><Fragment set:html={mark("claude-code")} />Move sign-in to short-lived tokens</span>
               </p>
+              <p class="all"><Fragment set:html={icon.search} />See all for “migration”<Fragment set:html={icon.more} /></p>
             </div>
           </div>
           <div class="compose">
@@ -259,10 +282,10 @@ const signIn = "Move sign-in to short-lived tokens";
         </div>
         <ol class="caps">
           <li data-step="0">Ask in plain language.</li>
-          <li data-step="1">Every answer links to its chats.</li>
+          <li data-step="1">It reads across agents and machines, and quotes its source.</li>
           <li data-step="2">It suggests what to ask next.</li>
           <li data-step="3">Pick one, and the conversation carries on.</li>
-          <li data-step="4">It looks across every agent and machine.</li>
+          <li data-step="4">It knows what you decided, not only what was said.</li>
           <li data-step="5">Follow the thread to the end.</li>
           <li data-step="6">Your model. It only reads.</li>
         </ol>

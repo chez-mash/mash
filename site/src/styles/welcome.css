@@ -331,6 +331,84 @@
     color: var(--ink-3);
     font-size: 0.8125rem;
   }
+  /* What Mashy looked at before answering. */
+  .looked {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--ink-4);
+    font-size: 0.8125rem;
+  }
+  .looked .i {
+    width: 0.8125rem;
+    height: 0.8125rem;
+  }
+  /* The chats behind an answer, in the order they happened. */
+  .story {
+    display: grid;
+    gap: 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid var(--line);
+  }
+  .story li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .story time {
+    color: var(--ink-4);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .story .mark {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .story span:not(.mark) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .story em {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+    font-style: normal;
+  }
+  /* A memory, as the dashboard lists one. */
+  .recall {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--line);
+    border-radius: 0.625rem;
+    background: var(--panel);
+  }
+  .recall .i {
+    margin-top: 0.1875rem;
+  }
+  .recall small {
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+  .all {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .all .i:first-child {
+    color: var(--clay);
+  }
+  .all .i:last-child {
+    margin-left: auto;
+    color: var(--ink-3);
+  }
   .follows,
   .found {
     display: flex;
@@ -787,7 +865,7 @@
     flex-direction: column;
     justify-content: flex-end;
     gap: 0;
-    height: 19rem;
+    height: 21rem;
     overflow: hidden;
     mask-image: linear-gradient(to bottom, transparent 0, #000 2.25rem);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 2.25rem);
