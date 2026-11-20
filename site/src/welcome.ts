@@ -11,7 +11,7 @@
 const STAGGER = 0.12;
 /** The quickest a whole drawing may be drawn, and undrawn, in seconds. */
 const DRAW_SECONDS = 1;
-const UNDRAW_SECONDS = 1 / 3;
+const UNDRAW_SECONDS = 0.7;
 /** How long a finished drawing has the screen to itself before its panel rises. */
 const HOLD_MS = 500;
 /** The fastest the shown position may advance, in steps a second. */
@@ -238,7 +238,10 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     for (const backdrop of backdrops) {
       const box = backdrop.el.getBoundingClientRect();
       if (box.bottom < 0 || box.top > vh) continue;
-      trace(backdrop, clamp((vh * 0.95 - box.top) / Math.min(vh * 0.85, box.height)));
+      // Drawn as the section arrives, undrawn as its last third leaves the top.
+      const arriving = clamp((vh * 0.95 - box.top) / Math.min(vh * 0.85, box.height));
+      const leaving = clamp((vh * 0.35 - box.bottom) / (vh * 0.35));
+      trace(backdrop, arriving * (1 - leaving));
     }
 
     for (const scene of scenes) {
@@ -253,32 +256,39 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
         continue;
       }
       // The stage pins under the site's header for the scene's extra height: a
-      // part and a half for the heading alone, then one part per step.
+      // part and a half for the heading alone, one part per step, and a last
+      // part in which the panel leaves and the drawing is undrawn.
       const pinnedAt = Number.parseFloat(getComputedStyle(scene.stage).top) || 0;
       const tall = scene.stage.offsetHeight;
       const enter = clamp((vh - box.top) / vh);
       const exit = clamp((pinnedAt + tall - box.bottom) / tall);
-      const raw = clamp((pinnedAt - box.top) / (box.height - tall)) * (scene.steps + 1.5);
+      const raw = clamp((pinnedAt - box.top) / (box.height - tall)) * (scene.steps + 2.5);
       const position = raw < 1.5 ? raw / 1.5 : raw - 0.5;
       scene.el.style.setProperty(
         "--o",
         String(smooth(0.35, 0.95, enter) * (1 - smooth(0.1, 0.7, exit))),
       );
 
-      // The drawing takes its own time, however fast the scroll.
-      const wanted = clamp((enter - 0.25) / 0.75) * 0.55 + clamp(raw / 0.3) * 0.45;
+      // The drawing takes its own time, however fast the scroll: drawn as the
+      // scene arrives, undrawn in its last part once the panel has gone.
+      const closing = clamp((scene.shown ?? position) - (scene.steps + 1));
+      const wanted =
+        (clamp((enter - 0.25) / 0.75) * 0.55 + clamp(raw / 0.3) * 0.45) *
+        (1 - smooth(0.3, 0.9, closing));
       scene.drawn =
         scene.drawn === undefined
           ? wanted
           : scene.drawn +
             Math.max(-dt / UNDRAW_SECONDS, Math.min(dt / DRAW_SECONDS, wanted - scene.drawn));
       if (Math.abs(wanted - scene.drawn) > 0.002) more = true;
+      else scene.drawn = wanted;
       if (scene.drawn > 0.995) scene.doneAt ||= now;
       else scene.doneAt = 0;
 
       // What is shown trails the scroll at a limited pace. The panel waits for
       // the finished drawing, and its first step for a typed query's last letter.
-      const held = scene.art !== null && !(scene.doneAt > 0 && now - scene.doneAt > HOLD_MS);
+      const waiting = !(scene.doneAt > 0 && now - scene.doneAt > HOLD_MS);
+      const held = scene.art !== null && closing === 0 && waiting;
       let goal = held ? Math.min(position, PANEL_FROM) : position;
       if (held && position > PANEL_FROM) more = true;
       if (scene.typed) {
@@ -294,7 +304,8 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       }
       // A scene plays to its end before the page moves on. Scrolled past
       // early, the page is held where the scene's stage is still pinned, and
-      // the scene hurries a little, until its last step has arrived.
+      // the scene hurries a little, until its last step has arrived, its panel
+      // has left and its drawing is undrawn.
       const pinEnds = scrollY + box.bottom - pinnedAt - tall;
       const past = !scene.played && scene.shown !== undefined && scrollY > pinEnds + 1;
       if (past) scene.heldAt ||= now;
@@ -310,17 +321,19 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
       } else scene.shown += (goal - scene.shown) * 0.2;
       if (Math.abs(goal - scene.shown) > 0.002) more = true;
       else scene.shown = goal;
-      if (scene.shown >= scene.steps + 0.3) {
+      if (scene.shown >= scene.steps + 1.9 && (scene.art === null || scene.drawn <= 0.03)) {
         scene.played = true;
         scene.heldAt = 0;
       }
 
-      scene.el.style.setProperty("--t", String(smooth(PANEL_FROM, PANEL_UP, scene.shown)));
+      const gone = smooth(0, 0.35, clamp(scene.shown - (scene.steps + 1)));
+      const up = smooth(PANEL_FROM, PANEL_UP, scene.shown) * (1 - gone);
+      scene.el.style.setProperty("--t", String(up));
       if (scene.art) {
-        // Strong behind the heading, faint behind the panel.
+        // Strong behind the heading, faint behind the panel, strong again to be undrawn.
         const strength = Number(scene.art.dataset.strength ?? 0.5);
-        const faded = strength - (strength - 0.13) * smooth(0.6, 1.1, scene.shown);
-        scene.el.style.setProperty("--art", String(faded));
+        const behind = smooth(0.6, 1.1, scene.shown) * (1 - gone);
+        scene.el.style.setProperty("--art", String(strength - (strength - 0.13) * behind));
         trace(scene, scene.drawn);
       }
       place(scene, scene.shown);

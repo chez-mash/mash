@@ -176,7 +176,7 @@ test("scrolling plays the search scene: the query is typed, then results arrive"
   const results = scene.locator(".hits li");
   // Before the scene is reached, nothing has been typed.
   await expect(query).toHaveText("");
-  await play(page, "Find it.", 0.95);
+  await play(page, "Find it.", 0.8);
   // However far the scroll jumped, every letter is typed before a result shows.
   await expect(query).toHaveText("why does checkout keep failing");
   await expect(results).toHaveCount(3);
@@ -204,6 +204,11 @@ test("a scene holds the page until it has played to its end", async ({ page }) =
   // Held there, it finishes: the query is typed and every result arrives.
   await expect(scene.locator("[data-type]")).toHaveText("why does checkout keep failing");
   await expect(scene.locator(".hits li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
+  // Still held, its drawing is undrawn before the page is let go.
+  const strokes = scene.locator(".art path");
+  await expect(strokes.first()).toHaveCSS("stroke-dashoffset", "1px", { timeout: 15_000 });
+  await expect(strokes.last()).toHaveCSS("stroke-dashoffset", "1px");
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(end + 1);
   // Then the page moves on, and the scene does not hold it a second time.
   await page.evaluate((to) => scrollTo(0, to), end + 500);
   await page.waitForTimeout(400);
@@ -229,7 +234,7 @@ test("a scene's drawing draws itself, and undraws on the way back", async ({ pag
 test("the Mashy conversation runs to its third answer", async ({ page }) => {
   await page.goto("/");
   const scene = page.locator(".mash-welcome .scene", { hasText: "Meet Mashy." });
-  await play(page, "Meet Mashy.", 0.97);
+  await play(page, "Meet Mashy.", 0.84);
   // The conversation plays at its own pace, so the last answer takes a few seconds.
   await expect(scene.locator(".reply").last()).toHaveCSS("opacity", "1", { timeout: 20_000 });
   // The suggestion that was picked has folded away with the others.

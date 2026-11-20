@@ -797,10 +797,11 @@
     transform: none;
   }
 
-  /* A scene is taller than the screen by a stretch for its heading and one per
-     step; its stage stays pinned under the site's header for that long. */
+  /* A scene is taller than the screen by a stretch for its heading, one per
+     step and one to leave by; its stage stays pinned under the site's header
+     for that long. */
   .scene {
-    height: calc(100svh + (var(--n) + 1.5) * 50svh);
+    height: calc(100svh + (var(--n) + 2.5) * 50svh);
     padding: 0;
   }
   .stage {
