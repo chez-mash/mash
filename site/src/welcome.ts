@@ -241,11 +241,14 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     }
 
     for (const backdrop of backdrops) {
-      const box = backdrop.el.getBoundingClientRect();
-      if (box.bottom < 0 || box.top > vh) continue;
-      // Drawn as the section arrives, undrawn as its last third leaves the top.
-      const arriving = clamp((vh * 0.95 - box.top) / Math.min(vh * 0.85, box.height));
-      const leaving = clamp((vh * 0.35 - box.bottom) / (vh * 0.35));
+      if (!backdrop.art) continue;
+      // By the drawing's own place on screen, so a section taller than the
+      // screen behaves like a short one, in both directions: drawn as the
+      // drawing rises into view, undrawn as it leaves by the top, and the
+      // reverse on the way back up.
+      const box = backdrop.art.getBoundingClientRect();
+      const arriving = clamp((vh * 0.92 - box.top) / (vh * 0.45));
+      const leaving = clamp((vh * 0.3 - box.bottom) / (vh * 0.25));
       trace(backdrop, arriving * (1 - leaving));
     }
 
