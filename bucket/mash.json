@@ -1,12 +1,12 @@
 {
-    "version": "0.1.0-alpha",
+    "version": "0.1.1-alpha",
     "description": "Search your coding agents' past conversations from a CLI and MCP server",
     "homepage": "https://github.com/mashium/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/mashium/mash/releases/download/v0.1.0-alpha/mash-x86_64-pc-windows-msvc.zip",
-            "hash": "fdd46cf53fb9831252102e5765a25e138e0247722f3d5a259926499ce0ab12a4"
+            "url": "https://github.com/mashium/mash/releases/download/v0.1.1-alpha/mash-x86_64-pc-windows-msvc.zip",
+            "hash": "a1289aaddf0dd3706f444537f417508e057ce12d4da9336ab40955ae6ccd3210"
         }
     },
     "bin": ["mash.exe", "mash-server.exe"],
