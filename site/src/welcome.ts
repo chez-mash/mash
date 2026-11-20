@@ -35,8 +35,6 @@ const REWIND = 2.2;
 const KEPT_PACE = 1.6;
 /** How faint a drawing is behind its panel. */
 const FAINT = 0.13;
-/** Screens past its end at which a kept scene gives up and lets go. */
-const LET_GO_SCREENS = 1.5;
 
 const clamp = (x: number): number => Math.min(1, Math.max(0, x));
 
@@ -394,12 +392,11 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       const tall = scene.stage.offsetHeight;
       const pinEnds = scrollY + box.bottom - pinnedAt - tall;
       const past = scrollY > pinEnds + 1;
-      const near = scrollY <= pinEnds + LET_GO_SCREENS * vh;
 
       if (scene.kept) {
-        if (past && near) continue;
-        // Scrolled back into it, or so far past that the reader has plainly moved on.
-        if (past) put(scene, scene.endAt);
+        // However far past the page has gone, it stays until it has played out.
+        if (past) continue;
+        // Scrolled back into it.
         unkeep(scene);
       }
 
@@ -411,7 +408,7 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
 
       if (past) {
         const unfinished = scene.timeline.time() < scene.endAt - 0.02;
-        if (scene.entered && unfinished && near && !keeper && !settled) keep(scene, box);
+        if (scene.entered && unfinished && !keeper && !settled) keep(scene, box);
         else if (onScreen) go(scene, scene.endAt);
         else {
           put(scene, scene.endAt);

@@ -202,8 +202,9 @@ test("a scene scrolled past early stays on screen until it has played out", asyn
     await play(page, "Find it.", 0.05);
     const end = await pinEnds();
     const pinnedAt = await stage.evaluate((element) => element.getBoundingClientRect().top);
-    // Scroll well past it before it has played. The page goes where it was sent.
-    await page.evaluate((to) => scrollTo(0, to), end + 500);
+    // Scroll past it before it has played: a little the first time, several
+    // screens the second. The page goes where it was sent.
+    await page.evaluate((to) => scrollTo(0, to), end + (pass === 1 ? 500 : 2600));
     await expect(scene, `pass ${pass}`).toHaveClass(/kept/);
     expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
     // The stage has not moved, and it finishes there: the query is typed,
