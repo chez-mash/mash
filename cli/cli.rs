@@ -489,6 +489,9 @@ pub(super) enum Response {
         /// How `record` evidence may name its source. The plugin hooks read
         /// this before telling an agent to cite its own session.
         record_citations: [&'static str; 2],
+        /// The agents whose running session a `session_id` can name before it
+        /// is indexed. The hooks read this before telling one of them to.
+        session_citations: [&'static str; 3],
     },
     WatchStopped {
         watching: bool,
@@ -789,6 +792,7 @@ fn version_info(arguments: &[OsString]) -> Option<Response> {
             silver_schema: crate::storage::schema::SCHEMA_VERSION,
             silver_schema_min: crate::storage::schema::MIN_SCHEMA_VERSION,
             record_citations: ["message_id", "session_id"],
+            session_citations: ["claude-code", "codex", "copilot"],
         })
 }
 

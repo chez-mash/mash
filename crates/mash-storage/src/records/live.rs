@@ -82,7 +82,8 @@ pub fn read(roots: &ProviderRoots, quotes: &[Quote]) -> Result<Vec<Message>, App
 }
 
 /// The session's source under the configured roots. The ID only ever selects
-/// a file name or a stored thread; it is never used as a path.
+/// a file name, a session directory's name or a stored thread; it is never
+/// used as a path.
 fn transcript(
     roots: &ProviderRoots,
     session: &str,
@@ -114,7 +115,27 @@ fn transcript(
     }
     let suffix = format!("-{session}.jsonl");
     let rollout = |name: &str| name.starts_with("rollout-") && name.ends_with(&suffix);
-    Ok(newest(codex, &rollout).map(|path| (Provider::Codex, HistorySource::file(path))))
+    if let Some(path) = newest(codex, &rollout) {
+        return Ok(Some((Provider::Codex, HistorySource::file(path))));
+    }
+    Ok(copilot_events(roots.get(&Provider::Copilot), session)
+        .map(|path| (Provider::Copilot, HistorySource::file(path))))
+}
+
+/// Copilot CLI keeps each session in `<session-state>/<session>/events.jsonl`.
+/// A configured root is that `session-state` directory or the directory
+/// holding it.
+fn copilot_events(roots: Option<&Vec<PathBuf>>, session: &str) -> Option<PathBuf> {
+    roots.into_iter().flatten().find_map(|root| {
+        [root.join(session), root.join("session-state").join(session)]
+            .into_iter()
+            .map(|directory| directory.join("events.jsonl"))
+            .find(|events| {
+                events
+                    .symlink_metadata()
+                    .is_ok_and(|metadata| metadata.is_file())
+            })
+    })
 }
 
 /// The most recently modified matching transcript beneath the roots.

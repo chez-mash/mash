@@ -196,3 +196,38 @@ set `MASH_KEEP_EXECUTABLE=1` where Mash starts constantly, such as test
 runners. Windows identifies the installed executable by size and modification
 time, so a same-size replacement within one timestamp tick would not be noticed
 as an upgrade. WSL works like Linux.
+
+## GitHub Copilot CLI plugin
+
+Observed with Copilot CLI 1.0.106 on 2026-11-20, by loading probe plugins with
+`--plugin-dir` and reading what the model reported and what the hooks received.
+
+- **Manifest.** Copilot reads `.github/plugin/plugin.json` before
+  `.claude-plugin/plugin.json`, so `plugins/mash` carries one for it that
+  names `hooks/copilot.json`. Only that hooks file runs; the Claude-format
+  `hooks/hooks.json` is not loaded as well. The repository's
+  `.claude-plugin/marketplace.json` serves as Copilot's marketplace too.
+- **Why it has its own hooks file.** Copilot also runs Claude-format hooks
+  (PascalCase events, nested matcher groups, `${CLAUDE_PLUGIN_ROOT}`), but it
+  drops `hookSpecificOutput.additionalContext` for `SessionStart` and
+  `UserPromptSubmit`, so recall and reminders never reach the model that way.
+  Its own events honour a top-level `additionalContext` for `sessionStart`,
+  `userPromptSubmitted` and `postToolUse`.
+- **Payloads.** Its own events send camelCase fields (`sessionId`, `toolName`,
+  `toolArgs`) and call the file tool `view` with a `path`.
+  `recall_common.from_host` turns that into the shape the hooks read and marks
+  the payload, and `recall_common.reply` answers in the shape each host
+  honours. The hooks tell the hosts apart by payload shape, never by
+  environment: Copilot sets `CLAUDE_PLUGIN_ROOT` too, and an agent started
+  from another agent inherits the other's variables.
+- **File recall** runs on `postToolUse` for `view`, because that is where
+  Copilot documents added context for a tool; a failing `preToolUse` hook
+  would also deny the read.
+- **Citing its own session.** Copilot keeps a session in
+  `<session-state>/<sessionId>/events.jsonl`; `records::live` finds it there.
+  `--version-info` lists the hosts whose running sessions can be cited under
+  `session_citations`, and the hooks tell Copilot to save only when `copilot`
+  is listed, since a plugin can be newer than its binary.
+- **Not done.** `mash init` and `mash status --installation` do not connect or
+  inspect Copilot; it is added by hand (see `docs/plugin.md`). The PowerShell
+  hook commands are untested on Windows.

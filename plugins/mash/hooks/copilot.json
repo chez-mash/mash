@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "sh \"${COPILOT_PLUGIN_ROOT}/hooks/python.sh\" \"${COPILOT_PLUGIN_ROOT}/hooks/session_start.py\" 2>/dev/null || true",
+        "powershell": "python \"$env:COPILOT_PLUGIN_ROOT/hooks/session_start.py\" 2>$null; exit 0",
+        "timeoutSec": 5
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "sh \"${COPILOT_PLUGIN_ROOT}/hooks/python.sh\" \"${COPILOT_PLUGIN_ROOT}/hooks/prompt_recall.py\" 2>/dev/null || true",
+        "powershell": "python \"$env:COPILOT_PLUGIN_ROOT/hooks/prompt_recall.py\" 2>$null; exit 0",
+        "timeoutSec": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "matcher": "view",
+        "bash": "sh \"${COPILOT_PLUGIN_ROOT}/hooks/python.sh\" \"${COPILOT_PLUGIN_ROOT}/hooks/file_context.py\" 2>/dev/null || true",
+        "powershell": "python \"$env:COPILOT_PLUGIN_ROOT/hooks/file_context.py\" 2>$null; exit 0",
+        "timeoutSec": 3
+      }
+    ]
+  }
+}

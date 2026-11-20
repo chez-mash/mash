@@ -252,3 +252,74 @@ fn live_transcript_yields_the_latest_matching_message_per_quote() {
     assert!(found.iter().all(|message| message.chat_id == "live-1"));
     assert!(found[0].content.contains("Please use tabs"));
 }
+
+#[test]
+fn live_transcript_reads_a_copilot_session_by_its_directory() {
+    let directory = tempfile::tempdir().unwrap();
+    let state = directory.path().join("session-state");
+    let session = state.join("copilot-live");
+    std::fs::create_dir_all(&session).unwrap();
+    let event = |id: &str, parent: Option<&str>, kind: &str, data: serde_json::Value| {
+        serde_json::json!({"id":id,"parentId":parent,"timestamp":"2026-11-20T10:00:01Z","type":kind,"data":data})
+            .to_string()
+    };
+    std::fs::write(
+        session.join("events.jsonl"),
+        [
+            event(
+                "start",
+                None,
+                "session.start",
+                serde_json::json!({
+                    "sessionId":"copilot-live","version":1,"producer":"copilot-agent",
+                    "copilotVersion":"1.0.106","startTime":"2026-11-20T10:00:00Z",
+                    "context":{"cwd":"/work/app"}
+                }),
+            ),
+            event(
+                "ask",
+                Some("start"),
+                "user.message",
+                serde_json::json!({"content":"From now on we indent with tabs.","source":"user","attachments":[]}),
+            ),
+            event(
+                "answer",
+                Some("ask"),
+                "assistant.message",
+                serde_json::json!({"messageId":"answer","content":"Noted: we indent with tabs."}),
+            ),
+        ]
+        .join("\n")
+            + "\n",
+    )
+    .unwrap();
+    let quote = |session: &str, user_only| live::Quote {
+        session_id: session.into(),
+        text: "indent with tabs".into(),
+        user_only,
+    };
+    // The configured root may be the session-state directory or its parent.
+    for root in [state.clone(), directory.path().to_path_buf()] {
+        let roots = crate::provider::ProviderRoots::from([(
+            crate::provider::Provider::Copilot,
+            vec![root],
+        )]);
+        let found = live::read(
+            &roots,
+            &[
+                quote("copilot-live", true),
+                quote("copilot-live", false),
+                quote("another-session", false),
+                quote("../copilot-live", false),
+            ],
+        )
+        .unwrap();
+        let roles: Vec<&str> = found.iter().map(|message| message.role.as_str()).collect();
+        assert_eq!(roles, ["user", "assistant"]);
+        assert!(
+            found[0]
+                .content
+                .contains("From now on we indent with tabs.")
+        );
+    }
+}

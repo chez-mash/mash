@@ -1,4 +1,5 @@
-"""Shared executable, project lookup, and bounded local hook-state utilities."""
+"""Shared executable, project lookup, host payload and reply shapes, and bounded
+local hook-state utilities."""
 
 from __future__ import annotations
 
@@ -22,6 +23,46 @@ def resolve_binary() -> str | None:
         if found:
             return found
     return None
+
+
+# Marks a payload that came from Copilot CLI's own hook events.
+HOST = "mash_host"
+COPILOT = "copilot"
+
+
+def from_host(payload: Any) -> Any:
+    """A hook payload in the shape these hooks read, whichever agent sent it.
+
+    Claude Code and Codex send snake_case fields and Claude's tool names.
+    Copilot CLI's own events (`sessionStart`, `userPromptSubmitted`,
+    `postToolUse`) send camelCase fields, call the tool that reads a file
+    `view`, and name the file `path`. Anything else is returned unchanged.
+    """
+    if not isinstance(payload, dict) or "sessionId" not in payload:
+        return payload
+    arguments = payload.get("toolArgs")
+    arguments = arguments if isinstance(arguments, dict) else {}
+    tool = payload.get("toolName")
+    return {
+        **payload,
+        "session_id": payload["sessionId"],
+        "tool_name": "Read" if tool == "view" else tool,
+        "tool_input": {**arguments, "file_path": arguments.get("path")},
+        HOST: COPILOT,
+    }
+
+
+def reply(event: str, text: str, payload: Any) -> str:
+    """The hook output that adds `text` to the agent's context.
+
+    Copilot CLI reads `additionalContext` at the top level of its own events'
+    output and drops Claude's `hookSpecificOutput` wrapper for session start and
+    prompts, so each host gets the shape it honours.
+    """
+    if isinstance(payload, dict) and payload.get(HOST) == COPILOT:
+        return json.dumps({"additionalContext": text})
+    output = {"hookEventName": event, "additionalContext": text}
+    return json.dumps({"hookSpecificOutput": output})
 
 
 class MashError(Exception):
@@ -68,12 +109,17 @@ def resolve_project(cwd: str, timeout: float) -> tuple[str, str | None]:
 
 
 def saving(
-    binary: str, session: Any, toplevel: str, repository: str | None
+    binary: str,
+    session: Any,
+    toplevel: str,
+    repository: str | None,
+    host: Any = None,
 ) -> str | None:
     """How an agent saves memory about its own session: the project's record
     scope and a citation by session ID, which needs no index. None when record
     capture is off, the session ID is not a plain token, or the installed
-    binary predates session citations (a plugin can be newer than its binary)."""
+    binary predates session citations, or citations of this host's sessions
+    (a plugin can be newer than its binary). `host` is the payload's `HOST`."""
     if os.environ.get("MASH_RECORD_CAPTURE", "").strip().lower() in (
         "0",
         "off",
@@ -87,16 +133,22 @@ def saving(
     ):
         return None
     try:
-        citations = run_mash(binary, ["--version-info"], 1.0).get("record_citations")
+        info = run_mash(binary, ["--version-info"], 1.0)
     except (OSError, subprocess.SubprocessError, TimeoutError):
         return None
     except MashError:
         # Releases before --version-info printed this from --version.
         try:
-            citations = run_mash(binary, ["--version"], 1.0).get("record_citations")
+            info = run_mash(binary, ["--version"], 1.0)
         except (MashError, OSError, subprocess.SubprocessError, TimeoutError):
             return None
+    citations = info.get("record_citations")
     if not isinstance(citations, list) or "session_id" not in citations:
+        return None
+    # Claude Code and Codex sessions could be cited before the binary listed
+    # which hosts it reads; any other host must be named.
+    hosts = info.get("session_citations")
+    if host is not None and (not isinstance(hosts, list) or host not in hosts):
         return None
     scope = (
         {"kind": "repository", "identity": repository}

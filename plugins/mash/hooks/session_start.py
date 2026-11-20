@@ -180,7 +180,8 @@ def context(payload: Any, end: float) -> str:
         recent = scan(binary, toplevel, repository, payload["session_id"], end)
     except (common.MashError, subprocess.TimeoutExpired, TimeoutError, ValueError):
         recent, available = [], False
-    saving = common.saving(binary, payload["session_id"], toplevel, repository)
+    host = payload.get(common.HOST)
+    saving = common.saving(binary, payload["session_id"], toplevel, repository, host)
     save = (
         [
             "Mash memory: when the person states a lasting preference, makes or"
@@ -216,12 +217,12 @@ def context(payload: Any, end: float) -> str:
 def main() -> int:
     end = time.monotonic() + DEADLINE
     try:
-        text = context(json.loads(sys.stdin.buffer.read(1 << 20)), end)
+        payload = common.from_host(json.loads(sys.stdin.buffer.read(1 << 20)))
+        text = context(payload, end)
     except Exception:  # Fail open: recall must never block or break a session.
         return 0
     if text and time.monotonic() < end:
-        output = {"hookEventName": "SessionStart", "additionalContext": text}
-        sys.stdout.write(json.dumps({"hookSpecificOutput": output}))
+        sys.stdout.write(common.reply("SessionStart", text, payload))
     return 0
 
 

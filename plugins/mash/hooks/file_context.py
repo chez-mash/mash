@@ -1,5 +1,6 @@
-"""PreToolUse hook for Read: before an agent reads a file in the session's
-project, show matching records and earlier chats, once per file and session.
+"""Hook for reading a file (PreToolUse for Read; in Copilot CLI, postToolUse for
+view): when an agent reads a file in the session's project, show matching
+records and earlier chats, once per file and session.
 
 Runs one local lexical `mash search` for the file's project-relative path and
 records which files a session was shown under the recall state directory.
@@ -129,12 +130,12 @@ def context(payload: Any, end: float) -> str:
 def main() -> int:
     end = time.monotonic() + DEADLINE
     try:
-        text = context(json.loads(sys.stdin.buffer.read(1 << 20)), end)
+        payload = common.from_host(json.loads(sys.stdin.buffer.read(1 << 20)))
+        text = context(payload, end)
     except Exception:  # Fail open: recall must never block or break a read.
         return 0
     if text and time.monotonic() < end:
-        output = {"hookEventName": "PreToolUse", "additionalContext": text}
-        sys.stdout.write(json.dumps({"hookSpecificOutput": output}))
+        sys.stdout.write(common.reply("PreToolUse", text, payload))
     return 0
 
 

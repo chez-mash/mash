@@ -154,7 +154,10 @@ def memory(payload: dict[str, Any]) -> str | None:
     if binary is None:
         return None
     saving = common.saving(
-        binary, payload.get("session_id"), *common.resolve_project(cwd, 0.5)
+        binary,
+        payload.get("session_id"),
+        *common.resolve_project(cwd, 0.5),
+        payload.get(common.HOST),
     )
     return saving and (
         "Mash: this prompt may state a lasting preference or decision. If it"
@@ -201,12 +204,12 @@ def context(payload: Any) -> str | None:
 
 def main() -> int:
     try:
-        text = context(json.loads(sys.stdin.buffer.read(1 << 20)))
+        payload = common.from_host(json.loads(sys.stdin.buffer.read(1 << 20)))
+        text = context(payload)
     except Exception:  # Fail open: a nudge must never block or break a prompt.
         return 0
     if text:
-        output = {"hookEventName": "UserPromptSubmit", "additionalContext": text}
-        sys.stdout.write(json.dumps({"hookSpecificOutput": output}))
+        sys.stdout.write(common.reply("UserPromptSubmit", text, payload))
     return 0
 
 

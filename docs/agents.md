@@ -3,8 +3,10 @@
 Once connected, Claude Code and Codex can search your past chats themselves
 when you ask about earlier work. Mash connects to **Claude Code and Codex**;
 from either one you can search the history of every supported agent (Claude
-Code, Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity). For any other
-agent, see [other MCP clients](#other-mcp-clients-and-manual-setup).
+Code, Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity). GitHub
+Copilot CLI can use the same plugin and tools, added with
+[two commands](plugin.md#github-copilot-cli). For any other agent, see
+[other MCP clients](#other-mcp-clients-and-manual-setup).
 
 ## Connect Claude Code or Codex
 

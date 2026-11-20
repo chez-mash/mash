@@ -504,8 +504,12 @@ pub fn generate_history_skill() -> Result<(String, String), String> {
         "../../../plugins/mash/.claude-plugin/plugin.json"
     ))
     .map_err(|error| error.to_string())?;
-    if plugin.version != claude.version {
-        return Err("Codex and Claude plugin versions must match".into());
+    let copilot: PluginManifest = serde_json::from_str(include_str!(
+        "../../../plugins/mash/.github/plugin/plugin.json"
+    ))
+    .map_err(|error| error.to_string())?;
+    if plugin.version != claude.version || plugin.version != copilot.version {
+        return Err("Codex, Claude and Copilot plugin versions must match".into());
     }
     let stamp = serde_json::to_string_pretty(&ReleaseStamp {
         contract_fingerprint: fingerprint,

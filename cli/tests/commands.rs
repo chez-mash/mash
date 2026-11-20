@@ -208,7 +208,11 @@ fn informational_flags_succeed_without_initializing_application_resources() {
                 response["record_citations"],
                 serde_json::json!(["message_id", "session_id"])
             );
-            assert_eq!(response.as_object().unwrap().len(), 4);
+            assert_eq!(
+                response["session_citations"],
+                serde_json::json!(["claude-code", "codex", "copilot"])
+            );
+            assert_eq!(response.as_object().unwrap().len(), 5);
         } else {
             // Plain text a person can read, not a JSON string with escapes.
             let help = std::str::from_utf8(&output.stdout).unwrap();

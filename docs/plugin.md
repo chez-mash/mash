@@ -1,9 +1,11 @@
-# The Mash plugin for Claude Code and Codex
+# The Mash plugin for Claude Code, Codex and Copilot
 
 The plugin is what makes an agent use Mash without being told to. It adds
 eleven skills, their slash commands, and hooks that bring earlier work into a session
-and keep the index current. `mash init` installs it for each agent it
-connects; this page says what you get and how to control it.
+and keep the index current. `mash init` installs it for Claude Code and
+Codex; for GitHub Copilot CLI you add it with
+[two commands](#github-copilot-cli). This page says what you get and how to
+control it.
 
 The plugin sits on top of the [MCP server](mcp.md), which gives the agent the
 Mash tools themselves. Without the plugin the tools still work when you ask
@@ -24,6 +26,9 @@ for them by name.
 | `status` | `/mash:status` | pick the `status` skill, or ask "is Mash working?" | A plain-language check of the index, search, agent connections and your other machines, with the one next step when something is off. |
 | `dashboard` | `/mash:dashboard` | pick the `dashboard` skill, or say "open the Mash dashboard" | Finds the running [dashboard](dashboard.md), or starts one, and opens it in your browser. Ask for "this chat" to land on the current conversation. |
 | `mash-history` | `/mash:mash-history`, or just ask | pick the `mash-history` skill, or just ask | Searches your past chats and answers with the messages behind the result. The agent also uses it unprompted when you refer to earlier work. |
+
+GitHub Copilot CLI loads the same eleven skills. There, name the skill or ask
+in plain words.
 
 You do not need the commands for everyday use. Ask in plain words:
 
@@ -47,6 +52,9 @@ chat at a time and always shows it and asks first.
 | You send a message that looks back at earlier work, or names something the conversation has not mentioned | Reminds the agent to search Mash before guessing | `MASH_PROMPT_RECALL=off` |
 | You state a lasting decision or preference | Reminds the agent how to save it. A session that runs long without saving anything gets one reminder at most every fifteen minutes | `MASH_RECORD_CAPTURE=off` |
 | The agent reads a file in the project | Shows records and earlier chats about that file, once per file and session | `MASH_FILE_RECALL=off` |
+
+In Copilot CLI the note about a file arrives with what the agent read, just
+after the read, not before it.
 
 Set a switch in the environment the agent starts in. Every hook does nothing,
 silently, when Mash is missing, not set up, or slow to answer, so it never
@@ -80,6 +88,32 @@ To remove it:
 claude plugin uninstall mash@mash
 codex plugin remove mash@mash
 ```
+
+## GitHub Copilot CLI
+
+`mash init` does not connect Copilot yet, so add the plugin and the Mash tools
+yourself:
+
+```sh
+copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash
+copilot mcp add mash -- mash mcp
+```
+
+Start a new Copilot session afterwards. To check, `copilot plugin list` shows
+`mash@mash` and `copilot mcp list` shows `mash`; `mash status --installation`
+does not report on Copilot. To remove both:
+
+```sh
+copilot plugin uninstall mash@mash
+copilot mcp remove mash
+```
+
+- Saving to [memory](records.md) from a Copilot session needs a `mash` that
+  can read Copilot's running session. `mash --version-info` lists `copilot`
+  under `session_citations` when it can; with an older `mash` the plugin
+  recalls but does not ask Copilot to save.
+- On Windows the hooks run through PowerShell and call `python`. This has not
+  been tried on a Windows machine yet.
 
 ## Check that it is working
 
