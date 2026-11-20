@@ -29,10 +29,12 @@ run() {
 }
 cheap_checks() {
     run cargo fmt --check
+    run python3 tools/check_file_lines.py
     RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Znext-solver=no" run cargo clippy --all-targets -- -D warnings
 }
 if [[ $mode == focused ]]; then
     run cargo fmt --check
+    run python3 tools/check_file_lines.py
     # One crate's tests need only that crate and the ones below it. Building
     # every crate's tests also compiles the application library twice, with
     # and without its tests, so the library alone is the default.

@@ -136,6 +136,8 @@ jobs:
           TMPDIR="$RUNNER_TEMP" bash tools/test-ansible.sh
       - name: Verify offline search evaluation and benchmark witnesses
         run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
+      - name: Keep source files within the 500-line limit
+        run: python3 tools/check_file_lines.py
       - name: Install pinned sqlc release
         run: |
           mkdir -p "$RUNNER_TEMP/mash-sqlc"

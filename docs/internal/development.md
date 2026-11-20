@@ -25,6 +25,19 @@ results, opening a matching transcript without a document reload, and browser
 errors. The target needs current Qdrant views and available query models.
 On Xenia, run these workloads through `agent-test` as for other tests.
 
+### File length
+
+Handwritten production source files (Rust, TypeScript, Svelte, Python) stay
+at or below 500 lines, the limit gohawk and lockdoc use.
+`tools/check_file_lines.py` enforces it in `make iterate`, `make validate-dev`
+and CI. Tests, generated files and a Rust file's trailing inline
+`#[cfg(test)] mod` block are not counted. Files that were already longer are
+listed in `tools/file-lines-baseline.txt` with their length then: they may
+shrink but not grow. When one shrinks, run
+`python3 tools/check_file_lines.py --update` to lower its entry; the check
+fails until you do, so the list only gets shorter. Never add a file to it:
+split the file instead.
+
 ### Rust checks
 
 [Correctness checks](verification.md) describes generated Proptest
