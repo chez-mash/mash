@@ -11,11 +11,18 @@ const routes = new Map(
     name === "README.md" ? "/guides/" : `/${name.slice(0, -3)}/`,
   ]),
 );
+const spanishNames = (await readdir(new URL("docs/es/", repo))).filter((name) =>
+  name.endsWith(".md"),
+);
+for (const name of spanishNames) {
+  routes.set(`docs/es/${name}`, name === "index.md" ? "/es/" : `/es/${name.slice(0, -3)}/`);
+}
 routes.set("README.md", "/quick-start/");
 routes.set("docs/home.mdx", "/");
 await rm(output, { recursive: true, force: true });
-await mkdir(output, { recursive: true });
-for (const source of [...names.map((name) => `docs/${name}`), "README.md"]) {
+await mkdir(new URL("es/", output), { recursive: true });
+for (const [source, route] of routes) {
+  if (source === "docs/home.mdx") continue;
   let body = await readFile(new URL(source, repo), "utf8");
   const title = source === "README.md" ? "Quick start" : body.match(/^# (.+)$/m)?.[1];
   if (!title) throw new Error(`Missing title in ${source}`);
@@ -24,9 +31,7 @@ for (const source of [...names.map((name) => `docs/${name}`), "README.md"]) {
     if (start < 0) throw new Error("README is missing its Quick start section");
     body = body.slice(start).replace("## Quick start", '<span id="quick-start"></span>');
   } else body = body.replace(/^# .+\n/m, "");
-  const route = routes.get(source);
-  if (!route) throw new Error(`Missing route for ${source}`);
-  const filename = route.slice(1, -1);
+  const filename = source === "docs/es/index.md" ? "es/index" : route.slice(1, -1);
   const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n---\n`;
   await writeFile(
     new URL(`${filename}.md`, output),

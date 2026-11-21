@@ -8,6 +8,10 @@ export default defineConfig({
       title: "mash",
       favicon: "/favicon.svg",
       description: "The Multi-Agent Search History Tool",
+      locales: {
+        root: { label: "English", lang: "en" },
+        es: { label: "Español" },
+      },
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
       logo: { dark: "./public/mash-mark.svg", light: "./public/mash-mark-light.svg" },
@@ -33,26 +37,52 @@ export default defineConfig({
       sidebar: [
         {
           label: "Start here",
+          translations: { es: "Primeros pasos" },
           items: [
-            { label: "Welcome to Mash", slug: "index" },
-            { label: "Quick start", slug: "quick-start" },
-            { label: "Installation", slug: "installation" },
-            { label: "Search", collapsed: true, items: ["search", "indexing"] },
+            {
+              label: "Welcome to Mash",
+              translations: { es: "Mash en español" },
+              slug: "index",
+            },
+            {
+              label: "Quick start",
+              translations: { es: "Guía de inicio rápido" },
+              slug: "quick-start",
+            },
+            { label: "Installation", translations: { es: "Instalación" }, slug: "installation" },
+            {
+              label: "Search",
+              translations: { es: "Búsqueda" },
+              collapsed: true,
+              items: ["search", "indexing"],
+            },
             {
               label: "Agents",
+              translations: { es: "Agentes" },
               collapsed: true,
               items: ["agents", "plugin", "records", "mcp", "tools"],
             },
-            { label: "Dashboard", collapsed: true, items: ["dashboard", "services"] },
+            {
+              label: "Dashboard",
+              translations: { es: "Panel" },
+              collapsed: true,
+              items: ["dashboard", "services"],
+            },
           ],
         },
         {
           label: "Using Mash",
+          translations: { es: "Uso de Mash" },
           items: [
             "synchronization",
             "shared-index",
             "upgrades",
-            { label: "Reference", collapsed: true, items: ["cli", "configuration"] },
+            {
+              label: "Reference",
+              translations: { es: "Referencia" },
+              collapsed: true,
+              items: ["cli", "configuration"],
+            },
             "troubleshooting",
             "privacy",
           ],

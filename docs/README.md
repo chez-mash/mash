@@ -4,6 +4,8 @@ Mash helps you find conversations you've already had with your coding agents.
 New here? Follow the [quick start](../README.md#quick-start), or browse the
 [documentation website](https://getmash.io).
 
+[Primeros pasos en español](es/index.md)
+
 Start on one machine: install Mash and local Qdrant, connect your histories,
 then search. Multi-machine sharing is an optional extension to that setup.
 

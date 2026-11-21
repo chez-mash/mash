@@ -26,6 +26,8 @@ index across machines, you run the server. [How Mash handles your history](docs/
 
 ## Quick start
 
+[Español](docs/es/quick-start.md)
+
 [Try the browser demo](https://getmash.io/demo/) with sample chats, or set up
 Mash to search your own history.
 

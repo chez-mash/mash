@@ -13,3 +13,19 @@ const card = new URL("/og.png", Astro.site);
 <meta property="og:image:alt" content="Your agents forget. Mash doesn’t." />
 <meta name="twitter:image" content={card} />
 <ClientRouter fallback="swap" />
+
+<script>
+  import type { TransitionBeforePreparationEvent } from "astro:transitions/client";
+
+  // Search keeps its translated UI and index for the lifetime of the document.
+  document.addEventListener("astro:before-preparation", (event) => {
+    const navigation = event as TransitionBeforePreparationEvent;
+    const load = navigation.loader;
+    navigation.loader = async () => {
+      await load();
+      if (navigation.newDocument.documentElement.lang !== document.documentElement.lang) {
+        navigation.preventDefault();
+      }
+    };
+  });
+</script>
