@@ -6,18 +6,19 @@ import Moon from "@lucide/svelte/icons/moon";
 import Search from "@lucide/svelte/icons/search";
 import Sun from "@lucide/svelte/icons/sun";
 import X from "@lucide/svelte/icons/x";
-import { createQuery } from "@tanstack/svelte-query";
+import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
-import { catalogOptions } from "../lib/queries";
+import { catalogOptions, searchQueryKey } from "../lib/queries";
 import { chatHref, router, searchHref } from "../lib/route.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
 import { theme, toggleTheme } from "../lib/theme.svelte";
 import AgentMark from "./AgentMark.svelte";
 
 let { railOpen, toggleRail }: { railOpen: boolean; toggleRail: () => void } = $props();
+const client = useQueryClient();
 const catalogue = createQuery(() => catalogOptions);
 let text = $state("");
 let focused = $state(false);
@@ -91,8 +92,19 @@ function submit(event: SubmitEvent): void {
   else params.delete("q");
   // A new query is a new search: it starts at the first result.
   params.delete("offset");
+  const submitted = params.toString();
   focused = false;
-  navigate(params.size ? `#/search?${params}` : "#/search");
+  if (query) {
+    const target = { queryKey: searchQueryKey(submitted), exact: true };
+    if (route.page === "search" && route.params === submitted) {
+      void client.refetchQueries(target, { cancelRefetch: false });
+      return;
+    }
+    // A typed submission should read current results even if we visited its
+    // address before. Ordinary Back and Forward still reuse the saved query.
+    void client.resetQueries(target);
+  }
+  navigate(submitted ? `#/search?${submitted}` : "#/search");
 }
 </script>
 

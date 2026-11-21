@@ -78,7 +78,9 @@ Abre **chats**, escribe una palabra que recuerdes en **Search your history** y p
 
 Si el cuadro está vacío, verás la lista de conversaciones. Puedes acotar la lista o los resultados por agente, equipo, proyecto y fecha. Un filtro que has cambiado aparece con un borde discontinuo hasta que eliges **Apply filters**. Los filtros aplicados aparecen como etiquetas en el cuadro de búsqueda. Elige una etiqueta para quitarla.
 
-Si una búsqueda con filtros queda vacía, elige **Clear filters** para repetir la misma consulta sin ellos. Si tu versión vuelve a la lista de conversaciones, introduce la consulta de nuevo. Elige **Browse chats** para abrir la lista con los filtros actuales. Usa el botón Atrás del navegador para volver a la búsqueda. Para más ayuda, consulta [cómo encontrar la conversación que falta](troubleshooting.md#search-returns-no-results).
+Si una búsqueda con filtros queda vacía, elige **Clear filters** para repetir la misma consulta sin ellos. Si tu versión vuelve a la lista de conversaciones, introduce la consulta de nuevo. Elige **Browse chats** para abrir la lista con los filtros actuales. Usa el botón Atrás del navegador para volver a la búsqueda.
+
+Usa **Search again** después de [indexar una conversación reciente](troubleshooting.md#new-chats-are-missing-or-search-is-behind). Si la conversación ya aparece en la lista, [revisa la consulta y el modo de búsqueda](troubleshooting.md#search-returns-no-results).
 
 La conversación muestra tus mensajes a la derecha y las respuestas del agente a la izquierda. Las llamadas a herramientas y el razonamiento se agrupan en una línea. Ábrela para ver cada paso y su resultado. El panel lateral muestra tus peticiones de la página actual, otras conversaciones del proyecto y los recuerdos guardados a partir de esta.
 
@@ -249,4 +251,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->
+<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->

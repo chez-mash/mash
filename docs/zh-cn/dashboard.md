@@ -68,7 +68,9 @@ mash dash
 
 搜索框为空时，页面会列出对话。可以按代理、机器、项目和日期筛选对话列表或搜索结果。修改后的筛选项显示虚线边框，选择 **Apply filters** 后才会生效。已生效的筛选条件会以标签显示在搜索框里，点击标签即可移除。
 
-如果筛选后没有结果，选择 **Clear filters**，用相同的查询搜索所有对话。如果你的版本回到了对话列表，请重新提交查询。选择 **Browse chats** 可以按当前筛选条件浏览对话。点击浏览器的后退按钮即可回到搜索结果。更多帮助请参阅[如何查找缺失的对话](troubleshooting.md#search-returns-no-results)。
+如果筛选后没有结果，选择 **Clear filters**，用相同的查询搜索所有对话。如果你的版本回到了对话列表，请重新提交查询。选择 **Browse chats** 可以按当前筛选条件浏览对话。点击浏览器的后退按钮即可回到搜索结果。
+
+[为近期对话建立索引](troubleshooting.md#new-chats-are-missing-or-search-is-behind)后，选择 **Search again**。如果对话已在列表里，请[检查查询和搜索模式](troubleshooting.md#search-returns-no-results)。
 
 对话页面左边是代理的回复，右边是你的消息。工具调用和推理过程折叠为一行，展开即可查看每一步及其输出。侧边栏显示当前页中你发出的请求、同一项目的其他对话，以及根据此对话保存的记忆。
 
@@ -238,4 +240,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->
+<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->

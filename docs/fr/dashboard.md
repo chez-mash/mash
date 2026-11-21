@@ -79,7 +79,9 @@ Ouvrez **chats**, tapez un mot dont vous vous souvenez dans **Search your histor
 
 Sans requête, la page liste vos conversations. Les filtres par agent, machine, projet et date s’appliquent à la liste comme aux résultats de recherche. Un filtre modifié a une bordure en pointillés jusqu’à ce que vous choisissiez **Apply filters**. Les filtres appliqués apparaissent sous forme d’étiquettes dans le champ de recherche. Cliquez sur une étiquette pour la retirer.
 
-Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche. Pour aller plus loin, [voyez comment retrouver la conversation](troubleshooting.md#search-returns-no-results).
+Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche.
+
+Choisissez **Search again** après avoir [indexé une conversation récente](troubleshooting.md#new-chats-are-missing-or-search-is-behind). Si la conversation figure déjà dans la liste, [vérifiez la requête et le mode de recherche](troubleshooting.md#search-returns-no-results).
 
 Dans une conversation, vos messages sont à droite et les réponses de l’agent à gauche. Les appels d’outils et le raisonnement sont regroupés sur une ligne qui s’ouvre pour montrer chaque étape et sa sortie. Le panneau latéral liste vos demandes de la page en cours, les autres conversations du projet et les souvenirs tirés de celle-ci.
 
@@ -250,4 +252,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->
+<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->

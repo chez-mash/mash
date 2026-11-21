@@ -6,6 +6,7 @@
 | L’assistant n’arrive pas à joindre le service de recherche | [Démarrer Qdrant](#qdrant-connection-failed) |
 | L’adresse du tableau de bord ne s’ouvre pas | [Vérifier son démarrage](#the-dashboard-doesnt-open) |
 | Mash ne trouve aucun historique ou l’index n’est pas encore prêt | [Vérifier les historiques configurés](#nothing-is-indexed-yet) |
+| Une conversation récente manque | [Vérifier si l’historique doit être mis à jour](#new-chats-are-missing-or-search-is-behind) |
 | Vous pouvez lire les conversations, mais une recherche ne donne rien | [Vérifier la requête, les filtres et la période](#search-returns-no-results) |
 | Un agent de programmation ne trouve pas Mash | [Vérifier la connexion de l’agent](#my-agent-cannot-find-mash) |
 | Après une mise à jour, Mash indique que le format de l’index est incompatible | [Récupérer ou mettre à jour l’index](#the-index-schema-is-older-or-newer-than-mash) |
@@ -213,8 +214,8 @@ Un test réussi confirme qu’un nouveau processus MCP a pu se connecter.
    pour ouvrir la liste avec les filtres actuels. Si vous connaissez une
    partie du titre, saisissez-la dans la zone de recherche et regardez les
    suggestions sous **chats**. Dans le terminal, utilisez la commande ci-dessous.
-4. Si une conversation récente manque ou est tronquée, lancez `mash index`
-   et cherchez de nouveau. Pour une conversation ancienne,
+4. Si une conversation récente manque ou est tronquée, [vérifiez si l’historique doit être mis à jour](#new-chats-are-missing-or-search-is-behind).
+   Pour une conversation ancienne,
    [élargissez la période indexée](indexing.md#add-older-history).
    Si les conversations d’un agent manquent,
    [vérifiez ses dossiers d’historique](#nothing-is-indexed-yet).
@@ -270,18 +271,21 @@ de mots (`exact-mention`). Pour les chercher par le sens
 
 ## Des conversations récentes manquent ou la recherche est en retard
 
-Mash lit les nouvelles conversations lors de l’indexation. Si des
-conversations récentes manquent ou si `search-not-ready` apparaît, vérifiez
-le message.
-
-- « search is catching up with new history » indique qu’une indexation
-  est en cours. Réessayez dans un instant.
-- « search is behind the stored history and nothing is refreshing it »
-  indique qu’il faut lancer la commande ci-dessous.
+Si une conversation récente manque ou si `search-not-ready` s’affiche,
+lancez cette commande sur l’ordinateur où l’agent a enregistré la conversation.
 
 ```sh
 mash index
 ```
+
+Une fois l’indexation terminée, choisissez **Search again** dans le tableau de
+bord. Si ce bouton n’est pas affiché, rechargez la page de recherche. Si la
+conversation vient d’un autre ordinateur, [vérifiez qu’elle a été publiée](synchronization.md#across-machines).
+
+- « search is catching up with new history » indique qu’une indexation
+  est en cours. Réessayez dans un instant.
+- « search is behind the stored history and nothing is refreshing it »
+  indique qu’il faut lancer `mash index`.
 
 Le plugin lance une mise à jour à l’ouverture d’une session, au maximum
 une fois toutes les dix minutes. Pour des mises à jour continues, voyez
@@ -377,4 +381,4 @@ l’authentification ou publié un paquet dont la somme de contrôle est incorre
 utilisez le [formulaire privé de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
 
-<!-- mash-docs-source: f174be304d981e17d943dda57d7aeb769d7ac14235d03c73a7e4d55406066641 -->
+<!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

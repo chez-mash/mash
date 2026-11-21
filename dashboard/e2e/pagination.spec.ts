@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { searchBox } from "./shell";
+import { fitsViewport, searchBox } from "./shell";
 
 const now = Date.now();
 const chats = Array.from({ length: 120 }, (_, index) => ({
@@ -140,6 +140,82 @@ test("an empty search page can return to the first page and get search help", as
     "https://getmash.io/troubleshooting/#search-returns-no-results",
   );
   await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
+});
+
+test("Search again checks for newly indexed matches with the applied query and filters", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockCatalogue(page);
+  let indexed = false;
+  const requests: string[] = [];
+  await page.route("**/api/search?**", (route) => {
+    requests.push(route.request().url());
+    return route.fulfill({
+      json: {
+        results: indexed
+          ? [{ ...chats[0], title: "Recently indexed chat", matches: [{ message_id: "match" }] }]
+          : [],
+        next_offset: null,
+      },
+    });
+  });
+  const address = "/#/search?q=needle&agent=codex&days=7&intent=exact-mention";
+  await page.goto(address);
+  await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Missing a recent chat?" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind",
+  );
+  expect(await fitsViewport(page)).toBe(true);
+
+  indexed = true;
+  await searchBox(page).fill("unsubmitted draft");
+  expect(requests).toHaveLength(1);
+  await page.getByRole("button", { name: "Search again", exact: true }).click();
+  await expect(page.getByRole("link", { name: /Recently indexed chat/ })).toBeVisible();
+  expect(requests).toHaveLength(2);
+  expect(requests[1]).toBe(requests[0]);
+  await expect(page).toHaveURL(address);
+  await expect(searchBox(page)).toHaveValue("unsubmitted draft");
+});
+
+test("pressing Enter repeats an unchanged or previously cached search", async ({ page }) => {
+  await mockCatalogue(page);
+  const requests: string[] = [];
+  await page.route("**/api/search?**", (route) => {
+    const query = new URL(route.request().url()).searchParams.get("q") ?? "";
+    requests.push(query);
+    return route.fulfill({
+      json: {
+        results: [
+          {
+            ...chats[0],
+            title: `${query} result ${requests.length}`,
+            matches: [{ message_id: "match" }],
+          },
+        ],
+        next_offset: null,
+      },
+    });
+  });
+  await page.goto("/#/search?q=needle");
+  await expect(page.getByRole("link", { name: /needle result 1/ })).toBeVisible();
+  await searchBox(page).press("Enter");
+  await expect(page.getByRole("link", { name: /needle result 2/ })).toBeVisible();
+  await expect(page).toHaveURL("/#/search?q=needle");
+
+  await searchBox(page).fill("other");
+  await searchBox(page).press("Enter");
+  await expect(page.getByRole("link", { name: /other result 3/ })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("link", { name: /needle result 2/ })).toBeVisible();
+  expect(requests).toEqual(["needle", "needle", "other"]);
+
+  await searchBox(page).fill("other");
+  await searchBox(page).press("Enter");
+  await expect(page.getByRole("link", { name: /other result 4/ })).toBeVisible();
+  expect(requests).toEqual(["needle", "needle", "other", "other"]);
 });
 
 test("an empty chat list points to history setup", async ({ page }) => {

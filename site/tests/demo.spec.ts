@@ -48,6 +48,11 @@ test("the quick start opens a sample search that fits a narrow screen", async ({
   await query.press("Enter");
   await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Browse chats", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search again", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Missing a recent chat?" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind",
+  );
 });
 
 test("the guide to picking up work opens the original decision and shows what is left", async ({

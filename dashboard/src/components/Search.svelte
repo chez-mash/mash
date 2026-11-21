@@ -17,7 +17,7 @@ import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent, search } from "../lib/api";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
-import { catalogOptions, stableRead } from "../lib/queries";
+import { catalogOptions, searchQueryKey, stableRead } from "../lib/queries";
 import { chatHref } from "../lib/route.svelte";
 import {
   type Applied,
@@ -86,7 +86,7 @@ const result = createQuery(() => ({
   ...stableRead,
   // A list of chats without a question follows the chat list as it updates;
   // a submitted search keeps its results until it is submitted again.
-  queryKey: ["search", params, applied.query ? 0 : catalogue.dataUpdatedAt],
+  queryKey: applied.query ? searchQueryKey(params) : ["chat-list", params, catalogue.dataUpdatedAt],
   placeholderData: (previous, query) => (query?.queryKey[1] === params ? previous : undefined),
   enabled: catalogue.data !== undefined,
   queryFn: async ({ signal }: { signal: AbortSignal }) => {
@@ -163,6 +163,7 @@ const rangeLabel = $derived.by(() => {
 </script>
 
 <h1 class="sr-only">{applied.query ? "Search results" : "Chats"}</h1>
+<div class="hd">
 <div class="chips" role="group" aria-label="Filters">
   <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
     {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
@@ -219,6 +220,12 @@ const rangeLabel = $derived.by(() => {
   {/if}
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 6px" style:margin-left="6px" style:font-size="13.5px">Apply filters</button>{/if}
 </div>
+{#if applied.query}
+  <button class="btn" type="button" disabled={!result.data || result.isFetching} onclick={() => result.refetch({ cancelRefetch: false })}>
+    {result.data && result.isFetching ? "Searching…" : "Search again"}
+  </button>
+{/if}
+</div>
 
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <QueryError title="Couldn’t load results" query={result} />
@@ -244,6 +251,7 @@ const rangeLabel = $derived.by(() => {
           {:else if result.data.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
+        <p class="meta"><a class="a" href="https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind" target="_blank" rel="noreferrer">Missing a recent chat?</a></p>
       {/if}
       <div class="acts" style:margin-top="12px">
         {#if result.data.first > 0}

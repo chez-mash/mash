@@ -6,6 +6,7 @@
 | 设置助手无法连接搜索服务 | [启动 Qdrant](#qdrant-connection-failed) |
 | 网页面板的地址打不开 | [检查面板是否已启动](#the-dashboard-doesnt-open) |
 | Mash 没找到历史记录，或索引尚未建立 | [检查历史记录设置](#nothing-is-indexed-yet) |
+| 找不到近期对话 | [检查是否有新历史记录](#new-chats-are-missing-or-search-is-behind) |
 | 可以浏览对话，但搜索没有结果 | [检查查询、筛选条件和日期](#search-returns-no-results) |
 | 编程代理找不到 Mash | [检查代理连接](#my-agent-cannot-find-mash) |
 | 升级后提示索引格式不兼容 | [恢复或升级索引](#the-index-schema-is-older-or-newer-than-mash) |
@@ -142,7 +143,7 @@ mash status --installation --agent claude-code --probe
 1. 查看[搜索模式](dashboard.md#choose-a-search-mode)。关键词搜索要求所有词出现在同一条消息里，可以先试一个有辨识度的词。按含义搜索时，试着用一个简短的英文问题。对于词与词之间没有空格的文本，可参阅[如何搜索其他语言的对话](search-languages.md)。
 2. 如果网页面板显示筛选标签，选择 **Clear filters** 后会用同一个查询重试。如果面板回到对话列表，请重新输入查询。在终端中，可移除筛选选项后再次搜索。
 3. 确认对话是否在列表中。选择 **Browse chats**，按当前筛选条件打开对话列表。如果记得标题的一部分，可以把它输入搜索框，在建议中的 **chats** 下查找。在终端中，可使用下文的命令。
-4. 如果缺少新的对话，或记录过早结束，请运行 `mash index` 后再检查。若缺少较早的对话，可以[扩大历史记录范围](indexing.md#add-older-history)。如果缺少某个代理的对话，请[检查历史记录目录](#nothing-is-indexed-yet)。
+4. 如果缺少新的对话，或记录过早结束，请[检查是否有新历史记录](#new-chats-are-missing-or-search-is-behind)。若缺少较早的对话，可以[扩大历史记录范围](indexing.md#add-older-history)。如果缺少某个代理的对话，请[检查历史记录目录](#nothing-is-indexed-yet)。
 
 搜索范围包括用户和代理之间的对话。要查看推理过程和工具输出，请搜索相关的消息并打开它所在的对话。
 
@@ -178,14 +179,16 @@ mash search 'auth_token' --intent exact-mention
 
 ## 找不到新对话，或者搜索落后于历史记录
 
-Mash 会在建立索引时读取新的历史记录。如果找不到近期对话或看到 `search-not-ready`，可以先查看具体提示。
-
-- “search is catching up with new history”表示正在建立索引，请稍后再试。
-- “search is behind the stored history and nothing is refreshing it”表示需要运行下面的命令。
+如果找不到近期对话或看到 `search-not-ready`，请在代理保存对话的电脑上运行以下命令。
 
 ```sh
 mash index
 ```
+
+索引完成后，在网页面板中选择 **Search again**。如果没有这个按钮，请重新加载搜索页面。如果对话来自另一台电脑，请[检查它是否已发布](synchronization.md#across-machines)。
+
+- “search is catching up with new history”表示正在建立索引，请稍后再试。
+- “search is behind the stored history and nothing is refreshing it”表示需要运行 `mash index`。
 
 代理插件会在会话开始时触发一次增量索引，最多每十分钟一次。如需持续更新，请参阅[如何让历史记录及时可搜](synchronization.md)。如果某个代理的对话从未出现，请[查看 Mash 支持哪些本地历史记录，以及如何选择](supported-agents.md#if-a-chat-is-missing)。
 
@@ -241,4 +244,4 @@ GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash do
 
 如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashium/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
 
-<!-- mash-docs-source: f174be304d981e17d943dda57d7aeb769d7ac14235d03c73a7e4d55406066641 -->
+<!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

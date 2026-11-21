@@ -15,7 +15,7 @@ mash status
 
 `mash index` 读取新增和变更的历史记录，并显示进度。查看最终结果，确认是否有未读完的记录或尚未完成的发布。按提示解决问题后，再运行 `mash index`。`mash status` 会显示本地搜索是否就绪。
 
-索引更新后，网页面板中的对话列表会自动更新。如果已经打开了一次搜索，请重新提交查询，以纳入新对话。
+索引更新后，网页面板中的对话列表会自动更新。要更新已打开的搜索，选择 **Search again**。如果面板中没有这个按钮，请重新加载页面，再次运行同一查询。
 
 <span id="keep-refreshing-while-you-work"></span>
 
@@ -72,4 +72,4 @@ mash index --watch --all-history
 
 [跨设备设置](shared-index.md)
 
-<!-- mash-docs-source: e4a3daadae69cf3d992691e9b02a63c7d28d80d0afc1f9f8c05f204a1d66dabd -->
+<!-- mash-docs-source: 56a328baf0148ab0de7ea34a1c484a9c9c22f2c01f15fd990a45f1550dda4071 -->

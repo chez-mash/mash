@@ -10,6 +10,10 @@ export const catalogOptions = queryOptions({
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
 });
+export function searchQueryKey(params: string): readonly ["search", string] {
+  return ["search", params];
+}
+
 /** Submitted searches and reading pages change only at the reader's request. */
 export const stableRead = {
   // Explicit reads must settle even when navigator.onLine is false. Otherwise

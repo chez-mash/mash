@@ -24,7 +24,8 @@ publication en attente. Corrigez le problème indiqué, puis relancez `mash inde
 `mash status` indique si la recherche locale est prête.
 
 La liste des conversations du tableau de bord s’actualise après l’indexation.
-Si une recherche est ouverte, relancez-la pour inclure les nouvelles conversations.
+Pour actualiser une recherche ouverte, choisissez **Search again**. Si
+ce bouton n’est pas affiché, rechargez la page pour relancer la même recherche.
 
 <span id="keep-refreshing-while-you-work"></span>
 
@@ -111,4 +112,4 @@ cet ordinateur.
 
 [Configuration pour plusieurs ordinateurs](shared-index.md)
 
-<!-- mash-docs-source: e4a3daadae69cf3d992691e9b02a63c7d28d80d0afc1f9f8c05f204a1d66dabd -->
+<!-- mash-docs-source: 56a328baf0148ab0de7ea34a1c484a9c9c22f2c01f15fd990a45f1550dda4071 -->

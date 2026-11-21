@@ -6,6 +6,7 @@
 | Setup says it could not reach the search service | [Start Qdrant](#qdrant-connection-failed) |
 | The dashboard address does not open | [Check dashboard startup](#the-dashboard-doesnt-open) |
 | Mash found no history, or nothing is indexed yet | [Check history setup](#nothing-is-indexed-yet) |
+| A recent chat is missing | [Check for new history](#new-chats-are-missing-or-search-is-behind) |
 | You can browse chats, but a search finds nothing | [Check the query, filters and dates](#search-returns-no-results) |
 | A coding agent cannot see Mash | [Check the agent connection](#my-agent-cannot-find-mash) |
 | An upgrade says the index schema is incompatible | [Recover or upgrade the index](#the-index-schema-is-older-or-newer-than-mash) |
@@ -188,8 +189,8 @@ See [agent setup](agents.md).
    dashboard's chat list with your current filters. If you remember part of
    the title, type it and look under **chats** in the search box suggestions.
    In the terminal, use the title command below.
-4. If a new chat is missing or its transcript ends too early, run
-   `mash index` and check again. For an older chat,
+4. If a new chat is missing or its transcript ends too early,
+   [check for new history](#new-chats-are-missing-or-search-is-behind). For an older chat,
    [include more history](indexing.md#add-older-history). If an agent's
    chats are missing, [check the history folders](#nothing-is-indexed-yet).
 
@@ -238,11 +239,15 @@ again.
 
 **You see:** recent conversations missing, or `search-not-ready`.
 
-Mash reads new history only when it indexes:
+On the computer where the agent saved the chat, run:
 
 ```sh
 mash index
 ```
+
+When indexing finishes, choose **Search again** in the dashboard. If your
+dashboard has no **Search again** button, reload the search page.
+For a chat from another computer, [check that it was published](synchronization.md#across-machines).
 
 - “search is catching up with new history”: an index pass is running. Retry in
   a moment.

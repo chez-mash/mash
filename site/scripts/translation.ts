@@ -82,6 +82,7 @@ const uiLabels = new Set([
   "Skip agent connections",
   "Skip to the dashboard",
   "Just this computer (recommended)",
+  "Search again",
   "Search your history",
   "Use existing settings",
   "Which agents should get access to Mash search?",

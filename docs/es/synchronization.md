@@ -23,8 +23,9 @@ Comprueba en el resultado final si quedó alguna lectura incompleta o una
 publicación pendiente. Corrige el motivo que indica y repite `mash index`.
 `mash status` indica si la búsqueda local está lista.
 
-La lista de conversaciones del panel se actualiza tras la indexación. Si
-tienes una búsqueda abierta, ejecútala de nuevo para incluir las conversaciones nuevas.
+La lista de conversaciones del panel se actualiza tras la indexación. Para
+actualizar una búsqueda abierta, elige **Search again**. Si tu panel no
+muestra ese botón, vuelve a cargar la página para repetir la misma búsqueda.
 
 <span id="keep-refreshing-while-you-work"></span>
 
@@ -110,4 +111,4 @@ restaura la conexión y ejecuta `mash index` allí de nuevo.
 
 [Configuración para varios equipos](shared-index.md)
 
-<!-- mash-docs-source: e4a3daadae69cf3d992691e9b02a63c7d28d80d0afc1f9f8c05f204a1d66dabd -->
+<!-- mash-docs-source: 56a328baf0148ab0de7ea34a1c484a9c9c22f2c01f15fd990a45f1550dda4071 -->
