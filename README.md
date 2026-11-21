@@ -102,8 +102,8 @@ Leave the terminal running. In the browser, review which histories Mash found
 and how far back to look. The default range is 90 days.
 If setup opens on the history choices, use **Next** to reach the review.
 
-- **Search in the dashboard yourself.** Choose **Skip agent connections** or turn off each connection on the agent screen. You can connect agents later.
-- **Let an agent search for you.** Select the agents you want to connect and check which ones appear in the review.
+- **Search in the dashboard yourself.** Check that no agents are selected. If your version selects agents for you, choose **Skip agent connections** or turn them off on the agent screen.
+- **Let an agent search for you.** Use **Choose agents to connect** or select them on the agent screen. Check which ones appear in the review.
 
 Choose **Set up and index**. [See the dashboard setup steps](docs/dashboard.md#set-up-mash-from-the-dashboard)
 

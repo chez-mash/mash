@@ -105,16 +105,14 @@ export const firstRunOptions = queryOptions({
   refetchInterval: (query) => (query.state.data?.index.state === "running" ? 2000 : false),
 });
 
-export function installedIntegrations(setup: FirstRun): Integration[] {
-  return setup.integrations.filter((entry) => entry.installed).map((entry) => entry.agent);
-}
-
-/** The answers a reader starts from: everything found, and every installed agent. */
+/** Start with the history choices and the connections Mash already recorded. */
 export function answersOf(setup: FirstRun): Answers {
   return {
     agents: Object.fromEntries(setup.histories.map((entry) => [entry.agent, entry.indexed])),
     sinceDays: setup.sinceDays,
-    connect: installedIntegrations(setup),
+    connect: setup.integrations
+      .filter((entry) => entry.installed && entry.connected)
+      .map((entry) => entry.agent),
   };
 }
 

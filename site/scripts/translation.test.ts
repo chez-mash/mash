@@ -226,9 +226,12 @@ describe("documentation translation drafts", () => {
     const output = draft.render({ translations: draft.passages });
 
     for (const label of [
+      "Choose agents to connect",
       "Clear filters",
+      "connect Mash to",
       "search: default",
       "memory from this chat",
+      "no agents",
       "overview:",
     ]) {
       expect(draft.passages).not.toContain(label);
@@ -236,6 +239,16 @@ describe("documentation translation drafts", () => {
     }
     expect(output).toContain("mash dash --allow-host laptop.your-tailnet.ts.net");
     expect(recordedTranslationRevision(output)).toBe(dashboard.revision);
+  });
+
+  it("keeps the browser trial's choices recognizable in translated privacy guides", async () => {
+    const privacy = await readTranslationSource("privacy");
+    const draft = prepareTranslation(privacy, "docs/es/privacy.md");
+    const output = draft.render({ translations: draft.passages });
+    for (const label of ["another number of days", "this machine only", "no agents"]) {
+      expect(draft.passages).not.toContain(label);
+      expect(output).toContain(`**${label}**`);
+    }
   });
 
   it("keeps numbered section links local when duplicate English headings are translated", () => {

@@ -72,6 +72,7 @@ test("a first visit can confirm the detected local setup in one click", async ({
   await expect(review).toContainText("Claude Code, Codex");
   await expect(review).toContainText("the last 90 days");
   await expect(review).toContainText("this machine only");
+  await expect(review.getByText("no agents", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
   await page.getByText("Show history folders", { exact: true }).click();
   await expect(review.getByText("/fixture/.codex/sessions", { exact: true })).toBeVisible();
@@ -85,7 +86,7 @@ test("a first visit can confirm the detected local setup in one click", async ({
       revision: "",
       agents: { "claude-code": true, codex: true },
       since_days: 90,
-      connect: ["claude-code"],
+      connect: [],
       index: true,
     },
   ]);
@@ -99,15 +100,23 @@ test("a first visit can confirm the detected local setup in one click", async ({
   ).toHaveAttribute("href", "https://getmash.io/indexing/#enable-semantic-search");
 });
 
-test("the first review can start indexing with agent connections skipped", async ({ page }) => {
-  const { posts, update } = await mockSetup(page);
+test("the first review lets the reader connect just the agents they choose", async ({ page }) => {
+  const { posts, update } = await mockSetup(page, {
+    ...detected,
+    integrations: detected.integrations.map((entry) => ({ ...entry, installed: true })),
+  });
   await page.goto("/");
   const review = page.getByRole("region", { name: "Set up Mash" });
-  await page.getByRole("button", { name: "Skip agent connections" }).click();
   await expect(review.getByText("no agents", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Include installed agents" }).click();
-  await expect(review.getByText("no agents", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Skip agent connections" }).click();
+  await page.getByText("Choose agents to connect", { exact: true }).click();
+  await expect(page.getByText(/sent to its model provider/)).toBeVisible();
+  const claude = page.getByRole("switch", { name: "Connect Claude Code" });
+  const codex = page.getByRole("switch", { name: "Connect Codex" });
+  await expect(claude).not.toBeChecked();
+  await expect(codex).not.toBeChecked();
+  await codex.click();
+  await expect(review.getByText("Codex", { exact: true })).toBeVisible();
+  await expect(claude).not.toBeChecked();
   expect(posts).toEqual([]);
   await page.getByRole("button", { name: "Set up and index" }).click();
   await expect(page.getByRole("heading", { name: "Setup is saved" })).toBeVisible();
@@ -116,7 +125,7 @@ test("the first review can start indexing with agent connections skipped", async
       revision: "",
       agents: { "claude-code": true, codex: true },
       since_days: 90,
-      connect: [],
+      connect: ["codex"],
       index: true,
     },
   ]);
@@ -145,15 +154,15 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   await page.getByRole("switch", { name: "Index Codex" }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: "another number of days" }).click();
-  await page.getByRole("spinbutton", { name: "Days of history" }).fill("45");
+  await page.getByRole("spinbutton", { name: "Days of history" }).fill("7");
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("switch", { name: "Connect Claude Code" }).click();
+  await expect(page.getByRole("switch", { name: "Connect Claude Code" })).not.toBeChecked();
   await expect(page.getByRole("switch", { name: "Connect Codex" })).toBeDisabled();
   await page.getByRole("button", { name: "Review setup" }).click();
   await page.getByText("Show history folders", { exact: true }).click();
   await expect(page.getByText("/fixture/.claude/projects", { exact: true })).toBeVisible();
   await expect(page.getByText("/fixture/.codex/sessions", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("the last 45 days", { exact: true })).toBeVisible();
+  await expect(page.getByText("the last 7 days", { exact: true })).toBeVisible();
   await expect(page.getByText("no agents", { exact: true })).toBeVisible();
   await expect(page.getByText("mash qdrant install", { exact: true })).toBeVisible();
   expect(posts).toEqual([]);
@@ -167,7 +176,7 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
     {
       revision: "",
       agents: { "claude-code": true, codex: false },
-      since_days: 45,
+      since_days: 7,
       connect: [],
       index: true,
     },

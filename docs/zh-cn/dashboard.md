@@ -24,7 +24,7 @@ mash dash
 
 核对 Mash 找到的历史、要索引的时间范围，以及可连接的代理。**Show history folders** 会列出历史文件夹。首次设置默认会索引本机过去 90 天的历史。选择 **Set up and index** 应用当前选项，或选择 **Customize setup** 修改历史范围、来源和代理连接。
 
-在首次确认页面，**Skip agent connections** 会保留相同的历史索引，方便你自己在面板或终端搜索。如果你的版本先显示历史选项，选择 **Next** 进入确认页面。
+如果想自己搜索，请确认 **connect Mash to** 显示 **no agents**。如果想让代理帮你搜索，请打开 **Choose agents to connect**，选择要连接的代理，或在 **Customize setup** 的代理设置页选择。如果你的版本默认选中了代理，请选择 **Skip agent connections**，或在代理设置页关闭连接。如果先看到历史选项，请选择 **Next**，依次进入代理设置页和摘要。
 
 在确认页面选择 **Set up and index** 或 **Set up without indexing** 后，Mash 才会写入配置。它会通过所选代理自己的命令行工具进行连接，并按你的选择在后台建立索引。页面会显示已保存的配置、各代理修改的文件以及撤销连接的命令，还会显示索引进度，直到对话出现在面板中。
 
@@ -238,4 +238,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->
+<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->

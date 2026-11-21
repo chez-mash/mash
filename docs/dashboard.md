@@ -42,9 +42,12 @@ can connect so they can search. **Show history folders** lists the paths. For a
 new setup the default is to index the last 90 days on this machine. Choose
 **Set up and index** to accept the review, or **Customize setup** to change
 the histories, range, or agent connections before confirming.
-On the first review, **Skip agent connections** lets you index the same
-histories and search them yourself from the dashboard or terminal.
-If your version opens on the history choices, use **Next** to reach the review.
+To search on your own, check that **connect Mash to** says **no agents**.
+To let an agent make requests, open **Choose agents to connect** and select
+the agents you want, or use the agent screen under **Customize setup**.
+If your version starts with agents selected, choose **Skip agent connections**
+or turn the selections off on the agent screen. If it starts on the history
+choices, use **Next** to reach that screen and the review.
 
 Nothing changes until you choose **Set up and index** or **Set up without
 indexing** on the review. Mash then writes its configuration file, has each

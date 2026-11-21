@@ -26,7 +26,13 @@ Vous pouvez faire la première configuration dans le navigateur à la place de `
 
 Vérifiez les historiques trouvés, la période et les agents que Mash peut connecter pour qu’ils puissent faire des recherches. **Show history folders** affiche les emplacements. Par défaut, une nouvelle configuration indexe les 90 derniers jours sur cette machine. Choisissez **Set up and index** pour valider ou **Customize setup** pour modifier les historiques, la période ou les connexions des agents.
 
-Sur le premier écran de confirmation, **Skip agent connections** indexe les mêmes historiques pour vos recherches dans le navigateur ou le terminal. Si votre version commence par le choix des historiques, utilisez **Next** pour accéder à la confirmation.
+Pour chercher vous-même, vérifiez que **connect Mash to** indique **no agents**.
+Pour autoriser un agent à chercher, ouvrez **Choose agents to connect** et
+choisissez les agents souhaités, ou utilisez l’écran des agents dans
+**Customize setup**. Si votre version présélectionne des agents, choisissez
+**Skip agent connections** ou désactivez-les sur l’écran des agents. Si elle
+commence par les historiques, utilisez **Next** pour atteindre cet écran et
+le récapitulatif.
 
 Mash applique les changements quand vous choisissez **Set up and index** ou **Set up without indexing** sur l’écran de confirmation. Il écrit sa configuration, utilise la commande de chaque agent choisi pour le connecter et lance l’indexation en arrière-plan si vous l’avez demandée. La page indique ce qui a été enregistré, les fichiers modifiés par les agents et les commandes pour annuler leurs connexions. Elle suit aussi l’indexation jusqu’à l’apparition des conversations.
 
@@ -244,4 +250,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->
+<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->

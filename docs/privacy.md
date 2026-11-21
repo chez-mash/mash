@@ -60,20 +60,20 @@ folder on Windows. Add `--yes` when you are ready to uninstall.
 ## Try a small local setup
 
 [Try a sample chat search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-in the demo first. To try Mash on one of your own histories:
+in the demo first. For a fresh setup with one of your own histories:
 
-1. Run the [quick start installer](../README.md#quick-start) in your terminal.
-   The installer starts the local search service before opening the wizard.
-2. Choose **Customize setup** if the wizard opens with a review. When asked
-   where to search, choose **Just this computer (recommended)**. Keep one
-   history with a recent conversation, choose **Custom number of days**, and
-   enter 7. If asked, clear the agent selections and decline memory backfill.
-3. Choose **Set up and index**, then run `mash dash`. Open the address it
-   prints, select **chats**, and search for a word from that conversation.
+1. Run the [quick start installer](../README.md#install-it-yourself). Open
+   the address it prints in your browser and keep the terminal running.
+2. If you see the review first, choose **Customize setup**. Keep only one
+   history with a chat from the past week, then choose **Next**.
+3. Choose **another number of days**, enter **7**, and choose **Next**. Turn
+   off any selected agent connections, then continue to the review.
+4. Check that the review says **this machine only** and **no agents**.
+   Choose **Set up and index**. When indexing finishes, open
+   **chats** and search for a word from that conversation.
 
-To use all the suggested histories, follow the steps to
-[skip agent connections](installation.md#skip-agent-connections). You can also
-[make these choices in the browser](dashboard.md#set-up-mash-from-the-dashboard).
+You can widen the range or connect an agent later.
+[Dashboard setup](dashboard.md#set-up-mash-from-the-dashboard)
 
 If you decide to stop, run `mash uninstall` to preview removal. When you
 confirm, Mash removes its own index and services and keeps your agents'

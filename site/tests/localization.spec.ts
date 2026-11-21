@@ -599,6 +599,11 @@ for (const locale of [
     );
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(locale.privacy);
     await expect(page.getByRole("heading", { name: locale.trialHeading })).toBeVisible();
+    await expect(page.getByText("another number of days", { exact: true })).toBeVisible();
+    await expect(page.getByText("no agents", { exact: true })).toBeVisible();
+    await expect(
+      page.locator(`a[href="/${locale.path}/quick-start/#install-it-yourself"]`),
+    ).toBeVisible();
     await expect(page.getByRole("switch", { name: locale.theme })).toBeVisible();
 
     await page.getByRole("button", { name: locale.search, exact: true }).click();

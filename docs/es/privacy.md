@@ -71,21 +71,20 @@ cuando quieras desinstalar Mash. [Qué se elimina al desinstalar](uninstall.md)
 ## Prueba con menos historial
 
 [Prueba una búsqueda con conversaciones de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue).
-Para probar Mash con uno de tus historiales:
+Para probar Mash con uno de tus historiales en una instalación nueva:
 
-1. Ejecuta el [instalador de la guía de inicio](quick-start.md) en tu terminal.
-   El instalador inicia el servicio de búsqueda local antes de abrir el asistente.
-2. Si el asistente empieza con un resumen, elige **Customize setup**. Cuando
-   pregunte dónde buscar, elige **Just this computer (recommended)**. Conserva
-   un historial con una conversación reciente, elige **Custom number of days**
-   e introduce 7. Si te lo pregunta, desmarca todos los agentes y rechaza la
-   extracción de recuerdos de conversaciones anteriores.
-3. Elige **Set up and index** y ejecuta `mash dash`. Abre la dirección que
-   aparezca, selecciona **chats** y busca una palabra de esa conversación.
+1. Ejecuta el [instalador de la guía de inicio](quick-start.md#install-it-yourself).
+   Abre en tu navegador la dirección que muestra y deja el terminal abierto.
+2. Si ves primero el resumen, elige **Customize setup**. Conserva solo un
+   historial con una conversación de la última semana y pulsa **Next**.
+3. Elige **another number of days**, introduce **7** y pulsa **Next**.
+   Desactiva cualquier conexión a agentes que esté seleccionada y pasa al resumen.
+4. Comprueba que el resumen diga **this machine only** y **no agents**.
+   Elige **Set up and index**. Cuando termine, entra en **chats** y busca
+   una palabra de esa conversación.
 
-Para usar todos los historiales sugeridos, sigue los pasos para
-[omitir las conexiones a agentes](installation.md#skip-agent-connections).
-También puedes [elegir estas opciones en el navegador](dashboard.md#set-up-mash-from-the-dashboard).
+Más adelante puedes ampliar el período o conectar un agente.
+[Configuración en el panel](dashboard.md#set-up-mash-from-the-dashboard)
 
 `mash uninstall` muestra qué se eliminaría antes de confirmar y conserva las
 conversaciones originales de tus agentes.
@@ -123,4 +122,4 @@ anteriores y las copias indexadas por separado en otros equipos. La operación
 no se puede deshacer. Si puedes necesitar la conversación más adelante,
 haz antes [una copia de seguridad](backup.md#make-a-portable-backup).
 
-<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->
+<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->

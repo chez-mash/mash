@@ -37,8 +37,8 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 在浏览器中打开安装程序显示的地址，通常是 <http://127.0.0.1:8790>。保持终端窗口打开。在浏览器中核对找到的历史记录和日期范围，默认是最近 90 天。如果先看到历史记录选择页，请点击 **Next**，直到看到设置摘要。
 
-- **自己在网页面板中搜索。** 选择 **Skip agent connections**，或在代理设置页逐一关闭连接。之后也可以再连接代理。
-- **让代理帮你搜索。** 选择要连接的代理，并在摘要中核对。
+- **自己在网页面板中搜索。** 确认没有选中任何代理。如果版本默认选中了代理，请选择 **Skip agent connections**，或在代理设置页关闭连接。
+- **让代理帮你搜索。** 使用 **Choose agents to connect**，或在代理设置页选择要连接的代理，然后在摘要中核对。
 
 选择 **Set up and index**。[查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
 
@@ -64,4 +64,4 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->
+<!-- mash-docs-source: 62b75bc52e78a840f0a366d876bd1ca8c22b81cbfcbb81453c7673ba7f07a347 -->

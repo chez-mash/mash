@@ -35,16 +35,29 @@ const body = {
   index: { state: "idle" },
 };
 
-test("a first setup starts from everything found and every installed agent", () => {
+test("a first setup indexes detected histories without connecting installed agents", () => {
   const setup = parseFirstRun(body);
   expect(setup.histories.map((entry) => entry.agent)).toEqual(["claude-code", "codex"]);
   const answers = answersOf(setup);
   expect(answers).toEqual({
     agents: { "claude-code": true, codex: true },
     sinceDays: 90,
-    connect: ["claude-code"],
+    connect: [],
   });
   expect(problem(setup, answers)).toBe("");
+});
+
+test("setup retains recorded connections when their command is available", () => {
+  const setup = parseFirstRun({
+    ...body,
+    configured: true,
+    integrations: [
+      { agent: "claude-code", installed: true, connected: true },
+      { agent: "codex", installed: true, connected: false },
+      { agent: "copilot", installed: false, connected: true },
+    ],
+  });
+  expect(answersOf(setup).connect).toEqual(["claude-code"]);
 });
 
 test("answers that cannot be saved say why", () => {
@@ -65,7 +78,6 @@ test("the review names each answer in the page's words", () => {
   const answers = answersOf(setup);
   answers.agents.codex = false;
   answers.sinceDays = null;
-  answers.connect = [];
   expect(summary(setup, answers, names)).toEqual([
     { label: "configuration file", value: "/h/.mash/config.toml" },
     { label: "histories to index", value: "Claude Code" },

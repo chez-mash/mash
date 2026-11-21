@@ -253,7 +253,12 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await page.getByRole("link", { name: "See what stays local", exact: true }).click();
   await expect(page).toHaveURL(/\/privacy\/$/);
   await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
-  await expect(page.getByText("Custom number of days", { exact: true })).toBeVisible();
+  await expect(page.getByText("another number of days", { exact: true })).toBeVisible();
+  await expect(page.getByText("no agents", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "quick start installer" })).toHaveAttribute(
+    "href",
+    "/quick-start/#install-it-yourself",
+  );
   await page.getByRole("link", { name: "See what uninstall removes", exact: true }).last().click();
   await expect(page).toHaveURL(/\/uninstall\/$/);
   await expect(page.getByRole("heading", { name: "Uninstall Mash", exact: true })).toBeInViewport();

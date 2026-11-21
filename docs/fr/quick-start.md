@@ -60,8 +60,8 @@ Vérifiez les historiques détectés et la période, qui couvre par défaut les
 90 derniers jours. Si vous arrivez d’abord sur le choix des historiques,
 cliquez sur **Next** pour atteindre le récapitulatif.
 
-- **Cherchez vous-même dans le tableau de bord.** Choisissez **Skip agent connections** ou désactivez chaque connexion sur l’écran des agents. Vous pourrez connecter des agents plus tard.
-- **Demandez à un agent de chercher pour vous.** Sélectionnez les agents à connecter et vérifiez qu’ils figurent dans le récapitulatif.
+- **Cherchez vous-même dans le tableau de bord.** Vérifiez qu’aucun agent n’est sélectionné. Si votre version en sélectionne au départ, choisissez **Skip agent connections** ou désactivez-les sur l’écran des agents.
+- **Demandez à un agent de chercher pour vous.** Utilisez **Choose agents to connect** ou sélectionnez les agents sur l’écran prévu à cet effet. Vérifiez lesquels figurent dans le récapitulatif.
 
 Choisissez **Set up and index**. [Étapes de configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
 
@@ -92,4 +92,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->
+<!-- mash-docs-source: 62b75bc52e78a840f0a366d876bd1ca8c22b81cbfcbb81453c7673ba7f07a347 -->

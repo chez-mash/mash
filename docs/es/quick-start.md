@@ -66,8 +66,8 @@ Abre en tu navegador la dirección que muestra el instalador, normalmente
 detectados y el período. El período predeterminado es de 90 días. Si primero
 aparece la lista de historiales, pulsa **Next** hasta llegar al resumen.
 
-- **Busca por tu cuenta en el panel.** Elige **Skip agent connections** o desactiva cada conexión en la pantalla de agentes. Puedes conectar agentes más adelante.
-- **Deja que un agente busque por ti.** Selecciona los agentes que quieras conectar y comprueba cuáles figuran en el resumen.
+- **Busca por tu cuenta en el panel.** Comprueba que no haya agentes seleccionados. Si tu versión los selecciona inicialmente, elige **Skip agent connections** o desactívalos en la pantalla de agentes.
+- **Deja que un agente busque por ti.** Usa **Choose agents to connect** o selecciona los que quieras en la pantalla de agentes. Comprueba cuáles figuran en el resumen.
 
 Elige **Set up and index**. [Pasos de configuración en el panel](dashboard.md#set-up-mash-from-the-dashboard)
 
@@ -103,4 +103,4 @@ Para que los chats nuevos aparezcan en tus búsquedas, ejecuta `mash index` o
 [mantén el índice al día en segundo plano](synchronization.md).
 También puedes [hacer una copia de seguridad](backup.md).
 
-<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->
+<!-- mash-docs-source: 62b75bc52e78a840f0a366d876bd1ca8c22b81cbfcbb81453c7673ba7f07a347 -->

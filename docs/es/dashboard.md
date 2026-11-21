@@ -26,7 +26,12 @@ Puedes hacer la configuración inicial en el navegador en vez de ejecutar `mash 
 
 Revisa los historiales encontrados, el intervalo de fechas y los agentes que puedes conectar para que busquen por ti. **Show history folders** muestra las rutas. En una instalación nueva se indexan por defecto los últimos 90 días en este equipo. Elige **Set up and index** para confirmar o **Customize setup** para cambiar los historiales, el intervalo o las conexiones.
 
-En la primera pantalla de revisión, **Skip agent connections** te permite indexar los mismos historiales y buscar por tu cuenta en el panel o la terminal. Si tu versión empieza por la selección de historiales, elige **Next** para llegar a la revisión.
+Para buscar por tu cuenta, comprueba que **connect Mash to** diga **no agents**.
+Para que un agente pueda buscar, abre **Choose agents to connect** y elige los que quieras,
+o usa la pantalla de agentes de **Customize setup**. Si tu versión selecciona
+agentes al principio, elige **Skip agent connections** o desactívalos en la
+pantalla de agentes. Si primero muestra los historiales, pulsa **Next** hasta
+llegar a la pantalla de agentes y al resumen.
 
 Mash aplica los cambios cuando eliges **Set up and index** o **Set up without indexing** en la revisión. Guarda la configuración, conecta cada agente elegido mediante su propia herramienta de terminal y, si lo pediste, empieza a indexar en segundo plano. La página indica qué se guardó, qué archivos modificó cada herramienta y cómo deshacer las conexiones. También muestra el progreso hasta que aparecen tus conversaciones.
 
@@ -244,4 +249,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->
+<!-- mash-docs-source: cb291f108c21f1aa0d45ed295d8d4fd766c9b77dd6d84752426c07263b78cd5d -->

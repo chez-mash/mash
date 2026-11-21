@@ -45,21 +45,21 @@ serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 ## Essayer Mash avec un historique limité
 
 [Essayez une recherche avec des conversations d’exemple](https://getmash.io/demo/#/search?q=invoice+exports+queue).
-Pour essayer Mash avec l’un de vos propres historiques :
+Pour essayer Mash avec l’un de vos propres historiques sur une nouvelle installation :
 
-1. Lancez le [programme d’installation du guide de démarrage](quick-start.md)
-   dans votre terminal. Il démarre le service de recherche local avant d’ouvrir l’assistant.
-2. Si l’assistant commence par un récapitulatif, choisissez **Customize setup**.
-   Lorsqu’il demande où chercher, choisissez **Just this computer (recommended)**.
-   Gardez un historique avec une conversation récente, choisissez **Custom number of days**
-   et saisissez 7. Si l’assistant vous le demande, décochez tous les agents et
-   refusez l’extraction de souvenirs des anciennes conversations.
-3. Choisissez **Set up and index**, puis lancez `mash dash`. Ouvrez l’adresse
-   affichée, sélectionnez **chats** et cherchez un mot de cette conversation.
+1. Lancez le [programme d’installation du guide de démarrage](quick-start.md#install-it-yourself).
+   Ouvrez l’adresse affichée dans votre navigateur et laissez le terminal ouvert.
+2. Si le récapitulatif apparaît d’abord, choisissez **Customize setup**.
+   Gardez un seul historique avec une conversation de la semaine écoulée,
+   puis choisissez **Next**.
+3. Choisissez **another number of days**, saisissez **7** et choisissez **Next**.
+   Désactivez toutes les connexions aux agents sélectionnées, puis passez au récapitulatif.
+4. Vérifiez que le récapitulatif indique **this machine only** et **no agents**.
+   Choisissez **Set up and index**. Lorsque l’indexation est terminée, ouvrez
+   **chats** et cherchez un mot de cette conversation.
 
-Pour utiliser tous les historiques proposés, suivez les étapes pour
-[ignorer la connexion aux agents](installation.md#skip-agent-connections).
-Vous pouvez aussi [faire ces choix dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard).
+Vous pourrez élargir la période ou connecter un agent plus tard.
+[Configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
 
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
 [Voir ce que retire la désinstallation](uninstall.md)
@@ -87,4 +87,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->
+<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->

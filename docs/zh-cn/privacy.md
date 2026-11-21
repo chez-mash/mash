@@ -36,17 +36,14 @@
 ## 用少量本地历史试用
 
 可以先[在演示中搜索示例对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)。
-如果想用自己的一份历史试用 Mash，请按以下步骤操作。
+如果是全新安装，可以用自己的一份历史试用 Mash。
 
-1. 在终端中运行[快速入门指南中的安装命令](quick-start.md)。安装程序会先启动本地搜索服务，再打开设置向导。
-2. 如果向导先显示设置摘要，请选择 **Customize setup**。询问搜索位置时，请选择
-   **Just this computer (recommended)**。只保留一份包含近期对话的历史，
-   选择 **Custom number of days** 并输入 7。若向导询问是否连接代理或从旧对话中补录记忆，
-   请取消选中所有代理并跳过补录。
-3. 选择 **Set up and index**，然后运行 `mash dash`。在浏览器中打开显示的地址，
-   选择 **chats**，搜索那段对话中的一个词。
+1. 运行[快速入门指南中的安装命令](quick-start.md#install-it-yourself)。在浏览器中打开显示的地址，并保持终端窗口打开。
+2. 如果先看到设置摘要，请选择 **Customize setup**。只保留一份含有最近一周对话的历史，然后选择 **Next**。
+3. 选择 **another number of days**，输入 **7**，再选择 **Next**。关闭所有已选中的代理连接，然后进入设置摘要。
+4. 确认摘要中显示 **this machine only** 和 **no agents**。选择 **Set up and index**。索引完成后，打开 **chats**，搜索那段对话中的一个词。
 
-如果想使用所有建议的历史，请按步骤[跳过代理连接](installation.md#skip-agent-connections)。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
+之后可以扩大日期范围或连接代理。[网页面板设置](dashboard.md#set-up-mash-from-the-dashboard)
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
 [查看卸载会删除什么](uninstall.md)
@@ -74,4 +71,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->
+<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->

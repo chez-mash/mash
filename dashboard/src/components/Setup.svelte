@@ -18,7 +18,6 @@ import {
   firstRunKey,
   firstRunOptions,
   type Integration,
-  installedIntegrations,
   type Outcome,
   problem,
   runSetup,
@@ -55,7 +54,8 @@ const helps = {
   histories:
     "Found on this machine in their usual locations. Mash reads them and never changes them.",
   range: "A history counts when it was changed within the range. You can widen it later.",
-  agents: "Connecting lets an agent search your history through Mash.",
+  agents:
+    "A connected agent can look up your indexed chats. Excerpts it reads can be sent to its model provider.",
   review: "Review what Mash will read before you start. Your original chats stay untouched.",
 } as const;
 let at = $state<number | null>(null);
@@ -80,7 +80,7 @@ let custom = $state(90);
 const blocked = $derived(file && answers ? problem(file, answers) : "");
 const review = $derived(file && answers ? summary(file, answers, names) : []);
 const histories = $derived(file && answers ? selectedHistories(file, answers) : []);
-const installedAgents = $derived(file ? installedIntegrations(file) : []);
+const installedAgents = $derived(file?.integrations.filter((entry) => entry.installed) ?? []);
 
 let running = $state(false);
 let failure = $state("");
@@ -152,6 +152,13 @@ function toggleConnect(agent: Integration): void {
 {#snippet toggle(label: string, on: boolean, flip: () => void, disabled = false)}
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} {disabled} onclick={flip}><i></i></button>
 {/snippet}
+{#snippet connectAgent(entry: FirstRun["integrations"][number], on: boolean, editable: boolean)}
+  <div class="setup-row" class:off={!entry.installed}>
+    <AgentMark agent={entry.agent} size={18} />
+    <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small>{entry.installed ? (entry.connected ? "already connected" : "its command-line tool is installed") : "its command-line tool was not found here"}</small></span>
+    {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !editable || running)}
+  </div>
+{/snippet}
 
 <main class="setup">
   <header class="setup-top">
@@ -212,12 +219,7 @@ function toggleConnect(agent: Integration): void {
           </div>
         {:else if step === "agents"}
           {#each file.integrations as entry (entry.agent)}
-            {@const on = answers.connect.includes(entry.agent)}
-            <div class="setup-row" class:off={!entry.installed}>
-              <AgentMark agent={entry.agent} size={18} />
-              <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small>{entry.installed ? (entry.connected ? "already connected" : "its command-line tool is installed") : "its command-line tool was not found here"}</small></span>
-              {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !file.editable)}
-            </div>
+            {@render connectAgent(entry, answers.connect.includes(entry.agent), file.editable)}
           {/each}
         {:else}
           <dl>
@@ -242,10 +244,15 @@ function toggleConnect(agent: Integration): void {
         <p class="meta">It is done by the agent's own command-line tool, which edits that agent's user settings and installs the Mash plugin. The last screen lists the files it touched and the commands that undo it. Other agents' histories are still indexed without this.</p>
       {:else if step === "review"}
         {#if file.editable && installedAgents.length && !file.configured && at === null}
-          <div>
-            <p class="meta">{answers.connect.length ? "Connected agents can search your history, and matching excerpts can enter their context." : "You can search the local index yourself from the dashboard or terminal."}</p>
-            <button class="btn" type="button" style:margin-top="6px" disabled={running} onclick={() => { if (answers) answers.connect = answers.connect.length ? [] : installedAgents; }}>{answers.connect.length ? "Skip agent connections" : "Include installed agents"}</button>
-          </div>
+          <details class="fold">
+            <summary>Choose agents to connect</summary>
+            <div>
+              <p class="meta">{helps.agents}</p>
+              {#each installedAgents as entry (entry.agent)}
+                {@render connectAgent(entry, answers.connect.includes(entry.agent), file.editable)}
+              {/each}
+            </div>
+          </details>
         {/if}
         {#if answers.connect.length && file.editable}
           <p class="meta">To connect the selected agents, Mash uses their own tools to update their user settings and install the Mash plugin.</p>
