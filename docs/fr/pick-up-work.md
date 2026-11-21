@@ -1,6 +1,15 @@
 # Reprendre là où vous en étiez
 
-Ouvrez une ancienne conversation pour retrouver la prochaine étape. Dans la démo, ouvrez la décision enregistrée concernant la connexion et choisissez **open the message**. La conversation indique que des jetons d’accès à durée de vie courte ont été retenus, puis précise le travail qui reste à faire sur mobile. [Essayer avec des exemples de conversations](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+Ouvrez une ancienne conversation pour retrouver la prochaine étape.
+
+<span id="follow-a-sample-handoff"></span>
+
+## Suivre un exemple de reprise
+
+1. [Ouvrez dans la démo la décision enregistrée concernant la connexion](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop).
+2. Choisissez **open the message** pour lire la conversation d’origine dans Claude Code.
+   Il reste à stocker le jeton de renouvellement de l’application mobile dans le trousseau de l’appareil.
+3. Choisissez **See the Codex follow-up** pour voir comment un autre exemple de conversation reprend ce travail.
 
 <span id="find-the-next-step-in-your-chats"></span>
 
@@ -45,4 +54,4 @@ La compétence tente d’actualiser l’index, puis vérifie s’il existe une n
 
 Si vous changez d’ordinateur, configurez d’abord le partage, puis lancez l’indexation sur l’ordinateur où la note a été rédigée pour qu’il puisse publier la conversation. Pour une passation manuelle, copiez la note dans la nouvelle session. Partagez uniquement les informations que vous souhaitez transmettre au prochain agent. [Rechercher sur plusieurs ordinateurs](shared-index.md) · [Ce qu’un agent peut voir](privacy.md#when-history-can-leave-your-machine)
 
-<!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->
+<!-- mash-docs-source: 29c9c1b1f656694eef0aab022b8ba56fec30c9d8b1ebf6737868e0a8c28d226c -->

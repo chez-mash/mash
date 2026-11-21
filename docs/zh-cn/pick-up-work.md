@@ -1,6 +1,14 @@
 # 继续之前的工作
 
-打开之前的对话，找出接下来该做什么。在演示中，打开已保存的登录方案决策，然后选择 **open the message**。对话会显示采用短时有效的访问令牌这一决定，并列出移动端尚未完成的工作。 [用示例对话试一试](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+打开之前的对话，找出接下来该做什么。
+
+<span id="follow-a-sample-handoff"></span>
+
+## 查看工作交接示例
+
+1. [在演示中打开已保存的登录方案决策](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)。
+2. 选择 **open the message**，阅读 Claude Code 中的原始对话。剩余任务是把移动端的刷新令牌保存在设备的钥匙串中。
+3. 选择 **See the Codex follow-up**，看看后续的示例对话如何接手这项任务。
 
 <span id="find-the-next-step-in-your-chats"></span>
 
@@ -45,4 +53,4 @@ claude --resume SESSION_ID
 
 如果要换电脑，请先设置共享，再在写下交接说明的电脑上更新索引，以便发布这段对话。若要手动交接，请将交接说明复制到新会话中。只分享你希望下一个代理看到的内容。 [跨电脑搜索](shared-index.md) · [代理能看到哪些内容](privacy.md#when-history-can-leave-your-machine)
 
-<!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->
+<!-- mash-docs-source: 29c9c1b1f656694eef0aab022b8ba56fec30c9d8b1ebf6737868e0a8c28d226c -->

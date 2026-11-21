@@ -1,9 +1,13 @@
 # Pick up where you left off
 
-Start with a past chat and find the first thing you can do next. In the demo,
-open the saved sign-in decision and choose **open the message**. The chat
-shows the decision to use short-lived access tokens, then names the work still
-open on mobile. [Try it with sample chats](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+Start with a past chat and find the first thing you can do next.
+
+## Follow a sample handoff
+
+1. [Open the saved sign-in decision in the demo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop).
+2. Choose **open the message** to read the original Claude Code conversation.
+   The remaining task is to store the mobile refresh token in the device keychain.
+3. Choose **See the Codex follow-up** to see how a later sample chat picks up that task.
 
 ## Find the next step in your chats
 

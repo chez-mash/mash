@@ -104,8 +104,8 @@ Mash は設定ファイルを書き、選んだエージェントの CLI を使�
 会話では自分のメッセージが右側に、エージェントの応答が左側に並びます。
 ツールの呼び出しや推論は 1 行にまとめられていて、開くと各操作や出力を確認できます。
 サイドパネルには、そのページの自分の指示、同じプロジェクト内のチャット、この会話から保存された記憶が表示されます。
-**Copy session ID** を使って [元のセッションを再開（英語）](../pick-up-work.md#reopen-the-original-session)したり、
-[新しいセッションに作業を引き継いだり（英語）](../pick-up-work.md#ask-an-agent-for-a-recap)できます。
+**Copy session ID** を使って [元のセッションを再開](pick-up-work.md#reopen-the-original-session)したり、
+[新しいセッションに作業を引き継いだり](pick-up-work.md#ask-an-agent-for-a-recap)できます。
 チャットや記憶の表示ページは読み取り専用です。
 
 <span id="choose-a-search-mode"></span>

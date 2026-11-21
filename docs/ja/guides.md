@@ -55,7 +55,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 - [Mash が読み取れる履歴と接続できるエージェントを確認する](supported-agents.md)
 - [Claude Code、Codex、Copilot を接続して使う](agents.md)
 - [プラグインのスキル、コマンド、フックを使う（英語）](../plugin.md)
-- [作業を再開する、または次のセッションに引き継ぐ（英語）](../pick-up-work.md)
+- [作業を再開する、または次のセッションに引き継ぐ](pick-up-work.md)
 - [決定事項を記録して、根拠となるメッセージを読み返す（英語）](../records.md)
 
 <span id="manage-mash"></span>

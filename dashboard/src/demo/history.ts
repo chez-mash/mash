@@ -82,6 +82,24 @@ function chat(
 
 export const chats: readonly DemoChat[] = [
   chat(
+    "mobile-keychain-follow-up",
+    "Pick up mobile sign-in in Codex",
+    "codex",
+    "workstation",
+    projects.mobile,
+    0.02,
+    [
+      user("Use the Mash resume skill to tell me where we left off on mobile sign-in."),
+      agent(
+        "I found the saved storefront decision and the Claude Code chat on your laptop. You said: “ok, go with the tokens. keep the mobile app on the same scheme”\n\nThe storefront already uses fifteen-minute access tokens and revokes the refresh token on sign-out. The mobile task is still open: store the refresh token in the device keychain, use it when refreshing an access token, and clear it on sign-out.",
+      ),
+      user("Go ahead with the storage change. I’ll check the flow on a phone afterwards."),
+      agent(
+        "Mobile now reads and writes refresh tokens in the device keychain. The focused tests cover replacing the stored token after refresh and clearing it on sign-out. The remaining check is on two devices: sign out on one, then confirm the other cannot refresh its session.",
+      ),
+    ],
+  ),
+  chat(
     "sign-in-tokens",
     "Move sign-in to short-lived tokens",
     "claude-code",
@@ -211,7 +229,7 @@ export const chats: readonly DemoChat[] = [
       ),
       user("ok. and it should use the same sign-in as the website"),
       agent(
-        "It does. I checked the saved decision for the storefront: sign-in uses fifteen-minute access tokens with a refresh token, and the mobile app is meant to follow the same scheme. The sync code refreshes the token before sending queued changes, and keeps the refresh token in the device keychain.",
+        "The sync can use the website’s sign-in once the mobile flow is ready. Until then, keep the queued changes on the phone. If the session expires, ask the user to sign in before retrying the queue.",
       ),
     ],
   ),

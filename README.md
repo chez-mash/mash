@@ -32,7 +32,7 @@ By default, indexing and search stay on your machine and require no account.
 - **Jump straight to the original message.** Read the surrounding conversation
   and tool output in the dashboard. [Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - **Pick up work in another agent.** An agent connected over MCP can find
-  earlier chats from your other tools and cite the source. [Ask an agent for a recap](docs/pick-up-work.md#ask-an-agent-for-a-recap)
+  earlier chats from your other tools and cite the source. [Follow a sample handoff](docs/pick-up-work.md#follow-a-sample-handoff)
 - **Save decisions with a source.** Ask a connected agent to remember a
   decision, then follow its supporting quote back to the chat. [See a saved decision in the demo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
 - **Export a whole conversation.** Save it from the dashboard as Markdown,

@@ -59,23 +59,55 @@ test("the guide index opens a sample search that fits a narrow screen", async ({
   );
 });
 
-test("the guide to picking up work opens the original decision and shows what is left", async ({
+test("the sample handoff opens the Claude Code decision and its later Codex chat", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/guides/");
   await page.getByRole("link", { name: "Pick up where you left off or leave a handoff" }).click();
   await expect(page).toHaveURL("/pick-up-work/");
-  const example = page.getByRole("link", { name: "Try it with sample chats" });
+  const example = page.getByRole("link", { name: "Open the saved sign-in decision in the demo" });
   await expect(example).toHaveAttribute(
     "href",
     "https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop",
   );
   const target = new URL((await example.getAttribute("href")) ?? "");
   await page.goto(target.pathname + target.hash);
+  const demo = page.getByRole("complementary", { name: "About this demo" });
+  await expect(demo).toContainText("Demo with sample chats");
   await page.getByRole("link", { name: /open the message/ }).click();
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
   await expect(page.getByText(/store the refresh token in the device keychain/)).toBeVisible();
+
+  const followUp = demo.getByRole("link", { name: "See the Codex follow-up", exact: true });
+  const followUpHash =
+    "#/chat/mobile-keychain-follow-up?node=workstation&message=mobile-keychain-follow-up-1&shared=true";
+  await expect(followUp).toHaveAttribute("href", followUpHash);
+  await followUp.click();
+  await expect(page).toHaveURL(`/demo/${followUpHash}`);
+  const recap = page.locator("#message-mobile-keychain-follow-up-1");
+  await expect(recap).toHaveClass(/\bhit\b/);
+  await expect(recap).toContainText(
+    "ok, go with the tokens. keep the mobile app on the same scheme",
+  );
+  await expect(recap).toContainText("The mobile task is still open");
+  await expect(page.getByText(/The remaining check is on two devices/)).toBeVisible();
+  await page.reload();
+  await expect(recap).toHaveClass(/\bhit\b/);
+  await page.goBack();
+  await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
+});
+
+test("the Japanese guide leads to the same sample handoff", async ({ page }) => {
+  const guide = page.locator(".sl-markdown-content");
+  await page.goto("/ja/guides/");
+  await guide.locator('a[href="/ja/pick-up-work/"]').click();
+  await expect(page).toHaveURL("/ja/pick-up-work/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("作業を再開する");
+  await expect(page.locator("#follow-a-sample-handoff")).toBeAttached();
+  await expect(
+    guide.getByRole("link", { name: "デモで保存済みのログイン方針を開く" }),
+  ).toHaveAttribute("href", "https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop");
 });
 
 test("the memory guide leads from a saved decision to its source message", async ({ page }) => {

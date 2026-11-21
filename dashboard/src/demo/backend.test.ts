@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseCatalog, parseMessages, parseSearch } from "../lib/api";
 import { parseConsole } from "../lib/console";
+import { messageText } from "../lib/message";
 import { parseRecord, parseRecordPage } from "../lib/records";
 import type { Answer, ReadPath } from "../lib/routes";
 import {
@@ -55,6 +56,36 @@ describe("the demo answers in the shapes mash dash sends", () => {
   it("opens the conversation around a message", () => {
     const page = parseMessages(body("/api/view", "?id=sign-in-tokens-2&context=25"));
     expect(page.messages.map((message) => message.id)).toContain("sign-in-tokens-2");
+  });
+
+  it("shows a later Codex continuation while keeping the original decision evidence", () => {
+    const catalog = parseCatalog(body("/api/chats"));
+    const original = catalog.chats.find((chat) => chat.id === "sign-in-tokens");
+    const followUp = catalog.chats.find((chat) => chat.id === "mobile-keychain-follow-up");
+    const earlierCart = catalog.chats.find((chat) => chat.id === "offline-cart");
+    expect(original).toMatchObject({ agent: "claude-code", machine: "laptop" });
+    expect(followUp).toMatchObject({ agent: "codex", machine: "workstation" });
+    expect(followUp?.updatedMs).toBeGreaterThan(original?.updatedMs ?? 0);
+    expect(earlierCart?.updatedMs).toBeLessThan(original?.updatedMs ?? 0);
+
+    const decision = parseRecord(body("/api/record", "?id=record-sign-in-tokens&node=laptop"));
+    const quote = "ok, go with the tokens. keep the mobile app on the same scheme";
+    expect(decision.revisions[0]?.evidence).toMatchObject([
+      { chatId: "sign-in-tokens", messageId: "sign-in-tokens-2", quote, purpose: "endorsement" },
+    ]);
+
+    const query = new URLSearchParams({ q: '"device keychain"', provider: "codex" });
+    const hits = parseSearch(body("/api/search", `?${query}`), localMachine).hits;
+    expect(hits.map((hit) => hit.messageId)).toEqual(["mobile-keychain-follow-up-1"]);
+    const followUpPage = parseMessages(
+      body("/api/view", "?id=mobile-keychain-follow-up-1&shared=workstation&context=25"),
+    );
+    const recap = followUpPage.messages.find(
+      (message) => message.id === "mobile-keychain-follow-up-1",
+    );
+    const text = recap ? messageText(recap) : "";
+    expect(text).toContain(quote);
+    expect(text).toContain("The mobile task is still open");
   });
 
   it("finds all query words in one message, in any order", () => {

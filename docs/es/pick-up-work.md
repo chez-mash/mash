@@ -1,6 +1,15 @@
 # Retoma el trabajo donde lo dejaste
 
-Abre un chat anterior e identifica el qué puedes hacer a continuación. En la demo, abre la decisión guardada sobre el inicio de sesión y selecciona **open the message**. El chat muestra la decisión de usar tokens de acceso de corta duración y luego indica qué trabajo queda pendiente en la versión móvil. [Pruébalo con chats de ejemplo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+Abre un chat anterior para averiguar qué puedes hacer a continuación.
+
+<span id="follow-a-sample-handoff"></span>
+
+## Sigue un traspaso de ejemplo
+
+1. [Abre en la demo la decisión guardada sobre el inicio de sesión](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop).
+2. Selecciona **open the message** para leer la conversación original de Claude Code.
+   Queda pendiente guardar el token de actualización de la app móvil en el llavero del dispositivo.
+3. Selecciona **See the Codex follow-up** para ver cómo se retoma esa tarea en otro chat de ejemplo.
 
 <span id="find-the-next-step-in-your-chats"></span>
 
@@ -45,4 +54,4 @@ La habilidad intenta actualizar el índice, luego comprueba si alguien dejó not
 
 Si cambias de equipo, configura primero el uso compartido y ejecuta la indexación en el equipo donde se escribió el resumen para que pueda publicar el chat. Para hacer el traspaso manualmente, copia el resumen en la nueva sesión. Comparte solo los detalles que quieras que lea el próximo agente. [Busca en todos tus equipos](shared-index.md) · [Qué puede ver un agente](privacy.md#when-history-can-leave-your-machine)
 
-<!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->
+<!-- mash-docs-source: 29c9c1b1f656694eef0aab022b8ba56fec30c9d8b1ebf6737868e0a8c28d226c -->

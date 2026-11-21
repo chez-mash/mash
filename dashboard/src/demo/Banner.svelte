@@ -1,5 +1,5 @@
 <script lang="ts">
-import { recordHref, searchHref } from "../lib/route.svelte";
+import { chatHref, recordHref, router, searchHref } from "../lib/route.svelte";
 import { localMachine } from "./history";
 </script>
 
@@ -7,7 +7,11 @@ import { localMachine } from "./history";
   <span>Demo with sample chats</span>
   <nav aria-label="Demo examples">
     <a href={searchHref({ q: "invoice exports queue" })}>Try a search</a>
-    <a href={recordHref("record-sign-in-tokens", localMachine)}>See a decision</a>
+    {#if router.current.page === "chat" && router.current.id === "sign-in-tokens"}
+      <a href={chatHref("mobile-keychain-follow-up", "workstation", "mobile-keychain-follow-up-1", true)}>See the Codex follow-up</a>
+    {:else}
+      <a href={recordHref("record-sign-in-tokens", localMachine)}>See a decision</a>
+    {/if}
     <a href="https://getmash.io/quick-start/">Install Mash</a>
   </nav>
 </aside>
