@@ -1,22 +1,27 @@
 # Keep history up to date
 
-Mash searches a saved index, not your agents' history files. A new chat becomes
-searchable after the next indexing run; searching or opening the dashboard does
-not refresh the index.
+A new chat becomes searchable after Mash indexes the history your agent saved.
+Use [Refresh now](#refresh-now) when you're looking for a chat you just had.
+For updates while you work, [keep a watcher running](#keep-refreshing-while-you-work).
 
 ## Refresh now
+
+Run these commands on the computer where the agent saved the chat. If you
+haven't chosen which histories Mash should read, [finish setup](installation.md#connect-your-histories)
+first.
 
 ```bash
 mash index
 mash status
 ```
 
-`mash index` reads new or changed history, skips the rest, and shows progress as
-it works. Check its final result: an incomplete scan or a failed shared
-publication leaves work pending, and running `mash index` again retries it.
-`mash status` then reports whether search is ready.
+`mash index` reads new or changed history and shows its progress. Check the
+final result for any incomplete scan or pending publication. Follow the reason
+it gives, then run `mash index` again to retry. `mash status` reports whether
+local search is ready.
 
-To refresh without running a command each time, use the watcher below.
+The dashboard chat list updates after indexing. If you have a search open,
+submit it again to include the new chats.
 
 ## Keep refreshing while you work
 
@@ -26,8 +31,9 @@ Run this in a separate terminal and leave it running:
 mash index --watch
 ```
 
-It indexes once, then refreshes each time history changes settle. Ctrl-C lets
-the active pass finish and stops watching; closing the terminal also stops it.
+It indexes once, then refreshes when history changes settle. It waits at least
+30 seconds between passes, and can wait longer after a slow pass. Ctrl-C lets
+the active pass finish and stops watching. Closing the terminal also stops it.
 
 Your configured providers, age limit, and local/shared settings apply. To include
 older history as you work:
@@ -51,8 +57,8 @@ start, at most once every ten minutes.
 The agent does not wait for it. If another indexing run is active, that attempt
 exits without changes.
 
-This catches up between sessions. It does not pick up chats during a
-long-running conversation; use the watcher for that. To disable the catch-up,
+The hook catches up when you start a session. For updates during a
+long-running session, use the watcher. To disable the catch-up,
 set `MASH_AUTO_INDEX=off` in the agent's environment.
 
 ## Understand freshness warnings
@@ -67,18 +73,21 @@ index. If a recent chat is missing, run `mash index` and search again.
 
 - Keep a watcher running if you need ongoing updates. A running watcher is not
   proof that every source was read successfully.
-- If the warning follows an upgrade or mentions a schema mismatch, use the
-  [upgrade guide](upgrades.md); ordinary indexing cannot migrate the database.
+- If the warning follows an upgrade or mentions an incompatible index, follow
+  the [upgrade guide](upgrades.md) before retrying.
 
 ## In the dashboard
 
-The dashboard refreshes its chat list periodically but keeps a transcript you're
-reading stable until you request an update. See [dashboard refresh behavior](dashboard.md).
+Indexing makes new history available to the dashboard. An open transcript
+follows new messages when you are at the bottom of the chat. Elsewhere in the
+transcript, choose **N new messages** to see them. An earlier message stays as
+displayed until you choose **Show updated messages**. [Dashboard refresh behavior](dashboard.md#keep-your-place)
 
 ## Across machines
 
-Each machine must index and publish its own history. Run `mash status --shared`
-to inspect publication state. If a shared publication is pending, restore the
-connection and run `mash index` again.
+If a chat from another computer is missing, check that computer first. It
+indexes the chat and publishes the shared copy. Run `mash status --shared`
+there to inspect publication. If publication is pending, restore the
+connection and run `mash index` there again.
 
 See [multi-machine setup](shared-index.md).

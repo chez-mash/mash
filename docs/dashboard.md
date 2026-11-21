@@ -198,9 +198,8 @@ transcript.
 If the connection drops, in the browser or between the dashboard and the
 shared server, it reconnects by itself and then catches up.
 
-New conversations appear only after indexing: run `mash index`, or leave
-`mash index --watch` running in another terminal. The dashboard notices either
-one; it does not index by itself.
+To show new conversations, [refresh your chat history](synchronization.md#refresh-now).
+The dashboard follows the index as it updates.
 
 If a request fails, an error panel names what could not load and offers
 **Retry**. A connection error means the browser could not reach Mash, not that

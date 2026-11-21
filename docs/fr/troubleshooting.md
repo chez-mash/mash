@@ -285,7 +285,7 @@ mash index
 
 Le plugin lance une mise à jour à l’ouverture d’une session, au maximum
 une fois toutes les dix minutes. Pour des mises à jour continues, voyez
-[comment maintenir l’historique à jour (en anglais)](../synchronization.md).
+[comment maintenir l’historique à jour](synchronization.md).
 Si les conversations d’un agent n’ont jamais figuré dans Mash,
 [vérifiez les historiques locaux pris en charge et leur sélection](supported-agents.md#if-a-chat-is-missing).
 

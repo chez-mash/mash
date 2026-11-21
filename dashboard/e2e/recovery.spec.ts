@@ -44,6 +44,10 @@ test("opening chats while offline settles and retries without a document reload"
   await chatsAlert(page).getByRole("button", { name: "Retry", exact: true }).click();
   await expect(chatsAlert(page)).toHaveCount(0);
   await expect(page.getByText("No indexed chats yet.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Update your chat history" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/synchronization/#refresh-now",
+  );
   expect(documents).toBe(1);
 });
 

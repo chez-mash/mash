@@ -152,7 +152,7 @@ También puedes definir el token y ajustar la configuración tú mismo.
 
 Primero, guarda el token de este equipo en una variable de entorno, por ejemplo
 `MASH_NODE_TOKEN`. Mash solo guarda el nombre de la variable. Defínela en todos los entornos donde se ejecute Mash, incluido el intérprete de comandos, el
-[monitor](../synchronization.md) y los clientes de agentes que inician el servidor MCP de Mash.
+[monitor](synchronization.md) y los clientes de agentes que inician el servidor MCP de Mash.
 
 A continuación, usa el asistente o edita la configuración.
 
@@ -195,7 +195,7 @@ mash status --shared
 `mash status --shared` muestra qué recibió el servidor en `shared_index`. Si ves `shared_error`, comprueba la dirección del servidor, la conexión y el token.
 
 Los chats de un equipo aparecen en los demás solo después de que ese equipo los haya publicado. Si falla la publicación, se conserva el historial local. Corrige el error indicado y vuelve a ejecutar `mash index`. Para seguir publicando chats nuevos, ejecuta un
-[monitor](../synchronization.md) en cada equipo.
+[monitor](synchronization.md) en cada equipo.
 
 <span id="search"></span>
 

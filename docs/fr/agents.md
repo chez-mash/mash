@@ -146,7 +146,7 @@ mise à jour, définissez `MASH_AUTO_INDEX=off` dans l’environnement de l’ag
 
 Lancez `mash index` pour actualiser l’historique maintenant, ou laissez
 `mash index --watch` tourner dans un autre terminal pour une actualisation
-continue. [Maintenir l’historique à jour](../synchronization.md)
+continue. [Maintenir l’historique à jour](synchronization.md)
 
 <span id="disconnect-an-agent"></span>
 

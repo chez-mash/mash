@@ -152,7 +152,7 @@ mash-server --server-config /absolute/path/to/server.toml \
 
 先将这台电脑的令牌存入一个环境变量，例如
 `MASH_NODE_TOKEN`。Mash 只保存变量名，因此运行 Mash 的各个环境都必须设置该变量，包括命令行 shell、
-[监视程序](../synchronization.md)以及启动 Mash MCP 服务器的代理客户端。
+[监视程序](synchronization.md)以及启动 Mash MCP 服务器的代理客户端。
 
 接下来可使用向导，也可直接编辑配置。
 
@@ -195,7 +195,7 @@ mash status --shared
 `mash status --shared` 会显示服务器收到的内容，结果位于 `shared_index` 下。如果看到 `shared_error`，请检查服务器地址、连接和令牌。
 
 一台电脑发布对话后，其他电脑才能看到这些记录。如果发布失败，本地历史记录会保留。请修复命令报告的错误，再运行一次 `mash index` 。要持续发布新的对话，请在每台电脑上运行
-[监视程序](../synchronization.md) 。
+[监视程序](synchronization.md) 。
 
 <span id="search"></span>
 

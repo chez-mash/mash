@@ -114,7 +114,7 @@ mash status --installation --agent claude-code --probe
 
 运行 `mash index` 可以立即更新索引。在另一个终端中保持
 `mash index --watch` 运行，可以持续更新索引。
-[如何保持对话历史最新](../synchronization.md)
+[如何保持对话历史最新](synchronization.md)
 
 <span id="disconnect-an-agent"></span>
 

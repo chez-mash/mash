@@ -144,7 +144,7 @@ del agente, como máximo una vez cada diez minutos. Para desactivar esta tarea,
 
 Ejecuta `mash index` para actualizar ahora, o deja `mash index --watch` en
 otra terminal para actualizar de forma continua.
-[Más sobre la actualización del historial](../synchronization.md)
+[Más sobre la actualización del historial](synchronization.md)
 
 <span id="disconnect-an-agent"></span>
 

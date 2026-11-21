@@ -26,7 +26,7 @@ mash index --provider codex
 
 建立索引时，本地搜索服务（Qdrant）必须在运行。Mash 会读取原始历史文件，但不会修改内容。请查看命令的最终输出，确认是否有错误。
 
-这些选项只对本次运行生效。要长期调整时间范围，请参阅[配置（英文）](../configuration.md)。要持续更新，请参阅[如何保持历史记录最新（英文）](../synchronization.md)。
+这些选项只对本次运行生效。要长期调整时间范围，请参阅[配置（英文）](../configuration.md)。要持续更新，请参阅[如何保持历史记录最新](synchronization.md)。
 
 <span id="copilot-in-vs-code-remote-windows"></span>
 

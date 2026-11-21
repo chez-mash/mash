@@ -175,7 +175,15 @@ export default defineConfig({
               },
               slug: "local-search",
             },
-            "synchronization",
+            {
+              label: "Keep history up to date",
+              translations: {
+                es: "Mantén el historial al día",
+                fr: "Garder l’historique à jour",
+                "zh-CN": "保持历史记录最新",
+              },
+              slug: "synchronization",
+            },
             {
               label: "Older history and search models",
               translations: {

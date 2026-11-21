@@ -187,7 +187,7 @@ Mash 会在建立索引时读取新的历史记录。如果找不到近期对话
 mash index
 ```
 
-代理插件会在会话开始时触发一次增量索引，最多每十分钟一次。如需持续更新，请参阅[如何让历史记录及时可搜（英文）](../synchronization.md)。如果某个代理的对话从未出现，请[查看 Mash 支持哪些本地历史记录，以及如何选择](supported-agents.md#if-a-chat-is-missing)。
+代理插件会在会话开始时触发一次增量索引，最多每十分钟一次。如需持续更新，请参阅[如何让历史记录及时可搜](synchronization.md)。如果某个代理的对话从未出现，请[查看 Mash 支持哪些本地历史记录，以及如何选择](supported-agents.md#if-a-chat-is-missing)。
 
 <span id="a-chat-still-shows-what-an-older-release-read"></span>
 

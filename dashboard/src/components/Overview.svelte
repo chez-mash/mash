@@ -43,7 +43,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
     </div>
     {#if catalogue.isPending}<Skeleton rows={8} />{/if}
     {#each recent as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
-    {#if catalogue.data && !chats.length}<p class="meta">No indexed chats yet. Run <code>mash index</code>, then reload.</p>{/if}
+    {#if catalogue.data && !chats.length}<p class="meta">No indexed chats yet. <a class="a" href="https://getmash.io/synchronization/#refresh-now">Update your chat history</a>.</p>{/if}
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
   </section>
   <div class="c-side">

@@ -94,3 +94,5 @@ no encuentra Mash. Si omitiste este paso durante la configuración, puedes
 
 Los menús de Mash están en inglés. Para buscar palabras de tus conversaciones,
 consulta [cómo buscar en otros idiomas](search-languages.md).
+
+Para encontrar conversaciones nuevas, consulta [cómo actualizar el historial](synchronization.md).

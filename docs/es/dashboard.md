@@ -115,7 +115,7 @@ Las conversaciones y los recuerdos de otros equipos llegan cuando se publican. E
 
 Si se corta la conexión del navegador o la del panel con el servidor compartido, el panel vuelve a conectarse y se pone al día.
 
-Para ver conversaciones nuevas, primero indexa con `mash index` o deja `mash index --watch` en otra terminal. El panel muestra las actualizaciones de ambos.
+Para ver las conversaciones nuevas, [actualiza tu historial](synchronization.md#refresh-now). El panel refleja los cambios en el índice.
 
 Cuando una petición falla, el panel indica qué no pudo cargar y ofrece **Retry**. Si hay un error de conexión, comprueba que `mash dash` sigue activo y que el navegador puede acceder a él. Luego elige **Retry**.
 
@@ -244,4 +244,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 72297b895f4daa42ec255f8ee377541ba7e41f93a78ee2f9a2a2269d26b663d7 -->
+<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->

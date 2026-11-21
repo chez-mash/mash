@@ -109,7 +109,7 @@ mash dash
 
 如果浏览器或共享服务器的连接中断，面板会自动重连并补上更新。
 
-新对话会在建立索引后出现。运行 `mash index` 手动更新，或在另一个终端保持 `mash index --watch` 运行。两种方式的更新都会显示在面板上。
+要显示新对话，请[更新对话历史](synchronization.md#refresh-now)。网页面板会跟随索引更新。
 
 如果请求失败，错误提示会说明哪部分无法加载，并提供 **Retry**。连接错误表示浏览器无法访问 Mash。请检查连接，并确认 `mash dash` 仍在运行，然后选择 **Retry**。
 
@@ -238,4 +238,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 72297b895f4daa42ec255f8ee377541ba7e41f93a78ee2f9a2a2269d26b663d7 -->
+<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->

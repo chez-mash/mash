@@ -276,7 +276,7 @@ mash index
 
 El plugin de agente inicia una actualización al abrir una sesión, como
 máximo una vez cada diez minutos. Para actualizar continuamente, consulta
-[cómo mantener el historial al día (en inglés)](../synchronization.md).
+[cómo mantener el historial al día](synchronization.md).
 Si nunca aparecen conversaciones de un agente, revisa
 [qué historiales locales admite Mash y cómo elegirlos](supported-agents.md#if-a-chat-is-missing).
 

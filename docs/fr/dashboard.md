@@ -115,7 +115,7 @@ Les conversations et souvenirs des autres machines apparaissent quand celles-ci 
 
 Si la connexion du navigateur ou celle vers le serveur partagé est coupée, le tableau de bord se reconnecte et rattrape les mises à jour.
 
-Les nouvelles conversations apparaissent après indexation. Lancez `mash index` ou laissez tourner `mash index --watch` dans un autre terminal. Le tableau de bord affiche les mises à jour dans les deux cas.
+Pour afficher les nouvelles conversations, [actualisez votre historique](synchronization.md#refresh-now). Le tableau de bord suit les changements de l’index.
 
 Si une requête échoue, le tableau de bord indique ce qui n’a pas pu être chargé et propose **Retry**. Une erreur de connexion indique que le navigateur ne parvient pas à joindre Mash. Vérifiez la connexion et que `mash dash` tourne encore, puis choisissez **Retry**.
 
@@ -244,4 +244,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 72297b895f4daa42ec255f8ee377541ba7e41f93a78ee2f9a2a2269d26b663d7 -->
+<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->

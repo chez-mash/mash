@@ -421,6 +421,15 @@ for (const [locale, lang, dashboardTitle] of [
     ).toBeVisible();
     await openSection("search-languages", "choose-a-search-mode");
     await expect(page.getByText("search: default", { exact: true })).toBeVisible();
+    const refresh = `/${locale}/synchronization/#refresh-now`;
+    await page.locator(`.sl-markdown-content a[href="${refresh}"]`).click();
+    await expect(page).toHaveURL(refresh);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator("#refresh-now")).toBeAttached();
+    await expect(
+      page.locator("pre").filter({ hasText: "mash index" }).filter({ hasText: "mash status" }),
+    ).toBeVisible();
+    await expect(page.locator("pre").filter({ hasText: /^mash index --watch$/ })).toBeVisible();
     await openSection("privacy", "open-it-from-your-phone-or-another-computer");
     await expect(page.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
   });

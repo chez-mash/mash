@@ -63,7 +63,7 @@ mash dash
 [检查代理连接](agents.md#confirm-the-connection)，确认代理能找到 Mash。
 如果设置时跳过了连接，也可以[稍后再连接代理](agents.md#connect-claude-code-codex-or-copilot)。
 
-要让新对话也能被搜到，可以使用 [`mash index` 或后台监听程序](../synchronization.md)。你还可以 [导出并备份历史记录](../upgrades.md)。
+要让新对话也能被搜到，可以使用 [`mash index` 或后台监听程序](synchronization.md)。你还可以 [导出并备份历史记录](../upgrades.md)。
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 

@@ -33,7 +33,7 @@ si el resultado final del comando indica algún error.
 
 Estas opciones se aplican a una sola ejecución. Para cambiar el límite de
 forma permanente, consulta la [configuración (en inglés)](../configuration.md).
-Para actualizar de forma continua, consulta [cómo mantener el historial al día (en inglés)](../synchronization.md).
+Para actualizar de forma continua, consulta [cómo mantener el historial al día](synchronization.md).
 
 <span id="copilot-in-vs-code-remote-windows"></span>
 

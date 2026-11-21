@@ -27,6 +27,7 @@ export const translationPages = [
   "shared-index",
   "search-languages",
   "indexing",
+  "synchronization",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];
 

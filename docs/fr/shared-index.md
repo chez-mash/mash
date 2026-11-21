@@ -152,7 +152,7 @@ Vous pouvez aussi définir vous-même le jeton et les paramètres.
 
 Placez d’abord le jeton de cet ordinateur dans une variable d’environnement, par exemple
 `MASH_NODE_TOKEN`. Mash enregistre uniquement le nom de la variable. Définissez-la donc dans chaque environnement où Mash s’exécute, notamment votre shell, le
-[processus de surveillance](../synchronization.md) et les clients d’agents qui démarrent le serveur MCP de Mash.
+[processus de surveillance](synchronization.md) et les clients d’agents qui démarrent le serveur MCP de Mash.
 
 Utilisez ensuite l’assistant ou modifiez la configuration.
 
@@ -195,7 +195,7 @@ mash status --shared
 `mash status --shared` indique ce que le serveur a reçu dans la section `shared_index`. Si vous voyez `shared_error`, vérifiez l’adresse du serveur, la connexion et le jeton.
 
 Les conversations d’un ordinateur apparaissent sur les autres une fois qu’il les a publiées. Si la publication échoue, l’historique local est conservé. Corrigez l’erreur signalée, puis relancez `mash index`. Pour continuer à publier les nouvelles conversations, lancez un
-[processus de surveillance](../synchronization.md) sur chaque ordinateur.
+[processus de surveillance](synchronization.md) sur chaque ordinateur.
 
 <span id="search"></span>
 

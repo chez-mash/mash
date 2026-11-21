@@ -34,7 +34,7 @@ résultat final de la commande signale une erreur.
 
 Ces options s’appliquent à une seule exécution. Pour modifier définitivement
 la période, voyez la [configuration (en anglais)](../configuration.md).
-Pour des mises à jour continues, voyez [comment garder l’historique à jour (en anglais)](../synchronization.md).
+Pour des mises à jour continues, voyez [comment garder l’historique à jour](synchronization.md).
 
 <span id="copilot-in-vs-code-remote-windows"></span>
 
