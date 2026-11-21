@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import type { Root, Text } from "mdast";
 import { visit } from "unist-util-visit";
-import { markdown } from "./markdown.ts";
+import { markdown, readmeQuickStart } from "./markdown.ts";
 import {
   type LocaleGuides,
   localizeLinks,
@@ -99,15 +99,7 @@ export async function readTranslationSource(page: TranslationPage): Promise<Tran
   const file = page === "quick-start" ? "README.md" : `docs/${page}.md`;
   let body = await readFile(new URL(file, repo), "utf8");
   if (page === "quick-start") {
-    const start = /^## Quick start$/m.exec(body)?.index;
-    if (start === undefined) {
-      throw new Error("Could not find the README quick start section.");
-    }
-    const end = /^<details>\n<summary>Install with a package manager<\/summary>$/m.exec(
-      body.slice(start),
-    )?.index;
-    if (end === undefined) throw new Error("Could not find the end of the README quick start.");
-    body = body.slice(start, start + end).replace("## Quick start", "# Quick start");
+    body = `# Quick start\n\n${readmeQuickStart(body)}`;
   }
   // The site already has a language picker. Leave the repository's language
   // shortcuts out of generated drafts.

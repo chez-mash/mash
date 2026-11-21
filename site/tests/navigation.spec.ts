@@ -45,6 +45,23 @@ test("visitors can check which histories Mash reads and which agents it connects
   await expect(page.getByRole("heading", { name: "Finish setup in the agent" })).toBeVisible();
 });
 
+test("the quick start goes from setup to a first chat and links to package installs", async ({
+  page,
+}) => {
+  await page.goto("/quick-start/#quick-start");
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.locator("#quick-start")).toBeAttached();
+  await expect(guide.getByRole("heading", { level: 2 })).toHaveText([
+    "Ask your agent",
+    "Install it yourself",
+    "Find your first chat",
+  ]);
+  await expect(guide.locator("#try-it")).toBeAttached();
+  await guide.getByRole("link", { name: "package install commands" }).click();
+  await expect(page).toHaveURL("/installation/#package-manager-alternatives");
+  await expect(page.locator("#package-manager-alternatives")).toBeAttached();
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

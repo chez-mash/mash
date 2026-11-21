@@ -1,7 +1,7 @@
 import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { docsLocales } from "./locales.ts";
-import { renderMarkdown } from "./markdown.ts";
+import { readmeQuickStart, renderMarkdown } from "./markdown.ts";
 import {
   isTranslationPage,
   readTranslationSource,
@@ -48,9 +48,7 @@ for (const [source, route] of routes) {
   const title = source === "README.md" ? "Quick start" : body.match(/^# (.+)$/m)?.[1];
   if (!title) throw new Error(`Missing title in ${source}`);
   if (source === "README.md") {
-    const start = body.indexOf("## Quick start");
-    if (start < 0) throw new Error("README is missing its Quick start section");
-    body = body.slice(start).replace("## Quick start", '<span id="quick-start"></span>');
+    body = `<span id="quick-start"></span>\n\n${readmeQuickStart(body)}`;
   } else body = body.replace(/^# .+\n/m, "");
   const filename = source.endsWith("/index.md") ? `${route.slice(1)}index` : route.slice(1, -1);
   const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n---\n`;

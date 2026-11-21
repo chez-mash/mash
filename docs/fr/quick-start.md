@@ -10,7 +10,9 @@ Avant de lancer une commande, vous pouvez
 Pour commencer avec un seul agent et une période courte, consultez le
 [guide d’essai local](privacy.md#essayer-mash-avec-un-historique-limité).
 
-**Demandez à votre agent.** Collez ce texte dans Claude Code, Codex ou un autre agent de programmation.
+## Demandez à votre agent
+
+Collez ce texte dans Claude Code, Codex ou un autre agent de programmation.
 
 > Lisez <https://getmash.io/setup.md> et configurez Mash sur cet ordinateur.
 
@@ -19,10 +21,12 @@ Vous pouvez commencer par le tableau de bord et choisir si vous souhaitez connec
 Si vous avez installé le [plugin Mash](plugin.md#start-with-the-plugin),
 demandez à votre agent d’utiliser la compétence `setup`.
 
-**Configurez Mash vous-même.** Pour une première installation locale, exécutez
-l’une de ces commandes dans un terminal. Elle installe Mash et le service de
-recherche local, puis vous invite à vérifier quels historiques lire et quels
-agents connecter avant l’indexation.
+## Installez Mash vous-même
+
+Vous devez avoir au moins une conversation enregistrée avec un [agent compatible](supported-agents.md).
+Les scripts installent Mash avec le tableau de bord, démarrent le service de
+recherche local et ouvrent l’assistant. Pour Homebrew, apt, Scoop ou un autre
+gestionnaire de paquets, consultez les [commandes d’installation](installation.md#package-manager-alternatives).
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
@@ -85,4 +89,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: ab23d879eacfb69c5fe289e4394fa7c26f96b61c71a69b67878af152168dc7ed -->
+<!-- mash-docs-source: 394f4057e120fcb655b1171f8819c71e79c7218b1716059442787a978e93dd05 -->

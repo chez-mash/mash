@@ -4,7 +4,9 @@
 
 运行命令前，你可以先 [查看安装脚本并校验下载文件](installation.md#check-the-release-download)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
 
-**让代理帮你设置。** 将以下提示粘贴到 Claude Code、Codex 或其他编程代理中。
+## 让代理帮你设置
+
+将以下提示粘贴到 Claude Code、Codex 或其他编程代理中。
 
 > 请阅读 <https://getmash.io/setup.md>，并在这台电脑上配置 Mash。
 
@@ -12,7 +14,9 @@
 
 如果已安装 [Mash 插件](plugin.md#start-with-the-plugin)，可以让代理使用其中的 `setup` 技能。
 
-**自己动手设置。** 首次在本机安装时，在终端中运行下面适用于你的系统的命令。它会安装 Mash 和本地搜索服务，然后请你在建立索引之前确认要读取哪些历史记录和连接哪些代理。
+## 自行安装
+
+你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下脚本会安装 Mash 和网页面板，启动本地搜索服务，并打开设置向导。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](installation.md#package-manager-alternatives)。
 
 在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
@@ -63,4 +67,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: ab23d879eacfb69c5fe289e4394fa7c26f96b61c71a69b67878af152168dc7ed -->
+<!-- mash-docs-source: 394f4057e120fcb655b1171f8819c71e79c7218b1716059442787a978e93dd05 -->

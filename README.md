@@ -56,7 +56,9 @@ chats in the browser, in the terminal, or through an agent you connect.
 Before running a command, you can [inspect the installer and check the release download](docs/installation.md#check-the-release-download).
 To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).
 
-**Ask your agent.** Paste this into Claude Code, Codex, or another coding agent.
+### Ask your agent
+
+Paste this into Claude Code, Codex, or another coding agent.
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
 
@@ -65,9 +67,12 @@ You can start with the dashboard and choose whether to connect agents.
 If you installed the [Mash plugin](docs/plugin.md#start-with-the-plugin),
 you can ask for its `setup` skill.
 
-**Set it up yourself.** Run one of these commands in a terminal for a new
-local setup. It installs Mash and the local search service, then asks you to
-review which histories to read and which agents to connect before indexing.
+### Install it yourself
+
+You need at least one saved conversation from a [supported agent](docs/supported-agents.md).
+The scripts install Mash with the browser dashboard, start the local search
+service, and open the setup wizard. For Homebrew, apt, Scoop or another
+package manager, see the [package install commands](docs/installation.md#package-manager-alternatives).
 
 On macOS (Apple silicon) or Linux (x86-64 or ARM64), use the command below.
 On Linux or WSL it needs a systemd user session to start Qdrant.
@@ -101,7 +106,7 @@ You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-
 
 <span id="try-it"></span>
 
-## Find your first chat
+### Find your first chat
 
 When setup says search is ready, start the dashboard and leave this terminal open.
 
@@ -129,6 +134,8 @@ cannot see Mash. If you skipped this during setup, you can
 
 Keep new chats searchable with [`mash index` or a background watcher](docs/synchronization.md).
 You can also [export and back up your history](docs/upgrades.md).
+
+<!-- quick-start-end -->
 
 <details>
 <summary>Install with a package manager</summary>

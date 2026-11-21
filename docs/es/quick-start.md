@@ -29,7 +29,9 @@ pídele a tu agente que use la skill `setup`.
 
 ## Instálalo por tu cuenta
 
-Necesitas al menos una conversación guardada con un agente compatible.
+Necesitas al menos una conversación guardada con un [agente compatible](supported-agents.md).
+El instalador incluye el panel web. Si prefieres Homebrew, apt, Scoop u otro
+gestor de paquetes, consulta los [comandos de instalación](installation.md#package-manager-alternatives).
 
 En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
 este comando para una instalación local nueva. En Linux o WSL necesitas una

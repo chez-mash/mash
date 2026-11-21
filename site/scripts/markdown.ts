@@ -8,6 +8,20 @@ import { visit } from "unist-util-visit";
 
 export const markdown = unified().use(remarkParse).use(remarkGfm).use(remarkStringify);
 
+/** Extract the README's quick start for the website and translation drafts. */
+export function readmeQuickStart(readme: string): string {
+  const body = /^## Quick start\r?\n([\s\S]*?)^<!-- quick-start-end -->\r?$/m.exec(readme)?.[1];
+  if (!body) {
+    throw new Error("Expected a Quick start heading and quick-start-end marker in README.md");
+  }
+
+  const tree = markdown.parse(body);
+  for (const child of tree.children) {
+    if (child.type === "heading" && child.depth === 3) child.depth = 2;
+  }
+  return markdown.stringify(tree).trimEnd();
+}
+
 export function rewriteMarkdownUrls(tree: Root, rewrite: (url: string) => string): void {
   visit(tree, (node) => {
     if (node.type === "link" || node.type === "image" || node.type === "definition") {
