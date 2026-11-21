@@ -10,7 +10,7 @@ mash dash
 
 在浏览器打开命令显示的地址，通常是 **[http://127.0.0.1:8790](http://127.0.0.1:8790)**。完成设置后，概览页会显示最近的对话和记忆。请让终端保持运行，按 Ctrl-C 可以停止面板。如果打不开页面，请参阅[面板启动排查](troubleshooting.md#the-dashboard-doesnt-open)。
 
-安装 [Mash 插件](../plugin.md)后，可以在 Claude Code 中运行 `/mash:dashboard`，也可以让你的代理打开 Mash 网页面板。
+安装 [Mash 插件](plugin.md)后，可以在 Claude Code 中运行 `/mash:dashboard`，也可以让你的代理打开 Mash 网页面板。
 
 默认的本机面板无需登录。更改监听地址前请参阅[如何限制访问](#keep-access-private)。面板上的按钮和菜单使用英文。
 
@@ -144,7 +144,7 @@ Mashy 使用只读工具查询你的历史和内置指南。它无法建立索�
 
 建议等索引完成后再下载，以免导出时内容发生变化。下载内容可能包含敏感信息。
 
-每段对话都有自己的地址，格式为 `http://127.0.0.1:8790/#/chat/<chat id>`。有 [Mash 插件](../plugin.md)时，运行 `/mash:export` 会查找你说的对话，并在该地址打开它。
+每段对话都有自己的地址，格式为 `http://127.0.0.1:8790/#/chat/<chat id>`。有 [Mash 插件](plugin.md)时，运行 `/mash:export` 会查找你说的对话，并在该地址打开它。
 
 <span id="export-many-chats-at-once"></span>
 

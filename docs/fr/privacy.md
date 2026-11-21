@@ -29,9 +29,11 @@ Exécutez `mash status` pour voir `database_path` et, si Mash a installé Qdrant
 serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 `--yes` quand vous êtes prêt à désinstaller Mash.
 
+<span id="when-history-can-leave-your-machine"></span>
+
 ## Quand votre historique peut quitter votre ordinateur
 
-* **La connexion aux agents** permet à un agent connecté de demander des résultats et des extraits. Ils entrent dans son contexte et peuvent être envoyés à son fournisseur de modèle. Les [actions automatiques du module](../plugin.md#what-happens-without-asking) peuvent aussi ajouter des extraits au contexte sans connexion MCP. Pour chercher uniquement depuis le tableau de bord local ou le terminal, laissez les agents déconnectés et désactivez ou retirez le module Mash si vous l’avez installé.
+* **La connexion aux agents** permet à un agent connecté de demander des résultats et des extraits. Ils entrent dans son contexte et peuvent être envoyés à son fournisseur de modèle. Les [actions automatiques du module](plugin.md#what-happens-without-asking) peuvent aussi ajouter des extraits au contexte sans connexion MCP. Pour chercher uniquement depuis le tableau de bord local ou le terminal, laissez les agents déconnectés et désactivez ou retirez le module Mash si vous l’avez installé.
 * **Le partage entre ordinateurs** transfère l’historique vers le serveur Mash que vous avez configuré.
 * **Un service distant de calcul des embeddings** reçoit le texte préparé pour la recherche, qui peut contenir des données sensibles. Par défaut, le calcul se fait sur votre ordinateur. Les embeddings des requêtes restent toujours locaux.
 * **Un service distant de reclassement** reçoit chaque requête et les extraits à classer. Le reclassement se fait localement tant que vous ne choisissez pas de service distant.

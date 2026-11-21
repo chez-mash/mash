@@ -10,7 +10,7 @@ mash dash
 
 Ouvrez dans votre navigateur l’adresse affichée, généralement **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Une fois Mash configuré, la vue d’ensemble affiche les conversations et souvenirs récents. Laissez le terminal ouvert. Ctrl-C arrête le tableau de bord. Si la page ne se charge pas, [vérifiez le démarrage du tableau de bord](troubleshooting.md#the-dashboard-doesnt-open).
 
-Avec le [module Mash](../plugin.md), utilisez `/mash:dashboard` dans Claude Code ou demandez à votre agent d’ouvrir le tableau de bord.
+Avec le [module Mash](plugin.md), utilisez `/mash:dashboard` dans Claude Code ou demandez à votre agent d’ouvrir le tableau de bord.
 
 Avec les réglages par défaut, le tableau de bord local s’ouvre sans authentification. Consultez [comment limiter l’accès](#keep-access-private) avant de changer l’adresse d’écoute. Les libellés de l’interface sont en anglais.
 
@@ -144,7 +144,7 @@ Utilisez **Export** dans la conversation pour télécharger le contenu complet e
 
 Attendez la fin de l’indexation pour obtenir une copie stable. Les téléchargements peuvent contenir des informations sensibles.
 
-Chaque conversation a son adresse, `http://127.0.0.1:8790/#/chat/<chat id>`. Avec le [module Mash](../plugin.md), `/mash:export` trouve la conversation que vous indiquez et l’ouvre à cet emplacement.
+Chaque conversation a son adresse, `http://127.0.0.1:8790/#/chat/<chat id>`. Avec le [module Mash](plugin.md), `/mash:export` trouve la conversation que vous indiquez et l’ouvre à cet emplacement.
 
 <span id="export-many-chats-at-once"></span>
 

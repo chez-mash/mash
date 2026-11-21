@@ -126,7 +126,7 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
       .getByRole("row", { name: /GitHub Copilot CLI/ });
     await expect(copilot.getByRole("link", { name: /v0\.1\.1-alpha/ })).toHaveAttribute(
       "href",
-      "/plugin/#github-copilot-cli",
+      `/${locale}/plugin/#github-copilot-cli`,
     );
 
     await page.locator(`.sl-markdown-content a[href="/${locale}/quick-start/"]`).click();
@@ -146,6 +146,45 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
     await expect(page.locator("#confirm-the-connection")).toBeAttached();
     await expect(
       page.locator("pre").filter({ hasText: /^mash status --installation$/ }),
+    ).toBeVisible();
+  });
+}
+
+for (const [locale, lang, pluginLabel] of [
+  ["es", "es", "Complemento de Mash"],
+  ["fr", "fr", "Module Mash"],
+  ["zh-cn", "zh-CN", "Mash 插件"],
+]) {
+  test(`the ${locale} plugin setup and privacy links stay in the reader's language`, async ({
+    page,
+  }) => {
+    const plugin = `/${locale}/plugin/`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${plugin}#start-with-the-plugin"]`).click();
+    await expect(page).toHaveURL(`${plugin}#start-with-the-plugin`);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator('nav.sidebar [aria-current="page"]')).toHaveText(pluginLabel);
+    await expect(page.locator("#start-with-the-plugin")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: "codex plugin add mash@mash" }),
+    ).toBeVisible();
+
+    await page.goto(`/${locale}/agents/`);
+    await guide.locator(`a[href="${plugin}#finish-setup-in-the-agent"]`).click();
+    await expect(page).toHaveURL(`${plugin}#finish-setup-in-the-agent`);
+    await expect(page.locator("#finish-setup-in-the-agent")).toBeAttached();
+
+    const privacy = `/${locale}/privacy/#when-history-can-leave-your-machine`;
+    await guide.locator(`a[href="${privacy}"]`).click();
+    await expect(page).toHaveURL(privacy);
+    await expect(page.locator("#when-history-can-leave-your-machine")).toBeAttached();
+    await guide.locator(`a[href="${plugin}#what-happens-without-asking"]`).click();
+    await expect(page).toHaveURL(`${plugin}#what-happens-without-asking`);
+    await expect(page.locator("#what-happens-without-asking")).toBeAttached();
+    await expect(guide.getByText("MASH_RECORD_RECALL=off", { exact: true })).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: /^copilot mcp add mash -- mash mcp$/ }),
     ).toBeVisible();
   });
 }

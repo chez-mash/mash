@@ -18,6 +18,7 @@ export const translationPages = [
   "privacy",
   "dashboard",
   "agents",
+  "plugin",
   "supported-agents",
   "search-languages",
 ] as const;

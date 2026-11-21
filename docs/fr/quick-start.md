@@ -16,7 +16,7 @@ Pour commencer avec un seul agent et une période courte, consultez le
 
 Vous pouvez commencer par le tableau de bord et choisir si vous souhaitez connecter des agents.
 
-Si vous avez installé le [plugin Mash](../plugin.md#start-with-the-plugin),
+Si vous avez installé le [plugin Mash](plugin.md#start-with-the-plugin),
 demandez à votre agent d’utiliser la compétence `setup`.
 
 **Configurez Mash vous-même.** Pour une première installation locale, exécutez

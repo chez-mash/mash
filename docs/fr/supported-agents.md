@@ -16,7 +16,7 @@ tous les historiques que vous avez indexés, y compris ceux des autres agents.
 | --- | --- | --- |
 | Claude Code | Conversations locales de Claude Code | Oui |
 | Codex | Conversations locales de Codex | Oui, via la CLI de Codex |
-| GitHub Copilot CLI | Sessions locales en ligne de commande | Versions de développement. [Connexion manuelle avec v0.1.1-alpha](../plugin.md#github-copilot-cli) |
+| GitHub Copilot CLI | Sessions locales en ligne de commande | Versions de développement. [Connexion manuelle avec v0.1.1-alpha](plugin.md#github-copilot-cli) |
 | GitHub Copilot Chat dans VS Code | Conversations enregistrées par VS Code sur votre ordinateur | — |
 | OpenCode | Conversations dans la base de données locale d’OpenCode | — |
 | Cursor | Conversations en ligne de commande et formats compatibles de l’éditeur | — |

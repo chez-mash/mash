@@ -24,7 +24,7 @@ Pega esta instrucción en Claude Code, Codex u otro agente de programación.
 
 Puedes empezar con el panel y elegir si quieres conectar agentes.
 
-Si ya instalaste el [plugin de Mash](../plugin.md#start-with-the-plugin),
+Si ya instalaste el [plugin de Mash](plugin.md#start-with-the-plugin),
 pídele a tu agente que use la skill `setup`.
 
 ## Instálalo por tu cuenta

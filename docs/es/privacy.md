@@ -33,11 +33,13 @@ Ejecuta `mash status` para consultar `database_path` y, si Mash instaló Qdrant,
 eliminaría, incluida la carpeta separada de Qdrant en Windows. Añade `--yes`
 cuando quieras desinstalar Mash.
 
+<span id="when-history-can-leave-your-machine"></span>
+
 ## Cuándo puede salir parte del historial
 
 - **Agentes conectados.** Cuando un agente usa Mash, recibe resultados y
   fragmentos de las conversaciones. Esos fragmentos pasan al contexto del
-  agente y pueden enviarse a su proveedor de modelos. Las [acciones automáticas del complemento](../plugin.md#what-happens-without-asking)
+  agente y pueden enviarse a su proveedor de modelos. Las [acciones automáticas del complemento](plugin.md#what-happens-without-asking)
   también pueden añadir fragmentos al contexto sin una conexión MCP. Para
   buscar solo desde el panel local o la terminal, deja los agentes sin conectar
   y desactiva o elimina el complemento de Mash si lo instalaste.

@@ -4,7 +4,7 @@
 连接的代理可以搜索你已建立索引的所有历史，它读取的结果会进入当前对话的上下文。
 [支持的代理](supported-agents.md) · [Mash 如何处理对话历史](privacy.md)
 
-如果已在代理的插件市场中安装了 Mash，请[在代理中完成设置](../plugin.md#finish-setup-in-the-agent)。
+如果已在代理的插件市场中安装了 Mash，请[在代理中完成设置](plugin.md#finish-setup-in-the-agent)。
 如果使用其他支持本地 MCP 服务器的代理，请[手动连接](../mcp.md#connect-another-mcp-client)。
 
 <span id="connect-claude-code-codex-or-copilot"></span>
@@ -26,14 +26,14 @@ mash init --no-index
 如果列表中没有你的代理，请确认能否在同一个终端运行它的命令，例如 `codex --version`。
 安装代理的命令行工具或将其添加到 `PATH` 后，再运行上述命令。
 
-开发版提供 GitHub Copilot CLI 的引导设置。使用 v0.1.1-alpha 时，请[手动连接 Copilot CLI](../plugin.md#github-copilot-cli)。
+开发版提供 GitHub Copilot CLI 的引导设置。使用 v0.1.1-alpha 时，请[手动连接 Copilot CLI](plugin.md#github-copilot-cli)。
 
 ### 连接时会安装什么
 
 Mash 会调用所选代理自己的命令（`claude`、`codex` 或 `copilot`）来安装两个组件。
 
 - **MCP 服务器**向代理提供 Mash 搜索工具。MCP（Model Context Protocol，模型上下文协议）让代理可以调用外部工具。
-- **[Mash 插件](../plugin.md)**提供 `mash-history` 技能，告诉代理何时以及如何搜索。
+- **[Mash 插件](plugin.md)**提供 `mash-history` 技能，告诉代理何时以及如何搜索。
   `remember` 技能可以按你的要求[保存记忆](../records.md)，在 Claude Code 中可用 `/mash:remember` 调用。
   插件也包含[自动更新对话历史](#keep-new-chats-searchable)的钩子。
 
@@ -101,7 +101,7 @@ mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
 ```
 
-在支持的版本中可使用 `--agent copilot`。使用 v0.1.1-alpha 时，请[在 Copilot CLI 中检查连接](../plugin.md#github-copilot-cli)。
+在支持的版本中可使用 `--agent copilot`。使用 v0.1.1-alpha 时，请[在 Copilot CLI 中检查连接](plugin.md#github-copilot-cli)。
 
 此检查验证的是新进程中的连接。设置、修复或升级完成后，请重启代理，让连接在对话中生效。
 

@@ -5,7 +5,7 @@ retrouver des travaux antérieurs. Un agent connecté peut parcourir tout
 l’historique que vous avez indexé. Les résultats qu’il lit entrent dans
 son contexte. [Agents compatibles](supported-agents.md) · [Confidentialité de l’historique](privacy.md)
 
-Si vous avez installé le module depuis le catalogue de l’agent, [terminez la configuration dans l’agent](../plugin.md#finish-setup-in-the-agent).
+Si vous avez installé le module depuis le catalogue de l’agent, [terminez la configuration dans l’agent](plugin.md#finish-setup-in-the-agent).
 Pour un autre agent compatible avec un serveur MCP local, [configurez la connexion manuellement](../mcp.md#connect-another-mcp-client).
 
 <span id="connect-claude-code-codex-or-copilot"></span>
@@ -35,7 +35,7 @@ son interface en ligne de commande ou ajoutez-la à votre `PATH`, puis
 relancez la commande ci-dessus.
 
 Les versions de développement proposent la configuration guidée de GitHub Copilot CLI.
-Avec v0.1.1-alpha, [connectez Copilot CLI manuellement](../plugin.md#github-copilot-cli).
+Avec v0.1.1-alpha, [connectez Copilot CLI manuellement](plugin.md#github-copilot-cli).
 
 ### Ce que la connexion installe
 
@@ -45,7 +45,7 @@ Mash utilise la commande de chaque agent choisi (`claude`, `codex` ou
 - Un **serveur MCP** met les outils de recherche de Mash à la disposition de
   l’agent. MCP (Model Context Protocol) permet aux agents d’utiliser des
   outils externes.
-- Le **[module Mash](../plugin.md)** fournit la compétence `mash-history`
+- Le **[module Mash](plugin.md)** fournit la compétence `mash-history`
   qui indique quand et comment chercher, la compétence `remember` qui
   [mémorise](../records.md) une information sur demande (`/mash:remember` dans
   Claude Code) et des actions automatiques qui
@@ -130,7 +130,7 @@ mash status --installation --agent claude-code --probe
 ```
 
 Utilisez `--agent copilot` dans les versions qui proposent cette option. Avec
-v0.1.1-alpha, [vérifiez la connexion depuis Copilot CLI](../plugin.md#github-copilot-cli).
+v0.1.1-alpha, [vérifiez la connexion depuis Copilot CLI](plugin.md#github-copilot-cli).
 
 Ce test vérifie une nouvelle connexion. Redémarrez l’agent après une
 configuration, une réparation ou une mise à jour pour que la connexion

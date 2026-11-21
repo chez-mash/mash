@@ -5,7 +5,7 @@ trabajos anteriores. Un agente conectado puede buscar en todo el historial
 que hayas indexado. Los resultados que lea pasan a formar parte de su
 contexto. [Agentes compatibles](supported-agents.md) · [Cómo trata Mash tu historial](privacy.md)
 
-Si instalaste el complemento desde el catálogo de tu agente, [termina la configuración en el agente](../plugin.md#finish-setup-in-the-agent).
+Si instalaste el complemento desde el catálogo de tu agente, [termina la configuración en el agente](plugin.md#finish-setup-in-the-agent).
 Para otro agente compatible con servidores MCP locales, [configura la conexión manualmente](../mcp.md#connect-another-mcp-client).
 
 <span id="connect-claude-code-codex-or-copilot"></span>
@@ -34,7 +34,7 @@ terminal, por ejemplo, `codex --version`. Instala la CLI del agente o añádela
 a `PATH` y vuelve a ejecutar el comando anterior.
 
 Las versiones de desarrollo incluyen la configuración guiada de GitHub Copilot CLI.
-Con v0.1.1-alpha, [conecta Copilot CLI manualmente](../plugin.md#github-copilot-cli).
+Con v0.1.1-alpha, [conecta Copilot CLI manualmente](plugin.md#github-copilot-cli).
 
 ### Qué instala la conexión
 
@@ -44,7 +44,7 @@ para instalar dos componentes:
 - Un **servidor MCP** que pone las herramientas de búsqueda de Mash a
   disposición del agente. MCP (Model Context Protocol) permite a los agentes
   utilizar herramientas externas.
-- El **[complemento de Mash](../plugin.md)**, con la función `mash-history`
+- El **[complemento de Mash](plugin.md)**, con la función `mash-history`
   que indica al agente cuándo y cómo buscar, la función `remember` que guarda
   algo en la [memoria](../records.md) cuando se lo pides (`/mash:remember` en
   Claude Code) y las acciones automáticas que
@@ -128,7 +128,7 @@ mash status --installation --agent claude-code --probe
 ```
 
 Usa `--agent copilot` en las versiones que ofrecen esa opción. Con v0.1.1-alpha,
-[comprueba la conexión desde Copilot CLI](../plugin.md#github-copilot-cli).
+[comprueba la conexión desde Copilot CLI](plugin.md#github-copilot-cli).
 
 La prueba comprueba una conexión nueva. Para que los cambios se apliquen
 a tus conversaciones, reinicia el agente después de configurar, reparar o

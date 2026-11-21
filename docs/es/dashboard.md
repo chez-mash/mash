@@ -10,7 +10,7 @@ mash dash
 
 Abre en el navegador la dirección que muestra, normalmente **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Una vez configurado Mash, la vista general muestra tus conversaciones y recuerdos recientes. Deja abierta la terminal. Ctrl-C detiene el panel. Si la página no carga, [comprueba cómo se inicia el panel](troubleshooting.md#the-dashboard-doesnt-open).
 
-Con el [complemento](../plugin.md) instalado, usa `/mash:dashboard` en Claude Code o pídele a tu agente que abra el panel web de Mash.
+Con el [complemento](plugin.md) instalado, usa `/mash:dashboard` en Claude Code o pídele a tu agente que abra el panel web de Mash.
 
 El panel local se abre sin iniciar sesión en la configuración predeterminada. Lee [cómo mantener el acceso privado](#keep-access-private) antes de cambiar la dirección en la que escucha. Los nombres de los controles se muestran en inglés en el panel.
 
@@ -144,7 +144,7 @@ Usa **Export** en la conversación para descargarla entera en Markdown o HTML, i
 
 Para guardar una copia estable, espera a que termine la indexación. Las descargas pueden contener información sensible.
 
-Cada conversación tiene su dirección, `http://127.0.0.1:8790/#/chat/<chat id>`. Con el [complemento](../plugin.md), `/mash:export` encuentra la conversación que indiques y la abre allí.
+Cada conversación tiene su dirección, `http://127.0.0.1:8790/#/chat/<chat id>`. Con el [complemento](plugin.md), `/mash:export` encuentra la conversación que indiques y la abre allí.
 
 <span id="export-many-chats-at-once"></span>
 

@@ -145,7 +145,11 @@ export default defineConfig({
               },
               slug: "agents",
             },
-            "plugin",
+            {
+              label: "Mash plugin",
+              translations: { es: "Complemento de Mash", fr: "Module Mash", "zh-CN": "Mash 插件" },
+              slug: "plugin",
+            },
           ],
         },
         {
