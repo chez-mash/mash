@@ -4,8 +4,8 @@ const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", 
 
 test("the landing page says what Mash is and which agents it reads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toHaveText("Find the chat behind the decision.");
-  await expect(page).toHaveTitle(/Find the chat behind the decision\./);
+  await expect(page.locator("h1")).toHaveText("Your agents forget. Mash doesn't.");
+  await expect(page).toHaveTitle(/Your agents forget\. Mash doesn't\./);
   const marks = page.locator(".mash-agents li");
   await expect(marks).toHaveCount(agents.length);
   await expect(marks).toHaveText(agents);
@@ -14,9 +14,10 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     const file = await mark.evaluate((node) => getComputedStyle(node).maskImage.slice(5, -2));
     expect((await page.request.get(file)).ok()).toBe(true);
   }
-  await expect(page.locator(".hero .tagline")).toHaveText(
-    "Search your saved coding-agent chats in the browser dashboard or from an agent you connect. Your history stays on your machine by default.",
-  );
+  const blurb =
+    "Mash supercharges your agents so that they can search and remember from each others' chats. Leave off with Claude and pick up with Codex, without having to re-explain yourself. 100% self-hosted and open-source.";
+  await expect(page.locator(".hero .tagline")).toHaveText(blurb);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
   await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "Find it. However you remember it.",
