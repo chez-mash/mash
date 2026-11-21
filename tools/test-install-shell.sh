@@ -106,4 +106,7 @@ TEST_INSTALL_QDRANT_FAIL=1 script -eqc 'sh "$TEST_INSTALL_SCRIPT" --setup' /dev/
 [[ $setup_status == 7 ]]
 diff -u <(printf 'qdrant install\n') "$TEST_INSTALL_STEPS"
 grep -q 'search service failure fixture' "$scratch/output"
+grep -Fq 'Mash is installed.' "$scratch/output"
+grep -Fq 'https://getmash.io/troubleshooting/#qdrant-connection-failed' "$scratch/output"
+tr -d '\r' <"$scratch/output" | grep -Fxq "  $expected init"
 echo 'Shell installer fixtures passed.'

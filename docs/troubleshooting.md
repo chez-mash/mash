@@ -76,12 +76,14 @@ dashboard has not been built, install a release archive or
 
 ## Qdrant connection failed
 
-**You see:** `qdrant-unavailable`, “Could not reach Qdrant at …”, or
-`mash status` reporting `local_qdrant` as `unreachable` with
-`recommended_action` `start-qdrant`.
+**You see:** `qdrant-unavailable`, `qdrant-install`, “Could not reach
+Qdrant at …”, or `mash status` reporting `local_qdrant` as `unreachable`
+with `recommended_action` `start-qdrant`.
 
-Indexing and every search need the local Qdrant search service. Start it the
-way you installed it:
+If setup failed on Linux or WSL with a `systemctl` error,
+[check your user session and choose a way to start Qdrant](local-search.md#linux-without-a-systemd-user-session).
+
+Start Qdrant the way you installed it.
 
 - **`mash qdrant install`:** run it again. It restarts a stopped service and
   repairs missing files. `local_qdrant.installed` in `mash status` shows the

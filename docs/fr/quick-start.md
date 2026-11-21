@@ -25,6 +25,8 @@ recherche local, puis vous invite à vérifier quels historiques lire et quels
 agents connecter avant l’indexation.
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
+Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
+Qdrant. [Vérifiez votre session ou consultez les autres options (en anglais)](../local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
@@ -41,16 +43,14 @@ chemin court sur le disque système, généralement `C:\mash-qdrant\storage`.
 Les scripts vérifient les téléchargements et installent Mash dans le dossier
 `.local/bin`. Qdrant (environ 30 Mo) s’exécute sous votre compte et démarre à
 l’ouverture de votre session. La recherche par mots fonctionne sans téléchargement
-de modèles. Sous Linux et WSL, cette configuration nécessite une session
-utilisateur systemd.
+de modèles.
 
 La période proposée couvre les 90 derniers jours. Vérifiez les options, puis
 choisissez **Set up and index** quand vous êtes prêt. Si l’assistant commence
 par vous demander où chercher, choisissez **Just this computer (recommended)**.
-Si vous utilisez WSL sans systemd, si votre service de recherche tourne déjà
-ou si vous voulez seulement les exécutables, consultez le
-[guide d’installation](../installation.md). Vous
-pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
+Si votre service de recherche tourne déjà ou si vous voulez seulement les
+exécutables, consultez le [guide d’installation](../installation.md).
+Vous pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>
 
@@ -81,4 +81,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: b5632fe7ccb659603e94974465338b7b9f367e2913b8815d4352ab49fc5e9a0e -->
+<!-- mash-docs-source: 69701a6a3572e0152149d51adff02a80c78a94f9b4d5dfeff6fc0616f21a3255 -->

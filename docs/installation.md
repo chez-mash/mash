@@ -66,6 +66,11 @@ use the shorter Cargo command.
 
 ## Start the local search service
 
+On Linux or WSL, the command below needs a systemd user session.
+[Check whether your terminal has one and see the alternatives](local-search.md#linux-without-a-systemd-user-session).
+If you already run a [compatible local Qdrant](local-search.md#run-qdrant-yourself),
+continue to [connect your histories](#connect-your-histories).
+
 On Windows, Mash puts Qdrant's search data in a short folder on the system
 drive, usually `C:\mash-qdrant\storage`.
 [See Qdrant's files and logs](local-search.md#where-qdrant-stores-data).
@@ -76,8 +81,7 @@ mash qdrant install
 
 Mash verifies the Qdrant download (about 30 MB) and starts the service in the
 background under your user. Qdrant listens on this machine and starts again
-when you log in. This needs a systemd user session on Linux and WSL, and a
-desktop sign-in on Windows.
+when you log in. On Windows, it requires a desktop sign-in.
 If the service does not start, see [how to check the logs and restart it](local-search.md#let-mash-manage-qdrant).
 
 ### Run Qdrant yourself

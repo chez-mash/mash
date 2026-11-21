@@ -98,7 +98,15 @@ quoted_mash=$(printf '%s' "$mash" | sed "s/'/'\\\\''/g")
 echo 'The setup wizard lets you choose which coding agents can search your chats.'
 if "$setup"; then
   echo 'Preparing the local search service (Qdrant). The setup wizard opens next.'
-  "$mash" qdrant install </dev/null >/dev/null
+  "$mash" qdrant install </dev/null >/dev/null || {
+    status=$?
+    {
+      echo 'Mash is installed.'
+      echo 'See https://getmash.io/troubleshooting/#qdrant-connection-failed to start the search service.'
+      printf "Then resume setup with:\n  '%s' init\n" "$quoted_mash"
+    } >&2
+    exit "$status"
+  }
   "$mash" init <&3 3<&-
 else
   echo 'For a new local setup, install the search service and then run the setup wizard.'

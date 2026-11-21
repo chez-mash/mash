@@ -126,13 +126,21 @@ mash --version
 
 ## 2. Start the local search service
 
+If the person already runs a working local Qdrant 1.20 or later, reuse it.
+The default HTTP and gRPC ports are 6333 and 6334 and must reach the same
+instance. On Linux and WSL, before using the built-in installer, run
+`systemctl --user show-environment >/dev/null` in the same terminal. If it
+fails, explain the available options at
+https://getmash.io/local-search/#linux-without-a-systemd-user-session and
+agree on one with the person. Continue when Qdrant is running.
+
 ```sh
 mash qdrant install
 ```
 
 Success is a JSON result with `"outcome"` of `installed`, `current`,
-`repaired` or `upgraded`. Rerunning it is safe. If the person already runs
-their own Qdrant 1.20 or later on `127.0.0.1:6333`, skip this step.
+`repaired`, `upgraded` or `already_running`. Rerunning it is safe.
+`already_running` means Mash found a compatible service and didn't install one.
 If Mash installed Qdrant, include the `service.storage` path when reporting
 what was installed and where.
 

@@ -11,7 +11,7 @@ already have it or need a different setup. After it starts,
 mash qdrant install
 ```
 
-Indexing and every search use a local [Qdrant](https://qdrant.tech) service.
+Local indexing and search use [Qdrant](https://qdrant.tech).
 This command downloads Qdrant 1.20.0 for your platform (about 30 MB) from
 [Qdrant's GitHub releases](https://github.com/qdrant/qdrant/releases/tag/v1.20.0),
 checks it against a SHA-256 checksum built into Mash, and starts it in the
@@ -53,9 +53,8 @@ doing, and `already_running` (nothing installed) when a compatible Qdrant
 already answers on those ports, such as the Docker container below. If another
 program holds a port, the command stops and says which.
 
-- **Linux:** the command needs a systemd user session. Where there is none, as
-  in some containers and WSL setups, [run Qdrant yourself](#run-qdrant-yourself).
-  The service runs while you are logged in; to keep it running on a machine
+- **Linux:** the command needs a [systemd user session](#linux-without-a-systemd-user-session).
+  The service runs while you are logged in. To keep it running on a machine
   nobody logs in to, enable lingering with `loginctl enable-linger` (some
   systems allow this only for administrators).
 - **Other ports:** set `url` and `grpc_url` in the
@@ -63,6 +62,30 @@ program holds a port, the command stops and says which.
   addresses before installing.
 
 `mash init` checks that Qdrant answers, but never downloads or starts it.
+
+### Linux without a systemd user session
+
+Mash's installer uses your Linux user session to keep Qdrant running in the
+background. Run this read-only check in the same Linux or WSL terminal you
+plan to use for setup.
+
+```sh
+systemctl --user show-environment >/dev/null
+```
+
+If the check finishes without an error, use `mash qdrant install`. If it
+prints an error about connecting to the user bus or finding `systemctl`,
+[start Qdrant in Docker](#optional-qdrant-docker-image) or
+[run the Linux binary in a terminal](#native-macos-or-linux-without-docker).
+If you prefer to enable systemd on WSL 2, follow
+[Microsoft's WSL guide](https://learn.microsoft.com/en-us/windows/wsl/systemd/)
+and check again from your WSL terminal.
+
+If the quick installer stopped after printing “Installed”, Mash's binaries
+are already in place. Start Qdrant, then run `mash init` using the installed
+path if needed. For a new installation, use the
+[binary-only installer](installation.md#recommended-release-installers)
+before starting Qdrant yourself.
 
 ## Run Qdrant yourself
 

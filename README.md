@@ -69,7 +69,9 @@ you can ask for its `setup` skill.
 local setup. It installs Mash and the local search service, then asks you to
 review which histories to read and which agents to connect before indexing.
 
-On macOS (Apple silicon) or Linux (x86-64 or ARM64):
+On macOS (Apple silicon) or Linux (x86-64 or ARM64), use the command below.
+On Linux or WSL it needs a systemd user session to start Qdrant.
+[Check your session or see other ways to start Qdrant](docs/local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
@@ -85,13 +87,12 @@ Run this in PowerShell:
 
 The scripts verify the downloads and install Mash into your `.local/bin`.
 Qdrant (about 30 MB) runs under your user and starts at login. Word search
-works without downloading any models. Linux and WSL need a systemd user
-session for this setup.
+works without downloading any models.
 
 The default history range is 90 days. Review the setup and choose **Set up
 and index** when you’re ready. If the wizard first asks where to search, choose
-**Just this computer (recommended)**. For WSL without systemd, a search service you
-already run, or a binary-only install, follow the [installation guide](docs/installation.md).
+**Just this computer (recommended)**. To use a search service you already run,
+or to install Mash separately, follow the [installation guide](docs/installation.md).
 You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>

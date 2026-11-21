@@ -14,7 +14,7 @@
 
 **自己动手设置。** 首次在本机安装时，在终端中运行下面适用于你的系统的命令。它会安装 Mash 和本地搜索服务，然后请你在建立索引之前确认要读取哪些历史记录和连接哪些代理。
 
-在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。
+在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式（英文）](../local-search.md#linux-without-a-systemd-user-session)。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
@@ -27,11 +27,11 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
 ```
 
-这些脚本会校验下载内容，并将 Mash 安装到你的 `.local/bin` 目录。Qdrant（约 30 MB）以你的用户身份运行，登录时自动启动。关键词搜索不需要下载模型。Linux 和 WSL 上的这种安装方式需要 systemd 用户会话。
+这些脚本会校验下载内容，并将 Mash 安装到你的 `.local/bin` 目录。Qdrant（约 30 MB）以你的用户身份运行，登录时自动启动。关键词搜索不需要下载模型。
 
 默认读取最近 90 天的历史。核对设置后，选择 **Set up and index** 继续。
 如果设置助手先询问在哪里搜索，请选择 **Just this computer (recommended)**。
-如果 WSL 没有 systemd、你已运行自己的搜索服务，或你只想安装可执行文件，请参阅 [安装指南](../installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
+如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](../installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 <span id="try-it"></span>
 
@@ -60,4 +60,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: b5632fe7ccb659603e94974465338b7b9f367e2913b8815d4352ab49fc5e9a0e -->
+<!-- mash-docs-source: 69701a6a3572e0152149d51adff02a80c78a94f9b4d5dfeff6fc0616f21a3255 -->

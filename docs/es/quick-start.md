@@ -32,7 +32,9 @@ pídele a tu agente que use la skill `setup`.
 Necesitas al menos una conversación guardada con un agente compatible.
 
 En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
-este comando para una instalación local nueva.
+este comando para una instalación local nueva. En Linux o WSL necesitas una
+sesión de usuario de systemd para iniciar Qdrant.
+[Comprueba tu sesión o consulta las alternativas (en inglés)](../local-search.md#linux-without-a-systemd-user-session).
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
@@ -49,7 +51,6 @@ corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
 El instalador verifica las descargas, guarda Mash en `.local/bin`, inicia el
 servicio de búsqueda local (Qdrant, unos 30 MB) y abre el asistente de Mash.
 El servicio funciona con tu usuario y se inicia cuando entras en tu sesión.
-En Linux y WSL, esta opción requiere una sesión de usuario de systemd.
 La búsqueda por palabras funciona sin descargar modelos.
 
 Revisa las carpetas de historial y los agentes detectados. Elige
@@ -59,8 +60,8 @@ Si el asistente te pregunta antes dónde buscar, elige **Just this computer**.
 Para elegir carpetas, fechas o agentes, usa **Customize setup** si está
 disponible.
 
-Para instalar por separado, usar tu propio Qdrant o configurar WSL sin systemd,
-consulta la [guía de instalación (en inglés)](../installation.md).
+Para instalar por separado o usar tu propio Qdrant, consulta la
+[guía de instalación (en inglés)](../installation.md).
 También puedes [usar el asistente del panel local](dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Encuentra una conversación anterior
