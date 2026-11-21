@@ -107,6 +107,10 @@ printf 'ran %s\n' "$*"
     $env:MASH_INSTALL_TEST_QDRANT_FAIL = '1'
     Assert-Fails { Start-MashSetup -Executable $setupFixture 6>$null } 'could not start the local search service'
     Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install' 'failed search service stops setup'
+    Remove-Item Env:MASH_INSTALL_TEST_QDRANT_FAIL
+    Remove-Item -LiteralPath $setupSteps
+    Start-MashSetup -Executable $setupFixture 6>$null | Out-Null
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install,init' 'setup succeeds on retry'
 
     if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected) {
         $downloadsBefore = $script:requests.Count
@@ -134,6 +138,7 @@ printf 'ran %s\n' "$*"
     $env:OS = $originalOs
     $env:PROCESSOR_ARCHITECTURE = $originalArchitecture
     $env:PROCESSOR_ARCHITEW6432 = $originalWowArchitecture
-    Remove-Item Env:MASH_INSTALL_TEST_STEPS, Env:MASH_INSTALL_TEST_QDRANT_FAIL -ErrorAction SilentlyContinue
+    Remove-Item Env:MASH_INSTALL_TEST_STEPS -ErrorAction SilentlyContinue
+    Remove-Item Env:MASH_INSTALL_TEST_QDRANT_FAIL -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $root -Recurse -Force
 }
