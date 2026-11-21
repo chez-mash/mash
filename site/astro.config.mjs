@@ -222,6 +222,16 @@ export default defineConfig({
                     fr: "Rechercher sur plusieurs ordinateurs",
                     "zh-CN": "跨设备搜索",
                   },
+                  slug: "search-across-machines",
+                },
+                {
+                  label: "Set up a shared index",
+                  translations: {
+                    es: "Configurar un índice compartido",
+                    fr: "Configurer un index partagé",
+                    "zh-CN": "设置共享索引",
+                    ja: "共有インデックスを設定する",
+                  },
                   slug: "shared-index",
                 },
               ],

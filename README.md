@@ -30,7 +30,7 @@ By default, indexing and search stay on your machine and require no account.
   saved. [Supported histories](docs/supported-agents.md)
 - **Multi-machine search.** Find a chat from your workstation on your laptop
   through an optional Mash server you run. Each machine keeps a local index
-  it can search offline. [Set up sharing](docs/shared-index.md)
+  it can search offline. [Search across your machines](docs/search-across-machines.md)
 - **Jump straight to the original message.** Read the surrounding conversation
   and tool output in the dashboard.
   [Open the checkout outage chat](https://getmash.io/demo/#/chat/checkout-outage-review?node=build-box&message=checkout-outage-review-1&shared=true)

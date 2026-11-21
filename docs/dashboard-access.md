@@ -63,7 +63,7 @@ the dashboard can use its node token to read chats from other machines.
 If you joined with `mash init --join`, Mash can read the saved token from
 `~/.mash/node.env`. In v0.1.1-alpha, setup can report local-only access even
 when that token works. Open a chat from another computer to check.
-[Search across your machines](shared-index.md#search)
+[Search across your machines](search-across-machines.md)
 
 If you configured sharing by hand, set the node token variable in the shell
 where you run `mash dash remote`. Mash saves the token for the service in

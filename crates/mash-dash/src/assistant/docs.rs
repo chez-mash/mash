@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 
 /// The guides, each with the page it is published at on the documentation
 /// site.
-const GUIDES: [(&str, &str, &str); 20] = [
+const GUIDES: [(&str, &str, &str); 21] = [
     (
         "quick-start",
         "Quick start",
@@ -70,8 +70,13 @@ const GUIDES: [(&str, &str, &str); 20] = [
     ),
     (
         "shared-index",
-        "Sharing across machines",
+        "Set up a shared index",
         include_str!("../../../../docs/shared-index.md"),
+    ),
+    (
+        "search-across-machines",
+        "Search across your machines",
+        include_str!("../../../../docs/search-across-machines.md"),
     ),
     (
         "synchronization",
@@ -375,5 +380,13 @@ mod tests {
         assert!(look_up("open the dashboard on my phone", "").contains("(page dashboard-access)"));
         assert!(page("find-missing-chat"));
         assert!(look_up("find a missing chat", "").contains("(page find-missing-chat)"));
+    }
+
+    #[test]
+    fn shared_use_and_setup_guides_are_available() {
+        assert!(page("search-across-machines") && page("shared-index"));
+        assert!(look_up("", "search-across-machines").contains("--shared"));
+        assert!(look_up("", "search-across-machines").contains("--local"));
+        assert!(look_up("", "shared-index").contains("mash-server --setup --add-node"));
     }
 }

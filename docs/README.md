@@ -36,7 +36,8 @@ New here? Follow the [quick start](../README.md#quick-start).
 - [Search chats in other languages](search-languages.md)
 - [Keep new chats searchable](synchronization.md)
 - [Include older history or search by meaning](indexing.md)
-- [Search history across your machines](shared-index.md)
+- [Search history across your machines](search-across-machines.md)
+- [Set up a shared index](shared-index.md)
 
 <span id="use-mash-with-agents"></span>
 

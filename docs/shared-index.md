@@ -1,18 +1,15 @@
-# Search across your machines
+# Set up a shared index
 
 If your laptop and desktop both save agent chats, a shared index lets you find
-them from either computer. Each computer keeps a searchable local copy and
-publishes its index to one Mash server you run.
+them from either computer. Each computer keeps an index of its own chats and
+publishes it to one Mash server you run.
 
 | What you want to do | Where to start |
 | --- | --- |
+| Use history from computers you already connected | [Search across your machines](search-across-machines.md) |
+| Connect a computer with a join string you received | [Join the existing server](#join-and-review-each-computer) |
+| Run your own server | [Set up with Tailscale](#the-quick-way) or [set up by hand](#1-set-up-the-server) |
 | Read one computer’s chats from your phone or another browser | [Open that computer’s dashboard remotely](dashboard-access.md) |
-| Search chat histories indexed on several computers | [Set up a shared index](#the-quick-way) |
-| Search only the history on this computer | [Use the local dashboard](dashboard.md#find-and-read-a-chat) |
-
-To see what a result from another machine looks like, search the demo and
-open **Choose a queue for invoice exports**, a chat from the workstation.
-[Try the sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 
 ## Before sharing
 
@@ -37,7 +34,9 @@ If you already have a server, ask its operator for a join string for each
 computer. You can also connect using the server URL, group ID, a name for the
 computer (its node ID), and its own token. [Connect each computer](#2-connect-each-computer)
 
-## The quick way
+<span id="the-quick-way"></span>
+
+## Set up with Tailscale
 
 Use this path when the server runs Linux or macOS, has Qdrant running, and
 can use Tailscale Serve. Connect the server and the computers to your tailnet.
@@ -59,9 +58,9 @@ name already added repairs the service and reuses that registration.
 
 ### Join and review each computer
 
-On a computer you want to connect, install Mash and start its local Qdrant.
-Pause any background indexing on that computer while you review. Then run
-this with the full join value for that computer.
+On a computer you want to connect, [install Mash](installation.md) and pause
+any background indexing while you review. Then run this with the full join
+value for that computer.
 
 ```sh
 mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents
@@ -216,7 +215,8 @@ administrator for matching model settings.
 
 ## 3. Publish and check
 
-On **each** computer:
+On **each** computer, [start the local search service](installation.md#start-the-local-search-service)
+and run these commands.
 
 ```sh
 mash index
@@ -236,23 +236,8 @@ and run `mash index` again. To keep publishing new chats, run a
 
 ## Search
 
-Open `mash dash`, go to **chats**, and search for something you remember from
-the other computer. The result shows which machine it came from. To narrow
-to one computer, use the machine filter and choose **Apply filters**.
-[Read a chat in the dashboard](dashboard.md#find-and-read-a-chat)
-
-From the terminal:
-
-```sh
-mash search 'authentication'            # this computer and the shared index
-mash search 'authentication' --shared   # the shared index only, including this computer's published chats
-mash search 'authentication' --local    # this computer only; the server is not contacted
-```
-
-Add `--node desktop` to keep only chats from that node. Requests for shared
-history go to the server, so the desktop can be asleep. For mobile access,
-[open the dashboard remotely](dashboard-access.md)
-from a computer already set up to search this group.
+[Search across your machines](search-across-machines.md) shows how to choose a
+machine in the dashboard, search from the terminal, and check for missing chats.
 
 ## Remove a machine, or let a rebuilt one publish again
 

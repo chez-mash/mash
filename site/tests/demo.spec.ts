@@ -238,10 +238,22 @@ test("the Japanese dashboard guide leads to a downloadable sample chat", async (
   );
 });
 
-test("the sharing guide leads to remote access and to a chat from another machine", async ({
+test("the old shared search bookmark leads to remote access and a chat from another machine", async ({
   page,
 }) => {
-  await page.goto("/shared-index/");
+  await page.goto("/shared-index/#search");
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.locator("#search")).toBeAttached();
+  await guide.getByRole("link", { name: "Join the existing server" }).click();
+  await expect(page).toHaveURL("/shared-index/#join-and-review-each-computer");
+  await expect(guide.locator("pre").filter({ hasText: "JOIN_STRING_FROM_SERVER" })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL("/shared-index/#search");
+  await guide.locator('a[href="/search-across-machines/"]').last().click();
+  await expect(page).toHaveURL("/search-across-machines/");
+  await expect(page.locator('nav.sidebar [aria-current="page"]')).toHaveText(
+    "Search across your machines",
+  );
   await page.getByRole("link", { name: /Open that computer.s dashboard remotely/ }).click();
   await expect(page).toHaveURL("/dashboard-access/");
   await page.goBack();

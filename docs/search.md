@@ -179,10 +179,9 @@ null.
 `--sort recent` puts the newest results first within each page of relevant
 results. For a chronological list of chats, use `list-chats` instead.
 
-With a [shared index](shared-index.md), search combines this machine with the
-history other machines published. `--local` searches only this machine;
-`--shared` searches only published history. `--node NODE_ID` keeps results
-recorded by that machine; it does not connect to it.
+Use `--local` to search only this computer. If you share history, see
+[which machines a search covers](search-across-machines.md#search-from-the-terminal)
+for options to search published chats or narrow results to one machine.
 
 If results are missing or stale, start with [troubleshooting](troubleshooting.md).
 For other commands, see [useful commands](cli.md).

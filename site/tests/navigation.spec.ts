@@ -233,6 +233,13 @@ test("the sidebar groups related guides under two top-level sections", async ({ 
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.getByRole("heading", { level: 2 })).toHaveText(["Start here", "Using Mash"]);
   await expect(guide.locator("#find-past-work")).toBeAttached();
+  await expect(
+    guide.getByRole("link", { name: "Search history across your machines" }),
+  ).toHaveAttribute("href", "/search-across-machines/");
+  await expect(guide.getByRole("link", { name: "Set up a shared index" })).toHaveAttribute(
+    "href",
+    "/shared-index/",
+  );
   await expect(guide.getByRole("link", { name: "Español", exact: true })).toHaveCount(0);
 
   const languageSearch = sidebar.getByRole("link", {

@@ -453,9 +453,9 @@ for (const [locale, lang, pluginLabel] of [
 }
 
 for (const [locale, lang, sidebarLabel] of [
-  ["es", "es", "Buscar en varios equipos"],
-  ["fr", "fr", "Rechercher sur plusieurs ordinateurs"],
-  ["zh-cn", "zh-CN", "跨设备搜索"],
+  ["es", "es", "Configurar un índice compartido"],
+  ["fr", "fr", "Configurer un index partagé"],
+  ["zh-cn", "zh-CN", "设置共享索引"],
 ]) {
   test(`the ${locale} privacy guide leads to shared-index setup and revocation`, async ({
     page,

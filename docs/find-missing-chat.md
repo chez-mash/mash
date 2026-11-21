@@ -61,4 +61,4 @@ Run `mash status --shared` on the source machine to check publication.
 [Check for pending publication](synchronization.md#across-machines).
 
 If the machines still need to join the same shared group, see
-[Search across your machines](shared-index.md).
+[Set up a shared index](shared-index.md).
