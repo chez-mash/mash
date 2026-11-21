@@ -47,7 +47,7 @@ If you publish history across machines, read the
    ```
 
    Restart connected agents and any watchers you stopped. Run `mash dash`
-   again for the local dashboard. For a [remote dashboard](dashboard.md#open-it-from-your-phone-or-another-computer),
+   again for the local dashboard. For a [remote dashboard](dashboard-access.md),
    rerun `mash dash remote` with the same options to start its service from
    the new executable.
    If an agent has trouble finding Mash after the upgrade,

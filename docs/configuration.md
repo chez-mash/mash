@@ -136,7 +136,7 @@ embedded (`remote_inferences`, out of `model_inferences`) and its request time
 
 ## The dashboard assistant
 
-Mashy is an optional chat in the corner of the [dashboard](dashboard.md#ask-mashy).
+[Mashy](mashy.md) is an optional chat in the corner of the dashboard.
 It answers questions about your history using a model service and API key you
 provide. On the computer that runs the dashboard, add the service to your Mash
 configuration and set the environment variable that holds your API key.

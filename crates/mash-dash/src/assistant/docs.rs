@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 
 /// The guides, each with the page it is published at on the documentation
 /// site.
-const GUIDES: [(&str, &str, &str); 17] = [
+const GUIDES: [(&str, &str, &str); 19] = [
     (
         "quick-start",
         "Quick start",
@@ -47,6 +47,16 @@ const GUIDES: [(&str, &str, &str); 17] = [
         "dashboard",
         "Dashboard",
         include_str!("../../../../docs/dashboard.md"),
+    ),
+    (
+        "mashy",
+        "Ask Mashy",
+        include_str!("../../../../docs/mashy.md"),
+    ),
+    (
+        "dashboard-access",
+        "Open the dashboard on another device",
+        include_str!("../../../../docs/dashboard-access.md"),
     ),
     (
         "services",
@@ -330,9 +340,13 @@ mod tests {
         assert!(look_up("zzqqxx", "").contains("say nothing that matches"));
         // Found by testers: questions whose words are spread over a section.
         let export = look_up("mash export command save include", "");
-        assert!(export.contains("mash export /absolute/path"), "{export}");
-        // A guide can be read whole when the words of a question miss it.
-        assert!(look_up("", "privacy").contains("<private>"));
+        assert!(
+            export.contains("mash export \"/absolute/path/to/new-backup\""),
+            "{export}"
+        );
+        // A guide can be read from its start when the words of a question miss it.
+        assert!(look_up("", "privacy").contains("## What stays on your machine"));
+        assert!(look_up("text enclosed in private", "").contains("<private>"));
         assert!(look_up("zzqqxx", "").contains("shared-index"));
         assert!(look_up("", "").contains("Troubleshooting (page troubleshooting)"));
         assert!(page("search") && !page("made-up"));
@@ -346,5 +360,13 @@ mod tests {
                 .count()
                 < 8_500
         );
+    }
+
+    #[test]
+    fn dashboard_task_guides_are_available() {
+        assert!(page("mashy") && page("dashboard-access"));
+        assert!(look_up("", "mashy").contains("API key"));
+        assert!(look_up("", "dashboard-access").contains("mash dash remote"));
+        assert!(look_up("open the dashboard on my phone", "").contains("(page dashboard-access)"));
     }
 }

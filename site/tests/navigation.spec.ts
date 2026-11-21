@@ -259,3 +259,37 @@ test("the architecture guide renders its local and shared search diagram", async
     .poll(() => diagram.evaluate((image: HTMLImageElement) => image.naturalWidth))
     .toBeGreaterThan(0);
 });
+
+test("dashboard task guides are in the Dashboard group and preserve old bookmarks", async ({
+  page,
+}) => {
+  await page.goto("/guides/");
+  const guide = page.locator(".sl-markdown-content");
+  const sidebar = page.locator("nav.sidebar");
+  await expect(guide.locator('a[href="/dashboard-access/"]')).toBeVisible();
+  await guide
+    .getByRole("link", { name: "Ask Mashy about your chats and follow its sources" })
+    .click();
+  await expect(page).toHaveURL("/mashy/");
+  const dashboard = sidebar
+    .locator("details")
+    .filter({
+      has: page.locator("summary").getByText("Dashboard", { exact: true }),
+    })
+    .last();
+  await expect(dashboard.locator('a[href="/mashy/"]')).toHaveAttribute("aria-current", "page");
+  await dashboard.locator('a[href="/dashboard-access/"]').click();
+  await expect(page).toHaveURL("/dashboard-access/");
+  await expect(guide.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
+
+  for (const [anchor, destination] of [
+    ["ask-mashy", "/mashy/"],
+    ["open-it-from-your-phone-or-another-computer", "/dashboard-access/"],
+    ["set-it-up-by-hand", "/dashboard-access/#set-it-up-by-hand"],
+    ["keep-access-private", "/dashboard-access/#keep-access-private"],
+  ] as const) {
+    await page.goto(`/dashboard/#${anchor}`);
+    await expect(guide.locator(`#${anchor}`)).toBeAttached();
+    await expect(guide.locator(`a[href="${destination}"]`).first()).toBeVisible();
+  }
+});

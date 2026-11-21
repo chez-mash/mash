@@ -11,7 +11,7 @@ and has no access to your local history.
 The default dashboard and the search service Mash installs accept requests
 from programs on the same computer without a login. Use the default setup on
 a computer whose local users you trust. To open the dashboard from another
-device, use the [dashboard with sign-in](dashboard.md#open-it-from-your-phone-or-another-computer).
+device, use the [dashboard with sign-in](dashboard-access.md).
 
 An agent that keeps history in a SQLite database, such as OpenCode, may gain
 `-wal` and `-shm` files beside that database when Mash reads it. SQLite

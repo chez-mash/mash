@@ -6,7 +6,7 @@ publishes its index to one Mash server you run.
 
 | What you want to do | Where to start |
 | --- | --- |
-| Read one computer’s chats from your phone or another browser | [Open that computer’s dashboard remotely](dashboard.md#open-it-from-your-phone-or-another-computer) |
+| Read one computer’s chats from your phone or another browser | [Open that computer’s dashboard remotely](dashboard-access.md) |
 | Search chat histories indexed on several computers | [Set up a shared index](#the-quick-way) |
 | Search only the history on this computer | [Use the local dashboard](dashboard.md#find-and-read-a-chat) |
 
@@ -251,7 +251,7 @@ mash search 'authentication' --local    # this computer only; the server is not 
 
 Add `--node desktop` to keep only chats from that node. Requests for shared
 history go to the server, so the desktop can be asleep. For mobile access,
-[open the dashboard remotely](dashboard.md#open-it-from-your-phone-or-another-computer)
+[open the dashboard remotely](dashboard-access.md)
 from a computer already set up to search this group.
 
 ## Remove a machine, or let a rebuilt one publish again

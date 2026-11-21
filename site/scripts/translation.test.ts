@@ -239,7 +239,9 @@ describe("documentation translation drafts", () => {
       expect(draft.passages).not.toContain(label);
       expect(output).toContain(`**${label}**`);
     }
-    expect(output).toContain("mash dash --allow-host laptop.your-tailnet.ts.net");
+    expect(output).toContain("```sh\nmash dash\n```");
+    expect(output).toContain("../mashy.md");
+    expect(output).toContain("../dashboard-access.md#set-it-up-by-hand");
     expect(recordedTranslationRevision(output)).toBe(dashboard.revision);
   });
 

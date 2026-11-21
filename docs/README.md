@@ -1,8 +1,7 @@
 # Mash documentation
 
 Mash helps you find conversations you've already had with your coding agents.
-New here? Follow the [quick start](../README.md#quick-start), or browse the
-[documentation website](https://getmash.io).
+New here? Follow the [quick start](../README.md#quick-start).
 
 <span id="what-would-you-like-to-do"></span>
 
@@ -26,6 +25,8 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Dashboard
 
 - [Find chats in the dashboard and download transcripts](dashboard.md)
+- [Ask Mashy about your chats and follow its sources](mashy.md)
+- [Open the dashboard from your phone or another computer](dashboard-access.md)
 - [Check and manage services](services.md)
 
 ### Search

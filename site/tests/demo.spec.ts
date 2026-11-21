@@ -240,7 +240,7 @@ test("the sharing guide leads to remote access and to a chat from another machin
 }) => {
   await page.goto("/shared-index/");
   await page.getByRole("link", { name: /Open that computer.s dashboard remotely/ }).click();
-  await expect(page).toHaveURL("/dashboard/#open-it-from-your-phone-or-another-computer");
+  await expect(page).toHaveURL("/dashboard-access/");
   await page.goBack();
   const demo = page.getByRole("link", { name: "Try the sample search", exact: true });
   await expect(demo).toHaveAttribute("href", /^https:\/\/getmash\.io\/demo\/#\/search\?q=/);

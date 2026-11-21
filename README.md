@@ -12,7 +12,7 @@ decision, and pick up work in another agent. Mash is open source and self-hosted
 By default, indexing and search stay on your machine and require no account.
 [How Mash handles your history](docs/privacy.md)
 
-[Try the demo without installing](https://getmash.io/demo/#/search?q=checkout) · [Quick start](#quick-start) · [Docs](https://getmash.io/)
+[Try the demo without installing](https://getmash.io/demo/#/search?q=checkout) · [Quick start](#quick-start) · [Docs](https://getmash.io/guides/)
 
 [![Supported agents: Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, Antigravity](assets/supported-agents.svg)](docs/supported-agents.md)
 
@@ -42,7 +42,7 @@ By default, indexing and search stay on your machine and require no account.
 - <img src="dashboard/public/mashy.png" alt="" width="20"> **Mashy, an optional dashboard assistant.**
   Bring your own model service and API key to ask questions about your history
   and get links to chats and saved decisions.
-  [Configure Mashy](docs/configuration.md#the-dashboard-assistant)
+  [Set up Mashy](docs/mashy.md#set-up-mashy)
 - **GPU acceleration for semantic search.** Optional embeddings use DirectML
   on supported Windows GPUs, Core ML on Apple silicon, or the CPU when local
   acceleration is unavailable. Indexing can also use a configured remote worker.

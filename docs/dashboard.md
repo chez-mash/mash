@@ -6,6 +6,11 @@ also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tok
 and select **open the message** to see where it came from. The demo matches
 exact words and phrases in sample chats.
 
+- [Find and read a chat](#find-and-read-a-chat)
+- [Save a transcript](#save-a-transcript)
+- [Ask Mashy about your chats](mashy.md)
+- [Open the dashboard on another device](dashboard-access.md)
+
 Prebuilt Mash releases include the dashboard. If you compile Mash yourself,
 [build with the dashboard](install-methods.md#include-the-web-dashboard).
 After [installing Mash](installation.md), start it in a terminal.
@@ -26,7 +31,7 @@ older releases show it in the terminal too.
 With the [plugin](plugin.md) installed, `/mash:dashboard` in Claude Code, or
 asking your agent to open the Mash dashboard, does both steps for you.
 
-The default local dashboard opens without a sign-in. Read [Keep access private](#keep-access-private)
+The default local dashboard opens without a sign-in. Read [Keep access private](dashboard-access.md#keep-access-private)
 before changing its listening address.
 
 ## Set up Mash from the dashboard
@@ -100,7 +105,7 @@ The left rail is the way around. On a phone it opens from the menu button.
   whether history also goes to the shared server, memory capture and credential
   masking. [Shortening the history range](privacy.md#shorten-the-history-range)
   applies to future indexing. Chats already indexed stay searchable.
-  If you've set up [Mashy](#ask-mashy), you can turn it on or off and
+  If you've set up [Mashy](mashy.md), you can turn it on or off and
   choose its model. Saving rewrites
   the file and keeps the previous one beside it as `config.toml.previous`;
   restart the watcher and reconnect agents to apply. Mashy follows its own
@@ -148,7 +153,7 @@ message. Choose **Copy link to message** beside **Copy message** to paste a link
 to the exact message into a note or handoff. Only the URL goes to your clipboard.
 The link works while the message is indexed and the reader can reach that
 dashboard. A local link works on the computer running the dashboard, and a
-[private remote dashboard](#open-it-from-your-phone-or-another-computer)
+[private remote dashboard](dashboard-access.md)
 still requires sign-in.
 
 Use **Copy session ID** to [reopen an original session](pick-up-work.md#reopen-the-original-session),
@@ -162,7 +167,8 @@ After submitting a search, look for **search: default** beside the filters.
 The label shows **default (words)** or **default (meaning)** once results
 come back. Open the menu to choose **words** or **meaning**, then select
 **Apply filters** to run the query again.
-The **words** mode matches terms from the chat. The **meaning** mode uses the
+The **words** mode matches terms from the chat, including
+[words from chats in other languages](search-languages.md). The **meaning** mode uses the
 [optional models](indexing.md#enable-semantic-search) and takes English
 queries. The choice follows the result pages for this query. A different
 query starts with [the configured default](configuration.md#search-defaults).
@@ -228,65 +234,9 @@ still running, then choose **Retry**.
 
 ## Ask Mashy
 
-If you have [configured a model](configuration.md#the-dashboard-assistant),
-a circle with the Mash mascot sits in the bottom-right corner of every page.
-Choose it to open a chat with Mashy, and ask about your history in plain
-words:
-
-- "What did I work on yesterday?"
-- "What did we decide about the restart test?"
-- On a chat's page: "Summarise this chat."
-- "Why can't I find this morning's chat?"
-
-On a wide screen, drag the window by its top bar to move it off what you are
-reading; double-click the bar to put it back. On a phone it fills the screen.
-
-Mashy searches your chats and memories and answers briefly. What it mentions
-you can open in the dashboard behind:
-
-- A chat or memory is a chip. When the answer rests on one message, the chip
-  opens the chat at that message.
-- Quoted words appear in a card with who said them and when; your own words
-  carry a coloured edge.
-- A project, an agent or a machine opens its page.
-- When an answer covers only part of what matched, **See all** opens the full
-  search for the same words.
-- A command such as `mash index` has a **Copy** button.
-
-Under an answer it suggests questions that follow from it. If it finds
-nothing, it says so. Use the stop button to cut an answer short.
-
-To ask about something you are reading, select the text in a transcript and
-choose **Ask Mashy**. The passage stays pinned above the conversation and goes
-with each question until you remove it.
-
-Mashy can also tell you how Mash itself is doing: whether search is ready, how
-recent the newest indexed chat is, which agents are connected and when your
-other machines last synced. It cannot fix anything, so it names the command to
-run.
-
-It answers questions about Mash itself from these guides, which are built into
-Mash: "How do I share my index with my laptop?" or "What does `mash init`
-change?" A guide it names opens on this site.
-
-Dates and times are on your browser's clock, so "yesterday" is your yesterday.
-Questions about a period ("what did I do last week", "how many chats in
-October") are answered from the chats that had messages then. A long chat is
-read in parts: Mashy says which part an answer covers.
-
-Mashy uses read-only tools that can look up your history and the built-in
-guides. It cannot index, forget, save memories, run commands or change settings. The
-conversation lasts as long as the browser tab and is not added to your
-history.
-
-Each question sends the text Mashy reads to the model you configured,
-including a passage you selected. Without
-that configuration there is no circle and nothing is sent.
-
-If Mashy fails or answers badly, start the dashboard with `MASH_TRACE=1` and
-ask again. Its log then records each step of a question: which lookups ran and
-how much they returned, how long the model took, how many tokens it used and
-why it stopped. Questions, answers and history text are never logged.
+Mashy is the optional assistant in the dashboard. It can answer a question
+about your chats and link to the messages behind its answer. It needs a model
+service and API key you provide. [Set up and use Mashy](mashy.md)
 
 ## Save a transcript
 
@@ -320,98 +270,14 @@ machines appear in the dashboard through [sharing](shared-index.md).
 
 ## Open it from your phone or another computer
 
-By default, only your machine can reach the dashboard. On Linux or macOS with
-[Tailscale](https://tailscale.com) connected, one command makes it reachable
-from your other devices, and only from them:
+Follow [Open the dashboard on another device](dashboard-access.md) to sign in
+from a phone or another computer.
 
-```sh
-mash dash remote
-```
+<span id="set-it-up-by-hand"></span>
 
-It keeps the dashboard running as a user service behind a sign-in (a systemd
-user service on Linux, a LaunchAgent on macOS), gives it an HTTPS address
-inside your tailnet, and prints the address, a one-time code and a QR code:
+For Windows or another HTTPS reverse proxy, [set up access by hand](dashboard-access.md#set-it-up-by-hand).
 
-```json
-{
-  "dashboard": "https://laptop.your-tailnet.ts.net:8790/",
-  "service": "mash-dash.service",
-  "code": "K7M-2QX",
-  "code_minutes": 10
-}
-```
+<span id="keep-access-private"></span>
 
-On the phone, with Tailscale connected, scan the QR code. Or open the address
-and type the code. Either way the browser stays signed in for 30 days.
-
-| To | Run |
-| --- | --- |
-| Sign another device in | `mash dash remote --code` |
-| Show the QR code again | `mash dash remote --qr` |
-| Use another port | `mash dash remote --port 8791` (with every command) |
-| Host it on a machine with no history of its own | `mash dash remote --shared-only` |
-| Reach it without Tailscale on the device | `mash dash remote --public --port 8443` |
-| Stop serving | `mash dash remote --remove` |
-
-A code works once, within ten minutes. The QR code holds the long-lived token
-itself, after `#` in the address, where browsers never send it to a server;
-the dashboard signs in and removes it from the address at once. Treat a picture
-of it like a password.
-
-The dashboard searches this computer’s history and any shared history it can
-access. If you used `mash init --join`, the dashboard can read the node token
-from `~/.mash/node.env`. With v0.1.1-alpha, setup can report local-only access
-even when this saved token works. Open a chat from another computer to check.
-[Search across your machines](shared-index.md#search)
-
-If you configured sharing by hand, set the node token variable in the shell
-that runs `mash dash remote`. Mash saves it for the service in
-`~/.mash/dashboard.env`, readable only by you. On macOS the LaunchAgent also
-keeps the service’s environment in `~/Library/LaunchAgents/dev.mash.dash.plist`
-and writes its output to `~/.mash/dashboard.log`.
-
-A computer already configured to access the shared index can host the dashboard
-with `mash dash remote --shared-only`. This includes a server with no local chat
-index if the dashboard host has a shared-index connection and a node token.
-Chats, search and memories then come from that shared index.
-
-`--public` publishes the address on the internet with
-[Tailscale Funnel](https://tailscale.com/kb/1223/funnel), so a phone or
-borrowed computer that is not on your tailnet can open it. Tailscale must allow
-Funnel for the machine, and only ports 443, 8443 and 10000 can be published.
-Anyone can then reach the sign-in page: the token and one-time codes are all
-that protect your full chat history, and ten wrong attempts in a minute pause
-sign-in for everyone, you included. Prefer the default unless you need this.
-
-### Set it up by hand
-
-On Windows, or behind another HTTPS reverse proxy such as Caddy:
-
-1. Choose a token of at least 32 characters and put it in an environment
-   variable, for example `MASH_DASH_TOKEN`.
-2. Give the dashboard an HTTPS address. With Tailscale:
-   `tailscale serve --bg 8790`.
-3. Start the dashboard with that name and the token variable:
-
-   ```sh
-   mash dash --allow-host laptop.your-tailnet.ts.net --access-token-env MASH_DASH_TOKEN
-   ```
-
-`--allow-host` is the name browsers use for the dashboard, with its port when
-the address shows one; repeat it for more than one. Changing the token signs
-every browser out.
-
-## Keep access private
-
-With `--access-token-env`, every page of history needs the sign-in. Ten wrong
-tokens in a minute pause sign-in for everyone until the minute passes.
-
-Without it the dashboard has no login. Keep it on its default address, which
-only your machine can reach: `mash dash --listen` with another address serves
-your history to anyone who can connect, and prints a warning when started that
-way. `--allow-host` refuses to start without a token.
-
-Prefer a private network over a public address. On the public internet the
-token is the only thing protecting your full chat history, and a tunnel service
-that ends HTTPS for you, such as Cloudflare Tunnel, can read what passes
-through it.
+[Keep access private](dashboard-access.md#keep-access-private) explains when the
+dashboard requires sign-in.
