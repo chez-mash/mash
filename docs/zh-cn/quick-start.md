@@ -53,10 +53,11 @@ mash dash
 [在终端中搜索](../search.md#your-first-search)。
 
 **让代理帮你搜索。** 重新启动在设置时连接的代理。例如，可以对 Codex 说：“请用 Mash 找出我们在 Claude Code 中对身份验证做过什么决定，并给我看作为依据的原始消息。”
-[检查代理连接](../agents.md#confirm-the-connection)，确认代理能找到 Mash。
+[检查代理连接](agents.md#confirm-the-connection)，确认代理能找到 Mash。
+如果设置时跳过了连接，也可以[稍后再连接代理](agents.md#connect-claude-code-codex-or-copilot)。
 
 要让新对话也能被搜到，可以使用 [`mash index` 或后台监听程序](../synchronization.md)。你还可以 [导出并备份历史记录](../upgrades.md)。
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 4bbeb694cd659f1acc995f2a6ef0db17a4379f62bf45b8cdf478c881aabf8513 -->
+<!-- mash-docs-source: b5632fe7ccb659603e94974465338b7b9f367e2913b8815d4352ab49fc5e9a0e -->

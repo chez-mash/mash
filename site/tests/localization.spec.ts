@@ -35,10 +35,10 @@ test("the language picker keeps the page and labels English fallbacks", async ({
   await expect(page.getByText("Esta página aún no está disponible en tu idioma.")).toBeVisible();
 });
 
-for (const [locale, language, supportTitle, quickStartTitle] of [
-  ["es", "es", "Agentes compatibles", "Guía de inicio rápido"],
-  ["fr", "fr", "Agents compatibles", "Guide de démarrage rapide"],
-  ["zh-cn", "zh-CN", "支持的代理", "快速入门"],
+for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
+  ["es", "es", "Agentes compatibles", "Guía de inicio rápido", "Usa Mash con tu agente"],
+  ["fr", "fr", "Agents compatibles", "Guide de démarrage rapide", "Utiliser Mash avec votre agent"],
+  ["zh-cn", "zh-CN", "支持的代理", "快速入门", "在你的代理中使用 Mash"],
 ]) {
   test(`the ${locale} support guide leads to setup in the same language`, async ({ page }) => {
     await page.goto(`/${locale}/`);
@@ -52,6 +52,21 @@ for (const [locale, language, supportTitle, quickStartTitle] of [
     await page.locator(`.sl-markdown-content a[href="/${locale}/quick-start/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(quickStartTitle);
     await expect(page).toHaveURL(`/${locale}/quick-start/`);
+
+    const connection = `/${locale}/agents/#connect-claude-code-codex-or-copilot`;
+    await page.locator(`.sl-markdown-content a[href="${connection}"]`).click();
+    await expect(page).toHaveURL(connection);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(agentsTitle);
+    await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
+    await expect(page.locator("pre").filter({ hasText: "mash init --no-index" })).toBeVisible();
+    await expect(page.getByText("Use existing settings", { exact: true })).toBeVisible();
+    const verify = `/${locale}/agents/#confirm-the-connection`;
+    await page.locator(`.sl-markdown-content a[href="#confirm-the-connection"]`).click();
+    await expect(page).toHaveURL(verify);
+    await expect(page.locator("#confirm-the-connection")).toBeAttached();
+    await expect(
+      page.locator("pre").filter({ hasText: /^mash status --installation$/ }),
+    ).toBeVisible();
   });
 }
 

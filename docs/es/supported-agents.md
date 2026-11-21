@@ -7,7 +7,7 @@ con todos los historiales de la tabla.
 También puedes conectar un agente para pedirle que busque trabajos anteriores.
 La conexión es opcional. Un agente conectado puede buscar en todos los
 historiales que hayas indexado, incluidas las conversaciones con otros agentes.
-[Instrucciones de conexión (en inglés)](../agents.md#connect-claude-code-codex-or-copilot)
+[Instrucciones de conexión](agents.md#connect-claude-code-codex-or-copilot)
 
 [Configura Mash y encuentra tu primera conversación](quick-start.md).
 

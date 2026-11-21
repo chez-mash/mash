@@ -136,7 +136,15 @@ export default defineConfig({
               },
               slug: "supported-agents",
             },
-            "agents",
+            {
+              label: "Connect an agent",
+              translations: {
+                es: "Conectar un agente",
+                fr: "Connecter un agent",
+                "zh-CN": "连接代理",
+              },
+              slug: "agents",
+            },
             "plugin",
           ],
         },

@@ -8,6 +8,7 @@ import { markdown, rewriteMarkdownUrls } from "./markdown.ts";
 export const translationPages = [
   "quick-start",
   "privacy",
+  "agents",
   "supported-agents",
   "search-languages",
 ] as const;
@@ -27,9 +28,12 @@ const uiLabels = new Set([
   "Customize setup",
   "Set up and index",
   "Set up and index without connecting agents",
+  "Set up without indexing",
   "Skip agent connections",
   "Just this computer (recommended)",
   "Search your history",
+  "Use existing settings",
+  "Which agents should get access to Mash search?",
   "chats",
   "words",
 ]);
@@ -89,9 +93,13 @@ export function prepareTranslation(source: TranslationSource, destination: strin
     nodes.push(node);
   });
   const passages = nodes.map((node) => node.value.trim());
+  const stableAnchors = new Set(
+    [...source.body.matchAll(/^<span id="([a-z0-9-]+)"><\/span>$/gm)].map(([, id]) => `#${id}`),
+  );
   // The draft lives one level below the English guides. Rebase relative links
   // to keep the same destinations, including links to English guide sections.
   rewriteMarkdownUrls(tree, (url) => {
+    if (stableAnchors.has(url)) return url;
     if (/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(url)) return url;
     const base = new URL("https://mash-docs.invalid/");
     const target = new URL(url, new URL(source.file, base));

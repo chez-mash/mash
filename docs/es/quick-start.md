@@ -84,6 +84,9 @@ También puedes [buscar desde el terminal (en inglés)](../search.md#your-first-
 **Busca desde un agente.** Reinicia los agentes que conectaste. Por ejemplo,
 puedes pedirle a Codex «Usa Mash para buscar qué decidimos sobre la
 autenticación en Claude Code y muéstrame el mensaje original».
+[Comprueba la conexión](agents.md#confirm-the-connection) si el agente
+no encuentra Mash. Si omitiste este paso durante la configuración, puedes
+[conectar un agente más tarde](agents.md#connect-claude-code-codex-or-copilot).
 
 Los menús de Mash están en inglés. Para buscar palabras de tus conversaciones,
 consulta [cómo buscar en otros idiomas](search-languages.md).

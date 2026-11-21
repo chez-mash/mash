@@ -5,7 +5,7 @@
 
 你也可以连接代理，让它帮你查找之前做过的工作。
 连接代理是可选的。连接后，代理可以搜索所有已建立索引的历史，包括其他代理的对话。
-[代理连接指南（英文）](../agents.md#connect-claude-code-codex-or-copilot)
+[代理连接指南](agents.md#connect-claude-code-codex-or-copilot)
 
 [设置 Mash 并找到你的第一段对话](quick-start.md)。
 

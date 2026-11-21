@@ -8,7 +8,7 @@ historiques du tableau.
 Vous pouvez aussi connecter un agent et lui demander de retrouver des travaux
 antérieurs. La connexion est facultative. Un agent connecté peut chercher dans
 tous les historiques que vous avez indexés, y compris ceux des autres agents.
-[Instructions de connexion (en anglais)](../agents.md#connect-claude-code-codex-or-copilot)
+[Instructions de connexion](agents.md#connect-claude-code-codex-or-copilot)
 
 [Configurez Mash et retrouvez votre première conversation](quick-start.md).
 

@@ -29,6 +29,7 @@ guide. Use any supported language tag in place of `fr`.
 ```sh
 pnpm --silent translate-docs fr quick-start
 pnpm --silent translate-docs fr privacy
+pnpm --silent translate-docs fr agents
 pnpm --silent translate-docs fr supported-agents
 pnpm --silent translate-docs fr search-languages
 ```

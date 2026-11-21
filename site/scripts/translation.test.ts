@@ -92,4 +92,22 @@ describe("documentation translation drafts", () => {
     expect(output).toContain("../agents.md#connect-claude-code-codex-or-copilot");
     expect(recordedTranslationRevision(output)).toBe(support.revision);
   });
+
+  it("keeps manual section anchors local and protects the actual connection prompts", async () => {
+    const source = await readTranslationSource("agents");
+    const draft = prepareTranslation(source, "docs/fr/agents.md");
+    const output = draft.render({ translations: draft.passages });
+
+    for (const label of [
+      "Use existing settings",
+      "Which agents should get access to Mash search?",
+      "Set up without indexing",
+    ]) {
+      expect(draft.passages).not.toContain(label);
+      expect(output).toContain(`**${label}**`);
+    }
+    expect(output).toContain('<span id="try-it"></span>');
+    expect(output).toContain("[Try a search](#try-it)");
+    expect(output).toContain("../configuration.md#connected-agents");
+  });
 });

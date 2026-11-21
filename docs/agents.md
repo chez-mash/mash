@@ -1,29 +1,45 @@
 # Use Mash with your agent
 
 Connect Claude Code, Codex, or GitHub Copilot CLI to let it look up earlier work
-when you ask. A connected agent can search any history you've indexed.
-[See which histories Mash can read and which agents you can connect](supported-agents.md).
+when you ask. A connected agent can search any history you've indexed, and
+the results it reads become part of its context. [Supported agents](supported-agents.md)
+· [How Mash handles your history](privacy.md)
 
-## Connect Claude Code, Codex or Copilot
+<span id="connect-claude-code-codex-or-copilot"></span>
 
-After [installing Mash and starting Qdrant](installation.md), run:
+## Connect an agent after setup
+
+If this is your first time, follow the [quick start](../README.md#quick-start)
+and choose the agents you want to connect when asked. If your chats are
+already searchable in Mash, run this in a terminal to add an agent
+connection without indexing again:
 
 ```bash
-mash init
+mash init --no-index
 ```
 
-Then restart the agent so it loads the connection, and [try it](#try-it).
+1. Choose **Use existing settings** to keep your history selection.
+2. On **Which agents should get access to Mash search?**, use Space to leave
+   just the agents you want selected. If asked about memory backfill, you can
+   decline it.
+3. Choose **Set up without indexing**, then restart the agent to load its
+   connection. [Try a search](#try-it).
 
-You can search saved chats in the dashboard or terminal even when the agent
-is disconnected. To connect it, its command must work in your terminal. For
-example, check Codex with `codex --version`. If the terminal cannot find it,
-install the agent's CLI or add it to `PATH`, then run `mash init` again.
+If the agent is missing from your choices, check whether its command works in
+that terminal, for example with `codex --version`. Install its CLI or add
+it to `PATH`, then rerun the command above.
+
+GitHub Copilot CLI setup is available on the development branch. If your
+release only offers Claude Code and Codex, you can
+[configure MCP manually](mcp.md#connect-another-mcp-client).
 
 Already installed the plugin from your agent's marketplace? Use its
 [`setup` skill](plugin.md#start-with-the-plugin) to finish setting up Mash.
 
-For each of the three agent CLIs (`claude`, `codex`, `copilot`) found on your
-`PATH`, `mash init` installs two things, using the agent's own commands:
+### What the connection installs
+
+Mash uses each chosen agent's own CLI (`claude`, `codex`, or `copilot`)
+to install two things:
 
 - an **MCP server**: the Mash search tools the agent can call (MCP, the Model
   Context Protocol, is how agents run external tools);
@@ -53,7 +69,9 @@ server when you ask it to; it lacks only the skill and the hooks.
 Running `mash init` again repairs a registration that points at a missing or
 different Mash executable.
 
-## Try it
+<span id="try-it"></span>
+
+## Ask your agent to find past work
 
 Ask your agent:
 
@@ -70,7 +88,9 @@ To invoke the skill explicitly, use `/mash:mash-history` in Claude Code. In
 Codex or Copilot, select the plugin's `mash-history` skill or ask the agent to
 use Mash.
 
-## Confirm the connection
+<span id="confirm-the-connection"></span>
+
+## Check whether the agent is connected
 
 ```bash
 mash status --installation
@@ -110,7 +130,9 @@ mash status --installation --agent copilot --probe
 A successful probe verifies a new process, not the connection in an
 already-open chat. Restart the agent after setup, repairs, or upgrades.
 
-## Keep new chats searchable
+<span id="keep-new-chats-searchable"></span>
+
+## Refresh your chat history
 
 The plugin's hook indexes new history in the background when an agent session
 starts, at most once every ten minutes. It does not follow the current
@@ -121,7 +143,9 @@ To index now, run `mash index`. To index continuously, keep
 `mash index --watch` running in another terminal.
 See [keeping history current](synchronization.md).
 
-## Disconnect an agent
+<span id="disconnect-an-agent"></span>
+
+## Remove an agent connection
 
 Run the agent's own removal commands (`mash init` lists them as `undo`):
 
@@ -136,6 +160,9 @@ copilot plugin uninstall mash@mash
 
 To remove Mash from the machine as well, see
 [uninstall](installation.md#uninstall).
+If you keep Mash, remove the agent from
+[`[agents] connected`](configuration.md#connected-agents) so status stops
+expecting that connection.
 
 ## Other MCP clients and manual setup
 

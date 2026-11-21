@@ -13,9 +13,8 @@ test("visitors can check which histories Mash reads and which agents it connects
   );
   await page.getByRole("link", { name: "connect an agent", exact: true }).click();
   await expect(page).toHaveURL(/\/agents\/#connect-claude-code-codex-or-copilot$/);
-  await expect(
-    page.getByRole("heading", { name: "Connect Claude Code, Codex or Copilot" }),
-  ).toBeVisible();
+  await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Connect an agent after setup" })).toBeVisible();
 });
 
 test("internal links and browser history keep the current document alive", async ({ page }) => {

@@ -73,11 +73,12 @@ Consultez le [guide du tableau de bord](../dashboard.md#find-and-read-a-chat) ou
 [chercher depuis le terminal](../search.md#your-first-search).
 
 **Cherchez depuis un agent.** Redémarrez les agents que vous avez connectés. Dans Codex, vous pouvez demander « Utilise Mash pour retrouver ce que nous avons décidé sur l’authentification dans Claude Code. Montre-moi le message qui explique la décision. »
-[Vérifiez la connexion de l’agent](../agents.md#confirm-the-connection) si Mash n’est pas accessible.
+[Vérifiez la connexion de l’agent](agents.md#confirm-the-connection) si Mash n’est pas accessible.
+Si vous avez passé cette étape, vous pouvez [connecter un agent plus tard](agents.md#connect-claude-code-codex-or-copilot).
 
 Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`mash index` ou la surveillance en arrière-plan](../synchronization.md). Vous pouvez aussi [exporter et sauvegarder votre historique](../upgrades.md).
 
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 4bbeb694cd659f1acc995f2a6ef0db17a4379f62bf45b8cdf478c881aabf8513 -->
+<!-- mash-docs-source: b5632fe7ccb659603e94974465338b7b9f367e2913b8815d4352ab49fc5e9a0e -->

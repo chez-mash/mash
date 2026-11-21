@@ -119,7 +119,8 @@ See the [dashboard guide](docs/dashboard.md#find-and-read-a-chat) or
 example, in Codex, ask “Use Mash to find what we decided about authentication
 in Claude Code. Show me the message behind the answer.”
 [Check an agent connection](docs/agents.md#confirm-the-connection) if it
-cannot see Mash.
+cannot see Mash. If you skipped this during setup, you can
+[connect an agent later](docs/agents.md#connect-claude-code-codex-or-copilot).
 
 Keep new chats searchable with [`mash index` or a background watcher](docs/synchronization.md).
 You can also [export and back up your history](docs/upgrades.md).
