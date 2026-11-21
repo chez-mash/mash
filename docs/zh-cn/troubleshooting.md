@@ -58,13 +58,15 @@ mash --version
 
 ## 网页面板打不开
 
-保持 `mash dash` 运行，然后用同一台电脑上的浏览器打开它显示的地址。如果默认端口已被占用，Mash 会显示 `could not bind the dashboard address`。可以换用另一个本地端口。
+保持 `mash dash` 运行，然后用同一台电脑上的浏览器打开它显示的地址。如果已经在另一个终端启动了 Mash，请打开那个终端里显示的地址。如果有其他程序占用地址，可以让 Mash 选择一个空闲的本地端口。
 
 ```sh
-mash dash --listen 127.0.0.1:8791
+mash dash --listen 127.0.0.1:0
 ```
 
-打开 [http://127.0.0.1:8791](http://127.0.0.1:8791)。如果页面提示未构建网页面板，请安装发布版压缩包，或[从源码构建时加入网页面板](install-methods.md#include-the-web-dashboard)。
+`0` 表示请系统选择空闲端口。请打开 Mash 实际显示的地址。如果需要固定端口，请使用一个可用地址，例如 `127.0.0.1:8791`。
+
+如果页面提示未构建网页面板，请安装发布版压缩包，或[从源码构建时加入网页面板](install-methods.md#include-the-web-dashboard)。
 
 <span id="qdrant-connection-failed"></span>
 
@@ -237,4 +239,4 @@ GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash do
 
 如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashium/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
 
-<!-- mash-docs-source: e374cfaa1ee36aad9b88d7a2a214aa2bdd843f1b471a8839d0bf9075fccb15f2 -->
+<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->

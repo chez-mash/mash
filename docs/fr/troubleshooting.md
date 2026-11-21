@@ -72,15 +72,18 @@ variables d’environnement de Windows.
 ## Le tableau de bord ne s’ouvre pas
 
 Laissez `mash dash` tourner et ouvrez l’adresse affichée dans le navigateur
-du même ordinateur. Si le port par défaut est occupé et que Mash affiche
-`could not bind the dashboard address`, utilisez un autre port local.
+du même ordinateur. Si vous avez déjà lancé Mash dans un autre terminal,
+ouvrez l’adresse affichée dans ce terminal. Si un autre programme occupe
+l’adresse, laissez Mash choisir un port local libre.
 
 ```sh
-mash dash --listen 127.0.0.1:8791
+mash dash --listen 127.0.0.1:0
 ```
 
-Ouvrez [http://127.0.0.1:8791](http://127.0.0.1:8791). Si la page indique que
-le tableau de bord n’a pas été compilé, installez une archive de version
+Le `0` demande un port libre. Ouvrez l’adresse affichée par Mash. Si vous
+avez besoin d’un port fixe, utilisez un port disponible comme `127.0.0.1:8791`.
+
+Si la page indique que le tableau de bord n’a pas été compilé, installez une archive de version
 ou [incluez le tableau de bord dans votre compilation](install-methods.md#include-the-web-dashboard).
 
 <span id="qdrant-connection-failed"></span>
@@ -371,4 +374,4 @@ l’authentification ou publié un paquet dont la somme de contrôle est incorre
 utilisez le [formulaire privé de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
 
-<!-- mash-docs-source: e374cfaa1ee36aad9b88d7a2a214aa2bdd843f1b471a8839d0bf9075fccb15f2 -->
+<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->

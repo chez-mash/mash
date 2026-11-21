@@ -91,7 +91,7 @@ pub async fn run(
     .map_err(|_| AppError::internal("load services configuration"))??;
     let listener = tokio::net::TcpListener::bind(listen)
         .await
-        .map_err(|_| AppError::configuration("could not bind the dashboard address"))?;
+        .map_err(|error| startup::bind_error(listen, &error))?;
     let address = listener
         .local_addr()
         .map_err(|_| AppError::internal("get dashboard address"))?;

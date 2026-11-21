@@ -12,6 +12,26 @@ struct Startup {
     warning: Option<&'static str>,
 }
 
+pub(super) fn bind_error(address: SocketAddr, error: &io::Error) -> AppError {
+    if error.kind() != io::ErrorKind::AddrInUse {
+        return AppError::configuration(format!(
+            "Could not listen for the dashboard at {address}. {error}"
+        ));
+    }
+
+    let recovery = if address.ip().is_loopback() {
+        let free_port = SocketAddr::new(address.ip(), 0);
+        format!(
+            "If Mash is already running, open its existing URL. To start a dashboard on a free local port, use `--listen \"{free_port}\"`."
+        )
+    } else {
+        "Choose a free address or port with `--listen`.".to_owned()
+    };
+    AppError::configuration(format!(
+        "The dashboard address {address} is already in use. {recovery}"
+    ))
+}
+
 pub(super) fn report(address: SocketAddr, warn_about_access: bool) -> Result<(), AppError> {
     let mut stderr = io::stderr().lock();
     let startup = Startup {

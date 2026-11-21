@@ -163,6 +163,32 @@ fn bare_invocation_prints_help_without_starting_an_interface() {
 }
 
 #[test]
+fn dashboard_startup_explains_an_occupied_local_address() {
+    let occupied = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = occupied.local_addr().unwrap().to_string();
+    let directory = tempfile::tempdir().unwrap();
+    let config = directory.path().join("config.toml");
+    std::fs::write(&config, "version = 1\nproviders = {}\n").unwrap();
+    let output = Command::cargo_bin("mash")
+        .unwrap()
+        .arg("--config")
+        .arg(&config)
+        .args(["dash", "--listen", &address])
+        .env_remove("MASH_TRACE")
+        .timeout(HANG_GUARD)
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    assert_eq!(output.stdout, [] as [u8; 0]);
+    let body: Value = serde_json::from_slice(&output.stderr).unwrap();
+    assert_eq!(body["error"]["kind"], "configuration");
+    let message = body["error"]["message"].as_str().unwrap();
+    assert!(message.contains(&format!("{address} is already in use")));
+    assert!(message.contains("--listen \"127.0.0.1:0\""));
+}
+
+#[test]
 fn informational_flags_succeed_without_initializing_application_resources() {
     let directory = tempfile::tempdir().unwrap();
     let missing = directory.path().join("unavailable");

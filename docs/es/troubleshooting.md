@@ -71,15 +71,18 @@ variables de entorno de Windows.
 ## El panel no se abre
 
 Deja `mash dash` en marcha y abre la dirección que muestra en un navegador
-del mismo equipo. Si el puerto predeterminado está ocupado y Mash muestra
-`could not bind the dashboard address`, usa otro puerto local.
+del mismo equipo. Si ya iniciaste Mash en otra terminal, abre la dirección
+que aparece allí. Si otro programa está usando la dirección, deja que Mash
+elija un puerto local libre.
 
 ```sh
-mash dash --listen 127.0.0.1:8791
+mash dash --listen 127.0.0.1:0
 ```
 
-Abre [http://127.0.0.1:8791](http://127.0.0.1:8791). Si la página indica que
-el panel no se ha compilado, instala una versión precompilada o
+El `0` pide un puerto libre. Abre la dirección que muestra Mash. Si necesitas
+un puerto fijo, usa uno disponible, como `127.0.0.1:8791`.
+
+Si la página indica que el panel no se ha compilado, instala una versión precompilada o
 [incluye el panel al compilar desde el código fuente](install-methods.md#include-the-web-dashboard).
 
 <span id="qdrant-connection-failed"></span>
@@ -360,4 +363,4 @@ sesión o publicó un paquete con una suma de comprobación incorrecta, usa el
 [formulario privado de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consulta [qué incluir al informar de un problema de seguridad](../../SECURITY.md#report-a-vulnerability) (en inglés).
 
-<!-- mash-docs-source: e374cfaa1ee36aad9b88d7a2a214aa2bdd843f1b471a8839d0bf9075fccb15f2 -->
+<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->

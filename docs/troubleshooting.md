@@ -65,15 +65,18 @@ that saved setting.
 ## The dashboard doesn’t open
 
 Keep `mash dash` running and open the address it prints in a browser on the
-same machine. If the default address is busy and Mash prints `could not bind
-the dashboard address`, use another local port.
+same machine. If you already started Mash in another terminal, use the URL
+from that terminal. If another program is using the address, ask Mash to
+choose a free local port.
 
 ```sh
-mash dash --listen 127.0.0.1:8791
+mash dash --listen 127.0.0.1:0
 ```
 
-Open [http://127.0.0.1:8791](http://127.0.0.1:8791). If the page says the
-dashboard has not been built, install a release archive or
+The `0` asks for a free port. Open the actual address Mash prints. If you need
+a fixed port, use an available one such as `127.0.0.1:8791` instead.
+
+If the page says the dashboard has not been built, install a release archive or
 [include the dashboard in your source build](install-methods.md#include-the-web-dashboard).
 
 ## Qdrant connection failed
