@@ -560,17 +560,17 @@ for (const [locale, lang] of [
   test(`the ${lang} history range guidance leads to deliberate removal`, async ({ page }) => {
     const guide = page.locator(".sl-markdown-content");
     const privacy = `${locale}/privacy/`;
-    const range = `${privacy}#shorten-the-history-range`;
+    const range = locale ? `${privacy}#shorten-the-history-range` : "/dashboard-settings/";
+    const rangeSection = locale ? "#shorten-the-history-range" : "#change-the-history-range";
+    const removeLink = locale ? "#remove-a-chat" : `${privacy}#remove-a-chat`;
     await page.goto(`${locale}/dashboard/#the-rail`);
     await guide.locator(`a[href="${range}"]`).click();
     await expect(page).toHaveURL(range);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
-    await expect(page.locator("#shorten-the-history-range")).toBeAttached();
+    await expect(page.locator(rangeSection)).toBeAttached();
     await expect(guide.getByText("Save to file", { exact: true })).toBeVisible();
     await guide
-      .locator(
-        ':is(.sl-heading-wrapper, p):has(#shorten-the-history-range) ~ p a[href="#remove-a-chat"]',
-      )
+      .locator(`:is(.sl-heading-wrapper, p):has(${rangeSection}) ~ p a[href="${removeLink}"]`)
       .click();
     await expect(page).toHaveURL(`${privacy}#remove-a-chat`);
     await expect(page.locator("#remove-a-chat")).toBeAttached();

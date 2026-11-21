@@ -25,7 +25,8 @@ in older versions) and enter a number of days.
 
 The range is based on when a history file or session was updated. A recently
 updated chat can contain older messages. A shorter range applies to future
-indexing. Chats that Mash already indexed stay searchable.
+indexing. Chats that Mash already indexed stay searchable. To delete a
+specific chat from Mash, [remove the indexed chat](privacy.md#remove-a-chat).
 
 ## Stop sharing new history
 
