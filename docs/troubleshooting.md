@@ -169,16 +169,18 @@ See [agent setup](agents.md).
 
 ## Search returns no results
 
-1. Try one distinctive word you remember from the chat. In the default word
-   search, all the words you enter must appear in the same message. See
-   [search in other languages](search.md#search-in-other-languages) for text
-   without spaces between words.
+1. Check the [search mode](dashboard.md#choose-a-search-mode). In word
+   search, all the words you enter must appear in the same message. Try one
+   distinctive word you remember. For search by meaning, try a short question
+   in English. See [search in other languages](search.md#search-in-other-languages)
+   for text without spaces between words.
 2. If the dashboard shows filter tags, use **Clear filters** to retry the
    same search. If it opens the chat list, enter your search again. In
    the terminal, run the same search without the filter flags.
-3. Check whether the chat is listed. In the dashboard, type a piece of its
-   title and look under **chats** in the search box suggestions. In the
-   terminal, use the title command below.
+3. Check whether the chat is listed. Choose **Browse chats** to open the
+   dashboard's chat list with your current filters. If you remember part of
+   the title, type it and look under **chats** in the search box suggestions.
+   In the terminal, use the title command below.
 4. If a new chat is missing or its transcript ends too early, run
    `mash index` and check again. For an older chat,
    [include more history](indexing.md#add-older-history). If an agent's

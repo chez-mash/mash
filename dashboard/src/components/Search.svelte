@@ -53,6 +53,9 @@ const filtered = $derived(
 const clearFiltersHref = $derived(
   appliedHref({ ...applied, agents: [], machines: [], projects: [], days: null, offset: 0 }),
 );
+const browseChatsHref = $derived(
+  appliedHref({ ...applied, query: "", rank: "relevance", offset: 0 }),
+);
 let draft = $state<Applied>(untrack(() => parseApplied(params)));
 const dirty = $derived(!sameSearch(draft, applied));
 const catalogue = createQuery(() => catalogOptions);
@@ -100,15 +103,23 @@ const result = createQuery(() => ({
     const lastPage = Math.max(0, Math.floor((ordered.length - 1) / pageSize) * pageSize);
     const first = Math.min(applied.offset, lastPage);
     return {
+      ...all,
       hits: ordered.slice(first, first + pageSize),
       nextOffset: first + pageSize < ordered.length ? first + pageSize : null,
-      warnings: all.warnings,
       total: ordered.length,
       first,
     };
   },
 }));
 const hits = $derived(result.data?.hits ?? []);
+const draftIntentLabel = $derived(
+  searchIntents.find((intent) => intent.value === draft.intent)?.label,
+);
+const resolvedDefaultLabel = $derived(
+  draft.intent === "default" && applied.intent === "default"
+    ? searchIntents.find((intent) => intent.value === result.data?.intent)?.label
+    : undefined,
+);
 
 function toggle(field: "agents" | "machines" | "projects", value: string): void {
   const current: readonly string[] = draft[field];
@@ -186,7 +197,7 @@ const rangeLabel = $derived.by(() => {
     </FilterMenu>
   {:else}
     <FilterMenu
-      label="search: {searchIntents.find((intent) => intent.value === draft.intent)?.label}"
+      label={resolvedDefaultLabel ? `search: default (${resolvedDefaultLabel})` : `search: ${draftIntentLabel}`}
       active={draft.intent !== "default"}
       draft={draft.intent !== applied.intent}
       options={searchIntents}
@@ -230,6 +241,7 @@ const rangeLabel = $derived.by(() => {
       {#if applied.query && result.data.first === 0}
         <p class="meta" style:margin-top="4px" style:font-size="13.5px">
           {#if filtered}Nothing matched “{applied.query}” with the selected filters.
+          {:else if result.data.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
       {/if}
@@ -245,6 +257,9 @@ const rangeLabel = $derived.by(() => {
           {:else}
             <a class="btn" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
           {/if}
+        {/if}
+        {#if applied.query && result.data.first === 0}
+          <a class="btn" href={browseChatsHref}>Browse chats</a>
         {/if}
       </div>
     </div>

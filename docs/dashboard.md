@@ -53,8 +53,8 @@ index until your chats appear.
   and choose **Check search service again**, or choose **Set up without
   indexing** and index later. The customization review also offers saving
   without indexing when the service is ready.
-- To search by meaning from the dashboard, follow the
-  [model setup guide](indexing.md#enable-semantic-search) and choose it as your default.
+- To search by meaning, [set up the models and build search data](indexing.md#enable-semantic-search).
+  You can then [choose meaning for a search](#choose-a-search-mode).
 - Going through setup again on a machine that is already set up rewrites the
   configuration with your answers and keeps the previous file beside it.
 - Sharing with other machines, memory backfill and history kept in other
@@ -107,8 +107,9 @@ Choose a tag to remove it.
 
 If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit
-the query again. For an empty search without filters, see
-[how to find the missing chat](troubleshooting.md#search-returns-no-results).
+the query again. Choose **Browse chats** to open the chat list with the
+current filters. Use your browser's Back button to return to the search.
+For more help, see [how to find the missing chat](troubleshooting.md#search-returns-no-results).
 
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see
@@ -120,8 +121,10 @@ Chat and memory views are read-only.
 
 ### Choose a search mode
 
-After submitting a search, open the **search: default** menu beside the
-filters. Choose **words** or **meaning**, then select **Apply filters**.
+After submitting a search, look for **search: default** beside the filters.
+The label shows **default (words)** or **default (meaning)** once results
+come back. Open the menu to choose **words** or **meaning**, then select
+**Apply filters** to run the query again.
 The **words** mode matches terms from the chat. The **meaning** mode uses the
 [optional models](indexing.md#enable-semantic-search) and takes English
 queries. The choice follows the result pages for this query. A different

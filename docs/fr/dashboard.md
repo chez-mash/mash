@@ -27,7 +27,7 @@ Sur le premier écran de confirmation, **Skip agent connections** indexe les mê
 Mash applique les changements quand vous choisissez **Set up and index** ou **Set up without indexing** sur l’écran de confirmation. Il écrit sa configuration, utilise la commande de chaque agent choisi pour le connecter et lance l’indexation en arrière-plan si vous l’avez demandée. La page indique ce qui a été enregistré, les fichiers modifiés par les agents et les commandes pour annuler leurs connexions. Elle suit aussi l’indexation jusqu’à l’apparition des conversations.
 
 - L’indexation nécessite le service de recherche. S’il est arrêté, lancez `mash qdrant install` puis choisissez **Check search service again**, ou utilisez **Set up without indexing** pour indexer plus tard. La confirmation de la configuration personnalisée propose aussi l’enregistrement sans indexation lorsque le service fonctionne.
-- Pour rechercher par sens dans le tableau de bord, suivez le [guide d’installation des modèles](../indexing.md#enable-semantic-search) et choisissez ce mode par défaut.
+- Pour chercher par le sens, [installez les modèles et préparez l’index](../indexing.md#enable-semantic-search). Vous pourrez ensuite [choisir la recherche par le sens pour une requête](#choose-a-search-mode).
 - Si vous refaites la configuration sur une machine déjà configurée, Mash enregistre vos choix et conserve le fichier précédent à côté du nouveau.
 - Pour partager entre machines, extraire des souvenirs d’anciennes conversations ou lire des historiques stockés ailleurs, utilisez `mash init` ou modifiez le fichier de configuration.
 - Si le tableau de bord est accessible depuis d’autres machines, la configuration dans le navigateur requiert une configuration de services au démarrage. Il en va de même pour la page des paramètres.
@@ -56,7 +56,7 @@ Ouvrez **chats**, tapez un mot dont vous vous souvenez dans **Search your histor
 
 Sans requête, la page liste vos conversations. Les filtres par agent, machine, projet et date s’appliquent à la liste comme aux résultats de recherche. Un filtre modifié a une bordure en pointillés jusqu’à ce que vous choisissiez **Apply filters**. Les filtres appliqués apparaissent sous forme d’étiquettes dans le champ de recherche. Cliquez sur une étiquette pour la retirer.
 
-Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Si la recherche reste vide sans filtre, [voyez comment retrouver la conversation (en anglais)](../troubleshooting.md#search-returns-no-results).
+Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche. Pour aller plus loin, [voyez comment retrouver la conversation (en anglais)](../troubleshooting.md#search-returns-no-results).
 
 Dans une conversation, vos messages sont à droite et les réponses de l’agent à gauche. Les appels d’outils et le raisonnement sont regroupés sur une ligne qui s’ouvre pour montrer chaque étape et sa sortie. Le panneau latéral liste vos demandes de la page en cours, les autres conversations du projet et les souvenirs tirés de celle-ci. **Copy session ID** copie l’identifiant pour reprendre la conversation dans son agent.
 
@@ -66,7 +66,7 @@ Les vues des conversations et des souvenirs sont en lecture seule.
 
 ### Choisir un mode de recherche
 
-Après une recherche, ouvrez le menu **search: default** près des filtres. Choisissez **words** ou **meaning**, puis **Apply filters**. **words** cherche les termes de la conversation. **meaning** utilise des [modèles facultatifs](../indexing.md#enable-semantic-search) et accepte les requêtes en anglais. Le choix reste actif sur les différentes pages de résultats. Une nouvelle requête reprend le [mode par défaut](../configuration.md#search-defaults).
+Après une recherche, repérez **search: default** près des filtres. À l’arrivée des résultats, le libellé affiche **default (words)** ou **default (meaning)**. Ouvrez le menu, choisissez **words** ou **meaning**, puis **Apply filters** pour relancer la recherche. **words** cherche les termes de la conversation. **meaning** utilise des [modèles facultatifs](../indexing.md#enable-semantic-search) et accepte les requêtes en anglais. Le choix reste actif sur les différentes pages de résultats. Une nouvelle requête reprend le [mode par défaut](../configuration.md#search-defaults).
 
 Si le tableau de bord n’affiche pas le menu, utilisez [`mash search --intent`](../search.md).
 
@@ -222,4 +222,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 34c4d23e51e6a4bbe1de4267f7f240413d4340148d117de79378275a88462e2f -->
+<!-- mash-docs-source: b98d0653374f1c0ae0b867d38155ca85e4d3fa866bade64fc684defaaa227301 -->

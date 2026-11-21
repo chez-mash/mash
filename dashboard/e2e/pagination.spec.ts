@@ -153,6 +153,41 @@ test("an empty chat list points to history setup", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
 });
 
+test("browsing after an empty search keeps the history filters", async ({ page }) => {
+  await mockCatalogue(page, [
+    ...chats,
+    {
+      chat_id: "elsewhere",
+      node_id: "local",
+      provider: "codex",
+      title: "Another project",
+      project: "/work/other",
+      updated_at: now,
+    },
+  ]);
+  const requests: string[] = [];
+  await page.route("**/api/search?**", (route) => {
+    requests.push(route.request().url());
+    return route.fulfill({
+      json: { results: [], next_offset: null, intent: "exact-mention" },
+    });
+  });
+  const original = "/#/search?q=needle&project=%2Fwork%2Fproject&rank=recent";
+  await page.goto(original);
+  await expect(page.getByRole("button", { name: "search: default (words)" })).toBeVisible();
+  await page.getByRole("link", { name: "Browse chats", exact: true }).click();
+  await expect(page).toHaveURL("/#/search?project=%2Fwork%2Fproject");
+  await expect(searchBox(page)).toHaveValue("");
+  await expect(page.getByRole("link", { name: /^Conversation 0\b/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Another project/ })).toHaveCount(0);
+  expect(requests).toHaveLength(1);
+
+  await page.goBack();
+  await expect(page).toHaveURL(original);
+  await expect(searchBox(page)).toHaveValue("needle");
+  await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
+});
+
 test("search mode applies on request, follows the result page, and resets for a new query", async ({
   page,
 }) => {
@@ -165,6 +200,7 @@ test("search mode applies on request, follows the result page, and resets for a 
     requests.push({ intent, offset });
     return route.fulfill({
       json: {
+        intent: intent ?? "related-discussion",
         results: [
           {
             ...chats[0],
@@ -178,7 +214,7 @@ test("search mode applies on request, follows the result page, and resets for a 
   });
   await page.goto("/#/search?q=needle&offset=10");
   await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
-  await page.getByRole("button", { name: "search: default" }).click();
+  await page.getByRole("button", { name: "search: default (meaning)" }).click();
   await page.getByRole("menuitemradio", { name: "words", exact: true }).click();
   await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
   expect(requests).toEqual([{ intent: null, offset: "10" }]);

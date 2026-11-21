@@ -12,6 +12,7 @@ export interface Catalog {
 }
 export interface SearchPage {
   readonly hits: readonly SearchHit[];
+  readonly intent?: Wire["Intent"];
   readonly nextOffset: number | null;
   readonly warnings: readonly string[];
 }
@@ -129,6 +130,9 @@ export async function search(
 
 export function parseSearch(body: Answer<"/api/search">, localNode: string): SearchPage {
   return {
+    ...(body.intent === "exact-mention" || body.intent === "related-discussion"
+      ? { intent: body.intent }
+      : {}),
     // The dashboard asks for chats; a result without matches is a message hit.
     hits: body.results.flatMap((row) => {
       if (!("matches" in row)) return [];

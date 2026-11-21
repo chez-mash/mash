@@ -27,7 +27,7 @@ mash dash
 在确认页面选择 **Set up and index** 或 **Set up without indexing** 后，Mash 才会写入配置。它会通过所选代理自己的命令行工具进行连接，并按你的选择在后台建立索引。页面会显示已保存的配置、各代理修改的文件以及撤销连接的命令，还会显示索引进度，直到对话出现在面板中。
 
 - 索引需要搜索服务。如果服务未运行，请执行 `mash qdrant install` 后选择 **Check search service again**，或选择 **Set up without indexing**，稍后再索引。搜索服务可用时，自定义设置的确认页也允许保存配置并稍后索引。
-- 要在网页面板中按语义搜索，请按[模型设置指南](../indexing.md#enable-semantic-search)安装模型，并将语义搜索设为默认模式。
+- 要按含义搜索，请先[安装模型并构建搜索索引](../indexing.md#enable-semantic-search)，然后就可以[为单次查询选择按含义搜索](#choose-a-search-mode)。
 - 重新设置已配置的机器时，Mash 会按你的选项更新配置并在同一位置保留旧文件。
 - 要跨机器共享、从旧对话提取记忆，或读取存放在其他位置的历史，请使用 `mash init` 或编辑配置文件。
 - 如果其他机器能访问网页面板，启动时需要提供服务配置，才能在浏览器中设置 Mash 或修改设置。
@@ -56,7 +56,7 @@ mash dash
 
 搜索框为空时，页面会列出对话。可以按代理、机器、项目和日期筛选对话列表或搜索结果。修改后的筛选项显示虚线边框，选择 **Apply filters** 后才会生效。已生效的筛选条件会以标签显示在搜索框里，点击标签即可移除。
 
-如果筛选后没有结果，选择 **Clear filters**，用相同的查询搜索所有对话。如果你的版本回到了对话列表，请重新提交查询。如果没有筛选条件还是搜不到，请参阅[如何查找缺失的对话（英文）](../troubleshooting.md#search-returns-no-results)。
+如果筛选后没有结果，选择 **Clear filters**，用相同的查询搜索所有对话。如果你的版本回到了对话列表，请重新提交查询。选择 **Browse chats** 可以按当前筛选条件浏览对话。点击浏览器的后退按钮即可回到搜索结果。更多帮助请参阅[如何查找缺失的对话（英文）](../troubleshooting.md#search-returns-no-results)。
 
 对话页面左边是代理的回复，右边是你的消息。工具调用和推理过程折叠为一行，展开即可查看每一步及其输出。侧边栏显示当前页中你发出的请求、同一项目的其他对话，以及根据此对话保存的记忆。**Copy session ID** 可以复制会话 ID，方便你在原代理中继续对话。
 
@@ -66,7 +66,7 @@ mash dash
 
 ### 选择搜索模式
 
-提交搜索后，在筛选项旁打开 **search: default**，选择 **words** 或 **meaning** 后点击 **Apply filters**。**words** 会匹配对话中的词，**meaning** 依赖[可选模型](../indexing.md#enable-semantic-search)，接收英文查询。翻页时会沿用当前查询选择的模式。重新输入查询时会使用[默认模式](../configuration.md#search-defaults)。
+提交搜索后，在筛选项旁找到 **search: default**。结果返回后，标签会显示 **default (words)** 或 **default (meaning)**。打开菜单，选择 **words** 或 **meaning**，然后点击 **Apply filters** 重新搜索。**words** 会匹配对话中的词，**meaning** 依赖[可选模型](../indexing.md#enable-semantic-search)，接收英文查询。翻页时会沿用当前查询选择的模式。重新输入查询时会使用[默认模式](../configuration.md#search-defaults)。
 
 如果你的面板没有此菜单，可以用 [`mash search --intent`](../search.md)选择模式。
 
@@ -222,4 +222,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 34c4d23e51e6a4bbe1de4267f7f240413d4340148d117de79378275a88462e2f -->
+<!-- mash-docs-source: b98d0653374f1c0ae0b867d38155ca85e4d3fa866bade64fc684defaaa227301 -->
