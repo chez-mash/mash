@@ -19,6 +19,7 @@ const uiLabels = new Set([
   "Set up and index",
   "Set up and index without connecting agents",
   "Skip agent connections",
+  "Just this computer (recommended)",
   "chats",
 ]);
 
@@ -40,8 +41,8 @@ export async function readTranslationSource(page: TranslationPage): Promise<Tran
     if (end === undefined) throw new Error("Could not find the end of the README quick start.");
     body = body.slice(start, start + end).replace("## Quick start", "# Quick start");
   }
-  // The site already has a language picker. Leave the repository's Spanish
-  // shortcut out of drafts for other locales.
+  // The site already has a language picker. Leave the repository's language
+  // shortcuts out of generated drafts.
   body = body.replace(/^\[Español\]\([^\n]+\)\n\n/m, "").trimEnd();
   const revision = createHash("sha256").update(body).digest("hex");
   return { file, body, revision };

@@ -3,10 +3,13 @@
 // icons. The demo is a separate app, so its link loads it afresh.
 import { Icon } from "@astrojs/starlight/components";
 import Default from "@astrojs/starlight/components/SocialIcons.astro";
+
+const { locale } = Astro.locals.starlightRoute;
+const guides = locale ? `/${locale}/guides/` : "/guides/";
 ---
 
-<a class="mash-nav" href="/guides/"><Icon name="open-book" />Docs</a>
-<a class="mash-nav" href="/demo/" data-astro-reload><Icon name="laptop" />Try Mash</a>
+<a class="mash-nav" href={guides}><Icon name="open-book" />{Astro.locals.t("mash.nav.docs")}</a>
+<a class="mash-nav" href="/demo/" data-astro-reload><Icon name="laptop" />{Astro.locals.t("mash.nav.demo")}</a>
 <Default />
 
 <style>

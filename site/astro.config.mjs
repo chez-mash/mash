@@ -35,39 +35,67 @@ export default defineConfig({
       sidebar: [
         {
           label: "Start here",
-          translations: { es: "Primeros pasos" },
+          translations: { es: "Primeros pasos", fr: "Premiers pas", "zh-CN": "开始使用" },
           items: [
             {
               label: "Welcome to Mash",
-              translations: { es: "Mash en español" },
+              translations: {
+                es: "Mash en español",
+                fr: "Mash en français",
+                "zh-CN": "Mash 简体中文指南",
+              },
               slug: "index",
             },
             {
               label: "Quick start",
-              translations: { es: "Guía de inicio rápido" },
+              translations: {
+                es: "Guía de inicio rápido",
+                fr: "Guide de démarrage rapide",
+                "zh-CN": "快速入门",
+              },
               slug: "quick-start",
             },
-            { label: "Installation", translations: { es: "Instalación" }, slug: "installation" },
+            {
+              label: "Installation",
+              translations: { es: "Instalación", fr: "Installation", "zh-CN": "安装" },
+              slug: "installation",
+            },
             {
               label: "Other install methods",
-              translations: { es: "Otros métodos de instalación" },
+              translations: {
+                es: "Otros métodos de instalación",
+                fr: "Autres méthodes d’installation",
+                "zh-CN": "其他安装方式",
+              },
               slug: "install-methods",
             },
             {
               label: "Privacy",
-              translations: { es: "Privacidad" },
+              translations: { es: "Privacidad", fr: "Confidentialité", "zh-CN": "隐私" },
               slug: "privacy",
             },
           ],
         },
         {
           label: "Find past work",
-          translations: { es: "Encuentra conversaciones" },
+          translations: {
+            es: "Encuentra conversaciones",
+            fr: "Retrouver ses travaux",
+            "zh-CN": "查找历史对话",
+          },
           items: [
-            { label: "Dashboard", translations: { es: "Panel" }, slug: "dashboard" },
+            {
+              label: "Dashboard",
+              translations: { es: "Panel", fr: "Tableau de bord", "zh-CN": "网页面板" },
+              slug: "dashboard",
+            },
             {
               label: "Terminal search",
-              translations: { es: "Búsqueda desde el terminal" },
+              translations: {
+                es: "Búsqueda desde el terminal",
+                fr: "Recherche dans le terminal",
+                "zh-CN": "终端搜索",
+              },
               slug: "search",
             },
             "records",
@@ -75,17 +103,25 @@ export default defineConfig({
         },
         {
           label: "Use Mash with agents",
-          translations: { es: "Usa Mash con agentes" },
+          translations: {
+            es: "Usa Mash con agentes",
+            fr: "Utiliser Mash avec des agents",
+            "zh-CN": "在代理中使用 Mash",
+          },
           items: ["agents", "plugin"],
         },
         {
           label: "Manage Mash",
-          translations: { es: "Administra Mash" },
+          translations: { es: "Administra Mash", fr: "Gérer Mash", "zh-CN": "管理 Mash" },
           items: [
             "troubleshooting",
             {
               label: "Local search service",
-              translations: { es: "Servicio de búsqueda local" },
+              translations: {
+                es: "Servicio de búsqueda local",
+                fr: "Service de recherche local",
+                "zh-CN": "本地搜索服务",
+              },
               slug: "local-search",
             },
             "synchronization",
@@ -97,7 +133,7 @@ export default defineConfig({
         },
         {
           label: "Reference",
-          translations: { es: "Referencia" },
+          translations: { es: "Referencia", fr: "Référence", "zh-CN": "参考" },
           collapsed: true,
           items: ["cli", "configuration", "mcp", "tools"],
         },

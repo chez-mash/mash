@@ -1,4 +1,6 @@
 {
+  "mash.nav.docs": "Docs",
+  "mash.nav.demo": "Try Mash",
   "mash.theme.dark": "Dark mode",
   "mash.theme.switch": "Switch between light and dark mode"
 }

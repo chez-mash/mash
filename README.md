@@ -41,7 +41,7 @@ search on your machine and needs no account. [How Mash handles your history](doc
 
 ## Quick start
 
-[Español](docs/es/quick-start.md)
+[Español](docs/es/quick-start.md) · [Français](docs/fr/quick-start.md) · [简体中文](docs/zh-cn/quick-start.md)
 
 [Try the browser demo](https://getmash.io/demo/) with sample chats, or set up
 Mash to search your own history.
@@ -78,7 +78,8 @@ works without downloading any models. Linux and WSL need a systemd user
 session for this setup.
 
 The default history range is 90 days. Review the setup and choose **Set up
-and index** when you’re ready. For WSL without systemd, a search service you
+and index** when you’re ready. If the wizard first asks where to search, choose
+**Just this computer (recommended)**. For WSL without systemd, a search service you
 already run, or a binary-only install, follow the [installation guide](docs/installation.md).
 You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
