@@ -76,10 +76,11 @@ vos agents de programmation. Découvrez Mash avec le
 
 ### Référence en anglais
 
+- [Comment fonctionne Mash (en anglais)](../architecture.md)
 - [Commandes utiles](../cli.md)
 - [Modifier la configuration](../configuration.md)
 - [Connecter un autre client MCP](../mcp.md)
 - [Référence des outils MCP](../tools.md)
 - [Appeler les outils de mémoire directement](../record-tools.md)
 
-<!-- mash-docs-source: a002b83491b2dadc1ae91b2c0233c6a858ed6bb7c2564cf4737ecf571ac89713 -->
+<!-- mash-docs-source: 3e80edf9736eb349de54a29d936527ebe71cb91c38cbd413c5ec8912c7f491b7 -->

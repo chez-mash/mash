@@ -77,10 +77,11 @@ Mash 可以帮你找到以前与编程代理的对话。如果是第一次使用
 
 ### 参考资料（英文）
 
+- [Mash 的工作原理（英文）](../architecture.md)
 - [常用命令](../cli.md)
 - [修改配置](../configuration.md)
 - [连接其他 MCP 客户端](../mcp.md)
 - [MCP 工具参考](../tools.md)
 - [直接调用记忆工具](../record-tools.md)
 
-<!-- mash-docs-source: a002b83491b2dadc1ae91b2c0233c6a858ed6bb7c2564cf4737ecf571ac89713 -->
+<!-- mash-docs-source: 3e80edf9736eb349de54a29d936527ebe71cb91c38cbd413c5ec8912c7f491b7 -->

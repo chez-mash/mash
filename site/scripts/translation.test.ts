@@ -277,7 +277,7 @@ describe("documentation translation drafts", () => {
     ]);
     const draft = prepareTranslation(quickStart, "docs/fr/quick-start.md", localeGuides);
     const output = draft.render({ translations: draft.passages });
-    expect(output).toContain("(installation.md#set-up-in-a-terminal)");
+    expect(output).toContain("(installation.md#what-setup-changes)");
     expect(output).toContain("(dashboard.md#set-up-mash-from-the-dashboard)");
     expect(output).toContain("(dashboard.md#find-and-read-a-chat)");
     expect(output).toContain("(agents.md#connect-claude-code-codex-or-copilot)");

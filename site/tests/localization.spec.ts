@@ -14,9 +14,9 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
 
   await page
     .locator(".sl-markdown-content")
-    .getByRole("link", { name: "Privacidad del historial", exact: true })
+    .getByRole("link", { name: "guía de prueba local", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/es\/privacy\/$/);
+  await expect(page).toHaveURL("/es/privacy/#prueba-con-menos-historial");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Privacidad del historial");
   await expect(page.getByRole("switch", { name: "Modo oscuro" })).toBeVisible();
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
@@ -163,9 +163,8 @@ for (const [locale, lang, installationTitle] of [
     const changes = `${install}#what-setup-changes`;
     const guide = page.locator(".sl-markdown-content");
     await page.goto(`/${locale}/quick-start/`);
-    const terminal = `${install}#set-up-in-a-terminal`;
-    await guide.locator(`a[href="${terminal}"]`).click();
-    await expect(page).toHaveURL(terminal);
+    await guide.locator(`a[href="${install}"]`).click();
+    await expect(page).toHaveURL(install);
     await expect(guide.locator("#set-up-in-a-terminal")).toBeAttached();
     await guide.locator(`a[href="/${locale}/quick-start/#install-it-yourself"]`).click();
     await expect(page).toHaveURL(`/${locale}/quick-start/#install-it-yourself`);
@@ -252,6 +251,8 @@ for (const [locale, lang, title] of [
     const install = `/${locale}/installation/`;
     const guide = page.locator(".sl-markdown-content");
     await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${install}"]`).click();
+    await expect(page).toHaveURL(install);
     await guide.locator(`a[href="${packages}"]`).click();
     await expect(page).toHaveURL(packages);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);

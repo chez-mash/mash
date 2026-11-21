@@ -78,10 +78,11 @@ programación. Si acabas de llegar, empieza por la [guía de inicio rápido](qui
 
 ### Referencia en inglés
 
+- [Cómo funciona Mash (en inglés)](../architecture.md)
 - [Comandos útiles](../cli.md)
 - [Cambia la configuración](../configuration.md)
 - [Conecta otro cliente MCP](../mcp.md)
 - [Referencia de herramientas MCP](../tools.md)
 - [Utiliza directamente las herramientas de memoria](../record-tools.md)
 
-<!-- mash-docs-source: a002b83491b2dadc1ae91b2c0233c6a858ed6bb7c2564cf4737ecf571ac89713 -->
+<!-- mash-docs-source: 3e80edf9736eb349de54a29d936527ebe71cb91c38cbd413c5ec8912c7f491b7 -->

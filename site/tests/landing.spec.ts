@@ -431,7 +431,9 @@ test("the Mashy conversation runs to its third answer", async ({ page }) => {
   await expect(scene.locator(".reply").last()).toHaveCSS("opacity", "1", { timeout: 20_000 });
   // The suggestion that was picked has folded away with the others.
   await expect(scene.locator(".follows")).toHaveCSS("opacity", "0");
-  await expect(scene.locator(".caps li").last()).toHaveText("Your model. It only reads.");
+  await expect(scene.locator(".caps li").last()).toHaveText(
+    "Optional. Requires your own model service and API key.",
+  );
 });
 
 test("the welcome page shows everything without scripting", async ({ browser }) => {

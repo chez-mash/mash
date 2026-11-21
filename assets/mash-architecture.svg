@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560" role="img" aria-labelledby="title description">
+  <title id="title">How Mash works</title>
+  <desc id="description">On each machine, Mash reads supported agent histories and indexes them into a SQLite chat copy and a Qdrant search index. Optional local embeddings can use a GPU or CPU and feed Qdrant. The dashboard, CLI, and connected agents can read and search the chats. Machines that opt in publish through authenticated connections to a Mash server you run with its own SQLite copies and Qdrant index.</desc>
+  <style>
+    svg { --background: #f7f3ee; --panel: #fffdfb; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
+    @media (prefers-color-scheme: dark) {
+      svg { --background: #201c18; --panel: #2d2722; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
+    }
+    text { fill: var(--text); font: 600 22px system-ui, sans-serif; }
+    .detail { fill: var(--quiet); font: 19px system-ui, sans-serif; }
+    .outline { stroke: var(--line); stroke-width: 1.5; }
+    .machine { fill: var(--background); }
+    .panel { fill: var(--panel); }
+    .optional { fill: var(--optional); stroke: var(--accent); }
+    .arrow { fill: none; stroke: var(--line); stroke-width: 2; marker-end: url(#arrow); }
+    .optional-arrow { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; marker-end: url(#optional-arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--line)"/>
+    </marker>
+    <marker id="optional-arrow" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+
+  <rect class="machine outline" x="9" y="9" width="402" height="402" rx="14"/>
+  <text x="26" y="37">On each machine</text>
+
+  <rect class="panel outline" x="46" y="53" width="338" height="50" rx="9"/>
+  <text x="215" y="85" text-anchor="middle">Agent history files</text>
+  <path class="arrow" d="M114 103V126"/>
+
+  <rect class="panel outline" x="46" y="129" width="136" height="77" rx="9"/>
+  <text x="114" y="162" text-anchor="middle">Mash</text>
+  <text class="detail" x="114" y="186" text-anchor="middle">Index history</text>
+  <path class="optional-arrow" d="M182 168H207"/>
+  <rect class="optional outline" x="210" y="129" width="174" height="77" rx="9" stroke-dasharray="5 4"/>
+  <text x="297" y="155" text-anchor="middle">Embeddings</text>
+  <text class="detail" x="297" y="177" text-anchor="middle">Optional · local</text>
+  <text class="detail" x="297" y="198" text-anchor="middle">GPU or CPU</text>
+
+  <path class="arrow" d="M114 206V250"/>
+  <path class="optional-arrow" d="M325 206V250"/>
+
+  <rect class="panel outline" x="46" y="253" width="136" height="60" rx="9"/>
+  <text x="114" y="278" text-anchor="middle">SQLite</text>
+  <text class="detail" x="114" y="301" text-anchor="middle">Chat copy</text>
+  <path class="arrow" d="M182 283H207"/>
+  <rect class="panel outline" x="210" y="253" width="174" height="60" rx="9"/>
+  <text x="297" y="278" text-anchor="middle">Qdrant</text>
+  <text class="detail" x="297" y="301" text-anchor="middle">Search index</text>
+
+  <path class="arrow" d="M114 313V336"/>
+  <path class="arrow" d="M297 313V336"/>
+  <rect class="panel outline" x="46" y="339" width="338" height="54" rx="9"/>
+  <text x="215" y="362" text-anchor="middle">Read and search</text>
+  <text class="detail" x="215" y="385" text-anchor="middle">Dashboard · CLI · agents via MCP</text>
+
+  <path class="optional-arrow" d="M46 281H28V518H43"/>
+  <text x="46" y="444">Authenticated publication</text>
+  <text class="detail" x="46" y="468">Optional · from multiple machines</text>
+
+  <rect class="optional outline" x="46" y="490" width="338" height="62" rx="9" stroke-dasharray="5 4"/>
+  <text x="215" y="517" text-anchor="middle">Mash server you run</text>
+  <text class="detail" x="215" y="540" text-anchor="middle">SQLite copies · Qdrant search</text>
+</svg>

@@ -79,10 +79,11 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 ### リファレンス（英語）
 
+- [Mash の仕組み（英語）](../architecture.md)
 - [主なコマンド](../cli.md)
 - [設定を変更する](../configuration.md)
 - [別の MCP クライアントを接続する](../mcp.md)
 - [MCP ツールリファレンス](../tools.md)
 - [記憶のツールを直接呼び出す](../record-tools.md)
 
-<!-- mash-docs-source: a002b83491b2dadc1ae91b2c0233c6a858ed6bb7c2564cf4737ecf571ac89713 -->
+<!-- mash-docs-source: 3e80edf9736eb349de54a29d936527ebe71cb91c38cbd413c5ec8912c7f491b7 -->

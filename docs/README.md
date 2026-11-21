@@ -61,6 +61,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 
 ### Reference
 
+- [How Mash works](architecture.md)
 - [Useful commands](cli.md)
 - [Change your configuration](configuration.md)
 - [Connect another MCP client](mcp.md)

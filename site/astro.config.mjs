@@ -327,7 +327,7 @@ export default defineConfig({
                 ja: "リファレンス",
               },
               collapsed: true,
-              items: ["cli", "configuration", "mcp", "tools", "record-tools"],
+              items: ["architecture", "cli", "configuration", "mcp", "tools", "record-tools"],
             },
           ],
         },

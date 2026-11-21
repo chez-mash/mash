@@ -127,11 +127,10 @@ run this in a terminal:
 mash dash
 ```
 
-Keep the terminal open and visit the address it prints. On a fresh install,
-the dashboard opens to setup. Check the histories and date range. Leave
-agent connections off if you want to search on your own. Choose
-**Set up and index**. Once the index is ready, open **chats** and search for
-a word you remember.
+Open the link Mash shows you and leave the terminal open. On a fresh
+install, follow the steps in your browser, then choose **Set up and index**.
+You can skip connecting agents or clear any preselected agents. When search
+is ready, open **chats** and search for a word you remember.
 [See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard)
 
 ### Set up in a terminal

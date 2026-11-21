@@ -104,7 +104,7 @@ Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台�
 mash dash
 ```
 
-保持终端运行，在浏览器中打开终端显示的网址。首次安装时，网页面板会打开设置页。核对历史记录和日期范围。如果只想自己搜索，请保持代理连接关闭。选择 **Set up and index**。索引就绪后，打开 **chats**，搜索一个你记得的词。
+打开 Mash 显示的链接，保持终端窗口打开。首次安装时，按浏览器中的提示操作，然后选择 **Set up and index**。你可以跳过连接代理的步骤，或取消勾选已选中的代理。搜索就绪后，打开 **chats**，搜索一个你记得的词。
 [查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="set-up-in-a-terminal"></span>
@@ -195,4 +195,4 @@ Qdrant 启动前也可以阅读历史记录。先运行 `mash init --no-index`�
 
 运行 `mash uninstall` 可以预览将移除的内容。[查看哪些内容会保留，以及如何卸载 Mash](uninstall.md)。
 
-<!-- mash-docs-source: f470ab29971e14959137f03db9ce2e94346f514d771d863478f7d7edb07135bc -->
+<!-- mash-docs-source: ee4a2a27f23c403ecd60868d3802d5825da71d2845b9b858c965efd527ca32f3 -->

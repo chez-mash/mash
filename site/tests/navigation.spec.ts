@@ -57,22 +57,22 @@ test("the quick start goes from setup to a first chat and links to package insta
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.locator("#quick-start")).toBeAttached();
   await expect(guide.getByRole("heading", { level: 2 })).toHaveText([
-    "Ask your agent",
     "Install it yourself",
     "Find your first chat",
+    "Ask your agent",
   ]);
+  await expect(guide.locator('a[href^="https://getmash.io/demo/"]')).toHaveCount(0);
   await expect(guide.locator("#try-it")).toBeAttached();
   await expect(guide.locator("pre").filter({ hasText: "sh -s -- --dashboard" })).toBeVisible();
   await expect(guide.locator('pre[data-language="powershell"]')).toContainText(/ -Dashboard$/);
-  await guide.getByRole("link", { name: "set up in a terminal", exact: true }).click();
-  await expect(page).toHaveURL("/installation/#set-up-in-a-terminal");
-  await expect(guide.getByRole("heading", { name: "Set up in a terminal" })).toBeVisible();
-  await page.goBack();
   await guide.getByRole("link", { name: "what setup changes", exact: true }).click();
   await expect(page).toHaveURL("/installation/#what-setup-changes");
   await expect(guide.getByRole("link", { name: "Preview removal", exact: true })).toBeVisible();
   await page.goBack();
-  await guide.getByRole("link", { name: "package install commands" }).click();
+  await guide.getByRole("link", { name: "installation guide", exact: true }).click();
+  await expect(page).toHaveURL("/installation/");
+  await expect(guide.getByRole("heading", { name: "Set up in a terminal" })).toBeVisible();
+  await guide.locator('a[href="/install-methods/#install-with-a-package-manager"]').click();
   await expect(page).toHaveURL("/install-methods/#install-with-a-package-manager");
   await expect(page.locator("#install-with-a-package-manager")).toBeAttached();
   await guide.getByRole("link", { name: "finish setup in the browser" }).click();
@@ -246,4 +246,16 @@ test("the sidebar groups related guides under two top-level sections", async ({ 
   await page.reload();
   await expect(languageSearch).toBeVisible();
   await expect(languageSearch).toHaveAttribute("aria-current", "page");
+});
+
+test("the architecture guide renders its local and shared search diagram", async ({ page }) => {
+  await page.goto("/guides/");
+  const guide = page.locator(".sl-markdown-content");
+  await guide.locator('a[href="/architecture/"]').click();
+  await expect(page).toHaveURL("/architecture/");
+  const diagram = guide.getByRole("img", { name: /SQLite.*Qdrant.*Mash server/ });
+  await expect(diagram).toHaveAttribute("src", "/mash-architecture.svg");
+  await expect
+    .poll(() => diagram.evaluate((image: HTMLImageElement) => image.naturalWidth))
+    .toBeGreaterThan(0);
 });

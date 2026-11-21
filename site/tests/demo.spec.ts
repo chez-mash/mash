@@ -29,10 +29,13 @@ test("the landing page leads to a working demo of the dashboard", async ({ page 
   expect(problems).toEqual([]);
 });
 
-test("the quick start opens a sample search that fits a narrow screen", async ({ page }) => {
+test("the guide index opens a sample search that fits a narrow screen", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
-  await page.goto("/quick-start/");
-  const link = page.getByRole("link", { name: "Try a sample search", exact: true });
+  await page.goto("/guides/");
+  const link = page.getByRole("link", {
+    name: "Try a dashboard search with sample chats",
+    exact: true,
+  });
   await expect(link).toHaveAttribute("href", /^https:\/\/getmash\.io\/demo\/#\/search\?q=/);
   const target = new URL((await link.getAttribute("href")) ?? "");
   await page.goto(target.pathname + target.hash);

@@ -30,6 +30,8 @@ for (const { name: locale } of localeFolders) {
 }
 routes.set("README.md", "/quick-start/");
 routes.set("docs/home.mdx", "/");
+const architectureImage = "mash-architecture.svg";
+const markdownRoutes = new Map(routes).set(`assets/${architectureImage}`, `/${architectureImage}`);
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 for (const { name: locale } of localeFolders) await mkdir(new URL(`${locale}/`, output));
@@ -54,10 +56,14 @@ for (const [source, route] of routes) {
   const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n---\n`;
   await writeFile(
     new URL(`${filename}.md`, output),
-    frontmatter + renderMarkdown(body, source, routes),
+    frontmatter + renderMarkdown(body, source, markdownRoutes),
   );
 }
 await copyFile(new URL("docs/home.mdx", repo), new URL("index.mdx", output));
+await copyFile(
+  new URL(`assets/${architectureImage}`, repo),
+  new URL(`../public/${architectureImage}`, import.meta.url),
+);
 // The landing page shows the dashboard's own agent marks.
 await cp(new URL("dashboard/public/agents/", repo), new URL("../public/agents/", import.meta.url), {
   recursive: true,

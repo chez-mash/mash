@@ -155,11 +155,11 @@ lancez cette commande dans un terminal :
 mash dash
 ```
 
-Laissez le terminal ouvert et ouvrez l’adresse qu’il affiche. Sur une nouvelle
-installation, le tableau de bord ouvre la configuration. Vérifiez les historiques
-et la période. Laissez les connexions aux agents désactivées si vous préférez
-faire vos recherches vous-même. Choisissez **Set up and index**. Une fois
-l’index prêt, ouvrez **chats** et cherchez un mot dont vous vous souvenez.
+Ouvrez le lien affiché par Mash et laissez le terminal ouvert. Pour une
+première installation, suivez les étapes dans votre navigateur, puis choisissez
+**Set up and index**. Vous pouvez passer l’étape de connexion des agents ou
+décocher ceux déjà sélectionnés. Une fois la recherche prête, ouvrez **chats**
+et cherchez un mot dont vous vous souvenez.
 [Voir les étapes de configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="set-up-in-a-terminal"></span>
@@ -317,4 +317,4 @@ la sortie d’erreur.
 
 Lancez `mash uninstall` pour voir ce qui serait retiré. [Vérifiez ce qui reste et comment désinstaller Mash](uninstall.md).
 
-<!-- mash-docs-source: f470ab29971e14959137f03db9ce2e94346f514d771d863478f7d7edb07135bc -->
+<!-- mash-docs-source: ee4a2a27f23c403ecd60868d3802d5825da71d2845b9b858c965efd527ca32f3 -->
