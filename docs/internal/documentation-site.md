@@ -55,7 +55,9 @@ structure and preserves command examples and inline code. It uses the
 translation’s spacing around links, emphasis, and inline code. The draft keeps the
 English section IDs, so links like `#find-and-read-a-chat` can still be used.
 It links to a translated guide when that guide contains the requested section.
-Links to missing translations or sections go to the English guide.
+Links to missing translations or sections go to the English guide. After a
+successful draft, the command lists each distinct English fallback destination
+on stderr. Mark those links as English during review. The draft stays on stdout.
 
 Review the prose and links before saving under `docs/fr/` at the repository
 root. For an existing translation, use the draft to help update the existing

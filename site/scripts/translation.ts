@@ -178,10 +178,11 @@ export function prepareTranslation(
     nodes.push(node);
   });
   const passages = nodes.map((node) => node.value);
-  localizeLinks(tree, source.file, destination, localeGuides);
+  const englishFallbacks = localizeLinks(tree, source.file, destination, localeGuides);
 
   return {
     passages,
+    englishFallbacks,
     render(value: unknown): string {
       if (!value || typeof value !== "object" || !("translations" in value)) {
         throw new Error("The translator did not return a translations array.");

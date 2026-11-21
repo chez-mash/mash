@@ -297,6 +297,51 @@ describe("documentation translation drafts", () => {
     );
   });
 
+  it("lists distinct English documentation fallbacks after resolving locale links", () => {
+    const sourceWithLinks = {
+      ...source,
+      file: "docs/agents.md",
+      body: `# Guide
+
+[Dashboard update behavior](dashboard.md#keep-your-place) and [that same section][again].
+[Configuration](configuration.md?from=guide#local-qdrant) and [README highlights](../README.md#highlights).
+[Local details](#details), [installation](installation.md#connect-your-histories) and [quick start](../README.md#quick-start).
+[External site](https://example.com/README.md), [site path](/privacy/), and [contributing](../CONTRIBUTING.md).
+![Dashboard](../assets/dashboard-demo.png)
+
+## Details
+
+[again]: ./dashboard.md#keep-your-place
+`,
+    };
+    const guides = new Map([
+      ["installation.md", new Set(["#connect-your-histories"])],
+      ["dashboard.md", new Set(["#set-up-mash-from-the-dashboard"])],
+      ["quick-start.md", new Set(["#quick-start"])],
+    ]);
+    const draft = prepareTranslation(sourceWithLinks, "docs/ja/agents.md", guides);
+
+    expect(draft.englishFallbacks).toEqual([
+      "../../README.md#highlights",
+      "../configuration.md?from=guide#local-qdrant",
+      "../dashboard.md#keep-your-place",
+    ]);
+    const output = draft.render({ translations: draft.passages });
+    expect(output).toContain("[Dashboard update behavior](../dashboard.md#keep-your-place)");
+    expect(output).toContain("[again]: ../dashboard.md#keep-your-place");
+    expect(output).toContain("[Local details](#details)");
+    expect(output).toContain("[installation](installation.md#connect-your-histories)");
+    expect(output).toContain("[quick start](quick-start.md)");
+    expect(output).toContain("![Dashboard](../../assets/dashboard-demo.png)");
+
+    guides.delete("quick-start.md");
+    const missingQuickStart = prepareTranslation(sourceWithLinks, "docs/ja/agents.md", guides);
+    expect(missingQuickStart.englishFallbacks).toContain("../../README.md#quick-start");
+    expect(missingQuickStart.render({ translations: missingQuickStart.passages })).toContain(
+      "[quick start](../../README.md#quick-start)",
+    );
+  });
+
   it("can draft a guide before its locale directory has been created", async () => {
     expect(await readLocaleGuides("unconfigured-test-locale")).toEqual(new Map());
   });

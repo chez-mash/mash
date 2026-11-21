@@ -68,9 +68,10 @@ export function localizeLinks(
   source: string,
   destination: string,
   localeGuides: LocaleGuides,
-): void {
+): string[] {
   const sections = fragments(tree);
   const base = new URL(source, linkBase);
+  const englishFallbacks = new Set<string>();
   rewriteMarkdownUrls(tree, (url) => {
     if (/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(url)) return url;
     const target = new URL(url, base);
@@ -92,8 +93,11 @@ export function localizeLinks(
     }
 
     const relative = path.posix.relative(path.posix.dirname(destination), file);
-    return relative + target.search + target.hash;
+    const resolved = relative + target.search + target.hash;
+    if (name || file === "README.md") englishFallbacks.add(resolved);
+    return resolved;
   });
+  return [...englishFallbacks].sort();
 }
 
 export function retainSectionIds(tree: Root, sourceSlugs: readonly string[]): void {

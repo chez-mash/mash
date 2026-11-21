@@ -82,6 +82,12 @@ async function main(args: string[]): Promise<void> {
     if (result.status !== 0) throw new Error("Codex did not complete the translation.");
     const value: unknown = JSON.parse(result.stdout);
     process.stdout.write(draft.render(value));
+    if (draft.englishFallbacks.length) {
+      const destinations = draft.englishFallbacks.map((destination) => `- ${destination}`);
+      process.stderr.write(
+        `English documentation fallbacks to review\n${destinations.join("\n")}\n`,
+      );
+    }
   } finally {
     await rm(cwd, { recursive: true, force: true });
   }
