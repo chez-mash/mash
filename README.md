@@ -32,16 +32,18 @@ search on your machine and needs no account. [How Mash handles your history](doc
 
 ## Why Mash
 
-- **Find the exact message.** Look up an error, filename, or phrase across agents.
-  Open the match in the dashboard with its surrounding messages and tool output.
-  If you remember the idea more than the wording, optional local models let
-  you search by meaning. [Search guide](docs/search.md)
-- **Check why a decision was made.** The plugin saves decisions and preferences
-  with a quote from the conversation. Open the source message yourself, or
-  ask your agent to find it in a later session. [Conversation records](docs/records.md)
-- **Pick up work on another machine.** Your laptop can search chats from your
-  workstation through a server you run. Each machine keeps its own local
-  index, so local search keeps working offline. [Multi-machine setup](docs/shared-index.md)
+- **Find a chat from before you installed Mash.** Search for an error,
+  filename, or phrase across agents, or search by meaning with optional local
+  models. Open the match with its surrounding messages and tool output.
+  [Find the invoice export chat](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+- **See why you made a decision.** The plugin can save the decision with a
+  quote from the chat. Open the original message in the dashboard or ask
+  your agent to look it up later. [Follow a saved decision to its source](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+- **Search across machines you run.** Find chats from your workstation on
+  your laptop through your own Mash server. Each computer can still search
+  its own history offline. [Multi-machine setup](docs/shared-index.md)
+
+[Compare Mash with other coding-agent history tools](docs/compare.md).
 
 ## Quick start
 
@@ -166,9 +168,7 @@ before replacing it.
 
 ## Related projects
 
-- Cross-agent handoffs and recovery of earlier file edits. [Déjà Vu](https://github.com/vshulcz/deja-vu)
-- Search across dozens of agents from a terminal interface. [CASS](https://github.com/Dicklesworthstone/coding_agent_session_search)
-- Automatic capture and AI summaries for future sessions. [Claude-Mem](https://github.com/thedotmack/claude-mem)
+See [how Mash, Déjà Vu, CASS, Claude-Mem and SpecStory fit different workflows](docs/compare.md).
 
 ## Licence
 

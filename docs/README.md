@@ -11,6 +11,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Start here
 
 - [Try a dashboard search with sample chats](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+- [Compare Mash with other coding-agent history tools](compare.md)
 - [Install Mash and choose which histories to read](installation.md)
 - [Install with a package manager or build from source](install-methods.md)
 - [See where your history is stored and what stays private](privacy.md)

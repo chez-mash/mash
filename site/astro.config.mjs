@@ -56,6 +56,15 @@ export default defineConfig({
               slug: "quick-start",
             },
             {
+              label: "Compare tools",
+              translations: {
+                es: "Comparar herramientas",
+                fr: "Comparer les outils",
+                "zh-CN": "比较工具",
+              },
+              slug: "compare",
+            },
+            {
               label: "Installation",
               translations: { es: "Instalación", fr: "Installation", "zh-CN": "安装" },
               slug: "installation",
