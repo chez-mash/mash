@@ -57,6 +57,6 @@ mash dash
 
 要让新对话也能被搜到，可以使用 [`mash index` 或后台监听程序](../synchronization.md)。你还可以 [导出并备份历史记录](../upgrades.md)。
 
-Mash 的界面目前使用英文。你可以按原文查找中文。如果短词找不到，可尝试输入原文中由空格或标点分隔的完整片段。按含义搜索需要使用英文查询。[搜索指南（英文）](../search.md#search-in-other-languages)
+Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 0a82cdf33baacdf0463346d54110973710b9e53bc2dfbbf946d2455b15978041 -->
+<!-- mash-docs-source: 4bbeb694cd659f1acc995f2a6ef0db17a4379f62bf45b8cdf478c881aabf8513 -->

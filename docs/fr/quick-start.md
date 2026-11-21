@@ -77,6 +77,7 @@ Consultez le [guide du tableau de bord](../dashboard.md#find-and-read-a-chat) ou
 
 Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`mash index` ou la surveillance en arrière-plan](../synchronization.md). Vous pouvez aussi [exporter et sauvegarder votre historique](../upgrades.md).
 
-Les menus de Mash sont en anglais. Vous pouvez rechercher les mots français tels qu’ils apparaissent dans la conversation. La recherche par sens nécessite une requête en anglais. [Guide de recherche en anglais](../search.md#search-in-other-languages)
+Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
+consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 0a82cdf33baacdf0463346d54110973710b9e53bc2dfbbf946d2455b15978041 -->
+<!-- mash-docs-source: 4bbeb694cd659f1acc995f2a6ef0db17a4379f62bf45b8cdf478c881aabf8513 -->

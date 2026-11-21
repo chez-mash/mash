@@ -107,6 +107,15 @@ export default defineConfig({
               },
               slug: "search",
             },
+            {
+              label: "Search in other languages",
+              translations: {
+                es: "Buscar en otros idiomas",
+                fr: "Rechercher dans d’autres langues",
+                "zh-CN": "搜索其他语言的对话",
+              },
+              slug: "search-languages",
+            },
             "records",
           ],
         },

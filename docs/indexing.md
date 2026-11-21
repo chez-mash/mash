@@ -49,7 +49,8 @@ refresh.
 Search by meaning, also called semantic search, lets you ask a question even
 when you do not remember the original wording. Use English for these queries.
 Word and phrase search works without models and stays the default unless you
-change it.
+change it. For a chat in another language, see
+[word search examples](search-languages.md).
 
 ### Install the models
 

@@ -8,6 +8,9 @@ pub enum Error {
     UnsupportedLanguage(&'static str),
 }
 
+const WORD_SEARCH_GUIDANCE: &str =
+    "For other languages, use word search (exact-mention) with words from the original chat.";
+
 impl std::fmt::Display for Error {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -17,11 +20,14 @@ impl std::fmt::Display for Error {
             Self::CommonWords => formatter.write_str(
                 "enter a more specific search query; common words alone do not identify a topic",
             ),
-            Self::UnsupportedScript => formatter.write_str(
-                "the current search models support English queries; queries in other scripts are unsupported",
+            Self::UnsupportedScript => write!(
+                formatter,
+                "Search by meaning uses English queries. {WORD_SEARCH_GUIDANCE}"
             ),
-            Self::UnsupportedLanguage(language) => write!(formatter,
-                "the current search models support English queries; detected {language}. Rephrase the query in English"),
+            Self::UnsupportedLanguage(language) => write!(
+                formatter,
+                "Search by meaning uses English queries. The query appears to be in {language}. {WORD_SEARCH_GUIDANCE}"
+            ),
         }
     }
 }

@@ -22,14 +22,9 @@ another [default](configuration.md#search-defaults).
 
 ## Search in other languages
 
-Word search can match text in other languages. Use the spelling and accents
-from the original chat. In Chinese or Japanese text without spaces, Mash
-treats a continuous run of letters or characters as one word. Try a complete
-run between spaces or punctuation if a shorter term finds nothing.
-
-Search by meaning uses English models and expects English queries. An English
-query may miss the equivalent text in another language. Use word search or
-browse the chat directly for non-English history.
+Use word search with the spelling from the original chat. For examples
+and tips for Chinese or Japanese, see [searching chats in other languages](search-languages.md).
+Search by meaning uses English models and works best for English chat text.
 
 ## Your first search
 

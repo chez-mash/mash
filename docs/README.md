@@ -20,6 +20,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 
 - [Find chats in the dashboard and download transcripts](dashboard.md)
 - [Search from the terminal](search.md#your-first-search)
+- [Search chats in other languages](search-languages.md)
 - [Save decisions and revisit the messages behind them](records.md)
 
 ### Use Mash with agents

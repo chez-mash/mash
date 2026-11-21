@@ -30,6 +30,7 @@ guide. Use any supported language tag in place of `fr`.
 pnpm --silent translate-docs fr quick-start
 pnpm --silent translate-docs fr privacy
 pnpm --silent translate-docs fr supported-agents
+pnpm --silent translate-docs fr search-languages
 ```
 
 The command sends the selected public English guide as context and returns a

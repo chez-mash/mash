@@ -377,35 +377,43 @@ fn unsupported_language_is_explained_before_model_or_index_access() {
     std::fs::write(&config, "version = 1\nproviders = {}\n").unwrap();
     let database = directory.path().join("missing.sqlite3");
     let models = directory.path().join("missing-models");
-    let output = Command::cargo_bin("mash")
-        .unwrap()
-        .args([
-            "--config",
-            config.to_str().unwrap(),
-            "--db",
-            database.to_str().unwrap(),
-            "--models-dir",
-            models.to_str().unwrap(),
-            "search",
-            "wie konfiguriere ich den gemeinsamen Suchindex",
-            "--intent",
-            "related-discussion",
-            "--local",
-        ])
-        .output()
-        .unwrap();
-    assert_eq!(output.status.code(), Some(2));
-    assert_eq!(output.stdout, [] as [u8; 0]);
-    let error: Value = serde_json::from_slice(&output.stderr).unwrap();
-    assert_eq!(error["error"]["kind"], "usage");
-    assert!(
-        error["error"]["message"]
-            .as_str()
+    for (query, explanation) in [
+        ("wie konfiguriere ich den gemeinsamen Suchindex", "German"),
+        (
+            "我们更新了身份验证令牌",
+            "Search by meaning uses English queries",
+        ),
+    ] {
+        let output = Command::cargo_bin("mash")
             .unwrap()
-            .contains("German")
-    );
-    assert!(!database.exists());
-    assert!(!models.exists());
+            .args([
+                "--config",
+                config.to_str().unwrap(),
+                "--db",
+                database.to_str().unwrap(),
+                "--models-dir",
+                models.to_str().unwrap(),
+                "search",
+                query,
+                "--intent",
+                "related-discussion",
+                "--local",
+            ])
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert_eq!(output.stdout, [] as [u8; 0]);
+        let error: Value = serde_json::from_slice(&output.stderr).unwrap();
+        assert_eq!(error["error"]["kind"], "usage");
+        let message = error["error"]["message"].as_str().unwrap();
+        assert!(message.contains(explanation), "{message}");
+        assert!(
+            message.contains("use word search (exact-mention)"),
+            "{message}"
+        );
+        assert!(!database.exists());
+        assert!(!models.exists());
+    }
 }
 
 #[test]

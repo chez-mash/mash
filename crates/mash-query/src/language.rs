@@ -40,7 +40,7 @@ mod tests {
             "je voudrais retrouver les conversations récentes sur notre moteur de recherche partagé",
         ] {
             let error = validate(query).expect_err(query);
-            assert!(error.to_string().contains("Rephrase"), "{error:?}");
+            assert!(matches!(error, Error::UnsupportedLanguage(_)), "{error:?}");
         }
     }
 

@@ -5,7 +5,12 @@ import type { Root, Text } from "mdast";
 import { visit } from "unist-util-visit";
 import { markdown, rewriteMarkdownUrls } from "./markdown.ts";
 
-export const translationPages = ["quick-start", "privacy", "supported-agents"] as const;
+export const translationPages = [
+  "quick-start",
+  "privacy",
+  "supported-agents",
+  "search-languages",
+] as const;
 export type TranslationPage = (typeof translationPages)[number];
 
 export type TranslationSource = {
@@ -23,6 +28,7 @@ const uiLabels = new Set([
   "Set up and index without connecting agents",
   "Skip agent connections",
   "Just this computer (recommended)",
+  "Search your history",
   "chats",
 ]);
 
