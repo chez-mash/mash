@@ -31,7 +31,7 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 默认读取最近 90 天的历史。核对设置后，选择 **Set up and index** 继续。
 如果设置助手先询问在哪里搜索，请选择 **Just this computer (recommended)**。
-如果 WSL 没有 systemd、你已运行自己的搜索服务，或你只想安装可执行文件，请参阅 [安装指南](../installation.md)。你也可以 [在网页面板中核对设置](../dashboard.md#set-up-mash-from-the-dashboard)。
+如果 WSL 没有 systemd、你已运行自己的搜索服务，或你只想安装可执行文件，请参阅 [安装指南](../installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 <span id="try-it"></span>
 
@@ -49,7 +49,7 @@ mash dash
 
 如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径（英文）](../troubleshooting.md#mash-command-not-found)。
 如果找不到某条对话，请参阅[搜索无结果时该检查什么（英文）](../troubleshooting.md#search-returns-no-results)。
-参阅 [网页面板指南](../dashboard.md#find-and-read-a-chat)，或了解如何
+参阅 [网页面板指南](dashboard.md#find-and-read-a-chat)，或了解如何
 [在终端中搜索](../search.md#your-first-search)。
 
 **让代理帮你搜索。** 重新启动在设置时连接的代理。例如，可以对 Codex 说：“请用 Mash 找出我们在 Claude Code 中对身份验证做过什么决定，并给我看作为依据的原始消息。”

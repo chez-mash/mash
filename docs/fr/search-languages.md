@@ -2,7 +2,7 @@
 
 Mash conserve les conversations dans leur langue d’origine. Pour retrouver
 un message, recherchez un mot tel qu’il apparaît dans la conversation,
-accents compris. Dans le [tableau de bord](../dashboard.md#find-and-read-a-chat),
+accents compris. Dans le [tableau de bord](dashboard.md#find-and-read-a-chat),
 ouvrez **chats** et utilisez **Search your history**. La recherche par mots
 est le mode par défaut. Pour la sélectionner dans le terminal :
 
@@ -40,7 +40,7 @@ conversation sur le même sujet dans une autre langue. Pour retrouver ce
 message, utilisez les mots de la conversation d’origine.
 
 Pour une recherche ponctuelle dans le tableau de bord, choisissez **words**
-dans le [menu du mode de recherche (en anglais)](../dashboard.md#choose-a-search-mode),
+dans le [menu du mode de recherche](dashboard.md#choose-a-search-mode),
 puis sélectionnez **Apply filters**. Si votre tableau de bord ne propose pas
 ce menu, utilisez les commandes de recherche par mots ci-dessus.
 

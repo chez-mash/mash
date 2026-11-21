@@ -15,7 +15,7 @@ Con la configuración predeterminada, los programas que se ejecutan en el
 mismo equipo pueden acceder al panel y al servicio de búsqueda instalado por
 Mash sin iniciar sesión. Usa esta configuración en un equipo cuyos usuarios
 sean de confianza. Para abrir el panel desde otro dispositivo, usa el
-[panel con inicio de sesión (en inglés)](../dashboard.md#open-it-from-your-phone-or-another-computer).
+[panel con inicio de sesión](dashboard.md#open-it-from-your-phone-or-another-computer).
 
 <span id="where-mash-stores-data"></span>
 
@@ -67,7 +67,7 @@ Para probar Mash con uno de tus historiales:
 
 Para usar todos los historiales sugeridos sin conectar agentes, elige
 **Set up and index without connecting agents** en el primer resumen.
-También puedes [elegir estas opciones en el navegador (en inglés)](../dashboard.md#set-up-mash-from-the-dashboard).
+También puedes [elegir estas opciones en el navegador](dashboard.md#set-up-mash-from-the-dashboard).
 
 `mash uninstall` muestra qué se eliminaría antes de confirmar y conserva las
 conversaciones originales de tus agentes.

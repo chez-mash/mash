@@ -61,7 +61,7 @@ disponible.
 
 Para instalar por separado, usar tu propio Qdrant o configurar WSL sin systemd,
 consulta la [guía de instalación (en inglés)](../installation.md).
-También puedes [usar el asistente del panel local (en inglés)](../dashboard.md#set-up-mash-from-the-dashboard).
+También puedes [usar el asistente del panel local](dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Encuentra una conversación anterior
 
@@ -79,7 +79,8 @@ mash dash
 Si el terminal no encuentra `mash`, usa la ruta completa que muestra el instalador.
 También puedes [añadir Mash a la ruta de comandos (en inglés)](../troubleshooting.md#mash-command-not-found).
 Si no aparece una conversación, consulta [qué hacer cuando no hay resultados (en inglés)](../troubleshooting.md#search-returns-no-results).
-También puedes [buscar desde el terminal (en inglés)](../search.md#your-first-search).
+Consulta la [guía del panel web](dashboard.md#find-and-read-a-chat) o
+[busca desde el terminal (en inglés)](../search.md#your-first-search).
 
 **Busca desde un agente.** Reinicia los agentes que conectaste. Por ejemplo,
 puedes pedirle a Codex «Usa Mash para buscar qué decidimos sobre la

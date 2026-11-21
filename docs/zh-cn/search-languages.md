@@ -1,7 +1,7 @@
 # 搜索其他语言的对话
 
 Mash 会保留对话的原文。要找到某条消息，请按对话中的写法搜索，包括重音符号。
-在[网页面板](../dashboard.md#find-and-read-a-chat)中，打开 **chats** 并使用
+在[网页面板](dashboard.md#find-and-read-a-chat)中，打开 **chats** 并使用
 **Search your history**。默认使用关键词搜索。也可以在终端中明确选择关键词搜索：
 
 ```sh
@@ -32,7 +32,7 @@ mash list-chats --title-contains '身份验证'
 要找到那条消息，请搜索对话原文中的词。
 
 只想在网页面板中进行一次关键词搜索时，请在
-[搜索模式菜单（英文）](../dashboard.md#choose-a-search-mode)中选择 **words**，
+[搜索模式菜单](dashboard.md#choose-a-search-mode)中选择 **words**，
 再选择 **Apply filters**。如果面板中没有这个菜单，请使用上面的关键词搜索命令。
 
 <!-- mash-docs-source: 8778cd7f5546a745518a8568dd60ec669ca91a0a529c15461de7465406cfd6f9 -->

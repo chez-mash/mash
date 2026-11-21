@@ -1,6 +1,6 @@
 # Agentes compatibles
 
-Busca tus conversaciones guardadas en el [panel web](../dashboard.md) con
+Busca tus conversaciones guardadas en el [panel web](dashboard.md) con
 `mash dash` o desde el [terminal](../search.md). Ambas opciones funcionan
 con todos los historiales de la tabla.
 

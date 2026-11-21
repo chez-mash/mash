@@ -4,7 +4,7 @@
 
 默认设置下，Mash 在本机建立索引和搜索，代理保存的原始历史文件保持原样。Mash 在你自己的电脑上运行，无需 Mash 账号。它会保留一份已建立索引的对话副本，其中可能含有敏感文字。[公开演示](https://getmash.io/demo/) 使用示例对话，无法访问你的本地历史记录。
 
-默认情况下，在同一台电脑上运行的程序可以直接访问本地网页面板和 Mash 安装的搜索服务，无需登录。请在只由可信人员使用的电脑上采用此设置。若要从另一台设备打开面板，请使用[需要登录的网页面板（英文）](../dashboard.md#open-it-from-your-phone-or-another-computer)。
+默认情况下，在同一台电脑上运行的程序可以直接访问本地网页面板和 Mash 安装的搜索服务，无需登录。请在只由可信人员使用的电脑上采用此设置。若要从另一台设备打开面板，请使用[需要登录的网页面板](dashboard.md#open-it-from-your-phone-or-another-computer)。
 
 如果代理将历史保存在 SQLite 数据库中（例如 OpenCode），Mash 读取数据库时，数据库旁可能会出现
 `-wal` 和 `-shm` 文件。SQLite 在任何程序读取数据库时都可能创建这些文件，数据库内容保持原样。
@@ -45,7 +45,7 @@
    选择 **chats**，搜索那段对话中的一个词。
 
 如果想使用所有建议的历史，同时保持代理连接关闭，请在首次核对设置时选择
-**Set up and index without connecting agents**。你也可以[在浏览器中选择这些设置（英文）](../dashboard.md#set-up-mash-from-the-dashboard)。
+**Set up and index without connecting agents**。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
 [查看卸载会删除什么](../installation.md#uninstall)

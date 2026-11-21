@@ -50,7 +50,7 @@ par vous demander où chercher, choisissez **Just this computer (recommended)**.
 Si vous utilisez WSL sans systemd, si votre service de recherche tourne déjà
 ou si vous voulez seulement les exécutables, consultez le
 [guide d’installation](../installation.md). Vous
-pouvez aussi [vérifier les options dans le tableau de bord](../dashboard.md#set-up-mash-from-the-dashboard).
+pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>
 
@@ -69,7 +69,7 @@ mash dash
 Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pendant l’installation.
 Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes (en anglais)](../troubleshooting.md#mash-command-not-found).
 Si une conversation manque, consultez [les vérifications pour une recherche sans résultat (en anglais)](../troubleshooting.md#search-returns-no-results).
-Consultez le [guide du tableau de bord](../dashboard.md#find-and-read-a-chat) ou apprenez à
+Consultez le [guide du tableau de bord](dashboard.md#find-and-read-a-chat) ou apprenez à
 [chercher depuis le terminal](../search.md#your-first-search).
 
 **Cherchez depuis un agent.** Redémarrez les agents que vous avez connectés. Dans Codex, vous pouvez demander « Utilise Mash pour retrouver ce que nous avons décidé sur l’authentification dans Claude Code. Montre-moi le message qui explique la décision. »

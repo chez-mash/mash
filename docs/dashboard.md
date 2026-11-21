@@ -14,15 +14,15 @@ After [installing Mash](installation.md), start it in a terminal.
 mash dash
 ```
 
-Open **[http://127.0.0.1:8790](http://127.0.0.1:8790)** in your browser. It
-opens on the overview: your latest chats and memories. Leave the terminal
-running. Ctrl-C stops the dashboard. If the page fails to load,
+Open the address it prints, usually **[http://127.0.0.1:8790](http://127.0.0.1:8790)**,
+in your browser. Once Mash is set up, the overview shows your latest chats and
+memories. Leave the terminal running. Ctrl-C stops the dashboard. If the page fails to load,
 [check dashboard startup](troubleshooting.md#the-dashboard-doesnt-open).
 
 With the [plugin](plugin.md) installed, `/mash:dashboard` in Claude Code, or
 asking your agent to open the Mash dashboard, does both steps for you.
 
-The dashboard has no login. Read [Keep access private](#keep-access-private)
+The default local dashboard opens without a sign-in. Read [Keep access private](#keep-access-private)
 before changing its listening address.
 
 ## Set up Mash from the dashboard
@@ -122,7 +122,7 @@ Chat and memory views are read-only.
 
 After submitting a search, open the **search: default** menu beside the
 filters. Choose **words** or **meaning**, then select **Apply filters**.
-**Words** matches terms from the chat. **Meaning** uses the
+The **words** mode matches terms from the chat. The **meaning** mode uses the
 [optional models](indexing.md#enable-semantic-search) and takes English
 queries. The choice follows the result pages for this query. A different
 query starts with [the configured default](configuration.md#search-defaults).
@@ -235,8 +235,8 @@ Questions about a period ("what did I do last week", "how many chats in
 October") are answered from the chats that had messages then. A long chat is
 read in parts: Mashy says which part an answer covers.
 
-Mashy is a chat, not an agent. It can read your history and nothing else: it
-cannot index, forget, save memories, run commands or change settings. The
+Mashy uses read-only tools that can look up your history and the built-in
+guides. It cannot index, forget, save memories, run commands or change settings. The
 conversation lasts as long as the browser tab and is not added to your
 history.
 

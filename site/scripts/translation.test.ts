@@ -110,4 +110,22 @@ describe("documentation translation drafts", () => {
     expect(output).toContain("[Try a search](#try-it)");
     expect(output).toContain("../configuration.md#connected-agents");
   });
+
+  it("drafts the dashboard guide with literal menu labels and commands", async () => {
+    const dashboard = await readTranslationSource("dashboard");
+    const draft = prepareTranslation(dashboard, "docs/es/dashboard.md");
+    const output = draft.render({ translations: draft.passages });
+
+    for (const label of [
+      "Clear filters",
+      "search: default",
+      "memory from this chat",
+      "overview:",
+    ]) {
+      expect(draft.passages).not.toContain(label);
+      expect(output).toContain(`**${label}**`);
+    }
+    expect(output).toContain("mash dash --allow-host laptop.your-tailnet.ts.net");
+    expect(recordedTranslationRevision(output)).toBe(dashboard.revision);
+  });
 });

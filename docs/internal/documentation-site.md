@@ -29,6 +29,7 @@ guide. Use any supported language tag in place of `fr`.
 ```sh
 pnpm --silent translate-docs fr quick-start
 pnpm --silent translate-docs fr privacy
+pnpm --silent translate-docs fr dashboard
 pnpm --silent translate-docs fr agents
 pnpm --silent translate-docs fr supported-agents
 pnpm --silent translate-docs fr search-languages
@@ -39,7 +40,9 @@ Markdown draft on stdout. It inserts the translated prose into the original
 structure, keeping command examples, inline code and link destinations. Review
 the language before saving the draft under `docs/fr/` at the repository root.
 Where a linked guide also has a translation, use the local file and verify the
-section anchor. Keep the source marker at the end.
+section anchor. When updating a translation, keep its explicit section aliases
+such as `<span id="find-and-read-a-chat"></span>` so existing links still work.
+Keep the source marker at the end.
 The docs build reports generated translations whose English source has changed.
 The existing hand-edited Spanish pages do not have this marker.
 

@@ -2,7 +2,7 @@
 
 Mash conserva las conversaciones en su idioma original. Para encontrar un
 mensaje, busca una palabra tal como aparece en la conversación, con sus
-tildes. En el [panel web](../dashboard.md#find-and-read-a-chat), abre
+tildes. En el [panel web](dashboard.md#find-and-read-a-chat), abre
 **chats** y usa **Search your history**. La búsqueda por palabras está
 activada de forma predeterminada. Desde el terminal puedes seleccionarla así:
 
@@ -40,7 +40,7 @@ una conversación sobre el mismo tema en otro idioma. Para encontrar ese
 mensaje, usa las palabras de la conversación original.
 
 Para una sola consulta en el panel, elige **words** en el
-[menú del modo de búsqueda (en inglés)](../dashboard.md#choose-a-search-mode)
+[menú del modo de búsqueda](dashboard.md#choose-a-search-mode)
 y selecciona **Apply filters**. Si tu panel no muestra ese menú, usa los
 comandos de búsqueda por palabras de arriba.
 

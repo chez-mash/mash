@@ -70,6 +70,35 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
   });
 }
 
+for (const [locale, lang, dashboardTitle] of [
+  ["es", "es", "Usa el panel web de Mash"],
+  ["fr", "fr", "Utiliser le tableau de bord de Mash"],
+  ["zh-cn", "zh-CN", "使用 Mash 网页面板"],
+]) {
+  test(`the ${locale} dashboard guide keeps the language and opens the requested sections`, async ({
+    page,
+  }) => {
+    const guide = `/${locale}/dashboard/`;
+    const openSection = async (from: string, section: string) => {
+      await page.goto(`/${locale}/${from}/`);
+      const destination = `${guide}#${section}`;
+      await page.locator(`.sl-markdown-content a[href="${destination}"]`).click();
+      await expect(page).toHaveURL(destination);
+      await expect(page.locator("html")).toHaveAttribute("lang", lang);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(dashboardTitle);
+      await expect(page.locator(`#${section}`)).toBeAttached();
+    };
+
+    await openSection("quick-start", "find-and-read-a-chat");
+    await expect(page.getByText("Search your history", { exact: true })).toBeVisible();
+    await expect(page.getByText("Clear filters", { exact: true })).toBeVisible();
+    await openSection("search-languages", "choose-a-search-mode");
+    await expect(page.getByText("search: default", { exact: true })).toBeVisible();
+    await openSection("privacy", "open-it-from-your-phone-or-another-computer");
+    await expect(page.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
+  });
+}
+
 for (const locale of [
   {
     path: "fr",

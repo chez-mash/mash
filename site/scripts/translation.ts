@@ -8,6 +8,7 @@ import { markdown, rewriteMarkdownUrls } from "./markdown.ts";
 export const translationPages = [
   "quick-start",
   "privacy",
+  "dashboard",
   "agents",
   "supported-agents",
   "search-languages",
@@ -24,17 +25,54 @@ const repo = new URL("../../", import.meta.url);
 const sourceMarker = /^<!-- mash-docs-source: ([a-f0-9]{64}) -->$/m;
 const uiLabels = new Set([
   "Apply filters",
+  "Ask Mashy",
+  "Check search service again",
+  "Clear filters",
+  "Copy",
+  "Copy session ID",
   "Custom number of days",
   "Customize setup",
+  "Export",
+  "Export to PDF",
+  "JSON",
+  "Markdown",
+  "N new messages",
+  "Next",
+  "Next page",
+  "Retry",
+  "Save as PDF",
+  "See all",
   "Set up and index",
   "Set up and index without connecting agents",
   "Set up without indexing",
+  "Show history folders",
+  "Show updated messages",
   "Skip agent connections",
+  "Skip to the dashboard",
   "Just this computer (recommended)",
   "Search your history",
   "Use existing settings",
   "Which agents should get access to Mash search?",
+  "agents",
+  "check for updates",
   "chats",
+  "export chats",
+  "find a statement",
+  "fleet manager",
+  "machines",
+  "meaning",
+  "memory",
+  "memory from this chat",
+  "open the message",
+  "overview",
+  "projects",
+  "reload chat list",
+  "Saved as",
+  "search: default",
+  "services",
+  "settings",
+  "tool explorer",
+  "viewing history",
   "words",
 ]);
 
@@ -88,7 +126,11 @@ export function prepareTranslation(source: TranslationSource, destination: strin
   const nodes: Text[] = [];
   visit(tree, "text", (node, _index, parent) => {
     if (!node.value.trim()) return;
-    if (parent?.type === "strong" && uiLabels.has(node.value.trim().replace(/\s+/g, " "))) return;
+    if (
+      parent?.type === "strong" &&
+      uiLabels.has(node.value.trim().replace(/\s+/g, " ").replace(/:$/, ""))
+    )
+      return;
     if (parent?.type === "link" && parent.url === node.value) return;
     nodes.push(node);
   });

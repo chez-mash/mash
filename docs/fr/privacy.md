@@ -8,7 +8,7 @@ Par défaut, les programmes exécutés sur le même ordinateur peuvent accéder
 au tableau de bord et au service de recherche installé par Mash sans
 authentification. Utilisez cette configuration sur un ordinateur dont les
 utilisateurs sont de confiance. Depuis un autre appareil, utilisez le
-[tableau de bord avec authentification (en anglais)](../dashboard.md#open-it-from-your-phone-or-another-computer).
+[tableau de bord avec authentification](dashboard.md#open-it-from-your-phone-or-another-computer).
 
 Lors de la lecture de l’historique d’un agent qui utilise SQLite, comme OpenCode, des fichiers
 `-wal` et `-shm` peuvent apparaître à côté de la base de données. SQLite crée ces fichiers pour toute lecture. Le contenu de la base reste intact.
@@ -57,7 +57,7 @@ Pour essayer Mash avec l’un de vos propres historiques :
 
 Pour utiliser tous les historiques proposés sans connecter d’agents, choisissez
 **Set up and index without connecting agents** au premier récapitulatif.
-Vous pouvez aussi [faire ces choix dans le navigateur (en anglais)](../dashboard.md#set-up-mash-from-the-dashboard).
+Vous pouvez aussi [faire ces choix dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard).
 
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
 [Voir ce que retire la désinstallation](../installation.md#uninstall)

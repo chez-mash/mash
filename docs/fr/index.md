@@ -10,6 +10,7 @@ l’indexation et la recherche restent locales et aucun compte Mash n’est
 nécessaire.
 
 - [Installez Mash et lancez votre première recherche](quick-start.md).
+- [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).
 - [Découvrez où votre historique est conservé](privacy.md).
 - [Essayez la démo avec des conversations d’exemple](https://getmash.io/demo/).
