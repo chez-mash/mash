@@ -73,6 +73,7 @@ También puedes [buscar desde el terminal (en inglés)](../search.md#your-first-
 puedes pedirle a Codex «Usa Mash para buscar qué decidimos sobre la
 autenticación en Claude Code y muéstrame el mensaje original».
 
-Los menús de Mash están en inglés. La búsqueda por significado usa modelos
+Los menús de Mash están en inglés. Puedes buscar palabras en español tal como
+aparecen en la conversación. La búsqueda por significado usa modelos
 opcionales y, por ahora, requiere consultas en inglés.
 [Cómo funciona la búsqueda (en inglés)](../search.md)

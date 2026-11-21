@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.28.5",
   "scripts": {
     "prepare-content": "node scripts/content.ts",
+    "translate-docs": "node scripts/translate-docs.ts",
     "dev": "pnpm prepare-content && astro dev",
     "build": "pnpm prepare-content && astro build",
     "add-demo": "node scripts/demo.ts",

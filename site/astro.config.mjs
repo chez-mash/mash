@@ -1,5 +1,6 @@
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
+import { docsLocales } from "./scripts/locales.ts";
 
 export default defineConfig({
   site: "https://getmash.io",
@@ -8,10 +9,7 @@ export default defineConfig({
       title: "mash",
       favicon: "/favicon.svg",
       description: "The Multi-Agent Search History Tool",
-      locales: {
-        root: { label: "English", lang: "en" },
-        es: { label: "Español" },
-      },
+      locales: docsLocales,
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
       logo: { dark: "./public/mash-mark.svg", light: "./public/mash-mark-light.svg" },

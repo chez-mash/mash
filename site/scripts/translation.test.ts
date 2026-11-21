@@ -1,0 +1,84 @@
+import { describe, expect, it } from "vitest";
+import { markdown } from "./markdown.ts";
+import {
+  prepareTranslation,
+  readTranslationSource,
+  recordedTranslationRevision,
+} from "./translation.ts";
+
+const source = {
+  file: "docs/privacy.md",
+  revision: "3".repeat(64),
+  body: `# History
+
+Open [the guide](installation.md#uninstall).
+
+## Search
+
+Choose **Skip agent connections** and run \`mash dash\`.
+
+\`\`\`sh
+mash search 'migration' --local
+\`\`\`
+`,
+};
+
+describe("documentation translation drafts", () => {
+  it("keeps all sections, real UI labels, commands and link destinations", () => {
+    const draft = prepareTranslation(source, "docs/fr/privacy.md");
+    expect(draft.passages).not.toContain("Skip agent connections");
+    const output = draft.render({
+      translations: [
+        "Historique",
+        "Ouvrez",
+        "le guide",
+        ".",
+        "Rechercher",
+        "Choisissez",
+        "et lancez",
+        ".",
+      ],
+    });
+    expect(output).toContain("# Historique");
+    expect(output).toContain("## Rechercher");
+    expect(output).toContain("[le guide](../installation.md#uninstall)");
+    expect(output).toContain("**Skip agent connections** et lancez `mash dash`");
+    expect(output).toContain("mash search 'migration' --local");
+    expect(recordedTranslationRevision(output)).toBe(source.revision);
+  });
+
+  it("rejects a missing or empty translation before returning Markdown", () => {
+    const draft = prepareTranslation(source, "docs/fr/privacy.md");
+    expect(() => draft.render({ translations: draft.passages.slice(1) })).toThrow(
+      "Expected exactly",
+    );
+    expect(() => draft.render({ translations: draft.passages.map(() => " ") })).toThrow(
+      "passage 1 is missing or empty",
+    );
+  });
+
+  it("keeps text returned by the translator from creating Markdown links or HTML", () => {
+    const draft = prepareTranslation(
+      { ...source, body: "# History\n\nOpen the guide." },
+      "docs/fr/privacy.md",
+    );
+    const output = draft.render({ translations: ["Historique", "[Bad](//example.com) <script>"] });
+    const body = markdown.parse(output).children[1];
+    expect(body?.type).toBe("paragraph");
+    if (body?.type !== "paragraph") throw new Error("Expected a paragraph");
+    expect(body.children.map((node) => node.type)).toEqual(["text"]);
+    expect(() =>
+      draft.render({ translations: ["Historique", "Ouvrez https://example.com"] }),
+    ).toThrow("changed a heading, link or code example");
+  });
+
+  it("takes both commands and the first search from the real English quick start", async () => {
+    const quickStart = await readTranslationSource("quick-start");
+    expect(quickStart.body).toMatch(/^# Quick start/);
+    expect(quickStart.body).toContain("sh -s -- --setup");
+    expect(quickStart.body).toContain(" -Setup");
+    expect(quickStart.body).toContain("## Find your first chat");
+    expect(quickStart.body).not.toContain("[Español]");
+    expect(quickStart.body).not.toContain("## Licence");
+  });
+});

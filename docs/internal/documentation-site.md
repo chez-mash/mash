@@ -16,9 +16,33 @@ GitHub. Each generated guide has an edit link to its original file.
 
 Add a guide to `docs/README.md` and, when appropriate, the sidebar in
 `site/astro.config.mjs`. New Markdown guides are included in builds and search
-automatically. Only top-level `docs/*.md` files are published. Keep engineering
-and maintenance notes in `docs/internal/`, outside the website and its search.
+automatically. The build includes top-level `docs/*.md` files and Markdown
+under configured language folders. Keep engineering and maintenance notes in
+`docs/internal/`, outside the website and its search.
 Re-run the development command after editing source guides.
+
+## Translate a guide
+
+With a signed-in Codex CLI, run either command from `site/` to draft a French
+guide. Use any supported language tag in place of `fr`.
+
+```sh
+pnpm --silent translate-docs fr quick-start
+pnpm --silent translate-docs fr privacy
+```
+
+The command sends the selected public English guide as context and returns a
+Markdown draft on stdout. It inserts the translated prose into the original
+structure, keeping command examples, inline code and link destinations. Review
+the language and the links before saving it as `docs/fr/quick-start.md` or
+`docs/fr/privacy.md` at the repository root. Keep the source marker at the end.
+The docs build reports generated translations whose English source has changed.
+The existing hand-edited Spanish pages do not have this marker.
+
+To publish a language, add it to `site/scripts/locales.ts`. Add a translated
+`docs/<locale>/index.md` for its landing page; guides without a translation
+use the English fallback. This controls the documentation website. The
+dashboard and command-line interface have their own language support.
 
 ## The welcome page
 
