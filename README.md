@@ -66,7 +66,9 @@ On macOS (Apple silicon) or Linux (x86-64 or ARM64):
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
-On Windows x64, in PowerShell:
+On Windows x64, the setup stores search data in a short folder on the system
+drive, usually `C:\mash-qdrant\storage`. [See where Mash stores data](docs/privacy.md#where-mash-stores-data).
+Run this in PowerShell:
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup

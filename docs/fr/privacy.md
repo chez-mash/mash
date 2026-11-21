@@ -2,10 +2,32 @@
 
 ## Ce qui reste sur votre ordinateur
 
-Par défaut, l’indexation et la recherche restent locales et les fichiers d’historique de vos agents restent intacts. Mash s’exécute sur votre ordinateur et ne nécessite aucun compte Mash. Il conserve sa propre copie des conversations indexées, qui peuvent contenir du texte sensible. Par défaut, le service de recherche installé par Mash n’écoute que sur cet ordinateur. La [démo publique](https://getmash.io/demo/) utilise des conversations d’exemple et n’a pas accès à votre historique local.
+Par défaut, l’indexation et la recherche restent locales et les fichiers d’historique de vos agents restent intacts. Mash s’exécute sur votre ordinateur et ne nécessite aucun compte Mash. Il conserve sa propre copie des conversations indexées, qui peuvent contenir du texte sensible. La [démo publique](https://getmash.io/demo/) utilise des conversations d’exemple et n’a pas accès à votre historique local.
+
+Par défaut, les programmes exécutés sur le même ordinateur peuvent accéder
+au tableau de bord et au service de recherche installé par Mash sans
+authentification. Utilisez cette configuration sur un ordinateur dont les
+utilisateurs sont de confiance. Depuis un autre appareil, utilisez le
+[tableau de bord avec authentification (en anglais)](../dashboard.md#open-it-from-your-phone-or-another-computer).
 
 Lors de la lecture de l’historique d’un agent qui utilise SQLite, comme OpenCode, des fichiers
 `-wal` et `-shm` peuvent apparaître à côté de la base de données. SQLite crée ces fichiers pour toute lecture. Le contenu de la base reste intact.
+
+<span id="where-mash-stores-data"></span>
+
+## Où Mash conserve les données
+
+Par défaut, Mash conserve vos conversations indexées dans
+`~/.mash/mash.sqlite3` et ses réglages dans `~/.mash/config.toml`. Sous
+Windows, `~` désigne votre profil utilisateur. Qdrant stocke à part les
+données de recherche, dont le texte consultable. Sous Windows, Mash utilise
+un chemin court sur le disque système, généralement `C:\mash-qdrant\storage`.
+[Fichiers du service de recherche selon le système (en anglais)](../local-search.md#where-qdrant-stores-data)
+
+Exécutez `mash status` pour voir `database_path` et, si Mash a installé Qdrant,
+`local_qdrant.installed.storage`. Exécutez `mash uninstall` pour voir ce qui
+serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
+`--yes` quand vous êtes prêt à désinstaller Mash.
 
 ## Quand votre historique peut quitter votre ordinateur
 
@@ -17,9 +39,6 @@ Lors de la lecture de l’historique d’un agent qui utilise SQLite, comme Open
   [service de modèle que vous configurez](../configuration.md#the-dashboard-assistant). L’assistant est disponible uniquement si vous le configurez.
 * **L’extraction de souvenirs à partir d’anciennes conversations** envoie les conversations retenues au fournisseur de l’agent auquel vous êtes connecté et que vous choisissez. Mash vous demande votre accord pendant la configuration.
   [Comment sont extraits les souvenirs](../records.md#backfill-earlier-memory)
-
-Le tableau de bord local s’ouvre sans authentification. Gardez son adresse par
-défaut ou limitez l’accès à un réseau privé de confiance.
 
 ## Essayer Mash avec un historique limité
 
@@ -53,4 +72,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](../upgrades.md) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 6092dc50a7b4767e4c0a16575170916dbda9351910f9c86d02785225361ea9c1 -->
+<!-- mash-docs-source: 7f0a7f2e3d47e4f0e076ae4f5f92186c4380cfd1ec21d3a25b3ecd947871aa7e -->

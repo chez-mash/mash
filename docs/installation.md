@@ -56,6 +56,10 @@ build and how to include the web dashboard.
 
 ## Start the local search service
 
+On Windows, Mash puts Qdrant's search data in a short folder on the system
+drive, usually `C:\mash-qdrant\storage`.
+[See Qdrant's files and logs](local-search.md#where-qdrant-stores-data).
+
 ```sh
 mash qdrant install
 ```
@@ -238,9 +242,10 @@ If you run your own Qdrant, the service and any Mash search data it holds
 stay in place. Manage that data separately.
 
 Use `--keep-history` to keep Mash's searchable copy of your chats, its
-configuration and saved tokens for a future reinstall. Mash still removes
-its services, agent connections and downloaded models. If you want a separate
-backup before uninstalling, run [`mash export DIRECTORY`](upgrades.md).
+configuration, saved tokens, and the search data in its managed Qdrant for a
+future reinstall. Mash still removes its services, agent connections and
+downloaded models. If you want a separate backup before uninstalling, run
+[`mash export DIRECTORY`](upgrades.md).
 
 Preview with `mash uninstall --keep-history`, then confirm with
 `mash uninstall --yes --keep-history`.

@@ -2,10 +2,23 @@
 
 ## 哪些内容留在你的电脑上
 
-默认设置下，Mash 在本机建立索引和搜索，代理保存的原始历史文件保持原样。Mash 在你自己的电脑上运行，无需 Mash 账号。它会保留一份已建立索引的对话副本，其中可能含有敏感文字。默认情况下，Mash 安装的搜索服务只在本机监听。 [公开演示](https://getmash.io/demo/) 使用示例对话，无法访问你的本地历史记录。
+默认设置下，Mash 在本机建立索引和搜索，代理保存的原始历史文件保持原样。Mash 在你自己的电脑上运行，无需 Mash 账号。它会保留一份已建立索引的对话副本，其中可能含有敏感文字。[公开演示](https://getmash.io/demo/) 使用示例对话，无法访问你的本地历史记录。
+
+默认情况下，在同一台电脑上运行的程序可以直接访问本地网页面板和 Mash 安装的搜索服务，无需登录。请在只由可信人员使用的电脑上采用此设置。若要从另一台设备打开面板，请使用[需要登录的网页面板（英文）](../dashboard.md#open-it-from-your-phone-or-another-computer)。
 
 如果代理将历史保存在 SQLite 数据库中（例如 OpenCode），Mash 读取数据库时，数据库旁可能会出现
 `-wal` 和 `-shm` 文件。SQLite 在任何程序读取数据库时都可能创建这些文件，数据库内容保持原样。
+
+<span id="where-mash-stores-data"></span>
+
+## Mash 将数据存在哪里
+
+默认情况下，已建立索引的对话保存在 `~/.mash/mash.sqlite3`，设置保存在
+`~/.mash/config.toml`。在 Windows 上，`~` 指你的用户配置文件目录。Qdrant 会单独保存包括可搜索的对话文字在内的数据。在 Windows 上，Mash 为这些数据使用系统盘上的较短路径，通常是 `C:\mash-qdrant\storage`。
+[各系统的搜索服务文件位置（英文）](../local-search.md#where-qdrant-stores-data)
+
+运行 `mash status` 可查看 `database_path`。如果 Qdrant 由 Mash 安装，还可查看
+`local_qdrant.installed.storage`。运行 `mash uninstall` 可以预览要删除的内容，其中包括 Windows 上单独保存的 Qdrant 文件夹。准备好卸载后，再加上 `--yes`。
 
 ## 历史记录何时可能离开你的电脑
 
@@ -17,8 +30,6 @@
   [你配置的模型服务](../configuration.md#the-dashboard-assistant)。助手只有在配置后才可使用。
 * **从旧对话补录记忆** 会将选定的历史对话发送给你所选且已登录的代理的模型提供商。Mash 会在设置时询问你是否执行此操作。
   [了解如何补录记忆](../records.md#backfill-earlier-memory)
-
-本地网页面板无需登录。请保留默认地址，或只允许受信任的私有网络访问。
 
 ## 用少量本地历史试用
 
@@ -52,4 +63,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](../upgrades.md)。
 
-<!-- mash-docs-source: 6092dc50a7b4767e4c0a16575170916dbda9351910f9c86d02785225361ea9c1 -->
+<!-- mash-docs-source: 7f0a7f2e3d47e4f0e076ae4f5f92186c4380cfd1ec21d3a25b3ecd947871aa7e -->

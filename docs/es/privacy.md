@@ -11,9 +11,27 @@ de documentación no recibe tus conversaciones indexadas. La
 [demo pública](https://getmash.io/demo/) usa conversaciones de ejemplo y
 no accede a tu historial local.
 
-Si usas el panel local, conserva su dirección predeterminada o limita el
-acceso a una red privada de confianza. El panel local no tiene inicio de
-sesión.
+Con la configuración predeterminada, los programas que se ejecutan en el
+mismo equipo pueden acceder al panel y al servicio de búsqueda instalado por
+Mash sin iniciar sesión. Usa esta configuración en un equipo cuyos usuarios
+sean de confianza. Para abrir el panel desde otro dispositivo, usa el
+[panel con inicio de sesión (en inglés)](../dashboard.md#open-it-from-your-phone-or-another-computer).
+
+<span id="where-mash-stores-data"></span>
+
+## Dónde guarda Mash los datos
+
+Por defecto, Mash guarda las conversaciones indexadas en
+`~/.mash/mash.sqlite3` y la configuración en `~/.mash/config.toml`. En Windows,
+`~` es tu perfil de usuario. Qdrant guarda aparte los datos de búsqueda,
+incluido el texto en el que se puede buscar. En Windows, Mash usa una ruta
+corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
+[Archivos del servicio de búsqueda por plataforma (en inglés)](../local-search.md#where-qdrant-stores-data)
+
+Ejecuta `mash status` para consultar `database_path` y, si Mash instaló Qdrant,
+`local_qdrant.installed.storage`. Usa `mash uninstall` para ver qué se
+eliminaría, incluida la carpeta separada de Qdrant en Windows. Añade `--yes`
+cuando quieras desinstalar Mash.
 
 ## Cuándo puede salir parte del historial
 

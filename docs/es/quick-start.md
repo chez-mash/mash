@@ -30,7 +30,9 @@ este comando para una instalación local nueva.
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
-En Windows x64, usa PowerShell.
+En Windows x64, los datos de búsqueda se guardan en una carpeta con una ruta
+corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
+[Dónde guarda Mash los datos](privacy.md#where-mash-stores-data). Usa PowerShell.
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup

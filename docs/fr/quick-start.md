@@ -27,7 +27,9 @@ Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
-Sous Windows x64, utilisez PowerShell.
+Sous Windows x64, les données de recherche sont placées dans un dossier au
+chemin court sur le disque système, généralement `C:\mash-qdrant\storage`.
+[Où Mash conserve les données](privacy.md#where-mash-stores-data). Utilisez PowerShell.
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
@@ -74,4 +76,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 
 Les menus de Mash sont en anglais. Vous pouvez rechercher les mots français tels qu’ils apparaissent dans la conversation. La recherche par sens nécessite une requête en anglais. [Guide de recherche en anglais](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: 8dde8c3f8b81ea7f4334323903362c28e24f05828f8b0dcad1c2b96b512621c1 -->
+<!-- mash-docs-source: 928b155ab552986bea8ecf043711407b6076db662e90aec0aa1d534fc289a49c -->

@@ -7,13 +7,31 @@
 The default setup indexes and searches locally without changing your agents'
 original history files. You run Mash on your own machine and need no Mash
 account. Mash keeps its own copy of the indexed chats, which can include
-sensitive text. By default, the search service installed by Mash listens
-only on this machine. The [public demo](https://getmash.io/demo/) uses sample
-chats and has no access to your local history.
+sensitive text. The [public demo](https://getmash.io/demo/) uses sample chats
+and has no access to your local history.
+
+The default dashboard and the search service Mash installs accept requests
+from programs on the same computer without a login. Use the default setup on
+a computer whose local users you trust. To open the dashboard from another
+device, use the [dashboard with sign-in](dashboard.md#open-it-from-your-phone-or-another-computer).
 
 An agent that keeps history in a SQLite database, such as OpenCode, may gain
 `-wal` and `-shm` files beside that database when Mash reads it. SQLite
 creates them for any reader; the database's contents are unchanged.
+
+## Where Mash stores data
+
+By default, your indexed chats are in `~/.mash/mash.sqlite3`, alongside your
+settings in `~/.mash/config.toml`. On Windows, `~` is your user profile.
+Qdrant keeps data for search separately, including searchable chat text. On
+Windows, Mash uses a short path on the system drive for that data, usually
+`C:\mash-qdrant\storage`. [Search service files by platform](local-search.md#where-qdrant-stores-data)
+
+Run `mash status` to see `database_path` and, when Mash installed Qdrant,
+`local_qdrant.installed.storage`. Run `mash uninstall` to preview what would
+be removed. It lists the managed directories, including the separate Qdrant
+folder on Windows. Add `--yes` when you are ready to uninstall.
+[See what uninstall removes](installation.md#uninstall)
 
 ## When history can leave your machine
 
@@ -33,9 +51,6 @@ creates them for any reader; the database's contents are unchanged.
 - **Memory backfill** sends selected existing chats to the provider of the
   signed-in agent you choose. Mash asks before doing this during setup.
   [How memory backfill works](records.md#backfill-earlier-memory)
-
-The local dashboard has no login. Keep its default address or restrict access
-to a trusted private network.
 
 ## Try a small local setup
 

@@ -19,14 +19,27 @@ background as your user. It needs no administrator rights or Docker, listens
 only on this machine (`127.0.0.1`, ports 6333 and 6334), and starts again when
 you log in. The JSON result has `"outcome": "installed"`.
 
+### Where Qdrant stores data
+
+The location below is for the service installed by Mash. It stores searchable
+chat text and any vectors used for search by meaning.
+
 | Platform | Runs as | Qdrant's output | Data |
 | --- | --- | --- | --- |
-| Linux | systemd user service `mash-qdrant.service` | `journalctl --user --unit mash-qdrant.service` | `~/.mash/qdrant` |
-| macOS | LaunchAgent `dev.mash.qdrant` | `~/.mash/qdrant/qdrant.log` | `~/.mash/qdrant` |
-| Windows | logon task `MashQdrant` | `%USERPROFILE%\.mash\qdrant\qdrant.log` | `C:\mash-qdrant`, because Qdrant fails with longer data paths there |
+| Linux | systemd user service `mash-qdrant.service` | `journalctl --user --unit mash-qdrant.service` | `~/.mash/qdrant/storage` |
+| macOS | LaunchAgent `dev.mash.qdrant` | `~/.mash/qdrant/qdrant.log` | `~/.mash/qdrant/storage` |
+| Windows | logon task `MashQdrant` | `%USERPROFILE%\.mash\qdrant\qdrant.log` | `%SystemDrive%\mash-qdrant\storage` |
 
-`mash status` shows the installed version and whether the service is running,
-under `local_qdrant.installed`.
+Qdrant also uses a `snapshots` folder next to `storage`. On Windows, these
+data folders are usually under `C:\mash-qdrant` because longer paths can make
+Qdrant fail. Its program, configuration, and log file stay under
+`%USERPROFILE%\.mash\qdrant`.
+
+`mash status` shows the actual path, version, and service state under
+`local_qdrant.installed`. The `mash qdrant install` result shows the path as
+`service.storage`. [Find the rest of Mash's files](privacy.md#where-mash-stores-data)
+
+### Check or restart the service
 
 On Windows the logon task runs only while you are signed in at the desktop.
 On a machine you reach only over SSH, or a server nobody signs in to, the

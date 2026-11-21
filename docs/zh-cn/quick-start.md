@@ -18,7 +18,8 @@
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
-在 Windows x64 上使用 PowerShell。
+在 Windows x64 上，安装程序会将搜索数据放在系统盘上路径较短的文件夹中，通常是
+`C:\mash-qdrant\storage`。[Mash 将数据存在哪里](privacy.md#where-mash-stores-data)。请使用 PowerShell。
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
@@ -56,4 +57,4 @@ mash dash
 
 Mash 的界面目前使用英文。你可以按原文查找中文。如果短词找不到，可尝试输入原文中由空格或标点分隔的完整片段。按含义搜索需要使用英文查询。[搜索指南（英文）](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: 8dde8c3f8b81ea7f4334323903362c28e24f05828f8b0dcad1c2b96b512621c1 -->
+<!-- mash-docs-source: 928b155ab552986bea8ecf043711407b6076db662e90aec0aa1d534fc289a49c -->

@@ -31,6 +31,10 @@ Tell the person what setup will do, and get a yes before you continue:
   administrator rights).
 - Download and run Qdrant, the local search service: about 30 MB, checksum
   verified, reachable only from this machine, started again at each login.
+  Programs on this machine can reach it without a login.
+  On Windows it stores search data outside the user profile in a short folder
+  on the system drive, usually `C:\mash-qdrant\storage`. The main history
+  database stays in their profile. See https://getmash.io/privacy/#where-mash-stores-data.
 - Read the chat history files of every supported agent it finds on this
   machine, including the chat you are in now. Mash never changes those files.
 - Register Mash with the Claude Code, Codex and GitHub Copilot command-line
@@ -117,6 +121,8 @@ mash qdrant install
 Success is a JSON result with `"outcome"` of `installed`, `current`,
 `repaired` or `upgraded`. Rerunning it is safe. If the person already runs
 their own Qdrant 1.20 or later on `127.0.0.1:6333`, skip this step.
+If Mash installed Qdrant, include the `service.storage` path when reporting
+what was installed and where.
 
 ## 3. Optional search by meaning
 
