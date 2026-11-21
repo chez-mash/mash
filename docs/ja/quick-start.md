@@ -8,7 +8,7 @@
 
 お使いの OS に合ったコマンドを実行すると、Mash がダウンロードされ、ブラウザーでセットアップを始められます。
 [対応するエージェント](supported-agents.md)で保存したチャットが少なくとも 1 件必要です。
-[セットアップで変わること（英語）](../installation.md#what-setup-changes)と
+[セットアップで変わること](installation.md#what-setup-changes)と
 [ダウンロードの検証方法](downloads.md#verify-the-checksum)も確認できます。
 
 **macOS（Apple シリコン）または Linux（x86-64、ARM64）**
@@ -41,10 +41,10 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 あとからダッシュボードを開き直すには、`mash dash` を実行し、表示されたアドレスを開きます。
 端末で `mash` が見つからない場合は、セットアップ時に表示されたフルパスを使うか、
-[端末から `mash` を実行できるようにします（英語）](../troubleshooting.md#mash-command-not-found)。
+[端末から `mash` を実行できるようにします](troubleshooting.md#mash-command-not-found)。
 [ダッシュボードで検索する](dashboard.md#find-and-read-a-chat) ·
 [端末で検索する（英語）](../search.md#your-first-search) ·
-[検索結果が見つからないときの確認（英語）](../troubleshooting.md#search-returns-no-results)
+[検索結果が見つからないときの確認](troubleshooting.md#search-returns-no-results)
 
 <span id="ask-your-agent"></span>
 
@@ -59,6 +59,6 @@ Claude Code、Codex、またはほかのコーディングエージェントに�
 `setup` スキルを使うように頼んでください。自分で Mash をインストールした場合は、[あとからエージェントを接続](agents.md#connect-claude-code-codex-or-copilot)できます。
 
 パッケージマネージャーの使用、ソースからのビルド、端末でのセットアップについては
-[インストールガイド（英語）](../installation.md)をご覧ください。少量のデータで試す場合は、[1 つの履歴で試す](privacy.md#try-a-small-local-setup)方法をご覧ください。
+[インストールガイド](installation.md)をご覧ください。少量のデータで試す場合は、[1 つの履歴で試す](privacy.md#try-a-small-local-setup)方法をご覧ください。
 
 <!-- mash-docs-source: d57d2515612c6e32065f147541df1dc3c18acd5e701eed2c2fd739454faeaf4a -->

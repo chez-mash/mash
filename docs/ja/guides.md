@@ -18,7 +18,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 ### インストール
 
-- [Mash をインストールして読み込む履歴を選ぶ（英語）](../installation.md)
+- [Mash をインストールして読み込む履歴を選ぶ](installation.md)
 - [リリースのアーカイブをダウンロードして検証する](downloads.md)
 - [パッケージマネージャーでインストールする、またはソースからビルドする（英語）](../install-methods.md)
 - [ローカル検索サービスを管理する、または Qdrant を自分で実行する（英語）](../local-search.md)
@@ -72,8 +72,8 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 ### トラブルシューティング
 
-- [セットアップ、検索、履歴更新の問題を解決する（英語）](../troubleshooting.md)
-- [不具合やセキュリティの問題を報告する（英語）](../troubleshooting.md#get-help)
+- [セットアップ、検索、履歴更新の問題を解決する](troubleshooting.md)
+- [不具合やセキュリティの問題を報告する](troubleshooting.md#get-help)
 
 <span id="reference"></span>
 

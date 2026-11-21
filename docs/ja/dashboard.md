@@ -15,7 +15,7 @@ mash dash
 表示されたアドレス（通常は [http://127.0.0.1:8790](http://127.0.0.1:8790)）をブラウザーで開きます。
 セットアップ済みなら、**overview** に最近のチャットや記憶が表示されます。
 使っている間は端末を開いたままにしてください。Ctrl-C でダッシュボードを終了できます。
-ページを開けない場合は [起動時の確認手順（英語）](../troubleshooting.md#the-dashboard-doesnt-open)をご覧ください。
+ページを開けない場合は [起動時の確認手順](troubleshooting.md#the-dashboard-doesnt-open)をご覧ください。
 
 起動時の出力が JSON 形式の場合、アドレスは `dashboard` フィールドにあります。
 標準エラー出力をファイルやパイプにリダイレクトした場合や、古いリリースの端末出力でこの形式が使われます。
@@ -48,7 +48,7 @@ Mash は設定ファイルを書き、選んだエージェントの CLI を使�
 最初の読み込み中はチャットが表示されるまで進み具合を確認できます。
 
 - 読み込みには検索サービスが必要です。停止中の場合は、インストール時に選んだ方法で起動してください。
-  接続エラーが出る場合は理由を確認し、[検索サービスを修復（英語）](../troubleshooting.md#qdrant-connection-failed)してから **Check search service again** を選びます。
+  接続エラーが出る場合は理由を確認し、[検索サービスを修復](troubleshooting.md#qdrant-connection-failed)してから **Check search service again** を選びます。
   **Set up without indexing** で設定だけを先に保存できます。接続を確認できたら、保存後の画面にチャットを読み込むコマンドが表示されます。
 - 意味で検索するには、[モデルを用意して検索データを作成（英語）](../indexing.md#enable-semantic-search)し、[検索モードを切り替えます](#choose-a-search-mode)。
 - セットアップ済みのコンピューターでやり直すと、設定が書き換わり、以前のファイルが同じフォルダーに残ります。
@@ -84,7 +84,7 @@ Mash は設定ファイルを書き、選んだエージェントの CLI を使�
 **settings** の上部に検索の状態が表示されます。**storage** の件数は、Mash が保存した履歴の数です。
 検索するには検索サービスが起動し、検索用のインデックスが最新である必要があります。
 
-ローカル検索サービスを使えない場合は、もう一度読み込む前に [接続できない理由を確認（英語）](../troubleshooting.md#qdrant-connection-failed)してください。
+ローカル検索サービスを使えない場合は、もう一度読み込む前に [接続できない理由を確認](troubleshooting.md#qdrant-connection-failed)してください。
 単語検索にはモデルは不要です。[意味で検索する（英語）](../indexing.md#enable-semantic-search)場合にモデルをインストールします。
 
 <span id="find-and-read-a-chat"></span>
@@ -98,8 +98,8 @@ Mash は設定ファイルを書き、選んだエージェントの CLI を使�
 
 結果が空なら **Clear filters** で条件を外し、同じ言葉をすべてのチャットから検索できます。一覧に戻るバージョンでは検索語を送信し直してください。
 **Browse chats** は現在の条件でチャットの一覧を開きます。ブラウザーの戻るボタンで検索に戻れます。
-[新しいチャットを読み込んだあと（英語）](../troubleshooting.md#new-chats-are-missing-or-search-is-behind)は、**Search again** を押します。
-チャットが一覧にある場合は [検索語と検索モードを確認（英語）](../troubleshooting.md#search-returns-no-results)してください。
+[新しいチャットを読み込んだあと](troubleshooting.md#new-chats-are-missing-or-search-is-behind)は、**Search again** を押します。
+チャットが一覧にある場合は [検索語と検索モードを確認](troubleshooting.md#search-returns-no-results)してください。
 
 会話では自分のメッセージが右側に、エージェントの応答が左側に並びます。
 ツールの呼び出しや推論は 1 行にまとめられていて、開くと各操作や出力を確認できます。

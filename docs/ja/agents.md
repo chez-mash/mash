@@ -167,6 +167,6 @@ Mash を残す場合は [`[agents] connected`（英語）](../configuration.md#c
 
 標準入出力で MCP サーバーを利用できるクライアントでは、`mash mcp` を実行できます。
 必要な環境変数も含め、[MCP 設定例（英語）](../mcp.md#connect-another-mcp-client)を参照してください。
-[接続のトラブルシューティング（英語）](../troubleshooting.md)
+[エージェントを接続できないとき](troubleshooting.md#my-agent-cannot-find-mash)
 
 <!-- mash-docs-source: 9eefd5390c868ddde79cb2de929c06967a270e9fc40f875d4b1e1587129f6907 -->

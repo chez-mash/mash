@@ -435,6 +435,7 @@ for (const [locale, lang, title, help] of [
   ["es", "es", "Solución de problemas", "Pide ayuda"],
   ["fr", "fr", "Dépannage", "Obtenir de l’aide"],
   ["zh-cn", "zh-CN", "故障排查", "获取帮助"],
+  ["ja", "ja", "トラブルシューティング", "サポートを受ける"],
 ]) {
   test(`the ${locale} setup and search guides open troubleshooting in the same language`, async ({
     page,
@@ -471,8 +472,11 @@ for (const [locale, lang, title, help] of [
     await guide.locator('a[href="#qdrant-connection-failed"]').click();
     await expect(page).toHaveURL(`${trouble}#qdrant-connection-failed`);
     await expect(guide.getByText("Save configuration only", { exact: true })).toBeVisible();
-    const systemd = `/${locale}/local-search/#linux-without-a-systemd-user-session`;
-    await guide.locator(`a[href="${systemd}"]`).click();
+    const serviceGuide = locale === "ja" ? "/local-search/" : `/${locale}/local-search/`;
+    const systemd = `${serviceGuide}#linux-without-a-systemd-user-session`;
+    const systemdLink = guide.locator(`a[href="${systemd}"]`);
+    if (locale === "ja") await expect(systemdLink).toContainText("（英語）");
+    await systemdLink.click();
     await expect(page).toHaveURL(systemd);
   });
 }
@@ -657,7 +661,10 @@ test("the Japanese guide directory distinguishes available translations", async 
   await page.getByPlaceholder("検索", { exact: true }).fill("プライバシー");
   await expect(page.getByText(/「プライバシー」の検索結果 \d+ 件/)).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(guide.locator('a[href="/installation/"]')).toContainText("（英語）");
+  await expect(guide.locator('a[href="/ja/installation/"]')).toHaveText(
+    "Mash をインストールして読み込む履歴を選ぶ",
+  );
+  await expect(guide.locator('a[href="/install-methods/"]')).toContainText("（英語）");
   await guide
     .getByRole("link", { name: "Mash が読み取れる履歴と接続できるエージェントを確認する" })
     .click();
@@ -667,6 +674,46 @@ test("the Japanese guide directory distinguishes available translations", async 
   await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
   await expect(guide.getByText("Connect an agent", { exact: true })).toBeVisible();
   await expect(guide.getByText("Set up without indexing", { exact: true }).first()).toBeVisible();
+});
+
+test("Japanese readers can go from a verified archive to browser setup in Japanese", async ({
+  page,
+}) => {
+  const guide = page.locator(".sl-markdown-content");
+  await page.goto("/ja/quick-start/");
+  const install = "/ja/installation/";
+  const changes = `${install}#what-setup-changes`;
+  await guide.locator(`a[href="${changes}"]`).click();
+  await expect(page).toHaveURL(changes);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mash をインストールする");
+  await expect(page.locator("#what-setup-changes")).toBeAttached();
+
+  await guide.locator('a[href="/ja/downloads/"]').first().click();
+  await expect(page).toHaveURL("/ja/downloads/");
+  await expect(page.locator("#verify-the-checksum")).toBeAttached();
+  await expect(
+    guide.locator("pre").filter({ hasText: "Get-FileHash -Algorithm SHA256" }),
+  ).toBeVisible();
+
+  const installers = `${install}#recommended-release-installers`;
+  await guide.locator(`a[href="${installers}"]`).click();
+  await expect(page).toHaveURL(installers);
+  await expect(page.locator("#recommended-release-installers")).toBeAttached();
+  await expect(guide.getByText("glibc 2.34", { exact: false })).toBeVisible();
+
+  await page.goto(`${install}#set-up-in-your-browser`);
+  await expect(guide.locator("pre").filter({ hasText: /^mash dash$/ })).toBeVisible();
+  const browserSetup = "/ja/dashboard/#set-up-mash-from-the-dashboard";
+  await guide.locator(`a[href="${browserSetup}"]`).click();
+  await expect(page).toHaveURL(browserSetup);
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await expect(page.locator("#set-up-mash-from-the-dashboard")).toBeAttached();
+
+  await page.goto(`${install}#try-your-first-search`);
+  const firstChat = "/ja/dashboard/#find-and-read-a-chat";
+  await guide.locator(`a[href="${firstChat}"]`).click();
+  await expect(page).toHaveURL(firstChat);
+  await expect(guide.getByText("Search your history", { exact: true })).toBeVisible();
 });
 
 test("the Japanese dashboard guide keeps setup, search and private access in Japanese", async ({

@@ -19,7 +19,7 @@
 | Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
 
 アーカイブと `SHA256SUMS` は同じ [GitHub リリースページ](https://github.com/mashium/mash/releases/latest)から取得してください。
-Linux の動作要件は [対応環境（英語）](../installation.md#recommended-release-installers)をご覧ください。
+Linux の動作要件は [対応環境](installation.md#recommended-release-installers)をご覧ください。
 Intel Mac などでは [ソースからビルド（英語）](../install-methods.md#build-from-source)できます。
 
 <span id="verify-the-checksum"></span>
@@ -88,7 +88,7 @@ Mash が読み込むチャットと期間を確認します。自分で検索す
 実行前に [macOS と Linux 用のスクリプト](https://github.com/mashium/mash/blob/main/install.sh)や
 [Windows 用のスクリプト](https://github.com/mashium/mash/blob/main/install.ps1)を確認できます。
 スクリプトはチェックサムを検証し、管理者権限を使わずに Mash をユーザーフォルダーに配置します。
-[セットアップで変わること（英語）](../installation.md#what-setup-changes)
+[セットアップで変わること](installation.md#what-setup-changes)
 
 <span id="check-how-it-was-built"></span>
 
