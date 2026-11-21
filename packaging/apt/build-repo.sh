@@ -49,9 +49,11 @@ Section: utils
 Priority: optional
 Description: Search your coding agents' past conversations
  Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
- chat histories locally and searches them from a JSON CLI and an MCP server.
+ chat histories locally. Search them from the browser dashboard, the
+ terminal, or a connected agent.
  Also installs mash-server, the optional service for sharing an index between
  machines. Run "mash qdrant install", then "mash init", after installing.
+ Run "mash dash" and open the address it prints to use the dashboard.
 CONTROL
   deb="mash-cli_${version}_${arch}.deb"
   dpkg-deb --root-owner-group --build "$root" "$dist/$deb" >/dev/null

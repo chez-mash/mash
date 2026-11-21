@@ -7,13 +7,29 @@ If Mash is already installed, follow the [upgrade steps](upgrades.md#upgrade-an-
 
 ## Install with a package manager
 
+The packages below use Mash's prebuilt releases. They include the browser
+dashboard, terminal search, and the tools a connected agent can use.
+After setup, run `mash dash` and open the address it prints.
+Before installing, you can [check the published release downloads](installation.md#check-the-release-download)
+and [see which installers passed for each release](https://github.com/mashium/mash/actions/workflows/release-check.yml).
+
 ### Homebrew, macOS or Linux
+
+On Apple silicon macOS or Linux x86-64 or ARM64, install from
+[Mashium's Homebrew formula](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb).
+The full name tells Homebrew which repository to use and selects the
+individual formula for [Homebrew's tap trust](https://docs.brew.sh/Tap-Trust).
 
 ```sh
 brew install mashium/tap/mash
 ```
 
 ### apt, Debian or Ubuntu
+
+The Mashium apt repository publishes signed package metadata. The
+`signed-by` setting uses [Mashium's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
+for this repository. You can [inspect the signed metadata](https://getmash.io/apt/dists/stable/InRelease)
+before adding it.
 
 ```sh
 curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
@@ -27,6 +43,10 @@ be installed together, and apt offers to remove the other one.
 
 ### Scoop, Windows
 
+In PowerShell with Scoop installed, add Mashium's bucket and install its
+[Mash package](https://github.com/mashium/mash/blob/main/bucket/mash.json).
+The manifest lists the Windows archive and its SHA-256 hash.
+
 ```powershell
 scoop bucket add mashium https://github.com/mashium/mash
 scoop install mashium/mash
@@ -34,18 +54,24 @@ scoop install mashium/mash
 
 ### mise
 
+With mise installed, use its GitHub backend to install from the
+[Mashium release archives](https://github.com/mashium/mash/releases).
+
 ```sh
 mise use -g github:mashium/mash
 ```
 
 ### cargo-binstall
 
+With cargo-binstall installed, specify the GitHub project to select Mashium's
+release archive.
+
 ```sh
 cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
 ```
 
-This uses Mash's release archive for your platform. If none is available,
-see [build from source](#build-from-source).
+If a release archive is unavailable for your platform, see
+[build from source](#build-from-source).
 
 ## Build from source
 

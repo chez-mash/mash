@@ -129,6 +129,10 @@ You can also [export and back up your history](docs/upgrades.md).
 <details>
 <summary>Install with a package manager</summary>
 
+These packages include the browser dashboard. After installing, [start
+local search and choose which histories to read](docs/installation.md#start-the-local-search-service).
+[Review the package sources and release checks](docs/install-methods.md#install-with-a-package-manager).
+
 | Channel | Command |
 | --- | --- |
 | Homebrew | `brew install mashium/tap/mash` |

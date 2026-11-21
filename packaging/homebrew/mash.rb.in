@@ -1,5 +1,5 @@
 class Mash < Formula
-  desc "Search your coding agents' past conversations from a CLI and MCP server"
+  desc "Search past coding-agent chats from your browser, terminal, or agents"
   homepage "https://github.com/mashium/mash"
   version "@VERSION@"
   license any_of: ["MIT", "Apache-2.0"]
@@ -28,12 +28,12 @@ class Mash < Formula
 
   def caveats
     <<~EOS
-      Start the local search service, then set Mash up for the agent
-      histories on this machine:
+      Start local search and choose which histories to read.
         mash qdrant install
         mash init
-      For semantic search, first run:
-        mash models install
+      Open the browser dashboard.
+        mash dash
+      Visit the address it prints. The setup guide is at https://getmash.io/installation/
     EOS
   end
 

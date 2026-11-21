@@ -122,7 +122,7 @@ test("the hero's install picker follows the chosen system and method", async ({
   await expect(buildDashboard).toBeVisible();
   await expect(
     install.getByRole("link", {
-      name: "start the local search service and connect your histories",
+      name: "start the local search service and choose which histories to read",
     }),
   ).toBeHidden();
   await page.getByRole("button", { name: "Copy the install command" }).click();
@@ -141,15 +141,47 @@ test("the hero's install picker follows the chosen system and method", async ({
   await expect(install.getByRole("button", { name: "Homebrew", exact: true })).toHaveCount(0);
   await install.getByRole("button", { name: "apt", exact: true }).click();
   await expect(command).toHaveText(/sudo apt install mash-cli$/);
+  await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
+  await expect(install.getByRole("link", { name: "Review the package sources" })).toBeVisible();
+  await expect(install.getByRole("link", { name: "Inspect the installer" })).toBeHidden();
   await expect(buildDashboard).toBeHidden();
 
   await install.getByRole("button", { name: "Cargo", exact: true }).click();
+  await expect(install.getByRole("link", { name: "Review the source build" })).toBeVisible();
+  await expect(install.getByRole("link", { name: "Review the package sources" })).toBeHidden();
   await buildDashboard.click();
   await expect(page).toHaveURL(/\/install-methods\/#include-the-web-dashboard$/);
   await expect(page.getByRole("heading", { name: "Include the web dashboard" })).toBeVisible();
   await expect(
     page.locator("pre").filter({ hasText: "pnpm@11.28.5 --dir dashboard run build" }),
   ).toContainText("cargo +stable install --locked --path .");
+});
+
+test("a Homebrew visitor can review the package source and see what to do next", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/");
+  const install = page.locator(".mash-install");
+  await install.getByRole("button", { name: "Install it yourself" }).click();
+  await install.getByRole("button", { name: "macOS", exact: true }).click();
+  await install.getByRole("button", { name: "Homebrew", exact: true }).click();
+  await expect(install.locator(".picked code")).toHaveText("brew install mashium/tap/mash");
+  await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
+  await expect(
+    install.getByRole("link", {
+      name: "start the local search service and choose which histories to read",
+    }),
+  ).toHaveAttribute("href", "/installation/#start-the-local-search-service");
+  await install.getByRole("link", { name: "Review the package sources" }).click();
+  await expect(page).toHaveURL(/\/install-methods\/#install-with-a-package-manager$/);
+  await expect(page.getByRole("link", { name: "Mashium’s Homebrew formula" })).toHaveAttribute(
+    "href",
+    "https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb",
+  );
+  await expect(
+    page.getByRole("link", { name: "see which installers passed for each release" }),
+  ).toBeVisible();
 });
 
 test("the hero offers a prompt that hands setup to a coding agent", async ({
