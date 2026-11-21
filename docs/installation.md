@@ -14,6 +14,26 @@ or [connect your histories](#connect-your-histories) if the service is running.
 
 Already using Mash and moving to a new release? Follow the [upgrade steps](upgrades.md#upgrade-an-existing-installation).
 
+## What setup changes
+
+1. **Install the programs.** The [basic installer](#recommended-release-installers)
+   puts `mash` and `mash-server` in your user directory. You can also
+   [verify and unpack a release archive](#check-the-release-download).
+2. **Start local search.** `mash qdrant install` downloads Qdrant and sets it
+   to run under your account at login. Mash limits it to connections from this
+   computer and switches off Qdrant telemetry. [Search service files](local-search.md#where-qdrant-stores-data)
+3. **Choose what Mash can read.** The interactive `mash init` wizard shows the
+   history folders it found before saving settings or indexing your chats.
+   Mash reads the original chats in place and saves a searchable copy on this
+   computer by default. If you choose to connect an agent, setup updates its
+   settings so it can request excerpts from that copy. You can also
+   [skip agent connections](#skip-agent-connections) and search yourself.
+   [Where Mash stores your data](privacy.md#where-mash-stores-data)
+
+The quick-start command installs the programs and starts Qdrant before it
+opens the review. If you cancel there, `mash uninstall` shows what is already
+installed and how to remove it. [Preview removal](#uninstall)
+
 <span id="install-the-cli"></span>
 
 ## Get Mash for your system
@@ -207,10 +227,7 @@ go to stderr.
 Read the [macOS and Linux installer](https://github.com/mashium/mash/blob/main/install.sh)
 or [Windows installer](https://github.com/mashium/mash/blob/main/install.ps1)
 before you run it. The scripts install into your user directory and need no
-administrator rights. With one-command setup, the script installs and starts
-Qdrant before it opens the wizard. The wizard shows the histories and agent
-connections before you apply them. If you cancel at the wizard, use the
-[uninstall preview](#uninstall) to see what the script already installed.
+administrator rights. [See what setup changes](#what-setup-changes).
 
 The [public release workflow](https://github.com/mashium/mash/actions/workflows/release.yml)
 builds the platform archives after checking that Linux and Windows CI passed on

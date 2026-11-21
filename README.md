@@ -53,7 +53,8 @@ search on your machine and needs no account. [How Mash handles your history](doc
 and open a result in its conversation. Set up Mash below to search your own
 chats in the browser, in the terminal, or through an agent you connect.
 
-Before running a command, you can [inspect the installer and check the release download](docs/installation.md#check-the-release-download).
+Before running a command, see [what setup changes](docs/installation.md#what-setup-changes)
+and [how to verify the download](docs/installation.md#check-the-release-download).
 To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).
 
 ### Ask your agent

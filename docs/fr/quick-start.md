@@ -5,8 +5,8 @@ puis ouvrez un résultat dans sa conversation. Configurez Mash ci-dessous
 pour chercher dans votre historique depuis le navigateur, le terminal ou un
 agent que vous connectez.
 
-Avant de lancer une commande, vous pouvez
-[examiner le script d’installation et vérifier le fichier téléchargé](installation.md#check-the-release-download).
+Avant de lancer une commande, voyez [ce que la configuration change](installation.md#what-setup-changes)
+et [comment vérifier le téléchargement](installation.md#check-the-release-download).
 Pour commencer avec un seul agent et une période courte, consultez le
 [guide d’essai local](privacy.md#essayer-mash-avec-un-historique-limité).
 
@@ -89,4 +89,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: e1f15f278fb9100ce2c9232a9c4b549f3ae750b3dea63c7a15e580e6238ef499 -->
+<!-- mash-docs-source: a9c68be8a1b7921e08e9b2c39d59ef4330baecf985e1d0aa9a3832de160133e8 -->

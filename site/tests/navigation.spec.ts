@@ -57,6 +57,10 @@ test("the quick start goes from setup to a first chat and links to package insta
     "Find your first chat",
   ]);
   await expect(guide.locator("#try-it")).toBeAttached();
+  await guide.getByRole("link", { name: "what setup changes", exact: true }).click();
+  await expect(page).toHaveURL("/installation/#what-setup-changes");
+  await expect(guide.getByRole("link", { name: "Preview removal", exact: true })).toBeVisible();
+  await page.goBack();
   await guide.getByRole("link", { name: "package install commands" }).click();
   await expect(page).toHaveURL("/install-methods/#install-with-a-package-manager");
   await expect(page.locator("#install-with-a-package-manager")).toBeAttached();

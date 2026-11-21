@@ -10,7 +10,7 @@ Después de configurar Mash, ejecuta `mash dash` y abre en tu navegador la
 dirección que muestra. También puedes buscar en la terminal o conectar un
 agente para que busque por ti.
 
-[Privacidad del historial](privacy.md) · [Revisa y verifica el instalador](installation.md#check-the-release-download) · [Quick start in English](../../README.md#quick-start)
+[Qué cambia al configurar Mash](installation.md#what-setup-changes) · [Cómo verificar la descarga](installation.md#check-the-release-download) · [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 
 Si quieres empezar con un solo agente y los últimos siete días, sigue la
 [guía de prueba local](privacy.md#prueba-con-menos-historial).

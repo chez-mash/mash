@@ -71,12 +71,18 @@ for (const [locale, lang, installationTitle] of [
     const install = `/${locale}/installation/`;
     const verify = `${install}#check-the-release-download`;
     const uninstall = `${install}#uninstall`;
+    const changes = `${install}#what-setup-changes`;
     const guide = page.locator(".sl-markdown-content");
     await page.goto(`/${locale}/quick-start/`);
-    await guide.locator(`a[href="${verify}"]`).click();
-    await expect(page).toHaveURL(verify);
+    await guide.locator(`a[href="${changes}"]`).click();
+    await expect(page).toHaveURL(changes);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(installationTitle);
+    await expect(guide.locator("#what-setup-changes")).toBeAttached();
+    await expect(guide.locator('a[href="#skip-agent-connections"]')).toBeVisible();
+    await expect(guide.locator('a[href="#uninstall"]')).toBeVisible();
+    await guide.locator('a[href="#check-the-release-download"]').first().click();
+    await expect(page).toHaveURL(verify);
     await expect(page.locator("#check-the-release-download")).toBeAttached();
     await expect(
       guide.locator("pre").filter({ hasText: "sha256sum mash-x86_64-unknown-linux-gnu.tar.gz" }),

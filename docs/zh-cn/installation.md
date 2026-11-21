@@ -8,6 +8,16 @@
 
 如果已有 Mash，现在要更新到新版本，请参阅[升级步骤（英文）](../upgrades.md#upgrade-an-existing-installation)。
 
+<span id="what-setup-changes"></span>
+
+## 设置会更改什么
+
+1. **安装程序。** [基本安装脚本](#recommended-release-installers)会将 `mash` 和 `mash-server` 放到你的用户目录。也可以自行[校验并解压发布归档](#check-the-release-download)。
+2. **启动本地搜索。** `mash qdrant install` 会下载 Qdrant，并将它设置为在你登录时以你的账号运行。Mash 只允许本机连接该服务，并关闭 Qdrant 的遥测。[搜索服务文件](local-search.md#where-qdrant-stores-data)
+3. **选择 Mash 可以读取的内容。** 交互式 `mash init` 助手会先展示找到的历史记录目录，再保存设置或为对话建立索引。Mash 从原位置读取对话，默认在本机保存可搜索的副本。如果选择连接代理，设置助手会更新该代理的设置，让它可以从副本中请求对话片段。你也可以[跳过连接代理](#skip-agent-connections)，自行搜索。[Mash 的数据存放位置](privacy.md#where-mash-stores-data)
+
+快速入门命令会先安装程序并启动 Qdrant，再打开设置确认页。如果在这里取消，可以运行 `mash uninstall` 查看已安装的内容和移除方法。[预览卸载](#uninstall)
+
 <span id="install-the-cli"></span>
 
 <span id="get-mash-for-your-system"></span>
@@ -154,7 +164,7 @@ Qdrant 启动前也可以阅读历史记录。先运行 `mash init --no-index`�
 
 ## 校验下载文件
 
-运行前可以阅读 [macOS 和 Linux 安装脚本](https://github.com/mashium/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/mashium/mash/blob/main/install.ps1)。脚本将文件安装到你的用户目录，无需管理员权限。使用一条命令完成安装时，脚本会先安装并启动 Qdrant，再打开设置助手。你可以核对历史记录和代理连接后再应用设置。如果在助手中取消，可以用[卸载预览](#uninstall)查看脚本此前已安装的内容。
+运行前可以阅读 [macOS 和 Linux 安装脚本](https://github.com/mashium/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/mashium/mash/blob/main/install.ps1)。脚本将文件安装到你的用户目录，无需管理员权限。[了解设置会更改什么](#what-setup-changes)。
 
 [公开发布流程](https://github.com/mashium/mash/actions/workflows/release.yml)会确认对应的源代码提交已通过 Linux 和 Windows 测试，再构建各平台的安装包。可以在[公开的安装测试](https://github.com/mashium/mash/actions/workflows/release-check.yml)中查看你的版本通过了哪些安装检查。
 
@@ -203,4 +213,4 @@ mash uninstall --yes    # removes it
 
 如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
 
-<!-- mash-docs-source: e9fdc82da63b901e9fbc86e2c87b4aa88f83b1670d47a01b3094284023646838 -->
+<!-- mash-docs-source: 8bfec2259dd60f10ca2995f25317371e495517879c8f1a4b588483f32a9062bc -->

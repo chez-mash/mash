@@ -14,6 +14,30 @@ Si ya está en marcha, [configura tus historiales](#connect-your-histories).
 
 Para pasar a una versión nueva, sigue los [pasos de actualización (en inglés)](../upgrades.md#upgrade-an-existing-installation).
 
+<span id="what-setup-changes"></span>
+
+## Qué cambia al configurar Mash
+
+1. **Instala los programas.** El [instalador básico](#recommended-release-installers)
+   coloca `mash` y `mash-server` en tu carpeta de usuario. También puedes
+   [verificar y descomprimir un archivo de la versión](#check-the-release-download).
+2. **Inicia la búsqueda local.** `mash qdrant install` descarga Qdrant y lo
+   configura para que se ejecute con tu cuenta al iniciar sesión. Mash solo
+   permite conexiones desde este equipo y desactiva la telemetría de Qdrant.
+   [Archivos del servicio de búsqueda](local-search.md#where-qdrant-stores-data)
+3. **Elige qué puede leer Mash.** El asistente interactivo de `mash init`
+   muestra las carpetas de historial que encontró antes de guardar la
+   configuración o indexar tus conversaciones. Mash lee las conversaciones
+   originales donde están y, por defecto, guarda una copia que puedes buscar
+   en este equipo. Si eliges conectar un agente, el asistente actualiza su
+   configuración para que pueda pedir fragmentos de esa copia. También puedes
+   [omitir las conexiones a agentes](#skip-agent-connections) y buscar por tu cuenta.
+   [Dónde guarda Mash tus datos](privacy.md#where-mash-stores-data)
+
+El comando de inicio rápido instala los programas e inicia Qdrant antes
+de abrir la revisión. Si cancelas allí, `mash uninstall` muestra qué se
+instaló y cómo retirarlo. [Vista previa de la desinstalación](#uninstall)
+
 <span id="install-the-cli"></span>
 
 <span id="get-mash-for-your-system"></span>
@@ -247,11 +271,7 @@ errores.
 Antes de ejecutarlo, puedes leer el [instalador de macOS y Linux](https://github.com/mashium/mash/blob/main/install.sh)
 o el [instalador de Windows](https://github.com/mashium/mash/blob/main/install.ps1).
 Los scripts instalan los archivos en tu carpeta de usuario sin permisos
-de administrador. Con la instalación en un solo comando, el script instala
-e inicia Qdrant antes de abrir el asistente. Allí puedes revisar los
-historiales y las conexiones antes de aplicarlos. Si cancelas en el
-asistente, usa la [vista previa de desinstalación](#uninstall) para ver qué
-llegó a instalarse.
+de administrador. [Qué cambia al configurar Mash](#what-setup-changes).
 
 El [proceso público de publicación](https://github.com/mashium/mash/actions/workflows/release.yml)
 crea los archivos de cada plataforma después de verificar que las pruebas
@@ -341,4 +361,4 @@ Conserva los datos de Qdrant salvo que añadas `--delete-storage`. Esos datos
 contienen lo necesario para las búsquedas. Puedes regenerarlos a partir del
 índice con `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: e9fdc82da63b901e9fbc86e2c87b4aa88f83b1670d47a01b3094284023646838 -->
+<!-- mash-docs-source: 8bfec2259dd60f10ca2995f25317371e495517879c8f1a4b588483f32a9062bc -->
