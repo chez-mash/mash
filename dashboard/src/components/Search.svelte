@@ -44,6 +44,15 @@ import QueryError from "./QueryError.svelte";
 let { params }: { params: string } = $props();
 const pageSize = 10;
 const applied = $derived(parseApplied(params));
+const filtered = $derived(
+  applied.agents.length > 0 ||
+    applied.machines.length > 0 ||
+    applied.projects.length > 0 ||
+    applied.days !== null,
+);
+const clearFiltersHref = $derived(
+  appliedHref({ ...applied, agents: [], machines: [], projects: [], days: null, offset: 0 }),
+);
 let draft = $state<Applied>(untrack(() => parseApplied(params)));
 const dirty = $derived(!sameSearch(draft, applied));
 const catalogue = createQuery(() => catalogOptions);
@@ -212,9 +221,32 @@ const rangeLabel = $derived.by(() => {
   {#each result.data.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
   {#if !hits.length}
     <div class="state-c">
-      <h2 style:font-size="15px" style:display="flex" style:align-items="center" style:gap="8px"><SearchIcon size={17} aria-hidden="true" />No results</h2>
-      <p class="meta" style:margin="4px 0 12px" style:font-size="13.5px">{applied.query ? `Nothing matched “${applied.query}” with these filters.` : "Nothing matched these filters."}</p>
-      <a class="btn" href="#/search">Clear filters</a>
+      <h2 style:font-size="15px" style:display="flex" style:align-items="center" style:gap="8px">
+        <SearchIcon size={17} aria-hidden="true" />
+        {#if result.data.first > 0}No results on this page
+        {:else if applied.query || filtered}No results
+        {:else}No chats to show{/if}
+      </h2>
+      {#if applied.query && result.data.first === 0}
+        <p class="meta" style:margin-top="4px" style:font-size="13.5px">
+          {#if filtered}Nothing matched “{applied.query}” with the selected filters.
+          {:else}Try one distinctive word you remember from the chat.{/if}
+        </p>
+      {/if}
+      <div class="acts" style:margin-top="12px">
+        {#if result.data.first > 0}
+          <a class="btn" href={page(0)}>First page</a>
+        {/if}
+        {#if filtered}
+          <a class="btn" href={clearFiltersHref}>Clear filters</a>
+        {:else if result.data.first === 0}
+          {#if applied.query}
+            <a class="btn" href="https://getmash.io/troubleshooting/#search-returns-no-results" target="_blank" rel="noreferrer">Troubleshoot search</a>
+          {:else}
+            <a class="btn" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
+          {/if}
+        {/if}
+      </div>
     </div>
   {:else}
     <section id="reslist">

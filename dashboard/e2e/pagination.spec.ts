@@ -11,12 +11,12 @@ const chats = Array.from({ length: 120 }, (_, index) => ({
   updated_at: now - index * 60_000,
 }));
 
-async function mockCatalogue(page: Page): Promise<void> {
+async function mockCatalogue(page: Page, history = chats): Promise<void> {
   await page.route("**/api/records?**", (route) =>
     route.fulfill({ json: { records: [], next_offset: null } }),
   );
   await page.route("**/api/chats**", (route) =>
-    route.fulfill({ json: { local_node: "local", truncated: false, chats } }),
+    route.fulfill({ json: { local_node: "local", truncated: false, chats: history } }),
   );
   await page.route("**/api/chat?**", (route) => route.fulfill({ json: { messages: [] } }));
 }
@@ -66,7 +66,7 @@ test("an offset past the end of the chat list shows the last page", async ({ pag
   await expect(page.getByRole("navigation", { name: "Pages" })).toContainText(
     "111–120 of 120 chats",
   );
-  await expect(page.getByText("Nothing matched these filters.")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /^No (results|chats)/ })).toHaveCount(0);
 });
 
 test("a new search from a later page of chats starts at the first result", async ({ page }) => {
@@ -83,6 +83,74 @@ test("a new search from a later page of chats starts at the first result", async
   await expect(page).toHaveURL(/q=needle/);
   await expect.poll(() => offsets).toEqual(["0"]);
   await expect(page).not.toHaveURL(/offset=/);
+});
+
+test("clearing filters after an empty search keeps the query, mode, and ranking", async ({
+  page,
+}) => {
+  await mockCatalogue(page);
+  const requests: URLSearchParams[] = [];
+  await page.route("**/api/search?**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    requests.push(params);
+    const filtered = ["provider", "machine", "project", "days"].some((field) => params.get(field));
+    return route.fulfill({
+      json: {
+        results: filtered
+          ? []
+          : [{ ...chats[0], title: "Recovered result", matches: [{ message_id: "match" }] }],
+        next_offset: null,
+      },
+    });
+  });
+  const search =
+    "/#/search?q=two+words&intent=exact-mention&agent=codex&machine=local&project=%2Fwork%2Fproject&days=7&rank=recent&offset=20";
+  await page.goto(search);
+  await expect(page.getByRole("heading", { name: /^No results/ })).toBeVisible();
+  await searchBox(page).fill("unsubmitted text");
+  expect(requests).toHaveLength(1);
+  await page.getByRole("link", { name: "Clear filters", exact: true }).click();
+  await expect(page.getByRole("link", { name: /Recovered result/ })).toBeVisible();
+  expect(Object.fromEntries(requests.at(-1) ?? [])).toEqual({
+    q: "two words",
+    intent: "exact-mention",
+    sort: "recent",
+    provider: "",
+    machine: "",
+    project: "",
+    offset: "0",
+  });
+  await expect(searchBox(page)).toHaveValue("two words");
+  await page.goBack();
+  await expect(page).toHaveURL(search);
+  await expect(page.getByRole("link", { name: "Clear filters", exact: true })).toBeVisible();
+});
+
+test("an empty search page can return to the first page and get search help", async ({ page }) => {
+  await mockCatalogue(page);
+  await page.route("**/api/search?**", (route) =>
+    route.fulfill({ json: { results: [], next_offset: null } }),
+  );
+  await page.goto("/#/search?q=needle&offset=20");
+  await page.getByRole("link", { name: "First page", exact: true }).click();
+  await expect(page).toHaveURL("/#/search?q=needle");
+  await expect(searchBox(page)).toHaveValue("needle");
+  await expect(page.getByRole("link", { name: "Troubleshoot search" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/troubleshooting/#search-returns-no-results",
+  );
+  await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
+});
+
+test("an empty chat list points to history setup", async ({ page }) => {
+  await mockCatalogue(page, []);
+  await page.goto("/#/search");
+  await expect(page.getByRole("heading", { name: "No chats to show" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Check history setup" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/troubleshooting/#nothing-is-indexed-yet",
+  );
+  await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
 });
 
 test("search mode applies on request, follows the result page, and resets for a new query", async ({

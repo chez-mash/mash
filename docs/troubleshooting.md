@@ -171,13 +171,16 @@ See [agent setup](agents.md).
    search, all the words you enter must appear in the same message. See
    [search in other languages](search.md#search-in-other-languages) for text
    without spaces between words.
-2. Clear the filters and search again. In the dashboard, **Clear filters**
-   returns to the chat list. Run your search again from there. In the
-   terminal, try the same search without the filters.
-3. For a recent chat, run `mash index`, then search again. For older chats,
-   [include more history](indexing.md#add-older-history).
-4. If it still does not appear, run `mash status --installation` and check
-   the history folders. See [what to do if nothing is indexed](#nothing-is-indexed-yet).
+2. If the dashboard shows filter tags, use **Clear filters** to retry the
+   same search. If it opens the chat list, enter your search again. In
+   the terminal, run the same search without the filter flags.
+3. Check whether the chat is listed. In the dashboard, type a piece of its
+   title and look under **chats** in the search box suggestions. In the
+   terminal, use the title command below.
+4. If a new chat is missing or its transcript ends too early, run
+   `mash index` and check again. For an older chat,
+   [include more history](indexing.md#add-older-history). If an agent's
+   chats are missing, [check the history folders](#nothing-is-indexed-yet).
 
 Search covers user and assistant messages only. Tool output and reasoning are
 kept for reading: search for a nearby message, then open the transcript.

@@ -105,7 +105,10 @@ for agent, machine, project and date. A changed chip has a dashed border until
 you choose **Apply filters**. Applied filters appear as tags in the search box.
 Choose a tag to remove it.
 
-If a search comes back empty, [check the query, filters and dates](troubleshooting.md#search-returns-no-results).
+If a filtered search comes back empty, choose **Clear filters** to try the
+same query across your chats. If your dashboard opens the chat list, submit
+the query again. For an empty search without filters, see
+[how to find the missing chat](troubleshooting.md#search-returns-no-results).
 
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see
