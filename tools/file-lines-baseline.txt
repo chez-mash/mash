@@ -40,6 +40,6 @@
 899 crates/mash-sync/src/shared/sync/catalog.rs
 1088 crates/mash-sync/src/shared/sync/client.rs
 1147 crates/mash-sync/src/shared/sync/wire.rs
-647 dashboard/src/components/TranscriptView.svelte
+642 dashboard/src/components/TranscriptView.svelte
 512 dashboard/src/demo/backend.ts
 650 tools/ux-session.py

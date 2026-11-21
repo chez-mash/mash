@@ -94,6 +94,22 @@ test("the README dashboard illustration opens the sign-in decision it shows", as
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
 });
 
+test("a copied message link reopens the matching chat inside the demo", async ({
+  context,
+  page,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/demo/#/chat/checkout-outage-review?node=build-box&shared=true");
+  const message = page.locator("#message-checkout-outage-review-1");
+  await message.hover();
+  await message.getByRole("button", { name: "Copy link to message" }).click();
+  const link = new URL(await page.evaluate(() => navigator.clipboard.readText()));
+  expect(link.pathname).toBe("/demo/");
+  await page.goto(link.href);
+  await expect(message).toHaveClass(/\bhit\b/);
+  await expect(message).toContainText("Building the index locked the table for writes");
+});
+
 test("the sample handoff opens the Claude Code decision and its later Codex chat", async ({
   page,
 }) => {

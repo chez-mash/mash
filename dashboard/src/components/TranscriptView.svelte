@@ -43,6 +43,7 @@ import { chatHref, projectHref, recordHref, recordsHref } from "../lib/route.sve
 import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/steps";
 import type { Message } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import MessageActions from "./MessageActions.svelte";
 import MessageBody from "./MessageBody.svelte";
 import MetaChips from "./MetaChips.svelte";
 import QueryError from "./QueryError.svelte";
@@ -364,15 +365,6 @@ $effect(() => {
 function plainText(message: Message): string {
   return messageText(message);
 }
-/** Copies what the bubble shows: a person's own words, not the context around them. */
-async function copy(message: Message): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(saidText(message));
-    notice = "Copied message.";
-  } catch {
-    notice = "Copy failed. Select the message text to copy it manually.";
-  }
-}
 async function exportChat(format: ExportFormat): Promise<void> {
   if (exporting) return;
   const popup = format === "pdf" ? window.open("", "_blank") : null;
@@ -511,7 +503,7 @@ const prompts = $derived(
         <h1 class="h1">{chat ? plainTitle(chat.title) : `Chat ${id.slice(-8)}`}</h1>
         <p class="meta" style:margin-top="8px">
           {#if chat}<MetaChips {chat} />{:else}{displayMachine}{/if}
-          <span class="mtx">{anchor ? "around the selected match" : total ? `messages ${(offset + 1).toLocaleString()}–${Math.min(offset + PAGE_SIZE, total).toLocaleString()} of ${total.toLocaleString()}` : `messages ${(offset + 1).toLocaleString()}–${(offset + PAGE_SIZE).toLocaleString()}`}</span>
+          <span class="mtx">{anchor ? "around the selected message" : total ? `messages ${(offset + 1).toLocaleString()}–${Math.min(offset + PAGE_SIZE, total).toLocaleString()} of ${total.toLocaleString()}` : `messages ${(offset + 1).toLocaleString()}–${(offset + PAGE_SIZE).toLocaleString()}`}</span>
         </p>
       </div>
       <span class="acts" style:position="relative">
@@ -555,7 +547,7 @@ const prompts = $derived(
       </div>
     {/if}
     {#if exporting}<p class="meta"><button class="a" type="button" onclick={() => exportController?.abort()}>Cancel export</button></p>{/if}
-    {#if anchor}<p class="meta">Showing the messages around a search match.</p>{/if}
+    {#if anchor}<p class="meta">Showing messages around the selected message.</p>{/if}
     <QueryError title="Couldn’t load the chat list" query={catalogue} retryLabel="Retry catalogue" />
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p role="status" class="meta">{warning}</p>{/each}
     {#if live.isPending}
@@ -600,6 +592,9 @@ const prompts = $derived(
         </details>
         {@render saved(message)}
       {/snippet}
+      {#snippet actions(message: Message)}
+        <MessageActions {message} href={chatHref(id, machine, message.id, shared)} />
+      {/snippet}
       {#each items as item (item.kind === "message" ? item.message.id : item.messages[0]?.id)}
         {#if item.kind === "steps"}
           {@const only = item.messages.length === 1 ? item.messages[0] : undefined}
@@ -624,16 +619,16 @@ const prompts = $derived(
           {@const message = item.message}
           {@const selected = message.id === messageId}
           <div class="hitbox" class:hit={selected} id="message-{message.id}" data-message={message.id} style:scroll-margin-top="80px">
-            {#if selected}<span class="hitlabel">Matched your search</span>{/if}
+            {#if selected}<span class="hitlabel">Linked message</span>{/if}
             {#if message.role === "user"}
-              <div class="you"><MessageBody text={saidText(message)} own /><button class="cp" type="button" aria-label="Copy message" title="Copy message" onclick={() => copy(message)}><Copy size={14} /></button></div>
+              <div class="you"><MessageBody text={saidText(message)} own />{@render actions(message)}</div>
               {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
                 {#each message.blocks as block, i (i)}
                   {#if block.type === "text"}<MessageBody text={block.markdown} />{/if}
                 {/each}
-                <button class="cp" type="button" aria-label="Copy message" title="Copy message" onclick={() => copy(message)}><Copy size={14} /></button>
+                {@render actions(message)}
               </div>
               {#if message.activity}<details class="fold"><summary><Terminal size={16} aria-hidden="true" />Recorded tool activity</summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}
             {/if}

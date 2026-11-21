@@ -1603,10 +1603,6 @@ h1:focus {
 .log .you .prose th {
   border-color: var(--cream-rule);
 }
-.log .you > .cp {
-  background: var(--cream-deep);
-  color: var(--cream-ink);
-}
 .log .you.clampd {
   overflow: visible;
   max-height: none;
@@ -1636,48 +1632,59 @@ h1:focus {
   flex-direction: column;
   gap: 16px;
 }
+.cp-actions {
+  text-align: end;
+}
+.cp-actions > .meta {
+  overflow-wrap: anywhere;
+}
+.you > .cp-actions > .meta {
+  color: inherit;
+}
+.cp-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
 .cp {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 5px;
   background: var(--raised);
   color: var(--dim);
-  opacity: 0;
-}
-.you:hover > .cp,
-.msg:hover > .cp,
-.cp:focus-visible {
-  opacity: 1;
 }
 .cp:hover {
   color: var(--fg);
 }
-@media (hover: none) {
-  /* Without hover the button is always shown. It sits where it cannot cover
-     the text and takes no room of its own: under an answer, in the gap the
-     next message leaves; beside your own message, in the space to its left. */
+.you .cp {
+  background: var(--cream-deep);
+  color: var(--cream-ink);
+}
+@media (hover: hover) and (pointer: fine) and (not (any-pointer: coarse)) {
+  .msg:has(> .cp-actions),
+  .log .hitbox > .you:has(> .cp-actions) {
+    padding-inline-end: 76px;
+  }
+  .cp-actions:has(> .meta:empty),
+  .cp-buttons {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 4px;
+  }
+  .cp-actions:has(> .meta:empty) {
+    inset: 0 0 auto auto;
+  }
   .cp {
-    width: 44px;
-    height: 28px;
-    background: none;
-    opacity: 0.7;
+    width: 30px;
+    height: 26px;
+    opacity: 0;
   }
-  .msg > .cp {
-    position: static;
-    margin: -20px 0 -24px auto;
-  }
-  .log .you > .cp {
-    top: auto;
-    right: 100%;
-    bottom: 0;
-    background: none;
-    color: var(--dim);
+  .hitbox:hover .cp,
+  .cp-actions:focus-within .cp {
+    opacity: 1;
   }
 }
 @keyframes skp {

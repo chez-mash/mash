@@ -91,6 +91,67 @@ test("direct search matches load without waiting for catalogue identity", async 
   }
 });
 
+for (const shared of [false, true]) {
+  const source = shared ? "shared" : "local";
+  test.describe(`${source} message links`, () => {
+    test.use({ hasTouch: shared, viewport: { width: shared ? 390 : 1280, height: 850 } });
+
+    test(`copy a ${source} message link and reopen its exact source`, async ({ context, page }) => {
+      const node = shared ? "workstation & build" : "laptop";
+      const messages = [
+        { id: "prompt", ordinal: 0, role: "user", content: "Keep the trim test." },
+        { id: "reply/2", ordinal: 1, role: "assistant", content: "I will keep that test." },
+      ] as const;
+      const views: URLSearchParams[] = [];
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+      await context.route("**/api/**", (route) => route.fulfill({ status: 404 }));
+      await context.route("**/api/chats**", (route) =>
+        route.fulfill({
+          json: {
+            local_node: "laptop",
+            truncated: false,
+            chats: [{ ...chat, node_id: node }],
+          },
+        }),
+      );
+      await context.route("**/api/chat?**", (route) => route.fulfill({ json: { messages } }));
+      await context.route("**/api/records?**", (route) =>
+        route.fulfill({ json: { records: [], next_offset: null } }),
+      );
+      await context.route("**/api/view?**", (route) => {
+        views.push(new URL(route.request().url()).searchParams);
+        return route.fulfill({ json: { messages } });
+      });
+      const params = new URLSearchParams({ node, ...(shared ? { shared: "true" } : {}) });
+      await page.goto(`/?transient=keep-out-of-link#/chat/${chat.chat_id}?${params}`);
+      const message = messages[shared ? 1 : 0];
+      const row = page.locator("[data-message]").filter({ hasText: message.content });
+      await row.getByRole("button", { name: "Copy message", exact: true }).press("Enter");
+      await expect(page.getByText("Copied message.", { exact: true })).toBeVisible();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(message.content);
+      const copy = row.getByRole("button", { name: "Copy link to message" });
+      if (shared) await copy.tap();
+      else await copy.press("Enter");
+      await expect(page.getByText("Copied message link.", { exact: true })).toBeVisible();
+      const url = new URL(await page.evaluate(() => navigator.clipboard.readText()));
+      expect(url.origin).toBe(new URL(page.url()).origin);
+      expect(url.pathname).toBe("/");
+      expect(url.search).toBe("");
+
+      const reopened = await context.newPage();
+      try {
+        await reopened.goto(url.href);
+        await expect(reopened.locator(".hitbox.hit")).toContainText(message.content);
+        expect(views.at(-1)?.get("id")).toBe(message.id);
+        expect(views.at(-1)?.get("node")).toBe(node);
+        expect(views.at(-1)?.get("shared")).toBe(shared ? "true" : null);
+      } finally {
+        await reopened.close();
+      }
+    });
+  });
+}
+
 test("real API shapes, explicit search, source identity, safe content and stable refresh", async ({
   page,
 }) => {

@@ -142,6 +142,15 @@ A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see
 each step and its output. The side panel lists your prompts on the current
 page, other chats from the same project and memory saved from this chat.
+
+Hover over a message to see its copy actions. On a phone they appear below the
+message. Choose **Copy link to message** beside **Copy message** to paste a link
+to the exact message into a note or handoff. Only the URL goes to your clipboard.
+The link works while the message is indexed and the reader can reach that
+dashboard. A local link works on the computer running the dashboard, and a
+[private remote dashboard](#open-it-from-your-phone-or-another-computer)
+still requires sign-in.
+
 Use **Copy session ID** to [reopen an original session](pick-up-work.md#reopen-the-original-session),
 or [pick up the work in a new session](pick-up-work.md#ask-an-agent-for-a-recap).
 
