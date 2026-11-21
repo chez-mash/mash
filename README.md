@@ -12,7 +12,7 @@ decision, and pick up work in another agent. Mash is open source and self-hosted
 By default, indexing and search stay on your machine and require no account.
 [How Mash handles your history](docs/privacy.md)
 
-[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Docs](https://getmash.io/)
+[Try the demo without installing](https://getmash.io/demo/#/search?q=checkout) · [Quick start](#quick-start) · [Docs](https://getmash.io/)
 
 [![Supported agents: Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, Antigravity](assets/supported-agents.svg)](docs/supported-agents.md)
 
@@ -22,27 +22,30 @@ By default, indexing and search stay on your machine and require no account.
 
 ## Highlights
 
+- **Pick up work in another agent.** Ask an agent connected over MCP to find
+  the decision you made, cite the original message, and tell you what’s still open.
+  [Follow a Claude Code to Codex handoff](docs/pick-up-work.md#follow-a-sample-handoff)
 - **Multi-agent search.** Search by word or exact phrase across chats that
   Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity already
   saved. [Supported histories](docs/supported-agents.md)
+- **Multi-machine search.** Find a chat from your workstation on your laptop
+  through an optional Mash server you run. Each machine keeps a local index
+  it can search offline. [Set up sharing](docs/shared-index.md)
+- **Jump straight to the original message.** Read the surrounding conversation
+  and tool output in the dashboard.
+  [Open the checkout outage chat](https://getmash.io/demo/#/chat/checkout-outage-review?node=build-box&message=checkout-outage-review-1&shared=true)
+- **Save decisions with a source.** Ask a connected agent to remember a
+  decision, then follow its supporting quote back to the chat.
+  [Open the saved sign-in decision](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+- **Export a whole conversation.** Save it from the dashboard as Markdown,
+  HTML, or PDF. [Export a transcript](docs/dashboard.md#save-a-transcript)
+- **Mashy, an optional dashboard assistant.** Bring your own model service and
+  API key to ask questions about your history and get links to chats and
+  saved decisions. [Configure Mashy](docs/configuration.md#the-dashboard-assistant)
 - **GPU acceleration for semantic search.** Optional embeddings use DirectML
   on supported Windows GPUs, Core ML on Apple silicon, or the CPU when local
   acceleration is unavailable. Indexing can also use a configured remote worker.
   [Embedding inference](docs/configuration.md#embedding-inference)
-- **Jump straight to the original message.** Read the surrounding conversation
-  and tool output in the dashboard. [Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- **Pick up work in another agent.** An agent connected over MCP can find
-  earlier chats from your other tools and cite the source. [Follow a sample handoff](docs/pick-up-work.md#follow-a-sample-handoff)
-- **Save decisions with a source.** Ask a connected agent to remember a
-  decision, then follow its supporting quote back to the chat. [See a saved decision in the demo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
-- **Export a whole conversation.** Save it from the dashboard as Markdown,
-  HTML, or PDF. [Export a transcript](docs/dashboard.md#save-a-transcript)
-- **Multi-machine search.** Opt in to sharing through a Mash server you run.
-  Each machine keeps a local index it can search offline.
-  [Set up sharing](docs/shared-index.md)
-- **Mashy, an optional dashboard assistant.** Bring your own model service and
-  API key to ask questions about your history and get links to chats and
-  saved decisions. [Configure Mashy](docs/configuration.md#the-dashboard-assistant)
 
 ## Quick start
 

@@ -399,7 +399,7 @@ export const chats: readonly DemoChat[] = [
   chat(
     "checkout-outage-review",
     "Review of the checkout outage",
-    "codex",
+    "claude-code",
     "build-box",
     projects.infra,
     41.3,
