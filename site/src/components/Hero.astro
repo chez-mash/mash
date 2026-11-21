@@ -39,8 +39,8 @@ const script = {
   label: "Script",
   prompt: "$",
   command:
-    "curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup",
-  requirements: "For Apple silicon Macs. Run in an interactive terminal.",
+    "curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard",
+  requirements: "For Apple silicon Macs. Run in Terminal.",
 };
 const systems = [
   { id: "macos", label: "macOS", icon: "apple", methods: [script, brew, cargo] },
@@ -52,7 +52,7 @@ const systems = [
       {
         ...script,
         requirements:
-          "For Linux or WSL on x86-64 or ARM64 with glibc 2.34+. Run in an interactive terminal with a systemd user session.",
+          "For Linux or WSL on x86-64 or ARM64 with glibc 2.34+. Requires a systemd user session.",
       },
       apt,
       cargo,
@@ -68,7 +68,7 @@ const systems = [
         label: "PowerShell",
         prompt: ">",
         command:
-          "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup",
+          "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard",
         requirements: "For Windows x64. Open PowerShell after signing in to the Windows desktop.",
       },
       {
@@ -175,9 +175,9 @@ const first = script;
         </div>
         <p class="hint">Paste it into a coding agent. You choose whether to connect agents or start with the dashboard.</p>
         <p class="script-hint">
-          Installs Mash and its local search service. The wizard lets you choose which chats to index and which agents to connect.
-          The installer prints the command to <a href="/dashboard/">open the browser dashboard</a>.
-          <a href="/installation/">Install separately</a>
+          Installs Mash and starts local search and the dashboard. Open the address it prints to choose
+          which chats to index and whether to connect any agents.
+          <a href="/dashboard/#set-up-mash-from-the-dashboard">See browser setup</a> · <a href="/installation/">Install separately</a>
         </p>
         <p class="package-hint">
           Includes the browser dashboard. After installing,

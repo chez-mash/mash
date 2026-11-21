@@ -1,26 +1,43 @@
 # Install the latest Windows x64 release. MASH_VERSION pins a release;
 # MASH_INSTALL_DIR overrides the default $HOME\.local\bin directory.
-param([switch] $Setup)
+param([switch] $Setup, [switch] $Dashboard)
 
 $ErrorActionPreference = 'Stop'
 
 function Start-MashSetup {
-    param([string] $Executable)
+    param([string] $Executable, [switch] $Dashboard)
 
-    Write-Host 'Preparing the local search service (Qdrant). The setup wizard opens next.'
+    $command = if ($Dashboard) { 'dash' } else { 'init' }
+    Write-Host 'Preparing the local search service (Qdrant).'
     & $Executable qdrant install > $null
-    if ($LASTEXITCODE -ne 0) { throw "Mash could not start the local search service (exit $LASTEXITCODE)." }
-    & $Executable init
-    if ($LASTEXITCODE -ne 0) { throw "Mash setup did not finish (exit $LASTEXITCODE)." }
+    if ($LASTEXITCODE -ne 0) {
+        $quotedExecutable = $Executable.Replace("'", "''")
+        Write-Host 'Mash is installed.'
+        Write-Host 'See https://getmash.io/troubleshooting/#qdrant-connection-failed to start the search service.'
+        Write-Host 'Then resume setup with:'
+        Write-Host "  & '$quotedExecutable' $command"
+        throw "Mash could not start the local search service (exit $LASTEXITCODE)."
+    }
+    if ($Dashboard) {
+        Write-Host 'Open the address below in your browser to choose which chats to index.'
+        Write-Host 'Keep this terminal open while you use the dashboard.'
+        & $Executable dash
+        if ($LASTEXITCODE -ne 0) { throw "Mash dashboard exited with an error (exit $LASTEXITCODE)." }
+    } else {
+        & $Executable init
+        if ($LASTEXITCODE -ne 0) { throw "Mash setup did not finish (exit $LASTEXITCODE)." }
+    }
 }
 
 function Install-Mash {
     param(
         [string] $Directory = $(if ($env:MASH_INSTALL_DIR) { $env:MASH_INSTALL_DIR } else { Join-Path $HOME '.local\bin' }),
         [string] $Version = $env:MASH_VERSION,
-        [switch] $Setup
+        [switch] $Setup,
+        [switch] $Dashboard
     )
 
+    if ($Setup -and $Dashboard) { throw 'Choose -Dashboard for browser setup or -Setup for terminal setup.' }
     if ($Setup -and ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected)) {
         throw '-Setup needs an interactive terminal. Run without -Setup to install the binaries only.'
     }
@@ -80,6 +97,10 @@ function Install-Mash {
     if ($Directory -notin ($env:PATH -split ';')) { Write-Host "Add $Directory to your user PATH, then open a new terminal." }
     $mash = Join-Path $Directory 'mash.exe'
     $quotedMash = $mash.Replace("'", "''")
+    if ($Dashboard) {
+        Start-MashSetup -Executable $mash -Dashboard
+        return
+    }
     Write-Host 'The setup wizard lets you choose which coding agents can search your chats.'
     if ($Setup) {
         Start-MashSetup -Executable $mash
@@ -100,4 +121,4 @@ function Install-Mash {
 # this variable. The way the script was invoked cannot be trusted for that:
 # piped into iex from a script that was itself dot-sourced, as CI runners do,
 # it looks dot-sourced too and would install nothing, silently.
-if (-not $env:MASH_INSTALL_DEFINE_ONLY) { Install-Mash -Setup:$Setup }
+if (-not $env:MASH_INSTALL_DEFINE_ONLY) { Install-Mash -Setup:$Setup -Dashboard:$Dashboard }

@@ -8,9 +8,8 @@ ejecuta en tu propio equipo. Antes de instalarlo, puedes
 [probar una búsqueda de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 y abrir un resultado para ver la conversación original.
 
-Después de configurar Mash, ejecuta `mash dash` y abre en tu navegador la
-dirección que muestra. También puedes buscar en la terminal o conectar un
-agente para que busque por ti.
+Puedes buscar en el panel web o en la terminal, o conectar un agente para que
+busque por ti.
 
 [Qué cambia al configurar Mash](installation.md#what-setup-changes) · [Cómo verificar la descarga](downloads.md#verify-the-checksum) · [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 
@@ -29,14 +28,16 @@ Puedes empezar con el panel y elegir si quieres conectar agentes.
 Si ya instalaste el [plugin de Mash](plugin.md#start-with-the-plugin),
 pídele a tu agente que use la skill `setup`.
 
+<span id="install-it-yourself"></span>
+
 ## Instálalo por tu cuenta
 
 Necesitas al menos una conversación guardada con un [agente compatible](supported-agents.md).
-Los scripts instalan Mash con el panel web, inician el servicio de búsqueda
-local y abren el asistente. Si prefieres Homebrew, apt, Scoop u otro
-gestor de paquetes, consulta los [comandos de instalación](install-methods.md#install-with-a-package-manager).
-Para elegir los historiales en el navegador, sigue los [pasos de instalación por separado](installation.md)
-y [configura Mash en el panel](installation.md#set-up-in-your-browser).
+Los comandos de abajo instalan Mash, inician la búsqueda local y ponen en
+marcha el panel para que configures Mash en tu navegador. Si prefieres Homebrew,
+apt, Scoop u otro gestor de paquetes, consulta los
+[comandos de instalación](install-methods.md#install-with-a-package-manager).
+Si prefieres el [asistente de terminal](installation.md#set-up-in-a-terminal), usa sus pasos de configuración.
 
 En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
 este comando para una instalación local nueva. En Linux o WSL necesitas una
@@ -44,7 +45,7 @@ sesión de usuario de systemd para iniciar Qdrant.
 [Comprueba tu sesión o consulta las alternativas](local-search.md#linux-without-a-systemd-user-session).
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 En Windows x64, los datos de búsqueda se guardan en una carpeta con una ruta
@@ -52,20 +53,23 @@ corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
 [Dónde guarda Mash los datos](privacy.md#where-mash-stores-data). Usa PowerShell.
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
 ```
 
 El instalador verifica las descargas, guarda Mash en `.local/bin`, inicia el
-servicio de búsqueda local (Qdrant, unos 30 MB) y abre el asistente de Mash.
+servicio de búsqueda local (Qdrant, unos 30 MB).
 El servicio funciona con tu usuario y se inicia cuando entras en tu sesión.
 La búsqueda por palabras funciona sin descargar modelos.
 
-Revisa los historiales antes de empezar. Por defecto se incluyen los archivos
-actualizados en los últimos 90 días. Si el asistente pregunta dónde buscar,
-elige **Just this computer (recommended)**.
+Abre en tu navegador la dirección que muestra el instalador, normalmente
+<http://127.0.0.1:8790>, y deja el terminal abierto. Revisa los historiales
+detectados y el período. El período predeterminado es de 90 días. Si primero
+aparece la lista de historiales, pulsa **Next** hasta llegar al resumen.
 
-- **Busca por tu cuenta en el panel.** [Omite las conexiones a agentes](installation.md#skip-agent-connections) e indexa tus conversaciones. Puedes conectar agentes más adelante.
-- **Deja que un agente busque por ti.** Comprueba qué agentes aparecen en la revisión antes de elegir **Set up and index**.
+- **Busca por tu cuenta en el panel.** Elige **Skip agent connections** o desactiva cada conexión en la pantalla de agentes. Puedes conectar agentes más adelante.
+- **Deja que un agente busque por ti.** Selecciona los agentes que quieras conectar y comprueba cuáles figuran en el resumen.
+
+Elige **Set up and index**. [Pasos de configuración en el panel](dashboard.md#set-up-mash-from-the-dashboard)
 
 Para instalar por separado o usar tu propio Qdrant, consulta la
 [guía de instalación](installation.md).
@@ -74,17 +78,11 @@ Para instalar por separado o usar tu propio Qdrant, consulta la
 
 ## Encuentra una conversación anterior
 
-Cuando el asistente indique que la búsqueda está lista, inicia el panel local
-y deja el terminal abierto.
+Cuando la búsqueda esté lista, entra en **chats**. Escribe una palabra, un
+código de error o el nombre de una función que recuerdes y pulsa Intro.
+Abre un resultado para ver el mensaje original en su conversación.
 
-```sh
-mash dash
-```
-
-1. Abre en el navegador la dirección que muestra el comando, normalmente [http://127.0.0.1:8790](http://127.0.0.1:8790).
-2. Entra en **chats**, escribe una palabra, un código de error o el nombre de una función que recuerdes y pulsa Intro.
-3. Abre un resultado para ver el mensaje original en su conversación.
-
+Para volver a abrir el panel, ejecuta `mash dash` y abre la dirección que muestra.
 Si el terminal no encuentra `mash`, usa la ruta completa que muestra el instalador.
 También puedes [añadir Mash a la ruta de comandos](troubleshooting.md#mash-command-not-found).
 Si no aparece una conversación, consulta [qué hacer cuando no hay resultados](troubleshooting.md#search-returns-no-results).
@@ -105,6 +103,4 @@ Para que los chats nuevos aparezcan en tus búsquedas, ejecuta `mash index` o
 [mantén el índice al día en segundo plano](synchronization.md).
 También puedes [hacer una copia de seguridad](backup.md).
 
-<!-- mash-docs-source: 9cf2a17136bb1f967985184a309d9c85b23f7b21bbe4b4e19db0a42d258b7d56 -->
-Para encontrar conversaciones nuevas, consulta [cómo actualizar el historial](synchronization.md).
-También puedes [hacer una copia de seguridad de tu historial](backup.md).
+<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->

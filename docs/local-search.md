@@ -84,8 +84,9 @@ If you prefer to enable systemd on WSL 2, follow
 and check again from your WSL terminal.
 
 If the quick installer stopped after printing “Installed”, Mash's binaries
-are already in place. Start Qdrant, then run `mash init` using the installed
-path if needed. For a new installation, use the
+are already in place. Start Qdrant, then run `mash dash` for browser setup
+or `mash init` for terminal setup. Use the installed path if needed.
+For a new installation, use the
 [binary-only installer](installation.md#recommended-release-installers)
 before starting Qdrant yourself.
 

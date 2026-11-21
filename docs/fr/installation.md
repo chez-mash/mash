@@ -8,8 +8,9 @@ Vous pouvez [essayer la démo avec des conversations d’exemple](https://getmas
 Pour utiliser vos propres données, [choisissez un historique et essayez le tableau de bord local](privacy.md#essayer-mash-avec-un-historique-limité).
 
 Le [guide de démarrage rapide](quick-start.md) propose une seule commande
-pour installer Mash, démarrer le service de recherche et ouvrir l’assistant
-de configuration. Si Mash est déjà installé, [démarrez le service de recherche](#start-the-local-search-service).
+pour installer Mash, démarrer le service de recherche et lancer le tableau de
+bord pour la configuration dans le navigateur. Si Mash est déjà installé,
+[démarrez le service de recherche](#start-the-local-search-service).
 S’il est déjà en cours d’exécution, [configurez vos historiques](#connect-your-histories).
 
 Pour passer à une nouvelle version, suivez les [étapes de mise à jour](upgrades.md#upgrade-an-existing-installation).
@@ -25,8 +26,8 @@ Pour passer à une nouvelle version, suivez les [étapes de mise à jour](upgrad
    le configure pour qu’il se lance sous votre compte à l’ouverture de session.
    Mash limite les connexions à cet ordinateur et désactive la télémétrie de
    Qdrant. [Fichiers du service de recherche](local-search.md#where-qdrant-stores-data)
-3. **Choisissez ce que Mash peut lire.** L’assistant interactif de `mash init`
-   affiche les dossiers d’historique trouvés avant d’enregistrer les réglages
+3. **Choisissez ce que Mash peut lire.** La configuration dans le tableau de bord
+   ou le terminal affiche les historiques trouvés avant d’enregistrer les réglages
    ou d’indexer vos conversations. Mash lit les conversations à leur emplacement
    d’origine et conserve par défaut une copie consultable sur cet ordinateur.
    Si vous choisissez de connecter un agent, l’assistant modifie ses réglages
@@ -34,8 +35,8 @@ Pour passer à une nouvelle version, suivez les [étapes de mise à jour](upgrad
    [ignorer les connexions aux agents](#skip-agent-connections) et chercher vous-même.
    [Où Mash conserve vos données](privacy.md#where-mash-stores-data)
 
-La commande du guide de démarrage rapide installe les programmes et démarre
-Qdrant avant d’afficher le récapitulatif. Si vous annulez à cette étape,
+La commande de démarrage rapide installe les programmes et démarre Qdrant
+avant que vous n’ouvriez le tableau de bord. Si vous passez la configuration,
 `mash uninstall` indique ce qui a déjà été installé et comment le retirer.
 [Aperçu de la désinstallation](uninstall.md)
 
@@ -161,7 +162,14 @@ faire vos recherches vous-même. Choisissez **Set up and index**. Une fois
 l’index prêt, ouvrez **chats** et cherchez un mot dont vous vous souvenez.
 [Voir les étapes de configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
 
+<span id="set-up-in-a-terminal"></span>
+
 ### Configurer Mash dans le terminal
+
+Pour installer Mash et lancer l’assistant dans le terminal avec une seule
+commande, utilisez le [script de démarrage rapide](quick-start.md#install-it-yourself)
+avec `--setup` à la place de `--dashboard` sous macOS ou Linux, ou avec
+`-Setup` à la place de `-Dashboard` sous Windows.
 
 Utilisez l’assistant du terminal si vous avez compilé Mash sans le tableau de
 bord, si vous voulez choisir un dossier d’historique ou si vous souhaitez
@@ -309,4 +317,4 @@ la sortie d’erreur.
 
 Lancez `mash uninstall` pour voir ce qui serait retiré. [Vérifiez ce qui reste et comment désinstaller Mash](uninstall.md).
 
-<!-- mash-docs-source: 52ce3de441d218c0570a52571fd86f47587a6a60e2bdd2d55cf2b6fe726eef61 -->
+<!-- mash-docs-source: f470ab29971e14959137f03db9ce2e94346f514d771d863478f7d7edb07135bc -->

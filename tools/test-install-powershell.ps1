@@ -92,6 +92,7 @@ try {
 @echo off
 echo %*>>"%MASH_INSTALL_TEST_STEPS%"
 if "%MASH_INSTALL_TEST_QDRANT_FAIL%"=="1" if "%1"=="qdrant" exit /b 7
+if "%MASH_INSTALL_TEST_DASH_FAIL%"=="1" if "%1"=="dash" exit /b 11
 echo ran %*
 '@ | Set-Content -LiteralPath $setupFixture -Encoding Ascii
     } else {
@@ -100,6 +101,7 @@ echo ran %*
 #!/bin/sh
 printf '%s\n' "$*" >> "$MASH_INSTALL_TEST_STEPS"
 if [ "${MASH_INSTALL_TEST_QDRANT_FAIL:-0}" = 1 ] && [ "$1" = qdrant ]; then exit 7; fi
+if [ "${MASH_INSTALL_TEST_DASH_FAIL:-0}" = 1 ] && [ "$1" = dash ]; then exit 11; fi
 printf 'ran %s\n' "$*"
 '@ | Set-Content -LiteralPath $setupFixture -Encoding Ascii
         chmod +x $setupFixture
@@ -115,6 +117,20 @@ printf 'ran %s\n' "$*"
     Remove-Item -LiteralPath $setupSteps
     Start-MashSetup -Executable $setupFixture 6>$null | Out-Null
     Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install,init' 'setup succeeds on retry'
+
+    Remove-Item -LiteralPath $setupSteps
+    $output = @(Start-MashSetup -Executable $setupFixture -Dashboard 6>$null)
+    Assert-Equal ($output -join ',') 'ran dash' 'only the dashboard writes to output'
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install,dash' 'browser setup skips the terminal wizard'
+    Remove-Item -LiteralPath $setupSteps
+    $env:MASH_INSTALL_TEST_QDRANT_FAIL = '1'
+    Assert-Fails { Start-MashSetup -Executable $setupFixture -Dashboard 6>$null } 'could not start the local search service'
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install' 'failed search service stops browser setup'
+    Remove-Item Env:MASH_INSTALL_TEST_QDRANT_FAIL
+    $env:MASH_INSTALL_TEST_DASH_FAIL = '1'
+    Assert-Fails { Start-MashSetup -Executable $setupFixture -Dashboard 6>$null } 'dashboard exited with an error'
+    Remove-Item Env:MASH_INSTALL_TEST_DASH_FAIL
+    Assert-Fails { Install-Mash -Directory $destination -Setup -Dashboard } 'Choose -Dashboard'
 
     if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected) {
         $downloadsBefore = $script:requests.Count

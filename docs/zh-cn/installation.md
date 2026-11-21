@@ -4,7 +4,7 @@
 
 你可以先[搜索演示中的示例对话](https://getmash.io/demo/)。想用自己的数据试一试，可以[选择一份历史记录，在本地网页面板中试用](privacy.md#用少量本地历史试用)。
 
-[快速入门](quick-start.md)提供一条命令，可安装 Mash、启动搜索服务并打开设置助手供你核对选项。如果已经安装 Mash，请[启动搜索服务](#start-the-local-search-service)。如果服务也已运行，请直接[设置要读取的历史记录](#connect-your-histories)。
+[快速入门](quick-start.md)提供一条命令，可安装 Mash、启动搜索服务和网页面板，让你在浏览器中完成设置。如果已经安装 Mash，请[启动搜索服务](#start-the-local-search-service)。如果服务也已运行，请直接[设置要读取的历史记录](#connect-your-histories)。
 
 如果已有 Mash，现在要更新到新版本，请参阅[升级步骤](upgrades.md#upgrade-an-existing-installation)。
 
@@ -14,9 +14,9 @@
 
 1. **安装程序。** [基本安装脚本](#recommended-release-installers)会将 `mash` 和 `mash-server` 放到你的用户目录。也可以自行[校验并解压发布归档](downloads.md)。
 2. **启动本地搜索。** `mash qdrant install` 会下载 Qdrant，并将它设置为在你登录时以你的账号运行。Mash 只允许本机连接该服务，并关闭 Qdrant 的遥测。[搜索服务文件](local-search.md#where-qdrant-stores-data)
-3. **选择 Mash 可以读取的内容。** 交互式 `mash init` 助手会先展示找到的历史记录目录，再保存设置或为对话建立索引。Mash 从原位置读取对话，默认在本机保存可搜索的副本。如果选择连接代理，设置助手会更新该代理的设置，让它可以从副本中请求对话片段。你也可以[跳过连接代理](#skip-agent-connections)，自行搜索。[Mash 的数据存放位置](privacy.md#where-mash-stores-data)
+3. **选择 Mash 可以读取的内容。** 无论在网页面板还是终端中设置，Mash 都会先展示找到的历史记录，再保存设置或为对话建立索引。Mash 从原位置读取对话，默认在本机保存可搜索的副本。如果选择连接代理，设置助手会更新该代理的设置，让它可以从副本中请求对话片段。你也可以[跳过连接代理](#skip-agent-connections)，自行搜索。[Mash 的数据存放位置](privacy.md#where-mash-stores-data)
 
-快速入门命令会先安装程序并启动 Qdrant，再打开设置确认页。如果在这里取消，可以运行 `mash uninstall` 查看已安装的内容和移除方法。[预览卸载](uninstall.md)
+打开网页面板前，快速入门命令会先安装程序并启动 Qdrant。如果跳过设置，可以运行 `mash uninstall` 查看已安装的内容和移除方法。[预览卸载](uninstall.md)
 
 <span id="install-the-cli"></span>
 
@@ -107,7 +107,11 @@ mash dash
 保持终端运行，在浏览器中打开终端显示的网址。首次安装时，网页面板会打开设置页。核对历史记录和日期范围。如果只想自己搜索，请保持代理连接关闭。选择 **Set up and index**。索引就绪后，打开 **chats**，搜索一个你记得的词。
 [查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
 
+<span id="set-up-in-a-terminal"></span>
+
 ### 在终端中设置 Mash
+
+如果想用一条命令安装 Mash 并打开终端设置助手，请使用[快速入门脚本](quick-start.md#install-it-yourself)，在 macOS 或 Linux 上将 `--dashboard` 换成 `--setup`，在 Windows 上将 `-Dashboard` 换成 `-Setup`。
 
 如果你的构建没有网页面板，或你想自行选择历史记录目录、连接共享服务器，请使用终端设置助手。
 
@@ -191,4 +195,4 @@ Qdrant 启动前也可以阅读历史记录。先运行 `mash init --no-index`�
 
 运行 `mash uninstall` 可以预览将移除的内容。[查看哪些内容会保留，以及如何卸载 Mash](uninstall.md)。
 
-<!-- mash-docs-source: 52ce3de441d218c0570a52571fd86f47587a6a60e2bdd2d55cf2b6fe726eef61 -->
+<!-- mash-docs-source: f470ab29971e14959137f03db9ce2e94346f514d771d863478f7d7edb07135bc -->

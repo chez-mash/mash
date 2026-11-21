@@ -55,7 +55,7 @@ systemctl --user show-environment >/dev/null
 
 如果检查顺利完成，可使用 `mash qdrant install`。如果终端提示无法连接用户总线或找不到 `systemctl`，可以[在 Docker 中启动 Qdrant](#optional-qdrant-docker-image)，也可以[在 Linux 终端中直接运行 Qdrant](#native-macos-or-linux-without-docker)。如果想在 WSL 2 上启用 systemd，请参阅 [Microsoft 的 WSL 指南](https://learn.microsoft.com/zh-cn/windows/wsl/systemd)，然后在 WSL 终端中再次检查。
 
-如果快速安装脚本在显示“Installed”后停止，Mash 的可执行文件已经装好。请先启动 Qdrant，然后运行 `mash init`，必要时使用 Mash 的完整安装路径。如果还没安装 Mash，请先用[仅安装可执行文件的脚本](installation.md#recommended-release-installers)，再自行启动 Qdrant。
+如果快速安装脚本在显示“Installed”后停止，Mash 的可执行文件已经装好。请先启动 Qdrant，然后运行 `mash dash` 进入浏览器设置，或运行 `mash init` 在终端中设置。必要时使用 Mash 的完整安装路径。如果还没安装 Mash，请先用[仅安装可执行文件的脚本](installation.md#recommended-release-installers)，再自行启动 Qdrant。
 
 <span id="run-qdrant-yourself"></span>
 
@@ -123,4 +123,4 @@ docker start mash-local-qdrant
 
 Qdrant 会随 Docker 重启，手动停止容器时除外。如果容器已经存在，用 `docker start` 启动它。停止容器后，数据仍保存在 `mash-qdrant-data` 数据卷中。只有打算删除这些数据时，才需要删除该数据卷。
 
-<!-- mash-docs-source: 545085b01bb01a6e80ed969f8e815ec8bf83993ba7a8f8575957f023963237a0 -->
+<!-- mash-docs-source: 5506852e48e6f2fe5fb713326fe5b9ea939c430cd352dd42c470fb85bf1aab9f -->

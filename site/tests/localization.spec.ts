@@ -159,6 +159,12 @@ for (const [locale, lang, installationTitle] of [
     const changes = `${install}#what-setup-changes`;
     const guide = page.locator(".sl-markdown-content");
     await page.goto(`/${locale}/quick-start/`);
+    const terminal = `${install}#set-up-in-a-terminal`;
+    await guide.locator(`a[href="${terminal}"]`).click();
+    await expect(page).toHaveURL(terminal);
+    await expect(guide.locator("#set-up-in-a-terminal")).toBeAttached();
+    await guide.locator(`a[href="/${locale}/quick-start/#install-it-yourself"]`).click();
+    await expect(page).toHaveURL(`/${locale}/quick-start/#install-it-yourself`);
     await guide.locator(`a[href="${changes}"]`).click();
     await expect(page).toHaveURL(changes);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
@@ -584,8 +590,8 @@ for (const locale of [
       "href",
       `/${locale.path}/guides/`,
     );
-    await expect(page.locator("pre").filter({ hasText: "sh -s -- --setup" })).toBeVisible();
-    await expect(page.locator('pre[data-language="powershell"]')).toContainText(/ -Setup$/);
+    await expect(page.locator("pre").filter({ hasText: "sh -s -- --dashboard" })).toBeVisible();
+    await expect(page.locator('pre[data-language="powershell"]')).toContainText(/ -Dashboard$/);
 
     await page.getByRole("link", { name: locale.trialLink }).click();
     await expect(page).toHaveURL(

@@ -97,8 +97,9 @@ puis relancez la vérification dans votre terminal WSL.
 
 Si l’installation rapide s’est arrêtée après avoir affiché « Installed »,
 les exécutables de Mash sont déjà en place. Démarrez Qdrant, puis lancez
-`mash init` en utilisant le chemin de l’exécutable si nécessaire. Pour
-une nouvelle installation, utilisez
+`mash dash` pour la configuration dans le navigateur ou `mash init` pour la
+configuration dans le terminal. Utilisez le chemin de l’exécutable si nécessaire.
+Pour une nouvelle installation, utilisez
 [l’installateur des exécutables](installation.md#recommended-release-installers)
 avant de démarrer Qdrant vous-même.
 
@@ -198,4 +199,4 @@ conteneur existe déjà, relancez-le avec `docker start`. L’arrêt du conteneu
 conserve les données dans le volume `mash-qdrant-data`. Supprimez ce volume
 uniquement si vous souhaitez effacer ces données.
 
-<!-- mash-docs-source: 545085b01bb01a6e80ed969f8e815ec8bf83993ba7a8f8575957f023963237a0 -->
+<!-- mash-docs-source: 5506852e48e6f2fe5fb713326fe5b9ea939c430cd352dd42c470fb85bf1aab9f -->

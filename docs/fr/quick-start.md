@@ -22,21 +22,23 @@ Vous pouvez commencer par le tableau de bord et choisir si vous souhaitez connec
 Si vous avez installé le [plugin Mash](plugin.md#start-with-the-plugin),
 demandez à votre agent d’utiliser la compétence `setup`.
 
+<span id="install-it-yourself"></span>
+
 ## Installez Mash vous-même
 
 Vous devez avoir au moins une conversation enregistrée avec un [agent compatible](supported-agents.md).
-Les scripts installent Mash avec le tableau de bord, démarrent le service de
-recherche local et ouvrent l’assistant. Pour Homebrew, apt, Scoop ou un autre
-gestionnaire de paquets, consultez les [commandes d’installation](install-methods.md#install-with-a-package-manager).
-Pour choisir les historiques dans le navigateur, suivez les [étapes d’installation séparées](installation.md)
-puis [configurez Mash dans le tableau de bord](installation.md#set-up-in-your-browser).
+Les commandes ci-dessous installent Mash, démarrent la recherche locale et
+lancent le tableau de bord pour configurer Mash dans votre navigateur.
+Pour Homebrew, apt, Scoop ou un autre gestionnaire de paquets, consultez les
+[commandes d’installation](install-methods.md#install-with-a-package-manager).
+Vous pouvez aussi [suivre l’assistant dans le terminal](installation.md#set-up-in-a-terminal).
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
 Qdrant. [Vérifiez votre session ou consultez les autres options](local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 Sous Windows x64, les données de recherche sont placées dans un dossier au
@@ -44,7 +46,7 @@ chemin court sur le disque système, généralement `C:\mash-qdrant\storage`.
 [Où Mash conserve les données](privacy.md#where-mash-stores-data). Utilisez PowerShell.
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
 ```
 
 Les scripts vérifient les téléchargements et installent Mash dans le dossier
@@ -52,12 +54,16 @@ Les scripts vérifient les téléchargements et installent Mash dans le dossier
 l’ouverture de votre session. La recherche par mots fonctionne sans téléchargement
 de modèles.
 
-Vérifiez les historiques avant de commencer. La période proposée couvre les
-90 derniers jours. Si l’assistant vous demande où chercher, choisissez
-**Just this computer (recommended)**.
+Ouvrez dans votre navigateur l’adresse affichée par l’installateur,
+généralement <http://127.0.0.1:8790>. Laissez le terminal ouvert.
+Vérifiez les historiques détectés et la période, qui couvre par défaut les
+90 derniers jours. Si vous arrivez d’abord sur le choix des historiques,
+cliquez sur **Next** pour atteindre le récapitulatif.
 
-- **Cherchez vous-même dans le tableau de bord.** [Ignorez la connexion aux agents](installation.md#skip-agent-connections) et indexez vos conversations. Vous pourrez connecter des agents plus tard.
-- **Demandez à un agent de chercher pour vous.** Vérifiez les agents indiqués dans le récapitulatif avant de choisir **Set up and index**.
+- **Cherchez vous-même dans le tableau de bord.** Choisissez **Skip agent connections** ou désactivez chaque connexion sur l’écran des agents. Vous pourrez connecter des agents plus tard.
+- **Demandez à un agent de chercher pour vous.** Sélectionnez les agents à connecter et vérifiez qu’ils figurent dans le récapitulatif.
+
+Choisissez **Set up and index**. [Étapes de configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
 
 Si votre service de recherche tourne déjà ou si vous voulez seulement les
 exécutables, consultez le [guide d’installation](installation.md).
@@ -66,16 +72,11 @@ exécutables, consultez le [guide d’installation](installation.md).
 
 ## Retrouver une première conversation
 
-Lorsque l’assistant indique que la recherche est prête, lancez le tableau de bord et laissez le terminal ouvert.
+Lorsque la recherche est prête, ouvrez **chats**. Saisissez un mot dont vous
+vous souvenez, par exemple un nom de fonction ou un message d’erreur, puis
+appuyez sur Entrée. Ouvrez un résultat pour lire le message dans sa conversation.
 
-```bash
-mash dash
-```
-
-1. Ouvrez dans votre navigateur l’adresse affichée, généralement <http://127.0.0.1:8790>.
-2. Ouvrez **chats**, saisissez un mot dont vous vous souvenez, par exemple un nom de fonction ou un message d’erreur, puis appuyez sur Entrée.
-3. Ouvrez un résultat pour lire le message original dans sa conversation.
-
+Pour rouvrir le tableau de bord plus tard, lancez `mash dash` et ouvrez l’adresse affichée.
 Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pendant l’installation.
 Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes](troubleshooting.md#mash-command-not-found).
 Si une conversation manque, consultez [les vérifications pour une recherche sans résultat](troubleshooting.md#search-returns-no-results).
@@ -91,4 +92,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 9cf2a17136bb1f967985184a309d9c85b23f7b21bbe4b4e19db0a42d258b7d56 -->
+<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->

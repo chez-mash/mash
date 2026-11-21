@@ -1,23 +1,25 @@
 #!/bin/sh
 # Install the latest Mash release binary:
 #   curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
-# Add `-s -- --setup` after `sh` to also start local Qdrant and open the setup wizard.
+# Add `-s -- --dashboard` after `sh` for browser setup, or `-s -- --setup` for terminal setup.
 set -eu
 
 usage() {
   cat <<'EOF'
-Usage: sh install.sh [--setup]
+Usage: sh install.sh [--dashboard | --setup]
 Installs the verified Mash release into ~/.local/bin by default.
 Set MASH_VERSION to pin a release or MASH_INSTALL_DIR to change the directory.
-Use --setup in a terminal to also install and start local Qdrant and review
-which histories Mash will read. When piping this script to sh, use sh -s -- --setup.
+Both options also start local Qdrant so you can choose which chats to index.
+Use --dashboard for setup in your browser or --setup for the terminal wizard.
+When piping this script to sh, pass an option with sh -s -- OPTION.
 EOF
 }
 
-setup=false
+mode=install
 if [ "$#" -gt 0 ]; then
   case "$#:$1" in
-    1:--setup) setup=true ;;
+    1:--dashboard) mode=dash ;;
+    1:--setup) mode=init ;;
     1:-h | 1:--help) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -28,7 +30,7 @@ setup_terminal_required() {
   exit 2
 }
 
-if "$setup"; then
+if [ "$mode" = init ]; then
   [ -t 1 ] && [ -t 2 ] || setup_terminal_required
   if [ -t 0 ]; then
     exec 3<&0
@@ -95,18 +97,27 @@ case ":$PATH:" in
   *) echo "Add $directory to your PATH." ;;
 esac
 quoted_mash=$(printf '%s' "$mash" | sed "s/'/'\\\\''/g")
-echo 'The setup wizard lets you choose which coding agents can search your chats.'
-if "$setup"; then
-  echo 'Preparing the local search service (Qdrant). The setup wizard opens next.'
+if [ "$mode" != install ]; then
+  echo 'Preparing the local search service (Qdrant).'
   "$mash" qdrant install </dev/null >/dev/null || {
     status=$?
     {
       echo 'Mash is installed.'
       echo 'See https://getmash.io/troubleshooting/#qdrant-connection-failed to start the search service.'
-      printf "Then resume setup with:\n  '%s' init\n" "$quoted_mash"
+      printf "Then resume setup with:\n  '%s' %s\n" "$quoted_mash" "$mode"
     } >&2
     exit "$status"
   }
+fi
+if [ "$mode" = dash ]; then
+  echo 'Open the address below in your browser to choose which chats to index.'
+  echo 'Keep this terminal open while you use the dashboard.'
+  rm -rf -- "$scratch"
+  trap - EXIT HUP INT TERM
+  exec "$mash" dash
+fi
+echo 'The setup wizard lets you choose which coding agents can search your chats.'
+if [ "$mode" = init ]; then
   "$mash" init <&3 3<&-
   echo 'After setup, start the browser dashboard and open the address it prints.'
 else

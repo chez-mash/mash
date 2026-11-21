@@ -86,7 +86,7 @@ test("the hero's install command copies to the clipboard", async ({ page, contex
   await page.getByRole("button", { name: "Install it yourself" }).click();
   const command = page.locator(".mash-install .picked code");
   // The browser under test runs on Linux, so the picker opens on the shell script.
-  await expect(command).toHaveText(/^curl .*install\.sh \| sh -s -- --setup$/);
+  await expect(command).toHaveText(/^curl .*install\.sh \| sh -s -- --dashboard$/);
   await expect(page.getByRole("link", { name: "Install separately" })).toBeVisible();
   const copy = page.getByRole("button", { name: "Copy the install command" });
   await copy.click();
@@ -113,15 +113,18 @@ test("the hero's install picker follows the chosen system and method", async ({
   await install.getByRole("button", { name: "Install it yourself" }).click();
   await expect(install.locator(".command:visible")).toHaveCount(1);
   await expect(install.locator(".command:visible code")).toHaveText(/^curl /);
-  await expect(requirements).toContainText("with a systemd user session");
+  await expect(requirements).toContainText("Requires a systemd user session");
   await expect(linuxSetup).toBeVisible();
   await expect(linuxSetup).toHaveAttribute(
     "href",
     "/local-search/#linux-without-a-systemd-user-session",
   );
-  await expect(install.getByRole("link", { name: "open the browser dashboard" })).toBeVisible();
+  await expect(install.getByRole("link", { name: "See browser setup" })).toHaveAttribute(
+    "href",
+    "/dashboard/#set-up-mash-from-the-dashboard",
+  );
   await install.getByRole("button", { name: "Windows", exact: true }).click();
-  await expect(command).toHaveText(/^& .*irm .*install\.ps1\)\)\) -Setup$/);
+  await expect(command).toHaveText(/^& .*irm .*install\.ps1\)\)\) -Dashboard$/);
   await expect(install.locator(".picked .prompt")).toHaveText(">");
   await expect(requirements).toHaveText(
     "For Windows x64. Open PowerShell after signing in to the Windows desktop.",

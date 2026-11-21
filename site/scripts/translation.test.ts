@@ -124,8 +124,8 @@ describe("documentation translation drafts", () => {
   it("takes both commands and the first search from the real English quick start", async () => {
     const quickStart = await readTranslationSource("quick-start");
     expect(quickStart.body).toMatch(/^# Quick start/);
-    expect(quickStart.body).toContain("sh -s -- --setup");
-    expect(quickStart.body).toContain(" -Setup");
+    expect(quickStart.body).toContain("sh -s -- --dashboard");
+    expect(quickStart.body).toContain(" -Dashboard");
     expect(quickStart.body).toContain("## Find your first chat");
     expect(quickStart.body).not.toContain("[Español]");
     expect(quickStart.body).not.toContain("## Licence");
@@ -262,7 +262,8 @@ describe("documentation translation drafts", () => {
     ]);
     const draft = prepareTranslation(quickStart, "docs/fr/quick-start.md", localeGuides);
     const output = draft.render({ translations: draft.passages });
-    expect(output).toContain("(installation.md#set-up-in-your-browser)");
+    expect(output).toContain("(installation.md#set-up-in-a-terminal)");
+    expect(output).toContain("(dashboard.md#set-up-mash-from-the-dashboard)");
     expect(output).toContain("(dashboard.md#find-and-read-a-chat)");
     expect(output).toContain("(agents.md#connect-claude-code-codex-or-copilot)");
     expect(output).toContain("(installation.md)");

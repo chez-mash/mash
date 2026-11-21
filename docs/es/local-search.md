@@ -92,8 +92,9 @@ Si prefieres habilitar systemd en WSL 2, sigue la
 y repite la comprobación en tu terminal de WSL.
 
 Si el instalador rápido se detuvo después de mostrar «Installed», los
-ejecutables de Mash ya están instalados. Inicia Qdrant y ejecuta `mash init`
-con la ruta de instalación si hace falta. En un equipo nuevo, usa el
+ejecutables de Mash ya están instalados. Inicia Qdrant y ejecuta `mash dash`
+para configurar Mash en el navegador o `mash init` para hacerlo en la terminal.
+Usa la ruta de instalación si hace falta. En un equipo nuevo, usa el
 [instalador que solo instala los ejecutables](installation.md#recommended-release-installers)
 antes de iniciar Qdrant por tu cuenta.
 
@@ -189,4 +190,4 @@ Si el contenedor ya existe, reanúdalo con `docker start`. Los datos siguen
 en el volumen `mash-qdrant-data` al parar el contenedor. Elimina ese volumen
 solo si quieres borrar esos datos.
 
-<!-- mash-docs-source: 545085b01bb01a6e80ed969f8e815ec8bf83993ba7a8f8575957f023963237a0 -->
+<!-- mash-docs-source: 5506852e48e6f2fe5fb713326fe5b9ea939c430cd352dd42c470fb85bf1aab9f -->

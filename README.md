@@ -72,18 +72,17 @@ you can ask for its `setup` skill.
 ### Install it yourself
 
 You need at least one saved conversation from a [supported agent](docs/supported-agents.md).
-The scripts install Mash with the browser dashboard, start the local search
-service, and open the setup wizard. For Homebrew, apt, Scoop or another
+The commands below install Mash, start local search, and start the
+dashboard so you can set up Mash in your browser. For Homebrew, apt, Scoop or another
 package manager, see the [package install commands](docs/install-methods.md#install-with-a-package-manager).
-To choose your histories in the browser, follow the [separate installation steps](docs/installation.md)
-and [set up in the dashboard](docs/installation.md#set-up-in-your-browser).
+For the terminal wizard, see [set up in a terminal](docs/installation.md#set-up-in-a-terminal).
 
 On macOS (Apple silicon) or Linux (x86-64 or ARM64), use the command below.
 On Linux or WSL it needs a systemd user session to start Qdrant.
 [Check your session or see other ways to start Qdrant](docs/local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 On Windows x64, the setup stores search data in a short folder on the system
@@ -91,18 +90,22 @@ drive, usually `C:\mash-qdrant\storage`. [See where Mash stores data](docs/priva
 Run this in PowerShell:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
 ```
 
 The scripts verify the downloads and install Mash into your `.local/bin`.
 Qdrant (about 30 MB) runs under your user and starts at login. Word search
 works without downloading any models.
 
-Review the histories before you start. The default range is 90 days. If asked
-where to search, choose **Just this computer (recommended)**.
+Open the address the installer prints, usually [http://127.0.0.1:8790](http://127.0.0.1:8790).
+Leave the terminal running. In the browser, review which histories Mash found
+and how far back to look. The default range is 90 days.
+If setup opens on the history choices, use **Next** to reach the review.
 
-- **Search in the dashboard yourself.** [Skip agent connections](docs/installation.md#skip-agent-connections) and index your chats. You can connect agents later.
-- **Let an agent search for you.** Check the agents listed in the review before choosing **Set up and index**.
+- **Search in the dashboard yourself.** Choose **Skip agent connections** or turn off each connection on the agent screen. You can connect agents later.
+- **Let an agent search for you.** Select the agents you want to connect and check which ones appear in the review.
+
+Choose **Set up and index**. [See the dashboard setup steps](docs/dashboard.md#set-up-mash-from-the-dashboard)
 
 To use a search service you already run or to install Mash separately, follow
 the [installation guide](docs/installation.md).
@@ -111,16 +114,11 @@ the [installation guide](docs/installation.md).
 
 ### Find your first chat
 
-When setup says search is ready, start the dashboard and leave this terminal open.
+When setup says search is ready, open **chats**. Type a word you remember, such
+as an error or function name, and press Enter. Open a result to see the original
+message in its conversation.
 
-```bash
-mash dash
-```
-
-1. Open the address it prints in your browser, usually [http://127.0.0.1:8790](http://127.0.0.1:8790).
-2. Open **chats**, type a word you remember, such as an error or function name, and press Enter.
-3. Open a result to see the original message in its conversation.
-
+To reopen the dashboard later, run `mash dash` and open the address it prints.
 If your terminal can’t find `mash`, use the full path shown during setup.
 For commands that make `mash` available by name, see [command not found](docs/troubleshooting.md#mash-command-not-found).
 If a chat is missing, see [what to check when search returns nothing](docs/troubleshooting.md#search-returns-no-results).

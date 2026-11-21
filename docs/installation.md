@@ -7,8 +7,8 @@ machine. [How Mash handles your history](privacy.md)
 To try it first, [search sample chats in the demo](https://getmash.io/demo/).
 For a trial with your own chats, [choose one history and try the local dashboard](privacy.md#try-a-small-local-setup).
 
-For one command that installs Mash, starts the search service and opens the
-setup review, use the [quick start](../README.md#quick-start).
+For one command that installs Mash, starts the search service and starts the
+dashboard for browser setup, use the [quick start](../README.md#quick-start).
 If Mash is already installed, [start the search service](#start-the-local-search-service)
 or [connect your histories](#connect-your-histories) if the service is running.
 
@@ -22,16 +22,16 @@ Already using Mash and moving to a new release? Follow the [upgrade steps](upgra
 2. **Start local search.** `mash qdrant install` downloads Qdrant and sets it
    to run under your account at login. Mash limits it to connections from this
    computer and switches off Qdrant telemetry. [Search service files](local-search.md#where-qdrant-stores-data)
-3. **Choose what Mash can read.** The interactive `mash init` wizard shows the
-   history folders it found before saving settings or indexing your chats.
+3. **Choose what Mash can read.** Setup in the dashboard or terminal shows
+   the histories Mash found before saving settings or indexing your chats.
    Mash reads the original chats in place and saves a searchable copy on this
    computer by default. If you choose to connect an agent, setup updates its
    settings so it can request excerpts from that copy. You can also
    [skip agent connections](#skip-agent-connections) and search yourself.
    [Where Mash stores your data](privacy.md#where-mash-stores-data)
 
-The quick-start command installs the programs and starts Qdrant before it
-opens the review. If you cancel there, `mash uninstall` shows what is already
+The quick-start command installs the programs and starts Qdrant before you
+open the dashboard. If you skip setup, `mash uninstall` shows what is already
 installed and how to remove it. [Preview removal](uninstall.md)
 
 <span id="install-the-cli"></span>
@@ -135,6 +135,10 @@ a word you remember.
 [See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard)
 
 ### Set up in a terminal
+
+To install Mash and run the terminal wizard in one command, use the
+[quick-start script](../README.md#install-it-yourself) with `--setup` instead
+of `--dashboard` on macOS or Linux, or `-Setup` instead of `-Dashboard` on Windows.
 
 Use the terminal wizard for a source build without the dashboard or to
 choose a history folder or connect to a shared server.

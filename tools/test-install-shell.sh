@@ -83,6 +83,12 @@ case "$*" in
         [ -t 0 ] && [ -t 1 ] && [ -t 2 ] || exit 8
         printf 'Review the histories\n'
         IFS= read -r answer && [ "$answer" = 'fixture consent' ] || exit 9 ;;
+    dash)
+        if [ "${TEST_INSTALL_DASH_FAIL:-0}" = 1 ]; then
+            echo 'dashboard could not bind' >&2
+            exit 11
+        fi
+        echo 'dashboard listening on http://127.0.0.1:8790' ;;
     *) exit 10 ;;
 esac
 SH
@@ -112,4 +118,25 @@ grep -q 'search service failure fixture' "$scratch/output"
 grep -Fq 'Mash is installed.' "$scratch/output"
 grep -Fq 'https://getmash.io/troubleshooting/#qdrant-connection-failed' "$scratch/output"
 tr -d '\r' <"$scratch/output" | grep -Fxq "  $expected init"
+
+: > "$TEST_INSTALL_STEPS"
+sh "$repository/install.sh" --dashboard >"$scratch/output" 2>&1
+diff -u <(printf 'qdrant install\ndash\n') "$TEST_INSTALL_STEPS"
+grep -Fxq 'Open the address below in your browser to choose which chats to index.' "$scratch/output"
+grep -Fxq 'dashboard listening on http://127.0.0.1:8790' "$scratch/output"
+if grep -q 'search service JSON fixture' "$scratch/output"; then
+    echo 'Browser setup printed the search service JSON.' >&2; exit 1
+fi
+
+: > "$TEST_INSTALL_STEPS"
+setup_status=0
+TEST_INSTALL_QDRANT_FAIL=1 sh "$repository/install.sh" --dashboard >"$scratch/output" 2>&1 || setup_status=$?
+[[ $setup_status == 7 ]]
+diff -u <(printf 'qdrant install\n') "$TEST_INSTALL_STEPS"
+grep -Fxq "  $expected dash" "$scratch/output"
+
+setup_status=0
+TEST_INSTALL_DASH_FAIL=1 sh "$repository/install.sh" --dashboard >"$scratch/output" 2>&1 || setup_status=$?
+[[ $setup_status == 11 ]]
+grep -Fxq 'dashboard could not bind' "$scratch/output"
 echo 'Shell installer fixtures passed.'

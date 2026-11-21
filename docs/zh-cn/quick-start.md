@@ -14,30 +14,33 @@
 
 如果已安装 [Mash 插件](plugin.md#start-with-the-plugin)，可以让代理使用其中的 `setup` 技能。
 
+<span id="install-it-yourself"></span>
+
 ## 自行安装
 
-你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下脚本会安装 Mash 和网页面板，启动本地搜索服务，并打开设置向导。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](install-methods.md#install-with-a-package-manager)。
-如果想在浏览器中选择要读取的历史记录，请按[分步安装指南](installation.md)操作，再[在网页面板中设置 Mash](installation.md#set-up-in-your-browser)。
+你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下命令会安装 Mash、启动本地搜索服务和网页面板，让你在浏览器中完成设置。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](install-methods.md#install-with-a-package-manager)。你也可以[在终端中设置](installation.md#set-up-in-a-terminal)。
 
 在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 在 Windows x64 上，安装程序会将搜索数据放在系统盘上路径较短的文件夹中，通常是
 `C:\mash-qdrant\storage`。[Mash 将数据存在哪里](privacy.md#where-mash-stores-data)。请使用 PowerShell。
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
 ```
 
 这些脚本会校验下载内容，并将 Mash 安装到你的 `.local/bin` 目录。Qdrant（约 30 MB）以你的用户身份运行，登录时自动启动。关键词搜索不需要下载模型。
 
-开始前先核对要读取的历史记录。默认范围为最近 90 天。如果设置向导询问在哪里搜索，请选择 **Just this computer (recommended)**。
+在浏览器中打开安装程序显示的地址，通常是 <http://127.0.0.1:8790>。保持终端窗口打开。在浏览器中核对找到的历史记录和日期范围，默认是最近 90 天。如果先看到历史记录选择页，请点击 **Next**，直到看到设置摘要。
 
-- **自己在网页面板中搜索。** [跳过代理连接](installation.md#skip-agent-connections)，为对话建立索引。之后也可以再连接代理。
-- **让代理帮你搜索。** 选择 **Set up and index** 之前，先核对摘要中列出的代理。
+- **自己在网页面板中搜索。** 选择 **Skip agent connections**，或在代理设置页逐一关闭连接。之后也可以再连接代理。
+- **让代理帮你搜索。** 选择要连接的代理，并在摘要中核对。
+
+选择 **Set up and index**。[查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
 
 如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](installation.md)。
 
@@ -45,16 +48,9 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 ## 查找第一条对话
 
-设置完成并提示搜索已就绪后，启动网页面板，保持终端窗口打开。
+搜索就绪后，打开 **chats**，输入记得的关键词，例如报错文字或函数名，然后按回车。打开一项结果，即可在对话中查看原始消息。
 
-```bash
-mash dash
-```
-
-1. 在浏览器中打开命令显示的地址，通常是 <http://127.0.0.1:8790>。
-2. 打开 **chats**，输入记得的关键词，例如报错文字或函数名，然后按回车。
-3. 打开一项结果，即可在对话中查看原始消息。
-
+以后要重新打开网页面板，运行 `mash dash`，再打开命令显示的地址。
 如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径](troubleshooting.md#mash-command-not-found)。
 如果找不到某条对话，请参阅[搜索无结果时该检查什么](troubleshooting.md#search-returns-no-results)。
 参阅 [网页面板指南](dashboard.md#find-and-read-a-chat)，或了解如何
@@ -68,4 +64,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 9cf2a17136bb1f967985184a309d9c85b23f7b21bbe4b4e19db0a42d258b7d56 -->
+<!-- mash-docs-source: d399b6683cab2014c1981e29b038db64aec33965aa8cc955be372b7e16785d31 -->

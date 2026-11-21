@@ -57,6 +57,12 @@ test("the quick start goes from setup to a first chat and links to package insta
     "Find your first chat",
   ]);
   await expect(guide.locator("#try-it")).toBeAttached();
+  await expect(guide.locator("pre").filter({ hasText: "sh -s -- --dashboard" })).toBeVisible();
+  await expect(guide.locator('pre[data-language="powershell"]')).toContainText(/ -Dashboard$/);
+  await guide.getByRole("link", { name: "set up in a terminal", exact: true }).click();
+  await expect(page).toHaveURL("/installation/#set-up-in-a-terminal");
+  await expect(guide.getByRole("heading", { name: "Set up in a terminal" })).toBeVisible();
+  await page.goBack();
   await guide.getByRole("link", { name: "what setup changes", exact: true }).click();
   await expect(page).toHaveURL("/installation/#what-setup-changes");
   await expect(guide.getByRole("link", { name: "Preview removal", exact: true })).toBeVisible();
