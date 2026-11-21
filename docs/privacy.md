@@ -29,10 +29,9 @@ agents you want to connect.
 - **To remove an existing integration**, remove the Mash tools and disable or
   remove the Mash plugin, then restart the agent. This includes plugins you
   installed separately. [Remove an agent connection](agents.md#disconnect-an-agent).
-- **To stop indexing a source**, turn it off under **agent histories** in
-  **settings**, save, and restart a running watcher. Existing connections stay
-  in place, and the chats Mash already indexed stay searchable.
-  [Remove a chat from Mash](#remove-a-chat).
+- **To stop indexing a source**, [change which histories Mash reads](dashboard-settings.md#choose-which-histories-mash-reads).
+  Existing connections stay in place, and the chats Mash already indexed stay
+  searchable. [Remove a chat from Mash](#remove-a-chat).
 
 When you connect an agent during Mash setup, Mash registers its tools and
 tries to install its plugin. [What the connection installs](agents.md#what-the-connection-installs).
@@ -44,8 +43,8 @@ tries to install its plugin. [What the connection installs](agents.md#what-the-c
 | Local dashboard or terminal search | Mash reads its index on your computer and shows the results to you. |
 | Connected agent tools (MCP) | An agent can search indexed chats and read matching messages with their surrounding conversation. The agent can send what it reads to its model provider. |
 | Mash plugin with hooks enabled | The plugin can give an agent recent chat details and saved memories at session start, and add chat excerpts when the agent reads a related file. These hints can reach its model provider even without an MCP connection. [What happens automatically and how to turn it off](plugin.md#what-happens-without-asking). |
-| Sharing across machines | Mash uploads indexed chats and retained attachments to your server. Any computer with a token for the same group can read them. To stop future uploads, open **settings**, choose **this machine only** under **index into**, save, and restart a running watcher. Copies already on the server stay there. [Review what you will share](shared-index.md#before-sharing). |
-| Mashy in the dashboard | If you enable Mashy, it sends your questions, selected passages, and the chat text and memories it reads to the [model service you configure](configuration.md#the-dashboard-assistant). To stop this, switch **Mashy** off in **settings** and save, or remove the `[assistant]` section from the configuration file. |
+| Sharing across machines | Mash uploads indexed chats and retained attachments to your server. Any computer with a token for the same group can read them. You can [stop sharing new history](dashboard-settings.md#stop-sharing-new-history). Copies already on the server stay there. [Review what you will share](shared-index.md#before-sharing). |
+| Mashy in the dashboard | If you enable Mashy, it sends your questions, selected passages, and the chat text and memories it reads to the [model service you configure](configuration.md#the-dashboard-assistant). [Turn Mashy off](mashy.md#turn-mashy-off). |
 
 - **A remote embedding worker** receives prepared searchable text, which may
   contain sensitive history. Embedding inference runs locally by default, and
@@ -98,16 +97,11 @@ original chats. [See what uninstall removes](uninstall.md)
 
 ## Shorten the history range
 
-In the dashboard, open **settings**. Under **history range**, choose **recent updates**
-(**recent only** in older versions) and enter the number of days. Choose **Review changes**,
-then **Save to file**.
-Run `mash index` to use the new range, or restart a running watcher so it reads
-the saved settings.
-
 The range applies to future indexing. If you change it from 90 days to 7, a
 chat last updated 30 days ago that Mash already indexed stays searchable,
 even after another index run. A recently updated chat can still contain older
-messages. To remove a specific chat from Mash, see [Remove a chat](#remove-a-chat).
+messages. [Change the history range](dashboard-settings.md#change-the-history-range)
+or [remove a chat from Mash](#remove-a-chat).
 
 ## Sensitive information
 

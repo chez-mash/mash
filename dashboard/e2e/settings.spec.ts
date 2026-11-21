@@ -143,6 +143,10 @@ for (const width of [390, 1280]) {
     await mock(page, settings, posts);
     await page.goto("/#/settings");
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Settings guide", exact: true })).toHaveAttribute(
+      "href",
+      "https://getmash.io/dashboard-settings/",
+    );
     await expect(page.getByRole("link", { name: "Connect an agent" })).toHaveAttribute(
       "href",
       "#/setup",
@@ -170,8 +174,8 @@ for (const width of [390, 1280]) {
     await range.fill("30");
     await page.getByRole("switch", { name: "Hide credentials when publishing" }).click();
     await expect(
-      page.getByText(/publishes all of this machine's history again, including credentials/),
-    ).toBeVisible();
+      page.getByText(/The next publication replaces this machine's shared copy/),
+    ).toContainText("That copy can include credentials found in chats.");
     const bar = page.getByRole("region", { name: "Unsaved settings" });
     await expect(bar).toContainText("3 unsaved changes");
     await bar.getByRole("button", { name: "Review changes" }).click();
@@ -188,9 +192,8 @@ for (const width of [390, 1280]) {
     await expect(bar).toContainText("3 unsaved changes");
     await bar.getByRole("button", { name: "Save to file" }).click();
     await expect(bar.getByRole("status")).toContainText("Saved 3 changes to the file");
-    await expect(
-      bar.getByRole("link", { name: "Restart the watcher from Services" }),
-    ).toBeVisible();
+    await expect(bar.getByRole("status")).toContainText("New requests use the saved settings");
+    await expect(bar.getByRole("status")).toContainText("run mash index on this machine");
     expect(posts).toHaveLength(2);
     expect(posts[1]).toEqual({
       revision: "r1",
@@ -227,6 +230,7 @@ test("a dashboard that does not accept changes shows settings without controls",
   await mock(page, { ...settings, editable: false }, posts);
   await page.goto("/#/settings");
   await expect(page.getByText(/does not change settings/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Settings guide", exact: true })).toBeVisible();
   await expect(page.getByRole("main").getByRole("switch")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Connect an agent" })).toHaveCount(0);
   await expect(page.getByText("not indexed", { exact: true })).toBeVisible();

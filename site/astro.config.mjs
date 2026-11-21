@@ -162,6 +162,7 @@ export default defineConfig({
                   },
                   slug: "dashboard",
                 },
+                "dashboard-settings",
                 "mashy",
                 "dashboard-access",
                 "services",

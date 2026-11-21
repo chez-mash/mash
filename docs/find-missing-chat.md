@@ -47,8 +47,8 @@ If the missing chat was last updated before the start of your history range, use
 [Add older history](indexing.md#add-older-history) to include saved conversations
 outside that range. The default on a new setup is 90 days.
 
-If one agent’s chats never appear, check that the agent is selected under
-**agent histories** in **settings**. Run `mash status --installation` to
+If one agent’s chats never appear, [check which histories Mash reads](dashboard-settings.md#choose-which-histories-mash-reads).
+Run `mash status --installation` to
 check which history locations Mash found. See [supported histories and how
 to select them](supported-agents.md#if-a-chat-is-missing) for custom locations
 or histories saved outside the usual folders.

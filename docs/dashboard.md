@@ -100,19 +100,9 @@ The left rail is the way around. On a phone it opens from the menu button.
 - **tool explorer:** every tool your agents can call on Mash, with its
   parameters. Run a read-only tool to see the reply as an agent receives it.
   Tools that change data are listed but cannot be run here.
-- **settings:** this machine's configuration and index readiness. You can
-  change which agents are indexed, the range used to find updated histories,
-  whether history also goes to the shared server, memory capture and credential
-  masking. [Shortening the history range](privacy.md#shorten-the-history-range)
-  applies to future indexing. Chats already indexed stay searchable.
-  If you've set up [Mashy](mashy.md), you can turn it on or off and
-  choose its model. Saving rewrites
-  the file and keeps the previous one beside it as `config.toml.previous`;
-  restart the watcher and reconnect agents to apply. Mashy follows its own
-  settings at once. Search and storage
-  settings are shown but cannot be changed here. A dashboard that other
-  machines can reach changes settings only when it was started with
-  `--services-config`.
+- **settings:** check whether search is ready, choose which histories Mash
+  reads, and control sharing, privacy, and Mashy on this machine.
+  [Change dashboard settings](dashboard-settings.md).
 
 The button in the top right corner switches between light and dark; the
 choice is remembered in that browser.

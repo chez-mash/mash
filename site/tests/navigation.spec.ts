@@ -291,16 +291,20 @@ test("dashboard task guides are in the Dashboard group and preserve old bookmark
   const guide = page.locator(".sl-markdown-content");
   const sidebar = page.locator("nav.sidebar");
   await expect(guide.locator('a[href="/dashboard-access/"]')).toBeVisible();
-  await guide
-    .getByRole("link", { name: "Ask Mashy about your chats and follow its sources" })
-    .click();
-  await expect(page).toHaveURL("/mashy/");
+  await guide.getByRole("link", { name: "Change dashboard settings", exact: true }).click();
+  await expect(page).toHaveURL("/dashboard-settings/");
   const dashboard = sidebar
     .locator("details")
     .filter({
       has: page.locator("summary").getByText("Dashboard", { exact: true }),
     })
     .last();
+  await expect(dashboard.locator('a[href="/dashboard-settings/"]')).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await dashboard.locator('a[href="/mashy/"]').click();
+  await expect(page).toHaveURL("/mashy/");
   await expect(dashboard.locator('a[href="/mashy/"]')).toHaveAttribute("aria-current", "page");
   await dashboard.locator('a[href="/dashboard-access/"]').click();
   await expect(page).toHaveURL("/dashboard-access/");

@@ -29,7 +29,7 @@ import Skeleton from "./Skeleton.svelte";
 
 // Settings a person has a reason to change are controls; the rest of the
 // configuration is shown as it is. Nothing is written until the reader
-// reviews and saves, and history locations are never typed here: the machine
+// saves, and history locations are never typed here: the machine
 // finds them itself.
 const queryClient = useQueryClient();
 const status = createQuery(() => statusOptions);
@@ -102,7 +102,11 @@ async function save(): Promise<void> {
 {/snippet}
 
 <div class="hd">
-  <div><h1 class="h1">Settings</h1><p class="meta" style:font-size="13.5px" style:overflow-wrap="anywhere">{file?.path ?? config?.path ?? "Mash configuration"}</p></div>
+  <div>
+    <h1 class="h1">Settings</h1>
+    <p class="meta" style:font-size="13.5px" style:overflow-wrap="anywhere">{file?.path ?? config?.path ?? "Mash configuration"}</p>
+    <a class="a meta" href="https://getmash.io/dashboard-settings/" target="_blank" rel="noreferrer">Settings guide</a>
+  </div>
   {#if status.data}
     <span class={status.data.ready ? "ok" : "warn"} style:display="inline-flex" style:align-items="center" style:gap="7px" style:font-size="13.5px">
       {#if status.data.ready}<Check size={16} aria-hidden="true" />Local search ready{:else}<TriangleAlert size={16} aria-hidden="true" />Local search needs attention{/if}
@@ -112,7 +116,7 @@ async function save(): Promise<void> {
 {#if file && !file.editable}
   <p class="meta">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file.</p>
 {:else if file}
-  <p class="meta">These are this machine's settings. Nothing is written until you review and save.</p>
+  <p class="meta">These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
 {/if}
 {#if status.isPending || settings.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load settings" query={status} />
@@ -215,7 +219,12 @@ async function save(): Promise<void> {
         <span class="set-l">hide credentials when publishing</span>
         <span class="set-c">
           {@render toggle("Hide credentials when publishing", draft.hideWhenPublishing, () => { if (draft) draft.hideWhenPublishing = !draft.hideWhenPublishing; })}
-          {#if draft.hideWhenPublishing !== file.hideWhenPublishing}<span class="set-h">Changing this publishes all of this machine's history again{draft.hideWhenPublishing ? "" : ", including credentials found in chats"}.</span>{/if}
+          {#if draft.hideWhenPublishing !== file.hideWhenPublishing}
+            <span class="set-h">
+              The next publication replaces this machine's shared copy of its history.
+              {#if !draft.hideWhenPublishing}That copy can include credentials found in chats.{/if}
+            </span>
+          {/if}
         </span>
       </div>
     {:else}
@@ -310,6 +319,12 @@ async function save(): Promise<void> {
       {/if}
     {/if}
     {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
-    {#if saved && !changed.length}<p class="ok" role="status">Saved {saved} change{saved === 1 ? "" : "s"} to the file. A running watcher and connected agents keep their old settings until they restart; Mashy follows its own at once. <a class="a" href="#/services">Restart the watcher from Services</a>.</p>{/if}
+    {#if saved && !changed.length}
+      <p class="ok" role="status">
+        Saved {saved} change{saved === 1 ? "" : "s"} to the file. New requests use the saved
+        settings. To update the index now, run <code class="i">mash index</code> on this machine,
+        or wait for the next pass if a watcher is running.
+      </p>
+    {/if}
   </div>
 {/if}

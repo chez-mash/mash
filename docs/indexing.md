@@ -28,9 +28,10 @@ and `antigravity`.
 Indexing needs the local search service (Qdrant) running and never changes your
 original history files. Check the command's final result for errors.
 
-These flags apply to one run. To change the age limit permanently, see
-[configuration](configuration.md). For continuous updates, see
-[keep history up to date](synchronization.md).
+These flags apply to one run. To change the age limit for future indexing,
+[change the history range in Settings](dashboard-settings.md#change-the-history-range)
+or [edit the configuration file](configuration.md#choose-histories-and-an-age-limit).
+For continuous updates, see [keep history up to date](synchronization.md).
 
 ### Copilot in VS Code remote windows
 

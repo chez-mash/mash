@@ -62,6 +62,22 @@ test("the guide index opens a sample search that fits a narrow screen", async ({
   await expect(page.locator("#the-chat-is-on-another-machine")).toBeVisible();
 });
 
+test("dashboard settings lead to instructions for changing the history range", async ({ page }) => {
+  await page.goto("/demo/#/settings");
+  const help = page.getByRole("link", { name: "Settings guide", exact: true });
+  await expect(help).toBeVisible();
+  await expect(help).toHaveAttribute("href", "https://getmash.io/dashboard-settings/");
+  await page.goto(new URL((await help.getAttribute("href")) ?? "").pathname);
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.locator("#change-the-history-range")).toBeVisible();
+  await expect(guide.locator("#save-and-apply-changes")).toBeVisible();
+
+  await page.goto("/privacy/#shorten-the-history-range");
+  await expect(guide.locator("#shorten-the-history-range")).toBeAttached();
+  await guide.getByRole("link", { name: "Change the history range", exact: true }).click();
+  await expect(page).toHaveURL("/dashboard-settings/#change-the-history-range");
+});
+
 test("the welcome examples open the checkout source and the cross-agent handoff", async ({
   page,
 }) => {

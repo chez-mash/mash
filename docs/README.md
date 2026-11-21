@@ -25,6 +25,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 ### Dashboard
 
 - [Find chats in the dashboard and download transcripts](dashboard.md)
+- [Change dashboard settings](dashboard-settings.md)
 - [Ask Mashy about your chats and follow its sources](mashy.md)
 - [Open the dashboard from your phone or another computer](dashboard-access.md)
 - [Check and manage services](services.md)

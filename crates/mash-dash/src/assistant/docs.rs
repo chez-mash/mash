@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 
 /// The guides, each with the page it is published at on the documentation
 /// site.
-const GUIDES: [(&str, &str, &str); 21] = [
+const GUIDES: [(&str, &str, &str); 22] = [
     (
         "quick-start",
         "Quick start",
@@ -52,6 +52,11 @@ const GUIDES: [(&str, &str, &str); 21] = [
         "dashboard",
         "Dashboard",
         include_str!("../../../../docs/dashboard.md"),
+    ),
+    (
+        "dashboard-settings",
+        "Change dashboard settings",
+        include_str!("../../../../docs/dashboard-settings.md"),
     ),
     (
         "mashy",
@@ -380,6 +385,8 @@ mod tests {
         assert!(look_up("open the dashboard on my phone", "").contains("(page dashboard-access)"));
         assert!(page("find-missing-chat"));
         assert!(look_up("find a missing chat", "").contains("(page find-missing-chat)"));
+        assert!(page("dashboard-settings"));
+        assert!(look_up("", "dashboard-settings").contains("Save to file"));
     }
 
     #[test]

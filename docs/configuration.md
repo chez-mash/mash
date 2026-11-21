@@ -18,8 +18,10 @@ since_days = 90
 destination = "local"
 ```
 
-To change history selection, coverage or sharing interactively, rerun
-`mash init` in a terminal and choose **Customize setup**. The wizard
+To choose which histories Mash reads, how far back it looks, or whether it
+shares to an existing server, [change dashboard settings](dashboard-settings.md).
+To make those choices in a terminal, run `mash init` and choose
+**Customize setup**. The wizard
 preserves your other settings and keeps the previous file as a backup; comments
 and formatting are regenerated.
 
