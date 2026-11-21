@@ -99,6 +99,15 @@ export default defineConfig({
               slug: "dashboard",
             },
             {
+              label: "Pick up past work",
+              translations: {
+                es: "Retomar un trabajo",
+                fr: "Reprendre un travail",
+                "zh-CN": "继续之前的工作",
+              },
+              slug: "pick-up-work",
+            },
+            {
               label: "Terminal search",
               translations: {
                 es: "Búsqueda desde el terminal",

@@ -115,7 +115,8 @@ A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see
 each step and its output. The side panel lists your prompts on the current
 page, other chats from the same project and memory saved from this chat.
-**Copy session ID** copies the ID to resume the chat in its agent.
+Use **Copy session ID** to [reopen an original session](pick-up-work.md#reopen-the-original-session),
+or [pick up the work in a new session](pick-up-work.md#ask-an-agent-for-a-recap).
 
 Chat and memory views are read-only.
 

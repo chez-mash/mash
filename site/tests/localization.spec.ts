@@ -257,6 +257,15 @@ for (const [locale, lang, dashboardTitle] of [
     await openSection("quick-start", "find-and-read-a-chat");
     await expect(page.getByText("Search your history", { exact: true })).toBeVisible();
     await expect(page.getByText("Clear filters", { exact: true })).toBeVisible();
+    const resume = `/${locale}/pick-up-work/#reopen-the-original-session`;
+    await page.locator(`.sl-markdown-content a[href="${resume}"]`).click();
+    await expect(page).toHaveURL(resume);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator("#reopen-the-original-session")).toBeAttached();
+    await expect(page.locator("pre").filter({ hasText: "codex resume SESSION_ID" })).toBeVisible();
+    await expect(
+      page.locator(`.sl-markdown-content a[href="/${locale}/plugin/#finish-setup-in-the-agent"]`),
+    ).toBeVisible();
     await openSection("search-languages", "choose-a-search-mode");
     await expect(page.getByText("search: default", { exact: true })).toBeVisible();
     await openSection("privacy", "open-it-from-your-phone-or-another-computer");

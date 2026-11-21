@@ -33,6 +33,7 @@ pnpm --silent translate-docs fr local-search
 pnpm --silent translate-docs fr troubleshooting
 pnpm --silent translate-docs fr privacy
 pnpm --silent translate-docs fr dashboard
+pnpm --silent translate-docs fr pick-up-work
 pnpm --silent translate-docs fr agents
 pnpm --silent translate-docs fr plugin
 pnpm --silent translate-docs fr supported-agents

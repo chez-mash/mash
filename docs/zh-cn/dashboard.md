@@ -58,7 +58,9 @@ mash dash
 
 如果筛选后没有结果，选择 **Clear filters**，用相同的查询搜索所有对话。如果你的版本回到了对话列表，请重新提交查询。选择 **Browse chats** 可以按当前筛选条件浏览对话。点击浏览器的后退按钮即可回到搜索结果。更多帮助请参阅[如何查找缺失的对话](troubleshooting.md#search-returns-no-results)。
 
-对话页面左边是代理的回复，右边是你的消息。工具调用和推理过程折叠为一行，展开即可查看每一步及其输出。侧边栏显示当前页中你发出的请求、同一项目的其他对话，以及根据此对话保存的记忆。**Copy session ID** 可以复制会话 ID，方便你在原代理中继续对话。
+对话页面左边是代理的回复，右边是你的消息。工具调用和推理过程折叠为一行，展开即可查看每一步及其输出。侧边栏显示当前页中你发出的请求、同一项目的其他对话，以及根据此对话保存的记忆。
+
+用 **Copy session ID** 复制会话 ID 后，可以[重新打开原会话](pick-up-work.md#reopen-the-original-session)，也可以[在新会话中继续工作](pick-up-work.md#ask-an-agent-for-a-recap)。
 
 对话和记忆的查看页面均为只读。
 
@@ -222,4 +224,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->
+<!-- mash-docs-source: eb4e56faead31998f30017eedbef07183243934e4ebff603a12c9cce6e71630d -->

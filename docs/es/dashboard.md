@@ -58,7 +58,10 @@ Si el cuadro está vacío, verás la lista de conversaciones. Puedes acotar la l
 
 Si una búsqueda con filtros queda vacía, elige **Clear filters** para repetir la misma consulta sin ellos. Si tu versión vuelve a la lista de conversaciones, introduce la consulta de nuevo. Elige **Browse chats** para abrir la lista con los filtros actuales. Usa el botón Atrás del navegador para volver a la búsqueda. Para más ayuda, consulta [cómo encontrar la conversación que falta](troubleshooting.md#search-returns-no-results).
 
-La conversación muestra tus mensajes a la derecha y las respuestas del agente a la izquierda. Las llamadas a herramientas y el razonamiento se agrupan en una línea. Ábrela para ver cada paso y su resultado. El panel lateral muestra tus peticiones de la página actual, otras conversaciones del proyecto y los recuerdos guardados a partir de esta. **Copy session ID** copia el identificador para que puedas retomar la conversación en su agente.
+La conversación muestra tus mensajes a la derecha y las respuestas del agente a la izquierda. Las llamadas a herramientas y el razonamiento se agrupan en una línea. Ábrela para ver cada paso y su resultado. El panel lateral muestra tus peticiones de la página actual, otras conversaciones del proyecto y los recuerdos guardados a partir de esta.
+
+Usa **Copy session ID** para [reabrir la sesión original](pick-up-work.md#reopen-the-original-session),
+o [retoma el trabajo en una sesión nueva](pick-up-work.md#ask-an-agent-for-a-recap).
 
 Las vistas de conversaciones y recuerdos son de solo lectura.
 
@@ -222,4 +225,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->
+<!-- mash-docs-source: eb4e56faead31998f30017eedbef07183243934e4ebff603a12c9cce6e71630d -->

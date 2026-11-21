@@ -49,3 +49,22 @@ test("the quick start opens a sample search that fits a narrow screen", async ({
   await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Browse chats", exact: true })).toBeVisible();
 });
+
+test("the guide to picking up work opens the original decision and shows what is left", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/guides/");
+  await page.getByRole("link", { name: "Pick up where you left off or leave a handoff" }).click();
+  await expect(page).toHaveURL("/pick-up-work/");
+  const example = page.getByRole("link", { name: "Try it with sample chats" });
+  await expect(example).toHaveAttribute(
+    "href",
+    "https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop",
+  );
+  const target = new URL((await example.getAttribute("href")) ?? "");
+  await page.goto(target.pathname + target.hash);
+  await page.getByRole("link", { name: /open the message/ }).click();
+  await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
+  await expect(page.getByText(/store the refresh token in the device keychain/)).toBeVisible();
+});

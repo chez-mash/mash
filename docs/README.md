@@ -19,6 +19,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Find past work
 
 - [Find chats in the dashboard and download transcripts](dashboard.md)
+- [Pick up where you left off or leave a handoff](pick-up-work.md)
 - [Search from the terminal](search.md#your-first-search)
 - [Search chats in other languages](search-languages.md)
 - [Save decisions and revisit the messages behind them](records.md)

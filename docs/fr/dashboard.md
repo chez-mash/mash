@@ -58,7 +58,10 @@ Sans requête, la page liste vos conversations. Les filtres par agent, machine, 
 
 Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche. Pour aller plus loin, [voyez comment retrouver la conversation](troubleshooting.md#search-returns-no-results).
 
-Dans une conversation, vos messages sont à droite et les réponses de l’agent à gauche. Les appels d’outils et le raisonnement sont regroupés sur une ligne qui s’ouvre pour montrer chaque étape et sa sortie. Le panneau latéral liste vos demandes de la page en cours, les autres conversations du projet et les souvenirs tirés de celle-ci. **Copy session ID** copie l’identifiant pour reprendre la conversation dans son agent.
+Dans une conversation, vos messages sont à droite et les réponses de l’agent à gauche. Les appels d’outils et le raisonnement sont regroupés sur une ligne qui s’ouvre pour montrer chaque étape et sa sortie. Le panneau latéral liste vos demandes de la page en cours, les autres conversations du projet et les souvenirs tirés de celle-ci.
+
+Utilisez **Copy session ID** pour [rouvrir la session d’origine](pick-up-work.md#reopen-the-original-session),
+ou [reprenez le travail dans une nouvelle session](pick-up-work.md#ask-an-agent-for-a-recap).
 
 Les vues des conversations et des souvenirs sont en lecture seule.
 
@@ -222,4 +225,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->
+<!-- mash-docs-source: eb4e56faead31998f30017eedbef07183243934e4ebff603a12c9cce6e71630d -->
