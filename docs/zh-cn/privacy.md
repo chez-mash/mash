@@ -39,8 +39,8 @@
 如果是全新安装，可以用自己的一份历史试用 Mash。
 
 1. 运行[快速入门指南中的安装命令](quick-start.md#install-it-yourself)。在浏览器中打开显示的地址，并保持终端窗口打开。
-2. 如果先看到设置摘要，请选择 **Customize setup**。只保留一份含有最近一周对话的历史，然后选择 **Next**。
-3. 选择 **another number of days**，输入 **7**，再选择 **Next**。关闭所有已选中的代理连接，然后进入设置摘要。
+2. 如果先看到设置摘要，请选择 **Customize setup**。从最近一周用过的代理中选一个，只保留它的历史记录，然后选择 **Next**。
+3. 选择 **another number of days**，输入 **7**，筛选过去七天内更新的历史记录。Mash 根据对话中记录的活动时间筛选历史记录。如果没有活动时间，就按历史文件的最后修改时间筛选。纳入索引的对话可能包含更早的消息。选择 **Next**，关闭所有已选中的代理连接，然后进入设置摘要。
 4. 确认摘要中显示 **this machine only** 和 **no agents**。选择 **Set up and index**。索引完成后，打开 **chats**，搜索那段对话中的一个词。
 
 之后可以扩大日期范围或连接代理。[网页面板设置](dashboard.md#set-up-mash-from-the-dashboard)
@@ -71,4 +71,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->
+<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->

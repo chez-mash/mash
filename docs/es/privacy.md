@@ -73,10 +73,14 @@ Para probar Mash con uno de tus historiales en una instalación nueva:
 
 1. Ejecuta el [instalador de la guía de inicio](quick-start.md#install-it-yourself).
    Abre en tu navegador la dirección que muestra y deja el terminal abierto.
-2. Si ves primero el resumen, elige **Customize setup**. Conserva solo un
-   historial con una conversación de la última semana y pulsa **Next**.
-3. Elige **another number of days**, introduce **7** y pulsa **Next**.
-   Desactiva cualquier conexión a agentes que esté seleccionada y pasa al resumen.
+2. Si ves primero el resumen, elige **Customize setup**. Conserva solo el
+   historial de un agente que hayas usado en la última semana y pulsa **Next**.
+3. Elige **another number of days** e introduce **7** para seleccionar el
+   historial actualizado en los últimos siete días. Mash se basa en la
+   actividad registrada de la conversación o, si no está disponible, en la
+   última modificación del archivo de historial. Las conversaciones que
+   indexa pueden contener mensajes más antiguos. Pulsa **Next**, desactiva
+   las conexiones a agentes seleccionadas y pasa al resumen.
 4. Comprueba que el resumen diga **this machine only** y **no agents**.
    Elige **Set up and index**. Cuando termine, entra en **chats** y busca
    una palabra de esa conversación.
@@ -120,4 +124,4 @@ anteriores y las copias indexadas por separado en otros equipos. La operación
 no se puede deshacer. Si puedes necesitar la conversación más adelante,
 haz antes [una copia de seguridad](backup.md#make-a-portable-backup).
 
-<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->
+<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->

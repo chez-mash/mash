@@ -53,7 +53,8 @@ const titles = {
 const helps = {
   histories:
     "Found on this machine in their usual locations. Mash reads them and never changes them.",
-  range: "A history counts when it was changed within the range. You can widen it later.",
+  range:
+    "Mash selects history by when it was updated. That history can include older messages. You can widen the range later.",
   agents:
     "A connected agent can look up your indexed chats. Excerpts it reads can be sent to its model provider.",
   review: "Review what Mash will read before you start. Your original chats stay untouched.",
@@ -238,6 +239,9 @@ function toggleConnect(agent: Integration): void {
               <div class="kv" style:align-items="center" style:min-height="44px" style:border-bottom="1px solid var(--hair)" style:padding="0"><dt>{line.label}</dt><dd style:overflow-wrap="anywhere">{line.value}</dd></div>
             {/each}
           </dl>
+          {#if answers.sinceDays !== null}
+            <p class="meta">{helps.range}</p>
+          {/if}
           {#if histories.length}
             <details class="fold" style:margin-bottom="8px">
               <summary>Show history folders</summary>

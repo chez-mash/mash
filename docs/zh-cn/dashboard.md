@@ -22,7 +22,7 @@ mash dash
 
 第一次设置可以在浏览器完成。运行 `mash dash` 并打开网页面板。没有配置文件时，面板会直接显示设置页面，此时不会显示侧栏和搜索框。选择 **Skip to the dashboard** 即可进入面板，之后可从 **settings** 回到设置，[连接代理，无需重新索引](agents.md#connect-claude-code-codex-or-copilot)。也可以在终端用 `mash init` 设置。
 
-核对 Mash 找到的历史、要索引的时间范围，以及可连接的代理。**Show history folders** 会列出历史文件夹。首次设置默认会索引本机过去 90 天的历史。选择 **Set up and index** 应用当前选项，或选择 **Customize setup** 修改历史范围、来源和代理连接。
+核对 Mash 找到的历史、要索引的时间范围，以及可连接的代理。**Show history folders** 会列出历史文件夹。Mash 默认会读取本机最近 90 天内更新过的历史文件或会话，其中可能包含更早的消息。选择 **Set up and index** 应用当前选项，或选择 **Customize setup** 修改历史范围、来源和代理连接。
 
 如果想自己搜索，请确认 **connect Mash to** 显示 **no agents**。如果想让代理帮你搜索，请打开 **Choose agents to connect**，选择要连接的代理，或在 **Customize setup** 的代理设置页选择。如果你的版本默认选中了代理，请选择 **Skip agent connections**，或在代理设置页关闭连接。如果先看到历史选项，请选择 **Next**，依次进入代理设置页和摘要。
 
@@ -46,7 +46,7 @@ mash dash
 - **memory** 显示已保存的决定、偏好和事实。
 - **services** 和 **fleet manager** 显示进程、数据库、各机器上的代理设置及可用的管理操作。配置多台机器的集中管理后才会显示 **fleet manager**。[服务管理](../services.md)
 - **tool explorer** 显示代理可以调用的工具及参数。运行只读工具可以看到代理收到的响应。会写入数据的工具仅供查看。
-- **settings** 显示本机配置和索引状态。你可以选择要索引的代理、时间范围、是否发布到共享索引、是否提取记忆及如何遮盖凭据。如果配置了 [Mashy](#ask-mashy)，也可以开关它或选择模型。保存时，Mash 会把上一份配置保留为 `config.toml.previous`。请重启索引监听程序并重新连接代理来应用设置。Mashy 的设置会立即生效。搜索和存储设置仅供查看。如果面板可从其他机器访问，启动时需要加上 `--services-config` 才能修改设置。
+- **settings** 显示本机配置和索引状态。你可以选择要索引的代理、历史记录更新时间的范围、是否发布到共享索引、是否提取记忆及如何遮盖凭据。如果配置了 [Mashy](#ask-mashy)，也可以开关它或选择模型。保存时，Mash 会把上一份配置保留为 `config.toml.previous`。请重启索引监听程序并重新连接代理来应用设置。Mashy 的设置会立即生效。搜索和存储设置仅供查看。如果面板可从其他机器访问，启动时需要加上 `--services-config` 才能修改设置。
 
 右上角的按钮可以切换浅色和深色主题，浏览器会记住你的选择。
 
@@ -240,4 +240,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->
+<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->

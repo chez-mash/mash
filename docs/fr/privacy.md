@@ -50,10 +50,14 @@ Pour essayer Mash avec l’un de vos propres historiques sur une nouvelle instal
 1. Lancez le [programme d’installation du guide de démarrage](quick-start.md#install-it-yourself).
    Ouvrez l’adresse affichée dans votre navigateur et laissez le terminal ouvert.
 2. Si le récapitulatif apparaît d’abord, choisissez **Customize setup**.
-   Gardez un seul historique avec une conversation de la semaine écoulée,
+   Gardez uniquement l’historique d’un agent utilisé ces sept derniers jours,
    puis choisissez **Next**.
-3. Choisissez **another number of days**, saisissez **7** et choisissez **Next**.
-   Désactivez toutes les connexions aux agents sélectionnées, puis passez au récapitulatif.
+3. Choisissez **another number of days** et saisissez **7** pour sélectionner
+   l’historique mis à jour au cours des sept derniers jours. Mash se fie à
+   l’activité enregistrée de la conversation ou, à défaut, à la date de
+   dernière modification du fichier d’historique. Les conversations
+   indexées peuvent contenir des messages plus anciens. Choisissez **Next**,
+   désactivez les connexions aux agents sélectionnées et passez au récapitulatif.
 4. Vérifiez que le récapitulatif indique **this machine only** et **no agents**.
    Choisissez **Set up and index**. Lorsque l’indexation est terminée, ouvrez
    **chats** et cherchez un mot de cette conversation.
@@ -87,4 +91,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: c5a5ee3ab8b132e42eb51452914f43905e77c8beba705923de111649ec024d76 -->
+<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->

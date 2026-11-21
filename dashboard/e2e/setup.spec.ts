@@ -2,6 +2,8 @@ import { expect, type Page, test } from "@playwright/test";
 import type { Wire } from "../src/lib/routes";
 import { fitsViewport } from "./shell";
 
+const rangeNotice = /by when it was updated.*can include older messages/;
+
 const detected: Wire["FirstRun"] = {
   path: "/fixture/.mash/config.toml",
   revision: "",
@@ -75,6 +77,7 @@ test("a first visit can confirm the detected local setup in one click", async ({
   const review = page.getByRole("region", { name: "Set up Mash" });
   await expect(review).toContainText("Claude Code, Codex");
   await expect(review).toContainText("the last 90 days");
+  await expect(review.getByText(rangeNotice)).toBeVisible();
   await expect(review).toContainText("this machine only");
   await expect(review.getByText("no agents", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
@@ -221,6 +224,7 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: "another number of days" }).click();
   await page.getByRole("spinbutton", { name: "Days of history" }).fill("7");
+  await expect(page.getByText(rangeNotice)).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByRole("switch", { name: "Connect Claude Code" })).not.toBeChecked();
   await expect(page.getByRole("switch", { name: "Connect Codex" })).toBeDisabled();
@@ -229,6 +233,9 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   await expect(page.getByText("/fixture/.claude/projects", { exact: true })).toBeVisible();
   await expect(page.getByText("/fixture/.codex/sessions", { exact: true })).toHaveCount(0);
   await expect(page.getByText("the last 7 days", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Set up Mash" }).getByText(rangeNotice),
+  ).toBeVisible();
   await expect(page.getByText("no agents", { exact: true })).toBeVisible();
   await expect(page.getByText("mash qdrant install", { exact: true })).toBeVisible();
   expect(posts).toEqual([]);

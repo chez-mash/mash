@@ -62,10 +62,14 @@ in the demo first. For a fresh setup with one of your own histories:
 
 1. Run the [quick start installer](../README.md#install-it-yourself). Open
    the address it prints in your browser and keep the terminal running.
-2. If you see the review first, choose **Customize setup**. Keep only one
-   history with a chat from the past week, then choose **Next**.
-3. Choose **another number of days**, enter **7**, and choose **Next**. Turn
-   off any selected agent connections, then continue to the review.
+2. If you see the review first, choose **Customize setup**. Keep only the
+   history for one agent you used in the past week, then choose **Next**.
+3. Choose **another number of days** and enter **7** to select history
+   updated in the past seven days. Mash checks the conversation's recorded
+   activity when available, or when the history file last changed.
+   The conversations it indexes can contain older messages.
+   Choose **Next**, turn off any selected agent connections, and continue to
+   the review.
 4. Check that the review says **this machine only** and **no agents**.
    Choose **Set up and index**. When indexing finishes, open
    **chats** and search for a word from that conversation.

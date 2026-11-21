@@ -44,9 +44,9 @@ For a new setup, explain these changes together before asking the person to proc
   On Windows it stores search data outside the user profile in a short folder
   on the system drive, usually `C:\mash-qdrant\storage`. The main history
   database stays in their profile. See https://getmash.io/privacy/#where-mash-stores-data.
-- Index supported histories updated in the last 90 days.
-  That can include this chat. Mash keeps a local copy and reads the original
-  files without changing their contents.
+- Index history files or sessions updated in the last 90 days. These can
+  include older messages as well as the current chat. Mash keeps a local copy
+  and reads the original files without changing their contents.
 - Check that search is ready and show them how to find their first chat in
   the dashboard or terminal.
 
@@ -65,6 +65,7 @@ For an existing install, run the read-only `mash status` first. If
 `configuration.loaded` is `true`, summarize the current histories in
 `configuration.providers`, the range and destination in `configuration.index`,
 and the agent connections in `installation.clients`.
+Describe any day limit in terms of when the files or sessions were last updated.
 
 - With `configuration.index.destination` set to `both`, tell them that
   indexing also sends chats to `configuration.shared.api_url`. Proceed with
@@ -197,7 +198,8 @@ CLIs as well, run `mash init --yes`. For specific agents, send them to the
 If they chose Copilot CLI and installed v0.1.1-alpha, follow the
 [manual Copilot connection](https://getmash.io/plugin/#github-copilot-cli).
 On a fresh setup, both commands find saved chats in their usual locations and
-index the last 90 days. Both check Qdrant before applying settings.
+use the default range described in the setup review. Both check Qdrant before
+applying settings.
 
 Read the result:
 

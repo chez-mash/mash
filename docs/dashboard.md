@@ -38,10 +38,11 @@ rail or search. **Skip to the dashboard** leaves it. Later, open **settings**
 to return to setup and [connect an agent without indexing again](agents.md#connect-claude-code-codex-or-copilot).
 
 Review the histories Mash found, the history range, and the installed agents it
-can connect so they can search. **Show history folders** lists the paths. For a
-new setup the default is to index the last 90 days on this machine. Choose
-**Set up and index** to accept the review, or **Customize setup** to change
-the histories, range, or agent connections before confirming.
+can connect so they can search. **Show history folders** lists the paths.
+By default, Mash reads history files or sessions updated in the last 90 days
+on this machine. Those can include older messages. Choose **Set up and index**
+to accept the review, or **Customize setup** to change the histories, range,
+or agent connections before confirming.
 To search on your own, check that **connect Mash to** says **no agents**.
 To let an agent make requests, open **Choose agents to connect** and select
 the agents you want, or use the agent screen under **Customize setup**.
@@ -91,10 +92,10 @@ The left rail is the way around. On a phone it opens from the menu button.
   parameters. Run a read-only tool to see the reply as an agent receives it.
   Tools that change data are listed but cannot be run here.
 - **settings:** this machine's configuration and index readiness. You can
-  change which agents are indexed, how far back, whether history also goes to
-  the shared server, memory capture and credential masking. Where
-  [Mashy](#ask-mashy) is set up you can also switch it off and on and choose
-  its model. Saving rewrites
+  change which agents are indexed, the range used to find updated histories,
+  whether history also goes to the shared server, memory capture and credential
+  masking. If you've set up [Mashy](#ask-mashy), you can turn it on or off and
+  choose its model. Saving rewrites
   the file and keeps the previous one beside it as `config.toml.previous`;
   restart the watcher and reconnect agents to apply. Mashy follows its own
   settings at once. Search and storage

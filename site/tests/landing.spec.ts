@@ -257,13 +257,13 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await expect(page.getByRole("heading", { name: "Inspect the installer" })).toBeInViewport();
   await expect(page.getByRole("link", { name: "public release workflow" })).toBeVisible();
 
-  await page.goto("/guides/");
-  await page
-    .getByRole("link", { name: "See where your history is stored and what stays private" })
-    .click();
-  await expect(page).toHaveURL("/privacy/");
+  await page.goto("/quick-start/");
+  await page.getByRole("link", { name: "local trial guide", exact: true }).click();
+  await expect(page).toHaveURL("/privacy/#try-a-small-local-setup");
   await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
-  await expect(page.getByText("another number of days", { exact: true })).toBeVisible();
+  const range = page.getByRole("listitem").filter({ hasText: "another number of days" });
+  await expect(range.getByText("7", { exact: true })).toBeVisible();
+  await expect(range).toContainText("can contain older messages");
   await expect(page.getByText("no agents", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "quick start installer" })).toHaveAttribute(
     "href",

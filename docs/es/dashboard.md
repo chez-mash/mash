@@ -24,7 +24,7 @@ El panel local se abre sin iniciar sesión en la configuración predeterminada. 
 
 Puedes hacer la configuración inicial en el navegador en vez de ejecutar `mash init` en la terminal. Ejecuta `mash dash` y abre el panel. En un equipo sin configuración se abre directamente el asistente, en una pantalla sin barra lateral ni búsqueda. **Skip to the dashboard** te lleva al panel. Desde **settings** puedes volver al asistente para [conectar un agente sin volver a indexar](agents.md#connect-claude-code-codex-or-copilot).
 
-Revisa los historiales encontrados, el intervalo de fechas y los agentes que puedes conectar para que busquen por ti. **Show history folders** muestra las rutas. En una instalación nueva se indexan por defecto los últimos 90 días en este equipo. Elige **Set up and index** para confirmar o **Customize setup** para cambiar los historiales, el intervalo o las conexiones.
+Revisa los historiales encontrados, el intervalo de fechas y los agentes que puedes conectar para que busquen por ti. **Show history folders** muestra las rutas. Por defecto, Mash lee los archivos de historial o las sesiones de este equipo que se actualizaron en los últimos 90 días. Esos historiales pueden incluir mensajes más antiguos. Elige **Set up and index** para confirmar o **Customize setup** para cambiar los historiales, el intervalo o las conexiones.
 
 Para buscar por tu cuenta, comprueba que **connect Mash to** diga **no agents**.
 Para que un agente pueda buscar, abre **Choose agents to connect** y elige los que quieras,
@@ -53,7 +53,7 @@ En el teléfono se abre con el botón de menú.
 - **memory** reúne decisiones, preferencias y hechos guardados.
 - **services** y **fleet manager** muestran el estado de procesos y bases de datos, la configuración de agentes por equipo y las acciones de gestión. **fleet manager** aparece donde se ha configurado la gestión de varios equipos. [Servicios](../services.md)
 - **tool explorer** muestra las herramientas y parámetros disponibles para los agentes. Puedes probar una herramienta de solo lectura y ver su respuesta. Las herramientas que cambian datos aparecen en la lista.
-- **settings** muestra la configuración del equipo y el estado del índice. Puedes elegir qué historiales se indexan y desde qué fecha, si también se comparten, si se guardan recuerdos y si se ocultan credenciales. Si has configurado [Mashy](#ask-mashy), puedes activarlo, desactivarlo o elegir su modelo. Al guardar, Mash reescribe la configuración y conserva `config.toml.previous`. Reinicia la vigilancia y vuelve a conectar los agentes para aplicar los ajustes. Mashy aplica los suyos al momento. Los ajustes de búsqueda y almacenamiento son de consulta. Si otros equipos pueden acceder al panel, se requiere `--services-config` para cambiar ajustes desde el navegador.
+- **settings** muestra la configuración del equipo y el estado del índice. Puedes elegir qué historiales se indexan, el intervalo en el que deben haberse actualizado, si también se comparten, si se guardan recuerdos y si se ocultan credenciales. Si has configurado [Mashy](#ask-mashy), puedes activarlo, desactivarlo o elegir su modelo. Al guardar, Mash reescribe la configuración y conserva `config.toml.previous`. Reinicia la vigilancia y vuelve a conectar los agentes para aplicar los ajustes. Mashy aplica los suyos al momento. Los ajustes de búsqueda y almacenamiento son de consulta. Si otros equipos pueden acceder al panel, se requiere `--services-config` para cambiar ajustes desde el navegador.
 
 El botón de arriba a la derecha alterna entre el tema claro y el oscuro. El navegador recuerda tu elección.
 
@@ -251,4 +251,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->
+<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->

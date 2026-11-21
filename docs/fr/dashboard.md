@@ -24,7 +24,7 @@ Avec les réglages par défaut, le tableau de bord local s’ouvre sans authenti
 
 Vous pouvez faire la première configuration dans le navigateur à la place de `mash init`. Lancez `mash dash` et ouvrez le tableau de bord. Sur une machine sans configuration, l’assistant s’affiche sur un écran sans barre latérale ni recherche. **Skip to the dashboard** permet d’accéder au tableau de bord. Depuis **settings**, vous pouvez revenir à la configuration pour [connecter un agent sans relancer l’indexation](agents.md#connect-claude-code-codex-or-copilot).
 
-Vérifiez les historiques trouvés, la période et les agents que Mash peut connecter pour qu’ils puissent faire des recherches. **Show history folders** affiche les emplacements. Par défaut, une nouvelle configuration indexe les 90 derniers jours sur cette machine. Choisissez **Set up and index** pour valider ou **Customize setup** pour modifier les historiques, la période ou les connexions des agents.
+Vérifiez les historiques trouvés, la période et les agents que Mash peut connecter pour qu’ils puissent faire des recherches. **Show history folders** affiche les emplacements. Par défaut, Mash lit les fichiers d’historique ou les sessions mis à jour au cours des 90 derniers jours sur cet ordinateur. Ces historiques peuvent contenir des messages plus anciens. Choisissez **Set up and index** pour valider ou **Customize setup** pour modifier les historiques, la période ou les connexions des agents.
 
 Pour chercher vous-même, vérifiez que **connect Mash to** indique **no agents**.
 Pour autoriser un agent à chercher, ouvrez **Choose agents to connect** et
@@ -54,7 +54,7 @@ Sur un téléphone, utilisez le bouton de menu pour l’ouvrir.
 - **memory** réunit les décisions, préférences et faits enregistrés.
 - **services** et **fleet manager** affichent l’état des processus et des bases, la configuration des agents par machine et les actions de gestion. Le gestionnaire de parc s’affiche lorsque la gestion de plusieurs machines est configurée. [Services](../services.md)
 - **tool explorer** affiche les outils à la disposition des agents et leurs paramètres. Vous pouvez tester un outil en lecture seule pour voir la réponse que reçoit l’agent. Les outils qui écrivent des données figurent aussi dans la liste.
-- **settings** affiche la configuration de la machine et l’état de l’index. Vous pouvez choisir les agents indexés, la période, la publication vers l’index partagé, la capture de souvenirs et le masquage des identifiants secrets. Si [Mashy](#ask-mashy) est configuré, vous pouvez l’activer, le désactiver ou changer son modèle. Mash conserve le fichier précédent sous le nom `config.toml.previous`. Redémarrez l’indexation continue et reconnectez les agents pour appliquer ces paramètres. Mashy applique les siens aussitôt. Les paramètres de recherche et de stockage sont consultables. Pour les modifications depuis un tableau de bord accessible à d’autres machines, démarrez-le avec `--services-config`.
+- **settings** affiche la configuration de la machine et l’état de l’index. Vous pouvez choisir les agents indexés, la période de mise à jour des historiques, la publication vers l’index partagé, la capture de souvenirs et le masquage des identifiants secrets. Si [Mashy](#ask-mashy) est configuré, vous pouvez l’activer, le désactiver ou changer son modèle. Mash conserve le fichier précédent sous le nom `config.toml.previous`. Redémarrez l’indexation continue et reconnectez les agents pour appliquer ces paramètres. Mashy applique les siens aussitôt. Les paramètres de recherche et de stockage sont consultables. Pour les modifications depuis un tableau de bord accessible à d’autres machines, démarrez-le avec `--services-config`.
 
 Le bouton en haut à droite alterne entre les thèmes clair et sombre. Le navigateur mémorise votre choix.
 
@@ -252,4 +252,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->
+<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->
