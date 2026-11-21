@@ -4,10 +4,11 @@ import { appliedHref, parseApplied, sameSearch } from "./search";
 describe("applied searches", () => {
   it("round-trips a search through its address", () => {
     const applied = parseApplied(
-      "q=qdrant+filter&agent=codex,claude-code&machine=xenia&days=7&offset=40",
+      "q=qdrant+filter&intent=exact-mention&agent=codex,claude-code&machine=xenia&days=7&offset=40",
     );
     expect(applied).toEqual({
       query: "qdrant filter",
+      intent: "exact-mention",
       agents: ["codex", "claude-code"],
       machines: ["xenia"],
       projects: [],
@@ -26,6 +27,8 @@ describe("applied searches", () => {
     expect(applied.sort).toBe("new");
     expect(parseApplied("rank=sideways").rank).toBe("relevance");
     expect(parseApplied("q=x&rank=recent").rank).toBe("recent");
+    expect(parseApplied("q=x&intent=unknown").intent).toBe("default");
+    expect(parseApplied("intent=related-discussion").intent).toBe("default");
     expect(applied.offset).toBe(0);
   });
   it("treats a page change as the same search and a filter change as a new one", () => {
@@ -34,5 +37,6 @@ describe("applied searches", () => {
     expect(sameSearch(first, { ...first, machines: [] })).toBe(false);
     expect(sameSearch(first, { ...first, sort: "old" })).toBe(false);
     expect(sameSearch(first, { ...first, rank: "recent" })).toBe(false);
+    expect(sameSearch(first, { ...first, intent: "related-discussion" })).toBe(false);
   });
 });

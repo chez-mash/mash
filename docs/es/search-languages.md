@@ -39,8 +39,9 @@ quieras buscar por significado. Una pregunta en inglés puede pasar por alto
 una conversación sobre el mismo tema en otro idioma. Para encontrar ese
 mensaje, usa las palabras de la conversación original.
 
-Si configuraste el panel para buscar por significado, usa los comandos de
-búsqueda por palabras de arriba para una consulta puntual o
-[vuelve a establecer la búsqueda por palabras como predeterminada (en inglés)](../configuration.md#search-defaults).
+Para una sola consulta en el panel, elige **words** en el
+[menú del modo de búsqueda (en inglés)](../dashboard.md#choose-a-search-mode)
+y selecciona **Apply filters**. Si tu panel no muestra ese menú, usa los
+comandos de búsqueda por palabras de arriba.
 
-<!-- mash-docs-source: 7fa76bcd3e4fa9d45ebe6ea8df3575b59a0c645f3d00f20a143478985adc5a58 -->
+<!-- mash-docs-source: 8778cd7f5546a745518a8568dd60ec669ca91a0a529c15461de7465406cfd6f9 -->

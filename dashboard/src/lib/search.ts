@@ -1,4 +1,5 @@
 import { isAgent } from "./api";
+import type { Wire } from "./routes";
 import type { Agent, SearchFilters } from "./types";
 
 export const dateRanges = [
@@ -19,12 +20,24 @@ export const rankings = [
 ] as const;
 export type Ranking = (typeof rankings)[number]["value"];
 
+export const searchIntents = [
+  { value: "default", label: "default" },
+  { value: "exact-mention", label: "words" },
+  { value: "related-discussion", label: "meaning" },
+] as const satisfies readonly { value: "default" | Wire["Intent"]; label: string }[];
+export type SearchIntent = (typeof searchIntents)[number]["value"];
+
+export function parseIntent(value: string | null): SearchIntent {
+  return searchIntents.find((intent) => intent.value === value)?.value ?? "default";
+}
+
 /**
  * A search as the address bar states it. Results are read from this, so the
  * controls on the page stay drafts until they are applied.
  */
 export interface Applied {
   readonly query: string;
+  readonly intent: SearchIntent;
   readonly agents: readonly Agent[];
   readonly machines: readonly string[];
   readonly projects: readonly string[];
@@ -43,10 +56,12 @@ function list(params: URLSearchParams, name: string): string[] {
 
 export function parseApplied(params: string): Applied {
   const values = new URLSearchParams(params);
+  const query = (values.get("q") ?? "").trim();
   const days = Number(values.get("days"));
   const offset = Number(values.get("offset"));
   return {
-    query: (values.get("q") ?? "").trim(),
+    query,
+    intent: query ? parseIntent(values.get("intent")) : "default",
     agents: list(values, "agent").filter(isAgent),
     machines: list(values, "machine"),
     projects: list(values, "project"),
@@ -60,7 +75,10 @@ export function parseApplied(params: string): Applied {
 /** `base` is the page the search belongs to: the chat list, or the export page. */
 export function appliedHref(applied: Applied, base = "#/search"): string {
   const params = new URLSearchParams();
-  if (applied.query) params.set("q", applied.query);
+  if (applied.query) {
+    params.set("q", applied.query);
+    if (applied.intent !== "default") params.set("intent", applied.intent);
+  }
   if (applied.agents.length) params.set("agent", applied.agents.join(","));
   if (applied.machines.length) params.set("machine", applied.machines.join(","));
   if (applied.projects.length) params.set("project", applied.projects.join(","));

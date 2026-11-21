@@ -1,4 +1,5 @@
-use super::{Operation, SearchParams, allowed_hosts, content_type, search_operation};
+use super::search::{SearchParams, search_operation};
+use super::{Operation, allowed_hosts, content_type};
 
 fn record_fixture() -> (tempfile::TempDir, crate::core::Paths, String) {
     let directory = tempfile::tempdir().unwrap();
@@ -557,6 +558,7 @@ fn empty_queries_list_chats_and_queries_search_with_filters() {
     let searched = search_operation(query(), false).unwrap();
     let Operation::Search {
         query: text,
+        intent,
         filters,
         shared,
         ..
@@ -565,6 +567,12 @@ fn empty_queries_list_chats_and_queries_search_with_filters() {
         panic!("expected a search")
     };
     assert!(!shared);
+    assert_eq!(intent, None);
+    let explicit = crate::views::exact::Intent::ExactMention;
+    assert!(matches!(
+        search_operation(SearchParams { intent: Some(explicit), ..query() }, true).unwrap(),
+        Operation::Search { intent: Some(value), shared: true, .. } if value == explicit
+    ));
     let query_text = text;
     // A machine with no history of its own reads only the shared index.
     assert!(matches!(

@@ -1829,6 +1829,11 @@ export interface components {
              */
             days: number | null;
             /**
+             * @description Search intent override. Omission uses the machine's configured default.
+             * @default null
+             */
+            intent: components["schemas"]["Intent"] | null;
+            /**
              * @description Comma-separated machine (node) IDs.
              * @default
              */
@@ -2691,6 +2696,8 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                /** @description Search intent override. Omission uses the machine's configured default. */
+                intent?: components["schemas"]["Intent"];
                 /** @description Comma-separated machine (node) IDs. */
                 machine?: string;
                 offset?: number;

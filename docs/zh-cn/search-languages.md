@@ -31,7 +31,8 @@ mash list-chats --title-contains '身份验证'
 适用于英文文本。按含义搜索时，请用英文提问。英文问题可能找不到用其他语言讨论同一主题的对话。
 要找到那条消息，请搜索对话原文中的词。
 
-如果你将网页面板设为了按含义搜索，可用上面的关键词命令进行单次查找，也可以
-[将默认模式改回关键词搜索（英文）](../configuration.md#search-defaults)。
+只想在网页面板中进行一次关键词搜索时，请在
+[搜索模式菜单（英文）](../dashboard.md#choose-a-search-mode)中选择 **words**，
+再选择 **Apply filters**。如果面板中没有这个菜单，请使用上面的关键词搜索命令。
 
-<!-- mash-docs-source: 7fa76bcd3e4fa9d45ebe6ea8df3575b59a0c645f3d00f20a143478985adc5a58 -->
+<!-- mash-docs-source: 8778cd7f5546a745518a8568dd60ec669ca91a0a529c15461de7465406cfd6f9 -->

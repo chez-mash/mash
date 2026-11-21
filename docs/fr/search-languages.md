@@ -39,8 +39,9 @@ vos questions en anglais. Une question en anglais peut passer à côté d’une
 conversation sur le même sujet dans une autre langue. Pour retrouver ce
 message, utilisez les mots de la conversation d’origine.
 
-Si le tableau de bord utilise la recherche par sens, lancez une des commandes
-de recherche par mots ci-dessus pour une recherche ponctuelle, ou
-[rétablissez la recherche par mots par défaut (en anglais)](../configuration.md#search-defaults).
+Pour une recherche ponctuelle dans le tableau de bord, choisissez **words**
+dans le [menu du mode de recherche (en anglais)](../dashboard.md#choose-a-search-mode),
+puis sélectionnez **Apply filters**. Si votre tableau de bord ne propose pas
+ce menu, utilisez les commandes de recherche par mots ci-dessus.
 
-<!-- mash-docs-source: 7fa76bcd3e4fa9d45ebe6ea8df3575b59a0c645f3d00f20a143478985adc5a58 -->
+<!-- mash-docs-source: 8778cd7f5546a745518a8568dd60ec669ca91a0a529c15461de7465406cfd6f9 -->

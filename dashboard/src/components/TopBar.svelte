@@ -86,6 +86,7 @@ function submit(event: SubmitEvent): void {
   const route = router.current;
   const params = new URLSearchParams(route.page === "search" ? route.params : "");
   const query = text.trim();
+  if (query !== params.get("q")) params.delete("intent");
   if (query) params.set("q", query);
   else params.delete("q");
   // A new query is a new search: it starts at the first result.

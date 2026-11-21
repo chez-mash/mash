@@ -25,9 +25,11 @@ import {
   dateRanges,
   filtersOf,
   parseApplied,
+  parseIntent,
   rankings,
   type Sort,
   sameSearch,
+  searchIntents,
   sorts,
 } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
@@ -79,14 +81,7 @@ const result = createQuery(() => ({
     const data = catalogue.data;
     if (!data) throw new Error("The chat list is not loaded yet.");
     if (applied.query) {
-      const page = await search(
-        applied.query,
-        filtersOf(applied),
-        applied.offset,
-        data.localNode,
-        signal,
-        applied.rank,
-      );
+      const page = await search(applied, data.localNode, signal);
       return { ...page, total: null, first: applied.offset };
     }
     const all = browse(data, filtersOf(applied), Date.now());
@@ -181,6 +176,16 @@ const rangeLabel = $derived.by(() => {
       {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
   {:else}
+    <FilterMenu
+      label="search: {searchIntents.find((intent) => intent.value === draft.intent)?.label}"
+      active={draft.intent !== "default"}
+      draft={draft.intent !== applied.intent}
+      options={searchIntents}
+      selected={[draft.intent]}
+      choose={(value) => (draft = { ...draft, intent: parseIntent(value) })}
+    >
+      {#snippet icon()}<SearchIcon size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
     <FilterMenu
       label="sort: {rankings.find((ranking) => ranking.value === draft.rank)?.label}"
       draft={draft.rank !== applied.rank}

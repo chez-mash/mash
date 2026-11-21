@@ -4791,6 +4791,18 @@
               "null"
             ]
           },
+          "intent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Intent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Search intent override. Omission uses the machine's configured default."
+          },
           "machine": {
             "default": "",
             "description": "Comma-separated machine (node) IDs.",
@@ -6815,6 +6827,17 @@
               "format": "uint32",
               "minimum": 0,
               "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Search intent override. Omission uses the machine's configured default.",
+            "in": "query",
+            "name": "intent",
+            "schema": {
+              "$ref": "#/components/schemas/Intent",
+              "default": null,
+              "description": "Search intent override. Omission uses the machine's configured default."
             },
             "style": "form"
           },

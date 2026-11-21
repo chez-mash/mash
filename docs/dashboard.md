@@ -116,6 +116,17 @@ page, other chats from the same project and memory saved from this chat.
 
 Chat and memory views are read-only.
 
+### Choose a search mode
+
+After submitting a search, open the **search: default** menu beside the
+filters. Choose **words** or **meaning**, then select **Apply filters**.
+**Words** matches terms from the chat. **Meaning** uses the
+[optional models](indexing.md#enable-semantic-search) and takes English
+queries. The choice follows the result pages for this query. A different
+query starts with [the configured default](configuration.md#search-defaults).
+If your dashboard does not show the menu, choose the mode with
+[`mash search --intent`](search.md).
+
 ## Inspect conversation records
 
 Open **memory** in the rail, or one of the kinds beneath it. Switch kinds with

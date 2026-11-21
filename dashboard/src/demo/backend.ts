@@ -99,7 +99,8 @@ function list(params: URLSearchParams, key: string): string[] {
   return (params.get(key) ?? "").split(",").filter(Boolean);
 }
 
-function search(params: URLSearchParams, now: number): Answer<"/api/search"> {
+function search(params: URLSearchParams, now: number): Answer<"/api/search"> | Refusal {
+  if (params.get("intent") === "related-discussion") return notInDemo("Search by meaning");
   const wanted = terms(params.get("q") ?? "");
   const agents = list(params, "provider");
   const machines = list(params, "machine");
@@ -158,14 +159,13 @@ function search(params: URLSearchParams, now: number): Answer<"/api/search"> {
     .map((scored) => scored.result);
   return {
     query: params.get("q") ?? "",
-    intent: "related-discussion",
+    intent: "exact-mention",
     realized_mode: "lexical",
     unit: "chats",
     shared: true,
     results,
     next_offset: null,
-    notice:
-      "The demo matches the words in your question. Mash itself also matches by meaning, so it finds chats that say the same thing differently.",
+    notice: "The demo searches by words. Install Mash to add search by meaning.",
   };
 }
 

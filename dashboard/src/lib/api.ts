@@ -1,4 +1,5 @@
 import type { Answer, ReadPath, Wire } from "./routes";
+import type { Applied } from "./search";
 import { check } from "./session.svelte";
 import { callsBefore, resultsAfter, unpaired } from "./toolcalls";
 import { send } from "./transport";
@@ -109,22 +110,20 @@ export function browse(catalog: Catalog, filters: SearchFilters, now: number): S
   };
 }
 export async function search(
-  query: string,
-  filters: SearchFilters,
-  offset: number,
+  applied: Applied,
   localNode: string,
   signal: AbortSignal,
-  sort: "relevance" | "recent" = "relevance",
 ): Promise<SearchPage> {
   const params = new URLSearchParams({
-    q: query,
-    provider: filters.agents.join(","),
-    machine: filters.machines.join(","),
-    project: filters.projects.join(","),
-    offset: String(offset),
+    q: applied.query,
+    provider: applied.agents.join(","),
+    machine: applied.machines.join(","),
+    project: applied.projects.join(","),
+    offset: String(applied.offset),
   });
-  if (filters.days !== null) params.set("days", String(filters.days));
-  if (sort !== "relevance") params.set("sort", sort);
+  if (applied.days !== null) params.set("days", String(applied.days));
+  if (applied.rank !== "relevance") params.set("sort", applied.rank);
+  if (applied.intent !== "default") params.set("intent", applied.intent);
   return parseSearch(await read("/api/search", params, signal), localNode);
 }
 

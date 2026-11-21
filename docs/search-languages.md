@@ -38,5 +38,6 @@ is built for English text. Use English questions for search by meaning.
 An English question may miss a chat about the same idea in another language.
 Use words from the original chat when you need to find that message.
 
-If your dashboard is set to search by meaning, run the word-search command
-above for an individual lookup or [switch the default back to word search](configuration.md#search-defaults).
+For a single dashboard query, choose **words** in the
+[search mode menu](dashboard.md#choose-a-search-mode) and select **Apply filters**.
+If your dashboard does not show the menu, use the word-search command above.

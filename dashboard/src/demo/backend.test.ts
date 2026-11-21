@@ -88,6 +88,14 @@ describe("the demo answers in the shapes mash dash sends", () => {
     expect(parseSearch(body("/api/search", "?q=zebra"), localMachine).hits).toEqual([]);
   });
 
+  it("explains that search by meaning needs an installed Mash", () => {
+    expect(get("/api/search?q=checkout&intent=related-discussion")).toMatchObject({
+      status: 403,
+      body: { error: { message: expect.stringContaining("Search by meaning") } },
+    });
+    expect(body("/api/search", "?q=checkout&intent=exact-mention").intent).toBe("exact-mention");
+  });
+
   it("drops common words and endings from a question", () => {
     expect(terms("What did we decide about the tokens?")).toEqual(["decide", "token"]);
   });

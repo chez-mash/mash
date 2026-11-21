@@ -22,6 +22,7 @@ export type TranslationSource = {
 const repo = new URL("../../", import.meta.url);
 const sourceMarker = /^<!-- mash-docs-source: ([a-f0-9]{64}) -->$/m;
 const uiLabels = new Set([
+  "Apply filters",
   "Custom number of days",
   "Customize setup",
   "Set up and index",
@@ -30,6 +31,7 @@ const uiLabels = new Set([
   "Just this computer (recommended)",
   "Search your history",
   "chats",
+  "words",
 ]);
 
 export function isTranslationPage(page: string | undefined): page is TranslationPage {

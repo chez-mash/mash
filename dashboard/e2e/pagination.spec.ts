@@ -84,3 +84,50 @@ test("a new search from a later page of chats starts at the first result", async
   await expect.poll(() => offsets).toEqual(["0"]);
   await expect(page).not.toHaveURL(/offset=/);
 });
+
+test("search mode applies on request, follows the result page, and resets for a new query", async ({
+  page,
+}) => {
+  await mockCatalogue(page);
+  const requests: { intent: string | null; offset: string | null }[] = [];
+  await page.route("**/api/search?**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const intent = params.get("intent");
+    const offset = params.get("offset");
+    requests.push({ intent, offset });
+    return route.fulfill({
+      json: {
+        results: [
+          {
+            ...chats[0],
+            title: intent === "exact-mention" ? "Word result" : "Default result",
+            matches: [{ message_id: "match" }],
+          },
+        ],
+        next_offset: 10,
+      },
+    });
+  });
+  await page.goto("/#/search?q=needle&offset=10");
+  await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
+  await page.getByRole("button", { name: "search: default" }).click();
+  await page.getByRole("menuitemradio", { name: "words", exact: true }).click();
+  await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
+  expect(requests).toEqual([{ intent: null, offset: "10" }]);
+
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.getByRole("link", { name: /Word result/ })).toBeVisible();
+  await expect(page).toHaveURL(/intent=exact-mention/);
+  expect(requests.at(-1)).toEqual({ intent: "exact-mention", offset: "0" });
+  await page.getByRole("link", { name: "Next", exact: true }).click();
+  await expect.poll(() => requests.at(-1)).toEqual({ intent: "exact-mention", offset: "10" });
+  await expect(page.getByRole("button", { name: "search: words" })).toBeVisible();
+
+  await searchBox(page).fill("another query");
+  await searchBox(page).press("Enter");
+  await expect(page).toHaveURL(/#\/search\?q=another\+query$/);
+  await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
+  expect(requests.at(-1)).toEqual({ intent: null, offset: "0" });
+  await page.goBack();
+  await expect(page.getByRole("button", { name: "search: words" })).toBeVisible();
+});
