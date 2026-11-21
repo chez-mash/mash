@@ -224,7 +224,14 @@ fn informational_flags_succeed_without_initializing_application_resources() {
             assert!(help.contains("Usage:"), "{arguments:?}");
             assert!(help.contains("--help"), "{arguments:?}");
             if arguments == ["--help"] || arguments == ["-h"] {
-                assert!(help.contains("browser dashboard with mash dash"));
+                let dashboard_available = mash_dash::has_web_dashboard();
+                assert_eq!(
+                    help.contains("browser dashboard with mash dash"),
+                    dashboard_available
+                );
+                if !dashboard_available {
+                    assert!(help.contains("from the terminal with mash search"));
+                }
                 assert!(help.contains("connect an agent with mash init"));
             }
         }

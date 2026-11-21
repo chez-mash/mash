@@ -20,7 +20,7 @@ pub(super) const fn search_guidance(editing: bool, semantic: bool) -> Option<&'s
 
 impl InitResponse {
     #[must_use]
-    pub fn terminal_summary(&self) -> String {
+    pub fn terminal_summary(&self, dashboard_available: bool) -> String {
         let mut output = String::new();
         let mut searchable = false;
         match (&self.index_error, self.index.as_deref()) {
@@ -85,9 +85,11 @@ impl InitResponse {
             let _ = writeln!(output, "{}", safe(&memory.message));
         }
         if searchable {
-            output.push_str(
-                "Start the browser dashboard with `mash dash` and open the address it prints.\n",
-            );
+            output.push_str(if dashboard_available {
+                "Start the browser dashboard with `mash dash` and open the address it prints.\n"
+            } else {
+                "Search in the terminal with `mash search migration`. Replace `migration` with a word from your chat.\n"
+            });
             if self.agents.is_empty() {
                 output.push_str("You can connect an agent later so it can search Mash for you. See https://getmash.io/agents/\n");
             }

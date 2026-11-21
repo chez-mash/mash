@@ -23,6 +23,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 mod access;
+mod assets;
 mod assistant;
 mod contract;
 mod live;
@@ -30,9 +31,7 @@ mod search;
 mod services;
 mod setup;
 
-mod assets {
-    include!(concat!(env!("OUT_DIR"), "/dash_assets.rs"));
-}
+pub use assets::has_web_dashboard;
 
 struct Dash {
     paths: Paths,
@@ -885,10 +884,10 @@ async fn asset(uri: Uri) -> Response {
         other => other,
     };
     let Some((_, body)) = assets::ASSETS.iter().find(|(route, _)| *route == path) else {
-        if assets::ASSETS.is_empty() {
+        if !has_web_dashboard() {
             return (
                 [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
-                "<!doctype html><title>Mash</title><p>The dashboard has not been built. Run <code>pnpm install &amp;&amp; pnpm build</code> in <code>dashboard/</code>, then rebuild mash. Installed with cargo? See <a href=\"https://getmash.io/installation/#install-the-cli\">the installation guide</a>.</p>",
+                "<!doctype html><title>Mash</title><h1>The dashboard has not been built into this copy of Mash</h1><p>Use <a href=\"https://getmash.io/search/#your-first-search\">terminal search</a> or <a href=\"https://getmash.io/install-methods/#include-the-web-dashboard\">build with the dashboard</a>.</p>",
             )
                 .into_response();
         }

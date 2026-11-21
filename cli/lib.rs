@@ -25,6 +25,16 @@ pub use mash_app::register_silver_codec;
 /// Build-time generation of the bundled history skill from the live MCP contract.
 pub use mash_mcp::guidance::{generate_history_skill, validate_history_release};
 
+fn mash_description() -> &'static str {
+    if dash::has_web_dashboard() {
+        "Search saved coding-agent chats. Open the browser dashboard with mash dash, \
+         or connect an agent with mash init."
+    } else {
+        "Search saved coding-agent chats from the terminal with mash search, \
+         or connect an agent with mash init."
+    }
+}
+
 /// Runs mash with the process arguments, writing JSON or serving stdio MCP.
 ///
 /// # Examples
@@ -126,7 +136,8 @@ where
                 let _ = write_json(stderr, &error);
                 return error.code;
             };
-            write_summary(stdout, stderr, &value, &report.terminal_summary())
+            let summary = report.terminal_summary(dash::has_web_dashboard());
+            write_summary(stdout, stderr, &value, &summary)
         }
         Ok(cli::Response::InitCancelled { .. }) if terminal => 0,
         Ok(response) => {

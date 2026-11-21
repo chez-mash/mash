@@ -15,7 +15,7 @@
 736 cli/cli.rs
 961 crates/mash-dash/src/assistant.rs
 1307 crates/mash-dash/src/assistant/lookups.rs
-913 crates/mash-dash/src/lib.rs
+912 crates/mash-dash/src/lib.rs
 577 crates/mash-dash/src/services.rs
 538 crates/mash-fleet/src/inventory.rs
 522 crates/mash-mcp/src/guidance.rs

@@ -163,9 +163,11 @@ then stops with the commands to start it and says how many chats it saved.
 
 ### Read the result
 
-The terminal wizard ends with a short report and a next step. For the full
-JSON report, run `mash init --yes` or redirect the wizard's stdout with
-`mash init > setup.json`. Prompts and progress go to stderr.
+The terminal wizard ends with a short report and a next step. Once search is
+ready, look for the command to start the dashboard or a terminal search,
+depending on your build. For the full JSON report, run `mash init --yes` or
+redirect the wizard's stdout with `mash init > setup.json`. Prompts and progress
+go to stderr.
 
 - `"agents": []` means no agents were connected, even if indexing succeeded.
   Read `next` for the reason and follow [agent setup](agents.md). CLI search
