@@ -5,6 +5,7 @@ import {
   readTranslationSource,
   recordedTranslationRevision,
 } from "./translation.ts";
+import { readLocaleGuides } from "./translation-links.ts";
 
 const source = {
   file: "docs/privacy.md",
@@ -127,5 +128,62 @@ describe("documentation translation drafts", () => {
     }
     expect(output).toContain("mash dash --allow-host laptop.your-tailnet.ts.net");
     expect(recordedTranslationRevision(output)).toBe(dashboard.revision);
+  });
+
+  it("keeps numbered section links local when duplicate English headings are translated", () => {
+    const draft = prepareTranslation(
+      {
+        ...source,
+        body: "# Setup\n\n[Read the next section](#start-1).\n\n## Start\n\n## Start",
+      },
+      "docs/fr/privacy.md",
+    );
+    const output = draft.render({
+      translations: draft.passages.map((passage) => (passage === "Start" ? "Début" : passage)),
+    });
+    expect(output).toContain("[Read the next section](#start-1)");
+    expect(output).toContain('<span id="start"></span>\n\n## Début');
+    expect(output).toContain('<span id="start-1"></span>\n\n## Début');
+    expect(draft.render({ translations: draft.passages })).not.toContain("<span");
+  });
+
+  it("uses translated guides only when the linked section exists", async () => {
+    const [localeGuides, quickStart] = await Promise.all([
+      readLocaleGuides("fr"),
+      readTranslationSource("quick-start"),
+    ]);
+    const draft = prepareTranslation(quickStart, "docs/fr/quick-start.md", localeGuides);
+    const output = draft.render({ translations: draft.passages });
+    expect(output).toContain("(dashboard.md#set-up-mash-from-the-dashboard)");
+    expect(output).toContain("(dashboard.md#find-and-read-a-chat)");
+    expect(output).toContain("(agents.md#connect-claude-code-codex-or-copilot)");
+    expect(output).toContain("(../installation.md)");
+
+    const partial = prepareTranslation(
+      {
+        ...source,
+        file: "docs/agents.md",
+        body: "# History\n\n[Setup](../README.md#quick-start), then [search](../README.md#try-it) or read [another section](dashboard.md#english-only).",
+      },
+      "docs/fr/agents.md",
+      localeGuides,
+    );
+    expect(partial.render({ translations: partial.passages })).toContain(
+      "[Setup](quick-start.md), then [search](quick-start.md#try-it) or read [another section](../dashboard.md#english-only)",
+    );
+  });
+
+  it("can draft a guide before its locale directory has been created", async () => {
+    expect(await readLocaleGuides("de")).toEqual(new Map());
+  });
+
+  it("rejects a translation that would make an old section link point to a different heading", () => {
+    const draft = prepareTranslation(
+      { ...source, body: "# Guide\n\n## Start\n\n## Finish" },
+      "docs/fr/privacy.md",
+    );
+    expect(() => draft.render({ translations: ["Guide", "Début", "Start"] })).toThrow(
+      "A translated heading conflicts with section link #start",
+    );
   });
 });

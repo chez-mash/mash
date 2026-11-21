@@ -9,6 +9,7 @@ import {
   readTranslationSource,
   translationPages,
 } from "./translation.ts";
+import { readLocaleGuides } from "./translation-links.ts";
 
 const usage = `Usage: pnpm --silent translate-docs <locale> <${translationPages.join("|")}>`;
 const instruction = `Translate Mash's public documentation into the language in the supplied JSON.
@@ -36,8 +37,11 @@ async function main(args: string[]): Promise<void> {
   const language = new Intl.DisplayNames(["en"], { type: "language", fallback: "none" }).of(locale);
   if (!language) throw new Error(`Unknown documentation language: ${locale}`);
 
-  const source = await readTranslationSource(page);
-  const draft = prepareTranslation(source, `docs/${locale}/${page}.md`);
+  const [source, localeGuides] = await Promise.all([
+    readTranslationSource(page),
+    readLocaleGuides(locale),
+  ]);
+  const draft = prepareTranslation(source, `docs/${locale}/${page}.md`, localeGuides);
   // Only the selected public page is provided. Work outside the repository so
   // the CLI does not load repository hooks or configuration for translation.
   const cwd = await mkdtemp(path.join(tmpdir(), "docs-translation-"));

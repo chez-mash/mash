@@ -1,9 +1,14 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { Root, Text } from "mdast";
 import { visit } from "unist-util-visit";
-import { markdown, rewriteMarkdownUrls } from "./markdown.ts";
+import { markdown } from "./markdown.ts";
+import {
+  type LocaleGuides,
+  localizeLinks,
+  retainSectionIds,
+  sectionSlugs,
+} from "./translation-links.ts";
 
 export const translationPages = [
   "quick-start",
@@ -121,8 +126,13 @@ function protectedContent(tree: Root): string {
   return JSON.stringify(content);
 }
 
-export function prepareTranslation(source: TranslationSource, destination: string) {
+export function prepareTranslation(
+  source: TranslationSource,
+  destination: string,
+  localeGuides: LocaleGuides = new Map(),
+) {
   const tree = markdown.parse(source.body);
+  const sourceSlugs = [...sectionSlugs(tree).values()];
   const nodes: Text[] = [];
   visit(tree, "text", (node, _index, parent) => {
     if (!node.value.trim()) return;
@@ -135,19 +145,7 @@ export function prepareTranslation(source: TranslationSource, destination: strin
     nodes.push(node);
   });
   const passages = nodes.map((node) => node.value.trim());
-  const stableAnchors = new Set(
-    [...source.body.matchAll(/^<span id="([a-z0-9-]+)"><\/span>$/gm)].map(([, id]) => `#${id}`),
-  );
-  // The draft lives one level below the English guides. Rebase relative links
-  // to keep the same destinations, including links to English guide sections.
-  rewriteMarkdownUrls(tree, (url) => {
-    if (stableAnchors.has(url)) return url;
-    if (/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(url)) return url;
-    const base = new URL("https://mash-docs.invalid/");
-    const target = new URL(url, new URL(source.file, base));
-    const relative = path.posix.relative(path.posix.dirname(destination), target.pathname.slice(1));
-    return relative + target.search + target.hash;
-  });
+  localizeLinks(tree, source.file, destination, localeGuides);
 
   return {
     passages,
@@ -168,11 +166,12 @@ export function prepareTranslation(source: TranslationSource, destination: strin
         const trailing = node.value.match(/\s*$/)?.[0] ?? "";
         node.value = leading + text.trim().replace(/\s+/g, " ") + trailing;
       }
-      const output = markdown.stringify(tree);
-      if (protectedContent(markdown.parse(output)) !== protectedContent(tree)) {
+      const translated = markdown.parse(markdown.stringify(tree));
+      if (protectedContent(translated) !== protectedContent(tree)) {
         throw new Error("The translated prose changed a heading, link or code example.");
       }
-      return `${output}\n<!-- mash-docs-source: ${source.revision} -->\n`;
+      retainSectionIds(translated, sourceSlugs);
+      return `${markdown.stringify(translated)}\n<!-- mash-docs-source: ${source.revision} -->\n`;
     },
   };
 }

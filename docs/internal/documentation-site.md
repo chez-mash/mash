@@ -37,14 +37,14 @@ pnpm --silent translate-docs fr search-languages
 
 The command sends the selected public English guide as context and returns a
 Markdown draft on stdout. It inserts the translated prose into the original
-structure, keeping command examples, inline code and link destinations. Review
-the language before saving the draft under `docs/fr/` at the repository root.
-Where a linked guide also has a translation, use the local file and verify the
-section anchor. When updating a translation, keep its explicit section aliases
-such as `<span id="find-and-read-a-chat"></span>` so existing links still work.
-Keep the source marker at the end.
-The docs build reports generated translations whose English source has changed.
-The existing hand-edited Spanish pages do not have this marker.
+structure and preserves command examples and inline code. The draft keeps the
+English section IDs, so links like `#find-and-read-a-chat` can still be used.
+It links to a translated guide when that guide contains the requested section.
+Links to missing translations or sections go to the English guide.
+
+Review the prose and links before saving under `docs/fr/` at the repository
+root. Keep the section aliases and the source marker at the end. The docs
+build reports marked translations whose English source has changed.
 
 To publish a language, add it to `site/scripts/locales.ts`. Add a translated
 `docs/<locale>/index.md` for its landing page; guides without a translation
