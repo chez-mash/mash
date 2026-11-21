@@ -187,26 +187,26 @@ pub(super) fn inspect(
         for finding in &mut client.findings {
             if matches!(finding.component, Component::Mcp | Component::Plugin)
                 && finding.state.needs_attention()
+                && let Some(remedy) = &mut finding.remediation
             {
-                finding.remediation = finding.remediation.take().map(|remedy| {
-                    format!("The agent CLI was not found on PATH. Install it or fix PATH first. {remedy}")
-                });
+                *remedy = format!("Make the agent CLI available on PATH first. {remedy}");
             }
         }
     }
     if client.expected && client.expectation == Expectation::None {
         client.expectation = Expectation::Configured;
-    }
-    if !client.expected {
+    } else if !client.expected {
+        let advice = match (&client.cli_path, client.data_directory_found) {
+            (Some(_), _) => Some("Run `mash init` and select this agent.".into()),
+            (None, true) => Some(super::install_cli(agent)),
+            (None, false) => None,
+        };
         client.add(
             Component::Configuration,
             State::NotConfigured,
             Some(root),
-            "No enabled Mash integration was found in user settings, and `mash init` did not record connecting this agent; CLI-only use is valid.",
-            Some(&format!(
-                "To require this agent, run `mash status --installation --agent {}`.",
-                agent.as_str()
-            )),
+            "Mash is not connected to this agent. You can search saved chats from the dashboard or terminal.",
+            advice.as_deref(),
         );
     }
     client

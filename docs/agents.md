@@ -17,6 +17,11 @@ mash init
 
 Then restart the agent so it loads the connection, and [try it](#try-it).
 
+You can search saved chats in the dashboard or terminal even when the agent
+is disconnected. To connect it, its command must work in your terminal. For
+example, check Codex with `codex --version`. If the terminal cannot find it,
+install the agent's CLI or add it to `PATH`, then run `mash init` again.
+
 Already installed the plugin from your agent's marketplace? Use its
 [`setup` skill](plugin.md#start-with-the-plugin) to finish setting up Mash.
 
@@ -80,13 +85,17 @@ In the JSON report, `summary.clients` lists each agent with a `connection`:
 | --- | --- |
 | `full` | Nothing needs attention. |
 | `mcp-only` | The Mash tools are connected. The plugin, skill, or hooks need attention. |
-| `none` | The agent cannot reach Mash. |
+| `none` | Mash has no usable connection to that agent. It may have been skipped during setup. |
 
 When something needs repair, `next_action` gives the next step. Indexing
 does not fix a connection. If the marketplace plugin is newer than your
 CLI, the report checks whether they declare the same tool contract.
 Compatible tools and intact plugin files can stay in use. A different
 contract needs a matching CLI release.
+
+An `unconfigured` count with `next_action: null` means Mash found agent data
+without a connection and has no repair to suggest. You can still search
+indexed chats in the dashboard or terminal.
 
 The command exits with status 1, still printing the report, when an agent
 needs attention and is one that `mash init` connected, one configured for
@@ -103,10 +112,6 @@ mash status --installation --agent copilot --probe
 
 A successful probe verifies a new process, not the connection in an
 already-open chat. Restart the agent after setup, repairs, or upgrades.
-
-The report distinguishes an agent's data directory from its CLI being on
-`PATH`: old histories stay searchable after you uninstall the agent. To
-connect an agent whose CLI is absent, install the CLI, then rerun `mash init`.
 
 ## Keep new chats searchable
 

@@ -145,18 +145,15 @@ If the missing chats are older, check the [history range](indexing.md#add-older-
 
 ## My agent cannot find Mash
 
-`mash init` connects only Claude Code, Codex and GitHub Copilot CLI, and only
-when their CLI (`claude`, `codex`, `copilot`) is on `PATH`. Check each agent's `connection`:
+Check the agent you want to use. For Claude Code, run:
 
 ```sh
-mash status --installation
+mash status --installation --agent claude-code
 ```
 
-| `connection` | Meaning | Fix |
-| --- | --- | --- |
-| `none` | The agent cannot reach Mash. | Run the report's `next_action`, usually `mash init`. If the agent's CLI is missing, install it first. |
-| `mcp-only` | The Mash tools are connected. The plugin, skill, or hooks need attention. | Follow the report's `next_action`. It identifies whether the CLI, plugin, or hook approval needs an update. |
-| `full` | Connected. | Restart the agent. |
+Use `--agent codex` or `--agent copilot` for those CLIs. Follow the report's
+`next_action` if it gives a repair. You can keep searching in the dashboard
+while you [set up the agent connection](agents.md#connect-claude-code-codex-or-copilot).
 
 Restart the agent after setup, a repair, or a binary or plugin upgrade; an open
 chat keeps its old connection. To test a fresh connection:

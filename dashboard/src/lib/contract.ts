@@ -2082,6 +2082,7 @@ export interface components {
             /** Format: uint */
             attention: number;
             clients: components["schemas"]["ClientSummary"][];
+            connection_note?: string | null;
             /** @description The command that would make progress, or null when nothing is left. */
             next_action?: string | null;
             /** Format: uint */

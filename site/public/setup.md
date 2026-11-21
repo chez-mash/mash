@@ -147,9 +147,10 @@ answer.
 
 Read the result:
 
-- `agents` lists each agent that was connected, the settings `files` that were
-  edited and the `undo` commands. Report these to the person. An empty list
-  means no agent was connected; `next` says why.
+- `agents` lists connection attempts, the settings `files` involved and the
+  `undo` commands. A `done`, `already-present`, or `replaced` MCP step means
+  the connection is in place. Report these to the person. An empty `agents`
+  list is fine for dashboard or terminal search.
 - `index_error` means setup was saved but the first index failed. Fix the
   cause it names, then run `mash index`.
 - `written: false` on a rerun means the existing configuration was kept. That
@@ -167,6 +168,10 @@ mash index --all-history
 ```sh
 mash status
 ```
+
+Read `ready` to see whether local search is usable. If `installation` lists
+unconfigured agents and has `next_action: null`, their connections are
+optional. Continue with the first search if `ready` is `true`.
 
 If the person chose to run the first search themselves, stop after status.
 Tell them how to use `mash dash` or `mash search`, and leave the results for

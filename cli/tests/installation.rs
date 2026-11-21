@@ -58,15 +58,16 @@ fn installation_help_warns_only_when_integration_is_incomplete() {
     );
     std::fs::create_dir(root.path().join(".codex")).unwrap();
     let unconfigured = json(isolated(root.path()).arg("--help"));
-    assert!(
-        unconfigured["help"]
-            .as_str()
-            .unwrap()
-            .contains("Installation notice")
-    );
+    assert_eq!(unconfigured["help"], clean["help"]);
     let report = json(isolated(root.path()).args(["status", "--installation"]));
     assert_eq!(report["summary"]["unconfigured"], 1);
     assert_eq!(report["summary"]["attention"], 0);
+    assert!(
+        report["summary"]["connection_note"]
+            .as_str()
+            .unwrap()
+            .contains("optional for dashboard and terminal search")
+    );
     std::fs::write(
         root.path().join(".codex/config.toml"),
         "[mcp_servers.mash]\ncommand = '/does/not/exist'\n",
@@ -261,19 +262,26 @@ fn installation_status_includes_summary_without_changing_search_readiness() {
     let root = tempfile::tempdir().unwrap();
     let config = root.path().join("config.toml");
     std::fs::write(&config, "version = 1\nproviders = {}\n").unwrap();
-    let status = json(
-        isolated(root.path())
-            .arg("--config")
-            .arg(&config)
-            .arg("--db")
-            .arg(root.path().join("db"))
-            .arg("--models-dir")
-            .arg(root.path().join("models"))
-            .arg("status"),
-    );
+    let mut command = isolated(root.path());
+    command
+        .arg("--config")
+        .arg(&config)
+        .arg("--db")
+        .arg(root.path().join("db"))
+        .arg("--models-dir")
+        .arg(root.path().join("models"))
+        .arg("status");
+    let status = json(&mut command);
     assert_eq!(status["ready"], false);
     assert_eq!(status["installation"]["attention"], 0);
     assert_eq!(status["installation"]["next_action"], Value::Null);
+    assert!(status["installation"].get("connection_note").is_none());
+
+    std::fs::create_dir(root.path().join(".codex")).unwrap();
+    let status = json(&mut command);
+    assert_eq!(status["ready"], false);
+    assert_eq!(status["installation"]["next_action"], Value::Null);
+    assert!(status["installation"]["connection_note"].is_string());
 }
 
 #[test]
@@ -281,12 +289,39 @@ fn installation_names_the_repair_and_fails_for_a_required_agent_that_is_not_conn
     let root = tempfile::tempdir().unwrap();
     std::fs::create_dir(root.path().join(".codex")).unwrap();
     // Unconfigured agents are valid CLI-only use: nothing to do, exit 0.
-    let unused = json(isolated(root.path()).args(["status", "--installation"]));
+    let unused = json(
+        isolated(root.path())
+            .env("PATH", root.path().join("missing-bin"))
+            .args(["status", "--installation"]),
+    );
     assert_eq!(unused["summary"]["clients"][0]["connection"], "none");
     assert_eq!(unused["summary"]["next_action"], Value::Null);
-    assert_eq!(
-        unused["clients"][0]["findings"][2]["remediation"],
-        "To require this agent, run `mash status --installation --agent codex`."
+    let finding = |client: &Value| {
+        client["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|finding| finding["state"] == "not_configured")
+            .unwrap()["remediation"]
+            .clone()
+    };
+    assert!(
+        finding(&unused["clients"][0])
+            .as_str()
+            .unwrap()
+            .contains("Install the codex CLI")
+    );
+    let available = json(
+        isolated(root.path())
+            .env("PATH", agent_path(root.path(), "codex"))
+            .args(["status", "--installation"]),
+    );
+    assert_eq!(available["summary"]["next_action"], Value::Null);
+    assert!(
+        finding(&available["clients"][0])
+            .as_str()
+            .unwrap()
+            .contains("Run `mash init`")
     );
     // Requiring the agent makes its missing integration a failure that names
     // `mash init` and the agent's own registration command.

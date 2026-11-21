@@ -31,7 +31,7 @@ registration disappears, and its MCP finding names the exact `mcp add` command.
 A CLI-only installation is valid. When any expected agent needs attention, the
 command still prints the report and exits with status 1, so scripts can check
 wiring; resource findings such as Qdrant do not affect the exit status.
-`clients[].recorded` shows the configuration record. `summary.clients[].connection`
+`clients[].expectation` shows why an agent was expected. `summary.clients[].connection`
 is `full` (expected, nothing needing attention), `mcp-only` (a usable MCP
 registration, with the plugin or another part needing attention) or `none`.
 `missing` lists the parts not installed (`mcp`, `plugin`), and each client's
@@ -61,15 +61,16 @@ appending the `[agents]` table so existing comments are kept.
 Ordinary `status` includes a compact installation summary, and `--help` (also
 `help` and subcommand help) adds a short warning when local checks find an
 incomplete integration or an incompatible/unreadable local index. Help respects
-`--db`, remains JSON and does not start subprocesses. Schema checks never migrate
+`--db`, prints plain text and does not start subprocesses. Schema checks never migrate
 the index. A missing index alone cannot distinguish a fresh setup from an
 interrupted upgrade; recover retained history before indexing after an upgrade
 failure.
 An upgrade marker is reported even if the active database is absent. Diagnostics
 never clear it: first distinguish a running upgrade from an interrupted cutover
 and recover the retained database/attachments before retrying.
-Detected clients with no enabled Mash integration receive a softer setup notice
-and appear in `summary.unconfigured`, without making CLI-only use an error.
+Detected clients with no enabled Mash integration appear in `summary.unconfigured`.
+The `summary.connection_note` explains why this is valid for dashboard and
+terminal search. Optional connections do not generate a help warning.
 
 Installation inspection works without a valid Mash configuration, index or
 models. It never installs plugins, trusts hooks, modifies agent settings or

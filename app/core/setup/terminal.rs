@@ -86,6 +86,9 @@ impl InitResponse {
         }
         if searchable {
             output.push_str("Open your chats with `mash dash`.\n");
+            if self.agents.is_empty() {
+                output.push_str("You can connect an agent later so it can search Mash for you. See https://getmash.io/agents/\n");
+            }
             if self.config.search == Some("semantic") {
                 let _ = writeln!(output, "{SEMANTIC_QUERY}");
             }

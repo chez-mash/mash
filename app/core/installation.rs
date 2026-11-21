@@ -137,6 +137,8 @@ pub(crate) struct Summary {
     attention: usize,
     unverified: usize,
     unconfigured: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    connection_note: Option<&'static str>,
     clients: Vec<ClientSummary>,
     /// The command that would make progress, or null when nothing is left.
     next_action: Option<String>,
@@ -171,6 +173,9 @@ impl Report {
             .iter()
             .filter(|client| client.data_directory_found && !client.expected)
             .count();
+        self.summary.connection_note = (self.summary.unconfigured > 0).then_some(
+            "Agent connections are optional for dashboard and terminal search. To let an agent search Mash, see https://getmash.io/agents/#connect-claude-code-codex-or-copilot",
+        );
         self.summary.clients = self
             .clients
             .iter()
@@ -472,6 +477,7 @@ fn collect(environment: Option<&Environment>, agents: &[Agent], recorded: &[Agen
             attention: 0,
             unverified: 0,
             unconfigured: 0,
+            connection_note: None,
             clients: vec![],
             next_action: None,
         },
@@ -570,18 +576,9 @@ pub fn help_notice(paths: &super::Paths) -> Option<&'static str> {
             "Installation warning: Mash configuration or configured provider roots need attention. Run `mash status --installation` for setup details.",
         );
     }
-    let summary = summary(&recorded_agents(paths));
-    if summary.attention > 0 {
-        Some(
-            "Installation warning: some Mash agent integrations are incomplete. Run `mash status --installation` for findings and repair steps.",
-        )
-    } else if summary.unconfigured > 0 {
-        Some(
-            "Installation notice: agent data exists without a configured Mash integration. CLI-only use is valid; run `mash status --installation` for setup details.",
-        )
-    } else {
-        None
-    }
+    (summary(&recorded_agents(paths)).attention > 0).then_some(
+        "Installation warning: some Mash agent integrations are incomplete. Run `mash status --installation` for findings and repair steps.",
+    )
 }
 
 pub(super) async fn inspect(

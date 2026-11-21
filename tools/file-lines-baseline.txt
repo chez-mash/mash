@@ -3,7 +3,7 @@
 # (python3 tools/check_file_lines.py --update). Do not add files.
 628 app/core.rs
 713 app/core/doctor.rs
-692 app/core/installation.rs
+689 app/core/installation.rs
 711 app/core/installation/clients.rs
 506 app/core/installation/plugin.rs
 606 app/core/output/text.rs
