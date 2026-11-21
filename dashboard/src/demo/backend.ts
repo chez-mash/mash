@@ -350,7 +350,7 @@ function firstRun(): Answer<"/api/services/setup"> {
       { agent: "claude-code", installed: true, connected: true },
       { agent: "codex", installed: true, connected: true },
     ],
-    qdrant: { url: "http://127.0.0.1:6333", reachable: true, message: null },
+    qdrant: { url: "http://127.0.0.1:6333", state: "reachable", reachable: true, message: null },
     models_installed: true,
     index: { state: "idle" },
   };

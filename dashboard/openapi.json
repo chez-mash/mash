@@ -2294,7 +2294,7 @@
       "FirstRunQdrant": {
         "properties": {
           "message": {
-            "description": "Why it is not reachable, and how to start it.",
+            "description": "Why Mash could not use the configured search service.",
             "type": [
               "string",
               "null"
@@ -2303,12 +2303,16 @@
           "reachable": {
             "type": "boolean"
           },
+          "state": {
+            "$ref": "#/components/schemas/Reachability"
+          },
           "url": {
             "type": "string"
           }
         },
         "required": [
           "url",
+          "state",
           "reachable"
         ],
         "type": "object"

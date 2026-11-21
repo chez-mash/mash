@@ -25,7 +25,12 @@ const body = {
     { agent: "claude-code", installed: true, connected: false },
     { agent: "codex", installed: false, connected: false },
   ],
-  qdrant: { url: "http://127.0.0.1:6333", reachable: false, message: "start it" },
+  qdrant: {
+    url: "http://127.0.0.1:6333",
+    state: "unreachable",
+    reachable: false,
+    message: "start it",
+  },
   models_installed: false,
   index: { state: "idle" },
 };

@@ -53,10 +53,12 @@ background if you asked for it. The page shows what was written, which files
 each agent's tool edited and the commands that undo it. It follows the first
 index until your chats appear.
 
-- Indexing needs the search service. If it is down, run `mash qdrant install`
-  and choose **Check search service again**, or choose **Set up without
-  indexing** and index later. The customization review also offers saving
-  without indexing when the service is ready.
+- Indexing needs the search service. If it is stopped, start it using the
+  method you installed it with. If Mash shows a connection problem, check the
+  reason and [fix the search service](troubleshooting.md#qdrant-connection-failed).
+  Then choose **Check search service again**. You can choose **Set up without
+  indexing** to save your settings first. After the check passes, the saved
+  setup screen shows the command to index your chats.
 - To search by meaning, [set up the models and build search data](indexing.md#enable-semantic-search).
   You can then [choose meaning for a search](#choose-a-search-mode).
 - Going through setup again on a machine that is already set up rewrites the
@@ -106,7 +108,7 @@ Open **settings** and look at the search status at the top. The message counts
 under **storage** describe the history Mash has saved. Local search also
 needs a running search service and an up-to-date search index.
 
-If the local search service is unavailable, [check how it was started](troubleshooting.md#qdrant-connection-failed)
+If Mash cannot use the local search service, [check what went wrong](troubleshooting.md#qdrant-connection-failed)
 before indexing again. Word search works without models. Install models only
 if you want to [search by meaning](indexing.md#enable-semantic-search).
 

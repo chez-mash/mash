@@ -28,7 +28,7 @@ mash dash
 
 在确认页面选择 **Set up and index** 或 **Set up without indexing** 后，Mash 才会写入配置。它会通过所选代理自己的命令行工具进行连接，并按你的选择在后台建立索引。页面会显示已保存的配置、各代理修改的文件以及撤销连接的命令，还会显示索引进度，直到对话出现在面板中。
 
-- 索引需要搜索服务。如果服务未运行，请执行 `mash qdrant install` 后选择 **Check search service again**，或选择 **Set up without indexing**，稍后再索引。搜索服务可用时，自定义设置的确认页也允许保存配置并稍后索引。
+- 索引需要搜索服务。如果服务已停止，请按安装时的方式启动它。如果 Mash 提示连接有问题，请查看原因并[修复搜索服务](troubleshooting.md#qdrant-connection-failed)，然后选择 **Check search service again**。也可以先选择 **Set up without indexing** 保存设置。检查通过后，此页面会显示用于索引对话的命令。
 - 要按含义搜索，请先[安装模型并构建搜索索引](../indexing.md#enable-semantic-search)，然后就可以[为单次查询选择按含义搜索](#choose-a-search-mode)。
 - 重新设置已配置的机器时，Mash 会按你的选项更新配置并在同一位置保留旧文件。
 - 要跨机器共享、从旧对话提取记忆，或读取存放在其他位置的历史，请使用 `mash init` 或编辑配置文件。
@@ -57,7 +57,7 @@ mash dash
 打开 **settings**，查看页面顶部的搜索状态。**storage** 中的消息数量反映 Mash 已保存的历史。
 在本机搜索还需要正在运行的搜索服务和最新的搜索索引。
 
-如果本地搜索服务不可用，请先[检查它的启动方式](troubleshooting.md#qdrant-connection-failed)，再重新建立索引。
+如果 Mash 无法使用本地搜索服务，请先[查看原因](troubleshooting.md#qdrant-connection-failed)，再重新建立索引。
 关键词搜索不需要模型。只有想[按含义搜索（英文指南）](../indexing.md#enable-semantic-search)时才需要安装模型。
 
 <span id="find-and-read-a-chat"></span>
@@ -238,4 +238,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 93abfb1e4f23d47991be11a7336bfa330c896940e30aaf7159744b693b9892fb -->
+<!-- mash-docs-source: 72297b895f4daa42ec255f8ee377541ba7e41f93a78ee2f9a2a2269d26b663d7 -->

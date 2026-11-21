@@ -30,7 +30,7 @@ En la primera pantalla de revisión, **Skip agent connections** te permite index
 
 Mash aplica los cambios cuando eliges **Set up and index** o **Set up without indexing** en la revisión. Guarda la configuración, conecta cada agente elegido mediante su propia herramienta de terminal y, si lo pediste, empieza a indexar en segundo plano. La página indica qué se guardó, qué archivos modificó cada herramienta y cómo deshacer las conexiones. También muestra el progreso hasta que aparecen tus conversaciones.
 
-- Para indexar necesitas el servicio de búsqueda. Si está detenido, ejecuta `mash qdrant install` y elige **Check search service again**, o elige **Set up without indexing** para indexar más tarde. La revisión de la configuración personalizada también permite guardar sin indexar cuando el servicio está disponible.
+- Para indexar necesitas el servicio de búsqueda. Si está detenido, inícialo de la forma que corresponda a tu instalación. Si Mash indica un problema de conexión, consulta el motivo y [repara el servicio de búsqueda](troubleshooting.md#qdrant-connection-failed). Luego elige **Check search service again**. Puedes elegir **Set up without indexing** para guardar la configuración primero. Cuando la comprobación sea correcta, esta pantalla mostrará el comando para indexar tus conversaciones.
 - Para buscar por significado, [configura los modelos y prepara el índice](../indexing.md#enable-semantic-search). Después puedes [elegir la búsqueda por significado para una consulta](#choose-a-search-mode).
 - Si vuelves a configurar un equipo que ya usaba Mash, se guarda la nueva configuración y se conserva una copia de la anterior junto a ella.
 - Para compartir con otros equipos, crear recuerdos a partir de conversaciones antiguas o leer historiales de otras ubicaciones, usa `mash init` o edita el archivo de configuración.
@@ -61,7 +61,7 @@ recuentos de **storage** describen el historial que Mash ha guardado. Para
 buscar en este equipo también necesitas un servicio de búsqueda en marcha y
 un índice actualizado.
 
-Si el servicio de búsqueda local no está disponible, [comprueba cómo se inició](troubleshooting.md#qdrant-connection-failed)
+Si Mash no puede usar el servicio de búsqueda local, [comprueba qué falló](troubleshooting.md#qdrant-connection-failed)
 antes de volver a indexar. La búsqueda por palabras funciona sin modelos.
 Instala los modelos solo si quieres [buscar por significado (guía en inglés)](../indexing.md#enable-semantic-search).
 
@@ -244,4 +244,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 93abfb1e4f23d47991be11a7336bfa330c896940e30aaf7159744b693b9892fb -->
+<!-- mash-docs-source: 72297b895f4daa42ec255f8ee377541ba7e41f93a78ee2f9a2a2269d26b663d7 -->

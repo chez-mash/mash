@@ -17,7 +17,7 @@ const detected: Wire["FirstRun"] = {
     { agent: "claude-code", installed: true, connected: false },
     { agent: "codex", installed: false, connected: false },
   ],
-  qdrant: { url: "http://127.0.0.1:6333", reachable: true },
+  qdrant: { url: "http://127.0.0.1:6333", state: "reachable", reachable: true },
   models_installed: false,
   index: { state: "idle" },
 };
@@ -133,7 +133,7 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
 }) => {
   const { posts, update } = await mockSetup(page, {
     ...detected,
-    qdrant: { ...detected.qdrant, reachable: false },
+    qdrant: { ...detected.qdrant, state: "unreachable", reachable: false },
   });
   await page.goto("/#/setup");
   await expect(page.getByRole("button", { name: "Set up and index" })).toHaveCount(0);
@@ -174,14 +174,26 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   ]);
 });
 
-test("save without indexing is available when the search service is down", async ({ page }) => {
-  const { posts } = await mockSetup(page, {
+test("setup rechecks a rejected search service after saving", async ({ page }) => {
+  const reason = "Qdrant returned HTTP 401. Check that Mash's Qdrant API key matches.";
+  const { posts, update } = await mockSetup(page, {
     ...detected,
-    qdrant: { ...detected.qdrant, reachable: false },
+    qdrant: { ...detected.qdrant, state: "rejected", reachable: false, message: reason },
   });
   await page.goto("/#/setup");
+  await expect(page.getByText(reason, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Check the search service" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/troubleshooting/#qdrant-connection-failed",
+  );
+  await expect(page.getByText("mash qdrant install", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Set up and index" })).toHaveCount(0);
   await page.getByRole("button", { name: "Set up without indexing" }).click();
   await expect(page.getByRole("heading", { name: "Setup is saved" })).toBeVisible();
+  await expect(page.getByText(reason, { exact: true })).toBeVisible();
+  await expect(page.getByText("mash index", { exact: true })).toHaveCount(0);
+  update({ qdrant: detected.qdrant });
+  await page.getByRole("button", { name: "Check search service again" }).click();
   await expect(page.getByText("mash index", { exact: true })).toBeVisible();
   expect(posts).toHaveLength(1);
   expect(posts[0]).toMatchObject({ index: false });

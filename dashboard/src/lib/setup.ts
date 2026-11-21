@@ -43,7 +43,7 @@ export interface FirstRun {
   }[];
   readonly qdrant: {
     readonly url: string;
-    readonly reachable: boolean;
+    readonly state: Wire["Reachability"];
     readonly message: string | null;
   };
   readonly modelsInstalled: boolean;
@@ -88,7 +88,7 @@ export function parseFirstRun(body: Answer<"/api/services/setup">): FirstRun {
     integrations: body.integrations,
     qdrant: {
       url: body.qdrant.url,
-      reachable: body.qdrant.reachable,
+      state: body.qdrant.state,
       message: body.qdrant.message ?? null,
     },
     modelsInstalled: body.models_installed,

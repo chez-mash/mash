@@ -14,6 +14,7 @@ import {
   type Answers,
   answersOf,
   days as dayLimits,
+  type FirstRun,
   firstRunKey,
   firstRunOptions,
   type Integration,
@@ -38,6 +39,7 @@ import Skeleton from "./Skeleton.svelte";
 const queryClient = useQueryClient();
 const setup = createQuery(() => firstRunOptions);
 const file = $derived(setup.data);
+const searchServiceReady = $derived(file?.qdrant.state === "reachable");
 const names = Object.fromEntries(
   Object.entries(agentInfo).map(([agent, info]) => [agent, info.name]),
 ) as Record<Agent, string>;
@@ -84,8 +86,7 @@ let running = $state(false);
 let failure = $state("");
 let outcome = $state<Outcome | null>(null);
 async function run(index: boolean): Promise<void> {
-  if (!file?.editable || !answers || running || blocked || (index && !file.qdrant.reachable))
-    return;
+  if (!file?.editable || !answers || running || blocked || (index && !searchServiceReady)) return;
   running = true;
   failure = "";
   try {
@@ -134,6 +135,19 @@ function toggleConnect(agent: Integration): void {
 
 {#snippet command(text: string)}
   <div class="cmdline" style:margin-top="6px"><code>{text}</code><button type="button" aria-label={copied === text ? "Copied" : "Copy the command"} title={copied === text ? "Copied" : "Copy"} onclick={() => copy(text)}>{#if copied === text}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
+{/snippet}
+{#snippet searchServiceProblem(service: FirstRun["qdrant"])}
+  <div>
+    <p class="warn" style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
+    {#if service.state === "rejected"}
+      {#if service.message}<p class="meta" style:overflow-wrap="anywhere">{service.message}</p>{/if}
+      <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>
+    {:else}
+      {@render command("mash qdrant install")}
+    {/if}
+    <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}>{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
+    <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{service.url}</code></p>
+  </div>
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, disabled = false)}
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} {disabled} onclick={flip}><i></i></button>
@@ -239,15 +253,10 @@ function toggleConnect(agent: Integration): void {
         {#if file.shared}
           <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>
         {/if}
-        {#if file.qdrant.reachable}
+        {#if searchServiceReady}
           <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service is ready.</p>
         {:else}
-          <div>
-            <p class="warn" style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again.</span></p>
-            {@render command("mash qdrant install")}
-            <button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}>{setup.isFetching ? "Checking…" : "Check search service again"}</button>
-            <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{file.qdrant.url}</code></p>
-          </div>
+          {@render searchServiceProblem(file.qdrant)}
         {/if}
       {/if}
 
@@ -265,10 +274,10 @@ function toggleConnect(agent: Integration): void {
           {@const next = at + 1}
           <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
         {:else if file.editable}
-          {#if !file.qdrant.reachable || at !== null}
-            <button class="btn" class:p={!file.qdrant.reachable} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
+          {#if !searchServiceReady || at !== null}
+            <button class="btn" class:p={!searchServiceReady} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
           {/if}
-          {#if file.qdrant.reachable}
+          {#if searchServiceReady}
             <button class="btn p" type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}>Set up and index</button>
           {/if}
         {/if}
@@ -291,15 +300,19 @@ function toggleConnect(agent: Integration): void {
               {#if file.index.message}<p class="meta warn" style:overflow-wrap="anywhere">{file.index.message}</p>{/if}
             {:else}
               <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing stopped: {file.index.message ?? "it did not say why."}</p>
-              <p class="meta">Setup itself is saved. To try again, run this in a terminal on this machine:</p>
-              {@render command("mash index")}
             {/if}
           {:else if file.index.state === "skipped"}
             <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing was not started: {file.index.reason}</p>
-            {@render command("mash index")}
           {:else}
-            <p class="meta">Not started. When the search service is running, index your history from a terminal on this machine:</p>
-            {@render command("mash index")}
+            <p class="meta">Indexing was skipped.</p>
+          {/if}
+          {#if file.index.state !== "running" && !(file.index.state === "finished" && file.index.ok)}
+            {#if searchServiceReady}
+              <p class="meta">Run this in a terminal on this machine to index your history.</p>
+              {@render command("mash index")}
+            {:else}
+              {@render searchServiceProblem(file.qdrant)}
+            {/if}
           {/if}
         </div>
       </section>

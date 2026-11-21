@@ -50,8 +50,9 @@ struct Integration {
 #[schemars(rename = "FirstRunQdrant")]
 struct Qdrant {
     url: String,
+    state: views::qdrant::Reachability,
     reachable: bool,
-    /// Why it is not reachable, and how to start it.
+    /// Why Mash could not use the configured search service.
     message: Option<String>,
 }
 
@@ -184,6 +185,7 @@ async fn describe(state: &Dash) -> Result<Setup, AppError> {
         integrations,
         qdrant: Qdrant {
             url: observed.url,
+            state: observed.state,
             reachable: observed.state == views::qdrant::Reachability::Reachable,
             message: observed.message,
         },

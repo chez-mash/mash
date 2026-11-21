@@ -1099,9 +1099,10 @@ export interface components {
             installed: boolean;
         };
         FirstRunQdrant: {
-            /** @description Why it is not reachable, and how to start it. */
+            /** @description Why Mash could not use the configured search service. */
             message?: string | null;
             reachable: boolean;
+            state: components["schemas"]["Reachability"];
             url: string;
         };
         FirstRunRequest: {
