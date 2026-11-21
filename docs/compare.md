@@ -34,9 +34,10 @@ connect an agent whenever you want. [Installation](installation.md) ·
 
 | If you want to… | Look at | What it offers |
 | --- | --- | --- |
-| Search and resume sessions or recover an earlier file edit | Déjà Vu | A single executable indexes and searches saved history locally. Its handoff tools carry work to another agent, and code recovery can retrieve earlier text from recorded edits. [Déjà Vu README](https://github.com/vshulcz/deja-vu#overview) |
+| Search and resume sessions or recover an earlier file edit | Déjà Vu | One executable indexes and searches saved history locally. Resume a session in its original agent, hand work to another agent, or recover text from recorded edits. [Overview](https://github.com/vshulcz/deja-vu#overview) · [Interactive search](https://github.com/vshulcz/deja-vu#interactive-search) |
 | Search a wide range of saved agent histories with a keyboard-driven interface | CASS | It has interactive terminal search and can return structured results to scripts or agents. [CASS repository](https://github.com/Dicklesworthstone/coding_agent_session_search) |
+| Trace a line of code or a commit back to an agent session | ctx | It indexes saved local history for search. `ctx blame` uses Git history and recorded agent activity to cite evidence from the session. [Search](https://ctx.rs/search/) · [Blame](https://ctx.rs/blame/) |
 | Bring automatically summarized work into new agent sessions | Claude-Mem | Hooks capture activity and an observer summarizes it. The next session can load the relevant notes. [How Claude-Mem works](https://github.com/thedotmack/claude-mem#how-it-works) |
-| Save conversations as Markdown in your project or resume them in an agent | SpecStory | Its extensions and CLI write Markdown files as you work, and the CLI can reopen saved sessions. [Save conversations](https://docs.specstory.com/specstory/features) · [Search and resume](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
+| Save conversations as Markdown in your project or resume them in an agent | SpecStory | Its extensions and CLI can save captured sessions as project Markdown. The CLI can reopen a session in its original agent or reconstruct it for another supported agent. [Save conversations](https://docs.specstory.com/specstory/features) · [Search and resume](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
 
 Ready to look up your own chats? [Install Mash and find your first conversation](../README.md#quick-start).

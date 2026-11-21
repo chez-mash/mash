@@ -40,11 +40,12 @@ agente cuando quieras. [Instalación](installation.md) · [Privacidad](privacy.m
 
 | Si quieres… | Prueba | Qué ofrece |
 | --- | --- | --- |
-| Buscar y retomar sesiones, o recuperar un cambio en un archivo | Déjà Vu | Un solo ejecutable indexa el historial guardado y permite buscar en él de forma local. Además, permite pasar trabajo a otro agente y recuperar texto de cambios registrados. [README de Déjà Vu](https://github.com/vshulcz/deja-vu#overview) |
+| Buscar y retomar sesiones, o recuperar un cambio en un archivo | Déjà Vu | Un solo ejecutable indexa el historial guardado y permite buscar en él de forma local. Puedes retomar una sesión en su agente original, pasar el trabajo a otro agente o recuperar texto a partir de cambios registrados. [Descripción general](https://github.com/vshulcz/deja-vu#overview) · [Búsqueda interactiva](https://github.com/vshulcz/deja-vu#interactive-search) |
 | Buscar en los historiales de muchos agentes con una interfaz de teclado | CASS | Ofrece una búsqueda interactiva en la terminal y resultados estructurados para scripts o agentes. [Repositorio de CASS](https://github.com/Dicklesworthstone/coding_agent_session_search) |
+| Rastrear una línea de código o un commit hasta la sesión del agente | ctx | Indexa el historial local guardado para poder buscar en él. `ctx blame` usa el historial de Git y la actividad registrada del agente para citar lo ocurrido en la sesión. [Búsqueda](https://ctx.rs/search/) · [Blame](https://ctx.rs/blame/) |
 | Llevar resúmenes automáticos del trabajo a nuevas sesiones | Claude-Mem | Sus mecanismos de integración capturan la actividad y un observador la resume. La sesión siguiente puede cargar las notas pertinentes. [Cómo funciona Claude-Mem](https://github.com/thedotmack/claude-mem#how-it-works) |
-| Guardar conversaciones como Markdown en tu proyecto o retomarlas en un agente | SpecStory | Sus extensiones y su interfaz de terminal escriben archivos Markdown mientras trabajas. La interfaz de terminal puede volver a abrir sesiones guardadas. [Guardar conversaciones](https://docs.specstory.com/specstory/features) · [Buscar y retomar sesiones](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
+| Guardar conversaciones como Markdown en tu proyecto o retomarlas en un agente | SpecStory | Sus extensiones y su interfaz de terminal pueden guardar las sesiones capturadas como Markdown en el proyecto. Desde la terminal, puedes reabrir una sesión en su agente original o reconstruirla para otro agente compatible. [Guardar conversaciones](https://docs.specstory.com/specstory/features) · [Buscar y retomar sesiones](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
 
 [Instala Mash y encuentra tu primera conversación](quick-start.md).
 
-<!-- mash-docs-source: 93cb840d39d49b21496d27385d3b09d3c74fe1f6c462801f5a43717fbbfbc6c9 -->
+<!-- mash-docs-source: e46b86ce4739cba4e7caa3de5458a8a8928d9850fd953a45ddffc1f1d8788368 -->

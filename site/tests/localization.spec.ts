@@ -128,6 +128,7 @@ for (const [locale, label, lang, title] of [
   ["es", "Español", "es", "Compara las herramientas de historial de agentes de código"],
   ["fr", "Français", "fr", "Comparez les outils d’historique pour agents de code"],
   ["zh-cn", "简体中文", "zh-CN", "比较编程代理对话历史工具"],
+  ["ja", "日本語", "ja", "コーディングエージェントの履歴ツールを比較する"],
 ]) {
   test(`the ${locale} comparison guide offers a demo and a localized setup`, async ({ page }) => {
     const compare = `/${locale}/compare/`;
@@ -138,12 +139,13 @@ for (const [locale, label, lang, title] of [
     await expect(page).toHaveURL(compare);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
-    await expect(guide.getByRole("row")).toHaveCount(5);
+    await expect(guide.getByRole("row")).toHaveCount(6);
+    await expect(guide.getByRole("row").filter({ hasText: "ctx blame" })).toHaveCount(1);
     await expect(guide.locator('a[href^="https://getmash.io/demo/#/search?"]')).toBeVisible();
     await expect(guide.locator(`a[href="/${locale}/privacy/"]`)).toBeVisible();
     await guide.locator(`a[href="${quickStart}"]`).click();
     await expect(page).toHaveURL(quickStart);
-    await page.goto(`/${locale}/`);
+    await page.goto(locale === "ja" ? "/ja/guides/" : `/${locale}/`);
     await guide.locator(`a[href="${compare}"]`).click();
     await expect(page).toHaveURL(compare);
   });
