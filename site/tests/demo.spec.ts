@@ -42,4 +42,10 @@ test("the quick start opens a sample search that fits a narrow screen", async ({
   await expect(
     page.getByRole("link", { name: /Choose a queue for invoice exports/ }).first(),
   ).toBeVisible();
+
+  const query = page.getByRole("textbox", { name: "Search your history" });
+  await query.fill("invoice exports zebra");
+  await query.press("Enter");
+  await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Browse chats", exact: true })).toBeVisible();
 });

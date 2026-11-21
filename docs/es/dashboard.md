@@ -1,6 +1,6 @@
 # Usa el panel web de Mash
 
-Prueba una [búsqueda sobre la exportación de facturas](https://getmash.io/demo/#/search?q=invoice+exports+queue) en la demo. Abre un resultado para ver la conversación original. También puedes [abrir una decisión guardada](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) y elegir **open the message** para ver de dónde salió. La demo usa conversaciones de ejemplo.
+Prueba una [búsqueda sobre la exportación de facturas](https://getmash.io/demo/#/search?q=invoice+exports+queue) en la demo. Abre un resultado para ver la conversación original. También puedes [abrir una decisión guardada](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) y elegir **open the message** para ver de dónde salió. La demo busca palabras y frases exactas en conversaciones de ejemplo.
 
 Las versiones precompiladas de Mash incluyen el panel web. Si compilas Mash, sigue los pasos para [incluir el panel en la compilación](../install-methods.md#include-the-web-dashboard). Una vez [instalado Mash](quick-start.md), abre una terminal y ejecuta este comando.
 
@@ -222,4 +222,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: b98d0653374f1c0ae0b867d38155ca85e4d3fa866bade64fc684defaaa227301 -->
+<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->

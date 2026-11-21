@@ -56,18 +56,32 @@ describe("the demo answers in the shapes mash dash sends", () => {
     expect(page.messages.map((message) => message.id)).toContain("sign-in-tokens-2");
   });
 
-  it("finds chats by the words of a question, best first", () => {
-    const page = parseSearch(
-      body(
-        "/api/search",
-        `?${new URLSearchParams({ q: "What did we decide about sign-in tokens?" })}`,
-      ),
-      localMachine,
-    );
-    expect(page.hits[0]?.chat.id).toBe("sign-in-tokens");
-    expect(page.hits[0]?.messageId).toMatch(/^sign-in-tokens-\d+$/);
-    expect(page.hits[0]?.before.toLowerCase()).toContain("token");
-    expect(page.warnings.join(" ")).toContain("demo");
+  it("finds all query words in one message, in any order", () => {
+    const page = parseSearch(body("/api/search", "?q=queue+invoice+exports"), localMachine);
+    expect(page.hits.map((hit) => hit.messageId)).toEqual(["invoice-export-queue-0"]);
+    expect(page.hits[0]?.before).toContain("invoice exports");
+    expect(page.warnings.join(" ")).toContain("Demo search matches exact words");
+  });
+
+  it("requires exact phrases and preserves punctuation in filenames", () => {
+    const phrase = parseSearch(body("/api/search", '?q="invoice+exports"'), localMachine);
+    expect(phrase.hits.map((hit) => hit.messageId)).toEqual(["invoice-export-queue-0"]);
+    const file = parseSearch(body("/api/search", "?q=0042_export_jobs.sql"), localMachine);
+    expect(file.hits.map((hit) => hit.messageId)).toEqual(["invoice-export-queue-5"]);
+  });
+
+  it("skips incomplete queries, terms split across messages, and tool output", () => {
+    for (const q of [
+      "invoice zebra",
+      "missing-zebra",
+      "queue dies",
+      "choose a queue for invoice exports",
+      '"exports invoice"',
+      '"shows the order total"',
+    ]) {
+      const results = body("/api/search", `?${new URLSearchParams({ q })}`).results;
+      expect(results, q).toEqual([]);
+    }
   });
 
   it("applies the search filters", () => {

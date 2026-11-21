@@ -150,7 +150,8 @@ carries none of it.
   API contract (see below), so a route or field the server changes stops
   `backend.ts` compiling until the demo follows. `backend.test.ts` also runs
   each answer through the code that turns it into what a page shows.
-- **Search.** The demo matches words only and says so on the results page.
+- **Search.** The demo requires each exact word in the same message or an
+  exact quoted phrase. The results page describes this behavior.
 - **The tool list.** `dashboard/src/demo/tools.json` is a copy of what a
   running dashboard serves at `/api/console/tools`. Refresh it with
   `curl -s http://127.0.0.1:8790/api/console/tools > dashboard/src/demo/tools.json`.

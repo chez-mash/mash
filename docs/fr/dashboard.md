@@ -1,6 +1,6 @@
 # Utiliser le tableau de bord de Mash
 
-Dans la démo, [recherchez les exports de factures](https://getmash.io/demo/#/search?q=invoice+exports+queue). Ouvrez un résultat pour retrouver la conversation d’origine. Vous pouvez aussi [ouvrir une décision enregistrée](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) et choisir **open the message** pour voir d’où elle vient. La démo utilise des conversations d’exemple.
+Dans la démo, [recherchez les exports de factures](https://getmash.io/demo/#/search?q=invoice+exports+queue). Ouvrez un résultat pour retrouver la conversation d’origine. Vous pouvez aussi [ouvrir une décision enregistrée](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) et choisir **open the message** pour voir d’où elle vient. La démo recherche les mots et expressions exacts dans des conversations d’exemple.
 
 Les versions précompilées de Mash incluent le tableau de bord. Si vous compilez Mash, suivez les étapes pour [inclure le tableau de bord](../install-methods.md#include-the-web-dashboard). Après avoir [installé Mash](quick-start.md), lancez cette commande dans un terminal.
 
@@ -222,4 +222,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: b98d0653374f1c0ae0b867d38155ca85e4d3fa866bade64fc684defaaa227301 -->
+<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->

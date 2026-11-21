@@ -3,8 +3,8 @@
 Try a [search for invoice exports](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 in the browser demo. Open a result to see the original conversation. You can
 also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
-and select **open the message** to see where it came from. The demo uses
-sample chats.
+and select **open the message** to see where it came from. The demo matches
+exact words and phrases in sample chats.
 
 Prebuilt Mash releases include the dashboard. If you compile Mash yourself,
 [build with the dashboard](install-methods.md#include-the-web-dashboard).

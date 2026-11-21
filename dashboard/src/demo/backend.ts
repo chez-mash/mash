@@ -4,6 +4,7 @@
 import type { Answer, ReadPath } from "../lib/routes";
 import type { Transport } from "../lib/transport";
 import { chats, type DemoChat, type DemoMessage, localMachine, records } from "./history";
+import { messageMatcher, searchSnippet } from "./search";
 import tools from "./tools.json";
 
 const DAY = 86_400_000;
@@ -87,21 +88,14 @@ export function terms(query: string): string[] {
     ),
   ].filter((word) => word.length > 2);
 }
-function snippet(text: string, wanted: readonly string[]): string {
-  const plain = text.replace(/\s+/g, " ").trim();
-  const lower = plain.toLowerCase();
-  const at = Math.min(...wanted.map((term) => lower.indexOf(term)).filter((index) => index >= 0));
-  const start = Math.max(0, at - 70);
-  const piece = plain.slice(start, start + 220);
-  return `${start > 0 ? "…" : ""}${piece}${start + 220 < plain.length ? "…" : ""}`;
-}
 function list(params: URLSearchParams, key: string): string[] {
   return (params.get(key) ?? "").split(",").filter(Boolean);
 }
 
 function search(params: URLSearchParams, now: number): Answer<"/api/search"> | Refusal {
   if (params.get("intent") === "related-discussion") return notInDemo("Search by meaning");
-  const wanted = terms(params.get("q") ?? "");
+  const query = params.get("q") ?? "";
+  const match = messageMatcher(query);
   const agents = list(params, "provider");
   const machines = list(params, "machine");
   const projects = list(params, "project");
@@ -116,23 +110,16 @@ function search(params: URLSearchParams, now: number): Answer<"/api/search"> | R
         updatedAt(chat, now) >= since,
     )
     .flatMap((chat) => {
-      // The best message is the one that holds the most of the question's words.
-      const scored = chat.messages
-        .map((entry, position) => {
-          const text = entry.content.toLowerCase();
-          return { entry, position, found: wanted.filter((term) => text.includes(term)).length };
-        })
-        .filter((candidate) => candidate.found > 0 && candidate.entry.role !== "tool")
-        .sort((a, b) => b.found - a.found || a.position - b.position);
-      const title = chat.title.toLowerCase();
-      const inTitle = wanted.filter((term) => title.includes(term)).length;
-      const best = scored[0];
-      if (!best && !inTitle) return [];
-      const shown = best ?? { entry: chat.messages[0], position: 0, found: 0 };
-      if (!shown.entry) return [];
+      const matches = chat.messages.flatMap((entry, position) => {
+        if (entry.role === "tool") return [];
+        const at = match(entry.content);
+        return at === undefined ? [] : [{ entry, position, at }];
+      });
+      const shown = matches[0];
+      if (!shown) return [];
       return [
         {
-          score: inTitle * 3 + (best?.found ?? 0) * 2 + scored.length - chat.daysAgo / 100,
+          score: matches.length - chat.daysAgo / 100,
           result: {
             ...row(chat, now),
             score: 0,
@@ -146,9 +133,7 @@ function search(params: URLSearchParams, now: number): Answer<"/api/search"> | R
                 fusion_score: 0,
                 rerank_score: null,
                 projection_span: { start_char: 0, end_char: shown.entry.content.length },
-                snippet: best
-                  ? snippet(shown.entry.content, wanted)
-                  : shown.entry.content.slice(0, 220),
+                snippet: searchSnippet(shown.entry.content, shown.at),
               },
             ],
           },
@@ -158,14 +143,15 @@ function search(params: URLSearchParams, now: number): Answer<"/api/search"> | R
     .sort((a, b) => b.score - a.score)
     .map((scored) => scored.result);
   return {
-    query: params.get("q") ?? "",
+    query,
     intent: "exact-mention",
     realized_mode: "lexical",
     unit: "chats",
     shared: true,
     results,
     next_offset: null,
-    notice: "The demo searches by words. Install Mash to add search by meaning.",
+    notice:
+      "Demo search matches exact words and phrases. Installed Mash also supports prefixes, small typos, and optional search by meaning.",
   };
 }
 

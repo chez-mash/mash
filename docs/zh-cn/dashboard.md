@@ -1,6 +1,6 @@
 # 使用 Mash 网页面板
 
-在演示中[搜索发票导出相关的对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一项结果就能看到原始对话。也可以[打开一项已保存的决定](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)，选择 **open the message** 查看决定的出处。演示使用示例对话。
+在演示中[搜索发票导出相关的对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一项结果就能看到原始对话。也可以[打开一项已保存的决定](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)，选择 **open the message** 查看决定的出处。演示在示例对话中精确匹配词语和短语。
 
 Mash 的预编译版本包含网页面板。如果自行编译，请按步骤[将面板编译进去](../install-methods.md#include-the-web-dashboard)。[安装 Mash](quick-start.md) 后，在终端运行以下命令。
 
@@ -222,4 +222,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: b98d0653374f1c0ae0b867d38155ca85e4d3fa866bade64fc684defaaa227301 -->
+<!-- mash-docs-source: 28b1f1fb651fa45b7f3dc82f3643b520feb7262ce55353be612903201cf431d5 -->
