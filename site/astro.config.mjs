@@ -108,7 +108,19 @@ export default defineConfig({
             fr: "Utiliser Mash avec des agents",
             "zh-CN": "在代理中使用 Mash",
           },
-          items: ["agents", "plugin"],
+          items: [
+            {
+              label: "Supported agents",
+              translations: {
+                es: "Agentes compatibles",
+                fr: "Agents compatibles",
+                "zh-CN": "支持的代理",
+              },
+              slug: "supported-agents",
+            },
+            "agents",
+            "plugin",
+          ],
         },
         {
           label: "Manage Mash",

@@ -239,6 +239,9 @@ The agent plugin starts a catch-up index when a session begins, at most once
 every ten minutes. For continuous updates, see
 [keep history up to date](synchronization.md).
 
+If chats from an agent have never appeared in Mash, check
+[which local histories Mash reads and how to select them](supported-agents.md#if-a-chat-is-missing).
+
 ## A chat still shows what an older release read
 
 Mash skips a chat whose files have not changed since it last read them. When

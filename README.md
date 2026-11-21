@@ -17,7 +17,7 @@
 **Find past coding-agent chats and see why you made a decision.**
 
 Mash searches the history Claude Code, Codex, GitHub Copilot, Cursor, OpenCode,
-and Antigravity already saved on your machine.
+and Antigravity already saved on your machine. [Check support for your agent](docs/supported-agents.md).
 
 Browse those chats in the [browser dashboard](docs/dashboard.md) with `mash dash`,
 [search from the terminal](docs/search.md), or [connect a coding agent](docs/agents.md)
@@ -145,30 +145,7 @@ it receives become part of that agent's context. [Privacy and redaction →](doc
 
 ## Tested with
 
-Where each agent's history has been indexed and searched so far:
-
-| Agent | Linux | macOS | Windows |
-| --- | --- | --- | --- |
-| Claude Code | Daily use | Daily use | Light use |
-| Codex | Daily use | Daily use | Light use |
-| GitHub Copilot | Light use | Light use | Recorded history only |
-| OpenCode | Recorded history only | Light use | Simulated in CI |
-| Antigravity | Recorded history only | Light use | Recorded history only |
-| Cursor | Recorded history only | Partial | Recorded history only |
-
-- **Daily use:** hundreds of real chats from an installed agent on that system.
-- **Light use:** fewer than twenty real chats from an installed agent on that system.
-- **Simulated in CI:** every push indexes a history written the way the agent
-  writes it on that system, while it is being written.
-- **Partial:** chats from Cursor's command-line agent read correctly from a real
-  installation. Chats made in the Cursor editor are not read yet when they were
-  saved by an older Cursor version.
-- **Recorded history only:** the reader is tested on every push against history
-  in the agent's format, but no installed copy has been indexed on that system.
-
-The Linux and Windows test suites run on every push; macOS has no automated
-tests yet. If an agent's chats are missing or look wrong on your system,
-[open an issue](https://github.com/mashium/mash/issues).
+See [how each agent's history has been tested on Linux, macOS, and Windows](docs/supported-agents.md#tested-with).
 
 ## Build from source
 

@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+test("visitors can check which histories Mash reads and which agents it connects", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Check support for your agent" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Supported agents");
+  const support = page.getByRole("table").first();
+  await expect(support.getByRole("row", { name: /GitHub Copilot CLI/ })).toContainText("Yes");
+  await expect(support.getByRole("row", { name: /GitHub Copilot Chat in VS Code/ })).toContainText(
+    "Chats saved by VS Code on your computer",
+  );
+  await page.getByRole("link", { name: "connect an agent", exact: true }).click();
+  await expect(page).toHaveURL(/\/agents\/#connect-claude-code-codex-or-copilot$/);
+  await expect(
+    page.getByRole("heading", { name: "Connect Claude Code, Codex or Copilot" }),
+  ).toBeVisible();
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

@@ -23,6 +23,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 
 ### Use Mash with agents
 
+- [Check which agent histories Mash reads and which agents it connects to](supported-agents.md)
 - [Connect and use Mash from Claude Code, Codex or Copilot](agents.md)
 - [Use the plugin's skills, commands and hooks](plugin.md)
 

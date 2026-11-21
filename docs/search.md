@@ -1,10 +1,9 @@
 # Introduction to Mash search
 
-Mash searches the conversations you have had with coding agents (Claude Code,
-Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity) on this machine, and
-on your other machines once you set up a [shared index](shared-index.md). It
-searches what you and the agent wrote; tool calls and their output are kept
-for reading but are not searched.
+Mash searches your [saved coding-agent conversations](supported-agents.md) on
+this machine and on other machines you connect through a [shared index](shared-index.md).
+Search covers what you and your agent wrote. Open the transcript to read tool
+calls and their output.
 
 Use the [dashboard to find and read a chat](dashboard.md#find-and-read-a-chat),
 or [ask a connected agent](agents.md#try-it). The examples below use the
