@@ -74,6 +74,17 @@ checksum confirms the file matches the published hash. If it matches, extract
 `mash` and `mash-server` (or the two `.exe` files) to a directory you own, then
 continue with [the search service](#start-the-local-search-service).
 
+For releases that include a build attestation, GitHub CLI can also verify
+which workflow and source tag produced an archive. Replace `ARCHIVE` with the
+file you downloaded and `RELEASE_TAG` with its tag, including the leading `v`.
+
+```sh
+gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+```
+
+The release workflow now checks the attestations before publishing the platform
+archives. Releases through `v0.1.1-alpha` use the checksum check above.
+
 ### Package manager alternatives
 
 **Homebrew, macOS or Linux**
