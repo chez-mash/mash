@@ -555,7 +555,7 @@ fn write_copilot_settings(environment: &Environment, plugin: &Path, enabled: boo
             {
                 "name": "mash",
                 "marketplace": "mash",
-                "version": "0.1.79",
+                "version": expected_stamp().plugin_version,
                 "cache_path": plugin,
                 "installed_source": {"source": "github", "repo": "mashium/mash"},
                 "enabled": enabled

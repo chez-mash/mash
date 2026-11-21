@@ -21,6 +21,9 @@ may prefix the tool names.
 
 If the tool cannot be called at all, say that Mash's tools are not reachable
 from this agent and give the `mash status --installation` result alone.
+If the Mash executable is also missing, explain that the plugin can be
+installed by itself. Offer the plugin's `setup` skill or
+https://getmash.io/installation/ as the next step.
 
 ## Report
 

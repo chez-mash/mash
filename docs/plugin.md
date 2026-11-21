@@ -1,7 +1,7 @@
 # The Mash plugin for Claude Code, Codex and Copilot
 
 The plugin is what makes an agent use Mash without being told to. It adds
-eleven skills, their slash commands, and hooks that bring earlier work into a session
+twelve skills, their slash commands, and hooks that bring earlier work into a session
 and keep the index current. `mash init` installs it for Claude Code, Codex
 and [GitHub Copilot CLI](#github-copilot-cli). This page says what you get and
 how to control it.
@@ -14,6 +14,7 @@ for them by name.
 
 | Skill | In Claude Code | In Codex | What it does |
 | --- | --- | --- | --- |
+| `setup` | `/mash:setup` | pick the `setup` skill, or ask “Set up Mash on this machine” | Installs Mash with your approval, connects your history, and checks that you can find an earlier conversation. |
 | `remember` | `/mash:remember what to keep` | pick the `remember` skill, or say "remember this" | Saves a decision, preference or fact to [memory](records.md), with your words as the evidence. With nothing after it, saves the latest decision in the conversation. |
 | `resume` | `/mash:resume` | pick the `resume` skill, or ask "where did we leave off?" | Reads this project's most recent chats, from every agent and machine, and tells you what was in progress, what was left open and what was decided. |
 | `handoff` | `/mash:handoff` | pick the `handoff` skill, or say "hand this off" | Writes a brief of the session into the conversation: goal, what is done, what is half done, decisions and the next step. `resume` finds it from any agent or machine once the chat is indexed. |
@@ -26,7 +27,7 @@ for them by name.
 | `dashboard` | `/mash:dashboard` | pick the `dashboard` skill, or say "open the Mash dashboard" | Finds the running [dashboard](dashboard.md), or starts one, and opens it in your browser. Ask for "this chat" to land on the current conversation. |
 | `mash-history` | `/mash:mash-history`, or just ask | pick the `mash-history` skill, or just ask | Searches your past chats and answers with the messages behind the result. The agent also uses it unprompted when you refer to earlier work. |
 
-GitHub Copilot CLI loads the same eleven skills. There, name the skill or ask
+GitHub Copilot CLI loads the same skills. There, name the skill or ask
 in plain words.
 
 You do not need the commands for everyday use. Ask in plain words:
@@ -70,19 +71,50 @@ the detail on saving and recall.
 
 ## Install, update and remove
 
-`mash init` installs the plugin with the agent's own commands and prints the
-files it edited. To do it yourself:
+`mash init` installs the plugin with the agent's own commands. The terminal
+wizard summarizes the connections, and the JSON report lists the files edited
+and the undo commands. See the [installation guide](installation.md#read-the-result).
+
+### Start with the plugin
+
+If you prefer to start from your agent's marketplace, use the commands for
+that agent. If you already added the Mash marketplace, start with the second
+command.
+
+**Claude Code**
 
 ```sh
-claude plugin marketplace add mashium/mash && claude plugin install mash@mash
-codex plugin marketplace add mashium/mash && codex plugin add mash@mash
-copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash
+claude plugin marketplace add mashium/mash
+claude plugin install mash@mash
 ```
 
-Restart the agent afterwards. The plugin and the `mash` program are released
-together: after upgrading Mash, `mash status --installation` reports a plugin
-that no longer matches it, and running the install command again refreshes it.
-To remove it:
+**Codex**
+
+```sh
+codex plugin marketplace add mashium/mash
+codex plugin add mash@mash
+```
+
+**GitHub Copilot CLI**
+
+```sh
+copilot plugin marketplace add mashium/mash
+copilot plugin install mash@mash
+```
+
+Start a new agent session and invoke the Mash `setup` skill. In Claude Code,
+run `/mash:setup`. In Codex or Copilot, say “Use the Mash setup skill to set
+up Mash on this computer.” The plugin brings the skill. The setup then
+installs the local programs and search service with your approval, connects
+your histories, and verifies a first search. See
+[how Mash handles your history](privacy.md).
+
+### Update or remove the plugin
+
+The plugin and the `mash` program are released together. After upgrading Mash,
+`mash status --installation` reports a plugin that no longer matches it.
+Update the plugin through your agent, then start a new session. To remove
+the plugin, run the command for your agent.
 
 ```sh
 claude plugin uninstall mash@mash
@@ -98,7 +130,8 @@ plugin, and `mash status --installation` reports on both. Start a new Copilot
 session afterwards. To do it yourself:
 
 ```sh
-copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash
+copilot plugin marketplace add mashium/mash
+copilot plugin install mash@mash
 copilot mcp add mash -- mash mcp
 ```
 

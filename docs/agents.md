@@ -17,6 +17,9 @@ mash init
 
 Then restart the agent so it loads the connection, and [try it](#try-it).
 
+Already installed the plugin from your agent's marketplace? Use its
+[`setup` skill](plugin.md#start-with-the-plugin) to finish setting up Mash.
+
 For each of the three agent CLIs (`claude`, `codex`, `copilot`) found on your
 `PATH`, `mash init` installs two things, using the agent's own commands:
 

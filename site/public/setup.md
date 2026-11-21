@@ -40,6 +40,10 @@ for that download.
 ## 1. Install Mash
 
 Skip this step if `mash --version` already prints a version.
+If `mash` is missing from `PATH`, also check for an existing binary in the
+user's `.local/bin` directory or in `MASH_INSTALL_DIR` if set
+(`mash.exe` on Windows). If it runs, use its full path through the rest
+of setup.
 
 Check whether a release is published:
 

@@ -8,7 +8,7 @@
     {
       "name": "mash",
       "source": "./plugins/mash",
-      "description": "Find and inspect past agent conversations with Mash, preferring MCP with CLI fallback."
+      "description": "Search your past coding-agent conversations and open the original messages. Mash runs on your machine."
     }
   ]
 }

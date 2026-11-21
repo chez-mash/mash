@@ -1,8 +1,8 @@
 {
   "name": "mash",
-  "version": "0.1.79",
+  "version": "0.1.80",
   "author": { "name": "Mash contributors" },
-  "description": "Find and inspect past agent conversations with Mash, preferring MCP with CLI fallback.",
+  "description": "Search your past coding-agent conversations and open the original messages. Mash runs on your machine.",
   "skills": "./skills/",
   "hooks": "./hooks/copilot.json"
 }

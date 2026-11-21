@@ -16,6 +16,9 @@ Pega esta instrucción en Claude Code, Codex u otro agente de programación.
 > en español qué va a cambiar antes de empezar y muéstrame un resultado de
 > mi historial cuando termines.
 
+Si ya instalaste el [plugin de Mash](../plugin.md#start-with-the-plugin),
+pídele a tu agente que use la skill `setup`.
+
 ## Instálalo por tu cuenta
 
 Necesitas al menos una conversación guardada con un agente compatible.

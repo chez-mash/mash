@@ -35,6 +35,9 @@ Mash to search your own history.
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
 
+If you installed the [Mash plugin](docs/plugin.md#start-with-the-plugin),
+you can ask for its `setup` skill.
+
 **Set it up yourself.** The steps below search existing chats on one machine.
 You can try word and phrase search before downloading any models.
 
