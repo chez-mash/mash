@@ -1,5 +1,7 @@
 # Guía de inicio rápido
 
+<span id="quick-start"></span>
+
 Mash busca en las conversaciones que tus agentes de programación ya guardaron
 en este equipo. Es de [código abierto](https://github.com/mashium/mash) y se
 ejecuta en tu propio equipo. Antes de instalarlo, puedes
@@ -30,7 +32,8 @@ pídele a tu agente que use la skill `setup`.
 ## Instálalo por tu cuenta
 
 Necesitas al menos una conversación guardada con un [agente compatible](supported-agents.md).
-El instalador incluye el panel web. Si prefieres Homebrew, apt, Scoop u otro
+Los scripts instalan Mash con el panel web, inician el servicio de búsqueda
+local y abren el asistente. Si prefieres Homebrew, apt, Scoop u otro
 gestor de paquetes, consulta los [comandos de instalación](install-methods.md#install-with-a-package-manager).
 Para elegir los historiales en el navegador, sigue los [pasos de instalación por separado](installation.md)
 y [configura Mash en el panel](installation.md#set-up-in-your-browser).
@@ -67,6 +70,8 @@ elige **Just this computer (recommended)**.
 Para instalar por separado o usar tu propio Qdrant, consulta la
 [guía de instalación](installation.md).
 
+<span id="try-it"></span>
+
 ## Encuentra una conversación anterior
 
 Cuando el asistente indique que la búsqueda está lista, inicia el panel local
@@ -96,5 +101,10 @@ no encuentra Mash. Si omitiste este paso durante la configuración, puedes
 Los menús de Mash están en inglés. Para buscar palabras de tus conversaciones,
 consulta [cómo buscar en otros idiomas](search-languages.md).
 
+Para que los chats nuevos aparezcan en tus búsquedas, ejecuta `mash index` o
+[mantén el índice al día en segundo plano](synchronization.md).
+También puedes [hacer una copia de seguridad](backup.md).
+
+<!-- mash-docs-source: 71579f3583b9237b23b3c4122fb531b06b41f856d535c1fca5b8f8d62fa99b5c -->
 Para encontrar conversaciones nuevas, consulta [cómo actualizar el historial](synchronization.md).
 También puedes [hacer una copia de seguridad de tu historial](backup.md).

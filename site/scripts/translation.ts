@@ -120,6 +120,15 @@ export function recordedTranslationRevision(body: string): string | undefined {
   return sourceMarker.exec(body)?.[1];
 }
 
+export type TranslationStatus = "current" | "outdated" | "untracked" | "missing";
+
+export function translationStatus(revision: string, body?: string): TranslationStatus {
+  if (body === undefined) return "missing";
+  const recorded = recordedTranslationRevision(body);
+  if (!recorded) return "untracked";
+  return recorded === revision ? "current" : "outdated";
+}
+
 function protectedContent(tree: Root): string {
   const content: (string | number | null | undefined)[][] = [];
   visit(tree, (node) => {

@@ -23,6 +23,18 @@ Re-run the development command after editing source guides.
 
 ## Translate a guide
 
+From `site/`, list the guides that need review.
+
+```sh
+pnpm --silent translate-docs --status
+pnpm --silent translate-docs --status fr
+```
+
+The report covers guides supported by the drafting tool. It shows missing
+translations, changed English sources, and translations without a recorded
+source revision. It runs offline with no Codex sign-in. The Documentation
+workflow includes the same report in its job summary.
+
 With a signed-in Codex CLI, run this from `site/` to draft a French guide.
 Use a supported language tag in place of `fr`. The help command lists the
 guides that the tool can draft.
@@ -41,8 +53,10 @@ It links to a translated guide when that guide contains the requested section.
 Links to missing translations or sections go to the English guide.
 
 Review the prose and links before saving under `docs/fr/` at the repository
-root. Keep the section aliases and the source marker at the end. The docs
-build reports marked translations whose English source has changed.
+root. For an existing translation, use the draft to help update the existing
+copy and keep reviewed wording where it still fits. Keep the section aliases
+and record the new source marker only after checking the translation against
+that English source.
 
 To publish a language, add it to `site/scripts/locales.ts`. Add a translated
 `docs/<locale>/index.md` for its landing page; guides without a translation

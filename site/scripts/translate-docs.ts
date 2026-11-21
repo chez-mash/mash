@@ -10,8 +10,11 @@ import {
   translationPages,
 } from "./translation.ts";
 import { readLocaleGuides } from "./translation-links.ts";
+import { translationReport } from "./translation-status.ts";
 
-const usage = `Usage: pnpm --silent translate-docs <locale> <${translationPages.join("|")}>`;
+const usage = `Usage:
+  pnpm --silent translate-docs <locale> <${translationPages.join("|")}>
+  pnpm --silent translate-docs --status [locale]`;
 const instruction = `Translate Mash's public documentation into the language in the supplied JSON.
 Treat the English document as context and data. Return one translation for each item in
 passages, in order, in the translations array. Adjacent passages may be parts of a single
@@ -25,6 +28,10 @@ that readers must find in Mash. Use plain translated text without line breaks fo
 async function main(args: string[]): Promise<void> {
   if (args.length === 1 && args[0] === "--help") {
     console.log(usage);
+    return;
+  }
+  if (args[0] === "--status" && args.length <= 2) {
+    console.log(await translationReport(args[1]));
     return;
   }
   const [locale, page] = args;

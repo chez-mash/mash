@@ -4,6 +4,7 @@ import {
   prepareTranslation,
   readTranslationSource,
   recordedTranslationRevision,
+  translationStatus,
 } from "./translation.ts";
 import { readLocaleGuides } from "./translation-links.ts";
 
@@ -25,6 +26,14 @@ mash search 'migration' --local
 };
 
 describe("documentation translation drafts", () => {
+  it("distinguishes missing and untracked translations from changed sources", () => {
+    const current = `<!-- mash-docs-source: ${source.revision} -->`;
+    expect(translationStatus(source.revision)).toBe("missing");
+    expect(translationStatus(source.revision, "# Guide")).toBe("untracked");
+    expect(translationStatus(source.revision, current)).toBe("current");
+    expect(translationStatus("4".repeat(64), current)).toBe("outdated");
+  });
+
   it("keeps all sections, real UI labels, commands and link destinations", () => {
     const draft = prepareTranslation(source, "docs/fr/privacy.md");
     expect(draft.passages).not.toContain("Skip agent connections");

@@ -9,6 +9,8 @@ Bug reports, fixes, translations and documentation improvements are welcome.
   fixes can go straight to a pull request.
 - **Improve a translation.** The source files for Spanish, French and
   Simplified Chinese live in `docs/es/`, `docs/fr/` and `docs/zh-cn/`.
+  Run `pnpm --silent translate-docs --status` from `site/` to see which
+  guides need review.
   [Translation workflow](docs/internal/documentation-site.md#translate-a-guide)
 - **Fix a bug.** Check the [open issues](https://github.com/mashium/mash/issues)
   for a problem you can reproduce. A short example with made-up chat text is

@@ -78,7 +78,7 @@ fuentes desactualizadas y decisiones en conflicto. Consultar un recuerdo
 deja su estado como está.
 
 También puedes pedir al agente que olvide un recuerdo. Esto borra sus
-revisiones y citas. Si [eliminas una conversación citada (en inglés)](../privacy.md#remove-a-chat),
+revisiones y citas. Si [eliminas una conversación citada](privacy.md#remove-a-chat),
 Mash también elimina los recuerdos que dependen de ella.
 
 <span id="backfill-earlier-memory"></span>

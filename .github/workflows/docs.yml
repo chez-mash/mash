@@ -47,6 +47,7 @@ jobs:
         working-directory: site
         run: |
           pnpm install --frozen-lockfile
+          pnpm --silent translate-docs --status >> "$GITHUB_STEP_SUMMARY"
           pnpm lint
           pnpm check
           pnpm test

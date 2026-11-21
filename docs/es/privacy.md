@@ -2,6 +2,8 @@
 
 [Privacy in English](../privacy.md) · [Guía de inicio rápido](quick-start.md)
 
+<span id="what-stays-on-your-machine"></span>
+
 ## Qué se queda en tu equipo
 
 Con la configuración predeterminada, Mash lee e indexa el historial y ejecuta
@@ -17,6 +19,10 @@ Mash sin iniciar sesión. Usa esta configuración en un equipo cuyos usuarios
 sean de confianza. Para abrir el panel desde otro dispositivo, usa el
 [panel con inicio de sesión](dashboard.md#open-it-from-your-phone-or-another-computer).
 
+Cuando Mash lee una base de datos SQLite de un agente, como OpenCode, SQLite
+puede crear archivos `-wal` y `-shm` junto a la base. Esto también ocurre con
+otros lectores de SQLite. El contenido original se conserva.
+
 <span id="where-mash-stores-data"></span>
 
 ## Dónde guarda Mash los datos
@@ -31,7 +37,7 @@ corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
 Ejecuta `mash status` para consultar `database_path` y, si Mash instaló Qdrant,
 `local_qdrant.installed.storage`. Usa `mash uninstall` para ver qué se
 eliminaría, incluida la carpeta separada de Qdrant en Windows. Añade `--yes`
-cuando quieras desinstalar Mash.
+cuando quieras desinstalar Mash. [Qué se elimina al desinstalar](uninstall.md)
 
 <span id="when-history-can-leave-your-machine"></span>
 
@@ -46,14 +52,21 @@ cuando quieras desinstalar Mash.
 - **Historial compartido.** Mash envía al servidor que configures las conversaciones
   y los adjuntos que conserva en el índice. Cada equipo con un token para ese grupo
   puede leerlos. [Revisa qué se compartirá antes de publicar](shared-index.md#before-sharing).
-- **Servicios remotos opcionales.** Si configuras un servicio remoto para
-  preparar el índice o reordenar resultados, ese servicio puede recibir
-  texto de las conversaciones. Si habilitas el asistente del panel, enviará
-  tu pregunta y los fragmentos que consulte al servicio de modelos que
-  configures.
+- **Servicio remoto para calcular representaciones semánticas.** Si lo
+  configuras, recibe el texto que Mash prepara para la búsqueda, que puede
+  contener datos sensibles. Por defecto, Mash hace este trabajo en el equipo.
+  Las representaciones de tus consultas siempre se calculan en local.
+- **Servicio remoto para reordenar resultados.** Si lo activas, recibe cada
+  consulta y los fragmentos que va a ordenar. Por defecto, Mash los ordena
+  en tu equipo.
+- **Asistente del panel.** Solo se activa al configurar un
+  [servicio de modelos (en inglés)](../configuration.md#the-dashboard-assistant).
+  Envía tus preguntas y los fragmentos y recuerdos que consulta a ese servicio.
 - **Recuperar recuerdos de chats anteriores.** Si eliges esta opción en la
   configuración inicial, los chats seleccionados se envían al proveedor del
   agente que elijas. [Cómo funciona la extracción de recuerdos](records.md#backfill-earlier-memory)
+
+<span id="try-a-small-local-setup"></span>
 
 ## Prueba con menos historial
 
@@ -78,6 +91,8 @@ También puedes [elegir estas opciones en el navegador](dashboard.md#set-up-mash
 conversaciones originales de tus agentes.
 [Cómo desinstalar Mash](uninstall.md)
 
+<span id="sensitive-information"></span>
+
 ## Credenciales y copias
 
 Mash oculta las credenciales que reconoce en los resultados y al compartir
@@ -85,7 +100,27 @@ el historial. La detección puede pasar por alto datos sensibles. Revisa lo
 que vayas a compartir y guarda las copias de seguridad con el mismo cuidado
 que las conversaciones originales.
 
-Para quitar un chat del índice, consulta la
-[guía completa de privacidad (en inglés)](../privacy.md#remove-a-chat).
-Si puedes necesitar esa conversación más adelante, haz antes
-[una copia de seguridad](backup.md#make-a-portable-backup).
+Mash omite de su copia el texto entre `<private>` y `</private>` si las
+dos etiquetas están en el mismo mensaje. El texto sigue en los archivos
+originales del agente. Las etiquetas se aplican al texto del mensaje.
+
+<span id="remove-a-chat"></span>
+
+## Quita una conversación
+
+Busca su `chat_id` con `mash list-chats` o `mash search` y ejecuta este comando.
+
+```sh
+mash forget CHAT_ID
+```
+
+Mash quita la conversación del índice local y evita volver a importarla.
+Si compartes tu historial, también intenta aplicar la eliminación en el
+servidor. Revisa el resultado para ver si quedó algo pendiente.
+
+Se conservan los archivos originales del agente, las copias de seguridad
+anteriores y las copias indexadas por separado en otros equipos. La operación
+no se puede deshacer. Si puedes necesitar la conversación más adelante,
+haz antes [una copia de seguridad](backup.md#make-a-portable-backup).
+
+<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->
