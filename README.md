@@ -30,22 +30,30 @@ search on your machine and needs no account. [How Mash handles your history](doc
 
 [Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Download and verify a release archive](docs/downloads.md)
 
-[![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
+<span id="why-mash"></span>
 
-## Why Mash
+## Highlights
 
-- **Find a chat from before you installed Mash.** Search for an error,
-  filename, or phrase across agents, or search by meaning with optional local
-  models. Open the match with its surrounding messages and tool output.
-  [Find the invoice export chat](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- **See why you made a decision.** The plugin can save the decision with a
-  quote from the chat. Open the original message in the dashboard or ask
-  your agent to look it up later. [Follow a saved decision to its source](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
-- **Search across machines you run.** Find chats from your workstation on
-  your laptop through your own Mash server. Each computer can still search
-  its own history offline. [Multi-machine setup](docs/shared-index.md)
+- **Search chats from before you installed Mash.** Match a word or exact
+  phrase, or [search by meaning with optional local models](docs/indexing.md#enable-semantic-search).
+- **Jump straight to the original message.** Read the surrounding conversation
+  and tool output in the dashboard. [Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+- **Pick up work in another agent.** An agent connected over MCP can find
+  earlier chats from your other tools and cite the source. [Ask an agent for a recap](docs/pick-up-work.md#ask-an-agent-for-a-recap)
+- **Save decisions with a source.** Ask a connected agent to remember a
+  decision, then follow its supporting quote back to the chat. [See a saved decision in the demo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+- **Export a whole conversation.** Save it from the dashboard as Markdown,
+  HTML, or PDF. [Export a transcript](docs/dashboard.md#save-a-transcript)
+- **Search across your own machines.** Find workstation chats from your
+  laptop through a Mash server you run. Each machine can still search its
+  own history offline. [Set up sharing](docs/shared-index.md)
+- **Ask questions about your history in the dashboard.** Optionally connect
+  a model service you choose so Mashy can answer with links to chats and
+  saved decisions. [How the dashboard assistant works](docs/dashboard.md#ask-mashy)
 
 [Compare Mash with other coding-agent history tools](docs/compare.md).
+
+[![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
 
 ## Quick start
 
