@@ -66,7 +66,7 @@ test("the review names each answer in the page's words", () => {
     { label: "histories to index", value: "Claude Code" },
     { label: "history range", value: "all history" },
     { label: "connect Mash to", value: "no agents" },
-    { label: "search", value: "this machine only" },
+    { label: "index destination", value: "this machine only" },
   ]);
 });
 

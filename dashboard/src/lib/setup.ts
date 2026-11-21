@@ -121,11 +121,15 @@ export function validDays(value: number | null): boolean {
   );
 }
 
+export function selectedHistories(setup: FirstRun, answers: Answers): FirstRun["histories"] {
+  return setup.histories.filter((entry) => answers.agents[entry.agent] ?? entry.indexed);
+}
+
 /** Why the answers cannot be used as they stand, or an empty string. */
 export function problem(setup: FirstRun, answers: Answers): string {
   if (!setup.histories.length)
     return "No agent history was found on this machine in its usual locations.";
-  if (!setup.histories.some((entry) => answers.agents[entry.agent] ?? entry.indexed))
+  if (!selectedHistories(setup, answers).length)
     return "Choose at least one agent's history to index.";
   if (!validDays(answers.sinceDays)) return "History range must be between 1 and 36,500 days.";
   return "";
@@ -135,15 +139,13 @@ export interface Line {
   readonly label: string;
   readonly value: string;
 }
-/** The answers in the words the review step shows. */
+/** The answers in the words the setup review shows. */
 export function summary(
   setup: FirstRun,
   answers: Answers,
   names: Readonly<Record<Agent, string>>,
 ): Line[] {
-  const indexed = setup.histories
-    .filter((entry) => answers.agents[entry.agent] ?? entry.indexed)
-    .map((entry) => names[entry.agent]);
+  const indexed = selectedHistories(setup, answers).map((entry) => names[entry.agent]);
   const connected = setup.integrations
     .filter((entry) => answers.connect.includes(entry.agent))
     .map((entry) => names[entry.agent]);
@@ -156,7 +158,7 @@ export function summary(
     },
     { label: "connect Mash to", value: connected.join(", ") || "no agents" },
     {
-      label: "search",
+      label: "index destination",
       value: setup.shared ? "this machine and the shared server" : "this machine only",
     },
   ];

@@ -5,6 +5,7 @@ import Check from "@lucide/svelte/icons/check";
 import Copy from "@lucide/svelte/icons/copy";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import { tick } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { catalogOptions } from "../lib/queries";
@@ -19,6 +20,7 @@ import {
   type Outcome,
   problem,
   runSetup,
+  selectedHistories,
   shortPath,
   skipSetup,
   stepWord,
@@ -29,10 +31,9 @@ import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import Skeleton from "./Skeleton.svelte";
 
-// The questions `mash init` asks in a terminal, one to a screen, on a page of
-// its own: no rail and no search, because before setup they lead nowhere.
-// Nothing is written until the last step, and history locations are never
-// typed here: the machine finds them itself.
+// Open on the detected choices. The guided steps are available for editing.
+// Nothing is written until the reader confirms, and the machine finds its
+// own history locations.
 const queryClient = useQueryClient();
 const setup = createQuery(() => firstRunOptions);
 const file = $derived(setup.data);
@@ -45,17 +46,23 @@ const titles = {
   histories: "Which histories should Mash index?",
   range: "How far back?",
   agents: "Connect Mash to your agents?",
-  review: "Review and set up",
+  review: "Set up Mash",
 } as const;
 const helps = {
   histories:
     "Found on this machine in their usual locations. Mash reads them and never changes them.",
   range: "A history counts when it was changed within the range. You can widen it later.",
   agents: "Connecting lets an agent search your history through Mash.",
-  review: "Nothing has been changed yet.",
+  review: "Review what Mash will read before you start. Your original chats stay untouched.",
 } as const;
-let at = $state(0);
-const step = $derived(steps[at] ?? "review");
+let at = $state<number | null>(null);
+const step = $derived(at === null ? "review" : (steps[at] ?? "review"));
+let heading: HTMLHeadingElement | undefined = $state();
+async function goToStep(next: number | null): Promise<void> {
+  at = next;
+  await tick();
+  heading?.focus();
+}
 
 let answers = $state<Answers | null>(null);
 let based = $state<string | null>(null);
@@ -69,12 +76,14 @@ $effect(() => {
 let custom = $state(90);
 const blocked = $derived(file && answers ? problem(file, answers) : "");
 const review = $derived(file && answers ? summary(file, answers, names) : []);
+const histories = $derived(file && answers ? selectedHistories(file, answers) : []);
 
 let running = $state(false);
 let failure = $state("");
 let outcome = $state<Outcome | null>(null);
 async function run(index: boolean): Promise<void> {
-  if (!file || !answers || running || blocked) return;
+  if (!file?.editable || !answers || running || blocked || (index && !file.qdrant.reachable))
+    return;
   running = true;
   failure = "";
   try {
@@ -137,25 +146,27 @@ function toggleConnect(agent: Integration): void {
   </header>
 
   <div class="setup-col">
-    <ol class="setup-steps" aria-label="Setup steps">
-      {#each steps as name, index (name)}
-        {@const done = !!outcome || index < at}
-        <li class:done aria-current={!outcome && index === at ? "step" : undefined}>
-          <span class="n">{#if done}<Check size={15} aria-label="done" />{:else}{index + 1}{/if}</span>{name}
-        </li>
-      {/each}
-    </ol>
+    {#if at !== null && !outcome}
+      <ol class="setup-steps" aria-label="Setup steps">
+        {#each steps as name, index (name)}
+          {@const done = index < at}
+          <li class:done aria-current={index === at ? "step" : undefined}>
+            <span class="n">{#if done}<Check size={15} aria-label="done" />{:else}{index + 1}{/if}</span>{name}
+          </li>
+        {/each}
+      </ol>
+    {/if}
 
     {#if setup.isPending}<Skeleton rows={4} />{/if}
-    {#if setup.error}<p class="meta warn" role="alert">Setup can't be shown right now: {setup.error.message}</p>{/if}
+    {#if setup.error}<p class="meta warn" role="alert">{file ? "Could not refresh setup" : "Setup can't be shown right now"}: {setup.error.message}</p>{/if}
 
     {#if file && answers && !outcome}
-      <h1 class="setup-q">{titles[step]}</h1>
+      <h1 class="setup-q" tabindex="-1" bind:this={heading}>{titles[step]}</h1>
       <p class="meta setup-help">{helps[step]}</p>
       {#if !file.editable}
         <p class="meta warn setup-help">This dashboard can be reached from other machines and was not started with a services configuration, so it does not run setup. Open the dashboard on the machine itself, or run <code class="i">mash init</code> there.</p>
-      {:else if file.configured && step === "histories"}
-        <p class="meta setup-help">This machine is already set up. Finishing these steps rewrites the configuration file with your answers and keeps the previous one beside it.</p>
+      {:else if file.configured && step === "review"}
+        <p class="meta setup-help">This machine is already set up. Saving replaces the configuration with these choices and keeps the previous file beside it.</p>
       {/if}
 
       <section class="setup-card" aria-label={titles[step]}>
@@ -198,24 +209,36 @@ function toggleConnect(agent: Integration): void {
               <div class="kv" style:align-items="center" style:min-height="44px" style:border-bottom="1px solid var(--hair)" style:padding="0"><dt>{line.label}</dt><dd style:overflow-wrap="anywhere">{line.value}</dd></div>
             {/each}
           </dl>
+          {#if histories.length}
+            <details class="fold" style:margin-bottom="8px">
+              <summary>Show history folders</summary>
+              <ul class="meta" style:overflow-wrap="anywhere" style:padding-left="18px">
+                {#each histories as entry (entry.agent)}
+                  {#each entry.roots as root (root)}<li><code>{root}</code></li>{/each}
+                {/each}
+              </ul>
+            </details>
+          {/if}
         {/if}
       </section>
 
       {#if step === "agents"}
         <p class="meta">It is done by the agent's own command-line tool, which edits that agent's user settings and installs the Mash plugin. The last screen lists the files it touched and the commands that undo it. Other agents' histories are still indexed without this.</p>
       {:else if step === "review"}
+        {#if answers.connect.length && file.editable}
+          <p class="meta">To give the selected agents access to search, Mash uses their own tools to update their user settings and install the Mash plugin.</p>
+        {/if}
+        {#if file.shared}
+          <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>
+        {/if}
         {#if file.qdrant.reachable}
-          <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service (Qdrant) answers at {file.qdrant.url}, so indexing can start.</p>
+          <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service is ready.</p>
         {:else}
           <div>
-            <p class="warn" style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The search service (Qdrant) does not answer at {file.qdrant.url}. Indexing and every search need it. You can set up now and index afterwards. To install and start it, run this in a terminal on this machine:</span></p>
+            <p class="warn" style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again.</span></p>
             {@render command("mash qdrant install")}
-          </div>
-        {/if}
-        {#if !file.modelsInstalled}
-          <div>
-            <p class="meta">Search will find the words you type. For search by meaning as well, run this in a terminal; it downloads the models (about 177 MB):</p>
-            {@render command("mash models install")}
+            <button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}>{setup.isFetching ? "Checking…" : "Check search service again"}</button>
+            <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{file.qdrant.url}</code></p>
           </div>
         {/if}
       {/if}
@@ -223,13 +246,23 @@ function toggleConnect(agent: Integration): void {
       {#if blocked && step !== "agents"}<p class="meta warn" role="alert">{blocked}</p>{/if}
       {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
       <div class="setup-acts">
-        {#if at > 0}<button class="btn" type="button" disabled={running} onclick={() => (at -= 1)}><ArrowLeft size={15} aria-hidden="true" />Back</button>{/if}
+        {#if at !== null}
+          {@const previous = at > 0 ? at - 1 : null}
+          <button class="btn" type="button" disabled={running} onclick={() => goToStep(previous)}><ArrowLeft size={15} aria-hidden="true" />{previous === null ? "Back to review" : "Back"}</button>
+        {:else if at === null && file.editable}
+          <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}>Customize setup</button>
+        {/if}
         <span class="sp"></span>
-        {#if step !== "review"}
-          <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => (at += 1)}>Next<ArrowRight size={15} aria-hidden="true" /></button>
+        {#if at !== null && step !== "review"}
+          {@const next = at + 1}
+          <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
         {:else if file.editable}
-          <button class="btn" type="button" disabled={running || !!blocked} onclick={() => run(false)}>Set up without indexing</button>
-          <button class="btn p" type="button" disabled={running || !!blocked || !file.qdrant.reachable} title={file.qdrant.reachable ? "" : "Start the search service first"} onclick={() => run(true)}>{running ? "Setting up…" : "Set up and index"}</button>
+          {#if !file.qdrant.reachable || at !== null}
+            <button class="btn" class:p={!file.qdrant.reachable} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
+          {/if}
+          {#if file.qdrant.reachable}
+            <button class="btn p" type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}>Set up and index</button>
+          {/if}
         {/if}
       </div>
       {#if running}<p class="meta" role="status">Writing the configuration and connecting agents. Connecting an agent can take a minute.</p>{/if}
@@ -262,6 +295,14 @@ function toggleConnect(agent: Integration): void {
           {/if}
         </div>
       </section>
+
+      {#if !file.modelsInstalled && file.index.state === "finished" && file.index.ok}
+        <details class="fold">
+          <summary>Enable search by meaning</summary>
+          <p class="meta">Word search is ready. Search by meaning uses optional local models.</p>
+          {@render command("mash models install")}
+        </details>
+      {/if}
 
       {#if outcome.agents.length}
         <section class="setup-card" aria-label="Connected agents">

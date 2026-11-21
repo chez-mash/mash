@@ -43,26 +43,26 @@ You can do first-run setup in the browser instead of running `mash init` in a
 terminal. Start `mash dash` and open the dashboard: on a machine with no
 configuration it opens on setup by itself, as a screen of its own without the
 rail or search. **Skip to the dashboard** leaves it; **settings** has a link
-back, which is also how you go through setup again later. It asks four
-things, one to a screen:
+back, which is also how you go through setup again later.
 
-1. **Which histories to index.** The agent histories found on this machine in
-   their usual locations, each with a switch.
-2. **How far back.** The last 90 days, all history, or a number of days.
-3. **Which agents to connect.** Claude Code, Codex and GitHub Copilot, when
-   their command-line tools are installed, so those agents can search your history
-   through Mash.
-4. **Review.** What will be written, and whether the search service answers.
+Review the histories Mash found, the history range, and the installed agents it
+can connect so they can search. **Show history folders** lists the paths. For a
+new setup the default is to index the last 90 days on this machine. Choose
+**Set up and index** to accept the review, or **Customize setup** to change
+the histories, range, or agent connections before confirming.
+If your version opens on the history choices, use **Next** to reach the review.
 
 Nothing changes until you choose **Set up and index** or **Set up without
-indexing** on the last step. Mash then writes its configuration file, has each
+indexing** on the review. Mash then writes its configuration file, has each
 chosen agent's own command-line tool connect it, and starts indexing in the
-background. The page shows what was written, which files each agent's tool
-edited and the commands that undo it, and follows the first index until your
-chats appear.
+background if you asked for it. The page shows what was written, which files
+each agent's tool edited and the commands that undo it. It follows the first
+index until your chats appear.
 
-- Indexing needs the local search service. If it is not running, the review
-  step says so and shows the command to run first: `mash qdrant install`.
+- Indexing needs the search service. If it is down, run `mash qdrant install`
+  and choose **Check search service again**, or choose **Set up without
+  indexing** and index later. The customization review also offers saving
+  without indexing when the service is ready.
 - Search by meaning needs the optional models: `mash models install`.
 - Going through setup again on a machine that is already set up rewrites the
   configuration with your answers and keeps the previous file beside it.

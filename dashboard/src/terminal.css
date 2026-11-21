@@ -4138,7 +4138,7 @@ body:has(#mashy-fab) #main {
   }
 }
 
-/* First-run setup: a screen of its own, one question at a time. */
+/* First-run setup: a review with optional guided steps. */
 .setup {
   flex: 1;
   min-height: 100dvh;
