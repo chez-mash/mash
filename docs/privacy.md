@@ -3,8 +3,9 @@
 ## What stays on your machine
 
 The default setup indexes and searches locally without changing your agents'
-original history files. The public documentation website receives none of
-your indexed chats.
+original history files. You run Mash on your own machine and need no Mash
+account. The public documentation website receives none of your indexed
+chats.
 
 An agent that keeps history in a SQLite database, such as OpenCode, may gain
 `-wal` and `-shm` files beside that database when Mash reads it. SQLite
@@ -12,6 +13,9 @@ creates them for any reader; the database's contents are unchanged.
 
 History leaves the machine only through features you turn on:
 
+- **Agent connections** let the connected agent request search results and
+  excerpts. Those results enter the agent's context and can be sent to its
+  model provider. Use the local dashboard or terminal to search by yourself.
 - **Sharing across machines** uploads history to your configured Mash server.
 - **A remote embedding worker** receives prepared searchable text, which may
   contain sensitive history. Embedding inference runs locally by default, and

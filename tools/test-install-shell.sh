@@ -4,7 +4,8 @@ set -euo pipefail
 repository=$(cd "$(dirname "$0")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:?}/install-shell.XXXXXXXX")
 trap 'rm -rf "$scratch"' EXIT
-mkdir -p "$scratch/bin" "$scratch/archive" "$scratch/releases" "$scratch/install"
+destination="$scratch/install with 'quotes'"
+mkdir -p "$scratch/bin" "$scratch/archive" "$scratch/releases" "$destination"
 export TEST_INSTALL_RELEASES="$scratch/releases"
 cat > "$scratch/bin/curl" <<'SH'
 #!/usr/bin/env bash
@@ -29,7 +30,7 @@ cat > "$scratch/bin/getconf" <<'SH'
 echo "${TEST_INSTALL_LIBC-glibc 2.34}"
 SH
 chmod +x "$scratch/bin/curl" "$scratch/bin/uname" "$scratch/bin/getconf"
-export PATH="$scratch/bin:$PATH" MASH_INSTALL_DIR="$scratch/install"
+export PATH="$scratch/bin:$PATH" MASH_INSTALL_DIR="$destination"
 archive=mash-x86_64-unknown-linux-gnu.tar.gz
 printf 'cli fixture\n' > "$scratch/archive/mash"
 printf 'server fixture\n' > "$scratch/archive/mash-server"
@@ -38,10 +39,13 @@ package() {
     (cd "$scratch/releases" && sha256sum "$archive" > SHA256SUMS)
 }
 package mash mash-server
-sh "$repository/install.sh"
-cmp "$scratch/archive/mash" "$scratch/install/mash"
-cmp "$scratch/archive/mash-server" "$scratch/install/mash-server"
-[[ -x $scratch/install/mash && -x $scratch/install/mash-server ]]
+sh "$repository/install.sh" >"$scratch/output"
+cmp "$scratch/archive/mash" "$destination/mash"
+cmp "$scratch/archive/mash-server" "$destination/mash-server"
+[[ -x $destination/mash && -x $destination/mash-server ]]
+expected="'$scratch/install with '\\''quotes'\\''/mash'"
+grep -Fxq "  $expected qdrant install" "$scratch/output"
+grep -Fxq "  $expected init" "$scratch/output"
 # A C library too old for the binary, or not glibc at all, stops the install
 # before anything is downloaded or replaced.
 for libc in 'glibc 2.33' 'glibc 1.99' ''; do
@@ -57,6 +61,6 @@ package mash
 if sh "$repository/install.sh" >"$scratch/output" 2>&1; then
     echo 'Incomplete release archive was installed.' >&2; exit 1
 fi
-grep -Fxq 'cli fixture' "$scratch/install/mash"
-grep -Fxq 'server fixture' "$scratch/install/mash-server"
+grep -Fxq 'cli fixture' "$destination/mash"
+grep -Fxq 'server fixture' "$destination/mash-server"
 echo 'Shell installer fixtures passed.'

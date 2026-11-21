@@ -34,8 +34,10 @@ irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 ```
 
 Both scripts verify the release checksum and install to your user's
-`.local/bin` directory; add it to `PATH` if needed. Set `MASH_VERSION` to a
-published tag to pin a release, or `MASH_INSTALL_DIR` to choose another
+`.local/bin` directory. They print the next commands with the installed
+binary's path so you can run them before adding the directory to `PATH`.
+Set `MASH_VERSION` to a published tag to pin a release, or
+`MASH_INSTALL_DIR` to choose another
 directory. They do not modify your shell profile or download models.
 
 ### Package manager alternatives
@@ -320,9 +322,16 @@ mash status
 mash search 'migration'
 ```
 
-Replace the query with a distinctive word from a real chat. Without semantic
-models, multiple words must occur together as a phrase: “log rotation” won't
-match “rotate the application logs”, so try “rotate” first.
+Replace the query with a distinctive word from an older chat. If you need a
+starting point, run `mash list-chats --limit 10` and pick a conversation you
+recognize. Take the `lookup.view.id` from a search hit or chat and run
+`mash view MESSAGE_ID --context 3` to read the original message. In the
+dashboard, open the result directly.
+
+Word search matches whole words in any order. Pass several words as one
+argument, such as `mash search 'rotate logs'`. To require an exact phrase,
+include double quotes inside the argument, such as
+`mash search '"log rotation"'`.
 
 To include older history, run `mash index --all-history`. Next:
 [searching](search.md), [the dashboard](dashboard.md) (source installations

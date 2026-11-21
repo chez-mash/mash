@@ -57,7 +57,11 @@ function Install-Mash {
             Write-Host "Installed $destination"
         }
         if ($Directory -notin ($env:PATH -split ';')) { Write-Host "Add $Directory to your user PATH, then open a new terminal." }
-        Write-Host 'Next: run mash qdrant install, then mash init. Reconnect existing Mash MCP sessions after an upgrade.'
+        $quotedMash = (Join-Path $Directory 'mash.exe').Replace("'", "''")
+        Write-Host 'For a new local setup, install the search service and then run the setup wizard.'
+        Write-Host "  & '$quotedMash' qdrant install"
+        Write-Host "  & '$quotedMash' init"
+        Write-Host 'After an upgrade, reconnect your Mash MCP sessions.'
     } finally {
         [Net.ServicePointManager]::SecurityProtocol = $securityProtocol
         if ($incoming -and (Test-Path -LiteralPath $incoming)) { Remove-Item -LiteralPath $incoming -Force }

@@ -16,31 +16,25 @@
 
 **Find things you’ve already worked out with your coding agents.**
 
-Mash searches your Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and
-Antigravity chats. Ask your agent to find an earlier decision, search from the
-terminal, or browse conversations in the dashboard.
+Mash searches the history Claude Code, Codex, GitHub Copilot, Cursor, OpenCode,
+and Antigravity already saved on your machine. Find an earlier decision or
+fix, then open the original conversation.
 
-## Features
-
-- **Search across Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Antigravity** from one place.
-- **An agent memory layer** for recording decisions, facts and preferences, with links back to the chats they came from. [Conversation records →](docs/records.md)
-- **MCP integration, plugins, hooks, and skills** so agents can look up past conversations as they work. [Agent integrations →](docs/agents.md)
-- **Export and import indexed history**, including chats from different providers, for backups or moving between machines. [Backups →](docs/upgrades.md)
-- **BM25 keyword search + vector search with Qdrant**, so you can search for an exact error or describe what you remember. [Search →](docs/search.md)
-- **Search across machines** with `mash-server`, or keep everything local. [Multi-machine setup →](docs/shared-index.md)
-- **Local embeddings by default**, with opt-in [remote batch inference](docs/configuration.md#embedding-inference).
-- Runs on **Linux, macOS, and Windows**. [Tested with →](#tested-with)
-
-**Documentation website:** [getmash.io](https://getmash.io)
+Mash is open source and self-hosted. The default setup reads and searches
+your chats on your machine and needs no account. If you choose to share an
+index across machines, you run the server. [How Mash handles your history](docs/privacy.md)
 
 ## Quick start
 
-Start with Mash on one machine. This is the default setup: your agent histories,
-index, and search service stay on that machine. You can add sharing later.
+[Try the browser demo](https://getmash.io/demo/) with sample chats, or set up
+Mash to search your own history.
 
-You’ll need some existing agent history and the local Qdrant search service,
-which step 2 installs. Qdrant powers both word search and semantic search;
-semantic models are optional.
+**Ask your agent.** Paste this into Claude Code, Codex, or another coding agent.
+
+> Read https://getmash.io/setup.md and set up Mash on this machine.
+
+**Set it up yourself.** The steps below search existing chats on one machine.
+You can try word and phrase search before downloading any models.
 
 ### 1. Install Mash
 
@@ -56,24 +50,9 @@ Windows x64, in PowerShell:
 irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 ```
 
-Both download a prebuilt release, verify its checksum and install to your
-user’s `.local/bin` directory; add it to `PATH` if needed. No Rust, Docker or
-administrator rights are required.
-
-Prefer a package manager?
-
-| Channel | Command |
-| --- | --- |
-| Homebrew | `brew install mashium/tap/mash` |
-| apt, Debian and Ubuntu | [add the Mash repository](docs/installation.md#package-manager-alternatives), then `sudo apt install mash-cli` |
-| Scoop | `scoop bucket add mashium https://github.com/mashium/mash`, then `scoop install mashium/mash` |
-| mise | `mise use -g github:mashium/mash` |
-| cargo-binstall | `cargo binstall --git https://github.com/mashium/mash mash` |
-
-Already have a coding agent open? Paste this and let it do steps 1 to 3,
-asking you before each download:
-
-> Read https://getmash.io/setup.md and set up Mash on this machine.
+The scripts verify the release checksum and install to your user's
+`.local/bin`. Follow the commands the installer prints if `mash` is not on
+your `PATH` yet. These installs need no Rust, Docker or administrator rights.
 
 ### 2. Start the local search service
 
@@ -81,79 +60,63 @@ asking you before each download:
 mash qdrant install
 ```
 
-This downloads Qdrant (about 30 MB, checked against a checksum built into Mash)
-and runs it in the background as your user, reachable only from this machine.
-It starts again when you log in; Docker and administrator rights are not needed.
+This downloads Qdrant (about 30 MB), checks its checksum, and starts it on
+this machine. It runs under your user and starts again when you log in.
 [Search service setup](docs/installation.md#start-the-local-search-service)
-explains where it lives and how to remove it.
-
-Prefer to run Qdrant yourself? Use [the official Docker image](docs/installation.md#optional-qdrant-docker-image)
-or [start it by hand](docs/installation.md#run-qdrant-yourself).
+covers using your own Qdrant and removing the service.
 
 ### 3. Connect your histories
-
-Mash finds supported histories in their usual locations and indexes the last
-90 days, including current sessions of supported agents. It also connects Mash
-to the Claude Code, Codex and GitHub Copilot CLIs it finds.
-
-Word and phrase search works immediately. Want search by meaning instead?
-Run `mash models install` **before** the setup command below to add the optional
-local models. Already initialized? See [model setup](docs/indexing.md).
-
-Prefer to choose folders first? Use `mash init --no-index`,
-[edit the configuration](docs/configuration.md), then run `mash index`.
-Otherwise, start the setup wizard:
 
 ```bash
 mash init
 ```
 
-In a terminal, Mash asks about local or shared search, history folders, coverage,
-and agent integrations, then shows a confirmation before changing anything.
-Choose **Just this computer** for the default local setup. Use `mash init --yes`
-to accept defaults without prompts; non-terminal runs are also non-interactive.
-Setup checks that Qdrant answers before changing anything; if it does not, run
-`mash qdrant install`, or start your own Qdrant as the message shows. To read your chats before Qdrant runs, use
-`mash init --no-index`, then `mash index`: indexing saves your history first, and
-`mash list-chats` and `mash view` work without Qdrant. Search waits for Qdrant.
-
-Prefer a browser? Run `mash dash` and
-[set up from the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard): it
-asks the same questions for a local setup.
-
-Setup prints progress to stderr and a final JSON result to stdout. If the result
-has `"agents": []`, no agents were connected; check `next` for the reason and
-[connection instructions](docs/agents.md). You can still search with the CLI.
-For a visual way to browse afterward, see [dashboard setup](docs/dashboard.md).
-
-The setup result lists the provider folders selected;
-[customize them](docs/configuration.md) if needed.
-Restart any agents that setup connected, then try asking:
-
-> “Use Mash to find where we discussed the database migration.”
-
-The history plugin’s hooks also require Python 3.9 or later.
+Choose **Just this computer** in the terminal wizard. Review which histories
+to index (the last 90 days by default) and which installed agents to connect.
+For a browser wizard, run `mash dash` instead and open
+[the local dashboard setup](docs/dashboard.md#set-up-mash-from-the-dashboard).
+See [setup options and results](docs/installation.md#connect-your-histories)
+for unattended setup, custom folders, or help with the setup report.
 
 ## Try it
 
+Pick a distinctive word from an older chat, such as an error or function name.
+Replace `migration` with that word.
+
 ```bash
-mash search "migration"
-mash list-chats --provider codex --limit 10
-mash view MESSAGE_ID --context 3
+mash search migration
 ```
 
-In the last command, use `lookup.view.id` from a search result or a
-`list-chats` row (a message ID, not the chat ID). CLI results are JSON;
-your connected agent can use the same operations through MCP.
+Copy the `lookup.view.id` from a matching result and open it with
+`mash view MESSAGE_ID --context 3`. In the [dashboard](docs/dashboard.md),
+search for the word and click the result to open the conversation.
 
-Start with one distinctive word you remember. Without semantic models, multiple
-words match a phrase: “log rotation” won't find “rotate the application logs.”
-Try “rotate,” or enable [search by meaning](docs/indexing.md#enable-semantic-search).
+Restart any agent you connected, then give it a real task. For example, in
+Codex, ask “Use Mash to find what we decided about authentication in Claude
+Code. Show me the message behind the answer.”
+[Check an agent connection](docs/agents.md#confirm-the-connection) if it
+cannot see Mash.
 
-Prefer browsing? `mash dash` starts a local, read-only [web dashboard](docs/dashboard.md).
+## More ways to use Mash
 
-To pick up new chats, run `mash index`; `mash index --watch` keeps the index
-current. [Synchronization details →](docs/synchronization.md)
+- [Search by meaning](docs/indexing.md#enable-semantic-search) with optional local models.
+- [Pick up new chats](docs/synchronization.md) with `mash index` or opt in to continuous indexing.
+- [Save decisions and their sources](docs/records.md) for later recall.
+- [Search across your machines](docs/shared-index.md) with a server you host.
+- [Export and back up your history](docs/upgrades.md) to keep it portable.
+
+<details>
+<summary>Install with a package manager</summary>
+
+| Channel | Command |
+| --- | --- |
+| Homebrew | `brew install mashium/tap/mash` |
+| apt, Debian and Ubuntu | [Add the Mash repository](docs/installation.md#package-manager-alternatives), then `sudo apt install mash-cli` |
+| Scoop | `scoop bucket add mashium https://github.com/mashium/mash`, then `scoop install mashium/mash` |
+| mise | `mise use -g github:mashium/mash` |
+| cargo-binstall | `cargo binstall --git https://github.com/mashium/mash mash` |
+
+</details>
 
 ## Privacy
 
@@ -162,8 +125,9 @@ Sharing history across your machines is optional.
 
 Mash masks recognizable credentials in results by default, but detection is
 best effort. Local history and exports can contain sensitive text;
-treat backups like the original chats. Mash never modifies the agent’s source
-history. [Privacy and redaction →](docs/privacy.md)
+treat backups like the original chats. Mash never modifies the contents of
+the agent’s source history. When an agent searches through Mash, the results
+it receives become part of that agent's context. [Privacy and redaction →](docs/privacy.md)
 
 ## Tested with
 
@@ -191,35 +155,6 @@ Where each agent's history has been indexed and searched so far:
 The Linux and Windows test suites run on every push; macOS has no automated
 tests yet. If an agent's chats are missing or look wrong on your system,
 [open an issue](https://github.com/mashium/mash/issues).
-
-## Where the models run
-
-Search by meaning uses two local models: one embeds your chats while indexing,
-the other reranks results while searching. Both run on the CPU of every
-supported system, so no GPU is needed. Where Mash can use one, it is faster:
-
-| System | Embedding, while indexing | Reranking, while searching |
-| --- | --- | --- |
-| macOS, Apple silicon | GPU through Core ML, on by default | CPU by default; Core ML is opt-in (experimental) |
-| Linux x86-64 with an NVIDIA card | CPU by default; GPU with a worker container (experimental) | CPU by default; GPU with a worker container (experimental) |
-| Windows x64 with a DirectX 12 graphics card | GPU through DirectML, on by default | CPU by default; GPU through DirectML, built in and opt-in (experimental) |
-| Linux ARM64, Linux with an AMD or Intel GPU, or no GPU | CPU | CPU |
-
-- **Experimental** options are off until you configure them. All the GPU
-  paths outside Apple silicon have been tried on few machines: one Tesla T4
-  each for Linux and Windows. Against four CPU cores, indexing ran about nine
-  times faster with an NVIDIA worker and about five times faster through
-  DirectML.
-- On Windows, indexing falls back to the CPU by itself when there is no usable
-  graphics card, and `accelerated = false` under `[embeddings]` keeps it there.
-- On Windows with an NVIDIA card, a
-  [worker you run](deployment/embeddings/README.md) is faster than DirectML
-  for both indexing and reranking; DirectML needs nothing installed.
-- Any system can instead send this work to a GPU worker on
-  [Modal](https://modal.com), also opt-in.
-
-[Configuration](docs/configuration.md#embedding-inference) explains each
-option and how to turn it on.
 
 ## Build from source
 

@@ -67,6 +67,6 @@ case ":$PATH:" in
   *":$directory:"*) ;;
   *) echo "Add $directory to your PATH." ;;
 esac
-echo "Next: install the local Qdrant search service that indexing and search need, then set up Mash:"
-echo "  mash qdrant install"
-echo "  mash init"
+quoted_mash=$(printf '%s' "$directory/mash" | sed "s/'/'\\\\''/g")
+echo "For a new local setup, install the search service and then run the setup wizard."
+printf "  '%s' qdrant install\n  '%s' init\n" "$quoted_mash" "$quoted_mash"

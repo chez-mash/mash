@@ -4,7 +4,11 @@ You are a coding agent, and the person you are working with asked you to
 install Mash. Mash is a local command-line tool and MCP server that indexes
 their past chats with coding agents (Claude Code, Codex, GitHub Copilot,
 Cursor, OpenCode, Antigravity) and lets them, and you, search those chats.
-Everything stays on this machine unless they later choose to share.
+Mash is open source and self-hosted. Installation needs no Mash account.
+The index and searches stay on this machine. If a connected agent looks up
+history, the messages it receives enter that agent's context. The source is
+at https://github.com/mashium/mash and the privacy guide is at
+https://getmash.io/privacy/.
 
 Work through the steps in order. Every `mash` command prints one JSON result
 on stdout; read it to decide what to do next. Long commands also write
@@ -14,7 +18,7 @@ ask them, or when a command fails in a way this page does not cover. Full
 guides: https://getmash.io/installation/ and
 https://getmash.io/troubleshooting/.
 
-## Before you start: ask once
+## Review the setup with the person
 
 Tell the person what setup will do, and get a yes before you continue:
 
@@ -29,10 +33,9 @@ Tell the person what setup will do, and get a yes before you continue:
   running those tools' own commands. This edits the agents' settings files;
   the result lists each file and the command that undoes it.
 
-Then ask one question: do they also want search by meaning, which finds a
-discussion even when the wording differs? It downloads about 177 MB of models
-from huggingface.co. Without it, Mash searches by words and phrases, which
-needs no models. They can add it later.
+Start with word and phrase search. If the person also asks for search by
+meaning, explain the optional model download in step 3 and get their approval
+for that download.
 
 ## 1. Install Mash
 
@@ -71,8 +74,8 @@ the rest of this page, and tell the person to add the directory to `PATH`:
 `export PATH="$HOME/.local/bin:$PATH"` in their shell profile, or in
 PowerShell
 `[Environment]::SetEnvironmentVariable('Path', "$env:USERPROFILE\.local\bin;" + [Environment]::GetEnvironmentVariable('Path', 'User'), 'User')`.
-The installer ends by suggesting `mash init`; follow this page instead, which
-uses `mash init --yes` in step 4 so that nothing waits for an answer.
+The installer prints the next commands with the path to the binary. Follow
+this page's order and use `mash init --yes` in step 4.
 
 If the check prints anything else, or the machine is an Intel Mac, build from
 source. This needs a stable Rust toolchain and takes several minutes; if
@@ -98,9 +101,11 @@ Success is a JSON result with `"outcome"` of `installed`, `current`,
 `repaired` or `upgraded`. Rerunning it is safe. If the person already runs
 their own Qdrant 1.20 or later on `127.0.0.1:6333`, skip this step.
 
-## 3. Optional: search by meaning
+## 3. Optional search by meaning
 
-Only if the person said yes to the model download:
+Skip this for word and phrase search. If the person requested search by
+meaning, this downloads local models (about 177 MB, more on Apple silicon and
+Windows) from huggingface.co. Run it after they approve:
 
 ```sh
 mash models install
@@ -136,34 +141,39 @@ a large history:
 mash index --all-history
 ```
 
-## 5. Check it works
+## 5. Find and open an earlier message
 
 ```sh
 mash status
 ```
 
-Then search for a distinctive word the person suggests, or one from this
-conversation:
+Search for a distinctive term from an older conversation, such as a function
+name, error, or project term the person remembers. If you need a starting
+point, list recent chats from an imported provider and open a result whose
+title and date point to a conversation before this setup. Use that message
+to choose a term. For example, with Claude Code history:
 
 ```sh
-mash search migration
+mash list-chats --provider claude-code --limit 10
+mash search migration --provider claude-code --intent exact-mention
 ```
 
-A result lists matching chats with a `snippet` for each matching message. An
-empty `results` list with no error means nothing matched; try another word
-before concluding that setup failed.
+Use the actual provider and term from the earlier chat. Copy the matching
+result's `lookup.view.id` into `mash view ID --context 3` and confirm that the
+message comes from the earlier chat. The setup conversation can
+appear in results too. An empty `results` list with no error means the search
+found no match. Try a different word from the earlier chat.
 
-- Put a search of several words in quotes: `mash search "log rotation"`.
-- This search matches whole words, so `rotating` does not find `rotate`. If
+- Pass several words as one shell argument, for example
+  `mash search 'log rotation'`. Word search checks for every word in any
+  order. To require that exact phrase, use `mash search '"log rotation"'`.
+- Word search matches whole words, so `rotating` does not find `rotate`. If
   the models from step 3 are installed, search by meaning instead:
   `mash search "how do we rotate logs" --intent related-discussion`.
-- To read a result in context, copy its `lookup.view.id` and run
-  `mash view ID --context 10`.
-- The chat you are in now is indexed too and may match; check each result's
-  agent and title.
-- In `mash status`, an agent counted as `unconfigured` under `installation`
-  is one Mash is not registered with. That is expected when step 4 connected
-  no agent.
+
+If step 4 connected an agent, you can also probe its connection in a fresh
+process. For example, run `mash status --installation --agent codex --probe`
+for Codex. An open chat still needs a restart to load the connection.
 
 ## 6. Tell the person
 
@@ -171,11 +181,12 @@ Report, in a few lines:
 
 - what was installed and where;
 - which agents were connected, which files were edited, and the undo commands;
-- how many chats and messages were indexed;
+- how many chats and messages were indexed, and which earlier chat the search
+  opened;
 - that they must restart each connected agent, including you, before its Mash
   tools appear;
-- that `mash index` picks up new chats, and `mash dash` opens a local dashboard
-  at http://127.0.0.1:8790.
+- one thing to try next, such as asking Codex to find a Claude Code decision
+  and show the original message, or browsing the history with `mash dash`.
 
 ## If something fails
 

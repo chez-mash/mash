@@ -39,7 +39,7 @@ try {
     $fixture = Join-Path $root 'mash.exe'
     $archive = Join-Path $root 'release.zip'
     $checksums = Join-Path $root 'SHA256SUMS'
-    $destination = Join-Path $root 'install with spaces'
+    $destination = Join-Path $root "install with 'quotes'"
     $installed = Join-Path $destination 'mash.exe'
     Set-Content -LiteralPath $fixture -Value 'new binary' -NoNewline
     $serverFixture = Join-Path $root 'mash-server.exe'
@@ -49,7 +49,11 @@ try {
     $validChecksum = "$hash  mash-x86_64-pc-windows-msvc.zip"
     Set-Content -LiteralPath $checksums -Value $validChecksum
 
-    Install-Mash -Directory $destination -Version 'v0.8.0'
+    $output = Install-Mash -Directory $destination -Version 'v0.8.0' 6>&1 |
+        ForEach-Object { $_.ToString() }
+    $commandPath = Join-Path (Join-Path $root "install with ''quotes''") 'mash.exe'
+    Assert-Equal ($output -contains "  & '$commandPath' qdrant install") $true 'search service command'
+    Assert-Equal ($output -contains "  & '$commandPath' init") $true 'setup command'
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'fresh install'
     Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'mash-server.exe') -Raw) 'new server' 'server install'
     Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/download/v0.8.0/mash-x86_64-pc-windows-msvc.zip' 'pinned release URL'
