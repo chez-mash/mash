@@ -157,6 +157,11 @@ const first = script;
         <p class="package-hint">
           After installing, <a href="/installation/#start-the-local-search-service">start the local search service and connect your histories</a>.
         </p>
+        <p class="cargo-hint">
+          This command installs terminal search and agent tools.
+          <a href="/installation/#start-the-local-search-service">Set up terminal search</a> or
+          <a href="/install-methods/#include-the-web-dashboard">Build with the dashboard</a> to search in your browser.
+        </p>
         <p><a href="/installation/#check-the-release-download">Inspect the installer</a> · <a href="/privacy/">See what stays local</a></p>
       </div>
     </div>
@@ -372,11 +377,13 @@ const first = script;
   }
   .mash-install[data-mode="manual"] .hint,
   .script-hint,
-  .package-hint {
+  .package-hint,
+  .cargo-hint {
     display: none;
   }
   .mash-install[data-mode="manual"][data-method="script"] .script-hint,
-  .mash-install[data-mode="manual"][data-method]:not([data-method="script"]) .package-hint {
+  .mash-install[data-mode="manual"][data-method="cargo"] .cargo-hint,
+  .mash-install[data-mode="manual"][data-method]:not([data-method="script"], [data-method="cargo"]) .package-hint {
     display: block;
   }
   .mash-install p {

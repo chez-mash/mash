@@ -115,10 +115,16 @@ test("the hero's install picker follows the chosen system and method", async ({
   await install.getByRole("button", { name: "Cargo", exact: true }).click();
   await expect(command).toHaveText(/^cargo \+stable install /);
   await expect(
+    install.getByText("This command installs terminal search and agent tools."),
+  ).toBeVisible();
+  await expect(install.getByRole("link", { name: "Set up terminal search" })).toBeVisible();
+  const buildDashboard = install.getByRole("link", { name: "Build with the dashboard" });
+  await expect(buildDashboard).toBeVisible();
+  await expect(
     install.getByRole("link", {
       name: "start the local search service and connect your histories",
     }),
-  ).toBeVisible();
+  ).toBeHidden();
   await page.getByRole("button", { name: "Copy the install command" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     await command.textContent(),
@@ -135,6 +141,15 @@ test("the hero's install picker follows the chosen system and method", async ({
   await expect(install.getByRole("button", { name: "Homebrew", exact: true })).toHaveCount(0);
   await install.getByRole("button", { name: "apt", exact: true }).click();
   await expect(command).toHaveText(/sudo apt install mash-cli$/);
+  await expect(buildDashboard).toBeHidden();
+
+  await install.getByRole("button", { name: "Cargo", exact: true }).click();
+  await buildDashboard.click();
+  await expect(page).toHaveURL(/\/install-methods\/#include-the-web-dashboard$/);
+  await expect(page.getByRole("heading", { name: "Include the web dashboard" })).toBeVisible();
+  await expect(
+    page.locator("pre").filter({ hasText: "pnpm@11.28.5 --dir dashboard run build" }),
+  ).toContainText("cargo +stable install --locked --path .");
 });
 
 test("the hero offers a prompt that hands setup to a coding agent", async ({
@@ -152,8 +167,10 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   expect(setup.ok()).toBe(true);
   const instructions = await setup.text();
   expect(instructions).toContain(
-    "For dashboard and terminal use:\n\n```sh\nmash init --yes --no-agents\n```",
+    "To search on your own from the dashboard or terminal:\n\n```sh\nmash init --yes --no-agents\n```",
   );
+  expect(instructions).toContain("https://getmash.io/install-methods/#include-the-web-dashboard");
+  expect(instructions).toContain("With only the terminal and agent tools, show them");
   expect(instructions).toContain("unless the person asked you to run their");
 });
 

@@ -4,7 +4,8 @@ You are a coding agent, and the person you are working with asked you to
 install Mash. Mash is a local command-line tool and MCP server that indexes
 their past chats with coding agents (Claude Code, Codex, GitHub Copilot,
 Cursor, OpenCode, Antigravity) and lets them, and you, search those chats.
-Mash is open source and self-hosted. Installation needs no Mash account.
+Mash is open source and self-hosted. The prebuilt releases include its browser
+dashboard. Installation needs no Mash account.
 A fresh default setup keeps the index and searches on this machine. If a
 connected agent looks up history, the messages it receives enter that agent's
 context. See the [source](https://github.com/mashium/mash) and
@@ -38,8 +39,8 @@ Explain what a new setup will do before asking the person to proceed:
 - Index chats from the last 90 days across the supported histories it finds.
   That can include this chat. Mash keeps a local copy and reads the original
   files without changing their contents.
-- Check that search is ready and show them how to open the dashboard.
-  They can read their first result in their own browser.
+- Check that search is ready and show them how to find their first chat in
+  the dashboard or terminal.
 
 Offer an agent connection as part of the same review. Ask whether they want
 Mash connected to the supported agent CLIs it finds, or want to search from the
@@ -65,7 +66,8 @@ user's `.local/bin` directory or in `MASH_INSTALL_DIR` if set
 (`mash.exe` on Windows). If it runs, use its full path through the rest
 of setup.
 
-Check whether a release is published:
+For macOS on Apple silicon, Linux x86-64 and ARM64 (including WSL), or
+Windows x64, check whether a release is published:
 
 ```sh
 curl -fsSL -o /dev/null -w '%{http_code}\n' https://github.com/mashium/mash/releases/latest/download/SHA256SUMS
@@ -101,9 +103,16 @@ PowerShell
 The installer prints the next commands with the path to the binary. Follow
 this page's order and use the command for the person's choice in step 4.
 
-If the check prints anything else, or the machine is an Intel Mac, build from
-source. This needs a stable Rust toolchain and takes several minutes; if
-`cargo` is missing, ask the person before installing Rust.
+If this check fails on a supported system, report the download error and link
+to https://getmash.io/installation/. If there is no prebuilt release for the
+system, build from source. To give the person a working browser dashboard,
+follow https://getmash.io/install-methods/#include-the-web-dashboard. This
+builds the web files first and then compiles Mash from the same checkout.
+It needs Git, Node.js 24+ and a stable Rust toolchain. Ask before installing
+any missing tools.
+
+If the person only wants terminal search and agent tools, use the shorter
+source command. It produces a build without the dashboard.
 
 ```sh
 cargo +stable install --locked --git https://github.com/mashium/mash mash
@@ -145,7 +154,7 @@ the person's settings. Word search stays the default unless they change it.
 
 ## 4. Index their histories
 
-For dashboard and terminal use:
+To search on your own from the dashboard or terminal:
 
 ```sh
 mash init --yes --no-agents
@@ -176,10 +185,21 @@ mash status
 
 Read `ready` to see whether local search is usable. If `installation` lists
 unconfigured agents and has `next_action: null`, their connections are optional.
-If `ready` is `true`, give them the command `mash dash` and tell them to open
-the address it prints, usually http://127.0.0.1:8790. In **chats**, they can
-search for a word they remember and open the result in its conversation.
-Use the full executable path if needed.
+If `ready` is `true`, show them the first step for the build they have.
+
+- With the dashboard, give them the command `mash dash` and tell them to
+  open the address it prints, usually http://127.0.0.1:8790. In **chats**,
+  they can search for a word they remember and open a result.
+- With only the terminal and agent tools, show them
+  `mash search migration`, using a word they remember in place of `migration`, and
+  https://getmash.io/search/#your-first-search. If they want the dashboard too,
+  show them https://getmash.io/install-methods/#include-the-web-dashboard.
+
+For an existing install whose dashboard support is unclear, you can start
+`mash dash --listen 127.0.0.1:0` in a temporary process, read the page at the
+address it prints, and stop that process. A page that says the dashboard has
+not been built means they have the terminal and agent tools build. Use the
+full executable path in commands if needed.
 
 If step 4 connected an agent, you can probe its connection in a fresh process.
 For example, run `mash status --installation --agent codex --probe` for Codex.
@@ -226,8 +246,8 @@ Report, in a few lines:
 - which agents were connected, which files were edited, and the undo commands;
 - whether search is ready and how many chats and messages were indexed;
 - which earlier message matched, if they asked you to run a search;
-- how to start the dashboard with `mash dash`, or restart any connected
-  agent to load its Mash tools;
+- how to start the dashboard or run the first terminal search for this build,
+  and whether to restart any connected agent to load its Mash tools;
 - how to review removal with `mash uninstall`, which previews what it
   would remove and keeps the original agent chats. See
   https://getmash.io/installation/#uninstall.

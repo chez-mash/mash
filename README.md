@@ -155,9 +155,9 @@ See [how each agent's history has been tested on Linux, macOS, and Windows](docs
 
 ## Build from source
 
-Use a stable Rust toolchain on platforms without a prebuilt release or to try
-an unreleased revision. [Build Mash from source](docs/install-methods.md#build-from-source)
-has instructions for the CLI and the web dashboard.
+On a platform without a prebuilt release, you can
+[build Mash with the browser dashboard](docs/install-methods.md#include-the-web-dashboard)
+or [build the terminal and agent tools with Cargo](docs/install-methods.md#cli-and-agent-tools).
 
 ## Documentation
 

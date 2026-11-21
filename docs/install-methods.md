@@ -45,36 +45,42 @@ cargo binstall --git https://github.com/mashium/mash mash
 
 ## Build from source
 
-Use a stable Rust toolchain to build for a machine with no prebuilt release
-or to try an unreleased revision. The first build takes several minutes.
+Use these instructions on a machine without a prebuilt release or to try an
+unreleased revision. [Include the web dashboard](#include-the-web-dashboard)
+to search in a browser. For [terminal search and agent tools](#cli-and-agent-tools),
+use the shorter Cargo install.
+
+### Include the web dashboard
+
+To include the dashboard, build its web files before compiling Mash. With
+Git, [Node.js 24+](https://nodejs.org/en/download), and a stable Rust toolchain,
+run these commands in a terminal.
+
+```sh
+git clone https://github.com/mashium/mash.git
+cd mash
+npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
+npx --yes pnpm@11.28.5 --dir dashboard run build
+cargo +stable install --locked --path .
+```
+
+When adding the dashboard to an existing installation, check out the revision
+you installed before building. After building, [start local search and index
+your chats](installation.md#start-the-local-search-service), then run `mash dash`
+and open the address it prints.
 
 ### CLI and agent tools
+
+This command builds terminal search and the tools that a connected agent can
+use. For the browser dashboard, follow the build steps above.
 
 ```sh
 cargo +stable install --locked --git https://github.com/mashium/mash mash
 mash --version
 ```
 
-If the shell cannot find `mash`, add Cargo's binary directory to your path.
-On macOS or Linux, run `export PATH="$HOME/.cargo/bin:$PATH"`. In PowerShell,
-run `$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"`. Add the directory
-to your shell profile or Windows environment settings to keep it.
+After building, [start local search and index your chats](installation.md#start-the-local-search-service).
+Then [try your first terminal search](search.md#your-first-search).
 
-### Include the web dashboard
-
-Build the web files before compiling Mash to include them in the executable.
-Install [Node.js 24+](https://nodejs.org/en/download) and a stable Rust
-toolchain, then run these commands from a terminal.
-
-```sh
-git clone https://github.com/mashium/mash.git
-cd mash
-npm install --global pnpm@11.28.5
-pnpm --dir dashboard install --frozen-lockfile
-pnpm --dir dashboard run build
-cargo +stable install --locked --path .
-```
-
-If you already use Mash, check out the same revision you installed before
-building to avoid a database format mismatch. The `cargo install --git`
-command in the previous section installs Mash without the dashboard files.
+If your terminal cannot find Mash after either build, follow
+[how to add Cargo's binary directory to your command search path](troubleshooting.md#mash-command-not-found).

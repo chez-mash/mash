@@ -60,8 +60,9 @@ After installing Mash, [start the search service](#start-the-local-search-servic
 
 ### Build from source
 
-See [build from source](install-methods.md#build-from-source) for the Rust
-build and how to include the web dashboard.
+To search in a browser, [build from source with the dashboard](install-methods.md#include-the-web-dashboard).
+For [terminal search and agent tools](install-methods.md#cli-and-agent-tools),
+use the shorter Cargo command.
 
 ## Start the local search service
 
@@ -119,14 +120,14 @@ hooks need Python 3.9+. [Use Mash with your agent](agents.md)
 
 ## Try your first search
 
-Run `mash dash` and open the address it prints. In **chats**, search for a
-distinctive word from an older chat and open a result to read the original
-message. If you installed from source, see how to build the web interface in
-the [source build guide](install-methods.md#include-the-web-dashboard).
+If your installation includes the dashboard, run `mash dash` and open the
+address it prints. In **chats**, search for a distinctive word from an older
+chat and open a result to read the original message.
 
-You can also [search from the terminal](search.md#your-first-search) or
-[ask a connected agent](agents.md#try-it). If you can't find an older chat,
-check how to [include older history](indexing.md#add-older-history).
+[Search from the terminal](search.md#your-first-search) or
+[ask a connected agent](agents.md#try-it) to find a chat without opening
+the dashboard. If an older chat is missing, see how to
+[include older history](indexing.md#add-older-history).
 
 Word search needs no models. To add search by meaning, follow the
 [optional model setup](indexing.md#enable-semantic-search).

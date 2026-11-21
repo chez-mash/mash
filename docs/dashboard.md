@@ -6,7 +6,9 @@ also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tok
 and select **open the message** to see where it came from. The demo uses
 sample chats.
 
-After [installing Mash](installation.md), start the dashboard:
+Prebuilt Mash releases include the dashboard. If you compile Mash yourself,
+[build with the dashboard](install-methods.md#include-the-web-dashboard).
+After [installing Mash](installation.md), start it in a terminal.
 
 ```sh
 mash dash
@@ -22,9 +24,6 @@ asking your agent to open the Mash dashboard, does both steps for you.
 
 The dashboard has no login. Read [Keep access private](#keep-access-private)
 before changing its listening address.
-
-If you installed Mash from source, follow the
-[build steps for including the web dashboard](install-methods.md#include-the-web-dashboard).
 
 ## Set up Mash from the dashboard
 
