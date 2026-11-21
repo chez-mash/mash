@@ -94,7 +94,9 @@ The left rail is the way around. On a phone it opens from the menu button.
 - **settings:** this machine's configuration and index readiness. You can
   change which agents are indexed, the range used to find updated histories,
   whether history also goes to the shared server, memory capture and credential
-  masking. If you've set up [Mashy](#ask-mashy), you can turn it on or off and
+  masking. [Shortening the history range](privacy.md#shorten-the-history-range)
+  applies to future indexing. Chats already indexed stay searchable.
+  If you've set up [Mashy](#ask-mashy), you can turn it on or off and
   choose its model. Saving rewrites
   the file and keeps the previous one beside it as `config.toml.previous`;
   restart the watcher and reconnect agents to apply. Mashy follows its own

@@ -160,13 +160,17 @@ async function save(): Promise<void> {
       <div class="set-r" class:changed={touched.has("range")}>
         <span class="set-l">history range</span>
         <span class="set-c">
-          <span class="seg" role="group" aria-label="History range">
+          <span class="seg" role="group" aria-label="History range" aria-describedby="history-range-help">
             <button type="button" aria-pressed={draft.sinceDays === null} onclick={() => { saved = 0; if (draft) draft.sinceDays = null; }}>all history</button>
-            <button type="button" aria-pressed={draft.sinceDays !== null} onclick={() => { saved = 0; if (draft && draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>recent only</button>
+            <button type="button" aria-pressed={draft.sinceDays !== null} onclick={() => { saved = 0; if (draft && draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>recent updates</button>
           </span>
           {#if draft.sinceDays !== null}
-            <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" style:width="92px" style:margin="0 4px" value={draft.sinceDays} oninput={(event) => { saved = 0; days = event.currentTarget.valueAsNumber; if (draft) draft.sinceDays = Number.isNaN(days) ? 0 : days; }} /> days</span>
+            <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" aria-describedby="history-range-help" style:width="92px" style:margin="0 4px" value={draft.sinceDays} oninput={(event) => { saved = 0; days = event.currentTarget.valueAsNumber; if (draft) draft.sinceDays = Number.isNaN(days) ? 0 : days; }} /> days</span>
           {/if}
+          <span id="history-range-help" class="meta" style:flex-basis="100%">
+            The range applies to future indexing. Chats already indexed stay searchable.
+            <a class="a" href="https://getmash.io/privacy/#remove-a-chat" target="_blank" rel="noreferrer">How to remove an indexed chat</a>
+          </span>
         </span>
       </div>
       <div class="set-r" class:changed={touched.has("destination")}>

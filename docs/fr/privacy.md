@@ -42,6 +42,8 @@ serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 * **L’extraction de souvenirs à partir d’anciennes conversations** envoie les conversations retenues au fournisseur de l’agent auquel vous êtes connecté et que vous choisissez. Mash vous demande votre accord pendant la configuration.
   [Comment sont extraits les souvenirs](records.md#backfill-earlier-memory)
 
+<span id="try-a-small-local-setup"></span>
+
 ## Essayer Mash avec un historique limité
 
 [Essayez une recherche avec des conversations d’exemple](https://getmash.io/demo/#/search?q=invoice+exports+queue).
@@ -68,6 +70,23 @@ Vous pourrez élargir la période ou connecter un agent plus tard.
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
 [Voir ce que retire la désinstallation](uninstall.md)
 
+<span id="shorten-the-history-range"></span>
+
+## Réduire la période de l’historique
+
+Ouvrez **settings** dans le tableau de bord. Dans **history range**, choisissez
+**recent updates** (**recent only** dans les versions précédentes) et indiquez
+le nombre de jours. Choisissez **Review changes**, puis **Save to file**.
+Pour appliquer les paramètres enregistrés, exécutez
+`mash index` ou redémarrez l’indexation continue si elle est en cours.
+
+La période s’applique aux prochaines indexations. Si vous passez de 90 à
+7 jours, une conversation déjà indexée dont la dernière mise à jour remonte
+à 30 jours reste accessible par la recherche, même après une nouvelle
+indexation. Une conversation mise à jour récemment peut contenir des messages
+plus anciens. Pour retirer une conversation précise de Mash, consultez
+[Retirer une conversation](#remove-a-chat).
+
 ## Informations sensibles
 
 Par défaut, Mash masque les identifiants secrets qu’il reconnaît dans les résultats et l’historique qu’il envoie en partage. La détection peut en manquer. Relisez tout ce que vous comptez partager.
@@ -86,9 +105,13 @@ Trouvez son `chat_id` avec `mash list-chats` ou `mash search`, puis exécutez la
 mash forget CHAT_ID
 ```
 
-Mash retire la conversation de son index local et mémorise ce retrait pour ne pas la réimporter. Si le partage est activé, Mash tente aussi de transmettre la suppression. Consultez le résultat de la commande pour voir si une opération est encore en attente.
+Mash retire la conversation de sa copie locale et supprime les souvenirs
+enregistrés qui l’ont citée. Il mémorise ce retrait pour éviter de réimporter
+la conversation. Si le partage est activé, Mash tente aussi de transmettre
+la suppression. Consultez le résultat de la commande pour voir si une
+opération est encore en attente.
 
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->
+<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->

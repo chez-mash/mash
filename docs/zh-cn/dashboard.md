@@ -46,7 +46,9 @@ mash dash
 - **memory** 显示已保存的决定、偏好和事实。
 - **services** 和 **fleet manager** 显示进程、数据库、各机器上的代理设置及可用的管理操作。配置多台机器的集中管理后才会显示 **fleet manager**。[服务管理](../services.md)
 - **tool explorer** 显示代理可以调用的工具及参数。运行只读工具可以看到代理收到的响应。会写入数据的工具仅供查看。
-- **settings** 显示本机配置和索引状态。你可以选择要索引的代理、历史记录更新时间的范围、是否发布到共享索引、是否提取记忆及如何遮盖凭据。如果配置了 [Mashy](#ask-mashy)，也可以开关它或选择模型。保存时，Mash 会把上一份配置保留为 `config.toml.previous`。请重启索引监听程序并重新连接代理来应用设置。Mashy 的设置会立即生效。搜索和存储设置仅供查看。如果面板可从其他机器访问，启动时需要加上 `--services-config` 才能修改设置。
+- **settings** 显示本机配置和索引状态。你可以选择要索引的代理、历史记录更新时间的范围、是否发布到共享索引、是否提取记忆及如何遮盖凭据。
+  [缩短历史记录的时间范围](privacy.md#shorten-the-history-range)只影响之后的索引操作，已经建立索引的对话仍然可以搜到。
+  如果配置了 [Mashy](#ask-mashy)，也可以开关它或选择模型。保存时，Mash 会把上一份配置保留为 `config.toml.previous`。请重启索引监听程序并重新连接代理来应用设置。Mashy 的设置会立即生效。搜索和存储设置仅供查看。如果面板可从其他机器访问，启动时需要加上 `--services-config` 才能修改设置。
 
 右上角的按钮可以切换浅色和深色主题，浏览器会记住你的选择。
 
@@ -240,4 +242,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->
+<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->

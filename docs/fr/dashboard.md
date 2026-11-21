@@ -54,7 +54,9 @@ Sur un téléphone, utilisez le bouton de menu pour l’ouvrir.
 - **memory** réunit les décisions, préférences et faits enregistrés.
 - **services** et **fleet manager** affichent l’état des processus et des bases, la configuration des agents par machine et les actions de gestion. Le gestionnaire de parc s’affiche lorsque la gestion de plusieurs machines est configurée. [Services](../services.md)
 - **tool explorer** affiche les outils à la disposition des agents et leurs paramètres. Vous pouvez tester un outil en lecture seule pour voir la réponse que reçoit l’agent. Les outils qui écrivent des données figurent aussi dans la liste.
-- **settings** affiche la configuration de la machine et l’état de l’index. Vous pouvez choisir les agents indexés, la période de mise à jour des historiques, la publication vers l’index partagé, la capture de souvenirs et le masquage des identifiants secrets. Si [Mashy](#ask-mashy) est configuré, vous pouvez l’activer, le désactiver ou changer son modèle. Mash conserve le fichier précédent sous le nom `config.toml.previous`. Redémarrez l’indexation continue et reconnectez les agents pour appliquer ces paramètres. Mashy applique les siens aussitôt. Les paramètres de recherche et de stockage sont consultables. Pour les modifications depuis un tableau de bord accessible à d’autres machines, démarrez-le avec `--services-config`.
+- **settings** affiche la configuration de la machine et l’état de l’index. Vous pouvez choisir les agents indexés, la période de mise à jour des historiques, la publication vers l’index partagé, la capture de souvenirs et le masquage des identifiants secrets.
+  [Réduire la période de l’historique](privacy.md#shorten-the-history-range) s’applique aux prochaines indexations. Les conversations déjà indexées restent accessibles par la recherche.
+  Si [Mashy](#ask-mashy) est configuré, vous pouvez l’activer, le désactiver ou changer son modèle. Mash conserve le fichier précédent sous le nom `config.toml.previous`. Redémarrez l’indexation continue et reconnectez les agents pour appliquer ces paramètres. Mashy applique les siens aussitôt. Les paramètres de recherche et de stockage sont consultables. Pour les modifications depuis un tableau de bord accessible à d’autres machines, démarrez-le avec `--services-config`.
 
 Le bouton en haut à droite alterne entre les thèmes clair et sombre. Le navigateur mémorise votre choix.
 
@@ -252,4 +254,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->
+<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->

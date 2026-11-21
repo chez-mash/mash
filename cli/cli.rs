@@ -110,7 +110,7 @@ enum Command {
         /// With --full, discard all local views and replay it from silver.
         #[arg(long, conflicts_with_all = ["watch", "provider", "since_days", "all_history"])]
         rebuild_local_views: bool,
-        /// Recreate all derived search state.
+        /// Checkpoint stored history. Combine with --rebuild-local-views to rebuild local search.
         #[arg(long, conflicts_with = "watch")]
         full: bool,
         /// Keep indexes synchronized until interrupted.

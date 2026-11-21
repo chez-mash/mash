@@ -81,6 +81,19 @@ If you decide to stop, run `mash uninstall` to preview removal. When you
 confirm, Mash removes its own index and services and keeps your agents'
 original chats. [See what uninstall removes](uninstall.md)
 
+## Shorten the history range
+
+In the dashboard, open **settings**. Under **history range**, choose **recent updates**
+(**recent only** in older versions) and enter the number of days. Choose **Review changes**,
+then **Save to file**.
+Run `mash index` to use the new range, or restart a running watcher so it reads
+the saved settings.
+
+The range applies to future indexing. If you change it from 90 days to 7, a
+chat last updated 30 days ago that Mash already indexed stays searchable,
+even after another index run. A recently updated chat can still contain older
+messages. To remove a specific chat from Mash, see [Remove a chat](#remove-a-chat).
+
 ## Sensitive information
 
 Mash masks recognizable credentials in results and outgoing shared history by
@@ -101,9 +114,9 @@ Find its `chat_id` with `mash list-chats` or `mash search`, then run:
 mash forget CHAT_ID
 ```
 
-Mash removes the local chat and remembers not to import it again. With sharing
-enabled, it also attempts to publish the removal; check the command's result
-for any pending work.
+Mash removes the local chat and any saved memories that have cited it. Mash
+remembers not to import the chat again. With sharing enabled, it also attempts
+to publish the removal. Check the command's result for any pending work.
 
 This does not delete the agent's original files, earlier backups, or copies
 independently indexed on another machine. There is no undo command. Make

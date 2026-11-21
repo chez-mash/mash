@@ -495,6 +495,30 @@ for (const [locale, lang, title, help] of [
   });
 }
 
+for (const [locale, lang] of [
+  ["", "en"],
+  ["/es", "es"],
+  ["/fr", "fr"],
+  ["/zh-cn", "zh-CN"],
+  ["/ja", "ja"],
+]) {
+  test(`the ${lang} history range guidance leads to deliberate removal`, async ({ page }) => {
+    const guide = page.locator(".sl-markdown-content");
+    const privacy = `${locale}/privacy/`;
+    const range = `${privacy}#shorten-the-history-range`;
+    await page.goto(`${locale}/dashboard/#the-rail`);
+    await guide.locator(`a[href="${range}"]`).click();
+    await expect(page).toHaveURL(range);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator("#shorten-the-history-range")).toBeAttached();
+    await expect(guide.getByText("Save to file", { exact: true })).toBeVisible();
+    await guide.locator('a[href="#remove-a-chat"]:not(.sl-anchor-link)').click();
+    await expect(page).toHaveURL(`${privacy}#remove-a-chat`);
+    await expect(page.locator("#remove-a-chat")).toBeAttached();
+    await expect(guide.locator("pre").filter({ hasText: /^mash forget CHAT_ID$/ })).toBeVisible();
+  });
+}
+
 for (const [locale, lang, title] of [
   ["es", "es", "Incluye conversaciones antiguas y busca por significado"],
   ["fr", "fr", "Inclure les conversations plus anciennes et chercher par le sens"],

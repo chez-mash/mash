@@ -154,8 +154,14 @@ for (const width of [390, 1280]) {
     await expect(page.getByRole("main").getByRole("switch")).toHaveCount(5);
 
     await page.getByRole("switch", { name: "Index Cursor" }).click();
-    await page.getByRole("button", { name: "recent only" }).click();
-    await page.getByRole("spinbutton", { name: "Days of history" }).fill("30");
+    await page.getByRole("button", { name: "recent updates" }).click();
+    const range = page.getByRole("spinbutton", { name: "Days of history" });
+    await expect(range).toHaveAccessibleDescription(/Chats already indexed stay searchable/);
+    await expect(page.getByRole("link", { name: "How to remove an indexed chat" })).toHaveAttribute(
+      "href",
+      "https://getmash.io/privacy/#remove-a-chat",
+    );
+    await range.fill("30");
     await page.getByRole("switch", { name: "Hide credentials when publishing" }).click();
     await expect(
       page.getByText(/publishes all of this machine's history again, including credentials/),

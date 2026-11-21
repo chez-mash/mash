@@ -92,6 +92,23 @@ Más adelante puedes ampliar el período o conectar un agente.
 conversaciones originales de tus agentes.
 [Cómo desinstalar Mash](uninstall.md)
 
+<span id="shorten-the-history-range"></span>
+
+## Acorta el período del historial
+
+Abre **settings** en el panel. En **history range**, elige **recent updates**
+(**recent only** en versiones anteriores) e introduce el número de días.
+Pulsa **Review changes** y luego **Save to file**.
+Ejecuta `mash index` para usar el nuevo período, o reinicia la vigilancia si
+está en marcha para que lea la configuración guardada.
+
+El período se aplica a las próximas indexaciones. Si pasas de 90 a 7 días,
+una conversación que se actualizó por última vez hace 30 días y que Mash ya
+indexó sigue apareciendo en las búsquedas, incluso después de volver a
+indexar. Una conversación actualizada hace poco puede contener mensajes
+más antiguos. Para quitar una en concreto de Mash, consulta
+[Quita una conversación](#remove-a-chat).
+
 <span id="sensitive-information"></span>
 
 ## Credenciales y copias
@@ -115,13 +132,14 @@ Busca su `chat_id` con `mash list-chats` o `mash search` y ejecuta este comando.
 mash forget CHAT_ID
 ```
 
-Mash quita la conversación del índice local y evita volver a importarla.
-Si compartes tu historial, también intenta aplicar la eliminación en el
-servidor. Revisa el resultado para ver si quedó algo pendiente.
+Mash quita la conversación de la copia local y elimina los recuerdos
+guardados que la hayan citado. También evita volver a importar la conversación.
+Si compartes tu historial, Mash intenta aplicar la eliminación en el servidor.
+Revisa el resultado del comando para ver si quedó algo pendiente.
 
 Se conservan los archivos originales del agente, las copias de seguridad
 anteriores y las copias indexadas por separado en otros equipos. La operación
 no se puede deshacer. Si puedes necesitar la conversación más adelante,
 haz antes [una copia de seguridad](backup.md#make-a-portable-backup).
 
-<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->
+<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->

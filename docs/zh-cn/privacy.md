@@ -33,6 +33,8 @@
 * **从旧对话补录记忆** 会将选定的历史对话发送给你所选且已登录的代理的模型提供商。Mash 会在设置时询问你是否执行此操作。
   [了解如何补录记忆](records.md#backfill-earlier-memory)
 
+<span id="try-a-small-local-setup"></span>
+
 ## 用少量本地历史试用
 
 可以先[在演示中搜索示例对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)。
@@ -47,6 +49,18 @@
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
 [查看卸载会删除什么](uninstall.md)
+
+<span id="shorten-the-history-range"></span>
+
+## 缩短历史记录的时间范围
+
+在网页面板中打开 **settings**。在 **history range** 下选择 **recent updates**（旧版本称为 **recent only**），输入天数。
+选择 **Review changes**，再选择 **Save to file**。运行 `mash index` 以使用新的时间范围。
+如果索引监听程序正在运行，也可以重启它，让它读取已保存的设置。
+
+新的时间范围适用于之后的索引操作。比如，把范围从 90 天缩短到 7 天后，
+即使再次运行索引，30 天前最后更新且已建立索引的对话仍然可以搜到。
+最近更新的对话也可能含有更早的消息。要从 Mash 中移除某条对话，请参阅[从 Mash 中移除一条对话](#remove-a-chat)。
 
 ## 敏感信息
 
@@ -66,9 +80,10 @@
 mash forget CHAT_ID
 ```
 
-Mash 会从本机移除这条对话，并记住以后不要再导入它。启用共享后，Mash 也会尝试同步这次移除。请查看命令结果，确认是否还有操作待完成。
+Mash 会从本机移除这条对话以及引用过它的已保存记忆，并记住以后不要再导入这条对话。
+启用共享后，Mash 也会尝试将这次移除同步到共享索引。请查看命令结果，确认是否还有操作待完成。
 
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: 7b9eeff5207bd367e19aa8c57595278671d0fcfed7f5321ce54f69b45d381883 -->
+<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->

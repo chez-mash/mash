@@ -33,6 +33,7 @@ those above are examples. Original provider files are never modified.
 `since_days` defaults to 90. To include all ages, replace it with
 `all_history = true`; do not set both. One-off indexing flags such as
 `--all-history` override the configured age selection.
+[What happens when you shorten the history range](privacy.md#shorten-the-history-range)
 
 ## Connected agents
 

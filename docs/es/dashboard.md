@@ -53,7 +53,9 @@ En el teléfono se abre con el botón de menú.
 - **memory** reúne decisiones, preferencias y hechos guardados.
 - **services** y **fleet manager** muestran el estado de procesos y bases de datos, la configuración de agentes por equipo y las acciones de gestión. **fleet manager** aparece donde se ha configurado la gestión de varios equipos. [Servicios](../services.md)
 - **tool explorer** muestra las herramientas y parámetros disponibles para los agentes. Puedes probar una herramienta de solo lectura y ver su respuesta. Las herramientas que cambian datos aparecen en la lista.
-- **settings** muestra la configuración del equipo y el estado del índice. Puedes elegir qué historiales se indexan, el intervalo en el que deben haberse actualizado, si también se comparten, si se guardan recuerdos y si se ocultan credenciales. Si has configurado [Mashy](#ask-mashy), puedes activarlo, desactivarlo o elegir su modelo. Al guardar, Mash reescribe la configuración y conserva `config.toml.previous`. Reinicia la vigilancia y vuelve a conectar los agentes para aplicar los ajustes. Mashy aplica los suyos al momento. Los ajustes de búsqueda y almacenamiento son de consulta. Si otros equipos pueden acceder al panel, se requiere `--services-config` para cambiar ajustes desde el navegador.
+- **settings** muestra la configuración del equipo y el estado del índice. Puedes elegir qué historiales se indexan, el intervalo en el que deben haberse actualizado, si también se comparten, si se guardan recuerdos y si se ocultan credenciales.
+  [Acortar el período del historial](privacy.md#shorten-the-history-range) afecta a las próximas indexaciones. Puedes seguir buscando en las conversaciones ya indexadas.
+  Si has configurado [Mashy](#ask-mashy), puedes activarlo, desactivarlo o elegir su modelo. Al guardar, Mash reescribe la configuración y conserva `config.toml.previous`. Reinicia la vigilancia y vuelve a conectar los agentes para aplicar los ajustes. Mashy aplica los suyos al momento. Los ajustes de búsqueda y almacenamiento son de consulta. Si otros equipos pueden acceder al panel, se requiere `--services-config` para cambiar ajustes desde el navegador.
 
 El botón de arriba a la derecha alterna entre el tema claro y el oscuro. El navegador recuerda tu elección.
 
@@ -251,4 +253,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 70f86dcce9ef82282e1feee6ee969ccf2b268f7aaebcf57dde54b5b74c420239 -->
+<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->
