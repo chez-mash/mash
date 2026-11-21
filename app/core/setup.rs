@@ -114,11 +114,10 @@ pub struct InitReport {
 }
 
 impl InitResponse {
-    /// `indexing` says the caller has started the first index itself, so the
-    /// closing advice to run `mash index`, added last when `init` does not
-    /// index, is left out.
-    pub fn into_report(mut self, indexing: bool) -> InitReport {
-        if indexing && self.index.is_none() {
+    /// The dashboard presents index status and next steps separately, so omit
+    /// the trailing terminal advice to run `mash index`.
+    pub fn into_report(mut self) -> InitReport {
+        if self.index.is_none() {
             self.next.pop();
         }
         InitReport {

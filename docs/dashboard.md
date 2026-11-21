@@ -34,8 +34,8 @@ before changing its listening address.
 You can do first-run setup in the browser instead of running `mash init` in a
 terminal. Start `mash dash` and open the dashboard: on a machine with no
 configuration it opens on setup by itself, as a screen of its own without the
-rail or search. **Skip to the dashboard** leaves it; **settings** has a link
-back, which is also how you go through setup again later.
+rail or search. **Skip to the dashboard** leaves it. Later, open **settings**
+to return to setup and [connect an agent without indexing again](agents.md#connect-claude-code-codex-or-copilot).
 
 Review the histories Mash found, the history range, and the installed agents it
 can connect so they can search. **Show history folders** lists the paths. For a

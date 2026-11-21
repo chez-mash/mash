@@ -22,7 +22,7 @@ Avec les réglages par défaut, le tableau de bord local s’ouvre sans authenti
 
 ## Configurer Mash depuis le tableau de bord
 
-Vous pouvez faire la première configuration dans le navigateur à la place de `mash init`. Lancez `mash dash` et ouvrez le tableau de bord. Sur une machine sans configuration, l’assistant s’affiche sur un écran sans barre latérale ni recherche. **Skip to the dashboard** permet d’accéder au tableau de bord. Vous pouvez revenir à la configuration depuis **settings**.
+Vous pouvez faire la première configuration dans le navigateur à la place de `mash init`. Lancez `mash dash` et ouvrez le tableau de bord. Sur une machine sans configuration, l’assistant s’affiche sur un écran sans barre latérale ni recherche. **Skip to the dashboard** permet d’accéder au tableau de bord. Depuis **settings**, vous pouvez revenir à la configuration pour [connecter un agent sans relancer l’indexation](agents.md#connect-claude-code-codex-or-copilot).
 
 Vérifiez les historiques trouvés, la période et les agents que Mash peut connecter pour qu’ils puissent faire des recherches. **Show history folders** affiche les emplacements. Par défaut, une nouvelle configuration indexe les 90 derniers jours sur cette machine. Choisissez **Set up and index** pour valider ou **Customize setup** pour modifier les historiques, la période ou les connexions des agents.
 
@@ -252,4 +252,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->
+<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->

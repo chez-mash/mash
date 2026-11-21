@@ -80,17 +80,28 @@ let custom = $state(90);
 const blocked = $derived(file && answers ? problem(file, answers) : "");
 const review = $derived(file && answers ? summary(file, answers, names) : []);
 const histories = $derived(file && answers ? selectedHistories(file, answers) : []);
+const canKeepIndex = $derived.by(() => {
+  if (!file?.configured || !answers || file.sinceDays !== answers.sinceDays) return false;
+  const { agents } = answers;
+  return file.histories.every((entry) => (agents[entry.agent] ?? entry.indexed) === entry.indexed);
+});
 const installedAgents = $derived(file?.integrations.filter((entry) => entry.installed) ?? []);
 
 let running = $state(false);
 let failure = $state("");
 let outcome = $state<Outcome | null>(null);
+let savedIndex = $state<"requested" | "deferred" | "kept">("deferred");
+const indexRun = $derived(savedIndex === "requested" ? file?.index : undefined);
+const indexed = $derived(indexRun?.state === "finished" && indexRun.ok);
+const openChats = $derived(indexed || savedIndex === "kept");
 async function run(index: boolean): Promise<void> {
   if (!file?.editable || !answers || running || blocked || (index && !searchServiceReady)) return;
+  const indexChoice = index ? "requested" : canKeepIndex ? "kept" : "deferred";
   running = true;
   failure = "";
   try {
     const done = await runSetup(file, answers, index);
+    savedIndex = indexChoice;
     outcome = done.outcome;
     queryClient.setQueryData(firstRunKey, done.setup);
     await Promise.all([
@@ -243,7 +254,7 @@ function toggleConnect(agent: Integration): void {
       {#if step === "agents"}
         <p class="meta">It is done by the agent's own command-line tool, which edits that agent's user settings and installs the Mash plugin. The last screen lists the files it touched and the commands that undo it. Other agents' histories are still indexed without this.</p>
       {:else if step === "review"}
-        {#if file.editable && installedAgents.length && !file.configured && at === null}
+        {#if file.editable && installedAgents.length && at === null}
           <details class="fold">
             <summary>Choose agents to connect</summary>
             <div>
@@ -281,11 +292,11 @@ function toggleConnect(agent: Integration): void {
           {@const next = at + 1}
           <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
         {:else if file.editable}
-          {#if !searchServiceReady || at !== null}
-            <button class="btn" class:p={!searchServiceReady} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
+          {#if !searchServiceReady || at !== null || file.configured}
+            <button class="btn" class:p={!searchServiceReady || canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
           {/if}
           {#if searchServiceReady}
-            <button class="btn p" type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}>Set up and index</button>
+            <button class="btn" class:p={!canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}>Set up and index</button>
           {/if}
         {/if}
       </div>
@@ -296,35 +307,37 @@ function toggleConnect(agent: Integration): void {
       <h1 class="setup-q">Setup is saved</h1>
       <p class="meta setup-help" style:overflow-wrap="anywhere">Configuration {outcome.written ? "written to" : "kept at"} {outcome.path}{#if outcome.previous}; the previous file is at {outcome.previous}{/if}</p>
 
-      <section class="setup-card" aria-label="First index">
-        <div class="setup-pick">
-          <strong>First index</strong>
-          {#if file.index.state === "running"}
-            <p class="meta" role="status">Indexing your history in the background. This screen follows it; you can also open the dashboard now, and chats appear as they are saved.</p>
-          {:else if file.index.state === "finished"}
-            {#if file.index.ok}
-              <p class="ok" role="status" style:display="flex" style:gap="7px" style:align-items="center"><Check size={16} aria-hidden="true" />Indexed {(file.index.chats ?? 0).toLocaleString()} chats and {(file.index.messages ?? 0).toLocaleString()} messages.</p>
-              {#if file.index.message}<p class="meta warn" style:overflow-wrap="anywhere">{file.index.message}</p>{/if}
+      {#if savedIndex !== "kept"}
+        <section class="setup-card" aria-label="First index">
+          <div class="setup-pick">
+            <strong>First index</strong>
+            {#if indexRun?.state === "running"}
+              <p class="meta" role="status">Indexing your history in the background. This screen follows it; you can also open the dashboard now, and chats appear as they are saved.</p>
+            {:else if indexRun?.state === "finished"}
+              {#if indexRun.ok}
+                <p class="ok" role="status" style:display="flex" style:gap="7px" style:align-items="center"><Check size={16} aria-hidden="true" />Indexed {(indexRun.chats ?? 0).toLocaleString()} chats and {(indexRun.messages ?? 0).toLocaleString()} messages.</p>
+                {#if indexRun.message}<p class="meta warn" style:overflow-wrap="anywhere">{indexRun.message}</p>{/if}
+              {:else}
+                <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing stopped: {indexRun.message ?? "it did not say why."}</p>
+              {/if}
+            {:else if indexRun?.state === "skipped"}
+              <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing was not started: {indexRun.reason}</p>
             {:else}
-              <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing stopped: {file.index.message ?? "it did not say why."}</p>
+              <p class="meta">Indexing was skipped.</p>
             {/if}
-          {:else if file.index.state === "skipped"}
-            <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing was not started: {file.index.reason}</p>
-          {:else}
-            <p class="meta">Indexing was skipped.</p>
-          {/if}
-          {#if file.index.state !== "running" && !(file.index.state === "finished" && file.index.ok)}
-            {#if searchServiceReady}
-              <p class="meta">Run this in a terminal on this machine to index your history.</p>
-              {@render command("mash index")}
-            {:else}
-              {@render searchServiceProblem(file.qdrant)}
+            {#if !indexed && indexRun?.state !== "running"}
+              {#if searchServiceReady}
+                <p class="meta">Run this in a terminal on this machine to index your history.</p>
+                {@render command("mash index")}
+              {:else}
+                {@render searchServiceProblem(file.qdrant)}
+              {/if}
             {/if}
-          {/if}
-        </div>
-      </section>
+          </div>
+        </section>
+      {/if}
 
-      {#if file.index.state === "finished" && file.index.ok}
+      {#if indexed}
         <details class="fold">
           <summary>Search by meaning</summary>
           {#if !file.modelsInstalled}
@@ -336,6 +349,9 @@ function toggleConnect(agent: Integration): void {
       {/if}
 
       {#if outcome.agents.length}
+        {#if outcome.agents.some((agent) => stepWord(agent.mcp).ok)}
+          <p class="meta">Start a new session in the connected agent, then <a class="a" href="https://getmash.io/agents/#try-it" target="_blank" rel="noreferrer">ask it to find a past chat</a>.</p>
+        {/if}
         <section class="setup-card" aria-label="Connected agents">
           {#each outcome.agents as agent (agent.agent)}
             {@const mcp = stepWord(agent.mcp)}
@@ -372,7 +388,7 @@ function toggleConnect(agent: Integration): void {
 
       <div class="setup-acts">
         <span class="sp"></span>
-        <a class="btn p" href={file.index.state === "finished" && file.index.ok ? "#/search" : "#/"} onclick={skipSetup}>{file.index.state === "finished" && file.index.ok ? "Open your chats" : "Open the dashboard"}</a>
+        <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}>{openChats ? "Open your chats" : "Open the dashboard"}</a>
       </div>
       <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">mash init</code>.</p>
     {/if}

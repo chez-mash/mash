@@ -12,7 +12,19 @@
 ## 设置后再连接代理
 
 第一次使用 Mash 时，请按[快速入门](quick-start.md)操作，在提示时选择想连接的代理。
-如果已经能在 Mash 中搜索对话，请在终端中运行以下命令，即可在无须重新索引的情况下连接代理。
+如果已经能在 Mash 中搜索对话，可以直接添加连接，无需重新索引。
+
+### 在浏览器中
+
+1. 打开 **settings**，选择 **Connect an agent**。如果你的版本显示的是 **go through setup**，请选择该链接。
+2. 保留已选的历史记录和日期范围。打开 **Choose agents to connect**，选择要连接的代理。较早的版本可能需要进入 **Customize setup**，或在历史记录页面选择 **Next** 后才能看到代理选项。取消选中这次不想配置的代理。
+3. 选择 **Set up without indexing**。在代理中开启新会话，[试着搜索一下](#try-it)。
+
+Mash 会在运行网页面板的电脑上查找代理的命令。如果刚安装代理或刚将其加入 `PATH`，请从能运行该命令的终端重启面板。如果面板是只读的，请在那台电脑上按下述步骤在终端中操作。
+
+### 在终端中
+
+打开设置向导并跳过索引。
 
 ```bash
 mash init --no-index
@@ -71,6 +83,8 @@ GitHub Copilot CLI 使用 `~/.copilot/mcp-config.json`、`~/.copilot/config.json
 
 ## 检查代理是否已连接
 
+在已连接的代理中开启新会话，让它用 Mash 查找一条你已经能在网页面板中找到的对话。如果代理找不到 Mash，请检查这台电脑上的连接配置。
+
 ```bash
 mash status --installation
 ```
@@ -104,6 +118,7 @@ mash status --installation --agent claude-code --probe
 在支持的版本中可使用 `--agent copilot`。使用 v0.1.1-alpha 时，请[在 Copilot CLI 中检查连接](plugin.md#github-copilot-cli)。
 
 此检查验证的是新进程中的连接。设置、修复或升级完成后，请重启代理，让连接在对话中生效。
+如果提示项目配置可能覆盖连接，请在项目目录之外运行检查，核对用户级连接。项目自身的连接请在代理中检查。
 
 <span id="keep-new-chats-searchable"></span>
 
@@ -142,4 +157,4 @@ copilot plugin uninstall mash@mash
 
 [解决常见连接问题](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: 8477458114d5b9d54fe3843a95827a8da4afee33c21ab223158453c2a50793f0 -->
+<!-- mash-docs-source: 9eefd5390c868ddde79cb2de929c06967a270e9fc40f875d4b1e1587129f6907 -->

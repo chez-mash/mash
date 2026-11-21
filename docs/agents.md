@@ -13,9 +13,28 @@ For a different agent with a local MCP server option, [connect it manually](mcp.
 ## Connect an agent after setup
 
 If this is your first time, follow the [quick start](../README.md#quick-start)
-and choose the agents you want to connect when asked. If your chats are
-already searchable in Mash, run this in a terminal to add an agent
-connection without indexing again:
+and choose the agents you want to connect when asked. Once your chats are
+searchable, you can add a connection without indexing them again.
+
+### In the browser
+
+1. In **settings**, choose **Connect an agent**. If your version calls the
+   link **go through setup**, use that link instead.
+2. Keep the history and date choices. Open **Choose agents to connect** and
+   select the agents you want. Older versions may show the agent choices
+   under **Customize setup** or after you choose **Next** on the history
+   screens. Clear any agents you do not want to set up.
+3. Select **Set up without indexing**. Start a new session in the agent and
+   [try a search](#try-it).
+
+Mash looks for the agent's CLI on the computer running the dashboard. If you
+just installed the agent or added it to `PATH`, restart the dashboard from a
+terminal where that command works. If the dashboard is read-only, follow the
+terminal steps on that computer.
+
+### In a terminal
+
+Open the setup wizard with indexing disabled.
 
 ```bash
 mash init --no-index
@@ -91,6 +110,10 @@ use Mash.
 
 ## Check whether the agent is connected
 
+Start a new session in the agent you connected. Ask it to use Mash to find
+a chat you can already find in the dashboard. If it cannot see Mash, check
+what is registered on that computer.
+
 ```bash
 mash status --installation
 ```
@@ -130,6 +153,9 @@ Use `--agent copilot` in builds that offer it. For v0.1.1-alpha,
 
 A successful probe verifies a new process, not the connection in an
 already-open chat. Restart the agent after setup, repairs, or upgrades.
+If the probe reports that project settings may override the connection, run
+it outside the project to check the user-level registration. Check the
+project's connections inside your agent.
 
 <span id="keep-new-chats-searchable"></span>
 

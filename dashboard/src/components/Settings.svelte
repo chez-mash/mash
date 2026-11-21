@@ -132,7 +132,10 @@ async function save(): Promise<void> {
   {/if}
 
   <section class="set-s">
-    <h2 class="h2"><Bot size={15} aria-hidden="true" />agent histories</h2>
+    <div class="hd">
+      <h2 class="h2"><Bot size={15} aria-hidden="true" />agent histories</h2>
+      {#if config.loaded && file?.editable}<a class="a meta" href="#/setup">Connect an agent</a>{/if}
+    </div>
     {#if file && draft}
       {#each file.agents as entry (entry.agent)}
         {@const on = draft.agents[entry.agent] ?? entry.indexed}
@@ -272,7 +275,7 @@ async function save(): Promise<void> {
       <p class="meta">Not configured. This machine's history stays local.</p>
     {/if}
   </section>
-  <p class="meta">How search works and where data is stored are shown, not offered as choices. Change those in the configuration file. To choose histories and connect agents again from the start, <a class="a" href="#/setup">go through setup</a>.</p>
+  <p class="meta">To change the search engine or storage settings, edit the configuration file.</p>
 {/if}
 
 {#if file?.editable && (changed.length || saved || failure)}

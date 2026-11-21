@@ -694,6 +694,38 @@ async fn setup_runs_only_where_the_dashboard_is_private_and_against_the_file_it_
         assert_eq!(stale.status(), reqwest::StatusCode::BAD_REQUEST);
     }
     assert!(!config.exists());
+
+    std::fs::write(
+        &config,
+        format!(
+            "version = 1\n\n[providers.codex]\nroots = ['{}']\n",
+            directory.path().join("codex").display()
+        ),
+    )
+    .unwrap();
+    let view: serde_json::Value = client
+        .get(&urls[0])
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let saved: serde_json::Value = client
+        .post(&urls[0])
+        .json(&choice(view["revision"].as_str().unwrap()))
+        .send()
+        .await
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(saved["setup"]["index"]["state"], "idle");
+    for line in saved["report"]["next"].as_array().unwrap() {
+        assert!(!line.as_str().unwrap().contains("mash index"), "{saved}");
+    }
 }
 
 #[tokio::test]

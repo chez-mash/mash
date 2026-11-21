@@ -37,6 +37,11 @@ test("visitors can check which histories Mash reads and which agents it connects
   await expect(page).toHaveURL(/\/agents\/#connect-claude-code-codex-or-copilot$/);
   await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
   await expect(page.getByRole("heading", { name: "Connect an agent after setup" })).toBeVisible();
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.getByRole("heading", { name: "In the browser" })).toBeVisible();
+  await expect(guide.getByText("Connect an agent", { exact: true })).toBeVisible();
+  await expect(guide.getByText("Set up without indexing", { exact: true }).first()).toBeVisible();
+  await expect(guide.getByRole("heading", { name: "In a terminal" })).toBeVisible();
   await page.getByRole("link", { name: "connect Copilot CLI manually" }).click();
   await expect(page).toHaveURL(/\/plugin\/#github-copilot-cli$/);
   await expect(

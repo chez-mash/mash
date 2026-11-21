@@ -263,9 +263,8 @@ async fn run(state: &Dash, choice: Choice) -> Result<Done, AppError> {
     if choice.index {
         start_index(state).await;
     }
-    let indexing = matches!(index_state(), IndexRun::Running | IndexRun::Finished { .. });
     Ok(Done {
-        report: response.into_report(choice.index && indexing),
+        report: response.into_report(),
         setup: describe(state).await?,
     })
 }

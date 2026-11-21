@@ -13,9 +13,28 @@ Para otro agente compatible con servidores MCP locales, [configura la conexión 
 ## Conecta un agente después de configurar Mash
 
 Si es tu primera vez, sigue la [guía de inicio rápido](quick-start.md) y
-elige los agentes que quieras conectar cuando se te pregunte. Si ya puedes
-buscar tus conversaciones en Mash, ejecuta este comando en una terminal
-para añadir una conexión sin volver a indexar:
+elige los agentes que quieras conectar cuando se te pregunte. Una vez que
+puedas buscar tus conversaciones, puedes añadir una conexión sin volver a indexar.
+
+### En el navegador
+
+1. En **settings**, elige **Connect an agent**. Si el enlace de tu versión
+   se llama **go through setup**, elige ese.
+2. Conserva los historiales y el intervalo de fechas. Abre **Choose agents to connect**
+   y elige los agentes que quieras. Algunas versiones muestran esas opciones en
+   **Customize setup** o después de elegir **Next** en las pantallas de historial.
+   Desmarca los agentes que no quieras configurar.
+3. Elige **Set up without indexing**. Inicia una sesión nueva en el agente
+   y [prueba una búsqueda](#try-it).
+
+Mash busca el comando del agente en el equipo donde se ejecuta el panel. Si
+acabas de instalar el agente o de añadirlo a `PATH`, reinicia el panel desde
+una terminal donde funcione ese comando. Si el panel es de solo lectura,
+sigue los pasos de terminal en ese equipo.
+
+### En la terminal
+
+Abre el asistente con la indexación desactivada.
 
 ```bash
 mash init --no-index
@@ -91,6 +110,10 @@ pídele al agente que use Mash.
 
 ## Comprueba la conexión del agente
 
+Inicia una sesión nueva en el agente que conectaste. Pídele que use Mash
+para buscar una conversación que ya encuentres en el panel. Si el agente no
+ve Mash, comprueba qué está registrado en ese equipo.
+
 ```bash
 mash status --installation
 ```
@@ -133,6 +156,9 @@ Usa `--agent copilot` en las versiones que ofrecen esa opción. Con v0.1.1-alpha
 La prueba comprueba una conexión nueva. Para que los cambios se apliquen
 a tus conversaciones, reinicia el agente después de configurar, reparar o
 actualizar Mash.
+Si la prueba indica que la configuración del proyecto puede modificar la
+conexión, ejecútala fuera del proyecto para verificar el registro de usuario.
+Comprueba las conexiones del proyecto desde el propio agente.
 
 <span id="keep-new-chats-searchable"></span>
 
@@ -176,4 +202,4 @@ e incluye las variables de entorno que necesites.
 
 [Solución de problemas de conexión](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: 8477458114d5b9d54fe3843a95827a8da4afee33c21ab223158453c2a50793f0 -->
+<!-- mash-docs-source: 9eefd5390c868ddde79cb2de929c06967a270e9fc40f875d4b1e1587129f6907 -->

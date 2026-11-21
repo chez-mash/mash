@@ -13,9 +13,30 @@ Pour un autre agent compatible avec un serveur MCP local, [configurez la connexi
 ## Connecter un agent après la configuration
 
 Pour une première installation, suivez le [guide de démarrage rapide](quick-start.md)
-et choisissez les agents à connecter lorsqu’on vous le demande. Si vos
-conversations sont déjà accessibles dans Mash, ouvrez un terminal et
-lancez cette commande pour connecter un agent sans relancer l’indexation.
+et choisissez les agents à connecter lorsqu’on vous le demande. Dès que
+vos conversations sont accessibles dans Mash, vous pouvez ajouter une
+connexion sans relancer l’indexation.
+
+### Dans le navigateur
+
+1. Dans **settings**, choisissez **Connect an agent**. Si votre version
+   affiche **go through setup**, utilisez ce lien.
+2. Gardez les historiques et la période choisis. Ouvrez **Choose agents to connect**
+   et sélectionnez les agents souhaités. Selon votre version, ces choix
+   figurent dans **Customize setup** ou après **Next** sur les écrans
+   d’historique. Décochez les agents que vous ne voulez pas configurer.
+3. Choisissez **Set up without indexing**. Ouvrez une nouvelle session de
+   l’agent et [essayez une recherche](#try-it).
+
+Mash cherche la commande de l’agent sur l’ordinateur qui exécute le tableau
+de bord. Si vous venez d’installer l’agent ou de l’ajouter au `PATH`, relancez
+le tableau de bord depuis un terminal où cette commande fonctionne. Si le
+tableau de bord est en lecture seule, suivez les étapes du terminal sur cet
+ordinateur.
+
+### Dans le terminal
+
+Ouvrez l’assistant avec l’indexation désactivée.
 
 ```bash
 mash init --no-index
@@ -92,6 +113,10 @@ du module ou demandez à l’agent d’utiliser Mash.
 
 ## Vérifier la connexion de l’agent
 
+Ouvrez une nouvelle session de l’agent connecté. Demandez-lui d’utiliser Mash
+pour retrouver une conversation que vous trouvez déjà dans le tableau de bord.
+Si l’agent n’a pas accès à Mash, vérifiez la connexion enregistrée sur cet ordinateur.
+
 ```bash
 mash status --installation
 ```
@@ -135,6 +160,9 @@ v0.1.1-alpha, [vérifiez la connexion depuis Copilot CLI](plugin.md#github-copil
 Ce test vérifie une nouvelle connexion. Redémarrez l’agent après une
 configuration, une réparation ou une mise à jour pour que la connexion
 soit prise en compte dans vos conversations.
+Si le test signale que les réglages du projet peuvent remplacer la connexion,
+relancez-le hors du projet pour vérifier l’enregistrement au niveau de votre
+compte. Vérifiez les connexions du projet dans l’agent.
 
 <span id="keep-new-chats-searchable"></span>
 
@@ -178,4 +206,4 @@ ajoutez les variables d’environnement dont votre configuration a besoin.
 
 [Résoudre les problèmes de connexion](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: 8477458114d5b9d54fe3843a95827a8da4afee33c21ab223158453c2a50793f0 -->
+<!-- mash-docs-source: 9eefd5390c868ddde79cb2de929c06967a270e9fc40f875d4b1e1587129f6907 -->

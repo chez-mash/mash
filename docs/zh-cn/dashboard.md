@@ -20,7 +20,7 @@ mash dash
 
 ## 在网页面板中设置 Mash
 
-第一次设置可以在浏览器完成。运行 `mash dash` 并打开网页面板。没有配置文件时，面板会直接显示设置页面，此时不会显示侧栏和搜索框。选择 **Skip to the dashboard** 即可进入面板，之后可在 **settings** 中回到设置。也可以在终端用 `mash init` 设置。
+第一次设置可以在浏览器完成。运行 `mash dash` 并打开网页面板。没有配置文件时，面板会直接显示设置页面，此时不会显示侧栏和搜索框。选择 **Skip to the dashboard** 即可进入面板，之后可从 **settings** 回到设置，[连接代理，无需重新索引](agents.md#connect-claude-code-codex-or-copilot)。也可以在终端用 `mash init` 设置。
 
 核对 Mash 找到的历史、要索引的时间范围，以及可连接的代理。**Show history folders** 会列出历史文件夹。首次设置默认会索引本机过去 90 天的历史。选择 **Set up and index** 应用当前选项，或选择 **Customize setup** 修改历史范围、来源和代理连接。
 
@@ -240,4 +240,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->
+<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->

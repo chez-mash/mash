@@ -135,6 +135,10 @@ for (const width of [390, 1280]) {
     await mock(page, settings, posts);
     await page.goto("/#/settings");
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Connect an agent" })).toHaveAttribute(
+      "href",
+      "#/setup",
+    );
     // Nothing is offered to save until something differs from the file.
     await expect(page.getByRole("region", { name: "Unsaved settings" })).toHaveCount(0);
     // Search internals are shown, never offered as a choice.
@@ -204,6 +208,7 @@ test("a dashboard that does not accept changes shows settings without controls",
   await page.goto("/#/settings");
   await expect(page.getByText(/does not change settings/)).toBeVisible();
   await expect(page.getByRole("main").getByRole("switch")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Connect an agent" })).toHaveCount(0);
   await expect(page.getByText("not indexed", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Save to file" })).toHaveCount(0);
 });

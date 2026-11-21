@@ -22,7 +22,11 @@ const detected: Wire["FirstRun"] = {
   index: { state: "idle" },
 };
 
-async function mockSetup(page: Page, initial: Wire["FirstRun"] = detected) {
+async function mockSetup(
+  page: Page,
+  initial: Wire["FirstRun"] = detected,
+  agents: Wire["InitReport"]["agents"] = [],
+) {
   let setup = initial;
   const posts: unknown[] = [];
   await page.route("**/api/**", async (route) => {
@@ -42,13 +46,13 @@ async function mockSetup(page: Page, initial: Wire["FirstRun"] = detected) {
       ...setup,
       configured: true,
       revision: "saved",
-      index: indexing ? { state: "running" } : { state: "idle" },
+      index: indexing ? { state: "running" } : setup.index,
     };
     const done: Wire["FirstRunDone"] = {
       setup,
       report: {
         config: { path: setup.path, written: true, recorded_agents: [] },
-        agents: [],
+        agents,
         next: [],
       },
     };
@@ -135,6 +139,68 @@ test("the first review lets the reader connect just the agents they choose", asy
     page.getByRole("link", { name: "Configure and index for search by meaning" }),
   ).toBeVisible();
   await expect(page.getByText("mash models install", { exact: true })).toHaveCount(0);
+});
+
+test("a configured dashboard can connect another agent without indexing history", async ({
+  page,
+}) => {
+  const { posts } = await mockSetup(
+    page,
+    {
+      ...detected,
+      configured: true,
+      revision: "current",
+      since_days: 7,
+      shared: true,
+      histories: {
+        ...detected.histories,
+        codex: { roots: ["/fixture/.codex/sessions"], indexed: false },
+      },
+      integrations: [
+        { agent: "claude-code", installed: true, connected: true },
+        { agent: "codex", installed: true, connected: false },
+      ],
+      index: { state: "finished", ok: true, chats: 10, messages: 20 },
+    },
+    [
+      {
+        agent: "codex",
+        mcp: { state: "done", command: "codex mcp add mash" },
+        plugin: { state: "done", command: "codex plugin add mash@mash" },
+        files: ["/fixture/.codex/config.toml"],
+        undo: ["codex mcp remove mash"],
+      },
+    ],
+  );
+  await page.goto("/#/setup");
+  await expect(page.getByText("the last 7 days", { exact: true })).toBeVisible();
+  await expect(page.getByText("this machine and the shared server", { exact: true })).toBeVisible();
+  await page.getByText("Choose agents to connect", { exact: true }).click();
+  await expect(page.getByRole("switch", { name: "Connect Claude Code" })).toBeChecked();
+  const codex = page.getByRole("switch", { name: "Connect Codex" });
+  await expect(codex).not.toBeChecked();
+  await codex.click();
+  expect(posts).toEqual([]);
+  await page.getByRole("button", { name: "Set up without indexing" }).click();
+  await expect(page.getByRole("heading", { name: "Setup is saved" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "First index" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Open your chats" })).toHaveAttribute(
+    "href",
+    "#/search",
+  );
+  await expect(page.getByRole("link", { name: "ask it to find a past chat" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/agents/#try-it",
+  );
+  expect(posts).toEqual([
+    {
+      revision: "current",
+      agents: { "claude-code": true, codex: false },
+      since_days: 7,
+      connect: ["claude-code", "codex"],
+      index: false,
+    },
+  ]);
 });
 
 test("custom setup keeps the chosen paths, range and connections when checking Qdrant again", async ({

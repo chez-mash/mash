@@ -22,7 +22,7 @@ El panel local se abre sin iniciar sesión en la configuración predeterminada. 
 
 ## Configura Mash desde el panel
 
-Puedes hacer la configuración inicial en el navegador en vez de ejecutar `mash init` en la terminal. Ejecuta `mash dash` y abre el panel. En un equipo sin configuración se abre directamente el asistente, en una pantalla sin barra lateral ni búsqueda. **Skip to the dashboard** te lleva al panel. Desde **settings** puedes volver al asistente cuando quieras.
+Puedes hacer la configuración inicial en el navegador en vez de ejecutar `mash init` en la terminal. Ejecuta `mash dash` y abre el panel. En un equipo sin configuración se abre directamente el asistente, en una pantalla sin barra lateral ni búsqueda. **Skip to the dashboard** te lleva al panel. Desde **settings** puedes volver al asistente para [conectar un agente sin volver a indexar](agents.md#connect-claude-code-codex-or-copilot).
 
 Revisa los historiales encontrados, el intervalo de fechas y los agentes que puedes conectar para que busquen por ti. **Show history folders** muestra las rutas. En una instalación nueva se indexan por defecto los últimos 90 días en este equipo. Elige **Set up and index** para confirmar o **Customize setup** para cambiar los historiales, el intervalo o las conexiones.
 
@@ -251,4 +251,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 59ca4cd04ec312471b8825b7ce4f78436ea27dd38afd4077b81339e84a169239 -->
+<!-- mash-docs-source: a5acd8c362c7b0be0664f6fbb283f6c2252c2b72db4761f3e059f2d69ed4d647 -->

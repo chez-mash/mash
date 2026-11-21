@@ -208,6 +208,8 @@ describe("documentation translation drafts", () => {
     const output = draft.render({ translations: draft.passages });
 
     for (const label of [
+      "Connect an agent",
+      "go through setup",
       "Use existing settings",
       "Which agents should get access to Mash search?",
       "Set up without indexing",
