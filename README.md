@@ -43,8 +43,9 @@ search on your machine and needs no account. [How Mash handles your history](doc
 
 [Español](docs/es/quick-start.md) · [Français](docs/fr/quick-start.md) · [简体中文](docs/zh-cn/quick-start.md)
 
-[Try the browser demo](https://getmash.io/demo/) with sample chats, or set up
-Mash to search your own history.
+[Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+and open a result in its conversation. To search your own chats, set up Mash
+below.
 
 Before running a command, you can [inspect the installer and check the release download](docs/installation.md#check-the-release-download).
 To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).

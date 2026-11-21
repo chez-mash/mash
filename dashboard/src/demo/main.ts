@@ -10,7 +10,7 @@ install(transport);
 // Made-up history never changes, so there is nothing to listen for.
 installEvents(undefined);
 const bar = document.createElement("div");
-document.body.append(bar);
+document.body.prepend(bar);
 mount(Banner, { target: bar });
 
 await import("../main");

@@ -1,41 +1,44 @@
 <script lang="ts">
-// Says plainly that this is a demonstration, on every page of it.
+import { recordHref, searchHref } from "../lib/route.svelte";
+import { localMachine } from "./history";
 </script>
 
 <aside class="demo" aria-label="About this demo">
-  <span><b>Demo.</b> This is a build of Mash with synthetic chat data.</span>
-  <a href="https://getmash.io/quick-start/">Install Mash</a>
+  <span>Demo with sample chats</span>
+  <nav aria-label="Demo examples">
+    <a href={searchHref({ q: "invoice exports queue" })}>Try a search</a>
+    <a href={recordHref("record-sign-in-tokens", localMachine)}>See a decision</a>
+    <a href="https://getmash.io/quick-start/">Install Mash</a>
+  </nav>
 </aside>
 
 <style>
   .demo {
-    position: fixed;
-    inset: auto 0 0;
-    z-index: 50;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 2px 14px;
-    min-height: 40px;
-    padding: 6px 14px;
+    gap: 0 18px;
+    padding: 4px 14px;
     background: var(--cream);
     color: var(--cream-ink);
     font-family: var(--sans);
     font-size: 14px;
     text-align: center;
   }
+  .demo nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 12px;
+  }
   .demo a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: inherit;
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 3px;
-  }
-  /* The page and the rail end above the bar. */
-  :global(body) {
-    padding-bottom: 40px;
-  }
-  :global(#rail) {
-    height: calc(100vh - 40px);
   }
 </style>

@@ -1,5 +1,11 @@
 # Navigating the dashboard
 
+Try a [search for invoice exports](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+in the browser demo. Open a result to see the original conversation. You can
+also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+and select **open the message** to see where it came from. The demo uses
+sample chats.
+
 After [installing Mash](installation.md), start the dashboard:
 
 ```sh

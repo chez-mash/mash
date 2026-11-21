@@ -2,9 +2,9 @@
 
 Mash busca en las conversaciones que tus agentes de programación ya guardaron
 en este equipo. Es de [código abierto](https://github.com/mashium/mash) y se
-ejecuta en tu propio equipo. Puedes
-[probar la demo con conversaciones de ejemplo](https://getmash.io/demo/)
-antes de instalarlo.
+ejecuta en tu propio equipo. Antes de instalarlo, puedes
+[probar una búsqueda de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+y abrir un resultado para ver la conversación original.
 
 [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 

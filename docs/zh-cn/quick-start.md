@@ -1,6 +1,6 @@
 # 快速入门
 
-[在浏览器中试用演示](https://getmash.io/demo/)，看看示例对话。你也可以安装 Mash，搜索自己的历史记录。
+[在演示中试搜](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一条结果即可查看原始对话。要搜索自己的对话，请按下面的步骤安装 Mash。
 
 运行命令前，你可以先 [查看安装脚本并校验下载文件](../installation.md#check-the-release-download)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
 
@@ -57,4 +57,4 @@ mash dash
 
 Mash 的界面目前使用英文。你可以按原文查找中文。如果短词找不到，可尝试输入原文中由空格或标点分隔的完整片段。按含义搜索需要使用英文查询。[搜索指南（英文）](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: 928b155ab552986bea8ecf043711407b6076db662e90aec0aa1d534fc289a49c -->
+<!-- mash-docs-source: 09d0e677e3d50b3f0916f91eff96b3e5660f3879b4a2a13f29cc7515dbf01781 -->
