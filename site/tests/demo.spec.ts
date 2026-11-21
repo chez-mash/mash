@@ -88,7 +88,7 @@ test("the memory guide leads from a saved decision to its source message", async
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
 });
 
-for (const [language, query, title, message] of [
+for (const [language, query, title, message, guide = "/search-languages/"] of [
   ["Spanish", "autenticación", "Depurar el inicio de sesión", "spanish-sign-in-0"],
   ["French", "corrigé", "Valider le correctif de pagination", "french-pagination-0"],
   ["Chinese", "我们更新了身份验证令牌", "更新身份验证令牌", "chinese-token-update-0"],
@@ -98,9 +98,16 @@ for (const [language, query, title, message] of [
     "認証トークンの更新手順",
     "japanese-token-update-0",
   ],
+  [
+    "日本語",
+    "認証トークンの更新手順を見直した",
+    "認証トークンの更新手順",
+    "japanese-token-update-0",
+    "/ja/search-languages/",
+  ],
 ]) {
   test(`the language guide opens the ${language} example in the demo`, async ({ page }) => {
-    await page.goto("/search-languages/");
+    await page.goto(guide);
     const example = page.getByRole("link", { name: language, exact: true });
     const target = new URL((await example.getAttribute("href")) ?? "");
     await page.goto(target.pathname + target.hash);

@@ -14,7 +14,7 @@
 
 # mash - The **M**ulti-**A**gent **S**earch **H**istory Tool
 
-[Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md)
+[Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
 
 **Find past coding-agent chats and see why you made a decision.**
 

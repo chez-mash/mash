@@ -575,6 +575,20 @@ for (const locale of [
     query: "敏感信息",
     fallback: "此内容尚不支持你的语言。",
   },
+  {
+    path: "ja",
+    label: "日本語",
+    lang: "ja",
+    quickStart: "クイックスタート",
+    trialLink: "1 つの履歴で試す",
+    trialHeading: "1 つの履歴で試す",
+    privacy: "履歴とプライバシー",
+    docs: "ドキュメント",
+    theme: "ダークモード",
+    search: "検索",
+    query: "プライバシー",
+    fallback: "このコンテンツはまだ日本語訳がありません。",
+  },
 ]) {
   test(`${locale.label} readers can follow setup, search the docs and see English fallbacks`, async ({
     page,
@@ -618,3 +632,24 @@ for (const locale of [
     await expect(page.getByText(locale.fallback, { exact: true })).toBeVisible();
   });
 }
+
+test("the Japanese guide directory distinguishes available translations", async ({ page }) => {
+  const guide = page.locator(".sl-markdown-content");
+  await page.goto("/ja/");
+  await guide.getByRole("link", { name: "日本語ガイドの目次" }).click();
+  await expect(page).toHaveURL("/ja/guides/");
+  await page.getByRole("button", { name: "検索", exact: true }).click();
+  await page.getByPlaceholder("検索", { exact: true }).fill("プライバシー");
+  await expect(page.getByText(/「プライバシー」の検索結果 \d+ 件/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(guide.locator('a[href="/dashboard/"]')).toContainText("（英語）");
+  await guide
+    .getByRole("link", { name: "Mash が読み取れる履歴と接続できるエージェントを確認する" })
+    .click();
+  await expect(page).toHaveURL("/ja/supported-agents/");
+  await guide.getByRole("link", { name: "エージェントを接続", exact: true }).click();
+  await expect(page).toHaveURL("/ja/agents/#connect-claude-code-codex-or-copilot");
+  await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
+  await expect(guide.getByText("Connect an agent", { exact: true })).toBeVisible();
+  await expect(guide.getByText("Set up without indexing", { exact: true }).first()).toBeVisible();
+});

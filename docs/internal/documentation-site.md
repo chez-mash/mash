@@ -61,10 +61,14 @@ copy and keep reviewed wording where it still fits. Keep the section aliases
 and record the new source marker only after checking the translation against
 that English source.
 
-To publish a language, add it to `site/scripts/locales.ts`. Add a translated
-`docs/<locale>/index.md` for its landing page; guides without a translation
-use the English fallback. This controls the documentation website. The
-dashboard and command-line interface have their own language support.
+To publish a language, add it to `site/scripts/locales.ts`. Add a welcome
+page at `docs/<locale>/index.md` and a guide directory at
+`docs/<locale>/guides.md`. For an example, see the [Japanese welcome page](../ja/index.md).
+Add sidebar labels in `site/astro.config.mjs` and header labels in
+`site/src/content/i18n/` using Starlight's language code. Mark links to
+untranslated guides as English. The language picker and sidebar can open
+those guides in the locale with an English fallback notice.
+Commands and buttons in Mash itself still appear in English.
 
 ## The welcome page
 

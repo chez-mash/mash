@@ -7,8 +7,9 @@ Bug reports, fixes, translations and documentation improvements are welcome.
 - **Fix a confusing instruction.** Use **Edit page** on a
   [guide](https://getmash.io/guides/) to open its source on GitHub. Small docs
   fixes can go straight to a pull request.
-- **Improve a translation.** The source files for Spanish, French and
-  Simplified Chinese live in `docs/es/`, `docs/fr/` and `docs/zh-cn/`.
+- **Improve a translation.** The source files for Spanish, French,
+  Simplified Chinese and Japanese live in `docs/es/`, `docs/fr/`,
+  `docs/zh-cn/` and `docs/ja/`.
   Run `pnpm --silent translate-docs --status` from `site/` to see which
   guides need review.
   [Translation workflow](docs/internal/documentation-site.md#translate-a-guide)

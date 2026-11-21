@@ -35,7 +35,12 @@ export default defineConfig({
       sidebar: [
         {
           label: "Start here",
-          translations: { es: "Primeros pasos", fr: "Premiers pas", "zh-CN": "开始使用" },
+          translations: {
+            es: "Primeros pasos",
+            fr: "Premiers pas",
+            "zh-CN": "开始使用",
+            ja: "はじめに",
+          },
           items: [
             {
               label: "Welcome to Mash",
@@ -43,6 +48,7 @@ export default defineConfig({
                 es: "Mash en español",
                 fr: "Mash en français",
                 "zh-CN": "Mash 简体中文指南",
+                ja: "Mash 日本語ガイド",
               },
               slug: "index",
             },
@@ -52,6 +58,7 @@ export default defineConfig({
                 es: "Guía de inicio rápido",
                 fr: "Guide de démarrage rapide",
                 "zh-CN": "快速入门",
+                ja: "クイックスタート",
               },
               slug: "quick-start",
             },
@@ -75,6 +82,7 @@ export default defineConfig({
                 es: "Descarga y verificación",
                 fr: "Téléchargement et vérification",
                 "zh-CN": "下载与校验",
+                ja: "ダウンロードと検証",
               },
               slug: "downloads",
             },
@@ -89,7 +97,12 @@ export default defineConfig({
             },
             {
               label: "Privacy",
-              translations: { es: "Privacidad", fr: "Confidentialité", "zh-CN": "隐私" },
+              translations: {
+                es: "Privacidad",
+                fr: "Confidentialité",
+                "zh-CN": "隐私",
+                ja: "プライバシー",
+              },
               slug: "privacy",
             },
           ],
@@ -100,6 +113,7 @@ export default defineConfig({
             es: "Encuentra conversaciones",
             fr: "Retrouver ses travaux",
             "zh-CN": "查找历史对话",
+            ja: "過去の作業を探す",
           },
           items: [
             {
@@ -131,6 +145,7 @@ export default defineConfig({
                 es: "Buscar en otros idiomas",
                 fr: "Rechercher dans d’autres langues",
                 "zh-CN": "搜索其他语言的对话",
+                ja: "英語以外のチャットを検索する",
               },
               slug: "search-languages",
             },
@@ -147,6 +162,7 @@ export default defineConfig({
             es: "Usa Mash con agentes",
             fr: "Utiliser Mash avec des agents",
             "zh-CN": "在代理中使用 Mash",
+            ja: "エージェントと使う",
           },
           items: [
             {
@@ -155,6 +171,7 @@ export default defineConfig({
                 es: "Agentes compatibles",
                 fr: "Agents compatibles",
                 "zh-CN": "支持的代理",
+                ja: "対応するエージェント",
               },
               slug: "supported-agents",
             },
@@ -164,6 +181,7 @@ export default defineConfig({
                 es: "Conectar un agente",
                 fr: "Connecter un agent",
                 "zh-CN": "连接代理",
+                ja: "エージェントを接続する",
               },
               slug: "agents",
             },
@@ -176,7 +194,12 @@ export default defineConfig({
         },
         {
           label: "Manage Mash",
-          translations: { es: "Administra Mash", fr: "Gérer Mash", "zh-CN": "管理 Mash" },
+          translations: {
+            es: "Administra Mash",
+            fr: "Gérer Mash",
+            "zh-CN": "管理 Mash",
+            ja: "Mash を管理する",
+          },
           items: [
             "troubleshooting",
             {
@@ -247,7 +270,7 @@ export default defineConfig({
         },
         {
           label: "Reference",
-          translations: { es: "Referencia", fr: "Référence", "zh-CN": "参考" },
+          translations: { es: "Referencia", fr: "Référence", "zh-CN": "参考", ja: "リファレンス" },
           collapsed: true,
           items: ["cli", "configuration", "mcp", "tools", "record-tools"],
         },
