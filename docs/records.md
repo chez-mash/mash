@@ -1,309 +1,106 @@
-# Record what you worked out
+# Use Mash memory
 
-Records keep decisions, preferences and facts, each with a quote from the chat
-that supports it. With the Mash plugin installed, your agent saves and recalls
-them for you:
-
-- **Recall:** at session start the agent sees up to three project records, and
-  matching records once per file when it reads a file.
-- **Save:** the agent saves a record when you state a lasting preference, make
-  or confirm a decision, correct how it works, or settle a non-obvious fact.
-
-Install the current Mash binary and plugin, then restart the agent. Codex also
-requires reviewing changed plugin hooks in `/hooks` before they run.
-
-Records are interpretations. A matching quote shows the words were said, not
-that the interpretation is correct, and an agent can miss or misread a
-conclusion. Inspect important records; if one is wrong, ask the agent to
-correct, withdraw or forget it.
-
-## How saving works
-
-The agent cites its own session and your exact words. Mash checks the quote
-against that session's transcript at once, so the record is usable before the
-chat is indexed. If a later index of that chat lacks the quoted message, the
-evidence is marked stale and default recall leaves the record out.
-
-- Decisions and preferences are established only by your own words. Other
-  conclusions are saved as candidates, which recall shows after established
-  records, labeled as unconfirmed.
-- A choice the agent makes of its own accord, such as how to structure the
-  code, is saved as an agent decision citing the agent's own message. It never
-  replaces one of your decisions; yours can replace it.
-- Reading never creates or confirms records.
-
-The plugin also asks the agent to save anything it missed: never in a
-session's first fifteen minutes, and at most once every fifteen minutes after
-that. The reminder travels with your next message, so something settled in a
-session's very last message is not swept.
-
-Saving uses the agent you are already running, with its normal permissions and
-token budget. It does not start another agent or download models.
-
-| Setting | Effect |
-| --- | --- |
-| `MASH_RECORD_CAPTURE=off` | No saving notes or safety net; recall stays on |
-| `[records] enabled = false` in the node configuration | Also disables capture and backfill |
-| `MASH_RECORD_RECALL=off` | No record context; chat hints stay on |
-| `MASH_FILE_RECALL=off` | Disables the entire file-read hook |
-
-## Backfill earlier memory
-
-The `mash init` wizard offers to backfill memory from chats active in the last
-3 days, using a signed-in Codex or Claude Code CLI that you select. **Backfill
-uses agent tokens and sends the selected chat text to that agent's service.**
-GitHub Copilot is not offered for it, because each review would spend premium
-requests.
-It is optional and separate from history indexing. Unattended `mash init --yes`
-does not request it, and normal conversations never perform it.
-
-To backfill already indexed chats later, without reindexing or changing agent
-integrations:
-
-```sh
-mash init --yes --no-index --no-agents --backfill-memory codex
-# Or: --backfill-memory claude-code
-```
-
-A run stops after 100 chats or an unfinished review; each chat has a
-ten-minute limit. The JSON result reports completed reviews and whether the
-scan finished. Rerun the command to continue: reviewed chats are skipped unless
-they changed, and failed or partially read chats remain pending.
-
-Setup saves its cutoff as `[records] backfill_since` (Unix milliseconds), so a
-later run resumes the same window. Without a saved cutoff, a run uses the last
-3 days.
-
-## Recall records
-
-Ask your agent to call `recall_records` with an exact `scope`:
-
-```json
-{"scope": {"kind": "repository", "identity": "YOUR_REPOSITORY_ID"}, "query": "search engine"}
-```
-
-The optional `query` ranks records by matching words and needs no embedding
-model. Established current records come first, then candidates with
-`status: "candidate"`.
-
-- Recall returns at most eight records and 6,000 bytes by default. Adjust with
-  `limit` (1–20) and `byte_budget` (1,024–32,768).
-- `truncated` means a relevant result did not fit. `scan_limited` means the
-  scope held more than 256 recent records. Use `list_records` for a complete
-  inspection.
-- `include_review` adds records labeled `stale_evidence` or `inactive`, and
-  records with `conflicted: true`. Default recall and the plugin hooks omit
-  them. These labels are not approval.
-- `include_personal` adds personal records alongside another scope.
-- `file: "src/main.rs"` with a repository or local-project scope matches that
-  exact relative path in the record text or quotes.
+Mash can save a decision, preference, or fact with a quote from the chat
+where it came up. Open the quote whenever you want to check the context.
 
 ## Inspect existing records
 
-For a visual, read-only view, open `mash dash` and choose **Memory**. The
-[dashboard](dashboard.md#inspect-conversation-records) includes filters, revision
-history, relationships and links to supporting chat messages.
+[Open a saved decision in the demo](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
+and select **open the message** below its quote. The demo jumps to the
+message about keeping the refresh token in the device keychain.
 
-Or ask your agent to call `list_records`. By default it returns established
-current records whose evidence still matches the saved messages. Each one is
-its current statement, reason, scope and the messages it cites; pass
-`detail: "extended"` for quotes, confirmations, the owner and links.
-
-- `include_inactive` adds candidates, older choices and records with changed
-  or missing sources.
-- `kind`, `state` and `review` filter on the latest revision. `chat` selects
-  records citing that chat in any retained revision.
-- Follow `next_offset` to continue, keeping the filters unchanged. A page can
-  be short or hold no current records without being the last one.
-
-Call `get_record` with a returned ID to read one record and its evidence. Set
-`history` to `true` for prior revisions, confirmations and links to
-replacement records, following the returned cursors until they are null.
-Confirmation dates are when each confirmation was recorded, not when the
-original message was sent.
-
-### Shared records
-
-To read published records, call `list_records` with `shared: true`. Results
-include `node_id`, and `owner` with `detail: "extended"`; identical statements
-from different owners stay separate. Select one node with `node_id`, and pass `next_cursor` back as
-`cursor` with the same filters until no cursor remains. Pass a result's
-`node_id` alongside its `id` to `get_record` to read that shared copy.
-
-Shared reads use your configured group's authentication and need no models.
-They do not fall back to local records when the server is unavailable. Edits
-happen on the owning node and reach the shared copy through normal publication.
-Records scoped to a local project path stay local.
+For your own history, run `mash dash`, open the address it prints, and choose
+**memory**. Open a record to see its source, revisions, and related records.
+[Find and filter memory in the dashboard](dashboard.md#inspect-conversation-records)
 
 ## Save a conclusion
 
-To save something yourself, tell the agent. In Claude Code, run
-`/mash:remember` followed by what to keep, or with nothing after it to save the
-latest decision in the conversation. In Codex, pick the plugin's `remember`
-skill or say "remember this". The agent checks for an existing record, saves
-your words as the evidence, and confirms what it saved.
+With the [Mash plugin installed](plugin.md#start-with-the-plugin), ask an agent
+in the conversation to save a decision for future sessions.
 
-To do it by hand, read the supporting chat first, then call the `record` MCP
-tool with an operation ID and an action. Every field sits at the top level:
+> Remember that this project keeps its refresh tokens in the device keychain.
 
-```json
-{
-  "operation_id": "choose-local-qdrant-1",
-  "action": "create",
-  "scope": {"kind": "chat", "id": "RETURNED_CHAT_ID"},
-  "kind": "decision",
-  "state": "accepted",
-  "statement": "Use Qdrant for local search.",
-  "recorded_by": "My coding agent",
-  "review": "established",
-  "evidence": [{
-    "message_id": "RETURNED_USER_MESSAGE_ID",
-    "quote": "Yes, let's use Qdrant.",
-    "purpose": "endorsement"
-  }]
-}
-```
+In Claude Code, you can also use `/mash:remember`. In Codex or Copilot,
+ask the agent to use the `remember` skill. Check the saved statement in the
+agent's reply, then open **memory** to see the quote in context.
 
-Replace the IDs and the quote with actual evidence. Reuse the same operation
-ID only when retrying the same request after a lost response.
+## Recall records
 
-**Scope** is one of:
+In a later conversation about the same project, ask “What does Mash remember
+about refresh tokens? Show me where we decided that.” In Claude Code, you
+can also use `/mash:recall refresh tokens`.
 
-- `personal`, within this record owner's namespace
-- `repository` with an exact `identity`
-- `local_project` with an absolute `path`
-- `chat` with an `id`
+The plugin can bring a few relevant memories into a new session and when the
+agent reads a file. An agent can also search past chats for decisions Mash
+hasn't saved as memory. [Use Mash from an agent](agents.md#try-it)
 
-Repository identity and project path must match the cited chat's metadata;
-a matching project basename is not enough.
+## How saving works
 
-**Kind and state** go in `details`:
+Mash checks the quote against the original chat. That gives you a source to
+read yourself. Agents can still miss or misread what you meant.
 
-| Kind | States | Additional fields |
-| --- | --- | --- |
-| `decision` | `proposed`, `accepted`, `superseded`, `withdrawn` | optional alternatives and consequences |
-| `preference` | `active`, `superseded`, `withdrawn` | optional conditions |
-| `fact` | `current`, `superseded`, `retracted` | required `reported_by`, optional `valid_until` |
+- The agent can establish decisions and preferences based on your own words.
+  Other interpretations may appear as **candidates** that need review.
+- The agent can save its own choices as agent decisions. Your decisions take
+  precedence over the agent's choices.
+- If an indexed chat changes and the quote no longer matches, Mash marks
+  the source as stale and leaves it out of ordinary recall.
 
-A current fact is an attributed claim, not independent verification. Optional
-`effective_at` and `valid_until` use Unix milliseconds; omit unknown dates.
-Expired facts and choices not yet in effect are left out of the default list.
+Saving uses the agent already running. The plugin can notice conclusions
+as you work and periodically remind the agent to save anything it missed.
+In Codex, review changed plugin hooks in `/hooks` to enable them.
+[See what the plugin does automatically](plugin.md#what-happens-without-asking)
 
-**Review** is `candidate` (the default) or `established`. Keep uncertain
-interpretations as candidates. An established decision or preference requires
-an `endorsement` citation of a user message. A decision with
-`"decided_by": "agent"` in its details instead requires a citation of the
-agent's own message, and cannot revise or supersede a decision made by the
-person. `recorded_by` is caller-supplied attribution, not authenticated
-identity.
-
-**Evidence** `purpose` is one of:
-
-- `context` (the default): surrounding material, such as the proposal a short
-  approval answers. Cite the proposal as `context` and the approval as
-  `endorsement`.
-- `endorsement`: the person visibly said it. User-role messages sometimes
-  contain automated reports; do not cite those as endorsements.
-- `report`: a source's attributed factual claim. It does not assert the
-  person's approval.
-
-An agent recording from its own running session can cite it without a message
-ID. Mash cites the latest message in that session containing the quote:
-
-```json
-{"session_id": "THE_AGENTS_SESSION_ID", "quote": "Yes, let's use Qdrant.", "purpose": "endorsement"}
-```
-
-Record writes reject text containing private spans, and normal output applies
-your configured credential masking.
-
-### Check for duplicates
-
-Before creating a record, call `find_record_matches` with the proposed `scope`
-and `body`. It returns up to eight exact or similar-wording suggestions of the
-same kind and scope. Similar wording does not prove agreement, and suggestions
-never merge records or add confirmations.
-
-`create` reports an identical live record instead of adding a second one. To
-reuse it, set `on_duplicate: "reuse"` inside the create change; the receipt
-then has `reused: true` and the existing record's ID and revision. Reuse adds
-no evidence or confirmation and never revives a retired choice.
+Set `MASH_RECORD_CAPTURE=off` to stop automatic memory capture while keeping
+recall. Set `MASH_RECORD_RECALL=off` to stop automatic memory recall while
+keeping chat hints. [Plugin settings](plugin.md#what-happens-without-asking)
 
 ## Correct or replace
 
-Edits provide `expected: {"id": "RECORD_ID", "revision": 1}`. If another edit
-has changed that revision, reread the record before trying again.
+If a record is wrong or you changed your mind, ask the agent to update it
+using the conversation where you made the correction. Use the `review`
+skill, or `/mash:review` in Claude Code, for candidates, stale sources and
+conflicting decisions. Looking at a record leaves its status untouched.
 
-- `revise` corrects a summary or changes its lifecycle state, with supporting
-  evidence. New revisions do not inherit confirmations of the old interpretation.
-- `supersede` records a changed choice and retires its predecessor atomically.
-  Returning to an earlier choice creates another record, preserving the sequence.
-- `confirm` adds new supporting source messages to an established current record.
-  Reusing the same evidence or retrying a request does not increase confirmations.
-- `forget` removes the entire record, including its prior revisions and quotes.
+You can also ask the agent to forget a record. That removes its revisions
+and quotes. If you [forget a cited chat](privacy.md#remove-a-chat), Mash also
+removes the dependent records.
 
-To establish a candidate, `revise` it with a complete `body` that has
-`review: "established"` and verified evidence. Reading or confirming a
-candidate does not establish it.
+## Backfill earlier memory
 
-Reindexing a changed chat keeps its records but marks changed evidence stale.
-**Forgetting a cited chat also removes every dependent record**, including
-records that cited that chat only in an older revision. A forgotten record
-cannot be recreated by retrying an old request.
+Backfill is an optional review of older chats that can suggest memories. It
+uses your signed-in Codex or Claude Code and sends selected chat text to
+that agent's service, using its token budget. Normal indexing and
+`mash init --yes` leave backfill off.
 
-## Relate conclusions
+You can choose it during interactive setup for chats active in the last
+three days. Run this command to review already indexed chats later.
 
-To record that two records agree or disagree, use `record` with a new
-`operation_id` and the `link` action:
-
-```json
-{
-  "operation_id": "link-qdrant-choices-1",
-  "action": "link",
-  "expected": {"id": "SOURCE_ID", "revision": 1},
-  "target": {"id": "TARGET_ID", "revision": 1},
-  "relation": "contradicts"
-}
+```sh
+mash init --yes --no-index --no-agents --backfill-memory codex
 ```
 
-`relation` is `supports` or `contradicts`. Both records must be established,
-current, backed by matching evidence, and owned locally in the same scope. Mash
-does not infer contradictions from wording or choose a winner.
+Use `claude-code` in place of `codex` if you prefer. Review the suggested
+memories before relying on them. Mash stops after 100 chats or an unfinished
+review, with up to ten minutes per chat. Run the command again to continue.
+Mash skips completed reviews unless the chat changed.
 
-A correction does not erase a disagreement. Retire or supersede a changed
-claim: once either record is inactive, the conflict is no longer active.
-Forgetting either record removes the link. Read links in both directions
-through `get_record`'s `links`.
+### Shared records
 
-## Review an older chat
-
-To review one chat by hand instead of running a backfill:
-
-1. Call `get_extraction_checkpoint` with the chat ID and the scope in which
-   you intend to save conclusions. It returns the current
-   `source_fingerprint`, the last processed fingerprint (if any) and
-   `up_to_date`.
-2. Read the chat.
-3. Call `extract_records` with that fingerprint, a stable `operation_id`, the
-   same scope and chat ID, and up to 64 record drafts. Each draft has `body`
-   and `evidence` as in [Save a conclusion](#save-a-conclusion), must have
-   `review: "candidate"`, and may cite only messages from the reviewed chat.
-   An empty `records` list records that the review found nothing to save.
-
-If the chat changed during the review, the request is rejected: reread the
-chat and submit a new operation. If only the response was lost, retry the
-identical request with its original operation ID.
-
-The checkpoint records the agent's claim to have reviewed that version, not
-proof that it read every message or interpreted it correctly. Review the
-candidates before establishing them.
+If you publish history to a [shared Mash server](shared-index.md), you can
+read published records in the dashboard. Records tied to a local project
+path stay on that machine. [Read a shared record's source](dashboard.md#inspect-conversation-records)
 
 ## Back up records
 
-Ordinary `mash export` backups include records with their revisions, evidence
-and confirmations. **Backups contain sensitive record text and quoted
-evidence, as well as chats.**
+[Mash's portable backup](backup.md#make-a-portable-backup) includes your
+memories, their revisions and the quoted chat text. Treat it as privately as
+the original chats.
 
-A normal import creates a new owner and remaps record IDs and links. An
-`import --keep-identity` restore retains IDs and retry receipts; retire the
-original database before using the restored copy as its replacement.
+<span id="check-for-duplicates"></span>
+<span id="relate-conclusions"></span>
+<span id="review-an-older-chat"></span>
+
+## Call the memory tools directly
+
+For tool arguments and examples, see [MCP tools for saved memory](record-tools.md).

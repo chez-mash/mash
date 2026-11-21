@@ -26,6 +26,7 @@ export const translationPages = [
   "supported-agents",
   "shared-index",
   "search-languages",
+  "records",
   "indexing",
   "synchronization",
   "backup",

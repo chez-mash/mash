@@ -125,7 +125,11 @@ export default defineConfig({
               },
               slug: "search-languages",
             },
-            "records",
+            {
+              label: "Memory",
+              translations: { es: "Memoria", fr: "Mémoire", "zh-CN": "记忆" },
+              slug: "records",
+            },
           ],
         },
         {
@@ -228,7 +232,7 @@ export default defineConfig({
           label: "Reference",
           translations: { es: "Referencia", fr: "Référence", "zh-CN": "参考" },
           collapsed: true,
-          items: ["cli", "configuration", "mcp", "tools"],
+          items: ["cli", "configuration", "mcp", "tools", "record-tools"],
         },
       ],
     }),

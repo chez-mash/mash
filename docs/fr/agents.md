@@ -47,7 +47,7 @@ Mash utilise la commande de chaque agent choisi (`claude`, `codex` ou
   outils externes.
 - Le **[module Mash](plugin.md)** fournit la compétence `mash-history`
   qui indique quand et comment chercher, la compétence `remember` qui
-  [mémorise](../records.md) une information sur demande (`/mash:remember` dans
+  [mémorise](records.md) une information sur demande (`/mash:remember` dans
   Claude Code) et des actions automatiques qui
   [tiennent l’historique à jour](#keep-new-chats-searchable).
 

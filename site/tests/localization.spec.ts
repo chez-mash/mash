@@ -36,6 +36,36 @@ test("the language picker keeps the page and labels English fallbacks", async ({
 });
 
 for (const [locale, label, lang, title] of [
+  ["es", "Español", "es", "Usa la memoria de Mash"],
+  ["fr", "Français", "fr", "Utiliser la mémoire de Mash"],
+  ["zh-cn", "简体中文", "zh-CN", "使用 Mash 记忆"],
+]) {
+  test(`the ${locale} memory guide explains saving and backfill in the same language`, async ({
+    page,
+  }) => {
+    await page.goto("/records/");
+    await page.getByRole("combobox", { name: "Select language" }).selectOption({ label });
+    const records = `/${locale}/records/`;
+    await expect(page).toHaveURL(records);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    const guide = page.locator(".sl-markdown-content");
+    await expect(guide.locator("#save-a-conclusion")).toBeAttached();
+    await expect(guide.locator('a[href="/record-tools/"]')).toBeVisible();
+    await expect(guide.locator('a[href^="https://getmash.io/demo/#/record/"]')).toBeVisible();
+
+    await page.goto(`/${locale}/privacy/`);
+    await guide.locator(`a[href="${records}#backfill-earlier-memory"]`).click();
+    await expect(page).toHaveURL(`${records}#backfill-earlier-memory`);
+    await expect(
+      guide
+        .locator("pre")
+        .filter({ hasText: "mash init --yes --no-index --no-agents --backfill-memory codex" }),
+    ).toBeVisible();
+  });
+}
+
+for (const [locale, label, lang, title] of [
   ["es", "Español", "es", "Compara las herramientas de historial de agentes de código"],
   ["fr", "Français", "fr", "Comparez les outils d’historique pour agents de code"],
   ["zh-cn", "简体中文", "zh-CN", "比较编程代理对话历史工具"],

@@ -98,7 +98,7 @@ Abre **memory** en la barra lateral o elige una categoría. Cambia de categoría
 
 Abre un recuerdo para ver sus revisiones, los mensajes citados y los recuerdos relacionados. **open the message** debajo de una cita abre el mensaje original. En una conversación, **memory from this chat** lista los recuerdos que la citan en alguna revisión conservada. Los mensajes citados muestran **Saved as** debajo.
 
-Las listas incluyen recuerdos pendientes y retirados. Antes de usar uno, revisa su estado, su fecha de caducidad, las advertencias sobre sus fuentes y los conflictos declarados. Para confirmar o cambiar un recuerdo, pídeselo al agente mediante las [herramientas de memoria](../records.md). Si el origen de un recuerdo compartido no está disponible, el enlace muestra un error.
+Las listas incluyen recuerdos pendientes y retirados. Antes de usar uno, revisa su estado, su fecha de caducidad, las advertencias sobre sus fuentes y los conflictos declarados. Para confirmar o cambiar un recuerdo, pídeselo al agente mediante las [herramientas de memoria](records.md). Si el origen de un recuerdo compartido no está disponible, el enlace muestra un error.
 
 <span id="keep-your-place"></span>
 

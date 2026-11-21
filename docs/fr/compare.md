@@ -23,7 +23,7 @@ et choisissez **open the message** pour voir d’où elle vient.
 - **Vous voulez vérifier sur quoi repose une décision enregistrée.** Avec le
   module Mash, votre agent peut enregistrer des décisions et des préférences
   avec une citation vérifiée dans la conversation. Le tableau de bord ouvre
-  le message cité dans son contexte. [Comment Mash enregistre les éléments de mémoire (en anglais)](../records.md#how-saving-works)
+  le message cité dans son contexte. [Comment Mash enregistre les éléments de mémoire](records.md#how-saving-works)
 - **Vous travaillez sur plusieurs ordinateurs.** Chaque ordinateur peut
   interroger son index hors ligne. Vous pouvez aussi publier votre historique
   sur un serveur Mash que vous gérez pour retrouver sur votre portable les

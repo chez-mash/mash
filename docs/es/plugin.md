@@ -63,10 +63,10 @@ si el agente no encuentra Mash.
 | Habilidad | En Claude Code | En Codex | Qué hace |
 | --- | --- | --- | --- |
 | `setup` | `/mash:setup` | elige la habilidad `setup` o pide «Configura Mash en este equipo» | Instala Mash con tu aprobación, conecta tu historial y comprueba que puedes encontrar una conversación anterior. |
-| `remember` | `/mash:remember what to keep` | elige la habilidad `remember` o di «recuerda esto» | Guarda una decisión, preferencia o dato en la [memoria](../records.md), usando tus propias palabras como respaldo. Si no añades nada al comando, guarda la decisión más reciente de la conversación. |
+| `remember` | `/mash:remember what to keep` | elige la habilidad `remember` o di «recuerda esto» | Guarda una decisión, preferencia o dato en la [memoria](records.md), usando tus propias palabras como respaldo. Si no añades nada al comando, guarda la decisión más reciente de la conversación. |
 | `resume` | `/mash:resume` | elige la habilidad `resume` o pregunta «¿en qué nos quedamos?» | Lee los chats más recientes del proyecto de todos los agentes y equipos, y te dice qué estaba en curso, qué quedó pendiente y qué se decidió. |
 | `handoff` | `/mash:handoff` | elige la habilidad `handoff` o di «deja esto listo para que otra persona lo retome» | Escribe en la conversación un resumen de la sesión con el objetivo, lo que se terminó, lo que quedó a medias, las decisiones y el siguiente paso. `resume` lo encuentra desde cualquier agente o equipo una vez indexado el chat. |
-| `recall` | `/mash:recall a topic` | elige la habilidad `recall` o pregunta «¿qué recuerda Mash sobre…?» | Muestra los registros de [memoria](../records.md) sobre un tema o sobre este proyecto, con el origen de cada uno. Te avisa cuando hay registros que requieren revisión. |
+| `recall` | `/mash:recall a topic` | elige la habilidad `recall` o pregunta «¿qué recuerda Mash sobre…?» | Muestra los registros de [memoria](records.md) sobre un tema o sobre este proyecto, con el origen de cada uno. Te avisa cuando hay registros que requieren revisión. |
 | `review` | `/mash:review` | elige la habilidad `review` o di «revisa la memoria de Mash» | Revisa unos pocos registros de memoria a la vez que requieren una decisión tuya. Incluye los que guardó un agente sin tu confirmación, los que han quedado obsoletos y los pares que se contradicen. Puedes conservar, corregir, retirar, eliminar u omitir cada uno. |
 | `forget` | `/mash:forget what to remove` | elige la habilidad `forget` o pide explícitamente que olvide o elimine algo que Mash guardó | Encuentra un registro de memoria o un chat indexado, te muestra exactamente qué se eliminaría y solo lo elimina si das tu aprobación. Si el registro contiene un error, te ofrece la opción de corregirlo. |
 | `standup` | `/mash:standup`, o bien `/mash:standup this week` | elige la habilidad `standup` o pregunta «¿en qué trabajé ayer?» | Resume tu trabajo durante un período, agrupado por proyecto, en todos tus agentes y equipos. Si no añades nada al comando, abarca el día laborable anterior. |
@@ -144,7 +144,7 @@ copilot mcp remove mash
 * Copilot guarda esta configuración en `~/.copilot` (o en el directorio indicado por `COPILOT_HOME`). Guarda las herramientas en `mcp-config.json` y el complemento instalado en
   `config.json` y `installed-plugins`.
 * `mash init --backfill-memory` no admite Copilot. Revisar chats antiguos de esa forma consumiría tus solicitudes prémium, así que la opción solo se ofrece para Claude Code y Codex.
-* Para guardar en la [memoria](../records.md) desde una sesión de Copilot, necesitas una versión de `mash` capaz de leer la sesión activa de Copilot. `mash --version-info` muestra `copilot`
+* Para guardar en la [memoria](records.md) desde una sesión de Copilot, necesitas una versión de `mash` capaz de leer la sesión activa de Copilot. `mash --version-info` muestra `copilot`
   en `session_citations` si admite esa función. Con una versión anterior de `mash` el complemento puede recuperar recuerdos, aunque omite la solicitud de guardado a Copilot.
 * En Windows, los hooks de Copilot se ejecutan mediante PowerShell y llaman a `python`. Aún no hay constancia de que los hooks se hayan verificado en Windows.
 

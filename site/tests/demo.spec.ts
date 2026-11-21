@@ -69,6 +69,20 @@ test("the guide to picking up work opens the original decision and shows what is
   await expect(page.getByText(/store the refresh token in the device keychain/)).toBeVisible();
 });
 
+test("the memory guide leads from a saved decision to its source message", async ({ page }) => {
+  await page.goto("/records/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Use Mash memory");
+  const example = page.getByRole("link", { name: "Open a saved decision in the demo" });
+  await expect(example).toHaveAttribute(
+    "href",
+    "https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop",
+  );
+  const target = new URL((await example.getAttribute("href")) ?? "");
+  await page.goto(target.pathname + target.hash);
+  await page.getByRole("link", { name: /open the message/ }).click();
+  await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
+});
+
 test("the sharing guide leads to remote access and to a chat from another machine", async ({
   page,
 }) => {

@@ -40,7 +40,7 @@ serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 * **L’assistant du tableau de bord** envoie vos questions, ainsi que les conversations et éléments de mémoire qu’il lit pour y répondre, au
   [service de modèle que vous configurez](../configuration.md#the-dashboard-assistant). L’assistant est disponible uniquement si vous le configurez.
 * **L’extraction de souvenirs à partir d’anciennes conversations** envoie les conversations retenues au fournisseur de l’agent auquel vous êtes connecté et que vous choisissez. Mash vous demande votre accord pendant la configuration.
-  [Comment sont extraits les souvenirs](../records.md#backfill-earlier-memory)
+  [Comment sont extraits les souvenirs](records.md#backfill-earlier-memory)
 
 ## Essayer Mash avec un historique limité
 
@@ -71,6 +71,8 @@ Par défaut, Mash masque les identifiants secrets qu’il reconnaît dans les r�
 L’historique local et les sauvegardes portables peuvent encore contenir des identifiants secrets. Conservez-les en privé, comme les conversations d’origine.
 
 Dans un même message, le texte entre `<private>…</private>` est exclu du texte du message que Mash enregistre. Les deux balises doivent être présentes. Le texte reste dans les fichiers de l’agent et le contenu des pièces jointes reste visible.
+
+<span id="remove-a-chat"></span>
 
 ## Retirer une conversation
 

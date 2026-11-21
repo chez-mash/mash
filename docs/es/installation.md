@@ -179,7 +179,7 @@ guardadas aunque falte el comando del agente.
 Elige **Customize setup** para cambiar el periodo o la carpeta de un
 historial, elegir integraciones concretas, conectar un servidor compartido
 existente o guardar la configuración sin indexar. Esta opción también
-permite [extraer memoria de conversaciones anteriores (en inglés)](../records.md#backfill-earlier-memory)
+permite [extraer memoria de conversaciones anteriores](records.md#backfill-earlier-memory)
 después de indexar. Para ello, Mash usa tu sesión de Claude Code o Codex y
 envía texto seleccionado de tus conversaciones al servicio de modelos del
 agente.

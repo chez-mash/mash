@@ -34,7 +34,7 @@ Mash 会调用所选代理自己的命令（`claude`、`codex` 或 `copilot`）�
 
 - **MCP 服务器**向代理提供 Mash 搜索工具。MCP（Model Context Protocol，模型上下文协议）让代理可以调用外部工具。
 - **[Mash 插件](plugin.md)**提供 `mash-history` 技能，告诉代理何时以及如何搜索。
-  `remember` 技能可以按你的要求[保存记忆](../records.md)，在 Claude Code 中可用 `/mash:remember` 调用。
+  `remember` 技能可以按你的要求[保存记忆](records.md)，在 Claude Code 中可用 `/mash:remember` 调用。
   插件也包含[自动更新对话历史](#keep-new-chats-searchable)的钩子。
 
 这些命令会修改代理的用户设置。Claude Code 使用 `~/.claude.json`、

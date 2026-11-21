@@ -12,6 +12,7 @@ las búsquedas se ejecutan en tu equipo y no necesitas una cuenta de Mash.
 - [Instala Mash y verifica la descarga](installation.md).
 - [Instala con un gestor de paquetes o compila desde el código fuente](install-methods.md).
 - [Busca y lee conversaciones en el panel web](dashboard.md).
+- [Guarda decisiones y vuelve a sus fuentes](records.md).
 - [Busca conversaciones desde la terminal](search.md).
 - [Incluye conversaciones antiguas y busca por significado](indexing.md).
 - [Mantén el historial al día](synchronization.md).

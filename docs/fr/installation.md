@@ -182,7 +182,7 @@ enregistrées même lorsque la commande de l’agent est absente.
 Choisissez **Customize setup** pour modifier la période ou le dossier d’un
 historique, choisir des intégrations précises, connecter un serveur partagé
 existant ou enregistrer les réglages sans indexer. Cette option permet aussi
-d’[extraire des éléments de mémoire de vos anciennes conversations (en anglais)](../records.md#backfill-earlier-memory)
+d’[extraire des éléments de mémoire de vos anciennes conversations](records.md#backfill-earlier-memory)
 après l’indexation. Pour cela, Mash utilise votre session Claude Code ou Codex
 et envoie des extraits choisis de vos conversations au service de modèles de
 l’agent.

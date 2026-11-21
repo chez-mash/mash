@@ -21,7 +21,7 @@ y elige **open the message** para ver de dónde salió.
 - **Quieres comprobar en qué se basa una decisión guardada.** Con el
   complemento, tu agente puede guardar decisiones y preferencias con una cita
   verificada en la conversación. El panel abre el mensaje citado en contexto.
-  [Cómo guarda Mash los registros (en inglés)](../records.md#how-saving-works)
+  [Cómo guarda Mash los registros](records.md#how-saving-works)
 - **Trabajas en varios equipos.** Cada equipo puede buscar en su propio
   índice sin conexión. También puedes publicar tu historial en un servidor
   Mash que tú administras para buscar desde un portátil las conversaciones

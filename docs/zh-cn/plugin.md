@@ -60,10 +60,10 @@ copilot plugin install mash@mash
 | 技能 | 在 Claude Code 中 | 在 Codex 中 | 功能 |
 | --- | --- | --- | --- |
 | `setup` | `/mash:setup` | 选择 `setup` 技能，或说“在这台电脑上设置 Mash” | 经你同意后安装 Mash，接入你的对话历史，并检查能否找到之前的对话。 |
-| `remember` | `/mash:remember what to keep` | 选择 `remember` 技能，或说“记住这件事” | 以你的原话为依据，将决定、偏好或事实保存到 [记忆](../records.md)中。如果命令后没有附加内容，就保存当前对话中最新的决定。 |
+| `remember` | `/mash:remember what to keep` | 选择 `remember` 技能，或说“记住这件事” | 以你的原话为依据，将决定、偏好或事实保存到 [记忆](records.md)中。如果命令后没有附加内容，就保存当前对话中最新的决定。 |
 | `resume` | `/mash:resume` | 选择 `resume` 技能，或问“上次做到哪儿了？” | 读取本项目在所有代理和电脑上的近期对话，告诉你哪些工作正在进行、哪些事项还没解决，以及已经做了哪些决定。 |
 | `handoff` | `/mash:handoff` | 选择 `handoff` 技能，或说“把这项工作交接出去” | 在对话中写一份会话简报，涵盖目标、已完成的事项、做了一半的工作、已作出的决定和下一步。 `resume` 可以在对话建立索引后，从任何代理或电脑找到这份简报。 |
-| `recall` | `/mash:recall a topic` | 选择 `recall` 技能，或问“Mash 对……记得些什么？” | 显示某个主题或当前项目的 [记忆](../records.md) 记录，并标明每条记录的来源。有记录需要审查时，也会提醒你。 |
+| `recall` | `/mash:recall a topic` | 选择 `recall` 技能，或问“Mash 对……记得些什么？” | 显示某个主题或当前项目的 [记忆](records.md) 记录，并标明每条记录的来源。有记录需要审查时，也会提醒你。 |
 | `review` | `/mash:review` | 选择 `review` 技能，或说“审查 Mash 的记忆” | 每次查看几条需要你决定如何处理的记忆记录，包括代理未经你确认就保存的记录、过时的记录和成对冲突的记录。你可以逐条选择保留、更正、撤回、删除或跳过。 |
 | `forget` | `/mash:forget what to remove` | 选择 `forget` 技能，或明确要求忘记或删除 Mash 保存的某项内容 | 找到一条记忆记录或一段已建立索引的对话，明确显示将删除的内容，并在你确认后才删除。如果记录有误，也会提供更正选项。 |
 | `standup` | `/mash:standup`，或 `/mash:standup this week` | 选择 `standup` 技能，或问“我昨天做了什么？” | 汇总你在一段时间内通过各个代理和电脑完成的工作，并按项目归类。如果命令后没有指定时间范围，就汇总上一个工作日的工作。 |
@@ -140,7 +140,7 @@ copilot mcp remove mash
 * Copilot 将这些内容保存在 `~/.copilot` （或由 `COPILOT_HOME` 指定的目录）中。工具保存在 `mcp-config.json`中，已安装的插件保存在
   `config.json` 和 `installed-plugins`中。
 * `mash init --backfill-memory` 不支持 Copilot。用这种方式审查旧对话会消耗你的高级请求额度，因此该功能只适用于 Claude Code 和 Codex。
-* 要从 Copilot 会话保存内容到 [记忆](../records.md) ，你需要使用能够读取 Copilot 当前会话的 `mash` 版本。如果 `mash --version-info` 在 `session_citations` 下列出 `copilot`，当前版本就支持读取 Copilot 会话。较旧版本的 `mash` 也能让插件查找记忆，但插件不会提示 Copilot 保存记忆。
+* 要从 Copilot 会话保存内容到 [记忆](records.md) ，你需要使用能够读取 Copilot 当前会话的 `mash` 版本。如果 `mash --version-info` 在 `session_citations` 下列出 `copilot`，当前版本就支持读取 Copilot 会话。较旧版本的 `mash` 也能让插件查找记忆，但插件不会提示 Copilot 保存记忆。
 * 在 Windows 上，Copilot 钩子通过 PowerShell 运行，并调用 `python`。目前还没有在 Windows 上验证这些钩子的记录。
 
 <span id="check-that-it-is-working"></span>

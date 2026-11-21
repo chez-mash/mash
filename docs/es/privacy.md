@@ -53,7 +53,7 @@ cuando quieras desinstalar Mash.
   configures.
 - **Recuperar recuerdos de chats anteriores.** Si eliges esta opción en la
   configuración inicial, los chats seleccionados se envían al proveedor del
-  agente que elijas.
+  agente que elijas. [Cómo funciona la extracción de recuerdos](records.md#backfill-earlier-memory)
 
 ## Prueba con menos historial
 

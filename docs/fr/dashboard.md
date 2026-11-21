@@ -98,7 +98,7 @@ Ouvrez **memory** dans la barre latérale ou choisissez une catégorie. Les bout
 
 Ouvrez un souvenir pour voir ses révisions, les messages cités et les souvenirs associés. Sous une citation, **open the message** ouvre le message source. Dans une conversation, **memory from this chat** liste les souvenirs qui citent cette conversation dans une révision conservée. Les messages cités affichent **Saved as**.
 
-Les listes contiennent aussi des souvenirs en attente ou retirés. Vérifiez l’état, la date d’expiration, les avertissements sur les sources et les conflits signalés avant de vous y fier. Pour confirmer ou modifier un souvenir, demandez à votre agent d’utiliser les [outils de mémoire](../records.md). Si la source d’un souvenir partagé est indisponible, son lien affiche une erreur.
+Les listes contiennent aussi des souvenirs en attente ou retirés. Vérifiez l’état, la date d’expiration, les avertissements sur les sources et les conflits signalés avant de vous y fier. Pour confirmer ou modifier un souvenir, demandez à votre agent d’utiliser les [outils de mémoire](records.md). Si la source d’un souvenir partagé est indisponible, son lien affiche une erreur.
 
 <span id="keep-your-place"></span>
 

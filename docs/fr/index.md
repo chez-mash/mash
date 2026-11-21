@@ -14,6 +14,7 @@ nécessaire.
 - [Installez Mash et vérifiez le téléchargement](installation.md).
 - [Installez Mash avec un gestionnaire de paquets ou compilez-le depuis le code source](install-methods.md).
 - [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
+- [Enregistrez des décisions et retrouvez leurs sources](records.md).
 - [Recherchez des conversations depuis le terminal](search.md).
 - [Incluez des conversations plus anciennes et cherchez par le sens](indexing.md).
 - [Gardez l’historique à jour](synchronization.md).

@@ -49,3 +49,4 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 - [Change your configuration](configuration.md)
 - [Connect another MCP client](mcp.md)
 - [MCP tool reference](tools.md)
+- [Call the saved-memory tools](record-tools.md)

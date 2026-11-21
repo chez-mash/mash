@@ -46,7 +46,7 @@ para instalar dos componentes:
   utilizar herramientas externas.
 - El **[complemento de Mash](plugin.md)**, con la función `mash-history`
   que indica al agente cuándo y cómo buscar, la función `remember` que guarda
-  algo en la [memoria](../records.md) cuando se lo pides (`/mash:remember` en
+  algo en la [memoria](records.md) cuando se lo pides (`/mash:remember` en
   Claude Code) y las acciones automáticas que
   [mantienen el historial al día](#keep-new-chats-searchable).
 
