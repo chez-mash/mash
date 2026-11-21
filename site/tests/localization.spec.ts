@@ -4,7 +4,7 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
   page,
 }) => {
   await page.goto("/quick-start/");
-  await page.getByRole("link", { name: "Español", exact: true }).click();
+  await page.getByRole("combobox", { name: "Select language" }).selectOption({ label: "Español" });
   await expect(page).toHaveURL(/\/es\/quick-start\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Guía de inicio rápido");
@@ -34,6 +34,31 @@ test("the language picker keeps the page and labels English fallbacks", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Configure Mash");
   await expect(page.getByText("Esta página aún no está disponible en tu idioma.")).toBeVisible();
 });
+
+for (const [locale, label, lang, title] of [
+  ["es", "Español", "es", "Compara las herramientas de historial de agentes de código"],
+  ["fr", "Français", "fr", "Comparez les outils d’historique pour agents de code"],
+  ["zh-cn", "简体中文", "zh-CN", "比较编程代理对话历史工具"],
+]) {
+  test(`the ${locale} comparison guide offers a demo and a localized setup`, async ({ page }) => {
+    const compare = `/${locale}/compare/`;
+    const quickStart = `/${locale}/quick-start/`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto("/compare/");
+    await page.getByRole("combobox", { name: "Select language" }).selectOption({ label });
+    await expect(page).toHaveURL(compare);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(guide.getByRole("row")).toHaveCount(5);
+    await expect(guide.locator('a[href^="https://getmash.io/demo/#/search?"]')).toBeVisible();
+    await expect(guide.locator(`a[href="/${locale}/privacy/"]`)).toBeVisible();
+    await guide.locator(`a[href="${quickStart}"]`).click();
+    await expect(page).toHaveURL(quickStart);
+    await page.goto(`/${locale}/`);
+    await guide.locator(`a[href="${compare}"]`).click();
+    await expect(page).toHaveURL(compare);
+  });
+}
 
 for (const [locale, lang, installationTitle] of [
   ["es", "es", "Instala Mash"],

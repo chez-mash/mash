@@ -10,6 +10,7 @@ l’indexation et la recherche restent locales et aucun compte Mash n’est
 nécessaire.
 
 - [Installez Mash et lancez votre première recherche](quick-start.md).
+- [Comparez Mash à d’autres outils d’historique pour agents](compare.md).
 - [Vérifiez les téléchargements et consultez la procédure de désinstallation](installation.md).
 - [Installez Mash avec un gestionnaire de paquets ou compilez-le depuis le code source](install-methods.md).
 - [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).

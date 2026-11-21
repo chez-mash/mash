@@ -1,8 +1,8 @@
 # Compare coding-agent history tools
 
-Start with Mash if you want to find a past conversation, read the exact
-message behind a decision, and keep your searchable history on computers
-you run.
+Mash helps you find the conversations your agents already saved and open
+the original message behind a decision. You can search in a browser, from
+the terminal, or through a connected agent.
 
 In the browser demo, [search the sample chats for invoice exports](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 and open the result from the workstation to read the discussion. Then open the
@@ -24,17 +24,19 @@ and choose **open the message** to see where the decision came from.
   index offline. You can also publish to a Mash server you run so a laptop
   can find chats from a workstation. [How sharing works](shared-index.md)
 
-Local word search needs the Qdrant search service and works without a Mash
-account or model download. Search by meaning is optional and can use local
-models. [Installation](installation.md) · [Privacy](privacy.md) · [Search by meaning](indexing.md#enable-semantic-search)
+Mash uses a local search service called Qdrant. The setup installer can
+start it for you. Word search works without a Mash account, model downloads,
+or agent connections. You can add local models for search by meaning and
+connect an agent whenever you want. [Installation](installation.md) ·
+[Privacy](privacy.md) · [Search by meaning](indexing.md#enable-semantic-search)
 
 ## Other workflows
 
 | If you want to… | Look at | What it offers |
 | --- | --- | --- |
-| Transfer work between agents or recover an earlier file edit | Déjà Vu | Handoffs carry work to another agent. Code recovery can retrieve earlier text from recorded edits. [Déjà Vu README](https://github.com/vshulcz/deja-vu#overview) |
-| Search a wide range of saved agent histories with a keyboard-driven interface | CASS | An interactive terminal search and a CLI with structured results. [CASS repository](https://github.com/Dicklesworthstone/coding_agent_session_search) |
+| Search and resume sessions or recover an earlier file edit | Déjà Vu | A single executable indexes and searches saved history locally. Its handoff tools carry work to another agent, and code recovery can retrieve earlier text from recorded edits. [Déjà Vu README](https://github.com/vshulcz/deja-vu#overview) |
+| Search a wide range of saved agent histories with a keyboard-driven interface | CASS | It has interactive terminal search and can return structured results to scripts or agents. [CASS repository](https://github.com/Dicklesworthstone/coding_agent_session_search) |
 | Bring automatically summarized work into new agent sessions | Claude-Mem | Hooks capture activity and an observer summarizes it. The next session can load the relevant notes. [How Claude-Mem works](https://github.com/thedotmack/claude-mem#how-it-works) |
-| Save conversations as Markdown in your project or resume them in an agent | SpecStory | Its extensions and CLI write Markdown files as you work, and the CLI can reopen saved sessions. [SpecStory docs](https://docs.specstory.com/) |
+| Save conversations as Markdown in your project or resume them in an agent | SpecStory | Its extensions and CLI write Markdown files as you work, and the CLI can reopen saved sessions. [Save conversations](https://docs.specstory.com/specstory/features) · [Search and resume](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
 
 Ready to look up your own chats? [Install Mash and find your first conversation](../README.md#quick-start).

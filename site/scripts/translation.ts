@@ -12,6 +12,7 @@ import {
 
 export const translationPages = [
   "quick-start",
+  "compare",
   "installation",
   "install-methods",
   "local-search",

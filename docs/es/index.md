@@ -8,6 +8,7 @@ Mash es de código abierto. Con la configuración predeterminada, el índice y
 las búsquedas se ejecutan en tu equipo y no necesitas una cuenta de Mash.
 
 - [Instala Mash y haz tu primera búsqueda](quick-start.md).
+- [Compara Mash con otras herramientas de historial de agentes](compare.md).
 - [Revisa los instaladores y consulta cómo desinstalar Mash](installation.md).
 - [Instala con un gestor de paquetes o compila desde el código fuente](install-methods.md).
 - [Busca y lee conversaciones en el panel web](dashboard.md).

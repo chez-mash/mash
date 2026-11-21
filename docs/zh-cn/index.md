@@ -6,6 +6,7 @@ Antigravity 已保存的对话中找到过去的决定和解决方案。打开�
 Mash 是开源软件，在你自己的电脑上运行。默认在本机建立索引和搜索，无需 Mash 账号。
 
 - [安装 Mash 并开始第一次搜索](quick-start.md)。
+- [比较 Mash 和其他编程代理对话历史工具](compare.md)。
 - [查看详细安装、校验下载文件和卸载说明](installation.md)。
 - [使用软件包管理器安装，或从源码构建](install-methods.md)。
 - [在网页面板中查找和阅读对话](dashboard.md)。

@@ -14,14 +14,16 @@
 
 # mash - The **M**ulti-**A**gent **S**earch **H**istory Tool
 
+[Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md)
+
 **Find past coding-agent chats and see why you made a decision.**
 
 Mash searches the history Claude Code, Codex, GitHub Copilot, Cursor, OpenCode,
 and Antigravity already saved on your machine. [Check support for your agent](docs/supported-agents.md).
 
-Browse those chats in the [browser dashboard](docs/dashboard.md) with `mash dash`,
-[search from the terminal](docs/search.md), or [connect a coding agent](docs/agents.md)
-so it can search your history for you.
+Browse those chats in the [browser dashboard](docs/dashboard.md) with `mash dash`
+or [search from the terminal](docs/search.md). You can also
+[connect a coding agent](docs/agents.md) so it can search your history for you.
 
 Mash is open source and self-hosted. The default setup keeps indexing and
 search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
@@ -46,8 +48,6 @@ search on your machine and needs no account. [How Mash handles your history](doc
 [Compare Mash with other coding-agent history tools](docs/compare.md).
 
 ## Quick start
-
-[Español](docs/es/quick-start.md) · [Français](docs/fr/quick-start.md) · [简体中文](docs/zh-cn/quick-start.md)
 
 [Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 and open a result in its conversation. Set up Mash below to search your own
