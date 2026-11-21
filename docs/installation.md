@@ -12,7 +12,7 @@ setup review, use the [quick start](../README.md#quick-start).
 If Mash is already installed, [start the search service](#start-the-local-search-service)
 or [connect your histories](#connect-your-histories) if the service is running.
 
-Already using Mash and moving to a new release? See [upgrades and backups](upgrades.md).
+Already using Mash and moving to a new release? Follow the [upgrade steps](upgrades.md#upgrade-an-existing-installation).
 
 <span id="install-the-cli"></span>
 

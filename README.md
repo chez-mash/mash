@@ -134,7 +134,7 @@ You can also [export and back up your history](docs/upgrades.md).
 | apt, Debian and Ubuntu | [Add the Mash repository](docs/install-methods.md#apt-debian-or-ubuntu), then `sudo apt install mash-cli` |
 | Scoop | `scoop bucket add mashium https://github.com/mashium/mash`, then `scoop install mashium/mash` |
 | mise | `mise use -g github:mashium/mash` |
-| cargo-binstall | `cargo binstall --git https://github.com/mashium/mash mash` |
+| cargo-binstall | [Install the release archive](docs/install-methods.md#cargo-binstall) |
 
 </details>
 
@@ -165,7 +165,7 @@ The guides live at **[getmash.io](https://getmash.io)**: search and filters,
 agent integrations, the dashboard, sharing across machines, configuration,
 troubleshooting, and the CLI and MCP references.
 
-Upgrading an existing installation? Read [the upgrade guide](docs/upgrades.md)
+Upgrading an existing installation? Read [the upgrade guide](docs/upgrades.md#upgrade-an-existing-installation)
 before replacing it.
 
 ## Related projects

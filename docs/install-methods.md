@@ -3,6 +3,7 @@
 Use this guide to install Mash with a package manager or build it from source.
 After installing, [start the local search service](installation.md#start-the-local-search-service)
 and [choose which histories to read](installation.md#connect-your-histories).
+If Mash is already installed, follow the [upgrade steps](upgrades.md#upgrade-an-existing-installation).
 
 ## Install with a package manager
 
@@ -40,8 +41,11 @@ mise use -g github:mashium/mash
 ### cargo-binstall
 
 ```sh
-cargo binstall --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
 ```
+
+This uses Mash's release archive for your platform. If none is available,
+see [build from source](#build-from-source).
 
 ## Build from source
 
