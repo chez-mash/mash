@@ -14,15 +14,30 @@
 
 # mash - The **M**ulti-**A**gent **S**earch **H**istory Tool
 
-**Find things you’ve already worked out with your coding agents.**
+**Find past coding-agent chats and see why you made a decision.**
 
 Mash searches the history Claude Code, Codex, GitHub Copilot, Cursor, OpenCode,
-and Antigravity already saved on your machine. Find an earlier decision or
-fix, then open the original conversation.
+and Antigravity already saved on your machine.
 
-Mash is open source and self-hosted. The default setup reads and searches
-your chats on your machine and needs no account. If you choose to share an
-index across machines, you run the server. [How Mash handles your history](docs/privacy.md)
+Mash is open source and self-hosted. The default setup keeps indexing and
+search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
+
+[Try the live dashboard demo](https://getmash.io/demo/) · [Quick start](#quick-start)
+
+[![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
+
+## Why Mash
+
+- **Find the exact message.** Look up an error, filename, or phrase across agents.
+  Open the match in the dashboard with its surrounding messages and tool output.
+  If you remember the idea more than the wording, optional local models let
+  you search by meaning. [Search guide](docs/search.md)
+- **Check why a decision was made.** The plugin saves decisions and preferences
+  with a quote from the conversation. Open the source message yourself, or
+  ask your agent to find it in a later session. [Conversation records](docs/records.md)
+- **Pick up work on another machine.** Your laptop can search chats from your
+  workstation through a server you run. Each machine keeps its own local
+  index, so local search keeps working offline. [Multi-machine setup](docs/shared-index.md)
 
 ## Quick start
 
@@ -103,13 +118,8 @@ Code. Show me the message behind the answer.”
 [Check an agent connection](docs/agents.md#confirm-the-connection) if it
 cannot see Mash.
 
-## More ways to use Mash
-
-- [Search by meaning](docs/indexing.md#enable-semantic-search) with optional local models.
-- [Pick up new chats](docs/synchronization.md) with `mash index` or opt in to continuous indexing.
-- [Save decisions and their sources](docs/records.md) for later recall.
-- [Search across your machines](docs/shared-index.md) with a server you host.
-- [Export and back up your history](docs/upgrades.md) to keep it portable.
+Keep new chats searchable with [`mash index` or a background watcher](docs/synchronization.md).
+You can also [export and back up your history](docs/upgrades.md).
 
 <details>
 <summary>Install with a package manager</summary>
@@ -182,6 +192,12 @@ troubleshooting, and the CLI and MCP references.
 
 Upgrading an existing installation? Read [the upgrade guide](docs/upgrades.md)
 before replacing it.
+
+## Related projects
+
+- Cross-agent handoffs and recovery of earlier file edits. [Déjà Vu](https://github.com/vshulcz/deja-vu)
+- Search across dozens of agents from a terminal interface. [CASS](https://github.com/Dicklesworthstone/coding_agent_session_search)
+- Automatic capture and AI summaries for future sessions. [Claude-Mem](https://github.com/thedotmack/claude-mem)
 
 ## Licence
 
