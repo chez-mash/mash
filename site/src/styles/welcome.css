@@ -233,12 +233,6 @@
   .scene.tight .stage {
     align-content: start;
   }
-  /* A scene scrolled past before it finished stays where it was pinned. */
-  .scene.kept .stage {
-    position: fixed;
-    z-index: 2;
-    background: var(--ground);
-  }
   .stage::before {
     position: absolute;
     z-index: -1;

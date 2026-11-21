@@ -6,8 +6,9 @@ for (const [name, side] of [
   ["memory", "left"],
   ["search", "below"],
 ] as const) {
-  test(`the ${name} snapshot sits ${side} of its heading and captions`, async ({ page }) => {
-    const stacked = side === "below";
+  const stacked = side === "below";
+  const placement = stacked ? "below" : `${side} of`;
+  test(`the ${name} snapshot sits ${placement} its heading and captions`, async ({ page }) => {
     await page.setViewportSize(
       stacked ? { width: 320, height: 568 } : { width: 1280, height: 850 },
     );
@@ -18,8 +19,14 @@ for (const [name, side] of [
     });
     const scene = page.locator(`#welcome-${name}`);
     await scene.evaluate((element) => {
+      const stage = element.querySelector<HTMLElement>(".stage");
+      if (!stage) throw new Error("Missing welcome stage");
       const { top, height } = element.getBoundingClientRect();
-      scrollTo(0, scrollY + top + 0.4 * (height - innerHeight));
+      const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
+      scrollTo({
+        top: scrollY + top - pinnedAt + 0.3 * (height - stage.offsetHeight),
+        behavior: "instant",
+      });
     });
 
     const copy = scene.locator(".snapshot-copy");

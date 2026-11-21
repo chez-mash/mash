@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -48,13 +48,17 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Hybrid search",
     "shared index",
   ]);
-  // Every section with a drawing but the last pins and plays the same way.
+  // The seven feature scenes pin while their scroll-driven artwork is in view.
   await expect(page.locator(".mash-welcome .scene")).toHaveCount(7);
-  // The marks rise in one after another when they come into view.
-  await marks.first().scrollIntoViewIfNeeded();
-  for (const mark of await marks.all()) await expect(mark).toHaveClass(/seen/);
+  await readyWelcome(page);
+  await page.locator(".mash-agents").evaluate((element) => {
+    element.scrollIntoView({ block: "center", behavior: "instant" });
+  });
+  await paintScroll(page);
+  for (const mark of await marks.all()) await expect(mark).toHaveCSS("opacity", "1");
   // The conditions behind the figures are folded away, and open on request.
   const measured = page.locator(".mash-welcome .measured");
+  await scrub(page.locator("#welcome-speed"), 0.55);
   await expect(measured.locator("p")).toBeHidden();
   await measured.locator("summary").click();
   await expect(measured.locator("dt")).toHaveText(["66 ms", "20 MB", "5× and 9×"]);
@@ -296,25 +300,51 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await expect(page.getByRole("link", { name: "Keep Mash’s copy in place" })).toBeVisible();
 });
 
-/**
- * Scrolls so that a scene has played the given share of its pinned stretch.
- * Earlier scenes may still cover that position while they finish playing.
- */
-async function play(page: Page, heading: string, share: number): Promise<void> {
-  const scene = page.locator(".mash-welcome .scene", { hasText: heading });
-  await expect
-    .poll(
-      () =>
-        scene.evaluate((element, part) => {
-          const top = element.getBoundingClientRect().top + scrollY;
-          const target = top + part * (element.getBoundingClientRect().height - innerHeight);
-          if (Math.abs(scrollY - target) < 2) return !document.querySelector(".mash-welcome .kept");
-          scrollTo(0, target);
-          return false;
-        }, share),
-      { timeout: 40_000 },
-    )
-    .toBe(true);
+async function readyWelcome(page: Page): Promise<void> {
+  await expect(page.locator(".mash-welcome")).toHaveClass(/\bmotion\b/);
+  await page.evaluate(() => document.fonts.ready);
+}
+
+async function paintScroll(page: Page): Promise<void> {
+  // Let the scroll event and the next animation frame render the position.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+}
+
+/** Scrolls to the given share of a scene's pinned stretch. */
+async function scrub(scene: Locator, share: number): Promise<void> {
+  await scene.evaluate((element, part) => {
+    const stage = element.querySelector<HTMLElement>(".stage");
+    if (!stage) throw new Error("Missing welcome stage");
+    const { top, height } = element.getBoundingClientRect();
+    const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
+    const target = scrollY + top - pinnedAt + part * (height - stage.offsetHeight);
+    scrollTo({ top: target, behavior: "instant" });
+  }, share);
+  await paintScroll(scene.page());
+}
+
+async function sceneState(scene: Locator) {
+  return scene.evaluate((element) => {
+    const picture = element.querySelector(".show");
+    const stroke = element.querySelector(".art path");
+    if (!picture || !stroke) throw new Error("Missing welcome artwork");
+    const panelStyle = getComputedStyle(picture);
+    const strokeStyle = getComputedStyle(stroke);
+    return {
+      scroll: scrollY,
+      panel: [panelStyle.opacity, panelStyle.transform],
+      stroke: [strokeStyle.opacity, strokeStyle.strokeDasharray, strokeStyle.strokeDashoffset],
+      captions: [...element.querySelectorAll(".caps li")].map((caption) => {
+        const style = getComputedStyle(caption);
+        return [style.opacity, style.transform];
+      }),
+    };
+  });
 }
 
 test("welcome illustrations and headings enter from opposite alternating sides", async ({
@@ -322,10 +352,10 @@ test("welcome illustrations and headings enter from opposite alternating sides",
 }) => {
   await page.setViewportSize({ width: 1280, height: 850 });
   await page.goto("/");
-  await expect(page.locator(".mash-welcome")).toHaveClass(/\bmotion\b/);
-  for (const [id, heading, direction] of [
-    ["welcome-search", "Find it.", 1],
-    ["welcome-mashy", "Meet Mashy.", -1],
+  await readyWelcome(page);
+  for (const [id, direction] of [
+    ["welcome-search", 1],
+    ["welcome-mashy", -1],
   ] as const) {
     const scene = page.locator(`#${id}`);
     const offset = (selector: string) =>
@@ -335,148 +365,130 @@ test("welcome illustrations and headings enter from opposite alternating sides",
     expect(direction * (await offset(".snapshot-copy"))).toBeGreaterThan(0);
     expect(direction * (await offset(".show"))).toBeLessThan(0);
 
-    await play(page, heading, 0.4);
+    await scrub(scene, 0.4);
     await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
     expect(await offset(".snapshot-copy")).toBeCloseTo(0);
     expect(await offset(".show")).toBeCloseTo(0);
   }
 });
 
-test("scrolling reveals the search illustration and plays its captions in order", async ({
-  page,
-}) => {
+test("the same scroll position shows the same search artwork and caption", async ({ page }) => {
   await page.goto("/");
-  const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
+  await readyWelcome(page);
+  const scene = page.locator("#welcome-search");
   const image = scene.locator(".scene-image");
-  const captions = scene.locator(".caps li");
   await expect(scene.locator(".show")).toHaveCSS("opacity", "0");
-  await play(page, "Find it.", 0.35);
-  await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
+  await scrub(scene, 0.3);
+  const firstCaption = await sceneState(scene);
+  expect(firstCaption.panel[0]).toBe("1");
+  expect(firstCaption.captions.map(([opacity]) => opacity)).toEqual(["1", "0", "0"]);
   await expect(image).toHaveJSProperty("naturalWidth", Number(await image.getAttribute("width")));
-  await expect(captions.first()).toHaveCSS("opacity", "1");
-  await expect(captions.last()).toHaveCSS("opacity", "0");
-  await play(page, "Find it.", 0.8);
-  await expect(captions.last()).toHaveCSS("opacity", "1");
-  await expect(captions.first()).toHaveCSS("opacity", "0");
+  await scrub(scene, 0.75);
+  const lastCaption = await sceneState(scene);
+  expect(lastCaption.captions.map(([opacity]) => opacity)).toEqual(["0", "0", "1"]);
+  await scrub(scene, 0.3);
+  expect(await sceneState(scene)).toEqual(firstCaption);
+
+  // Even a half-visible caption stays where scrolling left it.
+  await scrub(scene, 0.17);
+  const entering = await sceneState(scene);
+  const opacity = Number(entering.captions[0]?.[0]);
+  expect(opacity).toBeGreaterThan(0);
+  expect(opacity).toBeLessThan(1);
+  await page.waitForTimeout(500);
+  expect(await sceneState(scene)).toEqual(entering);
 });
 
-test("a scene scrolled past early stays on screen until it has played out", async ({ page }) => {
-  await page.goto("/");
-  const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
-  const stage = scene.locator(".stage");
-  // Where the scene's stage stops being pinned.
-  const pinEnds = () =>
-    scene.evaluate((element) => {
-      const pinned = element.querySelector<HTMLElement>(".stage");
-      if (!pinned) throw new Error("no stage");
-      const pinnedAt = Number.parseFloat(getComputedStyle(pinned).top);
-      return scrollY + element.getBoundingClientRect().bottom - pinnedAt - pinned.offsetHeight;
-    });
-  const strokes = scene.locator(".art path");
-  // Twice over: the scene does this on every pass, not only the first.
-  for (const pass of [1, 2]) {
-    await play(page, "Find it.", 0.05);
-    const end = await pinEnds();
-    const pinnedAt = await stage.evaluate((element) => element.getBoundingClientRect().top);
-    // Scroll past it before it has played: a little the first time, several
-    // screens the second. The page goes where it was sent.
-    await page.evaluate((to) => scrollTo(0, to), end + (pass === 1 ? 500 : 2600));
-    await expect(scene, `pass ${pass}`).toHaveClass(/kept/);
-    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
-    // The stage has not moved, and it finishes there: the illustration and
-    // final caption appear, then the drawing is undrawn.
-    expect(await stage.evaluate((element) => element.getBoundingClientRect().top)).toBeCloseTo(
-      pinnedAt,
-      0,
+for (const [name, viewport] of [
+  ["desktop", { width: 1280, height: 850 }],
+  ["phone", { width: 390, height: 700 }],
+] as const) {
+  test(`fast jumps show the destination without replaying skipped scenes on ${name}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await readyWelcome(page);
+    const memory = page.locator("#welcome-memory");
+    const skipped = page.locator("#welcome-search .stage, #welcome-mashy .stage");
+    const stages = page.locator(".mash-welcome .scene .stage");
+
+    await scrub(memory, 0.3);
+    expect((await sceneState(memory)).captions.map(([opacity]) => opacity)).toEqual([
+      "1",
+      "0",
+      "0",
+    ]);
+    expect(
+      await skipped.evaluateAll((items) =>
+        items.every((item) => item.getBoundingClientRect().bottom <= 0),
+      ),
+    ).toBe(true);
+    await expect(memory.locator(".scene-image")).toBeInViewport({ ratio: 0.98 });
+
+    // Let the browser clamp an overshoot to its own scroll limit.
+    await page.evaluate(() =>
+      scrollTo({ top: document.documentElement.scrollHeight + innerHeight, behavior: "instant" }),
     );
-    const image = scene.locator(".scene-image");
-    await expect(image).toHaveJSProperty("naturalWidth", Number(await image.getAttribute("width")));
-    await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
-    await expect(scene).toHaveClass(/kept/);
-    await expect(strokes.first()).toHaveCSS("opacity", "0", { timeout: 15_000 });
-    // Then it lets go, and the page was never moved.
-    await expect(scene).not.toHaveClass(/kept/);
-    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
-  }
-});
-
-test("fast jumps play crossed scenes in order, including crossings behind a kept scene", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const welcome = page.locator(".mash-welcome");
-  const scenes = welcome.locator(".scene");
-  const first = scenes.nth(0);
-  const second = scenes.nth(1);
-  const third = scenes.nth(2);
-  await expect(welcome).toHaveClass(/\bmotion\b/);
-  await page.evaluate(async () => {
-    await document.fonts.ready;
+    await paintScroll(page);
+    const bottom = await page.evaluate(() => scrollY);
+    await expect(page.locator(".mash-footer")).toBeInViewport();
+    const offscreenStages = () =>
+      stages.evaluateAll((items) =>
+        items.every((item) => item.getBoundingClientRect().bottom <= 0),
+      );
+    expect(await offscreenStages()).toBe(true);
+    await page.waitForTimeout(500);
+    expect(await offscreenStages()).toBe(true);
+    expect(await page.evaluate(() => scrollY)).toBe(bottom);
   });
-  await expect(first.locator(".show")).toHaveCSS("opacity", "0");
-
-  // Pass both scenes in one frame, before either was visible.
-  await second.evaluate((element) => {
-    const stage = element.querySelector<HTMLElement>(".stage");
-    if (!stage) throw new Error("no stage");
-    const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
-    const pinEnds =
-      scrollY + element.getBoundingClientRect().bottom - pinnedAt - stage.offsetHeight;
-    scrollTo(0, pinEnds + 80);
-  });
-  await expect(first).toHaveClass(/\bkept\b/);
-  await expect(second).not.toHaveClass(/\bkept\b/);
-  const firstImage = first.locator(".scene-image");
-  await expect(firstImage).toHaveJSProperty(
-    "naturalWidth",
-    Number(await firstImage.getAttribute("width")),
-  );
-
-  // Pass the next scene as well while the first still covers the viewport.
-  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
-  expect(await page.evaluate(() => scrollY + innerHeight)).toBeGreaterThanOrEqual(
-    await page.evaluate(() => document.documentElement.scrollHeight - 1),
-  );
-  await expect(second).toHaveClass(/\bkept\b/, { timeout: 12_000 });
-  await expect(first).not.toHaveClass(/\bkept\b/);
-  const secondImage = second.locator(".scene-image");
-  await expect(secondImage).toHaveJSProperty(
-    "naturalWidth",
-    Number(await secondImage.getAttribute("width")),
-  );
-  await expect(third).toHaveClass(/\bkept\b/, { timeout: 15_000 });
-  await expect(second).not.toHaveClass(/\bkept\b/);
-});
+}
 
 test("a direct scene link skips replaying earlier scenes", async ({ page }) => {
   await page.goto("/#welcome-memory");
-  const welcome = page.locator(".mash-welcome");
-  await expect(welcome).toHaveClass(/\bmotion\b/);
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  });
+  await readyWelcome(page);
+  await paintScroll(page);
   const heading = page.getByRole("heading", { name: "Save the decision. Keep the source." });
   await expect(heading).toBeInViewport();
-  await expect(welcome.locator(".scene.kept")).toHaveCount(0);
+  for (const id of ["welcome-search", "welcome-mashy"]) {
+    await expect(page.locator(`#${id} .stage`)).toHaveCSS("opacity", "0");
+  }
 });
 
-test("a scene's drawing draws itself, and undraws on the way back", async ({ page }) => {
+test("scrolling back draws a scene again and then undraws its entrance", async ({ page }) => {
   await page.goto("/");
-  const strokes = page
-    .locator(".mash-welcome .scene", { hasText: "Meet Mashy." })
-    .locator(".art path");
-  await expect(strokes.last()).toHaveCSS("opacity", "0");
-  await play(page, "Meet Mashy.", 0.2);
-  await expect(strokes.last()).toHaveCSS("opacity", "1");
-  await page.evaluate(() => scrollTo(0, 0));
-  await expect(strokes.last()).toHaveCSS("opacity", "0");
+  await readyWelcome(page);
+  const scene = page.locator("#welcome-mashy");
+  const strokes = scene.locator(".art path");
+  const painted = () =>
+    strokes.evaluateAll(
+      (paths) => paths.filter((path) => Number(getComputedStyle(path).opacity) > 0).length,
+    );
+  expect(await painted()).toBe(0);
+  await scrub(scene, -0.15);
+  const entering = await painted();
+  expect(entering).toBeGreaterThan(0);
+  const all = await strokes.count();
+  expect(entering).toBeLessThan(all);
+  await scrub(scene, 0.05);
+  expect(await painted()).toBe(all);
+
+  await scrub(page.locator("#welcome-memory"), 0.3);
+  expect(await painted()).toBe(0);
+  await scrub(scene, 0.05);
+  expect(await painted()).toBe(all);
+  await scrub(scene, -0.15);
+  expect(await painted()).toBe(entering);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await paintScroll(page);
+  expect(await painted()).toBe(0);
 });
 
 test("a scene's enlarged heading stays inside the screen", async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 700 });
   await page.goto("/");
-  await play(page, "Fast, and light", 0.1);
+  await readyWelcome(page);
+  await scrub(page.locator("#welcome-speed"), 0.1);
   const heading = page.getByRole("heading", { name: "Fast, and light on your machine." });
   await expect(async () => {
     const box = await heading.boundingBox();
@@ -487,10 +499,11 @@ test("a scene's enlarged heading stays inside the screen", async ({ page }) => {
 
 test("the Mashy scene finishes with the model service requirement", async ({ page }) => {
   await page.goto("/");
-  const scene = page.locator(".mash-welcome .scene", { hasText: "Meet Mashy." });
-  await play(page, "Meet Mashy.", 0.84);
+  await readyWelcome(page);
+  const scene = page.locator("#welcome-mashy");
+  await scrub(scene, 0.8);
   const last = scene.locator(".caps li").last();
-  await expect(last).toHaveCSS("opacity", "1", { timeout: 20_000 });
+  await expect(last).toHaveCSS("opacity", "1");
   await expect(scene.locator(".caps li").first()).toHaveCSS("opacity", "0");
   await expect(last).toHaveText("Optional. Requires your own model service and API key.");
 });
@@ -549,8 +562,9 @@ for (const viewport of [
   }) => {
     await page.setViewportSize(viewport);
     await page.goto("/#welcome-search");
-    await play(page, "Find it.", 0.35);
-    const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
+    await readyWelcome(page);
+    const scene = page.locator("#welcome-search");
+    await scrub(scene, 0.3);
     const image = scene.locator(".scene-image");
     await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
     await expect(image).toBeInViewport({ ratio: 0.98 });

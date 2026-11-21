@@ -6,13 +6,11 @@ import { gsap } from "gsap";
 
 /** How much later each stroke of a drawing starts than the one before, in strokes. */
 const STAGGER = 0.12;
-/** Seconds a whole drawing takes to draw. */
-const DRAW_SECONDS = 1;
-/** How long a finished drawing has the screen to itself before its panel rises. */
-const HOLD_SECONDS = 0.5;
-/** Reading time at full visibility, including when a scene is finishing quickly. */
-const CAPTION_SECONDS = 1.1;
-const ILLUSTRATION_SECONDS = 1.2;
+/** Durations set the share of scroll travel each part of the timeline gets. */
+const DRAW_DURATION = 1;
+const HEADING_HOLD = 0.5;
+const CAPTION_HOLD = 1.1;
+const ILLUSTRATION_HOLD = 1.2;
 /** How faint a drawing is behind its panel. */
 const FAINT = 0.13;
 
@@ -26,18 +24,9 @@ export interface Scene {
   readonly copy: HTMLElement | null;
   readonly show: HTMLElement;
   readonly art: SVGSVGElement | null;
-  readonly steps: number;
   readonly timeline: gsap.core.Timeline;
-  /** Timeline times: drawing done, heading alone, panel up, each step shown, the end. */
+  /** Where the drawing is complete and the stage starts to pin. */
   readonly drawnAt: number;
-  readonly titledAt: number;
-  readonly panelAt: number;
-  readonly stepAt: readonly number[];
-  readonly endAt: number;
-  /** Where the timeline was last sent. */
-  target: number;
-  /** Whether it is fixed on screen after its place, finishing. */
-  kept: boolean;
 }
 
 /** The strokes of a drawing, and the shapes that fill in once they are drawn. */
@@ -58,7 +47,7 @@ export function draw(
   gsap.set(strokes, { drawSVG: "0%", autoAlpha: 0 });
   gsap.set(dots, { autoAlpha: 0 });
   const at = timeline.duration();
-  const one = DRAW_SECONDS / (1 + Math.max(0, strokes.length - 1) * STAGGER);
+  const one = DRAW_DURATION / (1 + Math.max(0, strokes.length - 1) * STAGGER);
   strokes.forEach((stroke, i) => {
     // Shown only once it has begun, so a round cap never sits there as a dot.
     timeline.to(stroke, { autoAlpha: 1, duration: 0.04, ease: "none" }, at + i * one * STAGGER);
@@ -102,7 +91,6 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   if (!stage || !show) return undefined;
   const copy = stage.querySelector<HTMLElement>(".snapshot-copy") ?? head;
   const captions = [...stage.querySelectorAll<HTMLElement>(".caps > li")];
-  const steps = Math.max(1, captions.length);
   const art = el.querySelector<SVGSVGElement>("svg.art");
   const strength = Number(art?.dataset.strength ?? 0.5);
   const { strokes, dots } = parts(art);
@@ -112,15 +100,14 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   gsap.set(el, { "--t": 0, "--art": strength, "--arrival-side": index % 2 === 0 ? -1 : 1 });
   draw(timeline, strokes, dots);
   const drawnAt = timeline.duration();
-  if (head) timeline.to({}, { duration: HOLD_SECONDS });
-  const titledAt = timeline.duration();
+  if (head) timeline.to({}, { duration: HEADING_HOLD });
 
   // The panel comes in and the drawing recedes behind it.
   timeline.to(el, { "--t": 1, "--art": FAINT, duration: 0.55, ease: "power2.inOut" });
   const panelAt = timeline.duration();
 
   if (captions.length > 0) gsap.set(captions, { autoAlpha: 0, y: 26, scale: 0.97 });
-  const stepAt = captions.map((caption, step) => {
+  captions.forEach((caption, step) => {
     const at = timeline.duration();
     const previous = captions[step - 1];
     if (previous) {
@@ -135,19 +122,14 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
       { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power2.out" },
       at + (previous ? 0.2 : 0),
     );
-    timeline.to({}, { duration: CAPTION_SECONDS });
-    return timeline.duration();
+    timeline.to({}, { duration: CAPTION_HOLD });
   });
-  if (stepAt.length === 0) {
-    timeline.to({}, { duration: ILLUSTRATION_SECONDS });
-    stepAt.push(timeline.duration());
-  }
+  if (captions.length === 0) timeline.to({}, { duration: ILLUSTRATION_HOLD });
   revealIconTiles(timeline, show, panelAt);
 
   // The panel leaves, the drawing comes back to strength and is undrawn.
   timeline.to(el, { "--t": 0, "--art": strength, duration: 0.45, ease: "power2.inOut" });
   undraw(timeline, strokes, dots);
-  const endAt = timeline.duration();
 
   return {
     index,
@@ -157,15 +139,8 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
     copy,
     show,
     art,
-    steps,
     timeline,
     drawnAt,
-    titledAt,
-    panelAt,
-    stepAt,
-    endAt,
-    target: 0,
-    kept: false,
   };
 }
 

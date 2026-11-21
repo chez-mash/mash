@@ -90,14 +90,12 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   then brings the heading and illustration in from opposite sides. Travel
   fits the available space. Captions appear in order once the illustration
   settles.
-  Each scene is one GSAP timeline. Its position on screen sets the target time,
-  and the timeline plays there at its own pace. A scene scrolled past unfinished
-  gets the class `kept` and stays fixed until it finishes. A single scroll can
-  cross several scenes, and crossings behind a kept scene wait in page order.
-  Scrolling back into a waiting scene returns it to regular playback. The script
-  leaves the page's native scroll position alone, because Safari ignores
-  programmatic scroll changes mid-gesture and can shake. The pacing constants
-  are at the top of that file.
+  Each scene has one paused GSAP timeline. The drawing follows its entry into
+  the viewport, and the remaining timeline follows the distance the section
+  scrolls while pinned. Jumping past scenes lands at the destination, and
+  scrolling back seeks to the earlier state. The durations in
+  `site/src/welcome-scene.ts` divide the available scroll distance among the
+  animation and reading phases.
 - **GSAP** (with its ScrollTrigger and DrawSVG plugins) drives the motion. Its
   proprietary no-charge licence covers this use. The stage dimensions and
   travel are measured again when the window changes size.
