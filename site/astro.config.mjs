@@ -215,7 +215,15 @@ export default defineConfig({
               },
               slug: "backup",
             },
-            "upgrades",
+            {
+              label: "Upgrade Mash",
+              translations: {
+                es: "Actualiza Mash",
+                fr: "Mettre Mash à niveau",
+                "zh-CN": "升级 Mash",
+              },
+              slug: "upgrades",
+            },
             {
               label: "Uninstall Mash",
               translations: {

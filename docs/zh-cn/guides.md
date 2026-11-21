@@ -45,7 +45,7 @@ Mash 可以帮你找到以前与编程代理的对话。如果是第一次使用
 - [纳入较早的对话，或按含义搜索](indexing.md)
 - [搜索多台设备上的对话](shared-index.md)
 - [备份和恢复历史记录](backup.md)
-- [升级 Mash（英文）](../upgrades.md)
+- [升级 Mash](upgrades.md)
 - [卸载 Mash，或为重装保留历史记录](uninstall.md)
 - [检查和管理服务（英文）](../services.md)
 

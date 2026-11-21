@@ -31,6 +31,7 @@ export const translationPages = [
   "indexing",
   "synchronization",
   "backup",
+  "upgrades",
   "uninstall",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];

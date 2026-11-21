@@ -87,7 +87,7 @@ ejecuta `mash index` y repite la búsqueda.
 - Deja el monitor en marcha si necesitas actualizaciones continuas y revisa
   sus resultados para saber si pudo leer todos los orígenes.
 - Si el aviso aparece tras una actualización o menciona un índice incompatible,
-  sigue la [guía de actualizaciones (en inglés)](../upgrades.md) antes de reintentar.
+  sigue la [guía de actualizaciones](upgrades.md) antes de reintentar.
 
 <span id="in-the-dashboard"></span>
 

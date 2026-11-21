@@ -318,7 +318,7 @@ sigue los pasos de actualización de abajo.
 ## El formato del índice es más antiguo o más reciente que Mash
 
 Si aparece `schema-incompatible`, detente y consulta
-[actualizaciones y copias de seguridad (en inglés)](../upgrades.md).
+[actualizaciones y copias de seguridad](upgrades.md).
 Conserva el ejecutable anterior y los datos. Exporta con la versión que
 escribió el índice y valida la importación con la versión nueva en otra
 ruta.

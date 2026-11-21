@@ -46,7 +46,7 @@ programación. Si acabas de llegar, empieza por la [guía de inicio rápido](qui
 - [Incluye conversaciones antiguas o busca por significado](indexing.md)
 - [Busca en tu historial de varios equipos](shared-index.md)
 - [Haz una copia y restaura tu historial](backup.md)
-- [Actualiza Mash (en inglés)](../upgrades.md)
+- [Actualiza Mash](upgrades.md)
 - [Desinstala Mash o conserva el historial para reinstalarlo](uninstall.md)
 - [Comprueba y administra los servicios (en inglés)](../services.md)
 

@@ -87,7 +87,7 @@ lancez `mash index`, puis relancez la recherche.
 - Gardez la surveillance active si vous avez besoin de mises à jour continues
   et vérifiez ses résultats pour savoir si tous les historiques ont été lus.
 - Si l’avertissement suit une mise à jour ou indique un index incompatible,
-  suivez le [guide de mise à jour (en anglais)](../upgrades.md) avant de réessayer.
+  suivez le [guide de mise à jour](upgrades.md) avant de réessayer.
 
 <span id="in-the-dashboard"></span>
 

@@ -12,7 +12,7 @@ pour installer Mash, démarrer le service de recherche et ouvrir l’assistant
 de configuration. Si Mash est déjà installé, [démarrez le service de recherche](#start-the-local-search-service).
 S’il est déjà en cours d’exécution, [configurez vos historiques](#connect-your-histories).
 
-Pour passer à une nouvelle version, suivez les [étapes de mise à jour (en anglais)](../upgrades.md#upgrade-an-existing-installation).
+Pour passer à une nouvelle version, suivez les [étapes de mise à jour](upgrades.md#upgrade-an-existing-installation).
 
 <span id="what-setup-changes"></span>
 

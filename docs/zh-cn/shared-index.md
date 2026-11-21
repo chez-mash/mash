@@ -219,7 +219,7 @@ mash search 'authentication' --local    # this computer only; the server is not 
 
 ## 移除设备，或让重建索引的设备重新发布
 
-服务器会将每个节点 ID 绑定到首次以该 ID 发布的本地索引，避免其他设备复用该名称并覆盖原有历史记录。出于同样的原因，如果某台设备删除并重建了索引，发布时也会被拒绝，并出现错误“shared node ownership or revision changed”。从 [备份](../upgrades.md#replace-an-index-that-cannot-be-upgraded) 恢复索引时使用
+服务器会将每个节点 ID 绑定到首次以该 ID 发布的本地索引，避免其他设备复用该名称并覆盖原有历史记录。出于同样的原因，如果某台设备删除并重建了索引，发布时也会被拒绝，并出现错误“shared node ownership or revision changed”。从 [备份](upgrades.md#replace-an-index-that-cannot-be-upgraded) 恢复索引时使用
 `--keep-identity` 即可保留该名称。否则，请在服务器上注销该节点。要永久移除一台电脑，请先停止该电脑的发布，再清除它已发布的历史记录，最后撤销其凭据。从电脑上卸载 Mash 后，服务器上的副本仍会保留。
 
 停止 `mash-server` ，并让它使用的 Qdrant 继续运行。使用与该服务相同的服务器配置和环境运行以下命令。
@@ -244,6 +244,6 @@ mash-server --server-config /absolute/path/to/server.toml --retire-node personal
 要更换丢失或泄露的加入字符串，请删除旧的配置块，重新添加相同的组和节点，然后重启服务器。使用新的加入字符串从同一台电脑加入。如果该电脑保留了本地索引，仍可用原来的名称发布。
 
 安装新版 Mash 前，请阅读
-[升级和备份](../upgrades.md#upgrade-a-shared-index)。
+[升级和备份](upgrades.md#upgrade-a-shared-index)。
 
 <!-- mash-docs-source: d53981430b20b1e97415d553067b960e398181e3c769b414ed3965a9f7296bd1 -->

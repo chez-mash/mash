@@ -3,7 +3,7 @@
 Usa esta guía para instalar Mash con un gestor de paquetes o compilarlo a partir del
 código fuente. Después de instalarlo, [inicia el servicio de búsqueda local](installation.md#start-the-local-search-service)
 y [elige qué historiales leer](installation.md#connect-your-histories). Si ya tienes Mash instalado,
-sigue los [pasos para actualizarlo (en inglés)](../upgrades.md#upgrade-an-existing-installation).
+sigue los [pasos para actualizarlo](upgrades.md#upgrade-an-existing-installation).
 
 <span id="install-with-a-package-manager"></span>
 

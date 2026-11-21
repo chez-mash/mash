@@ -220,7 +220,7 @@ depuis un ordinateur déjà configuré pour effectuer des recherches dans ce gro
 
 ## Retirer une machine ou reprendre la publication après avoir reconstruit son index
 
-Le serveur associe chaque identifiant de nœud au premier index local qui a publié sous cet identifiant. Cela empêche une autre machine d’écraser cet historique en réutilisant le nom. Pour la même raison, si vous supprimez puis reconstruisez l’index d’une machine, la publication échoue avec le message « shared node ownership or revision changed ». Si vous restaurez l’index à partir d’une [sauvegarde](../upgrades.md#replace-an-index-that-cannot-be-upgraded) avec
+Le serveur associe chaque identifiant de nœud au premier index local qui a publié sous cet identifiant. Cela empêche une autre machine d’écraser cet historique en réutilisant le nom. Pour la même raison, si vous supprimez puis reconstruisez l’index d’une machine, la publication échoue avec le message « shared node ownership or revision changed ». Si vous restaurez l’index à partir d’une [sauvegarde](upgrades.md#replace-an-index-that-cannot-be-upgraded) avec
 `--keep-identity`, la machine conserve son nom. Sinon, retirez le nom sur le serveur. Pour retirer définitivement un ordinateur, arrêtez la publication sur cet ordinateur et retirez son historique du serveur avant de révoquer son secret d’accès. Si vous désinstallez Mash sur un ordinateur, le serveur conserve sa copie.
 
 Arrêtez `mash-server` et laissez son instance Qdrant tourner. Exécutez la commande ci-dessous avec la même configuration serveur et les mêmes variables d’environnement que le service.
@@ -245,6 +245,6 @@ Sur le serveur, repérez le bloc `[[nodes]]` qui contient les valeurs `group_id`
 Pour remplacer une chaîne de connexion perdue ou divulguée, supprimez l’ancien bloc, ajoutez de nouveau le même groupe et le même nœud, puis redémarrez le serveur. Reconnectez le même ordinateur avec la nouvelle chaîne. Il pourra continuer à publier sous le même nom s’il a conservé son index local.
 
 Avant d’installer une nouvelle version de Mash, consultez le guide des
-[mises à niveau et des sauvegardes](../upgrades.md#upgrade-a-shared-index).
+[mises à niveau et des sauvegardes](upgrades.md#upgrade-a-shared-index).
 
 <!-- mash-docs-source: d53981430b20b1e97415d553067b960e398181e3c769b414ed3965a9f7296bd1 -->

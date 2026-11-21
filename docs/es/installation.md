@@ -12,7 +12,7 @@ instala Mash, inicia el servicio de búsqueda y abre el asistente para
 revisar la configuración. Si ya instalaste Mash, [inicia el servicio de búsqueda](#start-the-local-search-service).
 Si ya está en marcha, [configura tus historiales](#connect-your-histories).
 
-Para pasar a una versión nueva, sigue los [pasos de actualización (en inglés)](../upgrades.md#upgrade-an-existing-installation).
+Para pasar a una versión nueva, sigue los [pasos de actualización](upgrades.md#upgrade-an-existing-installation).
 
 <span id="what-setup-changes"></span>
 

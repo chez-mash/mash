@@ -60,7 +60,7 @@ mash uninstall --yes --keep-history
 
 ### 重新打开保留的历史记录
 
-1. 在同一台电脑上使用同一个用户账号，通过[基础安装脚本](installation.md#recommended-release-installers)安装相同版本的 Mash，或解压相同的[发布文件](installation.md#check-the-release-download)。如果要安装新版本，请参阅[升级指南（英文）](../upgrades.md#upgrade-an-existing-installation)。
+1. 在同一台电脑上使用同一个用户账号，通过[基础安装脚本](installation.md#recommended-release-installers)安装相同版本的 Mash，或解压相同的[发布文件](installation.md#check-the-release-download)。如果要安装新版本，请参阅[升级指南](upgrades.md#upgrade-an-existing-installation)。
 2. 如果搜索服务原先由 Mash 安装，请运行 `mash qdrant install` 重新安装服务并复用保留的数据。如果原先是[自行运行 Qdrant](local-search.md#run-qdrant-yourself)，请按原来的方式启动它。
 3. 运行 `mash dash` 并打开显示的网址，或在终端运行 `mash list-chats --local --limit 5` 查看保留的对话。Mash 会复用已保存的设置和索引。如果原先指定了自定义路径，请再次指定。
 

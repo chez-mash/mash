@@ -91,7 +91,7 @@ pour reprendre les étapes en échec, redémarrer les agents et retirer le progr
 1. Sur le même ordinateur et le même compte utilisateur, installez la même
    version de Mash avec [l’installateur de base](installation.md#recommended-release-installers)
    ou extrayez la même [archive publiée](installation.md#check-the-release-download).
-   Pour une version plus récente, consultez le [guide de mise à niveau (en anglais)](../upgrades.md#upgrade-an-existing-installation).
+   Pour une version plus récente, consultez le [guide de mise à niveau](upgrades.md#upgrade-an-existing-installation).
 2. Si Mash avait installé le service de recherche, lancez `mash qdrant install`
    pour le réinstaller et réutiliser ses données. Si vous [gériez Qdrant vous-même](local-search.md#run-qdrant-yourself),
    redémarrez-le de la même façon qu’auparavant.

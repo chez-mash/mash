@@ -220,7 +220,7 @@ desde un equipo que ya esté configurado para buscar en este grupo.
 
 ## Retira un equipo o vuelve a publicar tras reconstruir su índice
 
-El servidor vincula cada ID de nodo al índice local que publicó primero con ese ID. Así, otro equipo no puede sobrescribir ese historial reutilizando el nombre. Por el mismo motivo, si se borra y se reconstruye el índice de un equipo, el servidor rechaza la publicación con el error «shared node ownership or revision changed». Si restauras el índice desde una [copia de seguridad](../upgrades.md#replace-an-index-that-cannot-be-upgraded) con
+El servidor vincula cada ID de nodo al índice local que publicó primero con ese ID. Así, otro equipo no puede sobrescribir ese historial reutilizando el nombre. Por el mismo motivo, si se borra y se reconstruye el índice de un equipo, el servidor rechaza la publicación con el error «shared node ownership or revision changed». Si restauras el índice desde una [copia de seguridad](upgrades.md#replace-an-index-that-cannot-be-upgraded) con
 `--keep-identity`, conservas el nombre. Si no puedes restaurarlo, retira el nombre en el servidor. Para retirar un equipo definitivamente, deja de publicar desde él y elimina su historial del servidor antes de revocar su credencial. Si desinstalas Mash de un equipo, la copia del servidor se conserva.
 
 Detén `mash-server` y deja su instancia de Qdrant en ejecución. Ejecuta este comando con la misma configuración del servidor y el mismo entorno que usa el servicio:
@@ -245,6 +245,6 @@ En el servidor, busca el bloque `[[nodes]]` que contiene los valores de `group_i
 Para sustituir una cadena de conexión que se ha perdido o se ha expuesto, elimina el bloque anterior, vuelve a añadir el mismo grupo y nodo, y reinicia el servidor. Conéctate desde el mismo equipo con la cadena nueva. Si el equipo conserva su índice local, puede seguir publicando con el mismo nombre.
 
 Antes de instalar una nueva versión de Mash, consulta
-[las instrucciones de actualización y copia de seguridad](../upgrades.md#upgrade-a-shared-index).
+[las instrucciones de actualización y copia de seguridad](upgrades.md#upgrade-a-shared-index).
 
 <!-- mash-docs-source: d53981430b20b1e97415d553067b960e398181e3c769b414ed3965a9f7296bd1 -->

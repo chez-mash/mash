@@ -35,7 +35,7 @@ des conversations, y compris les identifiants secrets qui peuvent être
 masqués dans les résultats de recherche. Gardez séparément les réglages,
 les identifiants des services et les fichiers d’historique d’origine des
 agents. Conservez la version de Mash qui a créé la sauvegarde si vous risquez
-d’en avoir besoin pour une [mise à jour ou un retour en arrière (en anglais)](../upgrades.md#upgrade-an-existing-installation).
+d’en avoir besoin pour une [mise à jour ou un retour en arrière](upgrades.md#upgrade-an-existing-installation).
 
 <span id="restore-without-replacing-your-current-history"></span>
 
@@ -54,7 +54,7 @@ L’export, l’import et la liste des conversations locales fonctionnent sans
 le service de recherche. Si l’import signale une archive incompatible,
 gardez la sauvegarde et utilisez la version de Mash qui l’a créée. Pour
 remplacer un index et continuer à publier sous la même identité de machine,
-suivez la [procédure de mise à jour (en anglais)](../upgrades.md#replace-an-index-that-cannot-be-upgraded).
+suivez la [procédure de mise à jour](upgrades.md#replace-an-index-that-cannot-be-upgraded).
 
 <span id="make-the-restored-chats-searchable"></span>
 

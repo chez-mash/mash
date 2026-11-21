@@ -33,7 +33,7 @@ conversaciones, incluidas credenciales que pueden estar ocultas en los resultado
 de búsqueda. Guarda por separado la configuración, las credenciales de los
 servicios y los archivos de historial originales de tus agentes. Conserva la
 versión de Mash que creó la copia si puedes necesitarla para
-[actualizar o volver a una versión anterior (en inglés)](../upgrades.md#upgrade-an-existing-installation).
+[actualizar o volver a una versión anterior](upgrades.md#upgrade-an-existing-installation).
 
 <span id="restore-without-replacing-your-current-history"></span>
 
@@ -52,7 +52,7 @@ Puedes exportar, importar y listar conversaciones locales sin el servicio de
 búsqueda. Si la importación indica que el archivo es incompatible, conserva la
 copia y usa la versión de Mash que la creó. Para sustituir un índice y seguir
 publicando con la identidad del mismo equipo, sigue el
-[procedimiento de actualización (en inglés)](../upgrades.md#replace-an-index-that-cannot-be-upgraded).
+[procedimiento de actualización](upgrades.md#replace-an-index-that-cannot-be-upgraded).
 
 <span id="make-the-restored-chats-searchable"></span>
 

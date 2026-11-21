@@ -1,7 +1,7 @@
 # Mash 的其他安装方式
 
 本指南介绍如何用软件包管理器安装 Mash，或从源码构建。安装后，请[启动本地搜索服务](installation.md#start-the-local-search-service)，
-并[选择要读取的历史记录](installation.md#connect-your-histories)。如果已经安装了 Mash，请按[升级步骤（英文）](../upgrades.md#upgrade-an-existing-installation)操作。
+并[选择要读取的历史记录](installation.md#connect-your-histories)。如果已经安装了 Mash，请按[升级步骤](upgrades.md#upgrade-an-existing-installation)操作。
 
 <span id="install-with-a-package-manager"></span>
 

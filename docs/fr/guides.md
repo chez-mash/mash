@@ -47,7 +47,7 @@ vos agents de programmation. Découvrez Mash avec le
 - [Incluez des conversations plus anciennes ou cherchez par le sens](indexing.md)
 - [Cherchez dans vos historiques sur plusieurs ordinateurs](shared-index.md)
 - [Sauvegardez et restaurez votre historique](backup.md)
-- [Mettez Mash à niveau (en anglais)](../upgrades.md)
+- [Mettez Mash à niveau](upgrades.md)
 - [Désinstallez Mash ou gardez l’historique pour une réinstallation](uninstall.md)
 - [Vérifiez et gérez les services (en anglais)](../services.md)
 

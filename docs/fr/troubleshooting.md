@@ -328,7 +328,7 @@ de mise à jour ci-dessous.
 ## Le format de l’index est plus ancien ou plus récent que Mash
 
 Si `schema-incompatible` apparaît, arrêtez-vous et suivez la procédure
-de [mise à jour et de sauvegarde (en anglais)](../upgrades.md). Gardez
+de [mise à jour et de sauvegarde](upgrades.md). Gardez
 l’ancien exécutable et les données. Exportez avec la version qui a écrit
 l’index et validez l’import avec la nouvelle version dans un autre dossier.
 

@@ -1,8 +1,9 @@
-# Back up, restore, and upgrade
+# Upgrade Mash
 
-Updating Mash keeps your settings and indexed chats. Save a backup first,
-then install the new version, run `mash index`, and reopen the dashboard or
-agents you use. If you just need a backup or want to recover a chat, go to
+Updating Mash keeps your settings and indexed chats. Check the
+[release notes](https://github.com/mashium/mash/releases), save a backup,
+and use your usual install method to update. If you just need to back up
+or recover a chat, go to
 [Make a portable backup](backup.md#make-a-portable-backup) or
 [Restore a separate copy](backup.md#restore-without-replacing-your-current-history).
 
@@ -20,7 +21,7 @@ If you publish history across machines, read the
 
    ```sh
    mash --version
-   mash export /absolute/path/to/new-backup
+   mash export "/absolute/path/to/new-backup"
    ```
 
 3. **[Install the new version](#install-the-new-version)** using your usual
@@ -42,13 +43,15 @@ If you publish history across machines, read the
 
    ```sh
    mash status
-   mash search 'a word you remember' --local
+   mash search 'a word you remember' --local --intent exact-mention
    ```
 
    Restart connected agents and any watchers you stopped. Run `mash dash`
    again for the local dashboard. For a [remote dashboard](dashboard.md#open-it-from-your-phone-or-another-computer),
    rerun `mash dash remote` with the same options to start its service from
    the new executable.
+   If an agent has trouble finding Mash after the upgrade,
+   [check the plugin and agent connection](agents.md#confirm-the-connection).
 
 Mash keeps chat and message IDs and reuses compatible search data. The
 indexing pass also picks up history saved since the last pass.
@@ -126,8 +129,9 @@ replacement works.
    is outside its default location:
 
    ```sh
-   /path/to/old/mash export /absolute/path/to/new-backup
-   /path/to/new/mash import /absolute/path/to/new-backup --into /absolute/path/to/staged.sqlite3 --keep-identity
+   /path/to/old/mash export "/absolute/path/to/new-backup"
+   /path/to/new/mash import "/absolute/path/to/new-backup" --into "/absolute/path/to/staged.sqlite3" --keep-identity
+   /path/to/new/mash --db "/absolute/path/to/staged.sqlite3" list-chats --local --limit 5
    ```
 
    Some older backups cannot be imported either. If import fails, keep the
@@ -137,16 +141,24 @@ replacement works.
    shared index. Stop the old dashboard, watcher, and agent connections
    before switching. Only the replacement should publish after the switch.
 
-3. Move the original database and any `-wal` or `-shm` files to a safe
-   location before placing the replacement. Build the replacement's search
-   data at its final path and check it.
+3. Choose the path you'll use for the replacement. You can use the staged
+   database where it is. To use the original path, first move the old
+   database, its `.attachments` directory and any `-wal`, `-shm` or
+   `-journal` files next to it to a safe location. Then move the imported
+   database and its accompanying files into place together. Rename
+   `staged.sqlite3.attachments` and any SQLite sidecar files to match the
+   replacement database's name.
+
+4. Build search data at the final path and verify that the chats are searchable.
+   Replace the example path with the one you chose.
 
    ```sh
-   mash --db /absolute/path/to/replacement.sqlite3 index --rebuild-local-views --full
-   mash --db /absolute/path/to/replacement.sqlite3 status
+   mash --db "/absolute/path/to/replacement.sqlite3" index --rebuild-local-views --full
+   mash --db "/absolute/path/to/replacement.sqlite3" status
+   mash --db "/absolute/path/to/replacement.sqlite3" search 'a word you remember' --local --intent exact-mention
    ```
 
-4. If the replacement is not at the default location, keep passing `--db`,
+5. For a custom path, keep passing `--db`,
    including in your agents' MCP setup. Restart your agents and watchers.
 
 ## Other changes you may meet

@@ -6,7 +6,7 @@
 
 [快速入门](quick-start.md)提供一条命令，可安装 Mash、启动搜索服务并打开设置助手供你核对选项。如果已经安装 Mash，请[启动搜索服务](#start-the-local-search-service)。如果服务也已运行，请直接[设置要读取的历史记录](#connect-your-histories)。
 
-如果已有 Mash，现在要更新到新版本，请参阅[升级步骤（英文）](../upgrades.md#upgrade-an-existing-installation)。
+如果已有 Mash，现在要更新到新版本，请参阅[升级步骤](upgrades.md#upgrade-an-existing-installation)。
 
 <span id="what-setup-changes"></span>
 

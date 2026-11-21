@@ -49,7 +49,7 @@ for (const [locale, language, label, docsLabel, title] of [
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
     const guide = page.locator(".sl-markdown-content");
     await expect(guide.locator("#find-past-work")).toBeAttached();
-    await expect(guide.locator('a[href="/upgrades/"]')).toBeVisible();
+    await expect(guide.locator('a[href="/services/"]')).toBeVisible();
     const memory = `/${locale}/records/`;
     await guide.locator(`a[href="${memory}"]`).click();
     await expect(page).toHaveURL(memory);
@@ -60,6 +60,33 @@ for (const [locale, language, label, docsLabel, title] of [
     await page.goto(`/${locale}/`);
     await guide.locator(`a[href="${directory}"]`).click();
     await expect(page).toHaveURL(directory);
+  });
+}
+
+for (const [locale, lang, title] of [
+  ["es", "es", "Actualiza Mash"],
+  ["fr", "fr", "Mettre Mash à niveau"],
+  ["zh-cn", "zh-CN", "升级 Mash"],
+]) {
+  test(`the ${locale} upgrade guide keeps the install and recovery steps in the same language`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}/guides/`);
+    const upgrades = `/${locale}/upgrades/`;
+    const guide = page.locator(".sl-markdown-content");
+    await guide.locator(`a[href="${upgrades}"]`).click();
+    await expect(page).toHaveURL(upgrades);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(guide.getByText("staged.sqlite3.attachments", { exact: true })).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: 'replacement.sqlite3" search' }),
+    ).toBeVisible();
+    const backup = `/${locale}/backup/#restore-without-replacing-your-current-history`;
+    await guide.locator(`a[href="${backup}"]`).last().click();
+    await expect(page).toHaveURL(backup);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator("#restore-without-replacing-your-current-history")).toBeAttached();
   });
 }
 
@@ -572,9 +599,9 @@ for (const locale of [
     await expect(page.locator(`dialog a[href^="/${locale.path}/privacy/"]`).first()).toBeVisible();
     await page.keyboard.press("Escape");
 
-    await page.locator(`nav.sidebar a[href="/${locale.path}/upgrades/"]`).click();
+    await page.locator(`nav.sidebar a[href="/${locale.path}/services/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Back up, restore, and upgrade",
+      "Inspect and manage Mash services",
     );
     await expect(page.getByText(locale.fallback, { exact: true })).toBeVisible();
   });

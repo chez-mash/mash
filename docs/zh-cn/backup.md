@@ -16,7 +16,7 @@ mash export "/absolute/path/to/new-backup"
 
 结果会显示复制了多少对话、消息和保留的附件。请完整保存整个备份目录。它包含此电脑上的索引中的历史记录和已保存的记忆。如果使用共享索引，请在每台需要备份历史的电脑上分别执行导出命令。
 
-**请妥善保管备份。** 备份包含已保存的对话文本，包括可能在搜索结果中被遮盖的凭据。配置、服务凭据和代理的原始历史文件需要单独保存。如果今后可能需要[升级或回退（英文）](../upgrades.md#upgrade-an-existing-installation)，请保留创建该备份的 Mash 版本。
+**请妥善保管备份。** 备份包含已保存的对话文本，包括可能在搜索结果中被遮盖的凭据。配置、服务凭据和代理的原始历史文件需要单独保存。如果今后可能需要[升级或回退](upgrades.md#upgrade-an-existing-installation)，请保留创建该备份的 Mash 版本。
 
 <span id="restore-without-replacing-your-current-history"></span>
 
@@ -29,7 +29,7 @@ mash import "/absolute/path/to/new-backup" --into "/absolute/path/to/restored.sq
 mash --db "/absolute/path/to/restored.sqlite3" list-chats --local --limit 5
 ```
 
-导出、导入和列出本地对话都无需启动搜索服务。如果导入提示归档不兼容，请保留备份，并使用创建备份的 Mash 版本。如果要替换索引并以同一台电脑的身份继续发布，请按[升级流程（英文）](../upgrades.md#replace-an-index-that-cannot-be-upgraded)操作。
+导出、导入和列出本地对话都无需启动搜索服务。如果导入提示归档不兼容，请保留备份，并使用创建备份的 Mash 版本。如果要替换索引并以同一台电脑的身份继续发布，请按[升级流程](upgrades.md#replace-an-index-that-cannot-be-upgraded)操作。
 
 <span id="make-the-restored-chats-searchable"></span>
 
