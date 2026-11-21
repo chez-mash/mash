@@ -65,6 +65,9 @@ test("the quick start goes from setup to a first chat and links to package insta
   await expect(guide.locator("#try-it")).toBeAttached();
   await expect(guide.locator("pre").filter({ hasText: "sh -s -- --dashboard" })).toBeVisible();
   await expect(guide.locator('pre[data-language="powershell"]')).toContainText(/ -Dashboard$/);
+  await guide.getByRole("link", { name: "Upgrade your installation", exact: true }).click();
+  await expect(page).toHaveURL("/upgrades/#upgrade-an-existing-installation");
+  await page.goBack();
   await guide.getByRole("link", { name: "what setup changes", exact: true }).click();
   await expect(page).toHaveURL("/installation/#what-setup-changes");
   await expect(guide.getByRole("link", { name: "Preview removal", exact: true })).toBeVisible();
@@ -72,10 +75,24 @@ test("the quick start goes from setup to a first chat and links to package insta
   await guide.getByRole("link", { name: "installation guide", exact: true }).click();
   await expect(page).toHaveURL("/installation/");
   await expect(guide.getByRole("heading", { name: "Set up in a terminal" })).toBeVisible();
+  await guide.getByRole("link", { name: "Follow the Quick start", exact: true }).click();
+  await expect(page).toHaveURL("/quick-start/#quick-start");
+  await page.goBack();
+  await guide.getByRole("link", { name: "Upgrade Mash", exact: true }).click();
+  await expect(page).toHaveURL("/upgrades/#upgrade-an-existing-installation");
+  await expect(
+    guide.getByRole("heading", { name: "Upgrade an existing installation" }),
+  ).toBeVisible();
+  await page.goBack();
   await guide.locator('a[href="/install-methods/#install-with-a-package-manager"]').click();
   await expect(page).toHaveURL("/install-methods/#install-with-a-package-manager");
   await expect(page.locator("#install-with-a-package-manager")).toBeAttached();
-  await guide.getByRole("link", { name: "finish setup in the browser" }).click();
+  await guide
+    .getByRole("link", { name: "start the local search service and finish setup", exact: true })
+    .click();
+  await expect(page).toHaveURL("/installation/#start-the-local-search-service");
+  await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
+  await guide.locator('a[href="#set-up-in-your-browser"]').first().click();
   await expect(page).toHaveURL("/installation/#set-up-in-your-browser");
   await expect(guide.getByRole("heading", { name: "Set up in your browser" })).toBeVisible();
   await expect(guide.locator("pre").filter({ hasText: /^mash dash$/ })).toBeVisible();

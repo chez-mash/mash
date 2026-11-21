@@ -57,6 +57,8 @@ By default, indexing and search stay on your machine and require no account.
 
 ## Quick start
 
+Already using Mash? [Upgrade your installation](docs/upgrades.md#upgrade-an-existing-installation).
+
 ### Install it yourself
 
 Run the command for your system to download Mash and start the browser
@@ -138,7 +140,6 @@ See [how each agent's history has been tested on Linux, macOS, and Windows](docs
 or [report a security concern privately](SECURITY.md#report-a-vulnerability).
 [Architecture overview](docs/architecture.md) ·
 [Download and verify a release archive](docs/downloads.md).
-Before replacing an existing installation, read the [upgrade guide](docs/upgrades.md#upgrade-an-existing-installation).
 To fix a guide, improve a translation, or send a code change, see [Contributing](CONTRIBUTING.md#where-to-start).
 
 [Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)

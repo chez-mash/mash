@@ -1,15 +1,16 @@
 # Other ways to install Mash
 
-Use this guide to install Mash with a package manager or build it from source.
-After installing, [start the local search service](installation.md#start-the-local-search-service)
-and [choose which histories to read](installation.md#connect-your-histories).
-If Mash is already installed, follow the [upgrade steps](upgrades.md#upgrade-an-existing-installation).
+Choose a [package manager](#install-with-a-package-manager) or
+[build from source](#build-from-source). For the installer that starts the
+dashboard for you, see the [quick start](../README.md#quick-start).
+If you're replacing a version you already use, follow the
+[upgrade steps](upgrades.md#upgrade-an-existing-installation).
 
 ## Install with a package manager
 
 The packages below use Mash's prebuilt releases. They include the browser
-dashboard, terminal search, and the tools a connected agent can use.
-Once local search is running, you can [finish setup in the browser](installation.md#set-up-in-your-browser).
+dashboard, terminal search, and the tools a connected agent can use. After
+installing a package, [start the local search service and finish setup](installation.md#start-the-local-search-service).
 Before installing, you can [check the published release downloads](downloads.md)
 and [see which installers passed for each release](https://github.com/mashium/mash/actions/workflows/release-check.yml).
 
@@ -96,9 +97,8 @@ cargo +stable install --locked --path .
 ```
 
 When adding the dashboard to an existing installation, check out the revision
-you installed before building. After building, [start local search and index
-your chats](installation.md#start-the-local-search-service), then run `mash dash`
-and open the address it prints.
+you installed before building. After building, [start the local search service](installation.md#start-the-local-search-service)
+and follow the browser setup steps.
 
 ### CLI and agent tools
 
@@ -110,8 +110,8 @@ cargo +stable install --locked --git https://github.com/mashium/mash mash
 mash --version
 ```
 
-After building, [start local search and index your chats](installation.md#start-the-local-search-service).
-Then [try your first terminal search](search.md#your-first-search).
+After building, [start the local search service](installation.md#start-the-local-search-service),
+then follow the terminal setup steps.
 
 If your terminal cannot find Mash after either build, follow
 [how to add Cargo's binary directory to your command search path](troubleshooting.md#mash-command-not-found).

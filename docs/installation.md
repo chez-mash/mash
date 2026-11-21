@@ -1,56 +1,138 @@
 # Install Mash
 
-Follow these steps to install Mash, start its search service, and choose
-which chats to search. The default setup keeps indexing and search on your
-machine. [How Mash handles your history](privacy.md)
+- **Installing for the first time?** [Follow the Quick start](../README.md#quick-start)
+  to install Mash, set it up in your browser, and find your first chat.
+- **Installed Mash and still need to set it up?**
+  [Start the local search service](#start-the-local-search-service), then choose
+  which chats to search in your browser or terminal.
+- **Already using Mash?** [Upgrade Mash](upgrades.md#upgrade-an-existing-installation).
 
-To try it first, [search sample chats in the demo](https://getmash.io/demo/).
-For a trial with your own chats, [choose one history and try the local dashboard](privacy.md#try-a-small-local-setup).
+[See what setup changes](#what-setup-changes) or
+[choose another way to install](#get-mash-for-your-system).
 
-For one command that installs Mash, starts the search service and starts the
-dashboard for browser setup, use the [quick start](../README.md#quick-start).
-If Mash is already installed, [start the search service](#start-the-local-search-service)
-or [connect your histories](#connect-your-histories) if the service is running.
+## Start the local search service
 
-Already using Mash and moving to a new release? Follow the [upgrade steps](upgrades.md#upgrade-an-existing-installation).
+The Quick start starts the search service for you. If you installed the
+programs separately, or the installer stopped after printing “Installed”, run
+the command below. Use the path the installer printed if your
+[terminal can’t find Mash](troubleshooting.md#mash-command-not-found).
+
+On Linux or WSL, the command needs a
+[systemd user session](local-search.md#linux-without-a-systemd-user-session).
+On Windows, it needs a [desktop sign-in](local-search.md#check-or-restart-the-service).
+If you already run a [compatible local Qdrant](#run-qdrant-yourself), go on
+to [connect your histories](#connect-your-histories).
+
+```sh
+mash qdrant install
+```
+
+Once it starts, [set up in your browser](#set-up-in-your-browser) or
+[set up in a terminal](#set-up-in-a-terminal). If it fails,
+[check the search service](troubleshooting.md#qdrant-connection-failed).
+
+## Connect your histories
+
+Use the browser dashboard or terminal wizard to choose which chats Mash reads.
+You can [skip agent connections](#skip-agent-connections) and search on your own.
+
+### Set up in your browser
+
+If you installed a release or [built with the dashboard](install-methods.md#include-the-web-dashboard),
+run this in a terminal:
+
+```sh
+mash dash
+```
+
+Open the address Mash prints and leave the terminal open. Review which chats
+Mash will read. To search on your own, [skip agent connections](#skip-agent-connections)
+before choosing **Set up and index**. When search is ready,
+[find your first chat](#try-your-first-search).
+[See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard).
+
+### Set up in a terminal
+
+Run the terminal wizard in an interactive terminal. Use it for a build without
+the dashboard or to choose a history folder or connect to a shared server.
+
+```sh
+mash init
+```
+
+Review the histories and choose whether to connect agents. Choose
+**Set up and index** to apply your choices, or
+[index without connecting agents](#skip-agent-connections). To change the
+options, choose **Customize setup**. If asked where to search, choose
+**Just this computer (recommended)** for local setup. Press Esc or Ctrl-C
+to cancel before applying changes. Once setup is done,
+[try a terminal search](search.md#your-first-search).
+[See more terminal options](#setup-options).
+
+### Skip agent connections
+
+- **In the browser**, check that **connect Mash to** says **no agents** before
+  you choose **Set up and index**. If agents are selected, open
+  **Choose agents to connect** and turn them off. On older versions, use
+  **Next** to reach the agent choices and turn off each selection there.
+- **In the terminal**, choose **Set up and index without connecting agents**
+  if offered. If asked **Which agents should get access to Mash search?**,
+  press Space to clear each selection, then press Enter. Decline memory
+  backfill if asked. If the review lists no agents, choose **Set up and index**.
+  You can also start the wizard with `mash init --no-agents`.
+
+Skipping connections leaves existing connections and plugins in place. You can
+[remove an existing connection](agents.md#disconnect-an-agent) or
+[connect an agent later](agents.md#connect-claude-code-codex-or-copilot).
+
+## Try your first search
+
+Once setup says search is ready, open **chats**. Search for a word you
+remember, such as an error or function name, and open a result to read the
+original message. If the dashboard is closed, run `mash dash` and open the
+address it prints.
+
+You can also [search from the terminal](search.md#your-first-search). If you
+connected an agent, start a new session and [ask it to find a chat](agents.md#try-it).
+If a chat doesn’t appear, [find a missing chat](find-missing-chat.md).
+
+Word search needs no models. To add search by meaning, follow the
+[optional model setup](indexing.md#enable-semantic-search).
 
 ## What setup changes
 
-1. **Install the programs.** The [basic installer](#recommended-release-installers)
-   puts `mash` and `mash-server` in your user directory. You can also
-   [verify and unpack a release archive](downloads.md).
-2. **Start local search.** `mash qdrant install` downloads Qdrant and sets it
-   to run under your account at login. Mash limits it to connections from this
-   computer and switches off Qdrant telemetry. [Search service files](local-search.md#where-qdrant-stores-data)
-3. **Choose what Mash can read.** Setup in the dashboard or terminal shows
-   the histories Mash found before saving settings or indexing your chats.
-   Mash reads the original chats in place and saves a searchable copy on this
-   computer by default. If you choose to connect an agent, setup updates its
-   settings so it can request excerpts from that copy. You can also
-   [skip agent connections](#skip-agent-connections) and search yourself.
-   [Where Mash stores your data](privacy.md#where-mash-stores-data)
+The Quick start checks the release checksum, installs `mash` and `mash-server`,
+and starts the local search service (Qdrant). It starts the dashboard and
+prints the link to open in your browser. Mash disables Qdrant telemetry and
+limits it to connections from this computer. Qdrant runs under your account
+and starts again when you log in.
+[See the search service files](local-search.md#where-qdrant-stores-data).
 
-The quick-start command installs the programs and starts Qdrant before you
-open the dashboard. If you skip setup, `mash uninstall` shows what is already
-installed and how to remove it. [Preview removal](uninstall.md)
+You choose what to index before Mash saves its settings. By default, Mash keeps
+the searchable copy on this computer, and it leaves the agent’s original chats
+untouched. Connecting an agent changes its settings so it can ask Mash for
+excerpts. [See how Mash handles your history](privacy.md) or
+[try Mash with one recent history](privacy.md#try-a-small-local-setup).
+
+If you stop after installing, `mash uninstall` shows what’s been installed
+and how to remove it. [Preview removal](uninstall.md).
 
 <span id="install-the-cli"></span>
 
 ## Get Mash for your system
 
-The release includes the browser dashboard. Once the search service is running,
-you can [set up Mash in your browser](#set-up-in-your-browser). You can also
-[connect coding agents](agents.md) so they can search your chats for you.
+To install just the programs, use the scripts below, [verify and unpack a
+release archive](downloads.md), or choose a package manager or source build.
+Then [start the local search service](#start-the-local-search-service).
 
-### Recommended release installers
+<span id="recommended-release-installers"></span>
+
+### Install only the Mash binaries
 
 Prebuilt releases cover Linux x86-64 and ARM64, macOS Apple silicon, and
-Windows x64. Choose one command for your system. You can
-[inspect the installer or verify a download](downloads.md) first.
-
-The Linux binaries need glibc 2.34 or newer, which Ubuntu 22.04, Debian 12,
-RHEL 9 and later releases provide. Alpine and other musl systems are not
-supported.
+Windows x64. The Linux binaries need glibc 2.34 or newer, available in
+Ubuntu 22.04, Debian 12, RHEL 9 and later. Alpine and other musl systems
+aren’t supported.
 
 #### macOS or Linux
 
@@ -66,138 +148,53 @@ WSL uses this command too.
 irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 ```
 
-Both scripts verify the release checksum and install to your user's
-`.local/bin` directory. They print the next commands with the installed
-binary's path so you can run them before adding the directory to `PATH`.
-Set `MASH_VERSION` to a published tag to pin a release, or `MASH_INSTALL_DIR`
-to choose another directory. The scripts leave your shell profile as it is.
-If your terminal cannot find `mash`, see [command not found](troubleshooting.md#mash-command-not-found).
+Both scripts check the release checksum, install to `.local/bin` in your home
+directory, and print commands with the installed path. They leave your shell
+profile unchanged. Set `MASH_VERSION` to a published tag to pin a release
+or `MASH_INSTALL_DIR` to choose another directory.
 
 ### Package manager alternatives
 
-Use [Homebrew, apt, Scoop, mise or cargo-binstall](install-methods.md#install-with-a-package-manager).
-After installing Mash, [start the search service](#start-the-local-search-service).
+[Install with Homebrew, apt, Scoop, mise, or cargo-binstall](install-methods.md#install-with-a-package-manager).
 
 ### Build from source
 
-To search in a browser, [build from source with the dashboard](install-methods.md#include-the-web-dashboard).
-For [terminal search and agent tools](install-methods.md#cli-and-agent-tools),
-use the shorter Cargo command.
-
-## Start the local search service
-
-On Linux or WSL, the command below needs a systemd user session.
-[Check whether your terminal has one and see the alternatives](local-search.md#linux-without-a-systemd-user-session).
-If you already run a [compatible local Qdrant](local-search.md#run-qdrant-yourself),
-continue to [connect your histories](#connect-your-histories).
-
-On Windows, Mash puts Qdrant's search data in a short folder on the system
-drive, usually `C:\mash-qdrant\storage`.
-[See Qdrant's files and logs](local-search.md#where-qdrant-stores-data).
-
-```sh
-mash qdrant install
-```
-
-Mash verifies the Qdrant download (about 30 MB) and starts the service in the
-background under your user. Qdrant listens on this machine and starts again
-when you log in. On Windows, it requires a desktop sign-in.
-If the service does not start, see [how to check the logs and restart it](local-search.md#check-or-restart-the-service).
+[Include the browser dashboard](install-methods.md#include-the-web-dashboard)
+or [build just the terminal and agent tools](install-methods.md#cli-and-agent-tools).
 
 ### Run Qdrant yourself
 
-You can [reuse a local Qdrant 1.20+ instance](local-search.md#run-qdrant-yourself).
-If you need to start one, choose the instructions for your environment.
+You can [reuse a local Qdrant 1.20+ instance](local-search.md#run-qdrant-yourself)
+or start one on your own.
 
 - <span id="optional-qdrant-docker-image"></span>[Qdrant in Docker](local-search.md#optional-qdrant-docker-image)
 - <span id="native-windows-without-docker"></span>[Windows without Docker](local-search.md#native-windows-without-docker)
 - <span id="native-macos-or-linux-without-docker"></span>[macOS or Linux without Docker](local-search.md#native-macos-or-linux-without-docker)
 
-## Connect your histories
+## Setup options
 
-Once the local search service is running, use the browser dashboard or
-the terminal wizard to choose which chats Mash reads.
-
-### Set up in your browser
-
-If you installed a release or [built with the dashboard](install-methods.md#include-the-web-dashboard),
-run this in a terminal:
-
-```sh
-mash dash
-```
-
-Open the link Mash shows you and leave the terminal open. On a fresh
-install, follow the steps in your browser, then choose **Set up and index**.
-You can skip connecting agents or clear any preselected agents. When search
-is ready, open **chats** and search for a word you remember.
-[See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard)
-
-### Set up in a terminal
-
-To install Mash and run the terminal wizard in one command, use the
-[quick-start script](../README.md#install-it-yourself) with `--setup` instead
+To install and open the terminal wizard in one command, use the
+[Quick start command](../README.md#install-it-yourself) with `--setup` instead
 of `--dashboard` on macOS or Linux, or `-Setup` instead of `-Dashboard` on Windows.
+Run it in an interactive terminal.
 
-Use the terminal wizard for a source build without the dashboard or to
-choose a history folder or connect to a shared server.
-
-```sh
-mash init
-```
-
-On a fresh setup, the terminal wizard shows the history folders it found,
-the history range (files updated in the last 90 days), and the agents it can
-connect. If asked where to search, choose **Just this computer (recommended)**
-to keep the index on this machine. **Set up and index** applies the options in
-the review, including any selected agent connections. Mash can read saved
-chats even if the agent's command is missing.
-
-Choose **Customize setup** to use a different date range or history folder,
-pick specific integrations, connect an existing shared server, or save
-settings without indexing. This path also offers an optional
+On a fresh setup, the terminal wizard reviews the history folders it found,
+the history range (files or sessions updated in the last 90 days), and the
+agents it can connect. Mash can read saved chats even if the agent’s command
+is missing. **Customize setup** lets you choose a range, pick history folders
+or agents, connect to an [existing shared server](shared-index.md), or save
+settings without indexing. It can also offer an optional
 [memory backfill](records.md#backfill-earlier-memory) after indexing. Backfill
 uses your signed-in Claude Code or Codex and sends selected chat text to its
 model service.
 
-Esc or Ctrl-C cancels before configuration or agent settings change. When
-indexing is selected, the wizard checks the local search service's HTTP
-endpoint and, for sharing, server authentication. If a connection fails, you
-can save settings and finish setup afterward.
+Before indexing, the wizard checks the local search service and, if you
+configured sharing, server authentication. If a check fails, choose
+**Save configuration only**, fix the connection, then run `mash index`.
+That option saves settings and skips agent connections and indexing.
 
-If you connected an agent, restart it to load Mash. The history plugin's
-hooks need Python 3.9+. [Use Mash with your agent](agents.md)
-
-### Skip agent connections
-
-You can search your chats in the dashboard or terminal without giving a
-coding agent access to your Mash search. The wizard offers one of these paths.
-
-- If the first review offers **Set up and index without connecting agents**,
-  choose it to index the histories shown.
-- If the wizard asks **Which agents should get access to Mash search?**, use
-  Space to clear every selection, then press Enter. If asked about memory
-  backfill, decline it.
-- If the review lists no agents to connect, choose **Set up and index**.
-
-Once search is ready, [open the dashboard](#try-your-first-search). You can
-[connect an agent later](agents.md#connect-claude-code-codex-or-copilot).
-
-## Try your first search
-
-If your installation includes the dashboard, run `mash dash` and open the
-address it prints. In **chats**, search for a distinctive word from an older
-chat and open a result to read the original message.
-
-[Search from the terminal](search.md#your-first-search) or
-[ask a connected agent](agents.md#try-it) to find a chat without opening
-the dashboard. If an older chat is missing, see how to
-[include older history](indexing.md#add-older-history).
-
-Word search needs no models. To add search by meaning, follow the
-[optional model setup](indexing.md#enable-semantic-search).
-
-## Setup options
+The history plugin’s hooks need Python 3.9+.
+[Use Mash with your agent](agents.md).
 
 ### Without the wizard
 
@@ -214,7 +211,7 @@ configuration and agent settings untouched.
 | Flag | Effect |
 | --- | --- |
 | `--no-index` | Configure without indexing. Skips the Qdrant check and lists starting Qdrant among the next steps. To choose folders yourself, edit the [configuration](configuration.md), then run `mash index`. |
-| `--no-agents` | Search from the dashboard or terminal without connecting agents. |
+| `--no-agents` | Skip new agent connections. Existing connections remain. |
 | `--force` | Non-interactive setup keeps existing configuration unless this is passed. With `--yes`, regenerates configuration from detected histories. In the wizard, opens the settings review directly. |
 
 Without `--force`, the wizard offers to keep existing settings or review them.
