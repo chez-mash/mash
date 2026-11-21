@@ -10,6 +10,10 @@ mash dash
 
 Ouvrez dans votre navigateur l’adresse affichée, généralement **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Une fois Mash configuré, la vue d’ensemble affiche les conversations et souvenirs récents. Laissez le terminal ouvert. Ctrl-C arrête le tableau de bord. Si la page ne se charge pas, [vérifiez le démarrage du tableau de bord](troubleshooting.md#the-dashboard-doesnt-open).
 
+Si la sortie est au format JSON, l’adresse figure dans le champ `dashboard`.
+Mash utilise ce format quand stderr est redirigé vers un fichier ou un tube.
+Les versions précédentes l’utilisent aussi dans le terminal.
+
 Avec le [module Mash](plugin.md), utilisez `/mash:dashboard` dans Claude Code ou demandez à votre agent d’ouvrir le tableau de bord.
 
 Avec les réglages par défaut, le tableau de bord local s’ouvre sans authentification. Consultez [comment limiter l’accès](#keep-access-private) avant de changer l’adresse d’écoute. Les libellés de l’interface sont en anglais.
@@ -227,4 +231,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->
+<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->

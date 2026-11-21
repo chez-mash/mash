@@ -30,6 +30,7 @@ mod live;
 mod search;
 mod services;
 mod setup;
+mod startup;
 
 pub use assets::has_web_dashboard;
 
@@ -97,10 +98,7 @@ pub async fn run(
     let loopback = address.ip().is_loopback() && names.is_empty();
     let mut hosts = allowed_hosts(address);
     hosts.extend(names);
-    let mut started = serde_json::json!({ "dashboard": format!("http://{address}/") });
-    if !loopback && !access.required() {
-        started["warning"] = "anyone who can reach this address can read your chat history; set --access-token-env to require sign-in".into();
-    }
+    let warn_about_access = !loopback && !access.required();
     // Live updates watch the local index and, when one is configured, listen
     // to the shared one. A configuration that cannot be read leaves that out;
     // the history routes report what is wrong with it.
@@ -128,7 +126,7 @@ pub async fn run(
         model_work: tokio::sync::Semaphore::new(1),
         services,
     });
-    crate::write_json(&mut std::io::stderr(), &started)?;
+    startup::report(address, warn_about_access)?;
     let stopping = state.clone();
     axum::serve(listener, router(state))
         .with_graceful_shutdown(async move {

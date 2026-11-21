@@ -10,6 +10,8 @@ mash dash
 
 在浏览器打开命令显示的地址，通常是 **[http://127.0.0.1:8790](http://127.0.0.1:8790)**。完成设置后，概览页会显示最近的对话和记忆。请让终端保持运行，按 Ctrl-C 可以停止面板。如果打不开页面，请参阅[面板启动排查](troubleshooting.md#the-dashboard-doesnt-open)。
 
+如果启动时显示 JSON，地址就在 `dashboard` 字段中。将 stderr 重定向到文件或管道时，Mash 会使用这种格式。较早的版本在终端中也使用这种格式。
+
 安装 [Mash 插件](plugin.md)后，可以在 Claude Code 中运行 `/mash:dashboard`，也可以让你的代理打开 Mash 网页面板。
 
 默认的本机面板无需登录。更改监听地址前请参阅[如何限制访问](#keep-access-private)。面板上的按钮和菜单使用英文。
@@ -226,4 +228,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->
+<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->

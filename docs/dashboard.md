@@ -19,6 +19,10 @@ in your browser. Once Mash is set up, the overview shows your latest chats and
 memories. Leave the terminal running. Ctrl-C stops the dashboard. If the page fails to load,
 [check dashboard startup](troubleshooting.md#the-dashboard-doesnt-open).
 
+If startup output appears as JSON, the `dashboard` field contains the URL.
+Mash uses that format on stderr when it is redirected to a file or pipe, and
+older releases show it in the terminal too.
+
 With the [plugin](plugin.md) installed, `/mash:dashboard` in Claude Code, or
 asking your agent to open the Mash dashboard, does both steps for you.
 

@@ -10,6 +10,10 @@ mash dash
 
 Abre en el navegador la dirección que muestra, normalmente **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Una vez configurado Mash, la vista general muestra tus conversaciones y recuerdos recientes. Deja abierta la terminal. Ctrl-C detiene el panel. Si la página no carga, [comprueba cómo se inicia el panel](troubleshooting.md#the-dashboard-doesnt-open).
 
+Si la salida aparece en formato JSON, la dirección está en el campo `dashboard`.
+Mash usa ese formato cuando rediriges stderr a un archivo o una tubería. Las
+versiones anteriores también lo usan en la terminal.
+
 Con el [complemento](plugin.md) instalado, usa `/mash:dashboard` en Claude Code o pídele a tu agente que abra el panel web de Mash.
 
 El panel local se abre sin iniciar sesión en la configuración predeterminada. Lee [cómo mantener el acceso privado](#keep-access-private) antes de cambiar la dirección en la que escucha. Los nombres de los controles se muestran en inglés en el panel.
@@ -227,4 +231,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->
+<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->
