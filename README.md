@@ -16,7 +16,7 @@ By default, indexing and search stay on your machine and require no account.
 
 [![Supported agents: Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, Antigravity](assets/supported-agents.svg)](docs/supported-agents.md)
 
-[![Illustration of Mash search results alongside the original conversation about a checkout outage](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/checkout-outage-review?node=build-box&message=checkout-outage-review-1&shared=true)
+[![Mash dashboard showing the original sign-in decision in a Claude Code conversation](assets/dashboard-demo.svg)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop&message=sign-in-tokens-2)
 
 <span id="why-mash"></span>
 

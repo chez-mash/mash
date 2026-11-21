@@ -28,7 +28,20 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Written with <3 in Rust.",
     "Give your agents a memory.",
   ]);
-  await expect(page.locator(".mash-welcome .scene-image")).toHaveCount(7);
+  const illustrations = page.locator(".mash-welcome .scene-image");
+  await expect(illustrations).toHaveCount(7);
+  for (const illustration of await illustrations.all()) {
+    await expect(illustration).toHaveAttribute("src", /^\/welcome\/[a-z-]+\.svg$/);
+    expect(
+      await illustration.evaluate(async (img: HTMLImageElement) => {
+        await img.decode();
+        return (
+          img.naturalWidth === Number(img.getAttribute("width")) &&
+          img.naturalHeight === Number(img.getAttribute("height"))
+        );
+      }),
+    ).toBe(true);
+  }
   const more = page.getByRole("region", { name: "More about Mash" });
   await expect(more.getByRole("link")).toHaveText([
     "Plugin for Claude Code, Codex and Copilot ›",
@@ -314,7 +327,7 @@ test("scrolling reveals the search illustration and plays its captions in order"
   await expect(scene.locator(".show")).toHaveCSS("opacity", "0");
   await play(page, "Find it.", 0.35);
   await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
-  await expect(image).toHaveJSProperty("naturalWidth", 760);
+  await expect(image).toHaveJSProperty("naturalWidth", Number(await image.getAttribute("width")));
   await expect(captions.first()).toHaveCSS("opacity", "1");
   await expect(captions.last()).toHaveCSS("opacity", "0");
   await play(page, "Find it.", 0.8);
@@ -351,7 +364,8 @@ test("a scene scrolled past early stays on screen until it has played out", asyn
       pinnedAt,
       0,
     );
-    await expect(scene.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
+    const image = scene.locator(".scene-image");
+    await expect(image).toHaveJSProperty("naturalWidth", Number(await image.getAttribute("width")));
     await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
     await expect(scene).toHaveClass(/kept/);
     await expect(strokes.first()).toHaveCSS("opacity", "0", { timeout: 15_000 });
@@ -387,7 +401,11 @@ test("fast jumps play crossed scenes in order, including crossings behind a kept
   });
   await expect(first).toHaveClass(/\bkept\b/);
   await expect(second).not.toHaveClass(/\bkept\b/);
-  await expect(first.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
+  const firstImage = first.locator(".scene-image");
+  await expect(firstImage).toHaveJSProperty(
+    "naturalWidth",
+    Number(await firstImage.getAttribute("width")),
+  );
 
   // Pass the next scene as well while the first still covers the viewport.
   await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
@@ -396,7 +414,11 @@ test("fast jumps play crossed scenes in order, including crossings behind a kept
   );
   await expect(second).toHaveClass(/\bkept\b/, { timeout: 12_000 });
   await expect(first).not.toHaveClass(/\bkept\b/);
-  await expect(second.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
+  const secondImage = second.locator(".scene-image");
+  await expect(secondImage).toHaveJSProperty(
+    "naturalWidth",
+    Number(await secondImage.getAttribute("width")),
+  );
   await expect(third).toHaveClass(/\bkept\b/, { timeout: 15_000 });
   await expect(second).not.toHaveClass(/\bkept\b/);
 });
@@ -460,10 +482,10 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect
     .poll(() =>
       images.evaluateAll((items) =>
-        items.map((item) => (item instanceof HTMLImageElement ? item.naturalHeight : 0)),
+        items.every((item) => item instanceof HTMLImageElement && item.naturalHeight > 0),
       ),
     )
-    .toEqual([512, 492, 375, 379, 363, 331, 225]);
+    .toBe(true);
   for (const image of await images.all()) await expect(image).toBeVisible();
   for (const caption of await welcome.locator(".caps li").all())
     await expect(caption).toBeVisible();
@@ -510,6 +532,9 @@ for (const viewport of [
     const box = await image.boundingBox();
     expect(box).not.toBeNull();
     if (!box) throw new Error("Missing search illustration bounds");
-    expect(box.width / box.height).toBeCloseTo(760 / 512, 1);
+    const ratio = await image.evaluate(
+      (img: HTMLImageElement) => img.naturalWidth / img.naturalHeight,
+    );
+    expect(box.width / box.height).toBeCloseTo(ratio, 1);
   });
 }
