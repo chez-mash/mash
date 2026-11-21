@@ -45,19 +45,42 @@ pub(super) async fn forget(
     Ok(result)
 }
 
-pub(super) async fn install_models(models: &Path) -> Result<ModelsInstallResponse, AppError> {
+pub(super) async fn install_models(
+    models: &Path,
+    configuration: &ResolvedConfig,
+) -> Result<ModelsInstallResponse, AppError> {
     let models = models.to_path_buf();
-    crate::blocking(move || local_install_models(&models)).await
+    let (recommended_action, next) = model_install_guidance(configuration);
+    crate::blocking(move || {
+        let summary = Models::new(models.clone()).install()?;
+        Ok(ModelsInstallResponse {
+            installed: true,
+            model_directory: models,
+            summary,
+            recommended_action,
+            next,
+        })
+    })
+    .await
 }
 
-fn local_install_models(models_dir: &Path) -> Result<ModelsInstallResponse, AppError> {
-    let summary = Models::new(models_dir.to_path_buf()).install()?;
-    Ok(ModelsInstallResponse {
-        installed: true,
-        model_directory: models_dir.to_path_buf(),
-        summary,
-        recommended_action: crate::Action::Index,
-    })
+fn model_install_guidance(configuration: &ResolvedConfig) -> (Option<crate::Action>, &'static str) {
+    if !configuration.loaded {
+        (
+            Some(crate::Action::Init),
+            "Run `mash init` to set up your histories and build search data. After indexing, pass `--intent related-discussion` to search by meaning.",
+        )
+    } else if configuration.views.build.dense_enabled() {
+        (
+            Some(crate::Action::Index),
+            "Run `mash index` to refresh search data. Pass `--intent related-discussion` to search by meaning.",
+        )
+    } else {
+        (
+            None,
+            "Your configuration builds word search only. Set `representations = \"lexical-and-dense\"` in `[views.build]` before running `mash index`. See https://getmash.io/indexing/#enable-semantic-search",
+        )
+    }
 }
 
 fn local_forget(database_path: &Path, id: String) -> Result<ForgetResponse, AppError> {
@@ -75,4 +98,33 @@ fn local_forget(database_path: &Path, id: String) -> Result<ForgetResponse, AppE
         local_views_error: None,
         shared: None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::model_install_guidance;
+    use crate::{Action, config, views::config::Representations};
+
+    #[test]
+    fn model_install_guidance_matches_the_configuration() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("config.toml");
+        std::fs::write(&path, "version = 1\nproviders = {}\n").unwrap();
+        let mut configuration = config::load(Some(&path)).unwrap();
+
+        let (action, next) = model_install_guidance(&configuration);
+        assert_eq!(action, Some(Action::Index));
+        assert!(next.contains("--intent related-discussion"));
+
+        configuration.views.build.representations = Representations::LexicalOnly;
+        let (action, next) = model_install_guidance(&configuration);
+        assert_eq!(action, None);
+        assert!(next.contains("`representations = \"lexical-and-dense\"` in `[views.build]`"));
+        assert!(next.contains("#enable-semantic-search"));
+
+        configuration.loaded = false;
+        let (action, next) = model_install_guidance(&configuration);
+        assert_eq!(action, Some(Action::Init));
+        assert!(next.contains("mash init"));
+    }
 }

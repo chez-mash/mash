@@ -200,7 +200,8 @@ fn readable_model_installation_and_forget_preserve_typed_results() {
                 embedding_dimensions: 384,
                 files: 4,
             },
-            recommended_action: crate::Action::Index,
+            recommended_action: Some(crate::Action::Index),
+            next: "Run `mash index` to refresh search data.",
         }),
         Response::Forget(crate::core::models::ForgetResponse {
             id: "thread".into(),
@@ -216,7 +217,7 @@ fn readable_model_installation_and_forget_preserve_typed_results() {
         assert!(!readable.contains("Full details (JSON)"));
         if matches!(response, Response::ModelsInstall(_)) {
             assert!(readable.contains("Embedding model: embedder · dimensions: 384"));
-            assert!(readable.contains("Next action: \"index\""));
+            assert!(readable.contains("Next: Run `mash index`"));
         } else {
             assert!(readable.contains("forgotten: true"));
         }

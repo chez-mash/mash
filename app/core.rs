@@ -576,7 +576,7 @@ async fn dispatch(
         Operation::Forget { id } => maintenance::forget(database, models, configuration, id)
             .await
             .map(Response::Forget),
-        Operation::ModelsInstall => maintenance::install_models(models)
+        Operation::ModelsInstall => maintenance::install_models(models, configuration)
             .await
             .map(Response::ModelsInstall),
         Operation::QdrantInstall => qdrant::install(

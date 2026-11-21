@@ -297,6 +297,26 @@ fn init_yes_accepts_defaults_and_preserves_existing_configuration() {
     assert_eq!(std::fs::read_to_string(path).unwrap(), original);
 }
 
+#[test]
+fn init_with_model_assets_keeps_word_search_as_default() {
+    let (root, env) = fixture(false);
+    let directory = root.path().join(".mash");
+    create_valid_model_marker(&directory.join("models"));
+    let result = init(&env, &["--yes", "--no-index", "--no-agents"]);
+
+    assert_eq!(result["config"]["search"], "semantic");
+    assert!(result["next"].as_array().unwrap().iter().any(|step| {
+        let step = step.as_str().unwrap();
+        step.contains("Word search is the default.") && step.contains("--intent related-discussion")
+    }));
+    let configuration = mash_app::config::load(Some(&directory.join("config.toml"))).unwrap();
+    assert!(configuration.views.build.dense_enabled());
+    assert_eq!(
+        configuration.views.query.intent,
+        mash_app::views::exact::Intent::ExactMention
+    );
+}
+
 /// Run `mash` in the fixture home, returning the exit code, stdout and the
 /// last stderr line (progress events precede a final error).
 fn mash(env: &[(&str, String)], arguments: &[&str]) -> (i32, Value, Value) {

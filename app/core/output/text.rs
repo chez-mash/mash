@@ -442,7 +442,7 @@ pub fn render(
                     value.summary.files
                 ),
             );
-            json(&mut out, "Next action", &value.recommended_action)?;
+            line(&mut out, &format!("Next: {}", value.next));
         }
         Response::QdrantInstall(value) => json(&mut out, "Qdrant install", value)?,
         Response::QdrantUninstall(value) => json(&mut out, "Qdrant uninstall", value)?,

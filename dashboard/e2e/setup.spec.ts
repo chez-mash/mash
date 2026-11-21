@@ -92,10 +92,15 @@ test("a first visit can confirm the detected local setup in one click", async ({
   update({ index: { state: "finished", ok: true, chats: 2, messages: 8 } });
   await expect(page.getByRole("status")).toContainText("Indexed 2 chats and 8 messages.");
   await expect(page.getByRole("link", { name: "Open your chats" })).toBeVisible();
+  await page.getByText("Search by meaning", { exact: true }).click();
+  await expect(page.getByText("mash models install", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Configure and index for search by meaning" }),
+  ).toHaveAttribute("href", "https://getmash.io/indexing/#enable-semantic-search");
 });
 
 test("the first review can start indexing with agent connections skipped", async ({ page }) => {
-  const { posts } = await mockSetup(page);
+  const { posts, update } = await mockSetup(page);
   await page.goto("/");
   const review = page.getByRole("region", { name: "Set up Mash" });
   await page.getByRole("button", { name: "Skip agent connections" }).click();
@@ -115,6 +120,12 @@ test("the first review can start indexing with agent connections skipped", async
       index: true,
     },
   ]);
+  update({ models_installed: true, index: { state: "finished", ok: true, chats: 2, messages: 8 } });
+  await page.getByText("Search by meaning", { exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Configure and index for search by meaning" }),
+  ).toBeVisible();
+  await expect(page.getByText("mash models install", { exact: true })).toHaveCount(0);
 });
 
 test("custom setup keeps the chosen paths, range and connections when checking Qdrant again", async ({

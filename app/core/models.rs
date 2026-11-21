@@ -450,5 +450,7 @@ pub struct ModelsInstallResponse {
     pub(super) model_directory: PathBuf,
     #[serde(flatten)]
     pub(super) summary: semantic::InstallSummary,
-    pub(super) recommended_action: crate::Action,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(super) recommended_action: Option<crate::Action>,
+    pub(super) next: &'static str,
 }

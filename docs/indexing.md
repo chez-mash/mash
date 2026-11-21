@@ -46,52 +46,62 @@ refresh.
 
 ## Enable semantic search
 
-Word and phrase searches work without models. Semantic search lets you ask a
-question even when you do not remember the original wording. It takes three
-steps: download the models, change two settings, and index again.
+Search by meaning, also called semantic search, lets you ask a question even
+when you do not remember the original wording. Use English for these queries.
+Word and phrase search works without models and stays the default unless you
+change it.
 
-1. Download the optional local models:
+### Install the models
 
-   ```sh
-   mash models install
-   ```
+```sh
+mash models install
+```
 
-   This downloads about 177 MB from `https://huggingface.co` into
-   `~/.mash/models`. Apple silicon and Windows also download the unquantized
-   embedding model their GPU engines run, about 90 MB more.
-   Set `HF_ENDPOINT` to download from a Hugging Face mirror instead, or pass
-   `--models-dir PATH` to use another directory.
+This downloads about 177 MB from `https://huggingface.co` into
+`~/.mash/models`. Apple silicon and Windows also download the unquantized
+embedding model for their GPU engines, about 90 MB more. Set `HF_ENDPOINT`
+to use a Hugging Face mirror, or pass `--models-dir PATH` to use another
+directory.
 
-2. In the [configuration](configuration.md) created by `mash init`, set these
-   values. Edit the existing tables rather than adding duplicates, and keep
-   your other settings:
+### Build search data
 
-   ```toml
-   [views.build]
-   representations = "lexical-and-dense"
+If this is your first setup, run `mash init` after installing the models.
+When it creates your settings, Mash enables indexing by meaning and builds
+the search data during the first index. [First-time setup](installation.md#connect-your-histories)
 
-   [views.query]
-   intent = "related-discussion"
-   ```
+If you already use Mash, edit the `[views.build]` table in your existing
+[configuration](configuration.md). Keep your other settings and add the table
+only if it is absent.
 
-3. Refresh and try a question:
+```toml
+[views.build]
+representations = "lexical-and-dense"
+```
 
-   ```sh
-   mash index
-   mash search 'why did we choose a separate database' --intent related-discussion
-   ```
+Then run `mash index`. The first pass takes longer because Mash prepares
+your existing history for search by meaning. Later passes reuse unchanged work.
 
-This first pass takes longer because it prepares your existing history for
-semantic search; later passes reuse unchanged work. Semantic queries currently
-need English.
+### Try a question
 
-Word search still works, and is faster because it loads no models:
+```sh
+mash search 'why did we choose a separate database' --intent related-discussion
+```
+
+### Use search by meaning by default
+
+To use it in the dashboard and for searches that omit an intent, set `intent`
+in your existing `[views.query]` table. Add the table if needed. Once the
+search data is built, changing this default takes effect without reindexing.
+
+```toml
+[views.query]
+intent = "related-discussion"
+```
+
+To run a word search even with that default, pass `--intent exact-mention`.
 
 ```sh
 mash search 'auth_token' --intent exact-mention
 ```
-
-To keep it as what plain `mash search` does, leave `intent` as `exact-mention`
-above and pass `--intent related-discussion` when you want meaning.
 
 If something fails, see [troubleshooting](troubleshooting.md).

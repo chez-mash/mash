@@ -128,7 +128,11 @@ Windows) from huggingface.co. Run it after they approve:
 mash models install
 ```
 
-Run it before step 4, so that setup turns search by meaning on.
+Run it before step 4 when creating a new Mash configuration. A new
+configuration includes the data for search by meaning when the models are
+already installed. If Mash already has a configuration, follow
+https://getmash.io/indexing/#build-search-data to enable it without replacing
+the person's settings. Word search stays the default unless they change it.
 
 ## 4. Connect their histories
 
@@ -189,7 +193,7 @@ found no match. Try a different word from the earlier chat.
   `mash search 'log rotation'`. Word search checks for every word in any
   order. To require that exact phrase, use `mash search '"log rotation"'`.
 - Word search matches whole words, so `rotating` does not find `rotate`. If
-  the models from step 3 are installed, search by meaning instead:
+  search by meaning was enabled and indexing finished, use it for that query.
   `mash search "how do we rotate logs" --intent related-discussion`.
 
 If step 4 connected an agent, you can also probe its connection in a fresh

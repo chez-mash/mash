@@ -4,6 +4,20 @@ use std::fmt::Write as _;
 use super::{InitResponse, Response, Step};
 use crate::core::output::text::safe;
 
+const SEMANTIC_QUERY: &str = "Word search is the default. To search by meaning after indexing, run `mash search 'your question' --intent related-discussion`.";
+
+pub(super) const fn search_guidance(editing: bool, semantic: bool) -> Option<&'static str> {
+    if editing {
+        None
+    } else if semantic {
+        Some(SEMANTIC_QUERY)
+    } else {
+        Some(
+            "Search is set to word search (`exact-mention`). For search by meaning, install the models and update your configuration. See https://getmash.io/indexing/#enable-semantic-search",
+        )
+    }
+}
+
 impl InitResponse {
     #[must_use]
     pub fn terminal_summary(&self) -> String {
@@ -72,6 +86,9 @@ impl InitResponse {
         }
         if searchable {
             output.push_str("Open your chats with `mash dash`.\n");
+            if self.config.search == Some("semantic") {
+                let _ = writeln!(output, "{SEMANTIC_QUERY}");
+            }
         }
         output
     }

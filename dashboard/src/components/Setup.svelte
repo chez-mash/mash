@@ -304,11 +304,14 @@ function toggleConnect(agent: Integration): void {
         </div>
       </section>
 
-      {#if !file.modelsInstalled && file.index.state === "finished" && file.index.ok}
+      {#if file.index.state === "finished" && file.index.ok}
         <details class="fold">
-          <summary>Enable search by meaning</summary>
-          <p class="meta">Word search is ready. Search by meaning uses optional local models.</p>
-          {@render command("mash models install")}
+          <summary>Search by meaning</summary>
+          {#if !file.modelsInstalled}
+            <p class="meta">Start by installing the optional local models in your terminal.</p>
+            {@render command("mash models install")}
+          {/if}
+          <p class="meta"><a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Configure and index for search by meaning</a>. You can choose which search the dashboard uses.</p>
         </details>
       {/if}
 

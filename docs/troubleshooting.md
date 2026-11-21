@@ -207,12 +207,10 @@ search works without them:
 mash search 'auth_token' --intent exact-mention
 ```
 
-To search by meaning, follow
-[model setup](indexing.md#enable-semantic-search): download the models, turn
-semantic search on in your configuration, then index. Only
-`mash models install` downloads models, and installing them does not change
-the configuration by itself. Edit the existing settings; do not replace a
-configuration that has custom history or sharing settings.
+To search by meaning, [install the models](indexing.md#install-the-models)
+and [build search data](indexing.md#build-search-data). Model installation
+leaves your current settings in place. If you already use Mash, the guide
+shows how to enable indexing by meaning in those settings.
 
 ## Embedding failed during indexing
 

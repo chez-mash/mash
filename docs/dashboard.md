@@ -48,7 +48,8 @@ index until your chats appear.
   and choose **Check search service again**, or choose **Set up without
   indexing** and index later. The customization review also offers saving
   without indexing when the service is ready.
-- Search by meaning needs the optional models: `mash models install`.
+- To search by meaning from the dashboard, follow the
+  [model setup guide](indexing.md#enable-semantic-search) and choose it as your default.
 - Going through setup again on a machine that is already set up rewrites the
   configuration with your answers and keeps the previous file beside it.
 - Sharing with other machines, memory backfill and history kept in other
