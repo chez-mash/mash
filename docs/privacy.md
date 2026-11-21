@@ -44,6 +44,12 @@ connections off to keep excerpts out of agent prompts. You can search the
 index yourself in the local dashboard or terminal, then widen the history
 range later. [Dashboard setup](dashboard.md#set-up-mash-from-the-dashboard)
 
+To keep the suggested histories and range on your first setup, choose
+**Set up and index without connecting agents** in the terminal, or use
+**Skip agent connections** in the browser review before confirming.
+In versions that open the guided questions first, turn off the connections
+when you reach the agent choices.
+
 If you decide to stop, `mash uninstall` lists what Mash would remove before
 you confirm. The uninstall keeps your agents' original chats.
 [See what uninstall removes](installation.md#uninstall)

@@ -284,7 +284,8 @@ meaning, run `mash models install` before `mash init`; see
 On a fresh setup, the terminal wizard shows the history folders it found,
 the history range (files updated in the last 90 days), and the agents it can
 connect. Choose **Set up and index** to keep the index on this machine and
-apply those choices.
+apply those choices. Choose **Set up and index without connecting agents**
+to use the same histories and search them yourself.
 
 Choose **Customize setup** to use a different date range or history folder,
 pick specific integrations, connect an existing shared server, or save

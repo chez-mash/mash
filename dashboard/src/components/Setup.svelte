@@ -17,6 +17,7 @@ import {
   firstRunKey,
   firstRunOptions,
   type Integration,
+  installedIntegrations,
   type Outcome,
   problem,
   runSetup,
@@ -77,6 +78,7 @@ let custom = $state(90);
 const blocked = $derived(file && answers ? problem(file, answers) : "");
 const review = $derived(file && answers ? summary(file, answers, names) : []);
 const histories = $derived(file && answers ? selectedHistories(file, answers) : []);
+const installedAgents = $derived(file ? installedIntegrations(file) : []);
 
 let running = $state(false);
 let failure = $state("");
@@ -225,8 +227,14 @@ function toggleConnect(agent: Integration): void {
       {#if step === "agents"}
         <p class="meta">It is done by the agent's own command-line tool, which edits that agent's user settings and installs the Mash plugin. The last screen lists the files it touched and the commands that undo it. Other agents' histories are still indexed without this.</p>
       {:else if step === "review"}
+        {#if file.editable && installedAgents.length && !file.configured && at === null}
+          <div>
+            <p class="meta">{answers.connect.length ? "Connected agents can search your history, and matching excerpts can enter their context." : "You can search the local index yourself from the dashboard or terminal."}</p>
+            <button class="btn" type="button" style:margin-top="6px" disabled={running} onclick={() => { if (answers) answers.connect = answers.connect.length ? [] : installedAgents; }}>{answers.connect.length ? "Skip agent connections" : "Include installed agents"}</button>
+          </div>
+        {/if}
         {#if answers.connect.length && file.editable}
-          <p class="meta">To give the selected agents access to search, Mash uses their own tools to update their user settings and install the Mash plugin.</p>
+          <p class="meta">To connect the selected agents, Mash uses their own tools to update their user settings and install the Mash plugin.</p>
         {/if}
         {#if file.shared}
           <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>

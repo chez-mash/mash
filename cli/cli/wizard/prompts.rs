@@ -16,6 +16,7 @@ enum Choice {
     All,
     Custom,
     Index,
+    IndexWithoutAgents,
     Configure,
     Save,
 }
@@ -32,6 +33,7 @@ impl std::fmt::Display for Choice {
             Self::All => "All history",
             Self::Custom => "Custom number of days",
             Self::Index => "Set up and index",
+            Self::IndexWithoutAgents => "Set up and index without connecting agents",
             Self::Configure => "Set up without indexing",
             Self::Save => "Save configuration only",
         })
@@ -214,7 +216,7 @@ fn setup_summary(
         if agents.is_empty() { "none" } else { &agents }
     );
     if !agents.is_empty() {
-        summary.push_str("Mash will update those agents' settings. When they search with Mash, matching messages can enter their context.\n");
+        summary.push_str("If you connect these agents, Mash will update their settings. When they search with Mash, matching messages can enter their context.\n");
     }
     summary
 }
@@ -423,13 +425,23 @@ pub(super) fn confirm(draft: &mut Draft, ready: bool) -> Result<Option<Decision>
 
 fn confirm_inner(draft: &mut Draft, ready: bool) -> Result<Decision, Failure> {
     eprintln!("{}", draft.summary);
-    match Select::new(
-        "Set up Mash with these settings?",
-        actions(draft.init.index, ready, draft.quick),
-    )
-    .prompt()?
-    {
+    let selected_agents = if draft.init.agents {
+        draft.init.selected_agents.as_deref().unwrap_or_default()
+    } else {
+        &[]
+    };
+    let options = actions(
+        draft.init.index,
+        ready,
+        draft.quick.then_some(selected_agents),
+    );
+    match Select::new("Set up Mash with these settings?", options).prompt()? {
         Choice::Index | Choice::Configure => Ok(Decision::Apply),
+        Choice::IndexWithoutAgents => {
+            draft.init.agents = false;
+            draft.init.selected_agents = None;
+            Ok(Decision::Apply)
+        }
         Choice::Review => Ok(Decision::Customize),
         Choice::Save => {
             draft.init.index = false;
@@ -441,7 +453,7 @@ fn confirm_inner(draft: &mut Draft, ready: bool) -> Result<Decision, Failure> {
     }
 }
 
-fn actions(index: bool, ready: bool, quick: bool) -> Vec<Choice> {
+fn actions(index: bool, ready: bool, quick_agents: Option<&[Agent]>) -> Vec<Choice> {
     let mut options = if !index {
         vec![Choice::Configure, Choice::Save]
     } else if ready {
@@ -449,7 +461,10 @@ fn actions(index: bool, ready: bool, quick: bool) -> Vec<Choice> {
     } else {
         vec![Choice::Save]
     };
-    if quick {
+    if let Some(agents) = quick_agents {
+        if index && ready && !agents.is_empty() {
+            options.push(Choice::IndexWithoutAgents);
+        }
         options.push(Choice::Review);
     } else if index && ready {
         options.push(Choice::Save);
@@ -461,16 +476,21 @@ fn actions(index: bool, ready: bool, quick: bool) -> Vec<Choice> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Choice::{Cancel, Configure, Index, IndexWithoutAgents, Review, Save};
 
     #[test]
-    fn recommended_setup_offers_index_customize_or_cancel() {
-        assert!(actions(true, true, true) == [Choice::Index, Choice::Review, Choice::Cancel]);
+    fn first_review_offers_a_quick_way_to_skip_detected_agents() {
+        assert!(actions(true, true, Some(&[])) == [Index, Review, Cancel]);
+        let detected = [Agent::Codex];
+        assert!(
+            actions(true, true, Some(&detected)) == [Index, IndexWithoutAgents, Review, Cancel]
+        );
     }
 
     #[test]
     fn setup_keeps_configuration_only_when_indexing_cannot_run() {
-        assert!(actions(true, false, true) == [Choice::Save, Choice::Review, Choice::Cancel]);
-        assert!(actions(true, false, false) == [Choice::Save, Choice::Cancel]);
-        assert!(actions(false, false, false) == [Choice::Configure, Choice::Save, Choice::Cancel]);
+        assert!(actions(true, false, Some(&[Agent::Codex])) == [Save, Review, Cancel]);
+        assert!(actions(true, false, None) == [Save, Cancel]);
+        assert!(actions(false, false, None) == [Configure, Save, Cancel]);
     }
 }

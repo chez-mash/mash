@@ -50,6 +50,8 @@ can connect so they can search. **Show history folders** lists the paths. For a
 new setup the default is to index the last 90 days on this machine. Choose
 **Set up and index** to accept the review, or **Customize setup** to change
 the histories, range, or agent connections before confirming.
+On the first review, **Skip agent connections** lets you index the same
+histories and search them yourself from the dashboard or terminal.
 If your version opens on the history choices, use **Next** to reach the review.
 
 Nothing changes until you choose **Set up and index** or **Set up without

@@ -94,6 +94,29 @@ test("a first visit can confirm the detected local setup in one click", async ({
   await expect(page.getByRole("link", { name: "Open your chats" })).toBeVisible();
 });
 
+test("the first review can start indexing with agent connections skipped", async ({ page }) => {
+  const { posts } = await mockSetup(page);
+  await page.goto("/");
+  const review = page.getByRole("region", { name: "Set up Mash" });
+  await page.getByRole("button", { name: "Skip agent connections" }).click();
+  await expect(review.getByText("no agents", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Include installed agents" }).click();
+  await expect(review.getByText("no agents", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Skip agent connections" }).click();
+  expect(posts).toEqual([]);
+  await page.getByRole("button", { name: "Set up and index" }).click();
+  await expect(page.getByRole("heading", { name: "Setup is saved" })).toBeVisible();
+  expect(posts).toEqual([
+    {
+      revision: "",
+      agents: { "claude-code": true, codex: true },
+      since_days: 90,
+      connect: [],
+      index: true,
+    },
+  ]);
+});
+
 test("custom setup keeps the chosen paths, range and connections when checking Qdrant again", async ({
   page,
 }) => {
