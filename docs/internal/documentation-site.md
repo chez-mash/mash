@@ -18,8 +18,10 @@ Each translated directory comes from `docs/<locale>/guides.md`. Its welcome
 page comes from that locale's `index.md`.
 
 Add a guide to `docs/README.md` and, when appropriate, the sidebar in
-`site/astro.config.mjs`. New Markdown guides are included in builds and search
-automatically. The build includes top-level `docs/*.md` files and Markdown
+`site/astro.config.mjs`. Keep **Start here** and **Using Mash** as the two
+top-level sections. Put related pages under a collapsible topic and use
+the same hierarchy in the guide index. New Markdown guides are included
+in builds and search automatically. The build includes top-level `docs/*.md` files and Markdown
 under configured language folders. Keep engineering and maintenance notes in
 `docs/internal/`, outside the website and its search.
 Re-run the development command after editing source guides.

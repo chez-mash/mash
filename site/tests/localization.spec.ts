@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 test("the Spanish quickstart links to privacy and can search the Spanish guides", async ({
   page,
 }) => {
+  const guide = page.locator(".sl-markdown-content");
+  await page.goto("/privacy/");
+  await expect(guide.getByRole("link", { name: "Español", exact: true })).toHaveCount(0);
   await page.goto("/quick-start/");
   await page.getByRole("combobox", { name: "Select language" }).selectOption({ label: "Español" });
   await expect(page).toHaveURL(/\/es\/quick-start\/$/);
@@ -21,7 +24,8 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
   await expect(page.locator('dialog a[href^="/es/privacy/"]').first()).toBeVisible();
   await page.keyboard.press("Escape");
 
-  await page.getByRole("link", { name: "Privacy in English", exact: true }).click();
+  await expect(guide.getByRole("link", { name: "Privacy in English", exact: true })).toHaveCount(0);
+  await page.getByRole("combobox").selectOption({ label: "English" });
   await expect(page).toHaveURL((url) => url.pathname === "/privacy/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("button", { name: "Search", exact: true })).toBeVisible();
@@ -564,6 +568,7 @@ for (const locale of [
     theme: "Mode sombre",
     search: "Rechercher",
     query: "identifiants secrets",
+    dashboard: "Tableau de bord",
     fallback: "Ce contenu n’est pas encore disponible dans votre langue.",
   },
   {
@@ -578,6 +583,7 @@ for (const locale of [
     theme: "深色模式",
     search: "搜索",
     query: "敏感信息",
+    dashboard: "网页面板",
     fallback: "此内容尚不支持你的语言。",
   },
   {
@@ -592,6 +598,7 @@ for (const locale of [
     theme: "ダークモード",
     search: "検索",
     query: "プライバシー",
+    dashboard: "ダッシュボード",
     fallback: "このコンテンツはまだ日本語訳がありません。",
   },
 ]) {
@@ -630,7 +637,9 @@ for (const locale of [
     await expect(page.locator(`dialog a[href^="/${locale.path}/privacy/"]`).first()).toBeVisible();
     await page.keyboard.press("Escape");
 
-    await page.locator(`nav.sidebar a[href="/${locale.path}/services/"]`).click();
+    const sidebar = page.locator("nav.sidebar");
+    await sidebar.locator("summary").getByText(locale.dashboard, { exact: true }).click();
+    await sidebar.locator(`a[href="/${locale.path}/services/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Inspect and manage Mash services",
     );

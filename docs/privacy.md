@@ -1,7 +1,5 @@
 # Your history and privacy
 
-[Español](es/privacy.md)
-
 ## What stays on your machine
 
 The default setup indexes and searches locally without changing your agents'

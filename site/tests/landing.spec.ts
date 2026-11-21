@@ -167,7 +167,6 @@ test("the hero's install picker follows the chosen system and method", async ({
   await expect(linuxSetup).toBeHidden();
   await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
   await expect(install.getByRole("link", { name: "Review the package sources" })).toBeVisible();
-  await expect(install.getByRole("link", { name: "Inspect the installer" })).toBeHidden();
   await expect(buildDashboard).toBeHidden();
 
   await install.getByRole("button", { name: "Cargo", exact: true }).click();
@@ -244,14 +243,25 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
 
 test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Inspect the installer", exact: true }).click();
+  await expect(
+    page.locator(".mash-install").getByRole("link", {
+      name: /Inspect the installer|Download and verify an archive|See what stays local/,
+      includeHidden: true,
+    }),
+  ).toHaveCount(0);
+  await page.goto("/quick-start/");
+  await page.getByRole("link", { name: "how to verify the download", exact: true }).click();
+  await expect(page).toHaveURL("/downloads/#verify-the-checksum");
+  await page.getByRole("link", { name: "inspect the script", exact: true }).click();
   await expect(page).toHaveURL(/\/downloads\/#inspect-the-installer$/);
   await expect(page.getByRole("heading", { name: "Inspect the installer" })).toBeInViewport();
   await expect(page.getByRole("link", { name: "public release workflow" })).toBeVisible();
 
-  await page.goto("/");
-  await page.getByRole("link", { name: "See what stays local", exact: true }).click();
-  await expect(page).toHaveURL(/\/privacy\/$/);
+  await page.goto("/guides/");
+  await page
+    .getByRole("link", { name: "See where your history is stored and what stays private" })
+    .click();
+  await expect(page).toHaveURL("/privacy/");
   await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
   await expect(page.getByText("another number of days", { exact: true })).toBeVisible();
   await expect(page.getByText("no agents", { exact: true })).toBeVisible();

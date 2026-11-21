@@ -138,9 +138,10 @@ test("the release check bookmark leads to the right archives and checksum steps"
 });
 
 test("an archive download leads from verification to browser setup", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Install it yourself", exact: true }).click();
-  await page.getByRole("link", { name: "Download and verify an archive", exact: true }).click();
+  await page.goto("/guides/");
+  await page
+    .getByRole("link", { name: "Download and verify a release archive", exact: true })
+    .click();
   await expect(page).toHaveURL("/downloads/");
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.locator("pre").filter({ hasText: "sha256sum mash-" })).toBeVisible();
@@ -170,7 +171,9 @@ test("internal links and browser history keep the current document alive", async
   await expect(page).toHaveURL(/\/quick-start\/$/);
   await expect(page.locator("h1")).toHaveText("Quick start");
   expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
-  await page.locator('nav.sidebar a[href="/installation/"]').click();
+  const sidebar = page.locator("nav.sidebar");
+  await sidebar.locator("summary").getByText("Installation", { exact: true }).click();
+  await sidebar.locator('a[href="/installation/"]').click();
   await expect(page.locator("h1")).toHaveText("Install Mash");
   expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
   await page.goBack();
@@ -191,7 +194,9 @@ test("mobile menu and theme still work after navigation", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/quick-start/");
   await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page.locator('nav.sidebar a[href="/installation/"]').click();
+  const sidebar = page.locator("nav.sidebar");
+  await sidebar.locator("summary").getByText("Installation", { exact: true }).click();
+  await sidebar.locator('a[href="/installation/"]').click();
   await expect(page.locator("h1")).toHaveText("Install Mash");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Menu", exact: true }).click();
@@ -200,7 +205,8 @@ test("mobile menu and theme still work after navigation", async ({ page }) => {
   const other = before === "light" ? "dark" : "light";
   await page.locator(".mash-theme:visible").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", other);
-  await page.locator('nav.sidebar a[href="/synchronization/"]').click();
+  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
+  await sidebar.locator('a[href="/synchronization/"]').click();
   await expect(page.locator("h1")).toHaveText("Keep history up to date");
   await expect(page.locator("html")).toHaveAttribute("data-theme", other);
 });
@@ -210,7 +216,34 @@ test("direct links remain usable without JavaScript", async ({ browser }) => {
   const page = await context.newPage();
   await page.goto("http://127.0.0.1:8793/installation/");
   await expect(page.locator("h1")).toHaveText("Install Mash");
-  await page.locator('nav.sidebar a[href="/synchronization/"]').click();
+  const sidebar = page.locator("nav.sidebar");
+  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
+  await sidebar.locator('a[href="/synchronization/"]').click();
   await expect(page.locator("h1")).toHaveText("Keep history up to date");
   await context.close();
+});
+
+test("the sidebar groups related guides under two top-level sections", async ({ page }) => {
+  await page.goto("/guides/#find-past-work");
+  const sidebar = page.locator("nav.sidebar");
+  await expect(sidebar.locator(".top-level > li > details > summary")).toHaveText([
+    "Start here",
+    "Using Mash",
+  ]);
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.getByRole("heading", { level: 2 })).toHaveText(["Start here", "Using Mash"]);
+  await expect(guide.locator("#find-past-work")).toBeAttached();
+  await expect(guide.getByRole("link", { name: "Español", exact: true })).toHaveCount(0);
+
+  const languageSearch = sidebar.getByRole("link", {
+    name: "Search in other languages",
+    includeHidden: true,
+  });
+  await expect(languageSearch).toBeHidden();
+  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
+  await languageSearch.click();
+  await expect(page).toHaveURL("/search-languages/");
+  await page.reload();
+  await expect(languageSearch).toBeVisible();
+  await expect(languageSearch).toHaveAttribute("aria-current", "page");
 });

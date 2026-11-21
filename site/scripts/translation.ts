@@ -125,9 +125,7 @@ export async function readTranslationSource(page: TranslationPage): Promise<Tran
   if (page === "quick-start") {
     body = `# Quick start\n\n${readmeQuickStart(body)}`;
   }
-  // The site already has a language picker. Leave the repository's language
-  // shortcuts out of generated drafts.
-  body = body.replace(/^\[Español\]\([^\n]+\)\n\n/m, "").trimEnd();
+  body = body.trimEnd();
   const revision = createHash("sha256").update(body).digest("hex");
   return { file, body, revision };
 }

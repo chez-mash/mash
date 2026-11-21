@@ -304,7 +304,8 @@ describe("documentation translation drafts", () => {
   it("uses the English documentation index as the source for translated directories", async () => {
     const guides = await readTranslationSource("guides");
     expect(guides.file).toBe("docs/README.md");
-    expect(guides.body).toContain("### Find past work");
+    expect(guides.body).toContain("## Using Mash");
+    expect(guides.body).toContain('<span id="find-past-work"></span>\n\n### Dashboard');
 
     const localeGuides = await readLocaleGuides("fr");
     const draft = prepareTranslation(

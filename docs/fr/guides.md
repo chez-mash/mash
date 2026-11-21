@@ -5,56 +5,76 @@ vos agents de programmation. Découvrez Mash avec le
 [guide de démarrage rapide](quick-start.md).
 
 <span id="what-would-you-like-to-do"></span>
-
-## Que souhaitez-vous faire ?
-
+<span id="que-souhaitez-vous-faire"></span>
 <span id="start-here"></span>
 
-### Premiers pas
+## Premiers pas
 
 - [Essayez une recherche avec des conversations d’exemple](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - [Comparez Mash à d’autres outils d’historique](compare.md)
+- [Vérifiez où votre historique est stocké et ce qui reste sur votre ordinateur](privacy.md)
+
+### Installation
+
 - [Installez Mash et choisissez les historiques à lire](installation.md)
 - [Téléchargez et vérifiez une archive de la version](downloads.md)
 - [Utilisez un gestionnaire de paquets ou compilez depuis le code source](install-methods.md)
-- [Vérifiez où votre historique est stocké et ce qui reste sur votre ordinateur](privacy.md)
+- [Gérez le service de recherche local ou exécutez votre propre Qdrant](local-search.md)
+
+<span id="using-mash"></span>
+
+## Utiliser Mash
 
 <span id="find-past-work"></span>
+<span id="retrouver-ses-travaux"></span>
+<span id="dashboard"></span>
 
-### Retrouver ses travaux
+### Tableau de bord
 
 - [Lisez les conversations dans le tableau de bord et téléchargez les transcriptions](dashboard.md)
-- [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md)
+- [Vérifiez et gérez les services (en anglais)](../services.md)
+
+<span id="search"></span>
+
+### Recherche
+
 - [Cherchez depuis le terminal](search.md#your-first-search)
 - [Cherchez dans des conversations dans d’autres langues](search-languages.md)
-- [Enregistrez des décisions et retrouvez leurs sources](records.md)
+- [Gardez l’historique à jour](synchronization.md)
+- [Incluez des conversations plus anciennes ou cherchez par le sens](indexing.md)
+- [Cherchez dans vos historiques sur plusieurs ordinateurs](shared-index.md)
 
 <span id="use-mash-with-agents"></span>
+<span id="utiliser-mash-avec-des-agents"></span>
+<span id="agents-and-memory"></span>
 
-### Utiliser Mash avec des agents
+### Agents et mémoire
 
 - [Vérifiez quels historiques Mash lit et quels agents il peut connecter](supported-agents.md)
 - [Connectez Claude Code, Codex ou Copilot et utilisez Mash depuis l’agent](agents.md)
 - [Utilisez les compétences, commandes et hooks du module](plugin.md)
+- [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md)
+- [Enregistrez des décisions et retrouvez leurs sources](records.md)
 
 <span id="manage-mash"></span>
+<span id="gérer-mash"></span>
 
-### Gérer Mash
+### Maintenance
 
-- [Résolvez les problèmes d’installation, de recherche ou de mise à jour de l’historique](troubleshooting.md)
-- [Signalez un problème ou une faille de sécurité](troubleshooting.md#get-help)
-- [Gérez le service de recherche local ou exécutez votre propre Qdrant](local-search.md)
-- [Gardez l’historique à jour](synchronization.md)
-- [Incluez des conversations plus anciennes ou cherchez par le sens](indexing.md)
-- [Cherchez dans vos historiques sur plusieurs ordinateurs](shared-index.md)
 - [Sauvegardez et restaurez votre historique](backup.md)
 - [Mettez Mash à niveau](upgrades.md)
 - [Désinstallez Mash ou gardez l’historique pour une réinstallation](uninstall.md)
-- [Vérifiez et gérez les services (en anglais)](../services.md)
+
+<span id="troubleshooting"></span>
+
+### Dépannage
+
+- [Résolvez les problèmes d’installation, de recherche ou de mise à jour de l’historique](troubleshooting.md)
+- [Signalez un problème ou une faille de sécurité](troubleshooting.md#get-help)
 
 <span id="reference"></span>
 
-## Référence en anglais
+### Référence en anglais
 
 - [Commandes utiles](../cli.md)
 - [Modifier la configuration](../configuration.md)
@@ -62,4 +82,4 @@ vos agents de programmation. Découvrez Mash avec le
 - [Référence des outils MCP](../tools.md)
 - [Appeler les outils de mémoire directement](../record-tools.md)
 
-<!-- mash-docs-source: f0f9a6f7891e0007b06356a7fc2bebdddac231c12f4660137cbb7d03451506d8 -->
+<!-- mash-docs-source: a002b83491b2dadc1ae91b2c0233c6a858ed6bb7c2564cf4737ecf571ac89713 -->

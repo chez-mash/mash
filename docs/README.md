@@ -4,47 +4,62 @@ Mash helps you find conversations you've already had with your coding agents.
 New here? Follow the [quick start](../README.md#quick-start), or browse the
 [documentation website](https://getmash.io).
 
-[Español](es/guides.md) · [Français](fr/guides.md) · [简体中文](zh-cn/guides.md) · [日本語](ja/guides.md)
+<span id="what-would-you-like-to-do"></span>
 
-## What would you like to do?
-
-### Start here
+## Start here
 
 - [Try a dashboard search with sample chats](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - [Compare Mash with other coding-agent history tools](compare.md)
+- [See where your history is stored and what stays private](privacy.md)
+
+### Installation
+
 - [Install Mash and choose which histories to read](installation.md)
 - [Download and verify a release archive](downloads.md)
 - [Install with a package manager or build from source](install-methods.md)
-- [See where your history is stored and what stays private](privacy.md)
+- [Manage the local search service or run your own Qdrant](local-search.md)
 
-### Find past work
+## Using Mash
+
+<span id="find-past-work"></span>
+
+### Dashboard
 
 - [Find chats in the dashboard and download transcripts](dashboard.md)
-- [Pick up where you left off or leave a handoff](pick-up-work.md)
+- [Check and manage services](services.md)
+
+### Search
+
 - [Search from the terminal](search.md#your-first-search)
 - [Search chats in other languages](search-languages.md)
-- [Save decisions and revisit the messages behind them](records.md)
+- [Keep new chats searchable](synchronization.md)
+- [Include older history or search by meaning](indexing.md)
+- [Search history across your machines](shared-index.md)
 
-### Use Mash with agents
+<span id="use-mash-with-agents"></span>
+
+### Agents and memory
 
 - [Check which agent histories Mash reads and which agents it connects to](supported-agents.md)
 - [Connect and use Mash from Claude Code, Codex or Copilot](agents.md)
 - [Use the plugin's skills, commands and hooks](plugin.md)
+- [Pick up where you left off or leave a handoff](pick-up-work.md)
+- [Save decisions and revisit the messages behind them](records.md)
 
-### Manage Mash
+<span id="manage-mash"></span>
 
-- [Fix setup errors, empty results or stale history](troubleshooting.md)
-- [Report a bug or a security concern](troubleshooting.md#get-help)
-- [Manage the local search service or run your own Qdrant](local-search.md)
-- [Keep new chats searchable](synchronization.md)
-- [Include older history or search by meaning](indexing.md)
-- [Search history across your machines](shared-index.md)
+### Maintenance
+
 - [Back up and restore your history](backup.md)
 - [Upgrade Mash](upgrades.md)
 - [Uninstall Mash or keep history for a reinstall](uninstall.md)
-- [Check and manage services](services.md)
 
-## Reference
+### Troubleshooting
+
+- [Fix setup errors, empty results or stale history](troubleshooting.md)
+- [Report a bug or a security concern](troubleshooting.md#get-help)
+
+### Reference
 
 - [Useful commands](cli.md)
 - [Change your configuration](configuration.md)

@@ -182,18 +182,13 @@ const first = script;
         <p class="package-hint">
           Includes the browser dashboard. After installing,
           <a href="/installation/#start-the-local-search-service">start the local search service and choose which histories to read</a>.
+          <a href="/install-methods/#install-with-a-package-manager">Review the package sources</a>.
         </p>
         <p class="cargo-hint">
           This command installs terminal search and agent tools.
           <a href="/installation/#start-the-local-search-service">Set up terminal search</a> or
           <a href="/install-methods/#include-the-web-dashboard">Build with the dashboard</a> to search in your browser.
-        </p>
-        <p>
-          <a class="release-source" href="/downloads/#inspect-the-installer">Inspect the installer</a>
-          <a class="package-source" href="/install-methods/#install-with-a-package-manager">Review the package sources</a>
-          <a class="cargo-source" href="/install-methods/#cli-and-agent-tools">Review the source build</a>
-          · <a href="/downloads/">Download and verify an archive</a>
-          · <a href="/privacy/">See what stays local</a>
+          <a href="/install-methods/#cli-and-agent-tools">Review the source build</a>.
         </p>
       </div>
     </div>
@@ -414,13 +409,10 @@ const first = script;
     color: var(--sl-color-gray-4);
   }
   .mash-install[data-mode="manual"] .hint,
-  .mash-install[data-mode="manual"][data-method]:not([data-method="script"]) .release-source,
   .script-hint,
   .package-hint,
   .cargo-hint,
-  .linux-setup,
-  .package-source,
-  .cargo-source {
+  .linux-setup {
     display: none;
   }
   .mash-install[data-mode="manual"][data-system="linux"][data-method="script"] .linux-setup {
@@ -430,10 +422,6 @@ const first = script;
   .mash-install[data-mode="manual"][data-method="cargo"] .cargo-hint,
   .mash-install[data-mode="manual"][data-method]:not([data-method="script"], [data-method="cargo"]) .package-hint {
     display: block;
-  }
-  .mash-install[data-mode="manual"][data-method="cargo"] .cargo-source,
-  .mash-install[data-mode="manual"][data-method]:not([data-method="script"], [data-method="cargo"]) .package-source {
-    display: inline;
   }
   .mash-install p {
     margin: 0;

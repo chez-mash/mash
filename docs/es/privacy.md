@@ -1,7 +1,5 @@
 # Privacidad del historial
 
-[Privacy in English](../privacy.md) · [Guía de inicio rápido](quick-start.md)
-
 <span id="what-stays-on-your-machine"></span>
 
 ## Qué se queda en tu equipo

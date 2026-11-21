@@ -15,7 +15,9 @@ test("the light and dark button holds its choice across pages and visits", async
   // The light theme shows the light logo: the dark dome, not the cream one.
   await expect(page.locator(".site-title img:visible")).toHaveAttribute("src", /mash-mark-light/);
   // Moving to another page without a full load keeps the choice and the button.
-  await page.locator('nav.sidebar a[href="/installation/"]').click();
+  const sidebar = page.locator("nav.sidebar");
+  await sidebar.locator("summary").getByText("Installation", { exact: true }).click();
+  await sidebar.locator('a[href="/installation/"]').click();
   await expect(page).toHaveURL(/\/installation\/$/);
   await expect(html).toHaveAttribute("data-theme", "light");
   await button.click();
