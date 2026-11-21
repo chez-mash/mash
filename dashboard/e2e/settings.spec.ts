@@ -153,7 +153,13 @@ for (const width of [390, 1280]) {
     await expect(page.getByText("HNSW", { exact: true })).toBeVisible();
     await expect(page.getByRole("main").getByRole("switch")).toHaveCount(5);
 
-    await page.getByRole("switch", { name: "Index Cursor" }).click();
+    const cursor = page.getByRole("switch", { name: "Index Cursor" });
+    await expect(cursor).toHaveAccessibleDescription(/still look up chats already indexed/);
+    await expect(page.getByRole("link", { name: "Remove an agent connection" })).toHaveAttribute(
+      "href",
+      "https://getmash.io/agents/#disconnect-an-agent",
+    );
+    await cursor.click();
     await page.getByRole("button", { name: "recent updates" }).click();
     const range = page.getByRole("spinbutton", { name: "Days of history" });
     await expect(range).toHaveAccessibleDescription(/Chats already indexed stay searchable/);

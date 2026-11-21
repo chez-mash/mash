@@ -58,6 +58,8 @@ relancez la commande ci-dessus.
 Les versions de développement proposent la configuration guidée de GitHub Copilot CLI.
 Avec v0.1.1-alpha, [connectez Copilot CLI manuellement](plugin.md#github-copilot-cli).
 
+<span id="what-the-connection-installs"></span>
+
 ### Ce que la connexion installe
 
 Mash utilise la commande de chaque agent choisi (`claude`, `codex` ou

@@ -13,6 +13,55 @@ utilisateurs sont de confiance. Depuis un autre appareil, utilisez le
 Lors de la lecture de l’historique d’un agent qui utilise SQLite, comme OpenCode, des fichiers
 `-wal` et `-shm` peuvent apparaître à côté de la base de données. SQLite crée ces fichiers pour toute lecture. Le contenu de la base reste intact.
 
+<span id="choose-agent-access"></span>
+
+## Choisir ce à quoi vos agents peuvent accéder
+
+Vous pouvez chercher dans vos conversations depuis le tableau de bord local ou
+le terminal sans connecter d’agent. Le choix des historiques que Mash lit est
+distinct du choix des agents à connecter.
+
+- **Pendant la configuration**, laissez tous les agents décochés pour ignorer
+  les nouvelles connexions. Les outils et les modules déjà installés restent
+  en place.
+  [Configurer Mash sans connecter d’agent](installation.md#skip-agent-connections).
+- **Pour retirer une intégration existante**, retirez les outils Mash, puis
+  désactivez ou retirez le module Mash et redémarrez l’agent. Faites de même si
+  vous avez installé le module séparément.
+  [Retirer la connexion d’un agent](agents.md#disconnect-an-agent).
+- **Pour arrêter d’indexer un historique**, désactivez-le dans **agent histories**
+  sous **settings**, enregistrez, puis relancez l’indexation continue si elle
+  était en cours. Les connexions restent actives et les conversations déjà
+  indexées restent consultables. [Retirer une conversation de Mash](#remove-a-chat).
+
+Lorsque vous connectez un agent pendant la configuration, Mash enregistre
+ses outils et tente d’installer son module.
+[Ce que la connexion installe](agents.md#what-the-connection-installs).
+
+<span id="when-history-can-leave-your-machine"></span>
+
+## Quand votre historique peut quitter votre ordinateur
+
+| Comment vous utilisez Mash | Ce qui peut être lu ou envoyé |
+| --- | --- |
+| Recherche dans le tableau de bord local ou le terminal | Mash consulte l’index sur votre ordinateur et vous affiche les résultats. |
+| Outils connectés à un agent (MCP) | L’agent peut chercher dans les conversations indexées et lire les messages correspondants dans leur contexte. Il peut transmettre ce qu’il lit à son fournisseur de modèle. |
+| Module Mash avec actions automatiques activées | Au démarrage d’une session, le module peut fournir des détails sur des conversations récentes et des souvenirs enregistrés. Il peut aussi ajouter des extraits quand l’agent lit un fichier associé. Ces éléments peuvent parvenir au fournisseur du modèle, même sans connexion MCP. [Les actions automatiques et comment les désactiver](plugin.md#what-happens-without-asking). |
+| Partage entre ordinateurs | Mash envoie les conversations indexées et les pièces jointes conservées à votre serveur. Un ordinateur muni d’un jeton du même groupe peut les lire. Pour arrêter les prochains envois, ouvrez **settings**, choisissez **this machine only** sous **index into**, enregistrez, puis relancez l’indexation continue si elle était en cours. Les copies déjà envoyées restent sur le serveur. [Vérifier ce qui sera partagé](shared-index.md#before-sharing). |
+| Mashy dans le tableau de bord | Si vous l’activez, Mashy envoie vos questions, vos passages sélectionnés, ainsi que le texte et les souvenirs qu’il consulte au [service de modèle que vous configurez (en anglais)](../configuration.md#the-dashboard-assistant). Pour interrompre ces envois, désactivez **Mashy** sous **settings** et enregistrez, ou retirez la section `[assistant]` du fichier de configuration. |
+
+- **Un service distant de calcul des embeddings** reçoit le texte préparé pour
+  la recherche, qui peut contenir des données sensibles. Par défaut, le calcul
+  se fait sur votre ordinateur. Les embeddings des requêtes restent toujours
+  locaux. [Calcul des embeddings (en anglais)](../configuration.md#embedding-inference).
+- **Un service distant de reclassement** reçoit chaque requête et les extraits
+  à classer. Le reclassement se fait sur votre ordinateur par défaut.
+  [Reclassement distant (en anglais)](../configuration.md#remote-reranking).
+- **L’extraction de souvenirs à partir d’anciennes conversations** envoie les
+  conversations retenues au fournisseur de l’agent auquel vous êtes connecté
+  et que vous choisissez. Mash vous demande votre accord pendant la configuration.
+  [Comment sont extraits les souvenirs](records.md#backfill-earlier-memory).
+
 <span id="where-mash-stores-data"></span>
 
 ## Où Mash conserve les données
@@ -28,19 +77,6 @@ Exécutez `mash status` pour voir `database_path` et, si Mash a installé Qdrant
 `local_qdrant.installed.storage`. Exécutez `mash uninstall` pour voir ce qui
 serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 `--yes` quand vous êtes prêt à désinstaller Mash.
-
-<span id="when-history-can-leave-your-machine"></span>
-
-## Quand votre historique peut quitter votre ordinateur
-
-* **La connexion aux agents** permet à un agent connecté de demander des résultats et des extraits. Ils entrent dans son contexte et peuvent être envoyés à son fournisseur de modèle. Les [actions automatiques du module](plugin.md#what-happens-without-asking) peuvent aussi ajouter des extraits au contexte sans connexion MCP. Pour chercher uniquement depuis le tableau de bord local ou le terminal, laissez les agents déconnectés et désactivez ou retirez le module Mash si vous l’avez installé.
-* **Le partage entre ordinateurs** envoie les conversations et pièces jointes conservées dans l’index vers le serveur Mash que vous avez configuré. Chaque ordinateur doté d’un jeton pour ce groupe peut les lire. [Vérifiez ce qui sera partagé avant la publication](shared-index.md#before-sharing).
-* **Un service distant de calcul des embeddings** reçoit le texte préparé pour la recherche, qui peut contenir des données sensibles. Par défaut, le calcul se fait sur votre ordinateur. Les embeddings des requêtes restent toujours locaux.
-* **Un service distant de reclassement** reçoit chaque requête et les extraits à classer. Le reclassement se fait localement tant que vous ne choisissez pas de service distant.
-* **L’assistant du tableau de bord** envoie vos questions, ainsi que les conversations et éléments de mémoire qu’il lit pour y répondre, au
-  [service de modèle que vous configurez](../configuration.md#the-dashboard-assistant). L’assistant est disponible uniquement si vous le configurez.
-* **L’extraction de souvenirs à partir d’anciennes conversations** envoie les conversations retenues au fournisseur de l’agent auquel vous êtes connecté et que vous choisissez. Mash vous demande votre accord pendant la configuration.
-  [Comment sont extraits les souvenirs](records.md#backfill-earlier-memory)
 
 <span id="try-a-small-local-setup"></span>
 
@@ -114,4 +150,4 @@ opération est encore en attente.
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->
+<!-- mash-docs-source: 8ece8fc94aa9d9e86e4d6bb12c10445fe9ed0dbbac23a62ccb44e9bfd12a8496 -->

@@ -21,6 +21,56 @@ Cuando Mash lee una base de datos SQLite de un agente, como OpenCode, SQLite
 puede crear archivos `-wal` y `-shm` junto a la base. Esto también ocurre con
 otros lectores de SQLite. El contenido original se conserva.
 
+<span id="choose-agent-access"></span>
+
+## Elige a qué pueden acceder tus agentes
+
+Puedes buscar tus conversaciones desde el panel local o la terminal sin conectar
+un agente. Elige por separado qué historiales lee Mash y qué agentes conectas.
+
+- **Durante la configuración**, deja todos los agentes sin marcar para omitir
+  las nuevas conexiones. Las herramientas y los complementos ya instalados
+  se conservan.
+  [Configura Mash sin conectar agentes](installation.md#skip-agent-connections).
+- **Para quitar una integración existente**, retira las herramientas de Mash,
+  desactiva o desinstala su complemento y reinicia el agente. Hazlo también si
+  instalaste el complemento por separado.
+  [Quita la conexión de un agente](agents.md#disconnect-an-agent).
+- **Para dejar de indexar un historial**, desactívalo en **agent histories** de
+  **settings**, guarda los cambios y reinicia el proceso de indexación continua
+  si está en marcha. Las conexiones existentes siguen activas y las conversaciones
+  ya indexadas siguen disponibles en la búsqueda.
+  [Quita una conversación de Mash](#remove-a-chat).
+
+Al conectar un agente desde la configuración, Mash registra sus herramientas e
+intenta instalar su complemento.
+[Qué instala la conexión](agents.md#what-the-connection-installs).
+
+<span id="when-history-can-leave-your-machine"></span>
+
+## Cuándo puede salir parte del historial
+
+| Cómo usas Mash | Qué se puede leer o enviar |
+| --- | --- |
+| Búsqueda desde el panel local o la terminal | Mash consulta el índice de tu equipo y te muestra los resultados. |
+| Herramientas conectadas al agente (MCP) | El agente puede buscar en las conversaciones indexadas y leer los mensajes que coincidan junto con su contexto. Puede enviar lo que lea a su proveedor de modelos. |
+| Complemento de Mash con acciones automáticas activadas | Al iniciar una sesión, el complemento puede aportar detalles de conversaciones recientes y recuerdos guardados. También puede añadir extractos cuando el agente lee un archivo relacionado. Esos datos pueden llegar al proveedor de modelos aunque no haya una conexión MCP. [Qué hace automáticamente y cómo desactivarlo](plugin.md#what-happens-without-asking). |
+| Historial compartido | Mash envía las conversaciones indexadas y los adjuntos conservados a tu servidor. Cualquier equipo con un token para el mismo grupo puede leerlos. Para detener los envíos, elige **this machine only** en **index into** de **settings**, guarda y reinicia el proceso de indexación continua si está en marcha. Las copias que ya están en el servidor se conservan. [Revisa qué se compartirá](shared-index.md#before-sharing). |
+| Mashy en el panel | Si lo activas, Mashy envía tus preguntas, los fragmentos que selecciones y el texto y los recuerdos que consulta al [servicio de modelos que configures (en inglés)](../configuration.md#the-dashboard-assistant). Para detener los envíos, desactiva **Mashy** en **settings** y guarda, o elimina la sección `[assistant]` del archivo de configuración. |
+
+- **Servicio remoto para calcular representaciones semánticas.** Si lo
+  configuras, recibe el texto preparado para la búsqueda, que puede contener
+  datos sensibles. Por defecto, Mash lo calcula en tu equipo. Las representaciones
+  de las consultas siempre se calculan en local.
+  [Cálculo de representaciones semánticas (en inglés)](../configuration.md#embedding-inference).
+- **Servicio remoto para reordenar resultados.** Si lo activas, recibe cada
+  consulta y los fragmentos que va a ordenar. Por defecto, se ordenan en tu equipo.
+  [Reordenamiento remoto (en inglés)](../configuration.md#remote-reranking).
+- **Recuperar recuerdos de chats anteriores.** Si lo autorizas durante la
+  configuración inicial, los chats seleccionados se envían al proveedor del
+  agente que elijas entre aquellos en los que hayas iniciado sesión.
+  [Cómo se recuperan recuerdos](records.md#backfill-earlier-memory).
+
 <span id="where-mash-stores-data"></span>
 
 ## Dónde guarda Mash los datos
@@ -36,33 +86,6 @@ Ejecuta `mash status` para consultar `database_path` y, si Mash instaló Qdrant,
 `local_qdrant.installed.storage`. Usa `mash uninstall` para ver qué se
 eliminaría, incluida la carpeta separada de Qdrant en Windows. Añade `--yes`
 cuando quieras desinstalar Mash. [Qué se elimina al desinstalar](uninstall.md)
-
-<span id="when-history-can-leave-your-machine"></span>
-
-## Cuándo puede salir parte del historial
-
-- **Agentes conectados.** Cuando un agente usa Mash, recibe resultados y
-  fragmentos de las conversaciones. Esos fragmentos pasan al contexto del
-  agente y pueden enviarse a su proveedor de modelos. Las [acciones automáticas del complemento](plugin.md#what-happens-without-asking)
-  también pueden añadir fragmentos al contexto sin una conexión MCP. Para
-  buscar solo desde el panel local o la terminal, deja los agentes sin conectar
-  y desactiva o elimina el complemento de Mash si lo instalaste.
-- **Historial compartido.** Mash envía al servidor que configures las conversaciones
-  y los adjuntos que conserva en el índice. Cada equipo con un token para ese grupo
-  puede leerlos. [Revisa qué se compartirá antes de publicar](shared-index.md#before-sharing).
-- **Servicio remoto para calcular representaciones semánticas.** Si lo
-  configuras, recibe el texto que Mash prepara para la búsqueda, que puede
-  contener datos sensibles. Por defecto, Mash hace este trabajo en el equipo.
-  Las representaciones de tus consultas siempre se calculan en local.
-- **Servicio remoto para reordenar resultados.** Si lo activas, recibe cada
-  consulta y los fragmentos que va a ordenar. Por defecto, Mash los ordena
-  en tu equipo.
-- **Asistente del panel.** Solo se activa al configurar un
-  [servicio de modelos (en inglés)](../configuration.md#the-dashboard-assistant).
-  Envía tus preguntas y los fragmentos y recuerdos que consulta a ese servicio.
-- **Recuperar recuerdos de chats anteriores.** Si eliges esta opción en la
-  configuración inicial, los chats seleccionados se envían al proveedor del
-  agente que elijas. [Cómo funciona la extracción de recuerdos](records.md#backfill-earlier-memory)
 
 <span id="try-a-small-local-setup"></span>
 
@@ -142,4 +165,4 @@ anteriores y las copias indexadas por separado en otros equipos. La operación
 no se puede deshacer. Si puedes necesitar la conversación más adelante,
 haz antes [una copia de seguridad](backup.md#make-a-portable-backup).
 
-<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->
+<!-- mash-docs-source: 8ece8fc94aa9d9e86e4d6bb12c10445fe9ed0dbbac23a62ccb44e9bfd12a8496 -->

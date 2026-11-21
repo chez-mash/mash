@@ -34,6 +34,10 @@ choisissez les agents souhaités, ou utilisez l’écran des agents dans
 commence par les historiques, utilisez **Next** pour atteindre cet écran et
 le récapitulatif.
 
+Le choix d’ignorer les connexions s’applique à cette configuration. Si vous
+avez déjà connecté un agent ou installé le module séparément, consultez
+[Choisir ce à quoi vos agents peuvent accéder](privacy.md#choose-agent-access).
+
 Mash applique les changements quand vous choisissez **Set up and index** ou **Set up without indexing** sur l’écran de confirmation. Il écrit sa configuration, utilise la commande de chaque agent choisi pour le connecter et lance l’indexation en arrière-plan si vous l’avez demandée. La page indique ce qui a été enregistré, les fichiers modifiés par les agents et les commandes pour annuler leurs connexions. Elle suit aussi l’indexation jusqu’à l’apparition des conversations.
 
 - L’indexation nécessite le service de recherche. S’il est arrêté, démarrez-le selon votre mode d’installation. Si Mash signale un problème de connexion, lisez la raison et [réparez le service de recherche](troubleshooting.md#qdrant-connection-failed). Choisissez ensuite **Check search service again**. Vous pouvez choisir **Set up without indexing** pour enregistrer vos réglages d’abord. Une fois la vérification réussie, cet écran affiche la commande pour indexer vos conversations.
@@ -254,4 +258,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->
+<!-- mash-docs-source: d8fa1bd44df91cee382347487be455edd53c0f27b1ad0d4127e33ab4ca8ccb2d -->

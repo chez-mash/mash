@@ -121,7 +121,9 @@ test("the first review lets the reader connect just the agents they choose", asy
   const review = page.getByRole("region", { name: "Set up Mash" });
   await expect(review.getByText("no agents", { exact: true })).toBeVisible();
   await page.getByText("Choose agents to connect", { exact: true }).click();
-  await expect(page.getByText(/sent to its model provider/)).toBeVisible();
+  await expect(page.getByText(/plugin can also add chat excerpts automatically/)).toContainText(
+    "The agent may send what it receives to its model provider.",
+  );
   const claude = page.getByRole("switch", { name: "Connect Claude Code" });
   const codex = page.getByRole("switch", { name: "Connect Codex" });
   await expect(claude).not.toBeChecked();
@@ -184,6 +186,11 @@ test("a configured dashboard can connect another agent without indexing history"
   await expect(page.getByText("the last 7 days", { exact: true })).toBeVisible();
   await expect(page.getByText("this machine and the shared server", { exact: true })).toBeVisible();
   await page.getByText("Choose agents to connect", { exact: true }).click();
+  await expect(page.getByText(/leaves any existing connection in place/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Remove an agent connection" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/agents/#disconnect-an-agent",
+  );
   await expect(page.getByRole("switch", { name: "Connect Claude Code" })).toBeChecked();
   const codex = page.getByRole("switch", { name: "Connect Codex" });
   await expect(codex).not.toBeChecked();
@@ -231,6 +238,7 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   await page.getByRole("spinbutton", { name: "Days of history" }).fill("7");
   await expect(page.getByText(rangeNotice)).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByText(/plugin can also add chat excerpts automatically/)).toBeVisible();
   await expect(page.getByRole("switch", { name: "Connect Claude Code" })).not.toBeChecked();
   await expect(page.getByRole("switch", { name: "Connect Codex" })).toBeDisabled();
   await page.getByRole("button", { name: "Review setup" }).click();

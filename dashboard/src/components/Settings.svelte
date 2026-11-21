@@ -97,8 +97,8 @@ async function save(): Promise<void> {
 {#snippet row(name: string, value: string)}
   <div class="kv" style:align-items="center" style:min-height="50px" style:border-bottom="1px solid var(--hair)" style:padding="0"><dt>{name}</dt><dd style:overflow-wrap="anywhere">{value}</dd></div>
 {/snippet}
-{#snippet toggle(label: string, on: boolean, flip: () => void)}
-  <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} onclick={() => { saved = 0; flip(); }}><i></i></button>
+{#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
+  <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>
 {/snippet}
 
 <div class="hd">
@@ -143,10 +143,14 @@ async function save(): Promise<void> {
           <AgentMark agent={entry.agent} size={17} />
           <span class="set-n">{agentInfo[entry.agent].name}</span>
           <span class="meta set-p">{entry.roots.join(", ")}</span>
-          {#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; })}{:else}<span class="meta">{on ? "indexed" : "not indexed"}</span>{/if}
+          {#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{:else}<span class="meta">{on ? "indexed" : "not indexed"}</span>{/if}
         </div>
       {/each}
-      <p class="meta" style:margin-top="8px">Agents with no history on this machine are not listed.</p>
+      {#if file.editable && file.agents.length}
+        <p id="history-sources-help" class="meta" style:margin-top="8px">These switches control which histories Mash reads from now on. Connected agents can still look up chats already indexed. <a class="a" href="https://getmash.io/agents/#disconnect-an-agent" target="_blank" rel="noreferrer">Remove an agent connection</a></p>
+      {:else if !file.agents.length}
+        <p class="meta" style:margin-top="8px">Mash found no agent histories on this machine.</p>
+      {/if}
     {:else}
       {#each config.providers as provider (provider.agent)}
         <div class="set-a"><AgentMark agent={provider.agent} size={17} /><span class="set-n">{agentInfo[provider.agent].name}</span><span class="meta set-p">{provider.roots.join(", ")}</span></div>

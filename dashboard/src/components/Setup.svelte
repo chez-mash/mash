@@ -56,7 +56,7 @@ const helps = {
   range:
     "Mash selects history by when it was updated. That history can include older messages. You can widen the range later.",
   agents:
-    "A connected agent can look up your indexed chats. Excerpts it reads can be sent to its model provider.",
+    "A connected agent can look up your indexed chats. The Mash plugin can also add chat excerpts automatically. The agent may send what it receives to its model provider.",
   review: "Review what Mash will read before you start. Your original chats stay untouched.",
 } as const;
 let at = $state<number | null>(null);
@@ -171,6 +171,9 @@ function toggleConnect(agent: Integration): void {
     {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !editable || running)}
   </div>
 {/snippet}
+{#snippet connectionHelp()}
+  <p class="meta">You can search without connecting an agent. Turning a switch off leaves any existing connection in place. <a class="a" href="https://getmash.io/agents/#disconnect-an-agent" target="_blank" rel="noreferrer">Remove an agent connection</a></p>
+{/snippet}
 
 <main class="setup">
   <header class="setup-top">
@@ -256,7 +259,7 @@ function toggleConnect(agent: Integration): void {
       </section>
 
       {#if step === "agents"}
-        <p class="meta">It is done by the agent's own command-line tool, which edits that agent's user settings and installs the Mash plugin. The last screen lists the files it touched and the commands that undo it. Other agents' histories are still indexed without this.</p>
+        {@render connectionHelp()}
       {:else if step === "review"}
         {#if file.editable && installedAgents.length && at === null}
           <details class="fold">
@@ -266,11 +269,12 @@ function toggleConnect(agent: Integration): void {
               {#each installedAgents as entry (entry.agent)}
                 {@render connectAgent(entry, answers.connect.includes(entry.agent), file.editable)}
               {/each}
+              {@render connectionHelp()}
             </div>
           </details>
         {/if}
         {#if answers.connect.length && file.editable}
-          <p class="meta">To connect the selected agents, Mash uses their own tools to update their user settings and install the Mash plugin.</p>
+          <p class="meta">Mash uses each selected agent's own commands to add Mash tools and try to install the plugin.</p>
         {/if}
         {#if file.shared}
           <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>

@@ -9,6 +9,34 @@
 如果代理将历史保存在 SQLite 数据库中（例如 OpenCode），Mash 读取数据库时，数据库旁可能会出现
 `-wal` 和 `-shm` 文件。SQLite 在任何程序读取数据库时都可能创建这些文件，数据库内容保持原样。
 
+<span id="choose-agent-access"></span>
+
+## 选择代理可以访问的内容
+
+你可以直接在本地网页面板或终端搜索对话，无需连接代理。选择 Mash 读取哪些历史记录与选择连接哪些代理是两个独立的操作。
+
+- **设置时**，取消选择所有代理即可跳过新的连接。现有的工具和插件仍会保留。[设置 Mash 时跳过代理连接](installation.md#skip-agent-connections)。
+- **要移除现有集成**，请从代理中移除 Mash 工具，停用或卸载 Mash 插件，然后重启代理。单独安装的插件也需要处理。[移除代理连接](agents.md#disconnect-an-agent)。
+- **要停止为某个来源建立索引**，打开 **settings**，在 **agent histories** 中关掉该来源，保存设置，然后重启正在运行的持续索引进程。已连接的代理仍保持连接，已索引的对话也仍然可以搜索。[从 Mash 中移除对话](#remove-a-chat)。
+
+通过设置连接代理时，Mash 会注册工具并尝试安装插件。[连接代理时会安装什么](agents.md#what-the-connection-installs)。
+
+<span id="when-history-can-leave-your-machine"></span>
+
+## 历史记录何时可能离开你的电脑
+
+| Mash 的使用方式 | 可以读取或发送的内容 |
+| --- | --- |
+| 在本地网页面板或终端搜索 | Mash 在你的电脑上查询索引并显示结果。 |
+| 通过 MCP 将工具连接到代理 | 代理可以搜索已索引的对话，读取匹配的消息及其上下文，并可能将这些内容发给模型提供商。 |
+| 启用钩子的 Mash 插件 | 会话开始时，插件可以向代理提供近期对话的概要信息和已保存的记忆。代理读取相关文件时，插件也可以加入对话摘录。即使未注册 MCP 连接，这些内容也可能被发送给模型提供商。[了解自动操作和停用方法](plugin.md#what-happens-without-asking)。 |
+| 跨设备共享 | Mash 将已索引的对话和保留的附件上传到你的服务器。持有同组令牌的电脑可以读取这些内容。要停止后续上传，请打开 **settings**，在 **index into** 中选择 **this machine only**，保存设置，然后重启正在运行的持续索引进程。已上传的副本仍保留在服务器上。[查看会共享哪些内容](shared-index.md#before-sharing)。 |
+| 网页面板中的 Mashy | 启用后，Mashy 会将你的问题、你选中的段落，以及它查询的对话文本和记忆发送给[你配置的模型服务（英文）](../configuration.md#the-dashboard-assistant)。要停止发送，请在 **settings** 中关闭 **Mashy** 并保存，或从配置文件中删除 `[assistant]` 部分。 |
+
+- **远程向量生成服务**会收到为搜索准备的文本，其中可能含有敏感历史记录。默认在本机生成文本向量，查询的向量始终在本机生成。[向量生成（英文）](../configuration.md#embedding-inference)。
+- **远程重排序服务**会收到每次查询以及待排序的摘录。默认情况下，重排序在本机进行。[远程重排序（英文）](../configuration.md#remote-reranking)。
+- **从旧对话补录记忆**会将选定的历史对话发送给你所选且已登录的代理的模型提供商。Mash 会在设置时询问你是否执行此操作。[了解如何补录记忆](records.md#backfill-earlier-memory)。
+
 <span id="where-mash-stores-data"></span>
 
 ## Mash 将数据存在哪里
@@ -19,19 +47,6 @@
 
 运行 `mash status` 可查看 `database_path`。如果 Qdrant 由 Mash 安装，还可查看
 `local_qdrant.installed.storage`。运行 `mash uninstall` 可以预览要删除的内容，其中包括 Windows 上单独保存的 Qdrant 文件夹。准备好卸载后，再加上 `--yes`。
-
-<span id="when-history-can-leave-your-machine"></span>
-
-## 历史记录何时可能离开你的电脑
-
-* **连接代理** 后，代理可以向 Mash 请求搜索结果和摘录。这些内容会进入代理的上下文，并可能发送给它的模型提供商。即使没有 MCP 连接，[插件钩子](plugin.md#what-happens-without-asking)也可以把摘录加入代理的上下文。如果只想用本地网页面板或终端搜索，请保持代理未连接，并停用或移除已安装的 Mash 插件。
-* **跨设备共享** 会把索引中保留的对话和附件上传到你配置的 Mash 服务器。持有同组令牌的电脑都可以读取这些内容。[发布前查看会共享哪些内容](shared-index.md#before-sharing)。
-* **远程向量生成服务** 会收到为搜索准备的文本，其中可能含有敏感历史记录。默认在本机生成文本向量，查询的向量始终在本机生成。
-* **远程重排序服务** 会收到每次查询以及待排序的摘录。启用远程服务之前，重排序在本机进行。
-* **网页面板助手** 会把你的问题以及出于回答需要而读取的对话内容和记忆发送给
-  [你配置的模型服务](../configuration.md#the-dashboard-assistant)。助手只有在配置后才可使用。
-* **从旧对话补录记忆** 会将选定的历史对话发送给你所选且已登录的代理的模型提供商。Mash 会在设置时询问你是否执行此操作。
-  [了解如何补录记忆](records.md#backfill-earlier-memory)
 
 <span id="try-a-small-local-setup"></span>
 
@@ -86,4 +101,4 @@ Mash 会从本机移除这条对话以及引用过它的已保存记忆，并记
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: 1a3708325e6cbe8a9565dfe0b23eaf7f944ee2ad2d9d72c6073510ba11e3a4e4 -->
+<!-- mash-docs-source: 8ece8fc94aa9d9e86e4d6bb12c10445fe9ed0dbbac23a62ccb44e9bfd12a8496 -->

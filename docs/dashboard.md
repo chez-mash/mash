@@ -50,6 +50,10 @@ If your version starts with agents selected, choose **Skip agent connections**
 or turn the selections off on the agent screen. If it starts on the history
 choices, use **Next** to reach that screen and the review.
 
+Skipping connections applies to this setup. For an agent you connected before
+or a plugin you installed separately, see
+[Choose what your agents can access](privacy.md#choose-agent-access).
+
 Nothing changes until you choose **Set up and index** or **Set up without
 indexing** on the review. Mash then writes its configuration file, has each
 chosen agent's own command-line tool connect it, and starts indexing in the

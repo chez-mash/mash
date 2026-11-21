@@ -17,6 +17,45 @@ An agent that keeps history in a SQLite database, such as OpenCode, may gain
 `-wal` and `-shm` files beside that database when Mash reads it. SQLite
 creates them for any reader; the database's contents are unchanged.
 
+## Choose agent access
+
+You can search your chats in the local dashboard or terminal without
+connecting an agent. Choose which histories Mash reads separately from which
+agents you want to connect.
+
+- **During setup**, leave all agents unchecked to skip new connections.
+  Existing Mash tools and plugins stay in place.
+  [Set up without connecting agents](installation.md#skip-agent-connections).
+- **To remove an existing integration**, remove the Mash tools and disable or
+  remove the Mash plugin, then restart the agent. This includes plugins you
+  installed separately. [Remove an agent connection](agents.md#disconnect-an-agent).
+- **To stop indexing a source**, turn it off under **agent histories** in
+  **settings**, save, and restart a running watcher. Existing connections stay
+  in place, and the chats Mash already indexed stay searchable.
+  [Remove a chat from Mash](#remove-a-chat).
+
+When you connect an agent during Mash setup, Mash registers its tools and
+tries to install its plugin. [What the connection installs](agents.md#what-the-connection-installs).
+
+## When history can leave your machine
+
+| How you use Mash | What can be read or sent |
+| --- | --- |
+| Local dashboard or terminal search | Mash reads its index on your computer and shows the results to you. |
+| Connected agent tools (MCP) | An agent can search indexed chats and read matching messages with their surrounding conversation. The agent can send what it reads to its model provider. |
+| Mash plugin with hooks enabled | The plugin can give an agent recent chat details and saved memories at session start, and add chat excerpts when the agent reads a related file. These hints can reach its model provider even without an MCP connection. [What happens automatically and how to turn it off](plugin.md#what-happens-without-asking). |
+| Sharing across machines | Mash uploads indexed chats and retained attachments to your server. Any computer with a token for the same group can read them. To stop future uploads, open **settings**, choose **this machine only** under **index into**, save, and restart a running watcher. Copies already on the server stay there. [Review what you will share](shared-index.md#before-sharing). |
+| Mashy in the dashboard | If you enable Mashy, it sends your questions, selected passages, and the chat text and memories it reads to the [model service you configure](configuration.md#the-dashboard-assistant). To stop this, switch **Mashy** off in **settings** and save, or remove the `[assistant]` section from the configuration file. |
+
+- **A remote embedding worker** receives prepared searchable text, which may
+  contain sensitive history. Embedding inference runs locally by default, and
+  query embeddings always stay local. [Embedding inference](configuration.md#embedding-inference).
+- **A remote reranking worker** receives each query and the excerpts being
+  ranked. Reranking stays local unless you opt in. [Remote reranking](configuration.md#remote-reranking).
+- **Memory backfill** sends selected existing chats to the provider of the
+  signed-in agent you choose. Mash asks before doing this during setup.
+  [How memory backfill works](records.md#backfill-earlier-memory).
+
 ## Where Mash stores data
 
 By default, your indexed chats are in `~/.mash/mash.sqlite3`, alongside your
@@ -30,30 +69,6 @@ Run `mash status` to see `database_path` and, when Mash installed Qdrant,
 be removed. It lists the managed directories, including the separate Qdrant
 folder on Windows. Add `--yes` when you are ready to uninstall.
 [See what uninstall removes](uninstall.md)
-
-## When history can leave your machine
-
-- **Agent connections** let the connected agent request search results and
-  excerpts. Those results enter the agent's context and can be sent to its
-  model provider. The [plugin’s hooks](plugin.md#what-happens-without-asking)
-  can also add excerpts to the agent’s context without an MCP connection. To
-  keep searches in the local dashboard or terminal, leave agents disconnected
-  and disable or remove any Mash plugin you installed.
-- **Sharing across machines** uploads retained indexed chats and attachments
-  to the Mash server you configure. Each computer with a token for that group
-  can read them. [Review what you will share before publishing](shared-index.md#before-sharing).
-- **A remote embedding worker** receives prepared searchable text, which may
-  contain sensitive history. Embedding inference runs locally by default, and
-  query embeddings always stay local.
-- **A remote reranking worker** receives each query and the excerpts being
-  ranked. Reranking stays local unless you opt in.
-- **The dashboard assistant** sends your questions, and the chat text and
-  memories it reads to answer them, to the
-  [model service you configure](configuration.md#the-dashboard-assistant).
-  There is no assistant unless you configure one.
-- **Memory backfill** sends selected existing chats to the provider of the
-  signed-in agent you choose. Mash asks before doing this during setup.
-  [How memory backfill works](records.md#backfill-earlier-memory)
 
 ## Try a small local setup
 

@@ -55,6 +55,8 @@ a `PATH` y vuelve a ejecutar el comando anterior.
 Las versiones de desarrollo incluyen la configuración guiada de GitHub Copilot CLI.
 Con v0.1.1-alpha, [conecta Copilot CLI manualmente](plugin.md#github-copilot-cli).
 
+<span id="what-the-connection-installs"></span>
+
 ### Qué instala la conexión
 
 Mash utiliza la CLI de cada agente elegido (`claude`, `codex` o `copilot`)

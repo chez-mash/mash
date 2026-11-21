@@ -26,6 +26,8 @@ mash dash
 
 如果想自己搜索，请确认 **connect Mash to** 显示 **no agents**。如果想让代理帮你搜索，请打开 **Choose agents to connect**，选择要连接的代理，或在 **Customize setup** 的代理设置页选择。如果你的版本默认选中了代理，请选择 **Skip agent connections**，或在代理设置页关闭连接。如果先看到历史选项，请选择 **Next**，依次进入代理设置页和摘要。
 
+跳过连接只对本次设置生效。如果你之前连接过代理，或单独安装过插件，请参阅[选择代理可以访问的内容](privacy.md#choose-agent-access)。
+
 在确认页面选择 **Set up and index** 或 **Set up without indexing** 后，Mash 才会写入配置。它会通过所选代理自己的命令行工具进行连接，并按你的选择在后台建立索引。页面会显示已保存的配置、各代理修改的文件以及撤销连接的命令，还会显示索引进度，直到对话出现在面板中。
 
 - 索引需要搜索服务。如果服务已停止，请按安装时的方式启动它。如果 Mash 提示连接有问题，请查看原因并[修复搜索服务](troubleshooting.md#qdrant-connection-failed)，然后选择 **Check search service again**。也可以先选择 **Set up without indexing** 保存设置。检查通过后，此页面会显示用于索引对话的命令。
@@ -242,4 +244,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->
+<!-- mash-docs-source: d8fa1bd44df91cee382347487be455edd53c0f27b1ad0d4127e33ab4ca8ccb2d -->

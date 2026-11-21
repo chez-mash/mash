@@ -40,6 +40,8 @@ mash init --no-index
 
 开发版提供 GitHub Copilot CLI 的引导设置。使用 v0.1.1-alpha 时，请[手动连接 Copilot CLI](plugin.md#github-copilot-cli)。
 
+<span id="what-the-connection-installs"></span>
+
 ### 连接时会安装什么
 
 Mash 会调用所选代理自己的命令（`claude`、`codex` 或 `copilot`）来安装两个组件。

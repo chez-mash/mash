@@ -502,6 +502,25 @@ for (const [locale, lang] of [
   ["/zh-cn", "zh-CN"],
   ["/ja", "ja"],
 ]) {
+  test(`the ${lang} dashboard setup guide leads to agent removal commands`, async ({ page }) => {
+    const guide = page.locator(".sl-markdown-content");
+    const privacy = `${locale}/privacy/#choose-agent-access`;
+    const remove = `${locale}/agents/#disconnect-an-agent`;
+    await page.goto(`${locale}/dashboard/#set-up-mash-from-the-dashboard`);
+    await guide.locator(`a[href="${privacy}"]`).click();
+    await expect(page).toHaveURL(privacy);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(guide.locator("#choose-agent-access")).toBeAttached();
+    await expect(guide.getByRole("table")).toContainText("MCP");
+    await guide.locator(`a[href="${remove}"]`).click();
+    await expect(page).toHaveURL(remove);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(guide.locator("#disconnect-an-agent")).toBeAttached();
+    await expect(guide.locator("pre").filter({ hasText: "codex mcp remove mash" })).toContainText(
+      "codex plugin remove mash@mash",
+    );
+  });
+
   test(`the ${lang} history range guidance leads to deliberate removal`, async ({ page }) => {
     const guide = page.locator(".sl-markdown-content");
     const privacy = `${locale}/privacy/`;
@@ -512,7 +531,11 @@ for (const [locale, lang] of [
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
     await expect(page.locator("#shorten-the-history-range")).toBeAttached();
     await expect(guide.getByText("Save to file", { exact: true })).toBeVisible();
-    await guide.locator('a[href="#remove-a-chat"]:not(.sl-anchor-link)').click();
+    await guide
+      .locator(
+        ':is(.sl-heading-wrapper, p):has(#shorten-the-history-range) ~ p a[href="#remove-a-chat"]',
+      )
+      .click();
     await expect(page).toHaveURL(`${privacy}#remove-a-chat`);
     await expect(page.locator("#remove-a-chat")).toBeAttached();
     await expect(guide.locator("pre").filter({ hasText: /^mash forget CHAT_ID$/ })).toBeVisible();

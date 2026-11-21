@@ -33,6 +33,10 @@ agentes al principio, elige **Skip agent connections** o desactívalos en la
 pantalla de agentes. Si primero muestra los historiales, pulsa **Next** hasta
 llegar a la pantalla de agentes y al resumen.
 
+Omitir las conexiones solo se aplica a esta configuración. Si ya habías
+conectado un agente o instalado el complemento por separado, consulta
+[Elige a qué pueden acceder tus agentes](privacy.md#choose-agent-access).
+
 Mash aplica los cambios cuando eliges **Set up and index** o **Set up without indexing** en la revisión. Guarda la configuración, conecta cada agente elegido mediante su propia herramienta de terminal y, si lo pediste, empieza a indexar en segundo plano. La página indica qué se guardó, qué archivos modificó cada herramienta y cómo deshacer las conexiones. También muestra el progreso hasta que aparecen tus conversaciones.
 
 - Para indexar necesitas el servicio de búsqueda. Si está detenido, inícialo de la forma que corresponda a tu instalación. Si Mash indica un problema de conexión, consulta el motivo y [repara el servicio de búsqueda](troubleshooting.md#qdrant-connection-failed). Luego elige **Check search service again**. Puedes elegir **Set up without indexing** para guardar la configuración primero. Cuando la comprobación sea correcta, esta pantalla mostrará el comando para indexar tus conversaciones.
@@ -253,4 +257,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 9d56f24bab31f1fb67f9528ec72e0c1be3b94b793e4a2b736006a90bff98802e -->
+<!-- mash-docs-source: d8fa1bd44df91cee382347487be455edd53c0f27b1ad0d4127e33ab4ca8ccb2d -->
