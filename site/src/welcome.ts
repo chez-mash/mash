@@ -43,7 +43,11 @@ interface Backdrop {
 }
 
 /** Builds the page's motion for the current layout; returns what removes it. */
-function build(root: HTMLElement, hero: HTMLElement | null): () => void {
+function build(
+  root: HTMLElement,
+  hero: HTMLElement | null,
+  settleFragment: (scrollMoved: boolean) => boolean,
+): () => void {
   const stop = new AbortController();
   let scenes: Scene[] = [];
   const backdrops: Backdrop[] = [];
@@ -112,13 +116,14 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   };
 
   /**
-   * Reads the scroll and says where everything should be. `settled` puts it
+   * Reads the scroll and says where everything should be. `layoutChanged` puts it
    * there at once, for a page just loaded or laid out afresh.
    */
-  function place(settled: boolean): void {
+  function place(layoutChanged: boolean): void {
     const vh = innerHeight;
     const current = scrollY;
     const previous = previousScroll;
+    const settled = settleFragment(current !== previous) || layoutChanged;
     previousScroll = current;
 
     for (const backdrop of backdrops) {
@@ -316,6 +321,23 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
 /** Starts the page; returns what stops it again. */
 export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () => void {
   const stop = new AbortController();
+  let fragment = root.querySelector<HTMLElement>(".scene:target");
+  const settleFragment = (scrollMoved: boolean): boolean => {
+    if (!fragment?.matches(":target")) {
+      fragment = null;
+      return false;
+    }
+    const padding =
+      Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const margin = Number.parseFloat(getComputedStyle(fragment).scrollMarginTop) || 0;
+    if (Math.abs(fragment.getBoundingClientRect().top - padding - margin) > 2) {
+      if (scrollMoved) fragment = null;
+      return false;
+    }
+    // A browser can apply the native fragment correction after the scene heights change.
+    fragment = null;
+    return true;
+  };
   // Give every scene its final height before switching to the pinned layout.
   // Keep the heights through font rebuilds so the browser can retain its anchor.
   const sections = root.querySelectorAll<HTMLElement>(".scene");
@@ -324,13 +346,13 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     section.style.setProperty("--n", String(Math.max(1, captions.length)));
   }
   root.classList.add("motion");
-  let unbuild = build(root, hero);
+  let unbuild = build(root, hero, settleFragment);
   // Heights are measured into the timelines, so a new layout needs new ones.
   // A phone's address bar changes only the height: that is not a new layout.
   let wide = innerWidth;
   const rebuild = (): void => {
     unbuild();
-    unbuild = build(root, hero);
+    unbuild = build(root, hero, settleFragment);
   };
   addEventListener(
     "resize",
