@@ -1,7 +1,7 @@
 /**
  * The landing hero's install picker: choose between handing setup to a coding
  * agent and installing by hand; for the latter, choose an operating system and
- * an install method, and the command and its prompt follow.
+ * an install method to see its prerequisites and command.
  */
 
 interface Method {
@@ -9,6 +9,7 @@ interface Method {
   readonly label: string;
   readonly prompt: string;
   readonly command: string;
+  readonly requirements: string;
 }
 
 interface System {
@@ -22,7 +23,9 @@ const STORED = "mash-install";
 function isMethod(value: unknown): value is Method {
   if (typeof value !== "object" || value === null) return false;
   const method = value as Record<string, unknown>;
-  return ["id", "label", "prompt", "command"].every((key) => typeof method[key] === "string");
+  return ["id", "label", "prompt", "command", "requirements"].every(
+    (key) => typeof method[key] === "string",
+  );
 }
 
 function isSystem(value: unknown): value is System {
@@ -84,10 +87,19 @@ export function mountInstall(picker: HTMLElement): void {
   const systems = parseSystems(picker.dataset.systems);
   const systemRow = picker.querySelector<HTMLElement>('[data-pick="system"]');
   const methodRow = picker.querySelector<HTMLElement>('[data-pick="method"]');
+  const requirements = picker.querySelector<HTMLElement>("[data-requirements]");
   const prompt = picker.querySelector<HTMLElement>(".picked .prompt");
   const code = picker.querySelector<HTMLElement>(".picked code");
   const copy = picker.querySelector<HTMLButtonElement>(".picked button[data-copy]");
-  if (picker.dataset.mounted || !systemRow || !methodRow || !prompt || !code || !copy) {
+  if (
+    picker.dataset.mounted ||
+    !systemRow ||
+    !methodRow ||
+    !requirements ||
+    !prompt ||
+    !code ||
+    !copy
+  ) {
     return;
   }
   const [fallback] = systems;
@@ -123,6 +135,7 @@ export function mountInstall(picker: HTMLElement): void {
     if (prompt) prompt.textContent = method.prompt;
     if (code) code.textContent = method.command;
     if (copy) copy.dataset.copy = method.command;
+    if (requirements) requirements.textContent = method.requirements;
     picker.dataset.system = system.id;
     picker.dataset.method = method.id;
     if (keep) remember({ system: system.id, method: method.id });
