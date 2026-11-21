@@ -67,6 +67,8 @@ mash dash
 3. Abre un resultado para ver el mensaje original en su conversación.
 
 Si el terminal no encuentra `mash`, usa la ruta completa que muestra el instalador.
+También puedes [añadir Mash a la ruta de comandos (en inglés)](../troubleshooting.md#mash-command-not-found).
+Si no aparece una conversación, consulta [qué hacer cuando no hay resultados (en inglés)](../troubleshooting.md#search-returns-no-results).
 También puedes [buscar desde el terminal (en inglés)](../search.md#your-first-search).
 
 **Busca desde un agente.** Reinicia los agentes que conectaste. Por ejemplo,

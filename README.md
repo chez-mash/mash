@@ -98,6 +98,8 @@ mash dash
 3. Open a result to see the original message in its conversation.
 
 If your terminal can’t find `mash`, use the full path shown during setup.
+For commands that make `mash` available by name, see [command not found](docs/troubleshooting.md#mash-command-not-found).
+If a chat is missing, see [what to check when search returns nothing](docs/troubleshooting.md#search-returns-no-results).
 See the [dashboard guide](docs/dashboard.md#find-and-read-a-chat) or
 [search from the terminal](docs/search.md#your-first-search).
 

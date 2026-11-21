@@ -1,22 +1,30 @@
 # Troubleshooting
 
-Start with `mash doctor`. It examines the machine and, for each thing that is
-wrong, says why and gives the command that repairs it:
+| What you see | Where to start |
+| --- | --- |
+| The terminal cannot find `mash`, or PowerShell says the term is unrecognized | [Find the installed command](#mash-command-not-found) |
+| Setup says it could not reach the search service | [Start Qdrant](#qdrant-connection-failed) |
+| The dashboard address does not open | [Check dashboard startup](#the-dashboard-doesnt-open) |
+| Mash found no history, or nothing is indexed yet | [Check history setup](#nothing-is-indexed-yet) |
+| You can browse chats, but a search finds nothing | [Check the query, filters and dates](#search-returns-no-results) |
+| A coding agent cannot see Mash | [Check the agent connection](#my-agent-cannot-find-mash) |
+| An upgrade says the index schema is incompatible | [Recover or upgrade the index](#the-index-schema-is-older-or-newer-than-mash) |
+
+## Check what Mash sees
+
+If the symptom is unclear, run the read-only diagnosis.
 
 ```sh
 mash doctor
 ```
 
-Each finding is `ok`, `warning` or `problem`. A problem means something Mash is
-for does not work until it is repaired, and the command exits 1; a warning means
-it works, with something worth knowing. The examination covers the
-configuration, the index, whether every source was read by this release, the
-search service, search itself, models, the watcher, Mash processes left running
-on a replaced build, the shared copy, agent connections, and how long Claude
-Code keeps the transcripts Mash reads. It changes nothing: it never indexes,
-migrates, downloads or restarts.
+Look in `findings` for entries with `"state": "problem"`. The `summary` says
+what is wrong, and `repair`, when present, gives a command or instruction.
+The command exits 1 if it finds a problem. Entries marked `warning` point out
+things worth checking. `mash doctor` leaves your setup
+and history as they were.
 
-For the figures behind a finding, use the check that matches:
+To inspect a particular part of your setup, use the matching status command.
 
 ```sh
 mash status                  # index and search readiness
@@ -24,21 +32,47 @@ mash status --installation   # history locations and agent connections
 mash status --shared         # the index shared with your other machines
 ```
 
-`mash status --installation` works even when the index is not ready. Errors are
-JSON; find yours below by its `error.kind` or by a phrase from `error.message`.
+`mash status --installation` works even when the index is not ready. For an
+error, look up its `error.kind` or a phrase from its `error.message` below.
 
 ## `mash: command not found`
 
-The installer does not edit your shell profile. Add the install directory to
-`PATH`, then open a new terminal:
+Use the full path the installer printed, or add its directory to `PATH` in
+the terminal you already have open. These commands use the default release
+installer location.
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"   # release installer
-export PATH="$HOME/.cargo/bin:$PATH"   # cargo install
+export PATH="$HOME/.local/bin:$PATH"
+mash --version
 ```
 
-Put the line in your shell profile to keep it. For PowerShell and custom
-install directories, see [install the CLI](installation.md#install-the-cli).
+In Windows PowerShell, run the equivalent commands in your current window.
+
+```powershell
+$env:Path = "$HOME\.local\bin;$env:Path"
+mash --version
+```
+
+If you chose a different install directory, use it in place of `.local/bin`.
+For `cargo install`, the usual directory is `.cargo/bin` under your home.
+When `mash --version` prints a version, continue in that same terminal. To
+make the change permanent, add the directory in your shell profile or to
+your Windows user **Path** in Environment Variables. New terminals will use
+that saved setting.
+
+## The dashboard doesn’t open
+
+Keep `mash dash` running and open the address it prints in a browser on the
+same machine. If the default address is busy and Mash prints `could not bind
+the dashboard address`, use another local port.
+
+```sh
+mash dash --listen 127.0.0.1:8791
+```
+
+Open [http://127.0.0.1:8791](http://127.0.0.1:8791). If the page says the
+dashboard has not been built, install a release archive or
+[include the dashboard in your source build](install-methods.md#include-the-web-dashboard).
 
 ## Qdrant connection failed
 
@@ -99,7 +133,15 @@ path starts a separate empty store; it does not move your data.
 | “Mash is not set up on this machine” | `mash init` |
 | “Mash is configured, but nothing is indexed yet” | `mash index` |
 
+Some releases say “database does not exist” in both cases. Use `mash init`
+for a first setup, or `mash index` if setup already saved your settings.
 Both need Qdrant running to build search.
+
+If setup says it found no coding-agent chats, save a conversation in a
+supported agent on this machine and run `mash init` again. If you already have
+chats, use `mash status --installation` to see the history folders Mash found.
+Review the selected agents and folders in [setup](installation.md#connect-your-histories).
+If the missing chats are older, check the [history range](indexing.md#add-older-history).
 
 ## My agent cannot find Mash
 
@@ -128,22 +170,22 @@ See [agent setup](agents.md).
 
 ## Search returns no results
 
-An empty result does not prove the conversation never happened. Work through
-these:
-
-1. Try fewer words, or one distinctive word. Every word of the query must
-   appear in the same message.
-2. Remove filters, then add them back one at a time. Project paths and repository
-   URLs must exactly match recorded metadata.
-3. Run `mash index` for new conversations, or `mash index --all-history` for
-   chats older than the default 90 days.
-4. Check `mash status --installation` for missing history locations or failed
-   scans.
+1. Try one distinctive word you remember from the chat. In the default word
+   search, all the words you enter must appear in the same message. See
+   [search in other languages](search.md#search-in-other-languages) for text
+   without spaces between words.
+2. Clear the filters and search again. In the dashboard, **Clear filters**
+   returns to the chat list. Run your search again from there. In the
+   terminal, try the same search without the filters.
+3. For a recent chat, run `mash index`, then search again. For older chats,
+   [include more history](indexing.md#add-older-history).
+4. If it still does not appear, run `mash status --installation` and check
+   the history folders. See [what to do if nothing is indexed](#nothing-is-indexed-yet).
 
 Search covers user and assistant messages only. Tool output and reasoning are
 kept for reading: search for a nearby message, then open the transcript.
 
-To find a chat by title instead, which needs no models:
+To find a chat by title from the terminal, use:
 
 ```sh
 mash list-chats --title-contains 'part of the title'

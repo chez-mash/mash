@@ -42,6 +42,7 @@ Both scripts verify the release checksum and install to your user's
 binary's path so you can run them before adding the directory to `PATH`.
 Set `MASH_VERSION` to a published tag to pin a release, or `MASH_INSTALL_DIR`
 to choose another directory. The scripts leave your shell profile as it is.
+If your terminal cannot find `mash`, see [command not found](troubleshooting.md#mash-command-not-found).
 
 ### Package manager alternatives
 

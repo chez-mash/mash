@@ -61,7 +61,10 @@ mash dash
 2. Ouvrez **chats**, saisissez un mot dont vous vous souvenez, par exemple un nom de fonction ou un message d’erreur, puis appuyez sur Entrée.
 3. Ouvrez un résultat pour lire le message original dans sa conversation.
 
-Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pendant l’installation. Consultez le [guide du tableau de bord](../dashboard.md#find-and-read-a-chat) ou apprenez à
+Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pendant l’installation.
+Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes (en anglais)](../troubleshooting.md#mash-command-not-found).
+Si une conversation manque, consultez [les vérifications pour une recherche sans résultat (en anglais)](../troubleshooting.md#search-returns-no-results).
+Consultez le [guide du tableau de bord](../dashboard.md#find-and-read-a-chat) ou apprenez à
 [chercher depuis le terminal](../search.md#your-first-search).
 
 **Cherchez depuis un agent.** Redémarrez les agents que vous avez connectés. Dans Codex, vous pouvez demander « Utilise Mash pour retrouver ce que nous avons décidé sur l’authentification dans Claude Code. Montre-moi le message qui explique la décision. »
@@ -71,4 +74,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 
 Les menus de Mash sont en anglais. Vous pouvez rechercher les mots français tels qu’ils apparaissent dans la conversation. La recherche par sens nécessite une requête en anglais. [Guide de recherche en anglais](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: b85d4c2c5de3d0cf70b550a476b0774e53f6274ee4f82b2fa96839209f93c38c -->
+<!-- mash-docs-source: 8dde8c3f8b81ea7f4334323903362c28e24f05828f8b0dcad1c2b96b512621c1 -->

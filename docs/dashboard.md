@@ -8,8 +8,8 @@ mash dash
 
 Open **[http://127.0.0.1:8790](http://127.0.0.1:8790)** in your browser. It
 opens on the overview: your latest chats and memories. Leave the terminal
-running; Ctrl-C stops the dashboard. If that port is busy, use
-`mash dash --listen 127.0.0.1:8791` and open port 8791 instead.
+running. Ctrl-C stops the dashboard. If the page fails to load,
+[check dashboard startup](troubleshooting.md#the-dashboard-doesnt-open).
 
 With the [plugin](plugin.md) installed, `/mash:dashboard` in Claude Code, or
 asking your agent to open the Mash dashboard, does both steps for you.
@@ -98,6 +98,8 @@ Without a query, the page lists your chats. Narrow either list with the chips
 for agent, machine, project and date. A changed chip has a dashed border until
 you choose **Apply filters**. Applied filters appear as tags in the search box.
 Choose a tag to remove it.
+
+If a search comes back empty, [check the query, filters and dates](troubleshooting.md#search-returns-no-results).
 
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see

@@ -44,7 +44,9 @@ mash dash
 2. 打开 **chats**，输入记得的关键词，例如报错文字或函数名，然后按回车。
 3. 打开一项结果，即可在对话中查看原始消息。
 
-如果终端找不到 `mash`，请使用安装时显示的完整路径。参阅 [网页面板指南](../dashboard.md#find-and-read-a-chat)，或了解如何
+如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径（英文）](../troubleshooting.md#mash-command-not-found)。
+如果找不到某条对话，请参阅[搜索无结果时该检查什么（英文）](../troubleshooting.md#search-returns-no-results)。
+参阅 [网页面板指南](../dashboard.md#find-and-read-a-chat)，或了解如何
 [在终端中搜索](../search.md#your-first-search)。
 
 **让代理帮你搜索。** 重新启动在设置时连接的代理。例如，可以对 Codex 说：“请用 Mash 找出我们在 Claude Code 中对身份验证做过什么决定，并给我看作为依据的原始消息。”
@@ -54,4 +56,4 @@ mash dash
 
 Mash 的界面目前使用英文。你可以按原文查找中文。如果短词找不到，可尝试输入原文中由空格或标点分隔的完整片段。按含义搜索需要使用英文查询。[搜索指南（英文）](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: b85d4c2c5de3d0cf70b550a476b0774e53f6274ee4f82b2fa96839209f93c38c -->
+<!-- mash-docs-source: 8dde8c3f8b81ea7f4334323903362c28e24f05828f8b0dcad1c2b96b512621c1 -->
