@@ -1,3 +1,5 @@
+#[cfg(unix)]
+use super::plugin::expected_stamp;
 use super::*;
 
 fn environment(root: &Path) -> Environment {
@@ -205,8 +207,21 @@ fn installation_project_override_does_not_probe_user_registration() {
 #[test]
 fn installation_complete_claude_user_setup_has_no_attention_findings() {
     let root = tempfile::tempdir().unwrap();
-    let mut environment = environment(root.path());
-    environment.path = "/usr/bin:/bin".into();
+    let (environment, _) = claude_fixture(root.path());
+    let report = collect(Some(&environment), &[Agent::ClaudeCode], &[]);
+    assert_eq!(report.summary.attention, 0, "{report:?}");
+    assert!(report.clients[0].launch.is_some());
+    assert!(report.clients[0].expected);
+}
+
+#[cfg(unix)]
+fn claude_fixture(root: &Path) -> (Environment, PathBuf) {
+    let mut environment = environment(root);
+    let bin = root.join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    std::os::unix::fs::symlink("/bin/true", bin.join("claude")).unwrap();
+    environment.path =
+        std::env::join_paths([bin.as_path(), Path::new("/usr/bin"), Path::new("/bin")]).unwrap();
     write(
         &environment.claude.join("settings.json"),
         r#"{"enabledPlugins":{"mash@mash-local":true}}"#,
@@ -215,41 +230,98 @@ fn installation_complete_claude_user_setup_has_no_attention_findings() {
         &environment.home.join(".claude.json"),
         r#"{"mcpServers":{"mash":{"command":"/bin/true"}}}"#,
     );
-    let plugin = root.path().join("plugin");
+    let plugin = root.join("plugin");
     let registry =
         serde_json::json!({"plugins":{"mash@mash-local":[{"scope":"user","installPath":plugin}]}});
     write(
         &environment.claude.join("plugins/installed_plugins.json"),
         &registry.to_string(),
     );
-    write(
-        &plugin.join(".claude-plugin/plugin.json"),
-        include_str!("../../../plugins/mash/.claude-plugin/plugin.json"),
-    );
-    write(
-        &plugin.join("skills/mash-history/contract.json"),
-        include_str!("../../../plugins/mash/skills/mash-history/contract.json"),
-    );
-    write(&plugin.join("skills/mash-history/SKILL.md"), "mash-history");
-    write(
-        &plugin.join("hooks/hooks.json"),
-        include_str!("../../../plugins/mash/hooks/hooks.json"),
-    );
-    for name in [
-        "session_start.py",
-        "prompt_recall.py",
-        "file_context.py",
-        "record_capture.py",
-        "recall_common.py",
-        "record_recall.py",
-        "python.sh",
-    ] {
-        write(&plugin.join("hooks").join(name), "# script");
+    write_claude_plugin(&plugin);
+    (environment, plugin)
+}
+
+#[cfg(unix)]
+#[test]
+fn installation_plugin_version_and_contract_choose_the_component_to_update() {
+    let directory = tempfile::tempdir().unwrap();
+    let (environment, plugin) = claude_fixture(directory.path());
+    let expected = expected_stamp();
+    let matching = expected.contract_fingerprint.as_str();
+    let bundled = expected.plugin_version.as_str();
+    let cases = [
+        ("0.0.0", "0.0.0", matching, Some("Update the Mash plugin")),
+        ("10.0.0", "10.0.0", matching, None),
+        ("10.0.0", "10.0.0", "different", Some("Update the Mash CLI")),
+        (
+            bundled,
+            bundled,
+            "different",
+            Some("Install the Mash plugin paired"),
+        ),
+        (
+            "10.0.0",
+            bundled,
+            matching,
+            Some("Reinstall the Mash plugin"),
+        ),
+        (
+            "SECRET-invalid-version",
+            bundled,
+            matching,
+            Some("Reinstall the Mash plugin"),
+        ),
+    ];
+    for (installed, stamped, fingerprint, action) in cases {
+        write(
+            &plugin.join(".claude-plugin/plugin.json"),
+            &serde_json::json!({"name": "mash", "version": installed}).to_string(),
+        );
+        write(
+            &plugin.join("skills/mash-history/contract.json"),
+            &serde_json::json!({
+                "plugin_version": stamped,
+                "contract_fingerprint": fingerprint,
+            })
+            .to_string(),
+        );
+        for agents in [&[][..], &[Agent::ClaudeCode][..]] {
+            let report = collect(Some(&environment), agents, &[]);
+            let client = report
+                .summary
+                .clients
+                .iter()
+                .find(|client| client.agent == Agent::ClaudeCode)
+                .unwrap();
+            if let Some(action) = action {
+                assert_eq!(client.connection, Connection::McpOnly, "{report:?}");
+                assert!(report.agents_need_attention(), "{report:?}");
+                assert!(
+                    report
+                        .summary
+                        .next_action
+                        .as_deref()
+                        .unwrap()
+                        .contains(action),
+                    "{report:?}"
+                );
+            } else {
+                assert_eq!(client.connection, Connection::Full, "{report:?}");
+                assert!(!report.agents_need_attention(), "{report:?}");
+                assert!(report.summary.next_action.is_none(), "{report:?}");
+                assert!(
+                    serde_json::to_string(&report)
+                        .unwrap()
+                        .contains("same tool contract")
+                );
+            }
+            assert!(
+                !serde_json::to_string(&report)
+                    .unwrap()
+                    .contains("SECRET-invalid-version")
+            );
+        }
     }
-    let report = collect(Some(&environment), &[Agent::ClaudeCode], &[]);
-    assert_eq!(report.summary.attention, 0, "{report:?}");
-    assert!(report.clients[0].launch.is_some());
-    assert!(report.clients[0].expected);
 }
 
 /// A complete plugin tree like the one the passing user setup installs.

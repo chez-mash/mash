@@ -1,12 +1,13 @@
-use super::{
-    Agent, Client, Component, Environment, Stamp, State, clients::Hooks, executable,
-    expected_stamp, read,
-};
+use super::{Agent, Client, Component, Environment, State, clients::Hooks, executable, read};
 use serde::Deserialize;
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
 };
+
+mod versions;
+#[cfg(all(test, unix))]
+pub(super) use versions::expected_stamp;
 
 pub(super) fn missing(client: &mut Client, path: &Path) {
     client.add(
@@ -223,8 +224,8 @@ pub(super) fn inspect(
         Agent::Copilot => (".github/plugin/plugin.json", "hooks/copilot.json"),
     };
     let path = root.join(manifest);
-    let expected = expected_stamp();
-    match read::<Manifest>(&path) {
+    let expected = versions::expected_stamp();
+    let version = match read::<Manifest>(&path) {
         Ok(Some(manifest)) if manifest.name == "mash" => {
             if manifest
                 .hooks
@@ -237,31 +238,33 @@ pub(super) fn inspect(
             {
                 client.add(Component::Plugin, State::Unverified, Some(&path), "Manifest overrides the bundled hook or skill paths; effective resources are unverified.", Some("Restore the bundled Mash manifest or inspect the custom paths in the client."));
             }
-            let state = if manifest.version == expected.plugin_version {
-                State::Present
-            } else {
-                State::Outdated
-            };
-            client.add(Component::Plugin, state, Some(&path),
-                if state == State::Present { "Plugin manifest matches the version bundled with this CLI." } else { "Plugin version differs from the version bundled with this CLI; versions may be out of sync." },
-                (state != State::Present).then_some("Refresh the Mash binary and agent plugin together, then restart the client."));
+            versions::inspect_manifest(client, &path, manifest.version, &expected.plugin_version)
         }
-        Ok(None) => missing(client, &path),
-        Ok(Some(_)) => client.add(
-            Component::Plugin,
-            State::Invalid,
-            Some(&path),
-            "Manifest does not identify the Mash plugin.",
-            Some("Reinstall Mash from its marketplace."),
-        ),
-        Err(message) => client.add(
-            Component::Plugin,
-            State::Invalid,
-            Some(&path),
-            message,
-            Some("Reinstall the Mash plugin."),
-        ),
-    }
+        Ok(None) => {
+            missing(client, &path);
+            None
+        }
+        Ok(Some(_)) => {
+            client.add(
+                Component::Plugin,
+                State::Invalid,
+                Some(&path),
+                "Manifest does not identify the Mash plugin.",
+                Some("Reinstall Mash from its marketplace."),
+            );
+            None
+        }
+        Err(message) => {
+            client.add(
+                Component::Plugin,
+                State::Invalid,
+                Some(&path),
+                message,
+                Some("Reinstall the Mash plugin."),
+            );
+            None
+        }
+    };
     let skill = root.join("skills/mash-history/SKILL.md");
     let readable = readable_file(&skill);
     client.add(
@@ -279,19 +282,12 @@ pub(super) fn inspect(
         },
         (!readable).then_some("Refresh or reinstall the Mash history plugin."),
     );
-    let stamp = root.join("skills/mash-history/contract.json");
-    match read::<Stamp>(&stamp) {
-        Ok(Some(stamp_value))
-            if stamp_value.contract_fingerprint == expected.contract_fingerprint
-                && stamp_value.plugin_version == expected.plugin_version => {}
-        _ => client.add(
-            Component::Skill,
-            State::Outdated,
-            Some(&stamp),
-            "History skill contract stamp is missing, invalid or differs from this CLI.",
-            Some("Refresh the plugin and binary together; reload the skill and reconnect MCP."),
-        ),
-    }
+    versions::inspect_stamp(
+        client,
+        &root.join("skills/mash-history/contract.json"),
+        version.as_ref(),
+        &expected,
+    );
     if client.agent == Agent::Copilot {
         copilot_hooks(client, root, environment);
     } else {

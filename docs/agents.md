@@ -79,11 +79,14 @@ In the JSON report, `summary.clients` lists each agent with a `connection`:
 | `connection` | Meaning |
 | --- | --- |
 | `full` | Nothing needs attention. |
-| `mcp-only` | The Mash tools work, but the plugin (skill and hooks) is missing. |
+| `mcp-only` | The Mash tools are connected. The plugin, skill, or hooks need attention. |
 | `none` | The agent cannot reach Mash. |
 
-When something needs repair, `next_action` gives the exact command. Run it
-rather than reindexing; indexing does not fix a connection.
+When something needs repair, `next_action` gives the next step. Indexing
+does not fix a connection. If the marketplace plugin is newer than your
+CLI, the report checks whether they declare the same tool contract.
+Compatible tools and intact plugin files can stay in use. A different
+contract needs a matching CLI release.
 
 The command exits with status 1, still printing the report, when an agent
 needs attention and is one that `mash init` connected, one configured for

@@ -113,7 +113,7 @@ mash status --installation
 | `connection` | Meaning | Fix |
 | --- | --- | --- |
 | `none` | The agent cannot reach Mash. | Run the report's `next_action`, usually `mash init`. If the agent's CLI is missing, install it first. |
-| `mcp-only` | The Mash tools work; only the plugin is missing. | Run the report's `next_action`. Plugin installation needs network access, and its hooks need Python 3.9+. |
+| `mcp-only` | The Mash tools are connected. The plugin, skill, or hooks need attention. | Follow the report's `next_action`. It identifies whether the CLI, plugin, or hook approval needs an update. |
 | `full` | Connected. | Restart the agent. |
 
 Restart the agent after setup, a repair, or a binary or plugin upgrade; an open

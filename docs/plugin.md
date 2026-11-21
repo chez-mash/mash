@@ -111,10 +111,12 @@ your histories, and verifies a first search. See
 
 ### Update or remove the plugin
 
-The plugin and the `mash` program are released together. After upgrading Mash,
-`mash status --installation` reports a plugin that no longer matches it.
-Update the plugin through your agent, then start a new session. To remove
-the plugin, run the command for your agent.
+The plugin and the `mash` program are released together. A marketplace can
+offer a newer plugin before the matching binary is published. Run
+`mash status --installation` to see which component needs an update. A
+newer plugin can work with the current binary when its tool contract and
+other installation checks match. Start a new session after an update.
+To remove the plugin, run the command for your agent.
 
 ```sh
 claude plugin uninstall mash@mash
@@ -162,7 +164,7 @@ copilot mcp remove mash
 mash status --installation
 ```
 
-Each agent's `connection` is `full` when the tools and the plugin are both in
-place, and `mcp-only` when the plugin is missing. `next_action` gives the
-command that repairs it. See
+Each agent's `connection` is `full` when the tools and plugin are both in
+place, and `mcp-only` when only the tools are connected. `next_action` gives
+the next step when an integration needs attention. See
 [Use Mash with your agent](agents.md#confirm-the-connection).

@@ -287,10 +287,7 @@ impl Report {
                 return Some(install_cli(client.agent));
             }
         }
-        // Unconfigured agents are valid CLI-only use. A missing MCP server is
-        // what `init` repairs; a missing plugin alone needs the agent's own
-        // plugin commands and network access, since rerunning `init` offline
-        // would only fail the same way.
+        // Repair the registration first. Plugin-only repairs use the agent's commands.
         let mcp = self
             .summary
             .clients
@@ -310,6 +307,13 @@ impl Report {
                 "{} (needs network access; the plugin adds the history skill and session hooks, and the Mash MCP tools are available without it)",
                 plugins.join("; ")
             ))
+        } else if let Some(action) = self
+            .summary
+            .clients
+            .iter()
+            .find_map(|c| c.next_action.clone())
+        {
+            Some(action)
         } else if self.summary.attention > 0 {
             Some("mash status --installation".to_owned())
         } else if self.summary.unverified > 0 {
@@ -684,23 +688,6 @@ fn executable(command: &str, environment: &Environment) -> Option<PathBuf> {
 fn is_executable(path: &Path) -> bool {
     path.metadata()
         .is_ok_and(|metadata| crate::platform::is_executable(&metadata))
-}
-
-#[derive(Deserialize)]
-struct Stamp {
-    contract_fingerprint: String,
-    plugin_version: String,
-}
-
-fn expected_stamp() -> Stamp {
-    // Generated alongside the bundled skill; invalid build assets are handled without panicking.
-    serde_json::from_str(include_str!(
-        "../../plugins/mash/skills/mash-history/contract.json"
-    ))
-    .unwrap_or(Stamp {
-        contract_fingerprint: String::new(),
-        plugin_version: String::new(),
-    })
 }
 
 #[cfg(test)]
