@@ -101,7 +101,7 @@ HTTP と gRPC のアドレスは、同じ Qdrant に接続する必要があり�
 `local_qdrant` が `unreachable` の場合は、サービスが起動しているか確認します。
 
 Linux または WSL で、セットアップ中に `systemctl` のエラーが出た場合は、
-[ユーザーセッションを確認して Qdrant の起動方法を選んでください（英語）](../local-search.md#linux-without-a-systemd-user-session)。
+[ユーザーセッションを確認して Qdrant の起動方法を選んでください](local-search.md#linux-without-a-systemd-user-session)。
 
 インストール方法に合わせて Qdrant を起動します。
 
@@ -132,7 +132,7 @@ Qdrant が起動したら `mash index` を再実行して、検索できるよ�
 
 WSL を使わず Windows 上で直接実行していて、Qdrant のログに `gridstore`、「path specified」、
 `os error 3` が出る場合は、データのパスが長すぎる可能性があります。
-[Docker を使わず Windows で設定する手順（英語）](../local-search.md#native-windows-without-docker)にある、短い絶対パスを使います。
+[Docker を使わず Windows で設定する手順](local-search.md#native-windows-without-docker)にある、短い絶対パスを使います。
 すでに運用している場合は、データを移動する前に Qdrant を停止し、バックアップを残してください。
 最初からストレージを削除しないでください。設定のパスだけを変えると、別の空のストレージが作られます。
 元のデータを移すには、別途移動が必要です。

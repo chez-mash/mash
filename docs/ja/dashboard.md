@@ -118,7 +118,7 @@ Mash は設定ファイルを書き、選んだエージェントの CLI を使�
 
 **words** はチャットに含まれる語句を検索します。**meaning** は [オプションのモデル（英語）](../indexing.md#enable-semantic-search)で意味を検索します。英語で質問してください。
 選んだモードは同じ検索の結果をページ移動しても維持されます。別の検索を始めると [既定の設定（英語）](../configuration.md#search-defaults)に戻ります。
-メニューが表示されない場合は、端末で [`mash search --intent`（英語）](../search.md)を使えます。
+メニューが表示されない場合は、端末で [`mash search --intent`](search.md#search-by-meaning)を使えます。
 [日本語など、英語以外のチャットを検索する](search-languages.md)
 
 <span id="inspect-conversation-records"></span>

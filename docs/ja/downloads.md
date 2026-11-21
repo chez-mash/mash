@@ -60,8 +60,8 @@ PowerShell では `.\mash.exe --version` を実行すると、ダウンロード
 
 同じフォルダーでローカル検索サービスとダッシュボードを起動します。
 最初のコマンドは Qdrant をダウンロードし、自分のユーザー権限でサービスを起動します。
-[対応するローカル Qdrant（英語）](../local-search.md#run-qdrant-yourself)をすでに使っている場合は、最初のコマンドを省けます。
-Linux または WSL でインストールするには、[systemd のユーザーセッション（英語）](../local-search.md#linux-without-a-systemd-user-session)が必要です。
+[対応するローカル Qdrant](local-search.md#run-qdrant-yourself)をすでに使っている場合は、最初のコマンドを省けます。
+Linux または WSL でインストールするには、[systemd のユーザーセッション](local-search.md#linux-without-a-systemd-user-session)が必要です。
 
 **macOS または Linux**
 

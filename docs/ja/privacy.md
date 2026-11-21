@@ -24,7 +24,7 @@ OpenCode など、履歴を SQLite に保存するエージェントでは、Mas
 Windows の `~` はユーザープロファイルです。
 検索に使うチャットのテキストなどは、検索サービスの Qdrant にも保存されます。
 Windows では通常、システムドライブ上の `C:\mash-qdrant\storage` に保存されます。
-[OS ごとの検索サービスの保存先（英語）](../local-search.md#where-qdrant-stores-data)
+[OS ごとの検索サービスの保存先](local-search.md#where-qdrant-stores-data)
 
 `mash status` の `database_path` でデータベースを、Mash が Qdrant をインストールした場合は
 `local_qdrant.installed.storage` で検索データの保存先を確認できます。

@@ -13,7 +13,7 @@
 
 **macOS（Apple シリコン）または Linux（x86-64、ARM64）**
 
-Linux または WSL では [systemd のユーザーセッション（英語）](../local-search.md#linux-without-a-systemd-user-session)が必要です。
+Linux または WSL では [systemd のユーザーセッション](local-search.md#linux-without-a-systemd-user-session)が必要です。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 端末で `mash` が見つからない場合は、セットアップ時に表示されたフルパスを使うか、
 [端末から `mash` を実行できるようにします](troubleshooting.md#mash-command-not-found)。
 [ダッシュボードで検索する](dashboard.md#find-and-read-a-chat) ·
-[端末で検索する（英語）](../search.md#your-first-search) ·
+[端末で検索する](search.md#your-first-search) ·
 [検索結果が見つからないときの確認](troubleshooting.md#search-returns-no-results)
 
 <span id="ask-your-agent"></span>

@@ -22,7 +22,7 @@ mash search '認証トークンの更新手順を見直した' --intent exact-me
 
 デモで[中国語](https://getmash.io/demo/#/search?q=%E6%88%91%E4%BB%AC%E6%9B%B4%E6%96%B0%E4%BA%86%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E4%BB%A4%E7%89%8C)または[日本語](https://getmash.io/demo/#/search?q=%E8%AA%8D%E8%A8%BC%E3%83%88%E3%83%BC%E3%82%AF%E3%83%B3%E3%81%AE%E6%9B%B4%E6%96%B0%E6%89%8B%E9%A0%86%E3%82%92%E8%A6%8B%E7%9B%B4%E3%81%97%E3%81%9F)の文字列を検索できます。
 
-タイトルの一部を覚えている場合は、**チャットのタイトル**から検索できます。タイトル検索は文字列の途中でも一致します。チャットの最初のメッセージが、タイトルの冒頭に使われることもあります。[見つかったチャットを開く（英語）](../search.md#find-a-chat-by-title)
+タイトルの一部を覚えている場合は、**チャットのタイトル**から検索できます。タイトル検索は文字列の途中でも一致します。チャットの最初のメッセージが、タイトルの冒頭に使われることもあります。[見つかったチャットを開く](search.md#find-a-chat-by-title)
 
 ```sh
 mash list-chats --title-contains '身份验证'

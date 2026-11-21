@@ -21,7 +21,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 - [Mash をインストールして読み込む履歴を選ぶ](installation.md)
 - [リリースのアーカイブをダウンロードして検証する](downloads.md)
 - [パッケージマネージャーでインストールする、またはソースからビルドする（英語）](../install-methods.md)
-- [ローカル検索サービスを管理する、または Qdrant を自分で実行する（英語）](../local-search.md)
+- [ローカル検索サービスを管理する、または Qdrant を自分で実行する](local-search.md)
 
 <span id="using-mash"></span>
 
@@ -40,7 +40,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 ### 検索
 
-- [端末から検索する（英語）](../search.md#your-first-search)
+- [端末から検索する](search.md#your-first-search)
 - [日本語など、英語以外のチャットを検索する](search-languages.md)
 - [新しいチャットを検索できるようにする](synchronization.md)
 - [古い履歴を含める、または意味で検索する（英語）](../indexing.md)

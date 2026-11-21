@@ -218,6 +218,7 @@ for (const [locale, lang, title] of [
   ["es", "es", "Busca conversaciones con Mash"],
   ["fr", "fr", "Rechercher des conversations avec Mash"],
   ["zh-cn", "zh-CN", "用 Mash 搜索对话"],
+  ["ja", "ja", "Mash でチャットを検索する"],
 ]) {
   test(`the ${locale} first terminal search leads to its original message`, async ({ page }) => {
     const search = `/${locale}/search/#your-first-search`;
@@ -238,6 +239,14 @@ for (const [locale, lang, title] of [
     await expect(example.locator("pre")).toBeHidden();
     await example.locator("summary").click();
     await expect(example.locator("pre")).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: "--intent related-discussion" }),
+    ).toBeVisible();
+    const troubleshooting = `/${locale}/troubleshooting/`;
+    await guide.locator(`a[href="${troubleshooting}"]`).click();
+    await expect(page).toHaveURL(troubleshooting);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator("#search-returns-no-results")).toBeAttached();
   });
 }
 
@@ -286,6 +295,7 @@ for (const [locale, lang, title] of [
   ["es", "es", "Servicio de búsqueda local (Qdrant)"],
   ["fr", "fr", "Service de recherche local (Qdrant)"],
   ["zh-cn", "zh-CN", "本地搜索服务（Qdrant）"],
+  ["ja", "ja", "ローカル検索サービス（Qdrant）"],
 ]) {
   test(`the ${locale} setup keeps Qdrant alternatives and restart instructions in the same language`, async ({
     page,
@@ -472,12 +482,10 @@ for (const [locale, lang, title, help] of [
     await guide.locator('a[href="#qdrant-connection-failed"]').click();
     await expect(page).toHaveURL(`${trouble}#qdrant-connection-failed`);
     await expect(guide.getByText("Save configuration only", { exact: true })).toBeVisible();
-    const serviceGuide = locale === "ja" ? "/local-search/" : `/${locale}/local-search/`;
-    const systemd = `${serviceGuide}#linux-without-a-systemd-user-session`;
-    const systemdLink = guide.locator(`a[href="${systemd}"]`);
-    if (locale === "ja") await expect(systemdLink).toContainText("（英語）");
-    await systemdLink.click();
+    const systemd = `/${locale}/local-search/#linux-without-a-systemd-user-session`;
+    await guide.locator(`a[href="${systemd}"]`).click();
     await expect(page).toHaveURL(systemd);
+    await expect(page.locator("#linux-without-a-systemd-user-session")).toBeAttached();
   });
 }
 

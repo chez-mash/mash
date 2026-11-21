@@ -17,7 +17,7 @@ Mash をインストールし、検索サービスを起動して、どのチャ
 ## セットアップで変わること
 
 1. **プログラムをインストールします。** [リリースのインストーラー](#recommended-release-installers)は `mash` と `mash-server` をユーザー用のフォルダーに入れます。[リリースのアーカイブを検証して展開](downloads.md)する方法もあります。
-2. **ローカル検索サービスを起動します。** `mash qdrant install` は Qdrant をダウンロードし、自分のアカウントでログイン時に起動するように設定します。Qdrant はこのコンピューターからの接続だけを受け付けます。Mash は Qdrant の使用状況の送信も無効にします。[検索サービスのファイル（英語）](../local-search.md#where-qdrant-stores-data)
+2. **ローカル検索サービスを起動します。** `mash qdrant install` は Qdrant をダウンロードし、自分のアカウントでログイン時に起動するように設定します。Qdrant はこのコンピューターからの接続だけを受け付けます。Mash は Qdrant の使用状況の送信も無効にします。[検索サービスのファイル](local-search.md#where-qdrant-stores-data)
 3. **Mash が読み込む履歴を選びます。** ダッシュボードでも端末でも、設定の保存やチャットの読み込みの前に、Mash が見つけた履歴を確認できます。Mash は元の保存場所からチャットを読み、既定では、このコンピューターに検索用のコピーを保存します。エージェントを接続すると、そのエージェントの設定が更新され、このコピーから抜粋を取得できるようになります。[エージェントを接続せずに自分で検索](#skip-agent-connections)することもできます。[Mash のデータ保存場所](privacy.md#where-mash-stores-data)
 
 クイックスタートのコマンドは、ダッシュボードを開く前にプログラムをインストールして Qdrant を起動します。
@@ -84,11 +84,11 @@ irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 ## ローカル検索サービスを起動する
 
 Linux または WSL で以下のコマンドを実行するには、systemd のユーザーセッションが必要です。
-[端末で使えるかの確認と代替手段（英語）](../local-search.md#linux-without-a-systemd-user-session)をご覧ください。
-[対応するローカル Qdrant（英語）](../local-search.md#run-qdrant-yourself)がすでに動いていれば、[読み込む履歴の選択](#connect-your-histories)に進めます。
+[端末で使えるかの確認と代替手段](local-search.md#linux-without-a-systemd-user-session)をご覧ください。
+[対応するローカル Qdrant](local-search.md#run-qdrant-yourself)がすでに動いていれば、[読み込む履歴の選択](#connect-your-histories)に進めます。
 
 Windows では、Mash は Qdrant の検索データをシステムドライブ上の短いパスに保存します。通常は `C:\mash-qdrant\storage` です。
-[Qdrant のファイルとログの場所（英語）](../local-search.md#where-qdrant-stores-data)をご覧ください。
+[Qdrant のファイルとログの場所](local-search.md#where-qdrant-stores-data)をご覧ください。
 
 ```sh
 mash qdrant install
@@ -96,18 +96,18 @@ mash qdrant install
 
 Mash は Qdrant をダウンロード（約 30 MB）して内容を検証し、自分のユーザー権限でバックグラウンドのサービスを起動します。
 Qdrant はこのコンピューターからの接続だけを受け付け、次回ログイン時にも起動します。Windows ではデスクトップへのサインインが必要です。
-サービスが起動しない場合は、[ログを確認してサービスを再起動する手順（英語）](../local-search.md#check-or-restart-the-service)をご覧ください。
+サービスが起動しない場合は、[ログを確認してサービスを再起動する手順](local-search.md#check-or-restart-the-service)をご覧ください。
 
 <span id="run-qdrant-yourself"></span>
 
 ### Qdrant を自分で起動する
 
-[ローカルの Qdrant 1.20 以降（英語）](../local-search.md#run-qdrant-yourself)をそのまま使うこともできます。
+[ローカルの Qdrant 1.20 以降](local-search.md#run-qdrant-yourself)をそのまま使うこともできます。
 これから起動する場合は、お使いの環境に合う手順を選んでください。
 
-- <span id="optional-qdrant-docker-image"></span>[Docker で Qdrant を起動する（英語）](../local-search.md#optional-qdrant-docker-image)
-- <span id="native-windows-without-docker"></span>[Windows で Docker を使わずに起動する（英語）](../local-search.md#native-windows-without-docker)
-- <span id="native-macos-or-linux-without-docker"></span>[macOS または Linux で Docker を使わずに起動する（英語）](../local-search.md#native-macos-or-linux-without-docker)
+- <span id="optional-qdrant-docker-image"></span>[Docker で Qdrant を起動する](local-search.md#optional-qdrant-docker-image)
+- <span id="native-windows-without-docker"></span>[Windows で Docker を使わずに起動する](local-search.md#native-windows-without-docker)
+- <span id="native-macos-or-linux-without-docker"></span>[macOS または Linux で Docker を使わずに起動する](local-search.md#native-macos-or-linux-without-docker)
 
 <span id="connect-your-histories"></span>
 
@@ -183,7 +183,7 @@ Esc または Ctrl-C を押せば、Mash の設定やエージェントの設定
 **chats** で以前のチャットに出てきた特徴的な言葉を検索します。結果を開くと、元のメッセージを読めます。
 [ダッシュボードでチャットを探して読む](dashboard.md#find-and-read-a-chat)
 
-ダッシュボードを開かずにチャットを探すには、[端末で検索する（英語）](../search.md#your-first-search)か、[接続済みのエージェントに頼みます](agents.md#try-it)。
+ダッシュボードを開かずにチャットを探すには、[端末で検索する](search.md#your-first-search)か、[接続済みのエージェントに頼みます](agents.md#try-it)。
 探している古いチャットが見つからない場合は、[古い履歴を追加する方法（英語）](../indexing.md#add-older-history)をご覧ください。
 
 言葉で検索するだけならモデルは不要です。意味で検索できるようにするには、[任意のモデル設定（英語）](../indexing.md#enable-semantic-search)に進みます。
