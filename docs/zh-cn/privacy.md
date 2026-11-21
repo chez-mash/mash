@@ -15,7 +15,7 @@
 
 默认情况下，已建立索引的对话保存在 `~/.mash/mash.sqlite3`，设置保存在
 `~/.mash/config.toml`。在 Windows 上，`~` 指你的用户配置文件目录。Qdrant 会单独保存包括可搜索的对话文字在内的数据。在 Windows 上，Mash 为这些数据使用系统盘上的较短路径，通常是 `C:\mash-qdrant\storage`。
-[各系统的搜索服务文件位置（英文）](../local-search.md#where-qdrant-stores-data)
+[各系统的搜索服务文件位置](local-search.md#where-qdrant-stores-data)
 
 运行 `mash status` 可查看 `database_path`。如果 Qdrant 由 Mash 安装，还可查看
 `local_qdrant.installed.storage`。运行 `mash uninstall` 可以预览要删除的内容，其中包括 Windows 上单独保存的 Qdrant 文件夹。准备好卸载后，再加上 `--yes`。

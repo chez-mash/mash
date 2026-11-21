@@ -58,25 +58,25 @@ irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 
 ## 启动本地搜索服务
 
-在 Linux 或 WSL 上，下面的命令需要 systemd 用户会话。[检查当前会话或查看其他启动方式（英文）](../local-search.md#linux-without-a-systemd-user-session)。如果已运行[兼容的本地 Qdrant（英文）](../local-search.md#run-qdrant-yourself)，可以直接[设置要读取的历史记录](#connect-your-histories)。
+在 Linux 或 WSL 上，下面的命令需要 systemd 用户会话。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。如果已运行[兼容的本地 Qdrant](local-search.md#run-qdrant-yourself)，可以直接[设置要读取的历史记录](#connect-your-histories)。
 
-在 Windows 上，Mash 会把 Qdrant 的搜索数据放在系统盘上路径较短的目录中，通常是 `C:\mash-qdrant\storage`。[Qdrant 的文件和日志位置（英文）](../local-search.md#where-qdrant-stores-data)
+在 Windows 上，Mash 会把 Qdrant 的搜索数据放在系统盘上路径较短的目录中，通常是 `C:\mash-qdrant\storage`。[Qdrant 的文件和日志位置](local-search.md#where-qdrant-stores-data)
 
 ```sh
 mash qdrant install
 ```
 
-Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台启动服务。Qdrant 只在本机监听，并在你登录时重新启动。在 Windows 上，需要登录桌面。如果服务启动失败，请参阅[如何查看日志并重启服务（英文）](../local-search.md#let-mash-manage-qdrant)。
+Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台启动服务。Qdrant 只在本机监听，并在你登录时重新启动。在 Windows 上，需要登录桌面。如果服务启动失败，请参阅[如何查看日志并重启服务](local-search.md#check-or-restart-the-service)。
 
 <span id="run-qdrant-yourself"></span>
 
 ### 自行运行 Qdrant
 
-你可以[复用本机的 Qdrant 1.20 或更高版本（英文）](../local-search.md#run-qdrant-yourself)。如需启动一个新实例，请选用适合你环境的说明。
+你可以[复用本机的 Qdrant 1.20 或更高版本](local-search.md#run-qdrant-yourself)。如需启动一个新实例，请选用适合你环境的说明。
 
-- <span id="optional-qdrant-docker-image"></span>[在 Docker 中运行 Qdrant（英文）](../local-search.md#optional-qdrant-docker-image)
-- <span id="native-windows-without-docker"></span>[在 Windows 上直接运行（英文）](../local-search.md#native-windows-without-docker)
-- <span id="native-macos-or-linux-without-docker"></span>[在 macOS 或 Linux 上直接运行（英文）](../local-search.md#native-macos-or-linux-without-docker)
+- <span id="optional-qdrant-docker-image"></span>[在 Docker 中运行 Qdrant](local-search.md#optional-qdrant-docker-image)
+- <span id="native-windows-without-docker"></span>[在 Windows 上直接运行](local-search.md#native-windows-without-docker)
+- <span id="native-macos-or-linux-without-docker"></span>[在 macOS 或 Linux 上直接运行](local-search.md#native-macos-or-linux-without-docker)
 
 <span id="connect-your-histories"></span>
 
@@ -191,4 +191,4 @@ mash uninstall --yes    # removes it
 
 如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
 
-<!-- mash-docs-source: 9b52249843696e629ddd5a201ec85ae63dce95dbe5c32034973297db5616d6a9 -->
+<!-- mash-docs-source: c76dffd3a597e79d18239cc19705058e55ca3becb67218dbad0a8bda868aeb52 -->

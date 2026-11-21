@@ -34,7 +34,7 @@ Necesitas al menos una conversación guardada con un agente compatible.
 En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
 este comando para una instalación local nueva. En Linux o WSL necesitas una
 sesión de usuario de systemd para iniciar Qdrant.
-[Comprueba tu sesión o consulta las alternativas (en inglés)](../local-search.md#linux-without-a-systemd-user-session).
+[Comprueba tu sesión o consulta las alternativas](local-search.md#linux-without-a-systemd-user-session).
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup

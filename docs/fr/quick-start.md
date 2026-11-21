@@ -26,7 +26,7 @@ agents connecter avant l’indexation.
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
-Qdrant. [Vérifiez votre session ou consultez les autres options (en anglais)](../local-search.md#linux-without-a-systemd-user-session).
+Qdrant. [Vérifiez votre session ou consultez les autres options](local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup

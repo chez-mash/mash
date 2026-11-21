@@ -13,6 +13,7 @@ import {
 export const translationPages = [
   "quick-start",
   "installation",
+  "local-search",
   "privacy",
   "dashboard",
   "agents",

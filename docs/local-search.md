@@ -41,6 +41,8 @@ Qdrant fail. Its program, configuration, and log file stay under
 
 ### Check or restart the service
 
+For a startup error, look up the [log command or file for your platform](#where-qdrant-stores-data).
+
 On Windows the logon task runs only while you are signed in at the desktop.
 On a machine you reach only over SSH, or a server nobody signs in to, the
 command reports that Qdrant did not become ready; start Qdrant yourself there,

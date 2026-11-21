@@ -22,7 +22,7 @@ Par défaut, Mash conserve vos conversations indexées dans
 Windows, `~` désigne votre profil utilisateur. Qdrant stocke à part les
 données de recherche, dont le texte consultable. Sous Windows, Mash utilise
 un chemin court sur le disque système, généralement `C:\mash-qdrant\storage`.
-[Fichiers du service de recherche selon le système (en anglais)](../local-search.md#where-qdrant-stores-data)
+[Fichiers du service de recherche selon le système](local-search.md#where-qdrant-stores-data)
 
 Exécutez `mash status` pour voir `database_path` et, si Mash a installé Qdrant,
 `local_qdrant.installed.storage`. Exécutez `mash uninstall` pour voir ce qui

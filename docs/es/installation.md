@@ -81,13 +81,13 @@ usa el comando de Cargo más corto.
 ## Inicia el servicio de búsqueda local
 
 En Linux o WSL, el comando de abajo requiere una sesión de usuario de systemd.
-[Comprueba tu sesión y consulta las alternativas (en inglés)](../local-search.md#linux-without-a-systemd-user-session).
-Si ya tienes un [Qdrant local compatible (en inglés)](../local-search.md#run-qdrant-yourself),
+[Comprueba tu sesión y consulta las alternativas](local-search.md#linux-without-a-systemd-user-session).
+Si ya tienes un [Qdrant local compatible](local-search.md#run-qdrant-yourself),
 puedes pasar a [configurar tus historiales](#connect-your-histories).
 
 En Windows, Mash guarda los datos de búsqueda de Qdrant en un directorio con
 una ruta corta en la unidad del sistema, normalmente `C:\mash-qdrant\storage`.
-[Archivos y registros de Qdrant (en inglés)](../local-search.md#where-qdrant-stores-data)
+[Archivos y registros de Qdrant](local-search.md#where-qdrant-stores-data)
 
 ```sh
 mash qdrant install
@@ -97,18 +97,18 @@ Mash verifica la descarga de Qdrant (unos 30 MB) e inicia el servicio en
 segundo plano con tu usuario. Qdrant escucha en el equipo local y vuelve a
 iniciarse al entrar en tu sesión. En Windows requiere iniciar sesión en el
 escritorio. Si el servicio no arranca, consulta
-[cómo revisar los registros y reiniciarlo (en inglés)](../local-search.md#let-mash-manage-qdrant).
+[cómo revisar los registros y reiniciarlo](local-search.md#check-or-restart-the-service).
 
 <span id="run-qdrant-yourself"></span>
 
 ### Ejecuta Qdrant por tu cuenta
 
-Puedes [reutilizar un Qdrant 1.20 o posterior en tu equipo (en inglés)](../local-search.md#run-qdrant-yourself).
+Puedes [reutilizar un Qdrant 1.20 o posterior en tu equipo](local-search.md#run-qdrant-yourself).
 Para iniciar uno, elige la guía para tu entorno.
 
-- <span id="optional-qdrant-docker-image"></span>[Qdrant en Docker (en inglés)](../local-search.md#optional-qdrant-docker-image)
-- <span id="native-windows-without-docker"></span>[Windows sin Docker (en inglés)](../local-search.md#native-windows-without-docker)
-- <span id="native-macos-or-linux-without-docker"></span>[macOS o Linux sin Docker (en inglés)](../local-search.md#native-macos-or-linux-without-docker)
+- <span id="optional-qdrant-docker-image"></span>[Qdrant en Docker](local-search.md#optional-qdrant-docker-image)
+- <span id="native-windows-without-docker"></span>[Windows sin Docker](local-search.md#native-windows-without-docker)
+- <span id="native-macos-or-linux-without-docker"></span>[macOS o Linux sin Docker](local-search.md#native-macos-or-linux-without-docker)
 
 <span id="connect-your-histories"></span>
 
@@ -325,4 +325,4 @@ Conserva los datos de Qdrant salvo que añadas `--delete-storage`. Esos datos
 contienen lo necesario para las búsquedas. Puedes regenerarlos a partir del
 índice con `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: 9b52249843696e629ddd5a201ec85ae63dce95dbe5c32034973297db5616d6a9 -->
+<!-- mash-docs-source: c76dffd3a597e79d18239cc19705058e55ca3becb67218dbad0a8bda868aeb52 -->

@@ -71,6 +71,45 @@ for (const [locale, lang, installationTitle] of [
   });
 }
 
+for (const [locale, lang, title] of [
+  ["es", "es", "Servicio de búsqueda local (Qdrant)"],
+  ["fr", "fr", "Service de recherche local (Qdrant)"],
+  ["zh-cn", "zh-CN", "本地搜索服务（Qdrant）"],
+]) {
+  test(`the ${locale} setup keeps Qdrant alternatives and restart instructions in the same language`, async ({
+    page,
+  }) => {
+    const search = `/${locale}/local-search/`;
+    const systemd = `${search}#linux-without-a-systemd-user-session`;
+    const restart = `${search}#check-or-restart-the-service`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${systemd}"]`).click();
+    await expect(page).toHaveURL(systemd);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(page.locator("#linux-without-a-systemd-user-session")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: "systemctl --user show-environment" }),
+    ).toBeVisible();
+    await guide.locator('a[href="#optional-qdrant-docker-image"]').first().click();
+    await expect(page).toHaveURL(`${search}#optional-qdrant-docker-image`);
+    await expect(
+      guide.locator("pre").filter({ hasText: "docker run -d --name mash-local-qdrant" }),
+    ).toBeVisible();
+
+    await page.goto(`/${locale}/installation/#start-the-local-search-service`);
+    await guide.locator(`a[href="${restart}"]`).click();
+    await expect(page).toHaveURL(restart);
+    await expect(page.locator("#check-or-restart-the-service")).toBeAttached();
+    await guide.locator('a[href="#where-qdrant-stores-data"]').click();
+    await expect(page).toHaveURL(`${search}#where-qdrant-stores-data`);
+    await expect(guide.locator("table").first()).toContainText(
+      "journalctl --user --unit mash-qdrant.service",
+    );
+  });
+}
+
 for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
   ["es", "es", "Agentes compatibles", "Guía de inicio rápido", "Usa Mash con tu agente"],
   ["fr", "fr", "Agents compatibles", "Guide de démarrage rapide", "Utiliser Mash avec votre agent"],

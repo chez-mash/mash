@@ -82,7 +82,7 @@ mash qdrant install
 Mash verifies the Qdrant download (about 30 MB) and starts the service in the
 background under your user. Qdrant listens on this machine and starts again
 when you log in. On Windows, it requires a desktop sign-in.
-If the service does not start, see [how to check the logs and restart it](local-search.md#let-mash-manage-qdrant).
+If the service does not start, see [how to check the logs and restart it](local-search.md#check-or-restart-the-service).
 
 ### Run Qdrant yourself
 

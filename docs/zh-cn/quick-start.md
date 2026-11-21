@@ -14,7 +14,7 @@
 
 **自己动手设置。** 首次在本机安装时，在终端中运行下面适用于你的系统的命令。它会安装 Mash 和本地搜索服务，然后请你在建立索引之前确认要读取哪些历史记录和连接哪些代理。
 
-在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式（英文）](../local-search.md#linux-without-a-systemd-user-session)。
+在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup

@@ -99,6 +99,26 @@ describe("documentation translation drafts", () => {
     expect(recordedTranslationRevision(output)).toBe(installation.revision);
   });
 
+  it("drafts search service recovery with exact commands and links back to localized setup", async () => {
+    const [source, guides] = await Promise.all([
+      readTranslationSource("local-search"),
+      readLocaleGuides("fr"),
+    ]);
+    const draft = prepareTranslation(source, "docs/fr/local-search.md", guides);
+    const output = draft.render({
+      translations: draft.passages.map((passage) =>
+        passage === "Linux without a systemd user session"
+          ? "Linux sans session utilisateur systemd"
+          : passage,
+      ),
+    });
+    expect(output).toContain('<span id="linux-without-a-systemd-user-session"></span>');
+    expect(output).toContain("systemctl --user show-environment >/dev/null");
+    expect(output).toContain("(#optional-qdrant-docker-image)");
+    expect(output).toContain("(installation.md#connect-your-histories)");
+    expect(recordedTranslationRevision(output)).toBe(source.revision);
+  });
+
   it("drafts the support guide while keeping the setup wizard label and source revision", async () => {
     const support = await readTranslationSource("supported-agents");
     const draft = prepareTranslation(support, "docs/es/supported-agents.md");
