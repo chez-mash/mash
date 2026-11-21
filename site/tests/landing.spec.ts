@@ -28,7 +28,13 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Written with <3 in Rust.",
     "Give your agents a memory.",
   ]);
-  await expect(page.locator(".mash-welcome .tiles article")).toHaveCount(5);
+  await expect(page.locator(".mash-welcome .scene-image")).toHaveCount(7);
+  const more = page.getByRole("region", { name: "More about Mash" });
+  await expect(more.getByRole("link")).toHaveText([
+    "Plugin for Claude Code, Codex and Copilot ›",
+    "Hybrid search ›",
+    "Shared index ›",
+  ]);
   // Every section with a drawing but the last pins and plays the same way.
   await expect(page.locator(".mash-welcome .scene")).toHaveCount(7);
   // The marks rise in one after another when they come into view.
@@ -38,6 +44,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   const measured = page.locator(".mash-welcome .measured");
   await expect(measured.locator("p")).toBeHidden();
   await measured.locator("summary").click();
+  await expect(measured.locator("dt")).toHaveText(["66 ms", "20 MB", "5× and 9×"]);
   await expect(measured.locator("p")).toContainText("experimental and off until you");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
@@ -297,21 +304,22 @@ async function play(page: Page, heading: string, share: number): Promise<void> {
     .toBe(true);
 }
 
-test("scrolling plays the search scene: the query is typed, then results arrive", async ({
+test("scrolling reveals the search illustration and plays its captions in order", async ({
   page,
 }) => {
   await page.goto("/");
   const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
-  const query = scene.locator("[data-type]");
-  const results = scene.locator(".hits li");
-  // Before the scene is reached, nothing has been typed.
-  await expect(query).toHaveText("");
+  const image = scene.locator(".scene-image");
+  const captions = scene.locator(".caps li");
+  await expect(scene.locator(".show")).toHaveCSS("opacity", "0");
+  await play(page, "Find it.", 0.35);
+  await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
+  await expect(image).toHaveJSProperty("naturalWidth", 760);
+  await expect(captions.first()).toHaveCSS("opacity", "1");
+  await expect(captions.last()).toHaveCSS("opacity", "0");
   await play(page, "Find it.", 0.8);
-  // However far the scroll jumped, every letter is typed before a result shows.
-  await expect(query).toHaveText("why does checkout keep failing");
-  await expect(results).toHaveCount(3);
-  for (const result of await results.all()) await expect(result).toHaveCSS("opacity", "1");
-  await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1");
+  await expect(captions.last()).toHaveCSS("opacity", "1");
+  await expect(captions.first()).toHaveCSS("opacity", "0");
 });
 
 test("a scene scrolled past early stays on screen until it has played out", async ({ page }) => {
@@ -337,14 +345,14 @@ test("a scene scrolled past early stays on screen until it has played out", asyn
     await page.evaluate((to) => scrollTo(0, to), end + (pass === 1 ? 500 : 2600));
     await expect(scene, `pass ${pass}`).toHaveClass(/kept/);
     expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
-    // The stage has not moved, and it finishes there: the query is typed,
-    // every result arrives, and the drawing is undrawn.
+    // The stage has not moved, and it finishes there: the illustration and
+    // final caption appear, then the drawing is undrawn.
     expect(await stage.evaluate((element) => element.getBoundingClientRect().top)).toBeCloseTo(
       pinnedAt,
       0,
     );
-    await expect(scene.locator("[data-type]")).toHaveText("why does checkout keep failing");
-    await expect(scene.locator(".hits li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
+    await expect(scene.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
+    await expect(scene.locator(".caps li").last()).toHaveCSS("opacity", "1", { timeout: 15_000 });
     await expect(scene).toHaveClass(/kept/);
     await expect(strokes.first()).toHaveCSS("opacity", "0", { timeout: 15_000 });
     // Then it lets go, and the page was never moved.
@@ -366,7 +374,7 @@ test("fast jumps play crossed scenes in order, including crossings behind a kept
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
-  await expect(first.locator("[data-type]")).toHaveText("");
+  await expect(first.locator(".show")).toHaveCSS("opacity", "0");
 
   // Pass both scenes in one frame, before either was visible.
   await second.evaluate((element) => {
@@ -379,6 +387,7 @@ test("fast jumps play crossed scenes in order, including crossings behind a kept
   });
   await expect(first).toHaveClass(/\bkept\b/);
   await expect(second).not.toHaveClass(/\bkept\b/);
+  await expect(first.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
 
   // Pass the next scene as well while the first still covers the viewport.
   await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
@@ -387,6 +396,7 @@ test("fast jumps play crossed scenes in order, including crossings behind a kept
   );
   await expect(second).toHaveClass(/\bkept\b/, { timeout: 12_000 });
   await expect(first).not.toHaveClass(/\bkept\b/);
+  await expect(second.locator(".scene-image")).toHaveJSProperty("naturalWidth", 760);
   await expect(third).toHaveClass(/\bkept\b/, { timeout: 15_000 });
   await expect(second).not.toHaveClass(/\bkept\b/);
 });
@@ -395,7 +405,12 @@ test("a direct scene link skips replaying earlier scenes", async ({ page }) => {
   await page.goto("/#welcome-memory");
   const welcome = page.locator(".mash-welcome");
   await expect(welcome).toHaveClass(/\bmotion\b/);
-  await expect(page.locator("#welcome-memory")).toBeInViewport();
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  const heading = page.getByRole("heading", { name: "Save the decision. Keep the source." });
+  await expect(heading).toBeInViewport();
   await expect(welcome.locator(".scene.kept")).toHaveCount(0);
 });
 
@@ -423,17 +438,14 @@ test("a scene's enlarged heading stays inside the screen", async ({ page }) => {
   }).toPass();
 });
 
-test("the Mashy conversation runs to its third answer", async ({ page }) => {
+test("the Mashy scene finishes with the model service requirement", async ({ page }) => {
   await page.goto("/");
   const scene = page.locator(".mash-welcome .scene", { hasText: "Meet Mashy." });
   await play(page, "Meet Mashy.", 0.84);
-  // The conversation plays at its own pace, so the last answer takes a few seconds.
-  await expect(scene.locator(".reply").last()).toHaveCSS("opacity", "1", { timeout: 20_000 });
-  // The suggestion that was picked has folded away with the others.
-  await expect(scene.locator(".follows")).toHaveCSS("opacity", "0");
-  await expect(scene.locator(".caps li").last()).toHaveText(
-    "Optional. Requires your own model service and API key.",
-  );
+  const last = scene.locator(".caps li").last();
+  await expect(last).toHaveCSS("opacity", "1", { timeout: 20_000 });
+  await expect(scene.locator(".caps li").first()).toHaveCSS("opacity", "0");
+  await expect(last).toHaveText("Optional. Requires your own model service and API key.");
 });
 
 test("the welcome page shows everything without scripting", async ({ browser }) => {
@@ -441,12 +453,22 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const page = await context.newPage();
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
-  await expect(welcome.locator("[data-type]")).toHaveText("why does checkout keep failing");
-  await expect(welcome.locator(".hits li")).toHaveCount(3);
-  for (const result of await welcome.locator(".hits li").all()) await expect(result).toBeVisible();
-  await expect(welcome.locator(".reply").last()).toBeVisible();
-  await expect(welcome.locator(".ferris")).toBeVisible();
-  await expect(welcome.locator(".stats dt").first()).toHaveText("66 ms");
+  const images = welcome.getByRole("img");
+  await expect(images).toHaveCount(7);
+  await expect(images.first()).toHaveAccessibleName(/why does checkout keep failing/);
+  await expect(images.last()).toHaveAccessibleName(/Ferris the crab/);
+  await expect
+    .poll(() =>
+      images.evaluateAll((items) =>
+        items.map((item) => (item instanceof HTMLImageElement ? item.naturalHeight : 0)),
+      ),
+    )
+    .toEqual([512, 492, 375, 379, 363, 331, 225]);
+  for (const image of await images.all()) await expect(image).toBeVisible();
+  for (const caption of await welcome.locator(".caps li").all())
+    await expect(caption).toBeVisible();
+  await welcome.locator(".measured summary").click();
+  await expect(welcome.locator(".measured").getByText("66 ms", { exact: true })).toBeVisible();
   const install = page.locator(".mash-install");
   await expect(install.locator(".agent code")).toBeVisible();
   await expect(install.locator(".picked")).toBeHidden();
@@ -469,3 +491,25 @@ test("the welcome page fits a phone in every section", async ({ page }) => {
     );
   }
 });
+
+for (const viewport of [
+  { width: 320, height: 640 },
+  { width: 390, height: 700 },
+  { width: 740, height: 360 },
+]) {
+  test(`the search illustration fits an active ${viewport.width}×${viewport.height} scene`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/#welcome-search");
+    await play(page, "Find it.", 0.35);
+    const scene = page.locator(".mash-welcome .scene", { hasText: "Find it." });
+    const image = scene.locator(".scene-image");
+    await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
+    await expect(image).toBeInViewport({ ratio: 0.98 });
+    const box = await image.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) throw new Error("Missing search illustration bounds");
+    expect(box.width / box.height).toBeCloseTo(760 / 512, 1);
+  });
+}

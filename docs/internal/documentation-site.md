@@ -82,7 +82,7 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   each pin under the header while the reader scrolls; only the closing call
   to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
   builds each one: it draws the scene's drawing, moves the heading aside for
-  a panel, and brings in the panel's steps (`data-step`).
+  the illustration, and brings in its captions in order.
   Each scene is one GSAP timeline. Its position on screen sets the target time,
   and the timeline plays there at its own pace. A scene scrolled past unfinished
   gets the class `kept` and stays fixed until it finishes. A single scroll can
@@ -95,8 +95,9 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   licence is GSAP's own no-charge licence, not an open-source one; it covers
   this use. Timelines hold measured heights, so they are rebuilt when the
   window's width changes.
-- **Without scripting** every step and drawing shows, statically. The script
-  adds `motion` to the wrapper; all pinned and hidden states hang off it.
+- **Without scripting** the illustrations, captions, and links are visible
+  in ordinary sections. The script adds `motion` to the wrapper to enable
+  pinning and animation.
 - **Reduced motion.** The page animates whatever the device's motion setting
   is. This was a deliberate choice by the project owner; honouring
   `prefers-reduced-motion` means not calling `mountWelcome`.
@@ -107,9 +108,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   Drawings are strokes only: never fill a shape with the page's background
   colour to hide lines behind it, because dark-mode browser extensions recolour
   SVG fills and backgrounds differently and the shape turns solid.
-- **What the panels show** is made up and follows the demo's story (the
-  sign-in tokens decision, the checkout chats). Keep it that way: never put
-  real history on the page.
+- **Product illustrations** are Figma frame exports in `site/public/welcome/`.
+  The README snapshot is `assets/dashboard-demo.png`. Use fictional history
+  based on the demo's story, including the sign-in token decision and checkout
+  outage. Keep captions and links in the page so they work independently of
+  the illustrations.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA

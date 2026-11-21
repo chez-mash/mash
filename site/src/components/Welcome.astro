@@ -1,15 +1,7 @@
 ---
-// The welcome page below the hero. Three scenes show the product as the
-// dashboard draws it (search, Mashy, memory), then come the performance
-// figures, privacy, the tiles, Rust and the closing call to action.
-//
-// Every project, chat and answer shown is made up, in the demo's own story.
-// The figures are measurements: see docs/internal/documentation-site.md
-// before changing one.
+// The seven scene illustrations were exported from Figma. The captions and
+// links are live content, and the benchmark notes document the measurements.
 import "../styles/welcome.css";
-import { Icon } from "@astrojs/starlight/components";
-import mashy from "../../../dashboard/public/mashy.png?url";
-import { agents } from "../../../dashboard/src/lib/agents.ts";
 import closeArt from "../drawings/close.svg?raw";
 import ferrisArt from "../drawings/ferris.svg?raw";
 import mashyArt from "../drawings/mashy.svg?raw";
@@ -18,475 +10,158 @@ import privacyArt from "../drawings/privacy.svg?raw";
 import searchArt from "../drawings/search.svg?raw";
 import speedArt from "../drawings/speed.svg?raw";
 import Agents from "./Agents.astro";
-
-type AgentKey = keyof typeof agents;
-
-/** An agent's mark, in its own colour. */
-function mark(agent: AgentKey): string {
-  const { logo, tint } = agents[agent];
-  return `<span class="mark" style="background:${tint};mask-image:url(${logo});-webkit-mask-image:url(${logo})"></span>`;
-}
-
-/** A small line icon, on a 24 by 24 grid. */
-function line(paths: readonly string[], kind = "i"): string {
-  const drawn = paths.map((d) => `<path d="${d}"/>`).join("");
-  const width = kind === "ico" ? 1.5 : 2;
-  return `<svg class="${kind}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${drawn}</svg>`;
-}
-
-const icon = {
-  agent: line(
-    [
-      "M7 9h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z",
-      "M12 5v4",
-      "M9.5 14h.01",
-      "M14.5 14h.01",
-    ],
-    "i agent",
-  ),
-  machine: line(["M5 6h14v9H5z", "M3 18h18"], "i machine"),
-  project: line(
-    ["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"],
-    "i project",
-  ),
-  search: line(["M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z", "m20 20-3.5-3.5"]),
-  decision: line(["m14 5 5 5", "M11.5 7.5l5 5", "M13 9l-9 9a1.4 1.4 0 0 0 2 2l9-9"], "i memory"),
-  evidence: line([
-    "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z",
-    "M14 3v5h5",
-    "M9 13h6",
-    "M9 17h6",
-  ]),
-  clear: line(["M4 7h16", "M9 7V4h6v3", "M6 7l1 13h10l1-13"]),
-  close: line(["M6 6l12 12", "M18 6 6 18"]),
-  send: line(["M12 19V5", "M6 11l6-6 6 6"]),
-  follow: line(["M5 5v6a3 3 0 0 0 3 3h10", "M14 10l4 4-4 4"]),
-  preference: line(["M4 7h9", "M17 7h3", "M15 5v4", "M4 17h3", "M11 17h9", "M9 15v4"], "i memory"),
-  more: line(["m9 6 6 6-6 6"]),
-};
-
-/** Larger icons that draw themselves as their tile arrives. */
-const drawn = {
-  plugin: line(["M6 8h12v4a6 6 0 0 1-12 0z", "M9 2.5V8", "M15 2.5V8", "M12 18v3.5"], "ico"),
-  // Two ways of matching, merged into one ranked list.
-  hybrid: line(["M3 6h5c4 0 4 6 8 6h5", "M3 18h5c4 0 4-6 8-6", "M17.5 8.5 21 12l-3.5 3.5"], "ico"),
-  machines: line(
-    [
-      "M4 3.5h7a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z",
-      "M13 14h7a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V15a1 1 0 0 1 1-1z",
-      "M7.5 10v4.25a3 3 0 0 0 3 3H12",
-      "M16.5 14V9.75a3 3 0 0 0-3-3H12",
-    ],
-    "ico",
-  ),
-  export: line(
-    [
-      "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z",
-      "M14 3v5h5",
-      "M12 11v6",
-      "M9.5 14.5 12 17l2.5-2.5",
-    ],
-    "ico",
-  ),
-  laptop: line(
-    [
-      "M6 5h12a1 1 0 0 1 1 1v9H5V6a1 1 0 0 1 1-1z",
-      "M2.5 15h19v1.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z",
-    ],
-    "ico",
-  ),
-  server: line(
-    [
-      "M5 4.5h14a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z",
-      "M5 13h14a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V14a1 1 0 0 1 1-1z",
-      "M7.5 7.75h.01",
-      "M7.5 16.25h.01",
-    ],
-    "ico",
-  ),
-  off: line(
-    ["M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7z", "M8 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"],
-    "ico",
-  ),
-  masked: line(
-    [
-      "M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z",
-      "M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
-      "M3.5 3.5l17 17",
-    ],
-    "ico",
-  ),
-};
-
-interface Hit {
-  readonly agent: AgentKey;
-  readonly title: string;
-  readonly excerpt: string;
-  readonly machine: string;
-  readonly project: string;
-  readonly date: string;
-}
-
-const hits: readonly Hit[] = [
-  {
-    agent: "codex",
-    title: "Fix the flaky <mark>checkout</mark> test",
-    excerpt: "Reproduced: three failures in thirty runs. I changed the test to wait for the total…",
-    machine: "workstation",
-    project: "storefront",
-    date: "Nov 18",
-  },
-  {
-    agent: "claude-code",
-    title: "Review of the <mark>checkout</mark> outage",
-    excerpt:
-      "<mark>Checkout</mark> was down for forty minutes yesterday afternoon. Go through the logs…",
-    machine: "build-box",
-    project: "infra",
-    date: "Oct 9",
-  },
-  {
-    agent: "cursor",
-    title: "Offline cart for the mobile app",
-    excerpt:
-      "…so a dropped connection no longer loses what was in the basket at <mark>checkout</mark>.",
-    machine: "laptop",
-    project: "mobile-app",
-    date: "Nov 15",
-  },
-];
-
-const decision = "Sign-in uses fifteen-minute access tokens with a server-held refresh token.";
-const said =
-  "Let’s use short-lived access tokens for sign-in, and keep the mobile app on the same scheme.";
-const signIn = "Move sign-in to short-lived tokens";
 ---
 
 <div class="mash-welcome not-content">
   <Agents />
 
-  <section class="scene" data-steps="3" aria-labelledby="welcome-search">
+  <section class="scene" id="welcome-search" aria-labelledby="welcome-search-title">
     <div class="stage">
       <Fragment set:html={searchArt} />
       <div class="head">
         <span class="eyebrow">Search</span>
-        <h2 id="welcome-search">Find it. <span>However you remember it.</span></h2>
+        <h2 id="welcome-search-title">Find it. <span>However you remember it.</span></h2>
       </div>
       <div class="show">
-        <div class="panel" role="img" aria-label="The dashboard’s search, with example results from three agents on three machines">
-          <div class="field">
-            <span data-type>why does checkout keep failing</span>
-            <span class="go" set:html={icon.search} />
-          </div>
-          <ol class="hits steps">
-            {
-              hits.map((hit, step) => (
-                <li class="hit" data-step={step}>
-                  <h3>
-                    <Fragment set:html={mark(hit.agent)} />
-                    <span set:html={hit.title} />
-                  </h3>
-                  <p class="snip" set:html={hit.excerpt} />
-                  <p class="tags">
-                    <span class="elbow" />
-                    <span class="tag"><Fragment set:html={icon.agent} />{agents[hit.agent].name}</span>
-                    <span class="tag"><Fragment set:html={icon.machine} />{hit.machine}</span>
-                    <span class="tag"><Fragment set:html={icon.project} />{hit.project}</span>
-                    <time>{hit.date}</time>
-                  </p>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
+        <img class="scene-image" src="/welcome/welcome-search.png" width="760" height="512" decoding="async"
+          alt="The example search ‘why does checkout keep failing’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines." />
         <ol class="caps">
-          <li data-step="0">By meaning, with optional local models.</li>
-          <li data-step="1">By the exact words.</li>
-          <li data-step="2">Across machines through a server you run.</li>
+          <li>By meaning, with optional local models.</li>
+          <li>By the exact words.</li>
+          <li>Across machines through a server you run.</li>
         </ol>
       </div>
     </div>
   </section>
 
-  <section class="scene" data-steps="7" aria-labelledby="welcome-mashy">
+  <section class="scene" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
     <div class="stage">
       <Fragment set:html={mashyArt} />
       <div class="head">
         <span class="eyebrow">Dashboard</span>
-        <h2 id="welcome-mashy">Meet Mashy. <span>Ask your history anything.</span></h2>
+        <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask your history anything.</span></h2>
       </div>
       <div class="show">
-        <div class="panel" role="img" aria-label="The dashboard’s Mashy panel, with an example conversation: why an outage happened, what was decided afterwards, and whether it has happened since">
-          <div class="who">
-            <img src={mashy} alt="" width="96" height="87" />
-            Mashy
-            <span class="tools"><Fragment set:html={icon.clear + icon.close} /></span>
-          </div>
-          <div class="talk steps grow">
-            <p class="asked" data-step="0">Why did checkout go down last month?</p>
-            <div class="reply" data-step="1">
-              <p class="looked"><Fragment set:html={icon.search} />Searched 14 chats on 3 machines</p>
-              <p>
-                Found it! It wasn’t traffic: a migration held a write lock on the orders table for
-                forty minutes on 9 Oct. Three agents pitched in that day:
-              </p>
-              <ol class="story">
-                <li>
-                  <time>14:10</time><Fragment set:html={mark("claude-code")} />
-                  <span>Review of the checkout outage</span><em>build-box</em>
-                </li>
-                <li>
-                  <time>15:02</time><Fragment set:html={mark("codex")} />
-                  <span>Rewrite the orders migration</span><em>workstation</em>
-                </li>
-                <li>
-                  <time>16:40</time><Fragment set:html={mark("cursor")} />
-                  <span>Add a lock check to CI</span><em>laptop</em>
-                </li>
-              </ol>
-              <blockquote>
-                “the lock came from the migration, not from load”
-                <footer>— Claude Code, 9 Oct 14:31</footer>
-              </blockquote>
-            </div>
-            <p class="follows" data-step="2" data-until="3">
-              <span class="follow pick"><Fragment set:html={icon.follow} />What did we decide afterwards?</span>
-              <span class="follow"><Fragment set:html={icon.follow} />Who fixed it?</span>
-            </p>
-            <p class="asked" data-step="3">What did we decide afterwards?</p>
-            <div class="reply" data-step="4">
-              <p class="looked"><Fragment set:html={icon.search} />Read 2 memories</p>
-              <p>Just one rule, and it’s saved in your own words:</p>
-              <div class="recall">
-                <Fragment set:html={icon.preference} />
-                <div>
-                  <p>Never take a write lock on the orders table in a migration.</p>
-                  <small>preference / Oct 9 / “never again. no write locks in migrations”</small>
-                </div>
-              </div>
-            </div>
-            <p class="asked" data-step="5">Has it happened since?</p>
-            <div class="reply" data-step="6">
-              <p class="looked"><Fragment set:html={icon.search} />Searched 6 weeks of chats</p>
-              <p>Nope, all clear! Two migrations have run since, and both agents saw the rule first:</p>
-              <p class="found">
-                <span class="tag round"><Fragment set:html={mark("codex")} />Rename the billing tables</span>
-                <span class="tag round"><Fragment set:html={mark("claude-code")} />Move sign-in to short-lived tokens</span>
-              </p>
-              <p class="all"><Fragment set:html={icon.search} />See all for “migration”<Fragment set:html={icon.more} /></p>
-            </div>
-          </div>
-          <div class="compose">
-            <span>Ask Mashy about your past chats</span>
-            <span class="send" set:html={icon.send} />
-          </div>
-        </div>
+        <img class="scene-image" src="/welcome/welcome-mashy.png" width="760" height="492" decoding="async"
+          alt="The read-only assistant traces an example checkout outage to a database migration and quotes the Claude Code conversation that describes the lock." />
         <ol class="caps">
-          <li data-step="0">Ask in plain language.</li>
-          <li data-step="1">It reads across agents and machines, and quotes its source.</li>
-          <li data-step="2">It suggests what to ask next.</li>
-          <li data-step="3">Pick one, and the conversation carries on.</li>
-          <li data-step="4">It knows what you decided, not only what was said.</li>
-          <li data-step="5">Follow the thread to the end.</li>
-          <li data-step="6">Optional. Requires your own model service and API key.</li>
+          <li>Ask in plain language.</li>
+          <li>Mashy reads across agents and machines.</li>
+          <li>Follow the quote back to the original chat.</li>
+          <li>Optional. Requires your own model service and API key.</li>
         </ol>
       </div>
     </div>
   </section>
 
-  <section class="scene" data-steps="3" aria-labelledby="welcome-memory">
+  <section class="scene" id="welcome-memory" aria-labelledby="welcome-memory-title">
     <div class="stage">
       <Fragment set:html={memoryArt} />
       <div class="head">
         <span class="eyebrow">Memory</span>
-        <h2 id="welcome-memory">Save the decision. <span>Keep the source.</span></h2>
+        <h2 id="welcome-memory-title">Save the decision. <span>Keep the source.</span></h2>
       </div>
       <div class="show">
-        <div class="panel bare" role="img" aria-label="A sentence becoming a memory record, as the dashboard shows it, then appearing in the next session">
-          <div class="steps swap">
-            <p class="said" data-step="0">“{said}”</p>
-            <div class="rec" data-step="1">
-              <p class="state">decision / accepted / established</p>
-              <h3>{decision}</h3>
-              <p class="meta">storefront / laptop / recorded by Claude Code / Nov 19</p>
-              <p class="label"><Fragment set:html={icon.evidence} />evidence</p>
-              <div class="proof">
-                <p>{said}</p>
-                <p class="src"><span>you said this (endorsement)</span>open the message</p>
-              </div>
-            </div>
-            <div class="rec" data-step="2">
-              <p class="label"><Fragment set:html={mark("codex")} />Codex / new session</p>
-              <div class="row">
-                <Fragment set:html={icon.decision} />
-                <div>
-                  <p>{decision}</p>
-                  <small class="when">decision / Nov 19</small>
-                </div>
-              </div>
-              <p class="meta">Shown to the agent before you type anything.</p>
-            </div>
-          </div>
-        </div>
+        <img class="scene-image" src="/welcome/welcome-memory.png" width="760" height="375" decoding="async"
+          alt="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session." />
         <ol class="caps">
-          <li data-step="0">You say it.</li>
-          <li data-step="1">The plugin saves the decision and quotes your message.</li>
-          <li data-step="2">The decision can come back in a later session.</li>
+          <li>You say it.</li>
+          <li>Ask the plugin to save the decision with your message as evidence.</li>
+          <li>The decision can come back in a later session.</li>
         </ol>
       </div>
     </div>
   </section>
 
-  <section class="scene speed" data-steps="1" aria-labelledby="welcome-speed">
+  <section class="scene speed" id="welcome-speed" aria-labelledby="welcome-speed-title">
     <div class="stage">
-    <Fragment set:html={speedArt} />
-    <div class="head">
-      <span class="eyebrow">Performance</span>
-      <h2 id="welcome-speed">Fast, and light on your machine.</h2>
-    </div>
-    <div class="show wide">
-    <dl class="stats" data-reveal>
-      <div>
-        <dt><b data-count="66">66</b><small> ms</small></dt>
-        <dd>for a whole search, at its quickest</dd>
+      <Fragment set:html={speedArt} />
+      <div class="head">
+        <span class="eyebrow">Performance</span>
+        <h2 id="welcome-speed-title">Fast, and light on your machine.</h2>
       </div>
-      <div>
-        <dt><b data-count="20">20</b><small> MB</small></dt>
-        <dd>of memory for an idle Mash server in your agent</dd>
+      <div class="show">
+        <img class="scene-image" src="/welcome/welcome-performance.png" width="760" height="379" decoding="async"
+          alt="Example measurements range from a 66 ms word search and about 20 MB for idle MCP to 5× embedding throughput on a Windows GPU and 9× with an experimental NVIDIA worker. Word search needs no GPU." />
+        <details class="measured">
+          <summary>How these were measured</summary>
+          <div class="measurement-copy" role="region" aria-label="Benchmark conditions" tabindex="0">
+            <dl>
+              <div>
+                <dt>66 ms</dt>
+                <dd>One exact-phrase search across 1,137 chats and about 103,000 searchable messages on one Linux machine. A common word took up to a second there.</dd>
+              </div>
+              <div>
+                <dt>20 MB</dt>
+                <dd>Approximate memory for one idle Mash MCP process. On that machine, idle processes used 16–23 MB each, or 220–330 MB after loading semantic search models. Qdrant memory was measured separately.</dd>
+              </div>
+              <div>
+                <dt>5× and 9×</dt>
+                <dd>Embedding throughput while indexing, on a Tesla T4 against four CPU cores. DirectML on Windows processed about 90 messages a second versus 17 on CPU. The experimental NVIDIA worker processed about 155 versus 18 on CPU.</dd>
+              </div>
+            </dl>
+            <p>
+              The NVIDIA worker and GPU reranking are experimental and off until you
+              <a href="/configuration/">turn them on</a>.
+            </p>
+          </div>
+        </details>
       </div>
-      <div>
-        <dt><b data-count="5">5</b>×</dt>
-        <dd>faster indexing on a Windows graphics card</dd>
-      </div>
-      <div>
-        <dt><b data-count="9">9</b>×</dt>
-        <dd>faster indexing with an NVIDIA worker</dd>
-      </div>
-    </dl>
-    <ul class="light">
-      <li>No GPU needed</li>
-      <li>Searching by words loads no models</li>
-      <li>No cloud service behind it</li>
-    </ul>
-    <details class="measured">
-      <summary>How these were measured</summary>
-      <p>
-        66 ms: an exact phrase, start to finish, across 1,137 chats and 103,000 searchable messages
-        on one Linux machine; a common word took up to a second there. 20 MB: idle servers on that
-        machine held 16 to 23 MB each, and 220 to 330 MB once they had loaded the models for
-        searching by meaning. GPU figures: one Tesla T4 against four CPU cores. On Windows, indexing
-        uses a DirectX 12 graphics card by itself, as it uses the GPU on Apple silicon. The NVIDIA
-        worker, and reranking on a GPU (30 to 130 ms a search in that test, against 0.5 to 2 s), are
-        experimental and off until you <a href="/configuration/">turn them on</a>.
-      </p>
-    </details>
-    </div>
     </div>
   </section>
 
-  <section class="scene privacy" data-steps="2" aria-labelledby="welcome-privacy">
+  <section class="scene" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
     <div class="stage">
-    <Fragment set:html={privacyArt} />
-    <div class="head">
-      <span class="eyebrow">Privacy</span>
-      <h2 id="welcome-privacy">Self-hosted, end to end. <span>No cloud. No account.</span></h2>
-    </div>
-    <div class="show wide">
-    <div class="steps swap">
-    <p class="blurb" data-step="0">
-      By default, Mash indexes and searches history on the machine where it was saved.
-      You choose whether to publish it to a shared index.
-    </p>
-    <ul class="trio" data-step="1" data-each>
-      <li>
-        <Fragment set:html={drawn.laptop} />
-        <h3>Runs on your machine</h3>
-        <p>Indexing and search work offline once the local search service is running.</p>
-      </li>
-      <li>
-        <Fragment set:html={drawn.server} />
-        <h3>Your own server</h3>
-        <p>To search across machines, they share through a Mash server you host yourself. There is no Mash cloud.</p>
-      </li>
-      <li>
-        <Fragment set:html={drawn.off} />
-        <h3>Off until you turn it on</h3>
-        <p>Sharing, remote workers and Mashy are each a choice you make.</p>
-      </li>
-      <li>
-        <Fragment set:html={drawn.masked} />
-        <h3>Credentials masked</h3>
-        <p>Mash masks recognisable keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
-      </li>
-    </ul>
-    </div>
-    <p class="links"><a href="/privacy/">How Mash handles your history ›</a></p>
-    </div>
+      <Fragment set:html={privacyArt} />
+      <div class="head">
+        <span class="eyebrow">Privacy</span>
+        <h2 id="welcome-privacy-title">Self-hosted, end to end. <span>No cloud. No account.</span></h2>
+      </div>
+      <div class="show">
+        <img class="scene-image" src="/welcome/welcome-privacy.png" width="760" height="363" decoding="async"
+          alt="History stays on this machine by default. If you choose to share, machines publish to a server you run. Credential masking is on by default, and sharing, remote workers, and Mashy are opt-in." />
+        <ol class="caps">
+          <li>Index and search on the machine where your chats were saved.</li>
+          <li>When you opt in to sharing, you choose which machines publish.</li>
+        </ol>
+        <p class="links"><a href="/privacy/">How Mash handles your history ›</a></p>
+      </div>
     </div>
   </section>
 
-  <section class="scene more" data-steps="1" aria-label="More about Mash">
+  <section class="scene more" aria-label="More about Mash">
     <div class="stage">
-    <div class="show wide">
-    <div class="tiles" data-step="0" data-each="0.22">
-    <article class="wide">
-      <Fragment set:html={drawn.plugin} />
-      <h3>Context, before you ask.</h3>
-      <p>
-        A <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> retrieves what you decided and
-        discussed into every session.
-      </p>
-    </article>
-    <article class="wide">
-      <Fragment set:html={drawn.hybrid} />
-      <h3>RAG over your own history.</h3>
-      <p>
-        BM25 and embeddings, fused, then <a href="/search/">reranked by a cross-encoder</a>. On
-        Qdrant.
-      </p>
-    </article>
-    <article>
-      <span class="ico os">
-        <Icon name="apple" />
-        <Icon name="linux" />
-        <Icon name="seti:windows" />
-      </span>
-      <h3>macOS. Linux. Windows.</h3>
-      <p>Wherever you work.</p>
-    </article>
-    <article>
-      <Fragment set:html={drawn.machines} />
-      <h3>Every machine.</h3>
-      <p>An optional <a href="/shared-index/">shared index</a>, on your own server.</p>
-    </article>
-    <article>
-      <Fragment set:html={drawn.export} />
-      <h3>Markdown. HTML. PDF.</h3>
-      <p>Export any chat.</p>
-    </article>
-    </div>
-    </div>
+      <div class="show">
+        <img class="scene-image" src="/welcome/welcome-features.png" width="760" height="331" decoding="async"
+          alt="The agent plugin brings earlier context into new sessions. Hybrid search combines words and meaning, sharing uses your own server, and chats export to Markdown, HTML, or PDF. Mash runs on macOS, Linux, and Windows." />
+        <p class="links">
+          <a href="/plugin/">Plugin for Claude Code, Codex and Copilot ›</a>
+          <a href="/search/">Hybrid search ›</a>
+          <a href="/shared-index/">Shared index ›</a>
+        </p>
+      </div>
     </div>
   </section>
 
-  <section class="scene rust" data-steps="1" aria-labelledby="welcome-rust">
+  <section class="scene" id="welcome-rust" aria-labelledby="welcome-rust-title">
     <div class="stage">
-    <Fragment set:html={ferrisArt} />
-    <div class="head">
-      <span class="eyebrow">Open source</span>
-      <h2 id="welcome-rust">Written with <b class="turn">&lt;3</b> in Rust.</h2>
-    </div>
-    <div class="show wide after" data-reveal>
-      <p class="blurb">
-        Mash is free and open source, under the MIT and Apache 2.0 licenses. Use it, read it, change
-        it, ship it. It is built in the open and driven by its community: ideas, issues and pull
-        requests are all welcome.
-      </p>
-      <p class="links">
-        <a href="https://github.com/mashium/mash">Read the source ›</a>
-        <a href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
-      </p>
-    </div>
+      <Fragment set:html={ferrisArt} />
+      <div class="head">
+        <span class="eyebrow">Open source</span>
+        <h2 id="welcome-rust-title">Written with <b class="turn">&lt;3</b> in Rust.</h2>
+      </div>
+      <div class="show">
+        <img class="scene-image" src="/welcome/welcome-rust.png" width="760" height="225" decoding="async"
+          alt="Ferris the crab beside the Mash repository name and its MIT and Apache 2.0 licenses." />
+        <p class="blurb">
+          Mash is free and open source under the MIT and Apache 2.0 licenses. Ideas, issues and pull
+          requests are welcome.
+        </p>
+        <p class="links">
+          <a href="https://github.com/mashium/mash">Read the source ›</a>
+          <a href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
+        </p>
+      </div>
     </div>
   </section>
 

@@ -2,8 +2,8 @@
  * Plays the welcome page as the reader scrolls, with GSAP.
  *
  * Each scene pins under the header and owns one timeline: its drawing is
- * drawn, its heading makes way for a panel, the panel's steps arrive one after
- * another, then the panel leaves and the drawing is undrawn. The scroll does
+ * drawn, its heading makes way for an illustration, the captions arrive one
+ * after another, then the illustration leaves and the drawing is undrawn. The scroll does
  * not scrub that timeline. It only says how far the scene should have got, and
  * the timeline plays there at its own pace, forwards or backwards, so a fast
  * scroll cannot skip anything.
@@ -20,7 +20,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { draw, measure, parts, type Scene, sceneIn } from "./welcome-scene";
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
-// A drawing may have no filled shapes and a tile no icon: empty targets are expected.
+// A scene may have no drawing, and a drawing may have no filled shapes.
 gsap.config({ nullTargetWarn: false });
 
 /** How much faster than written a timeline runs backwards, and when kept. */
@@ -47,10 +47,8 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   const stop = new AbortController();
   let scenes: Scene[] = [];
   const backdrops: Backdrop[] = [];
-  /** Tiles and facts outside the scenes that have not come into view yet. */
+  /** Items outside the scenes that have not come into view yet. */
   let waiting: HTMLElement[] = [];
-  /** Text this script rewrites, to put back as it was. */
-  const rewritten = new Map<HTMLElement, string>();
   /** The scene being kept on screen to finish, if any. */
   let keeper: Scene | null = null;
   /** Scenes passed by the reader that still have to finish in order. */
@@ -141,9 +139,8 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       });
     }
 
-    // Tiles and facts rise in as they come into view, each a little after its
-    // neighbour, and their small icons draw themselves. Not while a kept scene
-    // covers the screen: they wait until the reader can see them.
+    // The agent marks and closing text rise in once their part of the page
+    // is visible and the reader can see past any kept scene.
     if (!keeper && waiting.length > 0) {
       const arrived = waiting.filter((item) => {
         const box = item.getBoundingClientRect();
@@ -154,16 +151,6 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
         item.classList.add("seen");
         const delay = i * 0.14;
         gsap.to(item, { autoAlpha: 1, y: 0, scale: 1, duration: 0.9, ease: "power3.out", delay });
-        const icon = item.querySelectorAll("svg.ico path");
-        gsap.to(icon, { autoAlpha: 1, duration: 0.12, delay: delay + 0.35 });
-        gsap.to(icon, { drawSVG: "100%", duration: 1, ease: "power2.inOut", delay: delay + 0.35 });
-        gsap.to(item.querySelectorAll(".ico.os svg"), {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.6,
-          delay: delay + 0.45,
-          stagger: 0.15,
-        });
       });
     }
 
@@ -244,14 +231,6 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   };
 
   const context = gsap.context(() => {
-    for (const el of root.querySelectorAll<HTMLElement>(
-      "[data-type], [data-words], [data-count]",
-    )) {
-      rewritten.set(el, el.textContent ?? "");
-    }
-    // What sits inside a scene is played by that scene's timeline, not by these.
-    const loose = <T extends Element>(found: Iterable<T>): T[] =>
-      [...found].filter((el) => !el.closest(".scene"));
     scenes = [...root.querySelectorAll<HTMLElement>(".scene")].flatMap((el, index) => {
       const scene = sceneIn(el, index);
       return scene ? [scene] : [];
@@ -280,11 +259,8 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       });
     }
 
-    // Tiles and facts outside the scenes start hidden; `place` brings them in.
-    waiting = loose(root.querySelectorAll<HTMLElement>("[data-reveal] > *"));
+    waiting = [...root.querySelectorAll<HTMLElement>("[data-reveal] > *")];
     gsap.set(waiting, { autoAlpha: 0, y: 32, scale: 0.97 });
-    gsap.set(loose(root.querySelectorAll("svg.ico path")), { drawSVG: "0%", autoAlpha: 0 });
-    gsap.set(loose(root.querySelectorAll(".ico.os svg")), { autoAlpha: 0, y: 6 });
   }, root);
 
   for (const scene of scenes) measure(scene);
@@ -330,14 +306,9 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       scene.el.classList.remove("tight");
       for (const name of ["--o", "--fit", "--lift"]) scene.el.style.removeProperty(name);
       scene.head?.style.removeProperty("--grow");
-      for (const pick of scene.el.querySelectorAll(".picked")) pick.classList.remove("picked");
     }
     for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);
     context.revert();
-    for (const [el, text] of rewritten) {
-      el.textContent = text;
-      el.classList.remove("caret");
-    }
     for (const item of root.querySelectorAll(".seen")) item.classList.remove("seen");
   };
 }
@@ -345,6 +316,13 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
 /** Starts the page; returns what stops it again. */
 export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () => void {
   const stop = new AbortController();
+  // Give every scene its final height before switching to the pinned layout.
+  // Keep the heights through font rebuilds so the browser can retain its anchor.
+  const sections = root.querySelectorAll<HTMLElement>(".scene");
+  for (const section of sections) {
+    const captions = section.querySelectorAll(".caps > li");
+    section.style.setProperty("--n", String(Math.max(1, captions.length)));
+  }
   root.classList.add("motion");
   let unbuild = build(root, hero);
   // Heights are measured into the timelines, so a new layout needs new ones.
@@ -369,5 +347,6 @@ export function mountWelcome(root: HTMLElement, hero: HTMLElement | null): () =>
     stop.abort();
     unbuild();
     root.classList.remove("motion");
+    for (const section of sections) section.style.removeProperty("--n");
   };
 }
