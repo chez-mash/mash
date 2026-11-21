@@ -25,6 +25,8 @@ tous les historiques que vous avez indexés, y compris ceux des autres agents.
 Si votre client prend en charge les serveurs MCP locaux via les flux d’entrée
 et de sortie standard, consultez la [configuration manuelle (en anglais)](../mcp.md#connect-another-mcp-client).
 
+<span id="if-a-chat-is-missing"></span>
+
 ## Si une conversation manque
 
 Lancez `mash init` pour voir quels agents Mash a détectés et quels historiques

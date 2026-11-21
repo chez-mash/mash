@@ -173,6 +173,6 @@ puede ejecutar `mash mcp`. Sigue el
 [ejemplo de configuración de MCP](../mcp.md#connect-another-mcp-client)
 e incluye las variables de entorno que necesites.
 
-[Solución de problemas de conexión](../troubleshooting.md)
+[Solución de problemas de conexión](troubleshooting.md#my-agent-cannot-find-mash)
 
 <!-- mash-docs-source: d890419b26152a4e78be6e843a0c4789881de03d39205a6b214101d802a2e9a2 -->

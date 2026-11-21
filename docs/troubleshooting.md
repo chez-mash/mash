@@ -112,12 +112,12 @@ endpoints must point to the same Qdrant 1.20+ instance. See
 `qdrant-failure` means Qdrant answered with an error. Read its output (above)
 for storage, credential or schema errors.
 
-Without Qdrant you can still list chats, read messages and export a backup.
-`mash index` saves your history before it needs Qdrant: it exits with
-`qdrant-unavailable` and says how many chats it saved, and `mash list-chats`
-and `mash view` read them. `mash init` changes nothing when Qdrant is down; to
-read chats first, run `mash init --no-index`, then `mash index`. Once Qdrant
-runs, run `mash index` again to make search current.
+You can still list chats, read messages and export a backup while Qdrant is
+down. If you are setting up Mash, choose **Save configuration only** in the
+wizard or run `mash init --no-index`. Then run `mash index` to save chats
+locally. It stops with `qdrant-unavailable` and reports how many chats it
+saved. Read them with `mash list-chats` and `mash view`. Once Qdrant is
+running, run `mash index` again to make search current.
 
 On native Windows, a Qdrant log mentioning `gridstore`, “path specified,” and
 `os error 3` can mean its data path is too long. Use the short absolute paths in
@@ -172,7 +172,7 @@ See [agent setup](agents.md).
 1. Check the [search mode](dashboard.md#choose-a-search-mode). In word
    search, all the words you enter must appear in the same message. Try one
    distinctive word you remember. For search by meaning, try a short question
-   in English. See [search in other languages](search.md#search-in-other-languages)
+   in English. See [search in other languages](search-languages.md)
    for text without spaces between words.
 2. If the dashboard shows filter tags, use **Clear filters** to retry the
    same search. If it opens the chat list, enter your search again. In

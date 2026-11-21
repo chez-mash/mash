@@ -47,8 +47,8 @@ mash dash
 2. 打开 **chats**，输入记得的关键词，例如报错文字或函数名，然后按回车。
 3. 打开一项结果，即可在对话中查看原始消息。
 
-如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径（英文）](../troubleshooting.md#mash-command-not-found)。
-如果找不到某条对话，请参阅[搜索无结果时该检查什么（英文）](../troubleshooting.md#search-returns-no-results)。
+如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径](troubleshooting.md#mash-command-not-found)。
+如果找不到某条对话，请参阅[搜索无结果时该检查什么](troubleshooting.md#search-returns-no-results)。
 参阅 [网页面板指南](dashboard.md#find-and-read-a-chat)，或了解如何
 [在终端中搜索](../search.md#your-first-search)。
 

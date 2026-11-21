@@ -8,7 +8,7 @@ Les versions précompilées de Mash incluent le tableau de bord. Si vous compile
 mash dash
 ```
 
-Ouvrez dans votre navigateur l’adresse affichée, généralement **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Une fois Mash configuré, la vue d’ensemble affiche les conversations et souvenirs récents. Laissez le terminal ouvert. Ctrl-C arrête le tableau de bord. Si la page ne se charge pas, [vérifiez le démarrage du tableau de bord (en anglais)](../troubleshooting.md#the-dashboard-doesnt-open).
+Ouvrez dans votre navigateur l’adresse affichée, généralement **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Une fois Mash configuré, la vue d’ensemble affiche les conversations et souvenirs récents. Laissez le terminal ouvert. Ctrl-C arrête le tableau de bord. Si la page ne se charge pas, [vérifiez le démarrage du tableau de bord](troubleshooting.md#the-dashboard-doesnt-open).
 
 Avec le [module Mash](../plugin.md), utilisez `/mash:dashboard` dans Claude Code ou demandez à votre agent d’ouvrir le tableau de bord.
 
@@ -56,7 +56,7 @@ Ouvrez **chats**, tapez un mot dont vous vous souvenez dans **Search your histor
 
 Sans requête, la page liste vos conversations. Les filtres par agent, machine, projet et date s’appliquent à la liste comme aux résultats de recherche. Un filtre modifié a une bordure en pointillés jusqu’à ce que vous choisissiez **Apply filters**. Les filtres appliqués apparaissent sous forme d’étiquettes dans le champ de recherche. Cliquez sur une étiquette pour la retirer.
 
-Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche. Pour aller plus loin, [voyez comment retrouver la conversation (en anglais)](../troubleshooting.md#search-returns-no-results).
+Si une recherche filtrée reste vide, choisissez **Clear filters** pour relancer la même recherche sur vos conversations. Si votre version revient à la liste, saisissez de nouveau la requête. Choisissez **Browse chats** pour ouvrir la liste avec les filtres actuels. Utilisez le bouton Précédent du navigateur pour revenir à la recherche. Pour aller plus loin, [voyez comment retrouver la conversation](troubleshooting.md#search-returns-no-results).
 
 Dans une conversation, vos messages sont à droite et les réponses de l’agent à gauche. Les appels d’outils et le raisonnement sont regroupés sur une ligne qui s’ouvre pour montrer chaque étape et sa sortie. Le panneau latéral liste vos demandes de la page en cours, les autres conversations du projet et les souvenirs tirés de celle-ci. **Copy session ID** copie l’identifiant pour reprendre la conversation dans son agent.
 

@@ -145,6 +145,45 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
   });
 }
 
+for (const [locale, lang, title] of [
+  ["es", "es", "Solución de problemas"],
+  ["fr", "fr", "Dépannage"],
+  ["zh-cn", "zh-CN", "故障排查"],
+]) {
+  test(`the ${locale} setup and search guides open troubleshooting in the same language`, async ({
+    page,
+  }) => {
+    const trouble = `/${locale}/troubleshooting/`;
+    const missing = `${trouble}#mash-command-not-found`;
+    const empty = `${trouble}#search-returns-no-results`;
+    const guide = page.locator(".sl-markdown-content");
+
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${missing}"]`).click();
+    await expect(page).toHaveURL(missing);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(page.locator("#mash-command-not-found")).toBeAttached();
+    await expect(guide.locator('pre[data-language="powershell"]')).toContainText("mash --version");
+
+    await page.goto(`/${locale}/dashboard/#find-and-read-a-chat`);
+    await guide.locator(`a[href="${empty}"]`).click();
+    await expect(page).toHaveURL(empty);
+    await expect(page.locator("#search-returns-no-results")).toBeAttached();
+    await expect(guide.getByText("Browse chats", { exact: true })).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: "mash list-chats --title-contains" }),
+    ).toBeVisible();
+
+    await guide.locator('a[href="#qdrant-connection-failed"]').click();
+    await expect(page).toHaveURL(`${trouble}#qdrant-connection-failed`);
+    await expect(guide.getByText("Save configuration only", { exact: true })).toBeVisible();
+    const systemd = `/${locale}/local-search/#linux-without-a-systemd-user-session`;
+    await guide.locator(`a[href="${systemd}"]`).click();
+    await expect(page).toHaveURL(systemd);
+  });
+}
+
 for (const [locale, lang, dashboardTitle] of [
   ["es", "es", "Usa el panel web de Mash"],
   ["fr", "fr", "Utiliser le tableau de bord de Mash"],
@@ -234,8 +273,10 @@ for (const locale of [
     await expect(page.locator(`dialog a[href^="/${locale.path}/privacy/"]`).first()).toBeVisible();
     await page.keyboard.press("Escape");
 
-    await page.locator(`nav.sidebar a[href="/${locale.path}/troubleshooting/"]`).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Troubleshooting");
+    await page.locator(`nav.sidebar a[href="/${locale.path}/upgrades/"]`).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Back up, restore, and upgrade",
+    );
     await expect(page.getByText(locale.fallback, { exact: true })).toBeVisible();
   });
 }

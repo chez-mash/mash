@@ -59,7 +59,7 @@ con la ruta completa, así que puedes usarlos antes de añadir el directorio
 a `PATH`. Usa `MASH_VERSION` para fijar una etiqueta publicada o
 `MASH_INSTALL_DIR` para elegir otro directorio. Los scripts dejan intacto el
 perfil de tu terminal. Si el comando `mash` no aparece, consulta
-[cómo encontrarlo (en inglés)](../troubleshooting.md#mash-command-not-found).
+[cómo encontrarlo](troubleshooting.md#mash-command-not-found).
 
 <span id="package-manager-alternatives"></span>
 

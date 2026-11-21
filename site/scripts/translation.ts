@@ -14,6 +14,7 @@ export const translationPages = [
   "quick-start",
   "installation",
   "local-search",
+  "troubleshooting",
   "privacy",
   "dashboard",
   "agents",
@@ -33,6 +34,7 @@ const sourceMarker = /^<!-- mash-docs-source: ([a-f0-9]{64}) -->$/m;
 const uiLabels = new Set([
   "Apply filters",
   "Ask Mashy",
+  "Browse chats",
   "Check search service again",
   "Clear filters",
   "Copy",
@@ -48,6 +50,7 @@ const uiLabels = new Set([
   "Next page",
   "Retry",
   "Save as PDF",
+  "Save configuration only",
   "See all",
   "Set up and index",
   "Set up and index without connecting agents",

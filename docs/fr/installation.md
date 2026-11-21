@@ -60,7 +60,7 @@ suivantes avec le chemin complet de l’exécutable. Vous pouvez ainsi les
 utiliser avant d’ajouter le dossier à `PATH`. Définissez `MASH_VERSION` pour
 choisir une version publiée ou `MASH_INSTALL_DIR` pour choisir un autre
 dossier. Les scripts conservent votre profil de terminal. Si le terminal ne
-trouve pas `mash`, consultez [la procédure pour retrouver la commande (en anglais)](../troubleshooting.md#mash-command-not-found).
+trouve pas `mash`, consultez [la procédure pour retrouver la commande](troubleshooting.md#mash-command-not-found).
 
 <span id="package-manager-alternatives"></span>
 

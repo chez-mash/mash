@@ -24,6 +24,8 @@ historiales que hayas indexado, incluidas las conversaciones con otros agentes.
 Si tu cliente admite servidores MCP locales por entrada y salida estándar,
 consulta [cómo conectarlo manualmente (en inglés)](../mcp.md#connect-another-mcp-client).
 
+<span id="if-a-chat-is-missing"></span>
+
 ## Si falta una conversación
 
 Ejecuta `mash init` para revisar qué agentes encontró Mash y qué historiales

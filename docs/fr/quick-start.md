@@ -67,8 +67,8 @@ mash dash
 3. Ouvrez un résultat pour lire le message original dans sa conversation.
 
 Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pendant l’installation.
-Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes (en anglais)](../troubleshooting.md#mash-command-not-found).
-Si une conversation manque, consultez [les vérifications pour une recherche sans résultat (en anglais)](../troubleshooting.md#search-returns-no-results).
+Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes](troubleshooting.md#mash-command-not-found).
+Si une conversation manque, consultez [les vérifications pour une recherche sans résultat](troubleshooting.md#search-returns-no-results).
 Consultez le [guide du tableau de bord](dashboard.md#find-and-read-a-chat) ou apprenez à
 [chercher depuis le terminal](../search.md#your-first-search).
 

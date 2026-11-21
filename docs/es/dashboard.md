@@ -8,7 +8,7 @@ Las versiones precompiladas de Mash incluyen el panel web. Si compilas Mash, sig
 mash dash
 ```
 
-Abre en el navegador la dirección que muestra, normalmente **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Una vez configurado Mash, la vista general muestra tus conversaciones y recuerdos recientes. Deja abierta la terminal. Ctrl-C detiene el panel. Si la página no carga, [comprueba cómo se inicia el panel (en inglés)](../troubleshooting.md#the-dashboard-doesnt-open).
+Abre en el navegador la dirección que muestra, normalmente **[http://127.0.0.1:8790](http://127.0.0.1:8790)**. Una vez configurado Mash, la vista general muestra tus conversaciones y recuerdos recientes. Deja abierta la terminal. Ctrl-C detiene el panel. Si la página no carga, [comprueba cómo se inicia el panel](troubleshooting.md#the-dashboard-doesnt-open).
 
 Con el [complemento](../plugin.md) instalado, usa `/mash:dashboard` en Claude Code o pídele a tu agente que abra el panel web de Mash.
 
@@ -56,7 +56,7 @@ Abre **chats**, escribe una palabra que recuerdes en **Search your history** y p
 
 Si el cuadro está vacío, verás la lista de conversaciones. Puedes acotar la lista o los resultados por agente, equipo, proyecto y fecha. Un filtro que has cambiado aparece con un borde discontinuo hasta que eliges **Apply filters**. Los filtros aplicados aparecen como etiquetas en el cuadro de búsqueda. Elige una etiqueta para quitarla.
 
-Si una búsqueda con filtros queda vacía, elige **Clear filters** para repetir la misma consulta sin ellos. Si tu versión vuelve a la lista de conversaciones, introduce la consulta de nuevo. Elige **Browse chats** para abrir la lista con los filtros actuales. Usa el botón Atrás del navegador para volver a la búsqueda. Para más ayuda, consulta [cómo encontrar la conversación que falta (en inglés)](../troubleshooting.md#search-returns-no-results).
+Si una búsqueda con filtros queda vacía, elige **Clear filters** para repetir la misma consulta sin ellos. Si tu versión vuelve a la lista de conversaciones, introduce la consulta de nuevo. Elige **Browse chats** para abrir la lista con los filtros actuales. Usa el botón Atrás del navegador para volver a la búsqueda. Para más ayuda, consulta [cómo encontrar la conversación que falta](troubleshooting.md#search-returns-no-results).
 
 La conversación muestra tus mensajes a la derecha y las respuestas del agente a la izquierda. Las llamadas a herramientas y el razonamiento se agrupan en una línea. Ábrela para ver cada paso y su resultado. El panel lateral muestra tus peticiones de la página actual, otras conversaciones del proyecto y los recuerdos guardados a partir de esta. **Copy session ID** copia el identificador para que puedas retomar la conversación en su agente.
 

@@ -22,6 +22,8 @@
 如果你的客户端支持通过标准输入和输出来运行本地 MCP 服务器，请参阅
 [手动连接指南（英文）](../mcp.md#connect-another-mcp-client)。
 
+<span id="if-a-chat-is-missing"></span>
+
 ## 找不到某段对话
 
 运行 `mash init`，查看 Mash 检测到了哪些代理、将读取哪些历史。如果已经设置过 Mash，请选择

@@ -10,6 +10,7 @@ Mash 是开源软件，在你自己的电脑上运行。默认在本机建立索
 - [在网页面板中查找和阅读对话](dashboard.md)。
 - [查看支持的代理和对话历史](supported-agents.md)。
 - [了解历史记录存放在哪里](privacy.md)。
+- [排查安装和搜索问题](troubleshooting.md)。
 - [用示例对话试用演示](https://getmash.io/demo/)。
 
 [完整英文文档](../README.md)

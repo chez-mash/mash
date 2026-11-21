@@ -140,6 +140,6 @@ copilot plugin uninstall mash@mash
 任何支持标准输入输出（stdio）MCP 服务器的客户端都可以运行 `mash mcp`。
 请参照 [MCP 配置示例](../mcp.md#connect-another-mcp-client)，并按需设置环境变量。
 
-[解决常见连接问题](../troubleshooting.md)
+[解决常见连接问题](troubleshooting.md#my-agent-cannot-find-mash)
 
 <!-- mash-docs-source: d890419b26152a4e78be6e843a0c4789881de03d39205a6b214101d802a2e9a2 -->

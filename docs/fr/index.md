@@ -14,6 +14,7 @@ nécessaire.
 - [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).
 - [Découvrez où votre historique est conservé](privacy.md).
+- [Résolvez les problèmes d’installation et de recherche](troubleshooting.md).
 - [Essayez la démo avec des conversations d’exemple](https://getmash.io/demo/).
 
 [Documentation complète en anglais](../README.md)

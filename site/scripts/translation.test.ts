@@ -119,6 +119,27 @@ describe("documentation translation drafts", () => {
     expect(recordedTranslationRevision(output)).toBe(source.revision);
   });
 
+  it("drafts troubleshooting with exact diagnosis commands and visible choices", async () => {
+    const [source, guides] = await Promise.all([
+      readTranslationSource("troubleshooting"),
+      readLocaleGuides("fr"),
+    ]);
+    const draft = prepareTranslation(source, "docs/fr/troubleshooting.md", guides);
+    for (const label of ["Browse chats", "Clear filters", "Save configuration only"]) {
+      expect(draft.passages).not.toContain(label);
+    }
+    const output = draft.render({
+      translations: draft.passages.map((passage) =>
+        passage === "Search returns no results" ? "La recherche ne donne aucun résultat" : passage,
+      ),
+    });
+    expect(output).toContain('<span id="search-returns-no-results"></span>');
+    expect(output).toContain("mash status --installation --agent claude-code --probe");
+    expect(output).toContain("(search-languages.md)");
+    expect(output).toContain("(supported-agents.md#if-a-chat-is-missing)");
+    expect(recordedTranslationRevision(output)).toBe(source.revision);
+  });
+
   it("drafts the support guide while keeping the setup wizard label and source revision", async () => {
     const support = await readTranslationSource("supported-agents");
     const draft = prepareTranslation(support, "docs/es/supported-agents.md");
