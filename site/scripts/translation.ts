@@ -18,6 +18,7 @@ export const translationPages = [
   "troubleshooting",
   "privacy",
   "dashboard",
+  "search",
   "pick-up-work",
   "agents",
   "plugin",

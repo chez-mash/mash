@@ -11,6 +11,7 @@ las búsquedas se ejecutan en tu equipo y no necesitas una cuenta de Mash.
 - [Revisa los instaladores y consulta cómo desinstalar Mash](installation.md).
 - [Instala con un gestor de paquetes o compila desde el código fuente](install-methods.md).
 - [Busca y lee conversaciones en el panel web](dashboard.md).
+- [Busca conversaciones desde la terminal](search.md).
 - [Retoma un trabajo anterior o deja notas para la próxima sesión](pick-up-work.md).
 - [Consulta qué agentes e historiales admite Mash](supported-agents.md).
 - [Configura el complemento de Mash en tu agente](plugin.md).

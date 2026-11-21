@@ -2,7 +2,7 @@
 
 Recherchez vos conversations enregistrées dans le
 [tableau de bord web](dashboard.md) avec `mash dash` ou dans le
-[terminal](../search.md). Vous pouvez utiliser les deux pour tous les
+[terminal](search.md). Vous pouvez utiliser les deux pour tous les
 historiques du tableau.
 
 Vous pouvez aussi connecter un agent et lui demander de retrouver des travaux

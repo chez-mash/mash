@@ -113,7 +113,7 @@ mash --version
 ```
 
 Después de compilar, [inicia la búsqueda local e indexa tus conversaciones](installation.md#start-the-local-search-service).
-Luego [haz tu primera búsqueda en la terminal (guía en inglés)](../search.md#your-first-search).
+Luego [haz tu primera búsqueda en la terminal](search.md#your-first-search).
 
 Si la terminal no encuentra Mash después de la compilación, consulta
 [cómo añadir el directorio de ejecutables de Cargo a la ruta de comandos](troubleshooting.md#mash-command-not-found).

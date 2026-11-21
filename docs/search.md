@@ -9,32 +9,26 @@ Use the [dashboard to find and read a chat](dashboard.md#find-and-read-a-chat),
 or [ask a connected agent](agents.md#try-it). The examples below use the
 terminal.
 
-There are two ways to search, chosen with `--intent`:
-
-- **Word search** (`--intent exact-mention`, the default) finds messages
-  containing every word you type, in any order. It needs no models.
-- **[Search by meaning](#search-by-meaning)** (`--intent related-discussion`)
-  finds messages about the same idea even when the wording differs. It needs
-  the optional semantic models and takes about a second longer.
-
-Without `--intent`, Mash searches by word unless your configuration sets
-another [default](configuration.md#search-defaults).
-
-## Search in other languages
-
-Use word search with the spelling from the original chat. For examples
-and tips for Chinese or Japanese, see [searching chats in other languages](search-languages.md).
-Search by meaning uses English models and works best for English chat text.
-
 ## Your first search
 
-Search for the distinctive words, filename, or identifier you remember:
+After [setting up local search](installation.md#connect-your-histories), try a
+distinctive word, filename, or identifier from a chat. This example limits the
+output to three results.
 
 ```bash
-mash search 'authentication token'
+mash search 'authentication token' --limit 3
 ```
 
-Results are JSON, grouped by chat, best match first. Abbreviated:
+The JSON groups results by chat, best match first. Look for the `title` of the
+chat and the `snippet` of the matching message. Copy that message’s
+`lookup.view.id` and use it in place of `MESSAGE_ID` to read it in context.
+
+```bash
+mash view MESSAGE_ID --context 3
+```
+
+<details>
+<summary>Example search result</summary>
 
 ```json
 {
@@ -53,28 +47,16 @@ Results are JSON, grouped by chat, best match first. Abbreviated:
       ]
     }
   ],
-  "next_offset": 20
+  "next_offset": null
 }
 ```
 
-Each result is one chat: `title`, `provider` (the agent), and `project` (the
-directory it ran in) identify it. Each entry in `matches` is a message in that
-chat, with a `snippet` of the matching text and the message ID at
-`lookup.view.id`. Pass that ID to `mash view` to read the full message and
-its neighbours:
-
-```bash
-mash view 709e029507a46e56c1e1cf40 --context 3
-```
+</details>
 
 Search reads the existing index and does not refresh it. To find a
 conversation you just had, run `mash index` first.
 
 ## Read the original messages
-
-```bash
-mash view MESSAGE_ID --context 3
-```
 
 `MESSAGE_ID` is a `lookup.view.id` from a search or `list-chats` result.
 `--context 3` adds up to three messages before and after it. An ID that
@@ -92,6 +74,12 @@ node (machine) that published it. Pass it with `--shared`:
 ```bash
 mash view MESSAGE_ID --shared NODE_ID --context 3
 ```
+
+## Search in other languages
+
+Use word search with the spelling from the original chat. For examples
+and tips for Chinese or Japanese, see [searching chats in other languages](search-languages.md).
+Search by meaning uses English models and works best for English chat text.
 
 ## Find a chat by title
 
@@ -143,6 +131,10 @@ timestamp. `--after` includes the boundary; `--before` excludes it. On
 activity.
 
 ## Search by meaning
+
+Mash searches by word without any models by default. Pass `--intent exact-mention`
+to choose word search explicitly if your configuration sets a different
+[default](configuration.md#search-defaults).
 
 Once [semantic search is enabled](indexing.md#enable-semantic-search), describe
 what you remember in your own words:

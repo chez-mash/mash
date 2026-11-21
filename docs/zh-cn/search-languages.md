@@ -19,7 +19,7 @@ mash search '認証トークンの更新手順を見直した' --intent exact-me
 ```
 
 如果记得部分**对话标题**，可以直接搜索那段文字。标题搜索能找到连续字符中间的片段。
-标题通常取自对话的第一条消息。[如何打开搜索结果（英文）](../search.md#find-a-chat-by-title)
+标题通常取自对话的第一条消息。[如何打开搜索结果](search.md#find-a-chat-by-title)
 
 ```sh
 mash list-chats --title-contains '身份验证'

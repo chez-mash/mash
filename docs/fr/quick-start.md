@@ -78,7 +78,7 @@ Si votre terminal ne trouve pas `mash`, utilisez le chemin complet affiché pend
 Vous pouvez aussi [ajouter Mash au chemin de recherche des commandes](troubleshooting.md#mash-command-not-found).
 Si une conversation manque, consultez [les vérifications pour une recherche sans résultat](troubleshooting.md#search-returns-no-results).
 Consultez le [guide du tableau de bord](dashboard.md#find-and-read-a-chat) ou apprenez à
-[chercher depuis le terminal](../search.md#your-first-search).
+[chercher depuis le terminal](search.md#your-first-search).
 
 **Cherchez depuis un agent.** Redémarrez les agents que vous avez connectés. Dans Codex, vous pouvez demander « Utilise Mash pour retrouver ce que nous avons décidé sur l’authentification dans Claude Code. Montre-moi le message qui explique la décision. »
 [Vérifiez la connexion de l’agent](agents.md#confirm-the-connection) si Mash n’est pas accessible.

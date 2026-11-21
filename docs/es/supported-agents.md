@@ -1,7 +1,7 @@
 # Agentes compatibles
 
 Busca tus conversaciones guardadas en el [panel web](dashboard.md) con
-`mash dash` o desde el [terminal](../search.md). Ambas opciones funcionan
+`mash dash` o desde el [terminal](search.md). Ambas opciones funcionan
 con todos los historiales de la tabla.
 
 También puedes conectar un agente para pedirle que busque trabajos anteriores.

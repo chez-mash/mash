@@ -13,6 +13,7 @@ nécessaire.
 - [Vérifiez les téléchargements et consultez la procédure de désinstallation](installation.md).
 - [Installez Mash avec un gestionnaire de paquets ou compilez-le depuis le code source](install-methods.md).
 - [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
+- [Recherchez des conversations depuis le terminal](search.md).
 - [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).
 - [Configurez le module Mash dans votre agent](plugin.md).

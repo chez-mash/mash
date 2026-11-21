@@ -72,6 +72,33 @@ for (const [locale, lang, installationTitle] of [
 }
 
 for (const [locale, lang, title] of [
+  ["es", "es", "Busca conversaciones con Mash"],
+  ["fr", "fr", "Rechercher des conversations avec Mash"],
+  ["zh-cn", "zh-CN", "用 Mash 搜索对话"],
+]) {
+  test(`the ${locale} first terminal search leads to its original message`, async ({ page }) => {
+    const search = `/${locale}/search/#your-first-search`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${search}"]`).click();
+    await expect(page).toHaveURL(search);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(guide.locator("#your-first-search")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: "mash search 'authentication token' --limit 3" }),
+    ).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: /^mash view MESSAGE_ID --context 3$/ }),
+    ).toBeVisible();
+    const example = guide.locator("details").filter({ hasText: '"next_offset": null' });
+    await expect(example.locator("pre")).toBeHidden();
+    await example.locator("summary").click();
+    await expect(example.locator("pre")).toBeVisible();
+  });
+}
+
+for (const [locale, lang, title] of [
   ["es", "es", "Otras formas de instalar Mash"],
   ["fr", "fr", "Autres façons d’installer Mash"],
   ["zh-cn", "zh-CN", "Mash 的其他安装方式"],

@@ -83,7 +83,7 @@ Si el terminal no encuentra `mash`, usa la ruta completa que muestra el instalad
 También puedes [añadir Mash a la ruta de comandos](troubleshooting.md#mash-command-not-found).
 Si no aparece una conversación, consulta [qué hacer cuando no hay resultados](troubleshooting.md#search-returns-no-results).
 Consulta la [guía del panel web](dashboard.md#find-and-read-a-chat) o
-[busca desde el terminal (en inglés)](../search.md#your-first-search).
+[busca desde el terminal](search.md#your-first-search).
 
 **Busca desde un agente.** Reinicia los agentes que conectaste. Por ejemplo,
 puedes pedirle a Codex «Usa Mash para buscar qué decidimos sobre la

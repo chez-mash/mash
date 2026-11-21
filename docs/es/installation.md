@@ -169,7 +169,7 @@ Si instalaste el panel, ejecuta `mash dash` y abre la dirección que muestra.
 En **chats**, busca una palabra que recuerdes de una conversación anterior y
 abre un resultado para leer el mensaje original.
 
-También puedes [buscar en la terminal (en inglés)](../search.md#your-first-search)
+También puedes [buscar en la terminal](search.md#your-first-search)
 o [pedirle a un agente conectado que busque](agents.md#try-it). Si falta una
 conversación antigua, aprende a [incluir más historial (en inglés)](../indexing.md#add-older-history).
 

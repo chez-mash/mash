@@ -171,7 +171,7 @@ Si votre installation comprend le tableau de bord, lancez `mash dash` et
 ouvrez l’adresse affichée. Dans **chats**, saisissez un mot dont vous vous
 souvenez et ouvrez un résultat pour lire le message d’origine.
 
-Vous pouvez aussi [chercher dans le terminal (en anglais)](../search.md#your-first-search)
+Vous pouvez aussi [chercher dans le terminal](search.md#your-first-search)
 ou [demander à un agent connecté](agents.md#try-it). Si une ancienne
 conversation manque, [élargissez la période indexée (en anglais)](../indexing.md#add-older-history).
 

@@ -25,7 +25,7 @@ mash search '認証トークンの更新手順を見直した' --intent exact-me
 Si recuerdas parte del **título**, busca ese fragmento directamente. Esta
 búsqueda puede encontrar texto en medio de una secuencia de caracteres.
 El título suele empezar con el primer mensaje.
-[Cómo abrir un resultado (en inglés)](../search.md#find-a-chat-by-title)
+[Cómo abrir un resultado](search.md#find-a-chat-by-title)
 
 ```sh
 mash list-chats --title-contains '身份验证'

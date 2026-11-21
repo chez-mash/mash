@@ -70,7 +70,7 @@ mash dash
 
 提交搜索后，在筛选项旁找到 **search: default**。结果返回后，标签会显示 **default (words)** 或 **default (meaning)**。打开菜单，选择 **words** 或 **meaning**，然后点击 **Apply filters** 重新搜索。**words** 会匹配对话中的词，**meaning** 依赖[可选模型](../indexing.md#enable-semantic-search)，接收英文查询。翻页时会沿用当前查询选择的模式。重新输入查询时会使用[默认模式](../configuration.md#search-defaults)。
 
-如果你的面板没有此菜单，可以用 [`mash search --intent`](../search.md)选择模式。
+如果你的面板没有此菜单，可以用 [`mash search --intent`](search.md)选择模式。
 
 <span id="inspect-conversation-records"></span>
 

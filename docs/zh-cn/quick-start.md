@@ -57,7 +57,7 @@ mash dash
 如果终端找不到 `mash`，请使用安装时显示的完整路径。你也可以[将 Mash 添加到命令搜索路径](troubleshooting.md#mash-command-not-found)。
 如果找不到某条对话，请参阅[搜索无结果时该检查什么](troubleshooting.md#search-returns-no-results)。
 参阅 [网页面板指南](dashboard.md#find-and-read-a-chat)，或了解如何
-[在终端中搜索](../search.md#your-first-search)。
+[在终端中搜索](search.md#your-first-search)。
 
 **让代理帮你搜索。** 重新启动在设置时连接的代理。例如，可以对 Codex 说：“请用 Mash 找出我们在 Claude Code 中对身份验证做过什么决定，并给我看作为依据的原始消息。”
 [检查代理连接](agents.md#confirm-the-connection)，确认代理能找到 Mash。

@@ -71,7 +71,7 @@ Las vistas de conversaciones y recuerdos son de solo lectura.
 
 Después de buscar, localiza **search: default** junto a los filtros. Al llegar los resultados, la etiqueta muestra **default (words)** o **default (meaning)**. Abre el menú, elige **words** o **meaning** y selecciona **Apply filters** para repetir la consulta. **words** busca términos de la conversación. **meaning** usa [modelos opcionales](../indexing.md#enable-semantic-search) y recibe consultas en inglés. La elección se mantiene al pasar de página. Una nueva consulta vuelve al [modo predeterminado](../configuration.md#search-defaults).
 
-Si tu panel no muestra el menú, elige el modo con [`mash search --intent`](../search.md).
+Si tu panel no muestra el menú, elige el modo con [`mash search --intent`](search.md).
 
 <span id="inspect-conversation-records"></span>
 

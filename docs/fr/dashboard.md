@@ -71,7 +71,7 @@ Les vues des conversations et des souvenirs sont en lecture seule.
 
 Après une recherche, repérez **search: default** près des filtres. À l’arrivée des résultats, le libellé affiche **default (words)** ou **default (meaning)**. Ouvrez le menu, choisissez **words** ou **meaning**, puis **Apply filters** pour relancer la recherche. **words** cherche les termes de la conversation. **meaning** utilise des [modèles facultatifs](../indexing.md#enable-semantic-search) et accepte les requêtes en anglais. Le choix reste actif sur les différentes pages de résultats. Une nouvelle requête reprend le [mode par défaut](../configuration.md#search-defaults).
 
-Si le tableau de bord n’affiche pas le menu, utilisez [`mash search --intent`](../search.md).
+Si le tableau de bord n’affiche pas le menu, utilisez [`mash search --intent`](search.md).
 
 <span id="inspect-conversation-records"></span>
 

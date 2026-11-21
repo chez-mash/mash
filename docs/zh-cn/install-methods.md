@@ -109,7 +109,7 @@ mash --version
 ```
 
 构建完成后，[启动本地搜索并为对话建立索引](installation.md#start-the-local-search-service)。
-然后[在终端中进行第一次搜索（英文）](../search.md#your-first-search)。
+然后[在终端中进行第一次搜索](search.md#your-first-search)。
 
 如果构建后终端找不到 Mash，请参阅
 [如何将 Cargo 的可执行文件目录加入命令搜索路径](troubleshooting.md#mash-command-not-found)。
