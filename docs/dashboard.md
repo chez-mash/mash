@@ -109,11 +109,12 @@ choice is remembered in that browser.
 
 ## Find and read a chat
 
-Open **chats** and type in the search box to search what was said. Without a
-query the page lists chats. Narrow either with the chips for agent, machine,
-project and date. A changed chip is a draft, shown with a dashed border, until
-you choose **Apply filters**. Applied filters appear as tags in the search box;
-choose one to remove it.
+Open **chats**, type a word you remember into **Search your history**, and
+press Enter. Open a result to jump to the matching message in its chat.
+Without a query, the page lists your chats. Narrow either list with the chips
+for agent, machine, project and date. A changed chip has a dashed border until
+you choose **Apply filters**. Applied filters appear as tags in the search box.
+Choose a tag to remove it.
 
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see

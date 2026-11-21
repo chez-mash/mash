@@ -6,26 +6,32 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 
 [Primeros pasos en español](es/index.md)
 
-Start on one machine: install Mash and local Qdrant, connect your histories,
-then search. Multi-machine sharing is an optional extension to that setup.
-
 ## What would you like to do?
 
-| Task | Guide |
-| --- | --- |
-| Install Mash and connect my histories | [Installation](installation.md) |
-| Find a chat or read the messages behind a result | [Introduction to Mash search](search.md) |
-| Ask Claude Code, Codex or Copilot about past work | [Use Mash with your agent](agents.md) |
-| See what the agent plugin adds: skills, commands and hooks | [The Mash plugin](plugin.md) |
-| Save decisions, preferences and facts | [Conversation records](records.md) |
-| Browse chats and records or download a transcript | [Navigating the dashboard](dashboard.md) |
-| Check and manage services across machines | [Services](services.md) |
-| Refresh new chats or keep watching for changes | [Keep history up to date](synchronization.md) |
-| Include older history or enable semantic search | [Indexing and models](indexing.md) |
-| Optionally share history across my machines | [Multi-machine setup](shared-index.md) |
-| Back up, restore, or upgrade an index | [Upgrades and backups](upgrades.md) |
-| Remove a chat or understand what is shared | [Privacy](privacy.md) |
-| Fix empty results, setup errors, or stale history | [Troubleshooting](troubleshooting.md) |
+### Start here
+
+- [Install Mash and choose which histories to read](installation.md)
+- [See where your history is stored and what stays private](privacy.md)
+
+### Find past work
+
+- [Find chats in the dashboard and download transcripts](dashboard.md)
+- [Search from the terminal](search.md#your-first-search)
+- [Save decisions and revisit the messages behind them](records.md)
+
+### Use Mash with agents
+
+- [Connect and use Mash from Claude Code, Codex or Copilot](agents.md)
+- [Use the plugin's skills, commands and hooks](plugin.md)
+
+### Manage Mash
+
+- [Fix setup errors, empty results or stale history](troubleshooting.md)
+- [Keep new chats searchable](synchronization.md)
+- [Include older history or search by meaning](indexing.md)
+- [Search history across your machines](shared-index.md)
+- [Upgrade Mash, back up history or restore it](upgrades.md)
+- [Check and manage services](services.md)
 
 ## Reference
 

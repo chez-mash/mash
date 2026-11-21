@@ -6,6 +6,10 @@ on your other machines once you set up a [shared index](shared-index.md). It
 searches what you and the agent wrote; tool calls and their output are kept
 for reading but are not searched.
 
+Use the [dashboard to find and read a chat](dashboard.md#find-and-read-a-chat),
+or [ask a connected agent](agents.md#try-it). The examples below use the
+terminal.
+
 There are two ways to search, chosen with `--intent`:
 
 - **Word search** (`--intent exact-mention`, the default) finds messages
@@ -60,10 +64,6 @@ mash view 709e029507a46e56c1e1cf40 --context 3
 
 Search reads the existing index and does not refresh it. To find a
 conversation you just had, run `mash index` first.
-
-Prefer a visual view? Use the [dashboard](dashboard.md). Inside an agent, ask
-“Mash, find our earlier discussion about authentication”; see
-[Use Mash with your agent](agents.md).
 
 ## Read the original messages
 

@@ -55,21 +55,23 @@ También puedes [usar el asistente del panel local (en inglés)](../dashboard.md
 
 ## Encuentra una conversación anterior
 
-Sustituye `migración` por una palabra, un código de error o un nombre de
-función que recuerdes de una conversación anterior.
+Cuando el asistente indique que la búsqueda está lista, inicia el panel local
+y deja el terminal abierto.
 
 ```sh
-mash search migración
+mash dash
 ```
 
-Si `mash` aún no está en tu `PATH`, usa la ruta que muestra el instalador.
-Para abrir el mensaje, pasa el `lookup.view.id` del resultado a
-`mash view MESSAGE_ID --context 3`. En el panel, busca el mismo término y
-abre el resultado.
+1. Abre en el navegador la dirección que muestra el comando, normalmente [http://127.0.0.1:8790](http://127.0.0.1:8790).
+2. Entra en **chats**, escribe una palabra, un código de error o el nombre de una función que recuerdes y pulsa Intro.
+3. Abre un resultado para ver el mensaje original en su conversación.
 
-Reinicia los agentes que conectaste. Por ejemplo, puedes pedirle a Codex
-«Usa Mash para buscar qué decidimos sobre la autenticación en Claude Code y
-muéstrame el mensaje original».
+Si el terminal no encuentra `mash`, usa la ruta completa que muestra el instalador.
+También puedes [buscar desde el terminal (en inglés)](../search.md#your-first-search).
+
+**Busca desde un agente.** Reinicia los agentes que conectaste. Por ejemplo,
+puedes pedirle a Codex «Usa Mash para buscar qué decidimos sobre la
+autenticación en Claude Code y muéstrame el mensaje original».
 
 Los menús de Mash están en inglés. La búsqueda por significado usa modelos
 opcionales y, por ahora, requiere consultas en inglés.

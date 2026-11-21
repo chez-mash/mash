@@ -82,23 +82,27 @@ and index** when you’re ready. For WSL without systemd, a search service you
 already run, or a binary-only install, follow the [installation guide](docs/installation.md).
 You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
-## Try it
+<span id="try-it"></span>
 
-Pick a distinctive word from an older chat, such as an error or function name.
-Replace `migration` with that word.
+## Find your first chat
+
+When setup says search is ready, start the dashboard and leave this terminal open.
 
 ```bash
-mash search migration
+mash dash
 ```
 
-If `mash` isn’t on your `PATH` yet, use the installed path shown during setup.
-Copy the `lookup.view.id` from a matching result and open it with
-`mash view MESSAGE_ID --context 3`. In the [dashboard](docs/dashboard.md),
-search for the word and click the result to open the conversation.
+1. Open the address it prints in your browser, usually [http://127.0.0.1:8790](http://127.0.0.1:8790).
+2. Open **chats**, type a word you remember, such as an error or function name, and press Enter.
+3. Open a result to see the original message in its conversation.
 
-Restart any agent you connected, then give it a real task. For example, in
-Codex, ask “Use Mash to find what we decided about authentication in Claude
-Code. Show me the message behind the answer.”
+If your terminal can’t find `mash`, use the full path shown during setup.
+See the [dashboard guide](docs/dashboard.md#find-and-read-a-chat) or
+[search from the terminal](docs/search.md#your-first-search).
+
+**Search from an agent.** Restart any agent you connected during setup. For
+example, in Codex, ask “Use Mash to find what we decided about authentication
+in Claude Code. Show me the message behind the answer.”
 [Check an agent connection](docs/agents.md#confirm-the-connection) if it
 cannot see Mash.
 

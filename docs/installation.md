@@ -366,26 +366,14 @@ JSON report, run `mash init --yes` or redirect the wizard's stdout with
 
 ## Try your first search
 
-```sh
-mash status
-mash search 'migration'
-```
+Run `mash dash` and open the address it prints. In **chats**, search for a
+distinctive word from an older chat and open a result to read the original
+message. If you installed from source, see how to build the web interface in
+the [dashboard guide](dashboard.md).
 
-Replace the query with a distinctive word from an older chat. If you need a
-starting point, run `mash list-chats --limit 10` and pick a conversation you
-recognize. Take the `lookup.view.id` from a search hit or chat and run
-`mash view MESSAGE_ID --context 3` to read the original message. In the
-dashboard, open the result directly.
-
-Word search matches whole words in any order. Pass several words as one
-argument, such as `mash search 'rotate logs'`. To require an exact phrase,
-include double quotes inside the argument, such as
-`mash search '"log rotation"'`.
-
-To include older history, run `mash index --all-history`. Next:
-[searching](search.md), [the dashboard](dashboard.md) (source installations
-build the web interface first), [agent-assisted recall](agents.md), or
-[semantic search](indexing.md#enable-semantic-search).
+You can also [search from the terminal](search.md#your-first-search) or
+[ask a connected agent](agents.md#try-it). If you can't find an older chat,
+check how to [include older history](indexing.md#add-older-history).
 
 ## Uninstall
 
