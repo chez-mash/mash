@@ -252,6 +252,42 @@ for (const [locale, lang, title] of [
   });
 }
 
+for (const [locale, lang] of [
+  ["", "en"],
+  ["/es", "es"],
+  ["/fr", "fr"],
+  ["/zh-cn", "zh-CN"],
+  ["/ja", "ja"],
+]) {
+  test(`the ${lang} uninstall guide preserves the keep-history flag and pins reinstall`, async ({
+    page,
+  }) => {
+    const guide = page.locator(".sl-markdown-content");
+    const uninstall = `${locale}/uninstall/`;
+    await page.goto(`${locale}/privacy/#try-a-small-local-setup`);
+    await guide.locator(`a[href="${uninstall}"]`).last().click();
+    await expect(page).toHaveURL(uninstall);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(guide.locator("#keep-history-for-a-reinstall")).toBeAttached();
+    await expect(
+      guide
+        .locator("p")
+        .filter({ has: page.getByText("v0.1.1-alpha", { exact: true }) })
+        .filter({ has: page.getByText("--keep-history", { exact: true }) }),
+    ).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: /^mash uninstall --yes --keep-history$/ }),
+    ).toBeVisible();
+    await expect(guide.getByText("sudo apt remove mash-cli", { exact: true })).toBeVisible();
+    await expect(guide.getByText("mash --version", { exact: true })).toBeVisible();
+    await expect(guide.getByText("MASH_VERSION", { exact: true })).toBeVisible();
+    await expect(guide.locator('a[href="https://github.com/mashium/mash/releases"]')).toBeVisible();
+    await guide.locator(`a[href="${locale}/downloads/#verify-the-checksum"]`).click();
+    await expect(page).toHaveURL(`${locale}/downloads/#verify-the-checksum`);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+  });
+}
+
 for (const [locale, lang, title] of [
   ["es", "es", "Otras formas de instalar Mash"],
   ["fr", "fr", "Autres façons d’installer Mash"],

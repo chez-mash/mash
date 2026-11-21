@@ -312,6 +312,7 @@ export default defineConfig({
                     es: "Desinstala Mash",
                     fr: "Désinstaller Mash",
                     "zh-CN": "卸载 Mash",
+                    ja: "Mash をアンインストールする",
                   },
                   slug: "uninstall",
                 },

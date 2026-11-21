@@ -71,7 +71,7 @@ Windows では通常、システムドライブ上の `C:\mash-qdrant\storage` �
 `mash status` の `database_path` でデータベースを、Mash が Qdrant をインストールした場合は
 `local_qdrant.installed.storage` で検索データの保存先を確認できます。
 `mash uninstall` は、Windows の Qdrant 用フォルダーを含め、削除予定の項目を表示します。
-削除を実行するときは `--yes` を付けてください。[削除される項目（英語）](../uninstall.md)
+削除を実行するときは `--yes` を付けてください。[削除される項目](uninstall.md)
 
 <span id="try-a-small-local-setup"></span>
 
@@ -94,7 +94,7 @@ Windows では通常、システムドライブ上の `C:\mash-qdrant\storage` �
 
 試用を終えるときは `mash uninstall` で削除内容を確認できます。
 実行すると Mash のインデックスとサービスが削除され、エージェントの元のチャットは残ります。
-[削除される項目（英語）](../uninstall.md)
+[削除される項目](uninstall.md)
 
 <span id="shorten-the-history-range"></span>
 

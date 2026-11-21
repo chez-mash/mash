@@ -66,7 +66,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 - [履歴をバックアップ・復元する（英語）](../backup.md)
 - [Mash をアップグレードする（英語）](../upgrades.md)
-- [Mash をアンインストールする、または再インストールに備えて履歴を残す（英語）](../uninstall.md)
+- [Mash をアンインストールする、または再インストールに備えて履歴を残す](uninstall.md)
 
 <span id="troubleshooting"></span>
 

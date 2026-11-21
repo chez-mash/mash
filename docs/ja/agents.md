@@ -157,7 +157,7 @@ copilot mcp remove mash
 copilot plugin uninstall mash@mash
 ```
 
-コンピューターから Mash も削除する場合は、[アンインストール（英語）](../uninstall.md)を参照してください。
+コンピューターから Mash も削除する場合は、[アンインストール手順](uninstall.md)を参照してください。
 Mash を残す場合は [`[agents] connected`（英語）](../configuration.md#connected-agents)からエージェントを外すと、
 状態確認の対象からその接続が外れます。
 

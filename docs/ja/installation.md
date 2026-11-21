@@ -22,7 +22,7 @@ Mash をインストールし、検索サービスを起動して、どのチャ
 
 クイックスタートのコマンドは、ダッシュボードを開く前にプログラムをインストールして Qdrant を起動します。
 セットアップを途中でやめた場合も、`mash uninstall` でインストール済みのものと削除方法を確認できます。
-[削除対象を確認する（英語）](../uninstall.md)
+[削除対象を確認する](uninstall.md)
 
 <span id="install-the-cli"></span>
 <span id="get-mash-for-your-system"></span>
@@ -244,6 +244,6 @@ Qdrant を起動したら、もう一度 `mash index` を実行して検索で�
 
 ## アンインストールする
 
-`mash uninstall` で Mash が削除する対象を確認できます。[アンインストール手順と削除後に残るデータ（英語）](../uninstall.md)をご覧ください。
+`mash uninstall` で Mash が削除する対象を確認できます。[アンインストール手順と削除後に残るデータ](uninstall.md)をご覧ください。
 
 <!-- mash-docs-source: ee4a2a27f23c403ecd60868d3802d5825da71d2845b9b858c965efd527ca32f3 -->

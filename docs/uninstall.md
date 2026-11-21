@@ -39,7 +39,10 @@ step, fix the reported issue and rerun the command with the same options.
 Once removal succeeds, follow the last instruction to remove the program
 itself. In JSON, see `binary.remove`. The instruction depends on how you
 installed Mash, such as `brew uninstall mash`, `scoop uninstall mash`,
-`sudo apt remove mash-cli`, `cargo uninstall mash`, or which files to delete.
+`cargo uninstall mash`, or which files to delete.
+
+If you installed the `mash-cli` package through apt, run `sudo apt remove mash-cli`.
+Mash `v0.1.1-alpha` can show the wrong package name in its removal report.
 
 ## Copies that stay in place
 
@@ -67,19 +70,30 @@ Preview with the flag, then use the same flag when you confirm.
 mash uninstall --keep-history
 ```
 
+In `v0.1.1-alpha`, the preview can leave `--keep-history` out of the suggested
+confirmation command. Use the full command below. Confirming with `--yes`
+alone deletes Mash's indexed chats and saved memories.
+
 ```sh
 mash uninstall --yes --keep-history
 ```
 
-Follow the same steps to retry failures, restart connected agents, and remove
-the program as in [Remove Mash and its local copy](#remove-mash-and-its-local-copy).
+Before removing the program, run `mash --version` and save the version number
+for the reinstall. Follow the same steps to retry failures, restart connected
+agents, and remove the program as in
+[Remove Mash and its local copy](#remove-mash-and-its-local-copy).
 
 ### Reopen the retained history
 
-1. On the same computer and user account, install the same Mash release
-   with a [basic installer](installation.md#recommended-release-installers)
-   or extract the same [release archive](downloads.md).
-   For a newer release, check the [upgrade guide](upgrades.md#upgrade-an-existing-installation).
+1. On the same computer and user account, install the Mash release you noted.
+   Set `MASH_VERSION` to its tag, such as `v0.1.1-alpha`, before running the
+   [basic installer](installation.md#recommended-release-installers).
+   To install from an archive, open that tag on
+   [GitHub Releases](https://github.com/mashium/mash/releases) and download
+   the archive for your system and `SHA256SUMS` from that release.
+   [Verify the archive](downloads.md#verify-the-checksum) before extracting it.
+   To install a newer release, follow the
+   [upgrade guide](upgrades.md#upgrade-an-existing-installation).
 2. If Mash installed the search service, run `mash qdrant install` to reinstall
    the service and reuse its data. If you [ran Qdrant yourself](local-search.md#run-qdrant-yourself),
    start it the same way as before.
