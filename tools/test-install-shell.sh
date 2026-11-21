@@ -46,6 +46,8 @@ cmp "$scratch/archive/mash-server" "$destination/mash-server"
 expected="'$scratch/install with '\\''quotes'\\''/mash'"
 grep -Fxq "  $expected qdrant install" "$scratch/output"
 grep -Fxq "  $expected init" "$scratch/output"
+grep -Fxq "  $expected dash" "$scratch/output"
+grep -Fq 'which coding agents can search your chats' "$scratch/output"
 # A C library too old for the binary, or not glibc at all, stops the install
 # before anything is downloaded or replaced.
 for libc in 'glibc 2.33' 'glibc 1.99' ''; do
@@ -93,6 +95,7 @@ grep -Fxq 'cli fixture' "$destination/mash"
 printf 'fixture consent\n' | script -eqc 'cat "$TEST_INSTALL_SCRIPT" | sh -s -- --setup' /dev/null >"$scratch/output"
 diff -u <(printf 'qdrant install\ninit\n') "$TEST_INSTALL_STEPS"
 grep -q 'Review the histories' "$scratch/output"
+tr -d '\r' <"$scratch/output" | grep -Fxq "  $expected dash"
 if grep -q 'search service JSON fixture' "$scratch/output"; then
     echo 'Setup printed the search service JSON.' >&2; exit 1
 fi

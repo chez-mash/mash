@@ -54,6 +54,8 @@ try {
     $commandPath = Join-Path (Join-Path $root "install with ''quotes''") 'mash.exe'
     Assert-Equal ($output -contains "  & '$commandPath' qdrant install") $true 'search service command'
     Assert-Equal ($output -contains "  & '$commandPath' init") $true 'setup command'
+    Assert-Equal ($output -contains "  & '$commandPath' dash") $true 'browser dashboard command'
+    Assert-Equal ($output -contains 'The setup wizard lets you choose which coding agents can search your chats.') $true 'optional agent connections'
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'fresh install'
     Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'mash-server.exe') -Raw) 'new server' 'server install'
     Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/download/v0.8.0/mash-x86_64-pc-windows-msvc.zip' 'pinned release URL'

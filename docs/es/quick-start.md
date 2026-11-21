@@ -6,6 +6,10 @@ ejecuta en tu propio equipo. Antes de instalarlo, puedes
 [probar una búsqueda de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 y abrir un resultado para ver la conversación original.
 
+Después de configurar Mash, ejecuta `mash dash` y abre en tu navegador la
+dirección que muestra. También puedes buscar en la terminal o conectar un
+agente para que busque por ti.
+
 [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 
 ## Pide ayuda a tu agente

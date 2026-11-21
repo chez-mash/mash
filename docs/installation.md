@@ -11,7 +11,13 @@ or [connect your histories](#connect-your-histories) if the service is running.
 
 Already using Mash and moving to a new release? See [upgrades and backups](upgrades.md).
 
-## Install the CLI
+<span id="install-the-cli"></span>
+
+## Get Mash for your system
+
+The release includes the browser dashboard. After setup, run `mash dash`
+and open the address it prints. During setup, you can also choose to
+[connect coding agents](agents.md) so they can search your chats for you.
 
 ### Recommended release installers
 

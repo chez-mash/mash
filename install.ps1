@@ -79,15 +79,18 @@ function Install-Mash {
     }
     if ($Directory -notin ($env:PATH -split ';')) { Write-Host "Add $Directory to your user PATH, then open a new terminal." }
     $mash = Join-Path $Directory 'mash.exe'
+    $quotedMash = $mash.Replace("'", "''")
+    Write-Host 'The setup wizard lets you choose which coding agents can search your chats.'
     if ($Setup) {
         Start-MashSetup -Executable $mash
     } else {
-        $quotedMash = $mash.Replace("'", "''")
         Write-Host 'For a new local setup, install the search service and then run the setup wizard.'
         Write-Host "  & '$quotedMash' qdrant install"
         Write-Host "  & '$quotedMash' init"
         Write-Host 'After an upgrade, reconnect your Mash MCP sessions.'
     }
+    Write-Host 'After setup, start the browser dashboard and open the address it prints.'
+    Write-Host "  & '$quotedMash' dash"
 }
 
 # The offline fixture tests load the function without installing by setting

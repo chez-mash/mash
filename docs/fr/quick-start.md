@@ -1,8 +1,9 @@
 # Guide de démarrage rapide
 
 [Essayez une recherche dans la démo](https://getmash.io/demo/#/search?q=invoice+exports+queue),
-puis ouvrez un résultat dans sa conversation. Pour chercher dans votre
-propre historique, installez Mash en suivant les étapes ci-dessous.
+puis ouvrez un résultat dans sa conversation. Configurez Mash ci-dessous
+pour chercher dans votre historique depuis le navigateur, le terminal ou un
+agent que vous connectez.
 
 Avant de lancer une commande, vous pouvez
 [examiner le script d’installation et vérifier le fichier téléchargé](../installation.md#check-the-release-download).
@@ -76,4 +77,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 
 Les menus de Mash sont en anglais. Vous pouvez rechercher les mots français tels qu’ils apparaissent dans la conversation. La recherche par sens nécessite une requête en anglais. [Guide de recherche en anglais](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: 09d0e677e3d50b3f0916f91eff96b3e5660f3879b4a2a13f29cc7515dbf01781 -->
+<!-- mash-docs-source: 6f4a9b0f03a1cb26dbfdcf0f98cd09608a7081ee8b2b354a890405d696e277b9 -->

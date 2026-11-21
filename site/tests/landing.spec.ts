@@ -15,7 +15,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     expect((await page.request.get(file)).ok()).toBe(true);
   }
   await expect(page.locator(".hero .tagline")).toHaveText(
-    "Search the chats your coding agents already saved. Go straight to the original message. Your history stays on your machine by default.",
+    "Search your saved coding-agent chats in the browser dashboard or from an agent you connect. Your history stays on your machine by default.",
   );
   await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([

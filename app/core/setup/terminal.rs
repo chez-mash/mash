@@ -69,7 +69,7 @@ impl InitResponse {
         if !connected.is_empty() {
             let _ = writeln!(
                 output,
-                "Connected {}. Restart to load Mash.",
+                "Connected {}. Restart them so they can search your history.",
                 connected.join(", ")
             );
         }
@@ -85,7 +85,9 @@ impl InitResponse {
             let _ = writeln!(output, "{}", safe(&memory.message));
         }
         if searchable {
-            output.push_str("Open your chats with `mash dash`.\n");
+            output.push_str(
+                "Start the browser dashboard with `mash dash` and open the address it prints.\n",
+            );
             if self.agents.is_empty() {
                 output.push_str("You can connect an agent later so it can search Mash for you. See https://getmash.io/agents/\n");
             }

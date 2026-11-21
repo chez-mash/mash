@@ -19,6 +19,10 @@
 Mash searches the history Claude Code, Codex, GitHub Copilot, Cursor, OpenCode,
 and Antigravity already saved on your machine.
 
+Browse those chats in the [browser dashboard](docs/dashboard.md) with `mash dash`,
+[search from the terminal](docs/search.md), or [connect a coding agent](docs/agents.md)
+so it can search your history for you.
+
 Mash is open source and self-hosted. The default setup keeps indexing and
 search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
 
@@ -44,8 +48,8 @@ search on your machine and needs no account. [How Mash handles your history](doc
 [Español](docs/es/quick-start.md) · [Français](docs/fr/quick-start.md) · [简体中文](docs/zh-cn/quick-start.md)
 
 [Try a sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-and open a result in its conversation. To search your own chats, set up Mash
-below.
+and open a result in its conversation. Set up Mash below to search your own
+chats in the browser, in the terminal, or through an agent you connect.
 
 Before running a command, you can [inspect the installer and check the release download](docs/installation.md#check-the-release-download).
 To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).

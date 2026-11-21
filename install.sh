@@ -94,12 +94,15 @@ case ":$PATH:" in
   *":$directory:"*) ;;
   *) echo "Add $directory to your PATH." ;;
 esac
+quoted_mash=$(printf '%s' "$mash" | sed "s/'/'\\\\''/g")
+echo 'The setup wizard lets you choose which coding agents can search your chats.'
 if "$setup"; then
   echo 'Preparing the local search service (Qdrant). The setup wizard opens next.'
   "$mash" qdrant install </dev/null >/dev/null
   "$mash" init <&3 3<&-
-  exit
+else
+  echo 'For a new local setup, install the search service and then run the setup wizard.'
+  printf "  '%s' qdrant install\n  '%s' init\n" "$quoted_mash" "$quoted_mash"
 fi
-quoted_mash=$(printf '%s' "$mash" | sed "s/'/'\\\\''/g")
-echo "For a new local setup, install the search service and then run the setup wizard."
-printf "  '%s' qdrant install\n  '%s' init\n" "$quoted_mash" "$quoted_mash"
+echo 'After setup, start the browser dashboard and open the address it prints.'
+printf "  '%s' dash\n" "$quoted_mash"

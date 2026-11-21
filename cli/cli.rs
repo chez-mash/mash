@@ -27,7 +27,7 @@ pub(crate) const VERSION_INFO_HELP: &str =
 #[command(
     name = "mash",
     version,
-    about,
+    about = "Search saved coding-agent chats. Open the browser dashboard with mash dash, or connect an agent with mash init.",
     arg_required_else_help = true,
     after_help = VERSION_INFO_HELP
 )]

@@ -223,6 +223,10 @@ fn informational_flags_succeed_without_initializing_application_resources() {
             assert!(help.lines().count() > 3, "{arguments:?}");
             assert!(help.contains("Usage:"), "{arguments:?}");
             assert!(help.contains("--help"), "{arguments:?}");
+            if arguments == ["--help"] || arguments == ["-h"] {
+                assert!(help.contains("browser dashboard with mash dash"));
+                assert!(help.contains("connect an agent with mash init"));
+            }
         }
         assert_eq!(std::fs::read_dir(directory.path()).unwrap().count(), 0);
     }
