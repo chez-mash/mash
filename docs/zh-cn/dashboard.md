@@ -192,7 +192,9 @@ mash dash remote
 
 验证码只能使用一次，十分钟内有效。二维码把长期令牌放在地址的 `#` 后面。浏览器加载网页时不会把这一段地址发送给服务器。面板会用令牌登录，再立即从地址中移除。请像保护密码一样保护二维码图片。
 
-面板可以搜索本机历史。如果配置了[共享索引](shared-index.md)，也可以搜索其他机器的历史。使用共享索引时，请在已设置本机令牌环境变量的终端中运行 `mash dash remote`。Mash 会将该变量保存到仅你可读的 `~/.mash/dashboard.env` 中。在 macOS 上，`~/Library/LaunchAgents/dev.mash.dash.plist` 同样受访问权限保护，内含相同令牌。输出写到 `~/.mash/dashboard.log`。
+网页面板可以搜索本机的历史记录，以及本机有权访问的共享历史。如果通过 `mash init --join` 加入，面板可以从 `~/.mash/node.env` 读取本机令牌。在 v0.1.1-alpha 中，即使保存的令牌可用，设置时也可能提示只能访问本机历史。你可以打开另一台电脑上的对话来确认。[跨设备搜索](shared-index.md#search)。
+
+如果是手动配置的共享连接，请在运行 `mash dash remote` 的终端中设置本机令牌的环境变量。Mash 会将它保存到仅你可读的 `~/.mash/dashboard.env` 中，供服务使用。在 macOS 上，LaunchAgent 也会将服务环境保存到 `~/Library/LaunchAgents/dev.mash.dash.plist`，并将输出写入 `~/.mash/dashboard.log`。
 
 已配置共享索引连接的电脑可以运行 `mash dash remote --shared-only` 来托管网页面板。没有本机对话索引的服务器也可以托管面板，前提是它已配置共享索引连接并持有节点令牌。之后，对话、搜索结果和记忆都来自该共享索引。
 
@@ -224,4 +226,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 464fc8d1316a110c3e32b3f4ef2217ba02cf41e8d0115c6bee4aa11ab27b9d34 -->
+<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->

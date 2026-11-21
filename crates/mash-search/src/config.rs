@@ -78,6 +78,11 @@ impl SharedConfig {
     pub fn token(&self) -> Option<String> {
         secret(&self.token_env)
     }
+
+    /// Whether this node has a credential saved by `mash init --join`.
+    pub fn has_saved_token(&self) -> bool {
+        saved_tokens().is_some_and(|path| saved_token(&path, &self.token_env).is_some())
+    }
 }
 
 /// A credential by the name of its environment variable: the variable itself,

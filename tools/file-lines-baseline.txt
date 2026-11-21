@@ -11,7 +11,7 @@
 684 app/core/search.rs
 642 app/core/setup.rs
 572 app/core/uninstall.rs
-785 app/remote.rs
+784 app/remote.rs
 736 cli/cli.rs
 961 crates/mash-dash/src/assistant.rs
 1307 crates/mash-dash/src/assistant/lookups.rs

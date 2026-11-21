@@ -193,7 +193,9 @@ Con el teléfono conectado a Tailscale, escanea el código QR o abre la direcci�
 
 El código de un solo uso caduca a los diez minutos. El QR incluye el token de larga duración después de `#` en la dirección, en el fragmento que el navegador no envía al servidor al cargar la página. El panel inicia sesión y quita el token de la dirección enseguida. Trata una imagen del QR como una contraseña.
 
-El panel busca en el historial local y, si tienes un [índice compartido](shared-index.md), en el historial de los demás equipos. Para consultar el índice compartido, ejecuta `mash dash remote` en una terminal que tenga configurada la variable con el token del equipo. Mash la guarda en `~/.mash/dashboard.env`, que solo tú puedes leer. En macOS, `~/Library/LaunchAgents/dev.mash.dash.plist` contiene los mismos tokens con acceso restringido y el registro se escribe en `~/.mash/dashboard.log`.
+El panel busca en el historial de este equipo y en el historial compartido al que tiene acceso. Si usaste `mash init --join`, el panel puede leer el token del equipo en `~/.mash/node.env`. En v0.1.1-alpha, la configuración puede indicar que solo hay acceso local aunque el token guardado funcione. Abre una conversación de otro equipo para comprobarlo. [Busca en todos tus equipos](shared-index.md#search).
+
+Si configuraste el acceso compartido a mano, define la variable del token en la terminal donde ejecutas `mash dash remote`. Mash la guarda para el servicio en `~/.mash/dashboard.env`, que solo tú puedes leer. En macOS, el LaunchAgent también guarda el entorno del servicio en `~/Library/LaunchAgents/dev.mash.dash.plist` y escribe el registro en `~/.mash/dashboard.log`.
 
 Puedes ejecutar `mash dash remote --shared-only` desde un equipo con acceso al índice compartido. Un servidor sin índice local también puede alojar el panel si tiene configurada la conexión y dispone de un token para su nodo. Las conversaciones, las búsquedas y los recuerdos proceden de ese índice compartido.
 
@@ -225,4 +227,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 464fc8d1316a110c3e32b3f4ef2217ba02cf41e8d0115c6bee4aa11ab27b9d34 -->
+<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->

@@ -193,7 +193,9 @@ Depuis un téléphone connecté à Tailscale, scannez le QR code ou ouvrez l’a
 
 Le code s’utilise une fois et expire après dix minutes. Le QR code contient le jeton durable après le `#` dans l’adresse. Le navigateur n’envoie pas ce fragment au serveur lorsqu’il charge la page. Le tableau de bord vous connecte puis retire le jeton de l’adresse. Traitez une image du QR code comme un mot de passe.
 
-Le tableau de bord cherche dans l’historique de la machine et, si vous avez un [index partagé](shared-index.md), dans celui des autres machines. Pour l’index partagé, lancez `mash dash remote` depuis un terminal où la variable du jeton de la machine est définie. Mash l’enregistre dans `~/.mash/dashboard.env`, que vous seul pouvez lire. Sous macOS, le fichier `~/Library/LaunchAgents/dev.mash.dash.plist` contient les mêmes jetons et bénéficie de la même protection. La sortie est enregistrée dans `~/.mash/dashboard.log`.
+Le tableau de bord recherche dans l’historique de cet ordinateur et dans l’historique partagé auquel il a accès. Si vous avez utilisé `mash init --join`, il peut lire le jeton de l’ordinateur dans `~/.mash/node.env`. Avec v0.1.1-alpha, la configuration peut indiquer un accès local uniquement alors que le jeton enregistré fonctionne. Ouvrez une conversation d’un autre ordinateur pour vérifier. [Rechercher sur plusieurs ordinateurs](shared-index.md#search).
+
+Si vous avez configuré le partage à la main, définissez la variable du jeton dans le terminal où vous lancez `mash dash remote`. Mash la conserve pour le service dans `~/.mash/dashboard.env`, que vous seul pouvez lire. Sous macOS, le LaunchAgent conserve aussi l’environnement du service dans `~/Library/LaunchAgents/dev.mash.dash.plist` et écrit sa sortie dans `~/.mash/dashboard.log`.
 
 Un ordinateur déjà configuré pour accéder à l’index partagé peut héberger le tableau de bord avec `mash dash remote --shared-only`. Un serveur sans index local peut aussi l’héberger si la connexion à l’index partagé est configurée et si le serveur dispose d’un jeton pour son nœud. Les conversations, les recherches et les souvenirs proviennent alors de cet index.
 
@@ -225,4 +227,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 464fc8d1316a110c3e32b3f4ef2217ba02cf41e8d0115c6bee4aa11ab27b9d34 -->
+<!-- mash-docs-source: ac5e6a46d1f0d0335608d642af39d7450105529a9c9a3868758d58b843657975 -->

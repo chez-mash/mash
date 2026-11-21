@@ -4,8 +4,7 @@
 //! Tailscale to forward the address to loopback, and hands back what a phone
 //! needs: the address, a one-time code and a QR code. Unless asked for a
 //! public address, nothing here is reachable from the public internet.
-use crate::AppError;
-use crate::core::Paths;
+use crate::{AppError, config::SharedConfig, core::Paths};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -89,7 +88,7 @@ struct Report {
     code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     code_minutes: Option<u64>,
-    /// Whether the service was given the shared index's node token.
+    /// Whether the service has a credential for the shared index.
     #[serde(skip_serializing_if = "Option::is_none")]
     shared_index: Option<&'static str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -230,12 +229,12 @@ async fn setup(
         shared_only,
         public,
     } = options;
-    let configuration = crate::config::load(paths.config.as_deref())?;
-    let shared = configuration
-        .shared
-        .as_ref()
-        .map(|shared| shared.token_env.clone());
-    let token = ensure_environment(&layout.token_file, shared.as_deref())?;
+    let shared = crate::config::load(paths.config.as_deref())?.shared;
+    let token = ensure_environment(
+        &layout.token_file,
+        shared.as_ref().map(|shared| shared.token_env.as_str()),
+        shared.as_ref().is_some_and(SharedConfig::has_saved_token),
+    )?;
     let exe = std::env::current_exe().map_err(AppError::io)?;
     let arguments = arguments(&exe, paths, (port, host), shared_only)?;
     write_definition(layout, &arguments, &token.environment)?;
@@ -264,7 +263,7 @@ async fn setup(
             if token.shared {
                 "included"
             } else {
-                "token variable not set here; the dashboard shows only this machine"
+                "No token for shared history. Join with a server invite or set the node token variable in this terminal."
             }
         }),
         next: Some(if public {
@@ -508,15 +507,17 @@ fn parse_tailnet_name(status: &str) -> Result<String, AppError> {
 
 struct Tokens {
     dashboard: String,
-    /// The shared index's node token was available to save for the service.
     shared: bool,
-    /// Every variable the service needs, as written to the token file.
     environment: Vec<(String, String)>,
 }
 
-/// The service's environment file: the dashboard token, created once and then
-/// kept, and the shared index's node token when this process was given it.
-fn ensure_environment(path: &Path, shared_variable: Option<&str>) -> Result<Tokens, AppError> {
+/// Keep the sign-in token and any explicit shared token. Joined nodes read
+/// their saved token directly, so an old service copy must not mask it.
+fn ensure_environment(
+    path: &Path,
+    node_env: Option<&str>,
+    joined: bool,
+) -> Result<Tokens, AppError> {
     let existing = std::fs::read_to_string(path).unwrap_or_default();
     let dashboard = if let Some(token) = value(&existing, TOKEN_VARIABLE) {
         token
@@ -529,26 +530,24 @@ fn ensure_environment(path: &Path, shared_variable: Option<&str>) -> Result<Toke
         })
     };
     let mut text = format!("{TOKEN_VARIABLE}={dashboard}\n");
-    let shared_value = shared_variable.and_then(|name| {
+    let shared_value = node_env.and_then(|name| {
         std::env::var(name)
             .ok()
-            .filter(|token| token.bytes().all(|byte| (33..=126).contains(&byte)))
-            .or_else(|| value(&existing, name))
+            .filter(|token| !token.is_empty())
+            .filter(|token| token.bytes().all(|byte| byte.is_ascii_graphic()))
+            .or_else(|| value(&existing, name).filter(|_| !joined))
             .map(|token| (name, token))
     });
+    let shared = joined || shared_value.is_some();
     if let Some((name, token)) = &shared_value {
         let _ = writeln!(text, "{name}={token}");
     }
     write_private(path, &text, 0o600)?;
     let mut environment = vec![(TOKEN_VARIABLE.to_owned(), dashboard.clone())];
-    environment.extend(
-        shared_value
-            .iter()
-            .map(|(name, token)| ((*name).to_owned(), token.clone())),
-    );
+    environment.extend(shared_value.map(|(name, token)| (name.to_owned(), token)));
     Ok(Tokens {
         dashboard,
-        shared: shared_value.is_some(),
+        shared,
         environment,
     })
 }
@@ -803,10 +802,11 @@ mod tests {
     fn the_environment_file_keeps_its_token_and_is_private() {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("nested/dashboard.env");
-        let first = ensure_environment(&path, None).unwrap();
+        let first = ensure_environment(&path, None, false).unwrap();
         assert_eq!(first.dashboard.len(), 48);
         assert!(!first.shared);
-        let again = ensure_environment(&path, Some("MASH_TEST_ABSENT_NODE_TOKEN")).unwrap();
+        let node = "MASH_TEST_ABSENT_NODE_TOKEN";
+        let again = ensure_environment(&path, Some(node), false).unwrap();
         assert_eq!(again.dashboard, first.dashboard, "a rerun keeps the token");
         assert!(!again.shared);
         assert_eq!(read_token(&path).unwrap(), first.dashboard);
@@ -819,15 +819,20 @@ mod tests {
         // A node token saved by an earlier run survives a run without it.
         std::fs::write(
             &path,
-            format!("{TOKEN_VARIABLE}={}\nNODE=abc\n", first.dashboard),
+            format!("{TOKEN_VARIABLE}={}\n{node}=abc\n", first.dashboard),
         )
         .unwrap();
-        assert!(ensure_environment(&path, Some("NODE")).unwrap().shared);
+        assert!(ensure_environment(&path, Some(node), false).unwrap().shared);
         assert!(
             std::fs::read_to_string(&path)
                 .unwrap()
-                .contains("NODE=abc\n")
+                .contains(&format!("{node}=abc\n"))
         );
+        let joined = ensure_environment(&path, Some(node), true).unwrap();
+        assert!(joined.shared);
+        assert_eq!(joined.dashboard, first.dashboard);
+        assert_eq!(joined.environment.len(), 1);
+        assert!(!std::fs::read_to_string(&path).unwrap().contains(node));
         assert!(read_token(&directory.path().join("missing")).is_err());
     }
 

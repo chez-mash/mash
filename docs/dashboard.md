@@ -323,13 +323,17 @@ itself, after `#` in the address, where browsers never send it to a server;
 the dashboard signs in and removes it from the address at once. Treat a picture
 of it like a password.
 
-The dashboard searches whatever that machine can search: its own history and,
-with a [shared index](shared-index.md), your other machines' history too. For
-the shared index the service needs the node token: run `mash dash remote` in a
-shell where that variable is set, and it is saved for the service in
-`~/.mash/dashboard.env`, readable only by you. On macOS the LaunchAgent's
-property list (`~/Library/LaunchAgents/dev.mash.dash.plist`) holds the same
-tokens and is just as private; its output goes to `~/.mash/dashboard.log`.
+The dashboard searches this computer’s history and any shared history it can
+access. If you used `mash init --join`, the dashboard can read the node token
+from `~/.mash/node.env`. With v0.1.1-alpha, setup can report local-only access
+even when this saved token works. Open a chat from another computer to check.
+[Search across your machines](shared-index.md#search)
+
+If you configured sharing by hand, set the node token variable in the shell
+that runs `mash dash remote`. Mash saves it for the service in
+`~/.mash/dashboard.env`, readable only by you. On macOS the LaunchAgent also
+keeps the service’s environment in `~/Library/LaunchAgents/dev.mash.dash.plist`
+and writes its output to `~/.mash/dashboard.log`.
 
 A computer already configured to access the shared index can host the dashboard
 with `mash dash remote --shared-only`. This includes a server with no local chat
