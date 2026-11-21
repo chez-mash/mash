@@ -33,11 +33,19 @@
 
 ## 用少量本地历史试用
 
-在设置时，只选择一个代理的历史和较短的时间范围。保持代理连接关闭，可避免对话摘录进入代理提示词。你可以先在本地网页面板或终端里自己搜索，之后再扩大历史范围。 [在网页面板中设置](../dashboard.md#set-up-mash-from-the-dashboard)
+可以先[在演示中搜索示例对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)。
+如果想用自己的一份历史试用 Mash，请按以下步骤操作。
 
-如果第一次设置时想保留建议的历史和时间范围，请在终端中选择
-**Set up and index without connecting agents**，或在浏览器的核对页面选择
-**Skip agent connections** 后再确认。如果你的版本先逐项询问设置，到了选择代理的步骤时关闭连接即可。
+1. 在终端中运行[快速入门指南中的安装命令](quick-start.md)。安装程序会先启动本地搜索服务，再打开设置向导。
+2. 如果向导先显示设置摘要，请选择 **Customize setup**。询问搜索位置时，请选择
+   **Just this computer (recommended)**。只保留一份包含近期对话的历史，
+   选择 **Custom number of days** 并输入 7。若向导询问是否连接代理或从旧对话中补录记忆，
+   请取消选中所有代理并跳过补录。
+3. 选择 **Set up and index**，然后运行 `mash dash`。在浏览器中打开显示的地址，
+   选择 **chats**，搜索那段对话中的一个词。
+
+如果想使用所有建议的历史，同时保持代理连接关闭，请在首次核对设置时选择
+**Set up and index without connecting agents**。你也可以[在浏览器中选择这些设置（英文）](../dashboard.md#set-up-mash-from-the-dashboard)。
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
 [查看卸载会删除什么](../installation.md#uninstall)
@@ -63,4 +71,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](../upgrades.md)。
 
-<!-- mash-docs-source: 7f0a7f2e3d47e4f0e076ae4f5f92186c4380cfd1ec21d3a25b3ecd947871aa7e -->
+<!-- mash-docs-source: 1f108ee89f243dcc3065e57d31c8745da4ecb202ec1ef12d37bea497cf4c125a -->

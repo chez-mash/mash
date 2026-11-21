@@ -5,10 +5,10 @@ install Mash. Mash is a local command-line tool and MCP server that indexes
 their past chats with coding agents (Claude Code, Codex, GitHub Copilot,
 Cursor, OpenCode, Antigravity) and lets them, and you, search those chats.
 Mash is open source and self-hosted. Installation needs no Mash account.
-The index and searches stay on this machine. If a connected agent looks up
-history, the messages it receives enter that agent's context. The source is
-at https://github.com/mashium/mash and the privacy guide is at
-https://getmash.io/privacy/.
+A fresh default setup keeps the index and searches on this machine. If a
+connected agent looks up history, the messages it receives enter that agent's
+context. See the [source](https://github.com/mashium/mash) and
+[privacy guide](https://getmash.io/privacy/).
 
 Work through the steps in order. Every `mash` command prints one JSON result
 on stdout; read it to decide what to do next. Long commands also write
@@ -25,7 +25,7 @@ sample chats and works before they install anything. Point them to
 https://getmash.io/installation/#check-the-release-download if they want to
 inspect the installers or check a release archive themselves.
 
-Tell the person what setup will do, and get a yes before you continue:
+Explain what a new setup will do before asking the person to proceed:
 
 - Install the `mash` and `mash-server` programs for their user (no
   administrator rights).
@@ -35,20 +35,23 @@ Tell the person what setup will do, and get a yes before you continue:
   On Windows it stores search data outside the user profile in a short folder
   on the system drive, usually `C:\mash-qdrant\storage`. The main history
   database stays in their profile. See https://getmash.io/privacy/#where-mash-stores-data.
-- Read the chat history files of every supported agent it finds on this
-  machine, including the chat you are in now. Mash never changes those files.
-- Register Mash with the Claude Code, Codex and GitHub Copilot command-line
-  tools it finds, by
-  running those tools' own commands. This edits the agents' settings files;
-  the result lists each file and the command that undoes it.
-- Open one matching message from an older chat to confirm search.
-  That excerpt enters this agent's context. The person can choose to run the
-  first search themselves in the local dashboard or terminal instead.
+- Index chats from the last 90 days across the supported histories it finds.
+  That can include this chat. Mash keeps a local copy and reads the original
+  files without changing their contents.
+- Check that search is ready and show them how to open the dashboard.
+  They can read their first result in their own browser.
 
-If they want to try Mash without connecting agents, add `--no-agents` to
-`mash init --yes` in step 4. If they prefer a smaller history range or only
-one agent's chats, direct them to the interactive review in `mash init` or
-https://getmash.io/dashboard/#set-up-mash-from-the-dashboard.
+Offer an agent connection as part of the same review. Ask whether they want
+Mash connected to the supported agent CLIs it finds, or want to search from the
+dashboard and terminal. Connecting uses those CLIs to edit their user settings
+and lets connected agents retrieve chat excerpts into their context. If they
+say only to proceed with setup, use the dashboard and terminal option.
+
+If they only want one agent's history or a shorter range, send them to
+https://getmash.io/privacy/#try-a-small-local-setup for the interactive choices.
+For an existing configuration, explain its search destination and agent
+connections during the review. If the person wants to change what is indexed or
+where it goes, use the settings review in https://getmash.io/installation/#connect-your-histories.
 
 Start with word and phrase search. If the person also asks for search by
 meaning, explain the optional model download in step 3 and get their approval
@@ -96,7 +99,7 @@ the rest of this page, and tell the person to add the directory to `PATH`:
 PowerShell
 `[Environment]::SetEnvironmentVariable('Path', "$env:USERPROFILE\.local\bin;" + [Environment]::GetEnvironmentVariable('Path', 'User'), 'User')`.
 The installer prints the next commands with the path to the binary. Follow
-this page's order and use `mash init --yes` in step 4.
+this page's order and use the command for the person's choice in step 4.
 
 If the check prints anything else, or the machine is an Intel Mac, build from
 source. This needs a stable Rust toolchain and takes several minutes; if
@@ -140,16 +143,19 @@ already installed. If Mash already has a configuration, follow
 https://getmash.io/indexing/#build-search-data to enable it without replacing
 the person's settings. Word search stays the default unless they change it.
 
-## 4. Connect their histories
+## 4. Index their histories
+
+For dashboard and terminal use:
 
 ```sh
-mash init --yes
+mash init --yes --no-agents
 ```
 
-This finds supported agents' histories in their usual places, indexes the last
-90 days, and registers Mash with the Claude Code, Codex and GitHub Copilot
-command-line tools it finds. It checks Qdrant first and changes nothing if Qdrant does not
-answer.
+If they chose to connect their installed Claude Code, Codex or GitHub Copilot
+CLIs as well, run `mash init --yes`. For specific agents, send them to the
+[interactive setup guide](https://getmash.io/installation/#connect-your-histories).
+On a fresh setup, both commands find saved chats in their usual locations and
+index the last 90 days. Both check Qdrant before applying settings.
 
 Read the result:
 
@@ -162,26 +168,28 @@ Read the result:
 - `written: false` on a rerun means the existing configuration was kept. That
   is not a failure.
 
-To index everything instead of the last 90 days, which can take much longer on
-a large history:
-
-```sh
-mash index --all-history
-```
-
-## 5. Find and open an earlier message
+## 5. Check readiness and show how to search
 
 ```sh
 mash status
 ```
 
 Read `ready` to see whether local search is usable. If `installation` lists
-unconfigured agents and has `next_action: null`, their connections are
-optional. Continue with the first search if `ready` is `true`.
+unconfigured agents and has `next_action: null`, their connections are optional.
+If `ready` is `true`, give them the command `mash dash` and tell them to open
+the address it prints, usually http://127.0.0.1:8790. In **chats**, they can
+search for a word they remember and open the result in its conversation.
+Use the full executable path if needed.
 
-If the person chose to run the first search themselves, stop after status.
-Tell them how to use `mash dash` or `mash search`, and leave the results for
-them to open locally.
+If step 4 connected an agent, you can probe its connection in a fresh process.
+For example, run `mash status --installation --agent codex --probe` for Codex.
+An open chat still needs a restart to load the connection.
+
+Continue to step 6 after these checks unless the person asked you to run their
+first search for them. An agent connection gives them a way to ask for lookups
+later.
+
+### If the person asks you to run the first search
 
 Search for a distinctive term from an older conversation, such as a function
 name, error, or project term the person remembers. If you need a starting
@@ -210,36 +218,33 @@ updates. Run `mash index` to pick up newer chats.
   search by meaning was enabled and indexing finished, use it for that query.
   `mash search "how do we rotate logs" --intent related-discussion`.
 
-If step 4 connected an agent, you can also probe its connection in a fresh
-process. For example, run `mash status --installation --agent codex --probe`
-for Codex. An open chat still needs a restart to load the connection.
-
 ## 6. Tell the person
 
 Report, in a few lines:
 
 - what was installed and where;
 - which agents were connected, which files were edited, and the undo commands;
-- how many chats and messages were indexed, and which earlier chat the search
-  opened;
-- that they must restart each connected agent, including you, before its Mash
-  tools appear;
-- one thing to try next, such as asking Codex to find a Claude Code decision
-  and show the original message, or browsing the history with `mash dash`.
+- whether search is ready and how many chats and messages were indexed;
+- which earlier message matched, if they asked you to run a search;
+- how to start the dashboard with `mash dash`, or restart any connected
+  agent to load its Mash tools;
+- how to review removal with `mash uninstall`, which previews what it
+  would remove and keeps the original agent chats. See
+  https://getmash.io/installation/#uninstall.
 
 ## If something fails
 
 Each error is JSON with a `kind` and a message that names the fix.
 
-| `kind` or symptom                         | What to do                                                                           |
-| ----------------------------------------- | ------------------------------------------------------------------------------------ |
-| `mash: command not found`                 | Use the full path from step 1, or add the install directory to `PATH`.               |
-| `usage` on a search                       | Put a query of several words in quotes.                                              |
-| `qdrant-unavailable`                      | Run `mash qdrant install`, then repeat the command that failed.                      |
-| `database-missing`                        | Nothing is indexed yet. Run `mash init --yes`, or `mash index` if setup already ran. |
-| `model` or `search-not-ready` on a search | Search by words instead: add `--intent exact-mention`.                               |
-| `index-busy`                              | Another Mash process is indexing. Wait, then retry.                                  |
-| Anything else                             | Show the person the message and https://getmash.io/troubleshooting/. Do not guess.   |
+| `kind` or symptom                         | What to do                                                                         |
+| ----------------------------------------- | ---------------------------------------------------------------------------------- |
+| `mash: command not found`                 | Use the full path from step 1, or add the install directory to `PATH`.             |
+| `usage` on a search                       | Put a query of several words in quotes.                                            |
+| `qdrant-unavailable`                      | Run `mash qdrant install`, then repeat the command that failed.                    |
+| `database-missing`                        | Use the setup command from step 4, or run `mash index` if setup succeeded.         |
+| `model` or `search-not-ready` on a search | Search by words instead: add `--intent exact-mention`.                             |
+| `index-busy`                              | Another Mash process is indexing. Wait, then retry.                                |
+| Anything else                             | Show the person the message and https://getmash.io/troubleshooting/. Do not guess. |
 
 Do not edit Mash's configuration file, delete its data directory or change an
 agent's settings by hand to work around a failure. Ask the person first.

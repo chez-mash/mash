@@ -52,10 +52,22 @@ cuando quieras desinstalar Mash.
 
 ## Prueba con menos historial
 
-Durante la configuración, elige el historial de un solo agente y un intervalo
-corto. Puedes dejar desactivadas las conexiones con los agentes y buscar por
-tu cuenta en el panel local o en la terminal. Antes de instalar, puedes revisar
-[los instaladores y las sumas de comprobación (en inglés)](../installation.md#check-the-release-download).
+[Prueba una búsqueda con conversaciones de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue).
+Para probar Mash con uno de tus historiales:
+
+1. Ejecuta el [instalador de la guía de inicio](quick-start.md) en tu terminal.
+   El instalador inicia el servicio de búsqueda local antes de abrir el asistente.
+2. Si el asistente empieza con un resumen, elige **Customize setup**. Cuando
+   pregunte dónde buscar, elige **Just this computer (recommended)**. Conserva
+   un historial con una conversación reciente, elige **Custom number of days**
+   e introduce 7. Si te lo pregunta, desmarca todos los agentes y rechaza la
+   extracción de recuerdos de conversaciones anteriores.
+3. Elige **Set up and index** y ejecuta `mash dash`. Abre la dirección que
+   aparezca, selecciona **chats** y busca una palabra de esa conversación.
+
+Para usar todos los historiales sugeridos sin conectar agentes, elige
+**Set up and index without connecting agents** en el primer resumen.
+También puedes [elegir estas opciones en el navegador (en inglés)](../dashboard.md#set-up-mash-from-the-dashboard).
 
 `mash uninstall` muestra qué se eliminaría antes de confirmar y conserva las
 conversaciones originales de tus agentes.

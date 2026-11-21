@@ -9,10 +9,11 @@ Do what a careful agent would do with that message: fetch the page and follow
 it. The developer is not at the keyboard, so their answers to what the page
 asks them are given here in advance:
 
-- Yes to everything the page says setup will do.
+- Yes to installing Mash and indexing local history. Use the dashboard and
+  terminal setup without connecting agents.
 - Yes to search by meaning and its model download.
-- When the page wants a word to search for: they remember a chat about
-  rotating application logs, and want to know what was decided.
+- Yes, run the first search on their behalf. They remember a chat about
+  rotating application logs and want to know what was decided.
 
 Treat those as the developer's answers, and record each point where the page
 told you to ask. If the page tells you to ask something not answered here,

@@ -17,6 +17,7 @@ export type TranslationSource = {
 const repo = new URL("../../", import.meta.url);
 const sourceMarker = /^<!-- mash-docs-source: ([a-f0-9]{64}) -->$/m;
 const uiLabels = new Set([
+  "Custom number of days",
   "Customize setup",
   "Set up and index",
   "Set up and index without connecting agents",

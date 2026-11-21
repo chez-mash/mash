@@ -4,6 +4,9 @@ Follow these steps to install Mash, start its search service, and choose
 which chats to search. The default setup keeps indexing and search on your
 machine. [How Mash handles your history](privacy.md)
 
+To try it first, [search sample chats in the demo](https://getmash.io/demo/).
+For a trial with your own chats, [choose one history and try the local dashboard](privacy.md#try-a-small-local-setup).
+
 For one command that installs Mash, starts the search service and opens the
 setup review, use the [quick start](../README.md#quick-start).
 If Mash is already installed, [start the search service](#start-the-local-search-service)
@@ -183,9 +186,10 @@ JSON report, run `mash init --yes` or redirect the wizard's stdout with
 Read the [macOS and Linux installer](https://github.com/mashium/mash/blob/main/install.sh)
 or [Windows installer](https://github.com/mashium/mash/blob/main/install.ps1)
 before you run it. The scripts install into your user directory and need no
-administrator rights. The one-command setup also starts a local search service
-under your user. Mash shows the histories and agent connections for review
-before it indexes chats or edits agent settings.
+administrator rights. With one-command setup, the script installs and starts
+Qdrant before it opens the wizard. The wizard shows the histories and agent
+connections before you apply them. If you cancel at the wizard, use the
+[uninstall preview](#uninstall) to see what the script already installed.
 
 The [public release workflow](https://github.com/mashium/mash/actions/workflows/release.yml)
 builds the platform archives after checking that Linux and Windows CI passed on

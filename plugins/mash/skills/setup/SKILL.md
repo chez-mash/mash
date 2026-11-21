@@ -10,7 +10,7 @@ Read and follow https://getmash.io/setup.md. This is the maintained guide for
 platform-specific downloads, the local search service, and agent connections.
 Explain what setup will change and wait for approval as described there.
 
-Finish by finding and opening a message from an existing conversation and
-explaining the result in plain language. Tell the person when to start a new
-agent session to load the Mash tools. If you cannot reach the guide, point
+Finish with the guide's readiness check and dashboard instructions. Open a
+message only if the person asks you to run their first search. Tell them to
+start a new session in any agents they connected. If you cannot reach the guide, point
 them to https://github.com/mashium/mash#quick-start.

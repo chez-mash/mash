@@ -150,7 +150,11 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   // The file the prompt names is published as plain Markdown.
   const setup = await request.get("/setup.md");
   expect(setup.ok()).toBe(true);
-  expect(await setup.text()).toContain("mash init --yes");
+  const instructions = await setup.text();
+  expect(instructions).toContain(
+    "For dashboard and terminal use:\n\n```sh\nmash init --yes --no-agents\n```",
+  );
+  expect(instructions).toContain("unless the person asked you to run their");
 });
 
 test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {
@@ -164,6 +168,10 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await page.getByRole("link", { name: "See what stays local", exact: true }).click();
   await expect(page).toHaveURL(/\/privacy\/$/);
   await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
+  await expect(page.getByText("Custom number of days", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "See what uninstall removes", exact: true }).last().click();
+  await expect(page).toHaveURL(/\/installation\/#uninstall$/);
+  await expect(page.getByRole("heading", { name: "Uninstall", exact: true })).toBeInViewport();
 });
 
 /**

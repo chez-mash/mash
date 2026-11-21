@@ -8,6 +8,8 @@
 
 > 请阅读 <https://getmash.io/setup.md>，并在这台电脑上配置 Mash。
 
+你可以先用网页面板，再决定是否连接代理。
+
 如果已安装 [Mash 插件](../plugin.md#start-with-the-plugin)，可以让代理使用其中的 `setup` 技能。
 
 **自己动手设置。** 首次在本机安装时，在终端中运行下面适用于你的系统的命令。它会安装 Mash 和本地搜索服务，然后请你在建立索引之前确认要读取哪些历史记录和连接哪些代理。
@@ -57,4 +59,4 @@ mash dash
 
 Mash 的界面目前使用英文。你可以按原文查找中文。如果短词找不到，可尝试输入原文中由空格或标点分隔的完整片段。按含义搜索需要使用英文查询。[搜索指南（英文）](../search.md#search-in-other-languages)
 
-<!-- mash-docs-source: 6f4a9b0f03a1cb26dbfdcf0f98cd09608a7081ee8b2b354a890405d696e277b9 -->
+<!-- mash-docs-source: 0a82cdf33baacdf0463346d54110973710b9e53bc2dfbbf946d2455b15978041 -->

@@ -54,20 +54,25 @@ folder on Windows. Add `--yes` when you are ready to uninstall.
 
 ## Try a small local setup
 
-During setup, choose one agent's history and a short date range. Leave agent
-connections off to keep excerpts out of agent prompts. You can search the
-index yourself in the local dashboard or terminal, then widen the history
-range later. [Dashboard setup](dashboard.md#set-up-mash-from-the-dashboard)
+[Try a sample chat search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+in the demo first. To try Mash on one of your own histories:
 
-To keep the suggested histories and range on your first setup, choose
-**Set up and index without connecting agents** in the terminal, or use
-**Skip agent connections** in the browser review before confirming.
-In versions that open the guided questions first, turn off the connections
-when you reach the agent choices.
+1. Run the [quick start installer](../README.md#quick-start) in your terminal.
+   The installer starts the local search service before opening the wizard.
+2. Choose **Customize setup** if the wizard opens with a review. When asked
+   where to search, choose **Just this computer (recommended)**. Keep one
+   history with a recent conversation, choose **Custom number of days**, and
+   enter 7. If asked, clear the agent selections and decline memory backfill.
+3. Choose **Set up and index**, then run `mash dash`. Open the address it
+   prints, select **chats**, and search for a word from that conversation.
 
-If you decide to stop, `mash uninstall` lists what Mash would remove before
-you confirm. The uninstall keeps your agents' original chats.
-[See what uninstall removes](installation.md#uninstall)
+To use all the suggested histories without connecting agents, choose
+**Set up and index without connecting agents** on the first review. You can
+also [make these choices in the browser](dashboard.md#set-up-mash-from-the-dashboard).
+
+If you decide to stop, run `mash uninstall` to preview removal. When you
+confirm, Mash removes its own index and services and keeps your agents'
+original chats. [See what uninstall removes](installation.md#uninstall)
 
 ## Sensitive information
 

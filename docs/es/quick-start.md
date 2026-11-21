@@ -12,13 +12,17 @@ agente para que busque por ti.
 
 [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 
+Si quieres empezar con un solo agente y los últimos siete días, sigue la
+[guía de prueba local](privacy.md#prueba-con-menos-historial).
+
 ## Pide ayuda a tu agente
 
 Pega esta instrucción en Claude Code, Codex u otro agente de programación.
 
 > Lee https://getmash.io/setup.md y configura Mash en este equipo. Explícame
-> en español qué va a cambiar antes de empezar y muéstrame un resultado de
-> mi historial cuando termines.
+> en español qué va a cambiar antes de empezar.
+
+Puedes empezar con el panel y elegir si quieres conectar agentes.
 
 Si ya instalaste el [plugin de Mash](../plugin.md#start-with-the-plugin),
 pídele a tu agente que use la skill `setup`.

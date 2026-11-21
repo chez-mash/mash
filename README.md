@@ -58,6 +58,8 @@ To start with one agent and a short history range, follow the [local trial guide
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
 
+You can start with the dashboard and choose whether to connect agents.
+
 If you installed the [Mash plugin](docs/plugin.md#start-with-the-plugin),
 you can ask for its `setup` skill.
 

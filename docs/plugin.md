@@ -105,8 +105,9 @@ copilot plugin install mash@mash
 Start a new agent session and invoke the Mash `setup` skill. In Claude Code,
 run `/mash:setup`. In Codex or Copilot, say “Use the Mash setup skill to set
 up Mash on this computer.” The plugin brings the skill. The setup then
-installs the local programs and search service with your approval, connects
-your histories, and verifies a first search. See
+installs the local programs and search service with your approval, indexes
+your history, and shows you how to open the dashboard. You can choose to
+connect agents or ask the agent to run your first search. See
 [how Mash handles your history](privacy.md).
 
 ### Update or remove the plugin
