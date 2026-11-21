@@ -19,10 +19,10 @@
 
 ## Verification
 
-<!-- The commands you ran and any manual checks. -->
+<!-- List the checks for your change and anything you could not verify. See CONTRIBUTING.md for separate docs, dashboard and Rust checks. -->
 
-- [ ] Formatting, Clippy and the tests pass.
-- [ ] Tests cover the behaviour this changes.
+- [ ] I listed the checks I ran and their results.
+- [ ] Tests cover any behaviour I changed.
 - [ ] The guide in `docs/` is updated, if a user would notice the change.
 - [ ] No real chat text, tokens or exported history appear in the change or its fixtures.
 

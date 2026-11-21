@@ -23,24 +23,13 @@ Re-run the development command after editing source guides.
 
 ## Translate a guide
 
-With a signed-in Codex CLI, run one of these commands from `site/` to draft a French
-guide. Use any supported language tag in place of `fr`.
+With a signed-in Codex CLI, run this from `site/` to draft a French guide.
+Use a supported language tag in place of `fr`. The help command lists the
+guides that the tool can draft.
 
 ```sh
 pnpm --silent translate-docs fr quick-start
-pnpm --silent translate-docs fr installation
-pnpm --silent translate-docs fr install-methods
-pnpm --silent translate-docs fr local-search
-pnpm --silent translate-docs fr troubleshooting
-pnpm --silent translate-docs fr privacy
-pnpm --silent translate-docs fr dashboard
-pnpm --silent translate-docs fr search
-pnpm --silent translate-docs fr pick-up-work
-pnpm --silent translate-docs fr agents
-pnpm --silent translate-docs fr plugin
-pnpm --silent translate-docs fr supported-agents
-pnpm --silent translate-docs fr shared-index
-pnpm --silent translate-docs fr search-languages
+pnpm --silent translate-docs --help
 ```
 
 The command sends the selected public English guide as context and returns a

@@ -177,11 +177,12 @@ On a platform without a prebuilt release, you can
 [build Mash with the browser dashboard](docs/install-methods.md#include-the-web-dashboard)
 or [build the terminal and agent tools with Cargo](docs/install-methods.md#cli-and-agent-tools).
 
-## Documentation
+## Documentation and contributions
 
 [Browse the guides](docs/README.md), [get help with a problem](docs/troubleshooting.md),
 or [report a security concern privately](SECURITY.md#report-a-vulnerability).
 Before replacing an existing installation, read the [upgrade guide](docs/upgrades.md#upgrade-an-existing-installation).
+To fix a guide, improve a translation, or send a code change, see [Contributing](CONTRIBUTING.md#where-to-start).
 
 ## Related projects
 
@@ -191,5 +192,3 @@ See [how Mash, Déjà Vu, CASS, Claude-Mem and SpecStory fit different workflows
 
 Mash is licensed under either the [MIT licence](LICENSE-MIT) or the
 [Apache License 2.0](LICENSE-APACHE), at your option.
-
-[Contributing](CONTRIBUTING.md)

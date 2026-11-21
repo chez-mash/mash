@@ -1,6 +1,18 @@
 # Contributing
 
-Bug reports, fixes and documentation improvements are welcome.
+Bug reports, fixes, translations and documentation improvements are welcome.
+
+## Where to start
+
+- **Fix a confusing instruction.** Use **Edit page** on a
+  [guide](https://getmash.io/guides/) to open its source on GitHub. Small docs
+  fixes can go straight to a pull request.
+- **Improve a translation.** The source files for Spanish, French and
+  Simplified Chinese live in `docs/es/`, `docs/fr/` and `docs/zh-cn/`.
+  [Translation workflow](docs/internal/documentation-site.md#translate-a-guide)
+- **Fix a bug.** Check the [open issues](https://github.com/mashium/mash/issues)
+  for a problem you can reproduce. A short example with made-up chat text is
+  enough to get started.
 
 ## Report a problem
 
@@ -14,21 +26,47 @@ be agreed before you write it. Mash has a deliberately narrow scope: local
 agent chat history, searched through one CLI, one MCP server and one
 dashboard. Changes that widen that scope are unlikely to be accepted.
 
-## Build and test
+## Preview and check the docs
 
-You need the Rust nightly toolchain that `rust-toolchain.toml` selects,
-[cargo-nextest](https://nexte.st), and Node.js 24 with pnpm for the dashboard.
+With Node.js 24 and pnpm on your machine, run this from a checkout of Mash.
 
 ```sh
-git clone https://github.com/mashium/mash.git
-cd mash
-cargo build
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo nextest run
+cd site
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Dashboard changes:
+Open the address printed in the terminal and find the guide you changed.
+Edit the source in `docs/` or the [README](README.md), then restart `pnpm dev`
+to regenerate the preview. The docs site builds without Rust or Qdrant.
+
+From `site/`, run these checks before submitting.
+
+```sh
+pnpm lint && pnpm check && pnpm test && pnpm build
+```
+
+For changes to the site or demo, see the
+[browser checks](docs/internal/documentation-site.md#local-preview-and-checks).
+
+## Build and test code
+
+Use the Rust nightly toolchain from `rust-toolchain.toml` and
+[cargo-nextest](https://nexte.st). Start with the tests for the component you
+changed. For example, the query unit tests run by themselves.
+
+```sh
+cargo fmt --check
+cargo nextest run --locked -p mash-query
+```
+
+Backend tests need disposable Qdrant. On Unix they can start it with Docker.
+To supply a test instance, set both `MASH_TEST_QDRANT_URL` and
+`MASH_TEST_QDRANT_GRPC_URL` to that instance. See the
+[development checks](docs/internal/development.md#rust-checks) for Clippy,
+the focused runner and workspace verification.
+
+For dashboard changes, use Node.js 24 and pnpm.
 
 ```sh
 cd dashboard
@@ -36,15 +74,15 @@ pnpm install --frozen-lockfile
 pnpm run lint && pnpm run check && pnpm run test && pnpm run build
 ```
 
-Documentation lives in `docs/` and is published to
-[getmash.io](https://getmash.io); the site is generated from those files, so
-edit them rather than anything under `site/src/content`.
+Use small synthetic chats, private temporary directories and disposable
+services for tests. Keep real agent histories and credentials out of fixtures,
+logs and screenshots.
 
 ## Pull requests
 
 - Keep each pull request to one change, with tests for behaviour it changes.
-- Fill in the template: what changed, which kind of change it is, and what
-  you ran. Formatting, Clippy and the test suite must pass.
+- Fill in the template with the change, its intent, and the checks you ran for
+  it. Include any behavior you could not verify and let the required CI finish.
 - Update the guide in `docs/` when you change something a user sees.
 - Say which AI tools you used and for what, or "None". AI-assisted changes are
   welcome; you are responsible for understanding and testing what you submit.
@@ -52,8 +90,8 @@ edit them rather than anything under `site/src/content`.
   [Apache License 2.0](LICENSE-APACHE). Unless you say otherwise, anything you
   contribute is offered under both, with no further terms.
 
-An automated reviewer (Greptile) comments on new pull requests using the rules
-in `.greptile/`. Its comments are advice; a maintainer makes the decision.
+When Greptile reviews a pull request, it uses the rules in `.greptile/`.
+A maintainer makes the decision.
 
 ## Labels
 
