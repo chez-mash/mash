@@ -48,7 +48,7 @@
 **Set up and index without connecting agents**。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
-[查看卸载会删除什么](../installation.md#uninstall)
+[查看卸载会删除什么](installation.md#uninstall)
 
 ## 敏感信息
 

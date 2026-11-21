@@ -6,7 +6,7 @@ pour chercher dans votre historique depuis le navigateur, le terminal ou un
 agent que vous connectez.
 
 Avant de lancer une commande, vous pouvez
-[examiner le script d’installation et vérifier le fichier téléchargé](../installation.md#check-the-release-download).
+[examiner le script d’installation et vérifier le fichier téléchargé](installation.md#check-the-release-download).
 Pour commencer avec un seul agent et une période courte, consultez le
 [guide d’essai local](privacy.md#essayer-mash-avec-un-historique-limité).
 
@@ -49,7 +49,7 @@ La période proposée couvre les 90 derniers jours. Vérifiez les options, puis
 choisissez **Set up and index** quand vous êtes prêt. Si l’assistant commence
 par vous demander où chercher, choisissez **Just this computer (recommended)**.
 Si votre service de recherche tourne déjà ou si vous voulez seulement les
-exécutables, consultez le [guide d’installation](../installation.md).
+exécutables, consultez le [guide d’installation](installation.md).
 Vous pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>

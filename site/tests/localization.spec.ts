@@ -28,12 +28,48 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
 });
 
 test("the language picker keeps the page and labels English fallbacks", async ({ page }) => {
-  await page.goto("/installation/");
+  await page.goto("/configuration/");
   await page.getByRole("combobox", { name: "Select language" }).selectOption({ label: "Español" });
-  await expect(page).toHaveURL(/\/es\/installation\/$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Install Mash");
+  await expect(page).toHaveURL(/\/es\/configuration\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Configure Mash");
   await expect(page.getByText("Esta página aún no está disponible en tu idioma.")).toBeVisible();
 });
+
+for (const [locale, lang, installationTitle] of [
+  ["es", "es", "Instala Mash"],
+  ["fr", "fr", "Installer Mash"],
+  ["zh-cn", "zh-CN", "安装 Mash"],
+]) {
+  test(`the ${locale} quick start and privacy guide link to localized installation steps`, async ({
+    page,
+  }) => {
+    const install = `/${locale}/installation/`;
+    const verify = `${install}#check-the-release-download`;
+    const uninstall = `${install}#uninstall`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${verify}"]`).click();
+    await expect(page).toHaveURL(verify);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(installationTitle);
+    await expect(page.locator("#check-the-release-download")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: "sha256sum mash-x86_64-unknown-linux-gnu.tar.gz" }),
+    ).toBeVisible();
+    await guide.locator('a[href="#start-the-local-search-service"]').last().click();
+    await expect(page).toHaveURL(`${install}#start-the-local-search-service`);
+    await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
+    await expect(
+      guide.getByText("Set up and index without connecting agents", { exact: true }),
+    ).toBeVisible();
+
+    await page.goto(`/${locale}/privacy/`);
+    await guide.locator(`a[href="${uninstall}"]`).click();
+    await expect(page).toHaveURL(uninstall);
+    await expect(page.locator("#uninstall")).toBeAttached();
+    await expect(guide.locator("pre").filter({ hasText: "mash uninstall --yes" })).toBeVisible();
+  });
+}
 
 for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
   ["es", "es", "Agentes compatibles", "Guía de inicio rápido", "Usa Mash con tu agente"],
@@ -159,8 +195,8 @@ for (const locale of [
     await expect(page.locator(`dialog a[href^="/${locale.path}/privacy/"]`).first()).toBeVisible();
     await page.keyboard.press("Escape");
 
-    await page.locator(`nav.sidebar a[href="/${locale.path}/installation/"]`).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Install Mash");
+    await page.locator(`nav.sidebar a[href="/${locale.path}/troubleshooting/"]`).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Troubleshooting");
     await expect(page.getByText(locale.fallback, { exact: true })).toBeVisible();
   });
 }

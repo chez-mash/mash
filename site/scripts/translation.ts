@@ -12,6 +12,7 @@ import {
 
 export const translationPages = [
   "quick-start",
+  "installation",
   "privacy",
   "dashboard",
   "agents",

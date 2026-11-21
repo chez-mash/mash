@@ -131,7 +131,7 @@ copilot mcp remove mash
 copilot plugin uninstall mash@mash
 ```
 
-如果还想从电脑上移除 Mash，请参阅[卸载说明](../installation.md#uninstall)。
+如果还想从电脑上移除 Mash，请参阅[卸载说明](installation.md#uninstall)。
 如果继续使用 Mash，请把该代理从 [`[agents] connected`](../configuration.md#connected-agents)
 中移除，让 Mash 停止检查这条连接。
 

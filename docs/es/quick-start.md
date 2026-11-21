@@ -10,7 +10,7 @@ Después de configurar Mash, ejecuta `mash dash` y abre en tu navegador la
 dirección que muestra. También puedes buscar en la terminal o conectar un
 agente para que busque por ti.
 
-[Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
+[Privacidad del historial](privacy.md) · [Revisa y verifica el instalador](installation.md#check-the-release-download) · [Quick start in English](../../README.md#quick-start)
 
 Si quieres empezar con un solo agente y los últimos siete días, sigue la
 [guía de prueba local](privacy.md#prueba-con-menos-historial).
@@ -61,7 +61,7 @@ Para elegir carpetas, fechas o agentes, usa **Customize setup** si está
 disponible.
 
 Para instalar por separado o usar tu propio Qdrant, consulta la
-[guía de instalación (en inglés)](../installation.md).
+[guía de instalación](installation.md).
 También puedes [usar el asistente del panel local](dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Encuentra una conversación anterior

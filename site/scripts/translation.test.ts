@@ -83,6 +83,22 @@ describe("documentation translation drafts", () => {
     expect(quickStart.body).not.toContain("## Licence");
   });
 
+  it("can draft the installation guide without translating setup choices or shell commands", async () => {
+    const installation = await readTranslationSource("installation");
+    const draft = prepareTranslation(installation, "docs/es/installation.md");
+    expect(draft.passages).not.toContain("Set up and index without connecting agents");
+    const output = draft.render({
+      translations: draft.passages.map((passage) =>
+        passage === "Uninstall" ? "Desinstala Mash" : passage,
+      ),
+    });
+    expect(output).toContain("**Set up and index without connecting agents**");
+    expect(output).toContain("mash qdrant install");
+    expect(output).toContain("sha256sum mash-x86_64-unknown-linux-gnu.tar.gz");
+    expect(output).toContain('<span id="uninstall"></span>');
+    expect(recordedTranslationRevision(output)).toBe(installation.revision);
+  });
+
   it("drafts the support guide while keeping the setup wizard label and source revision", async () => {
     const support = await readTranslationSource("supported-agents");
     const draft = prepareTranslation(support, "docs/es/supported-agents.md");
@@ -157,7 +173,7 @@ describe("documentation translation drafts", () => {
     expect(output).toContain("(dashboard.md#set-up-mash-from-the-dashboard)");
     expect(output).toContain("(dashboard.md#find-and-read-a-chat)");
     expect(output).toContain("(agents.md#connect-claude-code-codex-or-copilot)");
-    expect(output).toContain("(../installation.md)");
+    expect(output).toContain("(installation.md)");
 
     const partial = prepareTranslation(
       {

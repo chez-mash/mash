@@ -2,7 +2,7 @@
 
 [在演示中试搜](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一条结果即可查看原始对话。按下面的步骤设置 Mash，即可在浏览器或终端中搜索自己的历史记录，也可以让你连接的代理帮忙搜索。
 
-运行命令前，你可以先 [查看安装脚本并校验下载文件](../installation.md#check-the-release-download)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
+运行命令前，你可以先 [查看安装脚本并校验下载文件](installation.md#check-the-release-download)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
 
 **让代理帮你设置。** 将以下提示粘贴到 Claude Code、Codex 或其他编程代理中。
 
@@ -31,7 +31,7 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 默认读取最近 90 天的历史。核对设置后，选择 **Set up and index** 继续。
 如果设置助手先询问在哪里搜索，请选择 **Just this computer (recommended)**。
-如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](../installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
+如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 <span id="try-it"></span>
 

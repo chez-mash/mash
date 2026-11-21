@@ -60,7 +60,7 @@ Pour utiliser tous les historiques proposés sans connecter d’agents, choisiss
 Vous pouvez aussi [faire ces choix dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard).
 
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
-[Voir ce que retire la désinstallation](../installation.md#uninstall)
+[Voir ce que retire la désinstallation](installation.md#uninstall)
 
 ## Informations sensibles
 

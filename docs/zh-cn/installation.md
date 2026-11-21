@@ -1,0 +1,194 @@
+# 安装 Mash
+
+安装 Mash，启动搜索服务，再选择要搜索哪些对话。默认设置会在你的电脑上建立索引和搜索。[Mash 如何处理历史记录](privacy.md)
+
+你可以先[搜索演示中的示例对话](https://getmash.io/demo/)。想用自己的数据试一试，可以[选择一份历史记录，在本地网页面板中试用](privacy.md#用少量本地历史试用)。
+
+[快速入门](quick-start.md)提供一条命令，可安装 Mash、启动搜索服务并打开设置助手供你核对选项。如果已经安装 Mash，请[启动搜索服务](#start-the-local-search-service)。如果服务也已运行，请直接[设置要读取的历史记录](#connect-your-histories)。
+
+如果已有 Mash，现在要更新到新版本，请参阅[升级步骤（英文）](../upgrades.md#upgrade-an-existing-installation)。
+
+<span id="install-the-cli"></span>
+
+<span id="get-mash-for-your-system"></span>
+
+## 下载适合你的系统的 Mash
+
+预编译版本包含网页面板。完成设置后，运行 `mash dash`，在浏览器中打开显示的地址。设置时也可以[连接编程代理](agents.md)，让它们帮你搜索历史记录。
+
+<span id="recommended-release-installers"></span>
+
+### 推荐的安装脚本
+
+预编译版本支持 Linux x86-64 和 ARM64、搭载 Apple 芯片的 macOS，以及 Windows x64。选择适用于你系统的命令。运行前可以先[查看脚本或校验下载文件](#check-the-release-download)。
+
+Linux 可执行文件需要 glibc 2.34 或更高版本。Ubuntu 22.04、Debian 12、RHEL 9 及其后续版本符合要求。Alpine 等使用 musl 的系统暂不支持。
+
+<span id="macos-or-linux"></span>
+
+#### macOS 或 Linux
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+```
+
+WSL 也使用这条命令。
+
+#### Windows x64
+
+```powershell
+irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+```
+
+两个脚本都会校验下载文件，并将 Mash 安装到用户目录下的 `.local/bin`。脚本会显示后续命令和可执行文件的完整路径，即使目录尚未加入 `PATH` 也能运行。通过 `MASH_VERSION` 可以指定已发布的版本标签，通过 `MASH_INSTALL_DIR` 可以选择安装目录。脚本会保留你的终端配置。如果终端找不到 `mash`，请参阅[如何找到命令（英文）](../troubleshooting.md#mash-command-not-found)。
+
+<span id="package-manager-alternatives"></span>
+
+### 使用包管理器安装
+
+可以用 [Homebrew、apt、Scoop、mise 或 cargo-binstall 安装（英文）](../install-methods.md#install-with-a-package-manager)。安装后请[启动搜索服务](#start-the-local-search-service)。
+
+<span id="build-from-source"></span>
+
+### 从源代码构建
+
+要在浏览器中搜索，请[构建包含网页面板的版本（英文）](../install-methods.md#include-the-web-dashboard)。如果只需要[终端搜索和代理工具（英文）](../install-methods.md#cli-and-agent-tools)，可以用较短的 Cargo 命令。
+
+<span id="start-the-local-search-service"></span>
+
+## 启动本地搜索服务
+
+在 Linux 或 WSL 上，下面的命令需要 systemd 用户会话。[检查当前会话或查看其他启动方式（英文）](../local-search.md#linux-without-a-systemd-user-session)。如果已运行[兼容的本地 Qdrant（英文）](../local-search.md#run-qdrant-yourself)，可以直接[设置要读取的历史记录](#connect-your-histories)。
+
+在 Windows 上，Mash 会把 Qdrant 的搜索数据放在系统盘上路径较短的目录中，通常是 `C:\mash-qdrant\storage`。[Qdrant 的文件和日志位置（英文）](../local-search.md#where-qdrant-stores-data)
+
+```sh
+mash qdrant install
+```
+
+Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台启动服务。Qdrant 只在本机监听，并在你登录时重新启动。在 Windows 上，需要登录桌面。如果服务启动失败，请参阅[如何查看日志并重启服务（英文）](../local-search.md#let-mash-manage-qdrant)。
+
+<span id="run-qdrant-yourself"></span>
+
+### 自行运行 Qdrant
+
+你可以[复用本机的 Qdrant 1.20 或更高版本（英文）](../local-search.md#run-qdrant-yourself)。如需启动一个新实例，请选用适合你环境的说明。
+
+- <span id="optional-qdrant-docker-image"></span>[在 Docker 中运行 Qdrant（英文）](../local-search.md#optional-qdrant-docker-image)
+- <span id="native-windows-without-docker"></span>[在 Windows 上直接运行（英文）](../local-search.md#native-windows-without-docker)
+- <span id="native-macos-or-linux-without-docker"></span>[在 macOS 或 Linux 上直接运行（英文）](../local-search.md#native-macos-or-linux-without-docker)
+
+<span id="connect-your-histories"></span>
+
+## 设置要读取的历史记录
+
+```sh
+mash init
+```
+
+首次设置时，终端助手会显示找到的历史记录目录、读取范围（最近 90 天内更新过的文件），以及可连接的代理。选择 **Set up and index** 将索引保存在本机并应用这些选项。选择 **Set up and index without connecting agents** 也会为同一批历史记录建立索引，供你自己搜索。即使代理的命令不在本机，Mash 也能读取它已保存的对话。你可以[稍后再连接代理](agents.md#connect-claude-code-codex-or-copilot)，让代理帮你搜索。
+
+选择 **Customize setup** 可以修改读取范围或历史记录目录，选择要接入的代理，连接已有的共享服务器，或先保存设置，稍后再建立索引。这个选项还允许在建立索引后[从旧对话中补录记忆（英文）](../records.md#backfill-earlier-memory)。补录时，Mash 会使用你已登录的 Claude Code 或 Codex，将选中的对话文字发送给该代理的模型服务。
+
+在应用设置前按 Esc 或 Ctrl-C，可以取消对 Mash 配置和代理设置的更改。如果选择建立索引，助手会检查本地搜索服务的 HTTP 接口。如果选择共享，还会检查能否通过服务器的身份验证。如果连接失败，可以先保存设置，稍后再完成配置。
+
+如果连接了代理，请重启代理以加载 Mash。历史记录插件的钩子需要 Python 3.9 或更高版本。[在代理中使用 Mash](agents.md)
+
+<span id="try-your-first-search"></span>
+
+## 开始第一次搜索
+
+如果安装了网页面板，请运行 `mash dash`，然后在浏览器中打开显示的地址。在 **chats** 中输入记得的关键词，打开搜索结果即可阅读原始消息。
+
+你也可以[在终端中搜索（英文）](../search.md#your-first-search)，或者[让已连接的代理搜索](agents.md#try-it)。如果找不到较早的对话，可以[扩大历史记录范围（英文）](../indexing.md#add-older-history)。
+
+关键词搜索不需要下载模型。要按含义搜索，请[配置可选的搜索模型（英文）](../indexing.md#enable-semantic-search)。
+
+<span id="setup-options"></span>
+
+## 配置选项
+
+<span id="without-the-wizard"></span>
+
+### 跳过设置助手
+
+`mash init --yes` 接受检测到的默认选项。它会读取最近 90 天内修改过的文件，包括找到的所有受支持代理（含 Copilot）的当前会话，并应用可用的代理连接，但不会补录旧对话中的记忆。如果标准输入或标准错误输出未连接到终端，命令也会以非交互方式运行。JSON 结果会列出选中的历史记录目录。
+
+跳过助手时，`mash init` 会在更改任何设置之前检查 Qdrant。如果 Qdrant 没有响应，命令会给出启动方法，并保留 Mash 的配置和代理设置。
+
+| 选项 | 用途 |
+| --- | --- |
+| `--no-index` | 保存配置，稍后再建立索引。跳过 Qdrant 检查，并在后续步骤中提示如何启动 Qdrant。要手动选择目录，可编辑[配置文件（英文）](../configuration.md)，然后运行 `mash index`。 |
+| `--no-agents` | 使用网页面板或终端搜索，无需连接代理。 |
+| `--force` | 非交互设置默认保留现有配置。配合 `--yes` 使用此选项时，Mash 会根据找到的历史记录重新生成配置。在助手中，此选项会直接打开设置确认页。 |
+
+未指定 `--force` 时，助手会让你选择保留或核对现有设置。在核对后保存时，Mash 会保留助手未提供的设置，并备份原配置文件。
+
+Qdrant 启动前也可以阅读历史记录。先运行 `mash init --no-index`，再运行 `mash index`。Mash 会先将对话保存到本机，然后在需要 Qdrant 时停止，报告保存了多少条对话并给出服务启动方法。此时可以用 `mash list-chats` 和 `mash view` 阅读已保存的对话。Qdrant 就绪后，再运行一次 `mash index` 即可更新搜索索引。
+
+<span id="read-the-result"></span>
+
+### 查看设置结果
+
+终端助手会显示简要报告和下一步。搜索就绪后，会根据已安装的版本提示如何打开面板或在终端搜索。要获取完整的 JSON 报告，可以运行 `mash init --yes`，或用 `mash init > setup.json` 重定向助手的标准输出。提示和进度写入标准错误输出。
+
+- `"agents": []` 表示没有连接代理，索引仍可能已成功建立。查看 `next` 了解原因，或参阅[如何连接代理](agents.md)。你可以直接在终端搜索。
+- 对于每个已连接的代理，`files` 列出该代理的命令修改过的设置文件，`undo` 列出移除连接的命令。
+- `index_error` 表示设置已保存，但首次建立索引失败。例如，Qdrant 停止运行或无法访问其 gRPC 端口。Mash 会报告错误，并保留已保存的配置、代理连接和历史记录。解决问题后，运行 `mash index`。
+- 再次运行时出现 `written: false`，表示 Mash 复用了已有的配置。
+- 可搜索的消息数只包含用户和代理之间的对话。推理过程和工具输出仍可在对话中阅读，所以可搜索的消息数可能比对话中的消息总数少很多。
+
+<span id="check-the-release-download"></span>
+
+## 校验下载文件
+
+运行前可以阅读 [macOS 和 Linux 安装脚本](https://github.com/mashium/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/mashium/mash/blob/main/install.ps1)。脚本将文件安装到你的用户目录，无需管理员权限。使用一条命令完成安装时，脚本会先安装并启动 Qdrant，再打开设置助手。你可以核对历史记录和代理连接后再应用设置。如果在助手中取消，可以用[卸载预览](#uninstall)查看脚本此前已安装的内容。
+
+[公开发布流程](https://github.com/mashium/mash/actions/workflows/release.yml)会确认对应的源代码提交已通过 Linux 和 Windows 测试，再构建各平台的安装包。可以在[公开的安装测试](https://github.com/mashium/mash/actions/workflows/release-check.yml)中查看你的版本通过了哪些安装检查。
+
+如果不想运行下载的脚本，可以从同一个 [GitHub 发布版本](https://github.com/mashium/mash/releases)下载适合你平台的压缩包及 `SHA256SUMS`。解压前，计算压缩包的 SHA-256 值，并与校验文件中同名文件的值比较。例如，在 Linux x86-64 上运行以下命令。
+
+```sh
+sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
+```
+
+在 macOS 上用 `shasum -a 256` 校验 macOS 压缩包。在 Windows 上用 PowerShell 的 `Get-FileHash -Algorithm SHA256` 校验 Windows ZIP 文件。如果校验值与发布值相同，就把 `mash` 和 `mash-server`（Windows 上为两个 `.exe` 文件）解压到你自己的目录，然后[启动搜索服务](#start-the-local-search-service)。
+
+如果该版本提供构建证明，GitHub CLI 还可以验证安装包是由哪个发布流程和源代码标签生成的。将 `ARCHIVE` 替换为下载的文件，将 `RELEASE_TAG` 替换为该版本的标签，保留开头的 `v`。
+
+```sh
+gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+```
+
+发布流程会在发布安装包前核验构建证明。`v0.1.1-alpha` 及更早版本使用上述 SHA-256 校验方式。
+
+<span id="uninstall"></span>
+
+## 卸载 Mash
+
+```sh
+mash uninstall          # lists what would be removed and changes nothing
+mash uninstall --yes    # removes it
+```
+
+先在终端中查看预览。它会列出将移除的服务、代理连接和本地文件，包括 Mash 保存的对话副本占用的空间。如果重定向了输出，或所用版本在终端中显示 JSON，请查看 `paths`、`kept` 和 `next`。
+
+指定 `--yes` 后，Mash 会执行以下操作。
+
+1. 停止并移除由 Mash 设置的服务，包括搜索服务及其数据、[远程网页面板](dashboard.md)，以及已安装的索引监视服务。
+2. 使用 Claude Code、Codex 和 GitHub Copilot 自己的命令解除连接，详见[断开代理连接](agents.md#disconnect-an-agent)。
+3. 删除 Mash 的索引（对话副本）、模型、配置和保存的令牌。
+
+要删除程序本身，请按报告中的最后一条指令操作。JSON 报告中请查看 `binary.remove`。根据安装方法，可能需要运行 `brew uninstall mash`、`scoop uninstall mash`、`sudo apt remove mash-cli` 或 `cargo uninstall mash`，也可能需要删除脚本安装的文件。
+
+代理保存的原始对话和已发布到[共享索引（英文）](../shared-index.md)中的历史记录都会保留。Mash 会列出并保留 `~/.mash` 中并非由它创建的文件。如果你自行运行 Qdrant，它的服务和其中的 Mash 搜索数据也会保留，需单独管理。
+
+如果计划日后重新安装，可以用 `--keep-history` 保留 Mash 中可搜索的对话副本、配置、保存的令牌，以及 Mash 管理的 Qdrant 中的搜索数据。此选项仍会移除服务、代理连接和下载的模型。如果你想另存备份，请运行 [`mash export DIRECTORY`（英文）](../upgrades.md)。
+
+先用 `mash uninstall --keep-history` 查看预览，再用 `mash uninstall --yes --keep-history` 确认。
+
+报告会列出失败的步骤及原因。只要有一步失败，命令就会返回退出码 1。用相同的选项重新运行即可重试剩余步骤。卸载完成后请重启代理，使它们停止加载 Mash。
+
+如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
+
+<!-- mash-docs-source: 9b52249843696e629ddd5a201ec85ae63dce95dbe5c32034973297db5616d6a9 -->
