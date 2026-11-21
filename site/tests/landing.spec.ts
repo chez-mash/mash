@@ -278,8 +278,7 @@ test("visitors can inspect the installer and read about privacy before setup", a
 
 /**
  * Scrolls so that a scene has played the given share of its pinned stretch.
- * A scene on the way that has not finished holds the page until it has, so
- * this keeps asking until the page is there.
+ * Earlier scenes may still cover that position while they finish playing.
  */
 async function play(page: Page, heading: string, share: number): Promise<void> {
   const scene = page.locator(".mash-welcome .scene", { hasText: heading });
@@ -289,7 +288,7 @@ async function play(page: Page, heading: string, share: number): Promise<void> {
         scene.evaluate((element, part) => {
           const top = element.getBoundingClientRect().top + scrollY;
           const target = top + part * (element.getBoundingClientRect().height - innerHeight);
-          if (Math.abs(scrollY - target) < 2) return true;
+          if (Math.abs(scrollY - target) < 2) return !document.querySelector(".mash-welcome .kept");
           scrollTo(0, target);
           return false;
         }, share),
@@ -352,6 +351,52 @@ test("a scene scrolled past early stays on screen until it has played out", asyn
     await expect(scene).not.toHaveClass(/kept/);
     expect(await page.evaluate(() => scrollY)).toBeGreaterThan(end + 400);
   }
+});
+
+test("fast jumps play crossed scenes in order, including crossings behind a kept scene", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const welcome = page.locator(".mash-welcome");
+  const scenes = welcome.locator(".scene");
+  const first = scenes.nth(0);
+  const second = scenes.nth(1);
+  const third = scenes.nth(2);
+  await expect(welcome).toHaveClass(/\bmotion\b/);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await expect(first.locator("[data-type]")).toHaveText("");
+
+  // Pass both scenes in one frame, before either was visible.
+  await second.evaluate((element) => {
+    const stage = element.querySelector<HTMLElement>(".stage");
+    if (!stage) throw new Error("no stage");
+    const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
+    const pinEnds =
+      scrollY + element.getBoundingClientRect().bottom - pinnedAt - stage.offsetHeight;
+    scrollTo(0, pinEnds + 80);
+  });
+  await expect(first).toHaveClass(/\bkept\b/);
+  await expect(second).not.toHaveClass(/\bkept\b/);
+
+  // Pass the next scene as well while the first still covers the viewport.
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  expect(await page.evaluate(() => scrollY + innerHeight)).toBeGreaterThanOrEqual(
+    await page.evaluate(() => document.documentElement.scrollHeight - 1),
+  );
+  await expect(second).toHaveClass(/\bkept\b/, { timeout: 12_000 });
+  await expect(first).not.toHaveClass(/\bkept\b/);
+  await expect(third).toHaveClass(/\bkept\b/, { timeout: 15_000 });
+  await expect(second).not.toHaveClass(/\bkept\b/);
+});
+
+test("a direct scene link skips replaying earlier scenes", async ({ page }) => {
+  await page.goto("/#welcome-memory");
+  const welcome = page.locator(".mash-welcome");
+  await expect(welcome).toHaveClass(/\bmotion\b/);
+  await expect(page.locator("#welcome-memory")).toBeInViewport();
+  await expect(welcome.locator(".scene.kept")).toHaveCount(0);
 });
 
 test("a scene's drawing draws itself, and undraws on the way back", async ({ page }) => {

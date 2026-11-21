@@ -53,6 +53,9 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
   const rewritten = new Map<HTMLElement, string>();
   /** The scene being kept on screen to finish, if any. */
   let keeper: Scene | null = null;
+  /** Scenes passed by the reader that still have to finish in order. */
+  const pending = new Set<Scene>();
+  let previousScroll = scrollY;
 
   const unkeep = (scene: Scene): void => {
     scene.kept = false;
@@ -103,7 +106,6 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
           ease: "none",
           onComplete: () => {
             unkeep(scene);
-            scene.entered = false;
             place(false);
           },
         });
@@ -117,6 +119,9 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
    */
   function place(settled: boolean): void {
     const vh = innerHeight;
+    const current = scrollY;
+    const previous = previousScroll;
+    previousScroll = current;
 
     for (const backdrop of backdrops) {
       // By the drawing's own place on screen, so a section taller than the
@@ -163,14 +168,17 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
     }
 
     for (const scene of scenes) {
-      // A scene kept on screen covers what follows; those scenes wait their turn.
-      if (keeper && scene.index > keeper.index) continue;
-      const go = settled ? put : send;
       const box = scene.el.getBoundingClientRect();
       const pinnedAt = Number.parseFloat(getComputedStyle(scene.stage).top) || 0;
       const tall = scene.stage.offsetHeight;
-      const pinEnds = scrollY + box.bottom - pinnedAt - tall;
-      const past = scrollY > pinEnds + 1;
+      const pinEnds = current + box.bottom - pinnedAt - tall + 1;
+      const past = current > pinEnds;
+
+      // Track crossings even while an earlier scene covers this one. A scene
+      // can go from ahead of the viewport to past its pin in one frame.
+      if (settled || !past) pending.delete(scene);
+      else if (previous <= pinEnds) pending.add(scene);
+      if (keeper && scene.index > keeper.index) continue;
 
       if (scene.kept) {
         // However far past the page has gone, it stays until it has played out.
@@ -185,23 +193,20 @@ function build(root: HTMLElement, hero: HTMLElement | null): () => void {
       scene.el.style.setProperty("--o", String(visible));
       const onScreen = box.bottom > 0 && box.top < vh;
 
+      const go = settled ? put : send;
       if (past) {
         const unfinished = scene.timeline.time() < scene.endAt - 0.02;
-        if (scene.entered && unfinished && !keeper && !settled) keep(scene, box);
+        const crossed = pending.delete(scene);
+        if (crossed && unfinished && !keeper) keep(scene, box);
         else if (onScreen) go(scene, scene.endAt);
-        else {
-          put(scene, scene.endAt);
-          scene.entered = false;
-        }
+        else put(scene, scene.endAt);
         continue;
       }
       if (!onScreen) {
         // Not reached yet: at its very beginning.
         put(scene, 0);
-        scene.entered = false;
         continue;
       }
-      scene.entered = true;
       const last = scene.stepAt[scene.steps - 1] ?? scene.panelAt;
       if (!scene.head) {
         // Nothing to draw or title: its panel arrives as it nears its place,

@@ -33,8 +33,6 @@ export interface Scene {
   readonly endAt: number;
   /** Where the timeline was last sent. */
   target: number;
-  /** Whether the reader has had the scene on screen during this pass. */
-  entered: boolean;
   /** Whether it is fixed on screen after its place, finishing. */
   kept: boolean;
 }
@@ -252,7 +250,6 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
     stepAt,
     endAt,
     target: 0,
-    entered: false,
     kept: false,
   };
 }

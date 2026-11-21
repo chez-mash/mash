@@ -83,13 +83,14 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
   builds each one: it draws the scene's drawing, moves the heading aside for
   a panel, and brings in the panel's steps (`data-step`).
-  Each scene is one GSAP timeline. The scroll does not scrub it: it names how
-  far the scene should have got, and the timeline plays there at its own pace,
-  so a fast scroll cannot skip anything. A scene scrolled past unfinished gets
-  the class `kept` and stays fixed on screen until it has played out. The
-  script never moves or refuses the page's scroll, because Safari ignores that
-  mid-gesture and the page shakes. The pacing constants are at the top of that
-  file.
+  Each scene is one GSAP timeline. Its position on screen sets the target time,
+  and the timeline plays there at its own pace. A scene scrolled past unfinished
+  gets the class `kept` and stays fixed until it finishes. A single scroll can
+  cross several scenes, and crossings behind a kept scene wait in page order.
+  Scrolling back into a waiting scene returns it to regular playback. The script
+  leaves the page's native scroll position alone, because Safari ignores
+  programmatic scroll changes mid-gesture and can shake. The pacing constants
+  are at the top of that file.
 - **GSAP** (with its ScrollTrigger and DrawSVG plugins) drives the motion. Its
   licence is GSAP's own no-charge licence, not an open-source one; it covers
   this use. Timelines hold measured heights, so they are rebuilt when the
