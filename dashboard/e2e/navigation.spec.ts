@@ -23,6 +23,8 @@ const statusFixture = {
   messages: 0,
   searchable_messages: 0,
   models_installed: true,
+  query_models: "available",
+  local_qdrant: { state: "reachable", url: "http://127.0.0.1:6334" },
   realized_mode: "hybrid",
   database_path: "/fixture/mash.db",
   recommended_action: null,

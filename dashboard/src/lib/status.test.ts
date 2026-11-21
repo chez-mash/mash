@@ -10,6 +10,8 @@ const body = {
   messages: 40,
   searchable_messages: 12,
   models_installed: true,
+  query_models: "available",
+  local_qdrant: { state: "reachable", url: "http://127.0.0.1:6333" },
   realized_mode: "hybrid",
   database_path: "/data/mash.sqlite3",
   recommended_action: null,

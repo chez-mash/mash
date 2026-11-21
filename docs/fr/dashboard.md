@@ -52,6 +52,19 @@ Sur un téléphone, utilisez le bouton de menu pour l’ouvrir.
 
 Le bouton en haut à droite alterne entre les thèmes clair et sombre. Le navigateur mémorise votre choix.
 
+<span id="check-if-local-search-is-ready"></span>
+
+### Vérifier si la recherche locale est prête
+
+Ouvrez **settings** et regardez l’état de la recherche en haut de la page.
+Les nombres de la section **storage** décrivent l’historique que Mash a
+enregistré. La recherche locale a aussi besoin d’un service de recherche en
+marche et d’un index à jour.
+
+Si le service de recherche local est indisponible, [vérifiez comment il a été lancé](troubleshooting.md#qdrant-connection-failed)
+avant de relancer l’indexation. La recherche par mots fonctionne sans modèle.
+Installez des modèles uniquement si vous voulez [chercher par sens (guide en anglais)](../indexing.md#enable-semantic-search).
+
 <span id="find-and-read-a-chat"></span>
 
 ## Rechercher et lire une conversation
@@ -231,4 +244,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->
+<!-- mash-docs-source: 93abfb1e4f23d47991be11a7336bfa330c896940e30aaf7159744b693b9892fb -->

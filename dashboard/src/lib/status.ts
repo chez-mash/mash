@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/svelte-query";
 import { isAgent, read } from "./api";
 import { stableRead } from "./queries";
-import type { Answer } from "./routes";
+import type { Answer, Wire } from "./routes";
 import type { Agent } from "./types";
 
 /** What `mash status` reports about this machine, for the settings page. */
@@ -10,11 +10,11 @@ export interface Status {
   readonly chats: number;
   readonly messages: number;
   readonly searchableMessages: number;
-  readonly modelsInstalled: boolean;
+  readonly queryModels: Wire["ModelAvailability"];
+  readonly searchService: Wire["Reachability"];
   readonly mode: string;
   readonly databasePath: string | null;
-  /** The command that would make progress, when something needs doing. */
-  readonly nextStep: string | null;
+  readonly nextStep: Wire["RecommendedAction"] | null;
   readonly configuration: {
     readonly path: string;
     /** False when no file exists and built-in defaults apply. */
@@ -40,7 +40,8 @@ export function parseStatus(body: Answer<"/api/status">): Status {
     chats: body.chats,
     messages: body.messages,
     searchableMessages: body.searchable_messages,
-    modelsInstalled: body.models_installed,
+    queryModels: body.query_models,
+    searchService: body.local_qdrant.state,
     mode: body.realized_mode,
     databasePath: body.database_path ?? null,
     nextStep: body.recommended_action ?? null,

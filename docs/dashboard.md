@@ -100,6 +100,16 @@ The left rail is the way around. On a phone it opens from the menu button.
 The button in the top right corner switches between light and dark; the
 choice is remembered in that browser.
 
+### Check if local search is ready
+
+Open **settings** and look at the search status at the top. The message counts
+under **storage** describe the history Mash has saved. Local search also
+needs a running search service and an up-to-date search index.
+
+If the local search service is unavailable, [check how it was started](troubleshooting.md#qdrant-connection-failed)
+before indexing again. Word search works without models. Install models only
+if you want to [search by meaning](indexing.md#enable-semantic-search).
+
 ## Find and read a chat
 
 Open **chats**, type a word you remember into **Search your history**, and

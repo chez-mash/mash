@@ -37,6 +37,11 @@ const assistant = createQuery(() => assistantOptions);
 const settings = createQuery(() => settingsOptions);
 const config = $derived(status.data?.configuration);
 const file = $derived(settings.data);
+const modelLabels = {
+  "not-required": "not needed for word search",
+  available: "available",
+  unavailable: "unavailable",
+};
 // The service is asked for its models only where one could be chosen.
 const models = createQuery(() => ({
   ...assistantModelsOptions,
@@ -100,7 +105,7 @@ async function save(): Promise<void> {
   <div><h1 class="h1">Settings</h1><p class="meta" style:font-size="13.5px" style:overflow-wrap="anywhere">{file?.path ?? config?.path ?? "Mash configuration"}</p></div>
   {#if status.data}
     <span class={status.data.ready ? "ok" : "warn"} style:display="inline-flex" style:align-items="center" style:gap="7px" style:font-size="13.5px">
-      {#if status.data.ready}<Check size={16} aria-hidden="true" />Ready{:else}<TriangleAlert size={16} aria-hidden="true" />Needs attention{/if}
+      {#if status.data.ready}<Check size={16} aria-hidden="true" />Local search ready{:else}<TriangleAlert size={16} aria-hidden="true" />Local search needs attention{/if}
     </span>
   {/if}
 </div>
@@ -113,9 +118,18 @@ async function save(): Promise<void> {
 <QueryError title="Couldn’t load settings" query={status} />
 {#if settings.error}<p class="meta warn" role="alert">Settings can't be changed right now: {settings.error.message}</p>{/if}
 {#if status.data && config}
-  {#if !config.loaded}<p class="meta warn">No configuration file was found at that path, so built-in defaults apply. <a class="a" href="#/setup">Set up Mash here</a>, or run <code class="i">mash init</code> in a terminal.</p>{/if}
-  {#if status.data.nextStep === "start-qdrant"}<p class="meta warn">Suggested next step: start the Qdrant search service at <code class="i">{config.searchStore}</code>. Indexing and every search need it; <code class="i">mash status</code> shows how to start it.</p>
-  {:else if status.data.nextStep}<p class="meta warn">Suggested next step: <code class="i">mash {status.data.nextStep}</code></p>{/if}
+  {#if !config.loaded}
+    <p class="meta warn">Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable"} or run <code class="i">mash init</code> in a terminal{/if}.</p>
+  {/if}
+  {#if status.data.searchService === "unreachable"}
+    <p class="meta warn">Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Start or repair the search service</a>.</p>
+  {:else if status.data.searchService === "rejected"}
+    <p class="meta warn">The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>.</p>
+  {:else if status.data.nextStep === "index"}
+    <p class="meta warn">Run <code class="i">mash index</code> in a terminal on this machine to update local search.</p>
+  {:else if status.data.nextStep === "models install"}
+    <p class="meta warn">Search by meaning needs local models. Run <code class="i">mash models install</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search">Finish setting up search by meaning</a>.</p>
+  {/if}
 
   <section class="set-s">
     <h2 class="h2"><Bot size={15} aria-hidden="true" />agent histories</h2>
@@ -207,7 +221,7 @@ async function save(): Promise<void> {
     <dl>
       {@render row("search mode", status.data.mode)}
       {@render row("embeddings", config.embeddings)}
-      {@render row("query models", status.data.modelsInstalled ? "installed" : "not installed")}
+      {@render row("query models", modelLabels[status.data.queryModels])}
       {@render row("vector search", config.vectorSearch.toUpperCase())}
       {@render row("ranking", config.ranking)}
     </dl>
@@ -241,7 +255,8 @@ async function save(): Promise<void> {
     <dl>
       {@render row("database", status.data.databasePath ?? "not created yet")}
       {@render row("chats", status.data.chats.toLocaleString())}
-      {@render row("messages", `${status.data.messages.toLocaleString()} (${status.data.searchableMessages.toLocaleString()} searchable)`)}
+      {@render row("messages stored", status.data.messages.toLocaleString())}
+      {@render row("messages eligible for search", status.data.searchableMessages.toLocaleString())}
       {@render row("search store", config.searchStore)}
     </dl>
   </section>

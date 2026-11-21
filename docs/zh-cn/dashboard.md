@@ -50,6 +50,16 @@ mash dash
 
 右上角的按钮可以切换浅色和深色主题，浏览器会记住你的选择。
 
+<span id="check-if-local-search-is-ready"></span>
+
+### 检查本地搜索是否就绪
+
+打开 **settings**，查看页面顶部的搜索状态。**storage** 中的消息数量反映 Mash 已保存的历史。
+在本机搜索还需要正在运行的搜索服务和最新的搜索索引。
+
+如果本地搜索服务不可用，请先[检查它的启动方式](troubleshooting.md#qdrant-connection-failed)，再重新建立索引。
+关键词搜索不需要模型。只有想[按含义搜索（英文指南）](../indexing.md#enable-semantic-search)时才需要安装模型。
+
 <span id="find-and-read-a-chat"></span>
 
 ## 查找并阅读对话
@@ -228,4 +238,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->
+<!-- mash-docs-source: 93abfb1e4f23d47991be11a7336bfa330c896940e30aaf7159744b693b9892fb -->

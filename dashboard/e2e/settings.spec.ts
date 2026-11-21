@@ -7,6 +7,8 @@ const status = {
   messages: 340,
   searchable_messages: 300,
   models_installed: true,
+  query_models: "available",
+  local_qdrant: { state: "reachable", url: "http://127.0.0.1:6334" },
   realized_mode: "hybrid",
   database_path: "/fixture/mash.db",
   recommended_action: null,
@@ -38,11 +40,16 @@ const settings = {
   hide_credentials: { output: true, publication: true },
 };
 
-async function mock(page: Page, served: unknown, posts: unknown[]): Promise<void> {
+async function mock(
+  page: Page,
+  served: unknown,
+  posts: unknown[],
+  report: unknown = status,
+): Promise<void> {
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
-    if (path === "/api/status") return route.fulfill({ json: status });
+    if (path === "/api/status") return route.fulfill({ json: report });
     if (path === "/api/services/settings") {
       if (request.method() === "POST") {
         const body = request.postDataJSON();
@@ -76,6 +83,48 @@ async function mock(page: Page, served: unknown, posts: unknown[]): Promise<void
     if (path === "/api/chats")
       return route.fulfill({ json: { local_node: "fixture", truncated: false, chats: [] } });
     return route.fulfill({ json: [] });
+  });
+}
+
+test("word search is ready when optional models are absent", async ({ page }) => {
+  await mock(page, settings, [], {
+    ...status,
+    query_models: "not-required",
+    models_installed: false,
+    realized_mode: "lexical",
+  });
+  await page.goto("/#/settings");
+  await expect(page.getByText("Local search ready", { exact: true })).toBeVisible();
+  await expect(page.getByText("not needed for word search", { exact: true })).toBeVisible();
+  await expect(page.getByText("mash models install", { exact: true })).toHaveCount(0);
+});
+
+for (const [state, action, link] of [
+  ["unreachable", "start-qdrant", "Start or repair the search service"],
+  ["rejected", "index", "Check the search service"],
+] as const) {
+  test(`settings show how to recover from a ${state} search service`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await mock(page, settings, [], {
+      ...status,
+      ready: false,
+      local_qdrant: { ...status.local_qdrant, state },
+      recommended_action: action,
+      configuration: { ...status.configuration, loaded: state === "rejected" },
+    });
+    await page.goto("/#/settings");
+    await expect(page.getByText("Local search needs attention", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: link, exact: true })).toHaveAttribute(
+      "href",
+      "https://getmash.io/troubleshooting/#qdrant-connection-failed",
+    );
+    await expect(page.getByText("mash index", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("mash init", { exact: true })).toHaveCount(0);
+    if (state === "unreachable") {
+      await expect(page.getByRole("link", { name: "Set up Mash here" })).toBeVisible();
+    }
+    await expect(page.getByText("messages eligible for search", { exact: true })).toBeVisible();
+    expect(await fitsViewport(page)).toBe(true);
   });
 }
 

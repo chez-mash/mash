@@ -52,6 +52,19 @@ En el teléfono se abre con el botón de menú.
 
 El botón de arriba a la derecha alterna entre el tema claro y el oscuro. El navegador recuerda tu elección.
 
+<span id="check-if-local-search-is-ready"></span>
+
+### Comprueba si la búsqueda local está lista
+
+Abre **settings** y mira el estado de la búsqueda en la parte superior. Los
+recuentos de **storage** describen el historial que Mash ha guardado. Para
+buscar en este equipo también necesitas un servicio de búsqueda en marcha y
+un índice actualizado.
+
+Si el servicio de búsqueda local no está disponible, [comprueba cómo se inició](troubleshooting.md#qdrant-connection-failed)
+antes de volver a indexar. La búsqueda por palabras funciona sin modelos.
+Instala los modelos solo si quieres [buscar por significado (guía en inglés)](../indexing.md#enable-semantic-search).
+
 <span id="find-and-read-a-chat"></span>
 
 ## Busca y lee una conversación
@@ -231,4 +244,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: 370d962461fc853fc7442554d82722d06ec0b371741030a92a91bce96d752579 -->
+<!-- mash-docs-source: 93abfb1e4f23d47991be11a7336bfa330c896940e30aaf7159744b693b9892fb -->
