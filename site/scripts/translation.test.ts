@@ -174,7 +174,7 @@ describe("documentation translation drafts", () => {
   });
 
   it("can draft a guide before its locale directory has been created", async () => {
-    expect(await readLocaleGuides("de")).toEqual(new Map());
+    expect(await readLocaleGuides("unconfigured-test-locale")).toEqual(new Map());
   });
 
   it("rejects a translation that would make an old section link point to a different heading", () => {
