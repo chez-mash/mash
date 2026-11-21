@@ -115,7 +115,7 @@ You can also [export and back up your history](docs/upgrades.md).
 | Channel | Command |
 | --- | --- |
 | Homebrew | `brew install mashium/tap/mash` |
-| apt, Debian and Ubuntu | [Add the Mash repository](docs/installation.md#package-manager-alternatives), then `sudo apt install mash-cli` |
+| apt, Debian and Ubuntu | [Add the Mash repository](docs/install-methods.md#apt-debian-or-ubuntu), then `sudo apt install mash-cli` |
 | Scoop | `scoop bucket add mashium https://github.com/mashium/mash`, then `scoop install mashium/mash` |
 | mise | `mise use -g github:mashium/mash` |
 | cargo-binstall | `cargo binstall --git https://github.com/mashium/mash mash` |
@@ -162,15 +162,9 @@ tests yet. If an agent's chats are missing or look wrong on your system,
 
 ## Build from source
 
-For platforms without a prebuilt release, or to run an unreleased revision.
-You need a stable Rust toolchain; the first build takes several minutes:
-
-```bash
-cargo +stable install --locked --git https://github.com/mashium/mash mash
-```
-
-This build leaves out the web dashboard’s pages.
-[Install Mash](docs/installation.md#install-the-cli) shows how to include them.
+Use a stable Rust toolchain on platforms without a prebuilt release or to try
+an unreleased revision. [Build Mash from source](docs/install-methods.md#build-from-source)
+has instructions for the CLI and the web dashboard.
 
 ## Documentation
 

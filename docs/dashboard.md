@@ -17,25 +17,8 @@ asking your agent to open the Mash dashboard, does both steps for you.
 The dashboard has no login. Read [Keep access private](#keep-access-private)
 before changing its listening address.
 
-A `cargo install --git` installation does not bundle the web interface. Build
-it once using [Node.js 24+](https://nodejs.org/en/download), pnpm, and Rust:
-
-```sh
-git clone https://github.com/mashium/mash.git
-cd mash
-npm install --global pnpm@11.28.5
-pnpm --dir dashboard install --frozen-lockfile
-pnpm --dir dashboard run build
-cargo +stable install --locked --path .
-mash dash
-```
-
-Use the same repository revision as your existing Mash installation to avoid a
-schema mismatch.
-
-For frontend development, `pnpm --dir dashboard run dev` forwards API requests
-to `http://127.0.0.1:8790`; set `MASH_DASHBOARD_API_URL` to proxy to a
-different running dashboard.
+If you installed Mash from source, follow the
+[build steps for including the web dashboard](install-methods.md#include-the-web-dashboard).
 
 ## Set up Mash from the dashboard
 

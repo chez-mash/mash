@@ -3,7 +3,8 @@
 `mash dash` serves this Svelte application and a read-only API on loopback.
 Build with `pnpm install --frozen-lockfile && pnpm run build`, then rebuild Mash
 to embed the bundle. For frontend development, start `mash dash` and run
-`pnpm dev`; Vite forwards `/api` to port 8790 with the correct Host header.
+`pnpm dev`. Vite forwards `/api` to port 8790 with the correct Host header.
+Set `MASH_DASHBOARD_API_URL` to proxy to a different running dashboard.
 
 The dashboard reads real local and shared silver through the typed application
 core. Search uses the existing combined search operation. It never indexes,

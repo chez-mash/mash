@@ -85,7 +85,7 @@ runs, run `mash index` again to make search current.
 
 On native Windows, a Qdrant log mentioning `gridstore`, “path specified,” and
 `os error 3` can mean its data path is too long. Use the short absolute paths in
-the [native Windows setup](installation.md#native-windows-without-docker).
+the [native Windows setup](local-search.md#native-windows-without-docker).
 For an existing installation, stop Qdrant before moving its data and keep a
 backup. Do not delete storage as a first step. Changing only the configured
 path starts a separate empty store; it does not move your data.

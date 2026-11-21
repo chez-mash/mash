@@ -7,7 +7,9 @@ To install and set up Mash for someone, follow [the setup instructions for agent
 ## Start here
 
 - [Quick start](https://getmash.io/quick-start/): install, start the search service, connect histories
-- [Installation](https://getmash.io/installation/): every install channel, Qdrant options, `mash init`
+- [Installation](https://getmash.io/installation/): install Mash, start the local search service, run `mash init`
+- [Other install methods](https://getmash.io/install-methods/): package managers and builds from source
+- [Local search service](https://getmash.io/local-search/): logs, repairs and manually managed Qdrant
 - [Introduction to Mash search](https://getmash.io/search/): word search, search by meaning, filters, reading results
 - [Use Mash with your agent](https://getmash.io/agents/): what connecting an agent adds and how to check it
 - [The Mash plugin for Claude Code, Codex and Copilot](https://getmash.io/plugin/): its skills, slash commands and hooks

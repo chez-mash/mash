@@ -51,6 +51,11 @@ export default defineConfig({
             },
             { label: "Installation", translations: { es: "Instalación" }, slug: "installation" },
             {
+              label: "Other install methods",
+              translations: { es: "Otros métodos de instalación" },
+              slug: "install-methods",
+            },
+            {
               label: "Privacy",
               translations: { es: "Privacidad" },
               slug: "privacy",
@@ -80,6 +85,11 @@ export default defineConfig({
           translations: { es: "Administra Mash" },
           items: [
             "troubleshooting",
+            {
+              label: "Local search service",
+              translations: { es: "Servicio de búsqueda local" },
+              slug: "local-search",
+            },
             "synchronization",
             "indexing",
             "shared-index",

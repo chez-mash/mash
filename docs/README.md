@@ -11,6 +11,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Start here
 
 - [Install Mash and choose which histories to read](installation.md)
+- [Install with a package manager or build from source](install-methods.md)
 - [See where your history is stored and what stays private](privacy.md)
 
 ### Find past work
@@ -27,6 +28,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Manage Mash
 
 - [Fix setup errors, empty results or stale history](troubleshooting.md)
+- [Manage the local search service or run your own Qdrant](local-search.md)
 - [Keep new chats searchable](synchronization.md)
 - [Include older history or search by meaning](indexing.md)
 - [Search history across your machines](shared-index.md)

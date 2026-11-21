@@ -75,7 +75,7 @@ On the server machine:
 1. Start Qdrant for the server.
    [`mash qdrant install`](installation.md#start-the-local-search-service)
    runs one on `127.0.0.1`, ports 6333 (HTTP) and 6334 (gRPC). The
-   [Docker image](installation.md#optional-qdrant-docker-image) or an existing
+   [Docker image](local-search.md#optional-qdrant-docker-image) or an existing
    Qdrant 1.20+ service also works. Keep Qdrant's ports private to this host.
 
 2. Create one token per computer. Each must be 32 to 4096 printable ASCII
