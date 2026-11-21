@@ -1,7 +1,9 @@
 ---
-// The seven scene illustrations were exported from Figma. The captions and
-// links are live content, and the benchmark notes document the measurements.
+// The three dashboard views were exported from Figma. The captions, feature
+// tiles, privacy details and benchmark notes are live content.
+import { Icon } from "@astrojs/starlight/components";
 import "../styles/welcome.css";
+import "../styles/welcome-panels.css";
 import closeArt from "../drawings/close.svg?raw";
 import ferrisArt from "../drawings/ferris.svg?raw";
 import mashyArt from "../drawings/mashy.svg?raw";
@@ -10,6 +12,48 @@ import privacyArt from "../drawings/privacy.svg?raw";
 import searchArt from "../drawings/search.svg?raw";
 import speedArt from "../drawings/speed.svg?raw";
 import Agents from "./Agents.astro";
+
+/** Decorative line icons from the original welcome tiles. */
+function line(paths: readonly string[]): string {
+  const drawn = paths.map((d) => `<path d="${d}"/>`).join("");
+  return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${drawn}</svg>`;
+}
+
+const drawn = {
+  plugin: line(["M6 8h12v4a6 6 0 0 1-12 0z", "M9 2.5V8", "M15 2.5V8", "M12 18v3.5"]),
+  hybrid: line(["M3 6h5c4 0 4 6 8 6h5", "M3 18h5c4 0 4-6 8-6", "M17.5 8.5 21 12l-3.5 3.5"]),
+  machines: line([
+    "M4 3.5h7a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z",
+    "M13 14h7a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V15a1 1 0 0 1 1-1z",
+    "M7.5 10v4.25a3 3 0 0 0 3 3H12",
+    "M16.5 14V9.75a3 3 0 0 0-3-3H12",
+  ]),
+  export: line([
+    "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z",
+    "M14 3v5h5",
+    "M12 11v6",
+    "M9.5 14.5 12 17l2.5-2.5",
+  ]),
+  laptop: line([
+    "M6 5h12a1 1 0 0 1 1 1v9H5V6a1 1 0 0 1 1-1z",
+    "M2.5 15h19v1.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z",
+  ]),
+  server: line([
+    "M5 4.5h14a1 1 0 0 1 1 1V10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z",
+    "M5 13h14a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V14a1 1 0 0 1 1-1z",
+    "M7.5 7.75h.01",
+    "M7.5 16.25h.01",
+  ]),
+  off: line([
+    "M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7z",
+    "M8 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
+  ]),
+  masked: line([
+    "M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z",
+    "M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
+    "M3.5 3.5l17 17",
+  ]),
+};
 ---
 
 <div class="mash-welcome not-content">
@@ -86,9 +130,30 @@ import Agents from "./Agents.astro";
         <span class="eyebrow">Performance</span>
         <h2 id="welcome-speed-title">Fast, and light on your machine.</h2>
       </div>
-      <div class="show">
-        <img class="scene-image" src="/welcome/welcome-performance.svg" width="760" height="379" decoding="async"
-          alt="Example measurements range from a 66 ms word search and about 20 MB for idle MCP to 5× embedding throughput on a Windows GPU and 9× with an experimental NVIDIA worker. Word search needs no GPU." />
+      <div class="show wide">
+        <dl class="stats">
+          <div>
+            <dt><b>66</b><small> ms</small></dt>
+            <dd>for an exact-phrase search, at its quickest</dd>
+          </div>
+          <div>
+            <dt><b>20</b><small> MB</small></dt>
+            <dd>of memory for an idle Mash MCP process</dd>
+          </div>
+          <div>
+            <dt><b>5</b>×</dt>
+            <dd>embedding throughput on a Windows GPU</dd>
+          </div>
+          <div>
+            <dt><b>9</b>×</dt>
+            <dd>embedding throughput with an experimental NVIDIA worker</dd>
+          </div>
+        </dl>
+        <ul class="light">
+          <li>No GPU needed</li>
+          <li>Word search loads no models</li>
+          <li>No Mash cloud</li>
+        </ul>
         <details class="measured">
           <summary>How these were measured</summary>
           <div class="measurement-copy" role="region" aria-label="Benchmark conditions" tabindex="0">
@@ -116,16 +181,36 @@ import Agents from "./Agents.astro";
     </div>
   </section>
 
-  <section class="scene" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
+  <section class="scene privacy" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
     <div class="stage">
       <Fragment set:html={privacyArt} />
       <div class="head">
         <span class="eyebrow">Privacy</span>
         <h2 id="welcome-privacy-title">Self-hosted, end to end. <span>No cloud. No account.</span></h2>
       </div>
-      <div class="show">
-        <img class="scene-image" src="/welcome/welcome-privacy.svg" width="760" height="241" decoding="async"
-          alt="History stays on this machine by default. If you choose to share, machines publish to a server you run. Credential masking is on by default, and sharing, remote workers, and Mashy are opt-in." />
+      <div class="show wide">
+        <ul class="trio">
+          <li data-icon-tile>
+            <Fragment set:html={drawn.laptop} />
+            <h3>Runs on your machine</h3>
+            <p>Indexing and search work offline once the local search service is running.</p>
+          </li>
+          <li data-icon-tile>
+            <Fragment set:html={drawn.server} />
+            <h3>Your own server</h3>
+            <p>For search across machines, share through a Mash server you run.</p>
+          </li>
+          <li data-icon-tile>
+            <Fragment set:html={drawn.off} />
+            <h3>Off until you turn it on</h3>
+            <p>Sharing, remote workers and Mashy are each a choice you make.</p>
+          </li>
+          <li data-icon-tile>
+            <Fragment set:html={drawn.masked} />
+            <h3>Credentials masked</h3>
+            <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
+          </li>
+        </ul>
         <ol class="caps">
           <li>Index and search on the machine where your chats were saved.</li>
           <li>When you opt in to sharing, you choose which machines publish.</li>
@@ -135,30 +220,58 @@ import Agents from "./Agents.astro";
     </div>
   </section>
 
-  <section class="scene more" aria-label="More about Mash">
+  <section class="scene more" id="welcome-features" aria-label="More about Mash">
     <div class="stage">
-      <div class="show">
-        <img class="scene-image" src="/welcome/welcome-features.svg" width="760" height="312" decoding="async"
-          alt="The agent plugin brings earlier context into new sessions. Hybrid search combines words and meaning, sharing uses your own server, and chats export to Markdown, HTML, or PDF. Mash runs on macOS, Linux, and Windows." />
-        <p class="links">
-          <a href="/plugin/">Plugin for Claude Code, Codex and Copilot ›</a>
-          <a href="/search/">Hybrid search ›</a>
-          <a href="/shared-index/">Shared index ›</a>
-        </p>
+      <div class="show wide">
+        <div class="tiles">
+          <article class="wide" data-icon-tile>
+            <Fragment set:html={drawn.plugin} />
+            <h3>Context, before you ask.</h3>
+            <p>
+              The <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> brings earlier
+              decisions and discussions into new sessions.
+            </p>
+          </article>
+          <article class="wide" data-icon-tile>
+            <Fragment set:html={drawn.hybrid} />
+            <h3>RAG over your own history.</h3>
+            <p>
+              <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
+              results with a cross-encoder.
+            </p>
+          </article>
+          <article data-icon-tile>
+            <span class="ico os" aria-hidden="true">
+              <Icon name="apple" />
+              <Icon name="linux" />
+              <Icon name="seti:windows" />
+            </span>
+            <h3>macOS. Linux. Windows.</h3>
+            <p>Wherever you work.</p>
+          </article>
+          <article data-icon-tile>
+            <Fragment set:html={drawn.machines} />
+            <h3>Every machine.</h3>
+            <p>An optional <a href="/shared-index/">shared index</a>, on your own server.</p>
+          </article>
+          <article data-icon-tile>
+            <Fragment set:html={drawn.export} />
+            <h3>Markdown. HTML. PDF.</h3>
+            <p>Export any chat.</p>
+          </article>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="scene" id="welcome-rust" aria-labelledby="welcome-rust-title">
+  <section class="scene rust" id="welcome-rust" aria-labelledby="welcome-rust-title">
     <div class="stage">
       <Fragment set:html={ferrisArt} />
       <div class="head">
         <span class="eyebrow">Open source</span>
         <h2 id="welcome-rust-title">Written with <b class="turn">&lt;3</b> in Rust.</h2>
       </div>
-      <div class="show">
-        <img class="scene-image" src="/welcome/welcome-rust.svg" width="760" height="225" decoding="async"
-          alt="Ferris the crab beside the Mash repository name and its MIT and Apache 2.0 licenses." />
+      <div class="show wide">
         <p class="blurb">
           Mash is free and open source under the MIT and Apache 2.0 licenses. Ideas, issues and pull
           requests are welcome.

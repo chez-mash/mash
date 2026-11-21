@@ -113,11 +113,14 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   colour to hide lines behind it, because dark-mode browser extensions recolour
   SVG fills and backgrounds differently and the shape turns solid.
 - **Product illustrations** use SVG exports with outlined text from editable
-  Figma frames. The welcome illustrations are in `site/public/welcome/` and the
-  README snapshot is `assets/dashboard-demo.svg`. Follow the dashboard's real
-  layout with a few readable labels and subdued lines for secondary details.
-  Use fictional history from the demo. Keep captions and links in the page
-  so they work independently of the illustrations.
+  Figma frames. The Search, Mashy, and Memory snapshots are in
+  `site/public/welcome/` and the README snapshot is `assets/dashboard-demo.svg`.
+  Follow the dashboard's layout with a few readable labels and subdued lines
+  for secondary details. Use fictional history from the demo. Keep captions
+  and links in the page so they work independently of the snapshots.
+- **Feature cards and explanations** are live HTML. The privacy and feature
+  cards draw their inline SVG icons as each card appears. The filled operating
+  system marks fade in with their card.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA

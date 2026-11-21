@@ -29,7 +29,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Give your agents a memory.",
   ]);
   const illustrations = page.locator(".mash-welcome .scene-image");
-  await expect(illustrations).toHaveCount(7);
+  await expect(illustrations).toHaveCount(3);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("src", /^\/welcome\/[a-z-]+\.svg$/);
     expect(
@@ -44,9 +44,9 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   }
   const more = page.getByRole("region", { name: "More about Mash" });
   await expect(more.getByRole("link")).toHaveText([
-    "Plugin for Claude Code, Codex and Copilot ›",
-    "Hybrid search ›",
-    "Shared index ›",
+    "plugin for Claude Code, Codex and Copilot",
+    "Hybrid search",
+    "shared index",
   ]);
   // Every section with a drawing but the last pins and plays the same way.
   await expect(page.locator(".mash-welcome .scene")).toHaveCount(7);
@@ -501,9 +501,9 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
   const images = welcome.getByRole("img");
-  await expect(images).toHaveCount(7);
+  await expect(images).toHaveCount(3);
   await expect(images.first()).toHaveAccessibleName(/why does checkout keep failing/);
-  await expect(images.last()).toHaveAccessibleName(/Ferris the crab/);
+  await expect(welcome.locator("[data-icon-tile] svg.ico").first()).toBeVisible();
   await expect
     .poll(() =>
       images.evaluateAll((items) =>

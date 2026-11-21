@@ -1,0 +1,265 @@
+/* Native performance, privacy and feature sections below the dashboard views. */
+.mash-welcome {
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 13rem));
+    justify-content: center;
+    gap: clamp(0.875rem, 2.7vw, 2.5rem);
+  }
+  .stats dt {
+    color: var(--clay);
+    font-size: clamp(2.75rem, 1.5rem + 5.4vw, 5.75rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .stats dt b {
+    color: var(--ink);
+    font-weight: inherit;
+  }
+  .stats dt small {
+    font-size: 0.4em;
+    letter-spacing: 0;
+  }
+  .stats dd {
+    margin-top: 0.5rem;
+    color: var(--ink-3);
+  }
+  .light {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.375rem 0.75rem;
+    list-style: none;
+  }
+  .light li {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 999px;
+  }
+  .trio {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 14.5rem));
+    justify-content: center;
+    gap: 1.25rem 1.75rem;
+    list-style: none;
+  }
+  .trio li {
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    gap: 0.375rem;
+  }
+  .trio h3 {
+    color: var(--ink);
+    font-size: 1.125rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .trio p {
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  .ico {
+    color: var(--clay);
+  }
+  .trio .ico {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.875rem;
+    width: 100%;
+    text-align: start;
+  }
+  .tiles article {
+    display: flex;
+    flex-direction: column;
+    grid-column: span 2;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    min-height: 11rem;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border-radius: 1.5rem;
+    background: var(--panel);
+  }
+  .tiles article.wide {
+    grid-column: span 3;
+    min-height: 14rem;
+  }
+  .tiles h3 {
+    margin-top: 1.25rem;
+    color: var(--ink);
+    font-size: clamp(1.5rem, 1rem + 1.6vw, 2.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .tiles .wide h3 {
+    font-size: clamp(1.75rem, 1rem + 2.6vw, 3rem);
+  }
+  .tiles p {
+    color: var(--ink-3);
+  }
+  .tiles .ico {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: auto;
+  }
+  .tiles .wide .ico {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .tiles .ico.os {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: auto;
+  }
+  .tiles .ico.os svg {
+    width: auto;
+    height: 100%;
+    aspect-ratio: 1;
+    color: var(--clay);
+    fill: var(--clay);
+  }
+
+  @media (max-width: 64rem) {
+    .stats,
+    .trio {
+      grid-template-columns: repeat(2, minmax(0, 17rem));
+    }
+  }
+  @media (max-width: 48rem) {
+    .tiles article,
+    .tiles article.wide {
+      grid-column: 1 / -1;
+      min-height: 8.5rem;
+    }
+  }
+  @media (max-width: 36rem) {
+    .trio {
+      gap: 0.875rem;
+    }
+  }
+}
+
+:root[data-theme="light"] .mash-welcome {
+  --panel: var(--sl-color-gray-7);
+}
+
+.mash-welcome.motion {
+  @media (max-width: 36rem) and (orientation: portrait) {
+    .privacy .stage {
+      gap: 0.875rem;
+    }
+    .privacy .head {
+      gap: 0.5rem;
+    }
+    .privacy .head h2 {
+      font-size: clamp(1.75rem, 7.5vw, 2.25rem);
+    }
+    .privacy .show {
+      gap: 0.75rem;
+    }
+    .trio {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.625rem;
+      text-align: start;
+    }
+    .trio li {
+      grid-template-columns: 1.625rem minmax(0, 1fr);
+      justify-items: start;
+      gap: 0.125rem 0.625rem;
+    }
+    .trio .ico {
+      grid-row: span 2;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .trio h3 {
+      font-size: 1rem;
+    }
+    .trio p {
+      line-height: 1.35;
+    }
+  }
+  @media (max-width: 48rem) and (orientation: portrait) {
+    .tiles {
+      gap: 0.5rem;
+    }
+    .tiles article,
+    .tiles article.wide {
+      display: grid;
+      grid-template-columns: 2.75rem minmax(0, 1fr);
+      column-gap: 0.625rem;
+      min-height: 0;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.875rem;
+    }
+    .tiles .ico {
+      grid-row: span 2;
+      align-self: center;
+      width: 2rem;
+      height: 2rem;
+      margin: 0;
+    }
+    .tiles .ico.os {
+      flex-wrap: wrap;
+      gap: 0.125rem;
+    }
+    .tiles .ico.os svg {
+      height: 0.75rem;
+    }
+    .tiles h3,
+    .tiles .wide h3 {
+      margin: 0;
+      font-size: 1.1875rem;
+    }
+    .tiles p {
+      font-size: 0.9375rem;
+      line-height: 1.35;
+    }
+  }
+  @media (max-height: 32rem) and (orientation: landscape) {
+    .stats,
+    .trio {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.875rem;
+    }
+    .stats dt {
+      font-size: 2.5rem;
+    }
+    .tiles {
+      gap: 0.5rem;
+    }
+    .tiles article,
+    .tiles article.wide {
+      grid-column: span 2;
+      min-height: 0;
+      padding: 0.625rem 0.875rem;
+      border-radius: 0.875rem;
+    }
+    .tiles article.wide {
+      grid-column: span 3;
+    }
+    .tiles .ico {
+      width: 1.625rem;
+      height: 1.625rem;
+    }
+    .tiles h3,
+    .tiles .wide h3 {
+      margin-top: 0.25rem;
+      font-size: 1.1875rem;
+    }
+    .tiles p {
+      font-size: 0.9375rem;
+      line-height: 1.35;
+    }
+  }
+}

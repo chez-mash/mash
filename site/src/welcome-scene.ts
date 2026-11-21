@@ -76,6 +76,22 @@ function undraw(timeline: gsap.core.Timeline, strokes: SVGElement[], dots: SVGEl
   });
 }
 
+/** Brings in the cards and draws their line icons as the panel settles. */
+function revealIconTiles(timeline: gsap.core.Timeline, show: HTMLElement, panelAt: number): void {
+  const tiles = show.querySelectorAll<HTMLElement>("[data-icon-tile]");
+  tiles.forEach((tile, index) => {
+    const when = panelAt - 0.08 + index * 0.12;
+    const strokes = tile.querySelectorAll<SVGPathElement>("svg.ico path");
+    gsap.set(tile, { opacity: 0, y: 12 });
+    timeline.to(tile, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, when);
+    if (strokes.length > 0) {
+      gsap.set(strokes, { drawSVG: "0%", autoAlpha: 0 });
+      timeline.to(strokes, { autoAlpha: 1, duration: 0.08 }, when + 0.12);
+      timeline.to(strokes, { drawSVG: "100%", duration: 0.55, ease: "power2.inOut" }, when + 0.12);
+    }
+  });
+}
+
 /** Builds one scene's whole performance as a paused timeline. */
 export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   const stage = el.querySelector<HTMLElement>(".stage");
@@ -123,6 +139,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
     timeline.to({}, { duration: ILLUSTRATION_SECONDS });
     stepAt.push(timeline.duration());
   }
+  revealIconTiles(timeline, show, panelAt);
 
   // The panel leaves, the drawing comes back to strength and is undrawn.
   timeline.to(el, { "--t": 0, "--art": strength, duration: 0.45, ease: "power2.inOut" });
