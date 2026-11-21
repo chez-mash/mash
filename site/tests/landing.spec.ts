@@ -4,8 +4,8 @@ const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", 
 
 test("the landing page says what Mash is and which agents it reads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toHaveText("Your agents forget. Mash doesn’t.");
-  await expect(page).toHaveTitle(/Your agents forget\. Mash doesn’t\./);
+  await expect(page.locator("h1")).toHaveText("Find the chat behind the decision.");
+  await expect(page).toHaveTitle(/Find the chat behind the decision\./);
   const marks = page.locator(".mash-agents li");
   await expect(marks).toHaveCount(agents.length);
   await expect(marks).toHaveText(agents);
@@ -15,13 +15,13 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     expect((await page.request.get(file)).ok()).toBe(true);
   }
   await expect(page.locator(".hero .tagline")).toHaveText(
-    "Open-source, self-hosted search and memory for your coding-agent history.",
+    "Search the chats your coding agents already saved. Go straight to the original message. Your history stays on your machine by default.",
   );
   await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "Find it. However you remember it.",
     "Meet Mashy. Ask your history anything.",
-    "Say it once. It’s there next time.",
+    "Save the decision. Keep the source.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
     "Written with <3 in Rust.",

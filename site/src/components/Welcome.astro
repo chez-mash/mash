@@ -200,9 +200,9 @@ const signIn = "Move sign-in to short-lived tokens";
           </ol>
         </div>
         <ol class="caps">
-          <li data-step="0">By meaning.</li>
+          <li data-step="0">By meaning, with optional local models.</li>
           <li data-step="1">By the exact words.</li>
-          <li data-step="2">Across every agent and machine.</li>
+          <li data-step="2">Across machines through a server you run.</li>
         </ol>
       </div>
     </div>
@@ -299,7 +299,7 @@ const signIn = "Move sign-in to short-lived tokens";
       <Fragment set:html={memoryArt} />
       <div class="head">
         <span class="eyebrow">Memory</span>
-        <h2 id="welcome-memory">Say it once. <span>It’s there next time.</span></h2>
+        <h2 id="welcome-memory">Save the decision. <span>Keep the source.</span></h2>
       </div>
       <div class="show">
         <div class="panel bare" role="img" aria-label="A sentence becoming a memory record, as the dashboard shows it, then appearing in the next session">
@@ -330,8 +330,8 @@ const signIn = "Move sign-in to short-lived tokens";
         </div>
         <ol class="caps">
           <li data-step="0">You say it.</li>
-          <li data-step="1">Mash keeps it, with your words as proof.</li>
-          <li data-step="2">Your next session starts with it.</li>
+          <li data-step="1">The plugin saves the decision and quotes your message.</li>
+          <li data-step="2">The decision can come back in a later session.</li>
         </ol>
       </div>
     </div>
@@ -394,14 +394,14 @@ const signIn = "Move sign-in to short-lived tokens";
     <div class="show wide">
     <div class="steps swap">
     <p class="blurb" data-step="0">
-      Your history stays on machines you own. Indexed there. Searched there. Shared only between
-      them, and only if you say so.
+      By default, Mash indexes and searches history on the machine where it was saved.
+      You choose whether to publish it to a shared index.
     </p>
     <ul class="trio" data-step="1" data-each>
       <li>
         <Fragment set:html={drawn.laptop} />
         <h3>Runs on your machine</h3>
-        <p>Indexing and search happen locally and offline, with no service in between.</p>
+        <p>Indexing and search work offline once the local search service is running.</p>
       </li>
       <li>
         <Fragment set:html={drawn.server} />
@@ -416,7 +416,7 @@ const signIn = "Move sign-in to short-lived tokens";
       <li>
         <Fragment set:html={drawn.masked} />
         <h3>Credentials masked</h3>
-        <p>Recognisable keys and tokens are hidden in results and in anything you share.</p>
+        <p>Mash masks recognisable keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
       </li>
     </ul>
     </div>
