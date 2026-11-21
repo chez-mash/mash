@@ -428,10 +428,9 @@ fn write_configuration(
         None => crate::config::init::detect()?,
     };
     if providers.is_empty() {
-        return Err(AppError::configuration(format!(
-            "no supported agent history was found in its default location; write {} by hand (see the README's Configuration section)",
-            path.display()
-        )));
+        return Err(AppError::configuration(
+            "no supported agent history was found in its default location. Save a chat with a supported agent, then run `mash init` again. If your chats are stored elsewhere, choose their folder in interactive setup. See https://getmash.io/troubleshooting/#nothing-is-indexed-yet",
+        ));
     }
     let text = if let Some(plan) = plan {
         let current = match std::fs::read_to_string(path) {

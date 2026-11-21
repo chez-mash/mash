@@ -133,8 +133,8 @@ path starts a separate empty store; it does not move your data.
 | “Mash is not set up on this machine” | `mash init` |
 | “Mash is configured, but nothing is indexed yet” | `mash index` |
 
-Some releases say “database does not exist” in both cases. Use `mash init`
-for a first setup, or `mash index` if setup already saved your settings.
+If you see “database does not exist,” use `mash init` for a first setup or
+`mash index` if setup already saved your settings.
 Both need Qdrant running to build search.
 
 If setup says it found no coding-agent chats, save a conversation in a

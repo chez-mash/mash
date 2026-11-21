@@ -275,7 +275,10 @@ fn init_without_history_writes_nothing() {
         .output()
         .unwrap();
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr).contains("no supported agent history"));
+    let error: Value = serde_json::from_slice(&output.stderr).unwrap();
+    let message = error["error"]["message"].as_str().unwrap();
+    assert!(message.contains("no supported agent history"), "{error}");
+    assert!(message.contains("https://getmash.io/troubleshooting/#nothing-is-indexed-yet"));
     assert!(!root.path().join(".mash/config.toml").exists());
 }
 
