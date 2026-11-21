@@ -29,7 +29,7 @@ mash dash
 在确认页面选择 **Set up and index** 或 **Set up without indexing** 后，Mash 才会写入配置。它会通过所选代理自己的命令行工具进行连接，并按你的选择在后台建立索引。页面会显示已保存的配置、各代理修改的文件以及撤销连接的命令，还会显示索引进度，直到对话出现在面板中。
 
 - 索引需要搜索服务。如果服务已停止，请按安装时的方式启动它。如果 Mash 提示连接有问题，请查看原因并[修复搜索服务](troubleshooting.md#qdrant-connection-failed)，然后选择 **Check search service again**。也可以先选择 **Set up without indexing** 保存设置。检查通过后，此页面会显示用于索引对话的命令。
-- 要按含义搜索，请先[安装模型并构建搜索索引](../indexing.md#enable-semantic-search)，然后就可以[为单次查询选择按含义搜索](#choose-a-search-mode)。
+- 要按含义搜索，请先[安装模型并构建搜索索引](indexing.md#enable-semantic-search)，然后就可以[为单次查询选择按含义搜索](#choose-a-search-mode)。
 - 重新设置已配置的机器时，Mash 会按你的选项更新配置并在同一位置保留旧文件。
 - 要跨机器共享、从旧对话提取记忆，或读取存放在其他位置的历史，请使用 `mash init` 或编辑配置文件。
 - 如果其他机器能访问网页面板，启动时需要提供服务配置，才能在浏览器中设置 Mash 或修改设置。
@@ -58,7 +58,7 @@ mash dash
 在本机搜索还需要正在运行的搜索服务和最新的搜索索引。
 
 如果 Mash 无法使用本地搜索服务，请先[查看原因](troubleshooting.md#qdrant-connection-failed)，再重新建立索引。
-关键词搜索不需要模型。只有想[按含义搜索（英文指南）](../indexing.md#enable-semantic-search)时才需要安装模型。
+关键词搜索不需要模型。只有想[按含义搜索](indexing.md#enable-semantic-search)时才需要安装模型。
 
 <span id="find-and-read-a-chat"></span>
 
@@ -80,7 +80,7 @@ mash dash
 
 ### 选择搜索模式
 
-提交搜索后，在筛选项旁找到 **search: default**。结果返回后，标签会显示 **default (words)** 或 **default (meaning)**。打开菜单，选择 **words** 或 **meaning**，然后点击 **Apply filters** 重新搜索。**words** 会匹配对话中的词，**meaning** 依赖[可选模型](../indexing.md#enable-semantic-search)，接收英文查询。翻页时会沿用当前查询选择的模式。重新输入查询时会使用[默认模式](../configuration.md#search-defaults)。
+提交搜索后，在筛选项旁找到 **search: default**。结果返回后，标签会显示 **default (words)** 或 **default (meaning)**。打开菜单，选择 **words** 或 **meaning**，然后点击 **Apply filters** 重新搜索。**words** 会匹配对话中的词，**meaning** 依赖[可选模型](indexing.md#enable-semantic-search)，接收英文查询。翻页时会沿用当前查询选择的模式。重新输入查询时会使用[默认模式](../configuration.md#search-defaults)。
 
 如果你的面板没有此菜单，可以用 [`mash search --intent`](search.md)选择模式。
 

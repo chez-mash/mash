@@ -164,7 +164,7 @@ un agente compatible en este equipo y vuelve a ejecutar `mash init`. Si
 ya tienes conversaciones, usa `mash status --installation` para ver las
 carpetas de historial que detectó. Revisa los agentes y las carpetas
 elegidos en [la configuración](installation.md#connect-your-histories).
-Para encontrar conversaciones antiguas, [revisa el periodo de historial (en inglés)](../indexing.md#add-older-history).
+Para encontrar conversaciones antiguas, [revisa el periodo de historial](indexing.md#add-older-history).
 
 <span id="my-agent-cannot-find-mash"></span>
 
@@ -211,7 +211,7 @@ conectarse. [Cómo conectar un agente](agents.md)
    **chats**. En la terminal, usa el comando de abajo.
 4. Si falta una conversación reciente o termina antes de lo esperado,
    ejecuta `mash index` y vuelve a comprobarlo. Para una conversación
-   antigua, [incluye más historial (en inglés)](../indexing.md#add-older-history).
+   antigua, [incluye más historial](indexing.md#add-older-history).
    Si faltan las conversaciones de un agente,
    [comprueba las carpetas de historial](#nothing-is-indexed-yet).
 
@@ -241,8 +241,8 @@ Puedes buscar palabras y frases así.
 mash search 'auth_token' --intent exact-mention
 ```
 
-Para buscar por significado, [instala los modelos (en inglés)](../indexing.md#install-the-models)
-y [prepara los datos de búsqueda (en inglés)](../indexing.md#build-search-data).
+Para buscar por significado, [instala los modelos](indexing.md#install-the-models)
+y [prepara los datos de búsqueda](indexing.md#build-search-data).
 La instalación conserva tus ajustes. Si ya usas Mash, la guía explica cómo
 habilitar la indexación por significado en tus ajustes existentes.
 

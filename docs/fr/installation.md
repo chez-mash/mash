@@ -198,10 +198,10 @@ souvenez et ouvrez un résultat pour lire le message d’origine.
 
 Vous pouvez aussi [chercher dans le terminal](search.md#your-first-search)
 ou [demander à un agent connecté](agents.md#try-it). Si une ancienne
-conversation manque, [élargissez la période indexée (en anglais)](../indexing.md#add-older-history).
+conversation manque, [élargissez la période indexée](indexing.md#add-older-history).
 
 La recherche par mots fonctionne sans modèles. Pour chercher par le sens,
-suivez [la procédure de configuration des modèles facultatifs (en anglais)](../indexing.md#enable-semantic-search).
+suivez [la procédure de configuration des modèles facultatifs](indexing.md#enable-semantic-search).
 
 <span id="setup-options"></span>
 

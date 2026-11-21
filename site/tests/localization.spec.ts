@@ -356,6 +356,38 @@ for (const [locale, lang, title, help] of [
   });
 }
 
+for (const [locale, lang, title] of [
+  ["es", "es", "Incluye conversaciones antiguas y busca por significado"],
+  ["fr", "fr", "Inclure les conversations plus anciennes et chercher par le sens"],
+  ["zh-cn", "zh-CN", "纳入较早的对话并按含义搜索"],
+]) {
+  test(`the ${locale} search setup explains models and older history in the same language`, async ({
+    page,
+  }) => {
+    const indexing = `/${locale}/indexing/`;
+    const meaning = `${indexing}#enable-semantic-search`;
+    const older = `${indexing}#add-older-history`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/dashboard/#choose-a-search-mode`);
+    await guide.locator(`a[href="${meaning}"]`).first().click();
+    await expect(page).toHaveURL(meaning);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(guide.locator("pre").filter({ hasText: /^mash models install$/ })).toBeVisible();
+    await expect(guide.getByText("realized_mode", { exact: true })).toBeVisible();
+    await expect(guide.getByText("hybrid", { exact: true })).toBeVisible();
+    await guide.locator(`a[href="/${locale}/search-languages/"]`).click();
+    await expect(page).toHaveURL(`/${locale}/search-languages/`);
+
+    await page.goto(`/${locale}/installation/#try-your-first-search`);
+    await guide.locator(`a[href="${older}"]`).click();
+    await expect(page).toHaveURL(older);
+    await expect(
+      guide.locator("pre").filter({ hasText: /^mash index --all-history$/ }),
+    ).toBeVisible();
+  });
+}
+
 for (const [locale, lang, dashboardTitle] of [
   ["es", "es", "Usa el panel web de Mash"],
   ["fr", "fr", "Utiliser le tableau de bord de Mash"],

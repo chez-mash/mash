@@ -122,9 +122,9 @@ mash init
 
 如果安装了网页面板，请运行 `mash dash`，然后在浏览器中打开显示的地址。在 **chats** 中输入记得的关键词，打开搜索结果即可阅读原始消息。
 
-你也可以[在终端中搜索](search.md#your-first-search)，或者[让已连接的代理搜索](agents.md#try-it)。如果找不到较早的对话，可以[扩大历史记录范围（英文）](../indexing.md#add-older-history)。
+你也可以[在终端中搜索](search.md#your-first-search)，或者[让已连接的代理搜索](agents.md#try-it)。如果找不到较早的对话，可以[扩大历史记录范围](indexing.md#add-older-history)。
 
-关键词搜索不需要下载模型。要按含义搜索，请[配置可选的搜索模型（英文）](../indexing.md#enable-semantic-search)。
+关键词搜索不需要下载模型。要按含义搜索，请[配置可选的搜索模型](indexing.md#enable-semantic-search)。
 
 <span id="setup-options"></span>
 

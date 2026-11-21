@@ -168,7 +168,7 @@ un agent pris en charge sur cet ordinateur, puis relancez `mash init`.
 Si vous avez déjà des conversations, `mash status --installation` montre
 les dossiers d’historique détectés. Revoyez les agents et dossiers
 sélectionnés dans [la configuration](installation.md#connect-your-histories).
-Pour des conversations plus anciennes, [vérifiez la période couverte (en anglais)](../indexing.md#add-older-history).
+Pour des conversations plus anciennes, [vérifiez la période couverte](indexing.md#add-older-history).
 
 <span id="my-agent-cannot-find-mash"></span>
 
@@ -215,7 +215,7 @@ Un test réussi confirme qu’un nouveau processus MCP a pu se connecter.
    suggestions sous **chats**. Dans le terminal, utilisez la commande ci-dessous.
 4. Si une conversation récente manque ou est tronquée, lancez `mash index`
    et cherchez de nouveau. Pour une conversation ancienne,
-   [élargissez la période indexée (en anglais)](../indexing.md#add-older-history).
+   [élargissez la période indexée](indexing.md#add-older-history).
    Si les conversations d’un agent manquent,
    [vérifiez ses dossiers d’historique](#nothing-is-indexed-yet).
 
@@ -249,8 +249,8 @@ Vous pouvez chercher des mots ou expressions avec cette commande.
 mash search 'auth_token' --intent exact-mention
 ```
 
-Pour chercher par le sens, [installez les modèles (en anglais)](../indexing.md#install-the-models)
-et [préparez les données de recherche (en anglais)](../indexing.md#build-search-data).
+Pour chercher par le sens, [installez les modèles](indexing.md#install-the-models)
+et [préparez les données de recherche](indexing.md#build-search-data).
 L’installation des modèles conserve vos réglages. Le guide indique comment
 activer l’indexation par le sens dans votre configuration existante.
 

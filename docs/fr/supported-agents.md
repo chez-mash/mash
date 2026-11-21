@@ -36,8 +36,8 @@ son emplacement en suivant le [guide de configuration (en anglais)](../configura
 
 Lancez `mash index` pour lire les nouvelles conversations. Par défaut, Mash
 commence par les 90 derniers jours. Découvrez
-[comment inclure les conversations plus anciennes](../indexing.md#add-older-history)
-et [où sont conservées les sessions distantes de VS Code](../indexing.md#copilot-in-vs-code-remote-windows).
+[comment inclure les conversations plus anciennes](indexing.md#add-older-history)
+et [où sont conservées les sessions distantes de VS Code](indexing.md#copilot-in-vs-code-remote-windows).
 Ces deux guides sont en anglais.
 
 <span id="tested-with"></span>

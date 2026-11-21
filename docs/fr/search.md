@@ -121,7 +121,7 @@ Les filtres se combinent et chaque résultat doit tous les satisfaire. Pour acce
 
 Par défaut, Mash cherche par mots sans modèle. Passez `--intent exact-mention` pour choisir ce mode si votre configuration définit un autre [mode par défaut (en anglais)](../configuration.md#search-defaults).
 
-Après avoir [activé la recherche par sens (guide en anglais)](../indexing.md#enable-semantic-search), décrivez ce dont vous vous souvenez avec vos propres mots.
+Après avoir [activé la recherche par sens](indexing.md#enable-semantic-search), décrivez ce dont vous vous souvenez avec vos propres mots.
 
 ```bash
 mash search 'why did we choose a separate database' --intent related-discussion

@@ -35,8 +35,8 @@ selección. Si guardas un historial en otra ubicación, añádela con la
 
 Ejecuta `mash index` para leer las conversaciones nuevas. De forma
 predeterminada, Mash empieza por los últimos 90 días. Consulta
-[cómo incluir conversaciones más antiguas](../indexing.md#add-older-history)
-y [dónde se guardan las sesiones remotas de VS Code](../indexing.md#copilot-in-vs-code-remote-windows).
+[cómo incluir conversaciones más antiguas](indexing.md#add-older-history)
+y [dónde se guardan las sesiones remotas de VS Code](indexing.md#copilot-in-vs-code-remote-windows).
 Ambas guías están en inglés.
 
 <span id="tested-with"></span>

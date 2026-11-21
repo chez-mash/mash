@@ -31,8 +31,8 @@
 [配置指南（英文）](../configuration.md#choose-histories-and-an-age-limit)添加该路径。
 
 运行 `mash index` 读取新保存的对话。Mash 默认从最近 90 天开始建立索引。参阅
-[如何纳入更早的对话（英文）](../indexing.md#add-older-history)以及
-[VS Code 远程会话的保存位置（英文）](../indexing.md#copilot-in-vs-code-remote-windows)。
+[如何纳入更早的对话](indexing.md#add-older-history)以及
+[VS Code 远程会话的保存位置](indexing.md#copilot-in-vs-code-remote-windows)。
 
 <span id="tested-with"></span>
 

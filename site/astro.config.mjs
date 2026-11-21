@@ -176,7 +176,15 @@ export default defineConfig({
               slug: "local-search",
             },
             "synchronization",
-            "indexing",
+            {
+              label: "Older history and search models",
+              translations: {
+                es: "Historial anterior y modelos de búsqueda",
+                fr: "Historique ancien et modèles de recherche",
+                "zh-CN": "较早的历史记录和搜索模型",
+              },
+              slug: "indexing",
+            },
             {
               label: "Search across your machines",
               translations: {

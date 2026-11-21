@@ -2,7 +2,9 @@
 
 ## Add older history
 
-Mash starts with the last 90 days. To include every older conversation:
+On a new setup, Mash reads history that your agents updated in the last 90
+days. A recently updated conversation can contain older messages. To include
+earlier conversations still on disk:
 
 ```sh
 mash index --all-history
@@ -71,8 +73,9 @@ When it creates your settings, Mash enables indexing by meaning and builds
 the search data during the first index. [First-time setup](installation.md#connect-your-histories)
 
 If you already use Mash, edit the `[views.build]` table in your existing
-[configuration](configuration.md). Keep your other settings and add the table
-only if it is absent.
+[configuration](configuration.md). Open **settings** in the dashboard or look
+for `configuration.path` in `mash status` to find the file. Keep your other
+settings and add the table only if it is absent.
 
 ```toml
 [views.build]
@@ -81,6 +84,9 @@ representations = "lexical-and-dense"
 
 Then run `mash index`. The first pass takes longer because Mash prepares
 your existing history for search by meaning. Later passes reuse unchanged work.
+
+Check `mash status` afterward. `realized_mode` is `hybrid` when both word
+search and search by meaning are ready on this machine.
 
 ### Try a question
 

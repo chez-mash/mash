@@ -20,7 +20,7 @@ Mash 可以查找代理已经保存的对话，并打开记录决策依据的原
 
 Mash 使用名为 Qdrant 的本地搜索服务。安装脚本可以在设置时启动该服务。按词搜索无需 Mash 账号，
 也无需下载模型或连接代理。你可以随时添加本地模型来按含义搜索，也可以随时连接代理。
-[安装](installation.md) · [隐私](privacy.md) · [按含义搜索（英文）](../indexing.md#enable-semantic-search)
+[安装](installation.md) · [隐私](privacy.md) · [按含义搜索](indexing.md#enable-semantic-search)
 
 <span id="other-workflows"></span>
 

@@ -117,7 +117,7 @@ mash search 'token' --chat CHAT_ID --unit messages
 
 Mash 默认按关键词搜索，无需模型。可以传入 `--intent exact-mention` 来明确选择关键词搜索，即使配置用了其他 [默认搜索模式（英文）](../configuration.md#search-defaults)。
 
-在[启用按含义搜索（英文）](../indexing.md#enable-semantic-search)之后，可以用自己的话描述记得的内容。
+在[启用按含义搜索](indexing.md#enable-semantic-search)之后，可以用自己的话描述记得的内容。
 
 ```bash
 mash search 'why did we choose a separate database' --intent related-discussion

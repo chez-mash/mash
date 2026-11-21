@@ -195,10 +195,10 @@ abre un resultado para leer el mensaje original.
 
 También puedes [buscar en la terminal](search.md#your-first-search)
 o [pedirle a un agente conectado que busque](agents.md#try-it). Si falta una
-conversación antigua, aprende a [incluir más historial (en inglés)](../indexing.md#add-older-history).
+conversación antigua, aprende a [incluir más historial](indexing.md#add-older-history).
 
 La búsqueda por palabras funciona sin modelos. Para buscar por significado,
-sigue los [pasos para instalar los modelos opcionales (en inglés)](../indexing.md#enable-semantic-search).
+sigue los [pasos para instalar los modelos opcionales](indexing.md#enable-semantic-search).
 
 <span id="setup-options"></span>
 

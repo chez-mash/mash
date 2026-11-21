@@ -32,7 +32,7 @@ configuración automática puede iniciarlo. La búsqueda por palabras funciona
 sin una cuenta de Mash, sin descargar modelos y sin conectar agentes.
 Puedes añadir modelos locales para buscar por significado y conectar un
 agente cuando quieras. [Instalación](installation.md) · [Privacidad](privacy.md) ·
-[Búsqueda por significado (en inglés)](../indexing.md#enable-semantic-search)
+[Búsqueda por significado](indexing.md#enable-semantic-search)
 
 <span id="other-workflows"></span>
 

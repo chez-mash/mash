@@ -34,7 +34,7 @@ guidée peut le démarrer. La recherche par mots fonctionne sans compte Mash,
 sans téléchargement de modèles et sans connecter d’agent. Vous pouvez
 ajouter des modèles locaux pour la recherche par sens et connecter un agent
 quand vous le souhaitez. [Installation](installation.md) · [Confidentialité](privacy.md) ·
-[Recherche par sens (en anglais)](../indexing.md#enable-semantic-search)
+[Recherche par sens](indexing.md#enable-semantic-search)
 
 <span id="other-workflows"></span>
 

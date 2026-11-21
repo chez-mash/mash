@@ -121,7 +121,7 @@ Los filtros se combinan y cada resultado debe cumplirlos todos. Para aceptar var
 
 Por defecto, Mash busca por palabras sin usar modelos. Pasa `--intent exact-mention` para elegir este modo si tu configuración tiene otro [modo predeterminado (en inglés)](../configuration.md#search-defaults).
 
-Cuando hayas [activado la búsqueda por significado (guía en inglés)](../indexing.md#enable-semantic-search), describe lo que recuerdas con tus propias palabras.
+Cuando hayas [activado la búsqueda por significado](indexing.md#enable-semantic-search), describe lo que recuerdas con tus propias palabras.
 
 ```bash
 mash search 'why did we choose a separate database' --intent related-discussion

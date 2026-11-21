@@ -113,7 +113,7 @@ Qdrant 停止时仍可列出对话、阅读消息和导出备份。如果还未�
 
 如果看到“database does not exist”，首次设置时运行 `mash init`。如果已经保存设置，则运行 `mash index`。两条命令都需要 Qdrant 运行才能建立搜索索引。
 
-如果助手提示未找到编程代理的对话，请先在本机受支持的代理中保存一段对话，再运行 `mash init`。如果本已有对话，可以用 `mash status --installation` 查看 Mash 找到的历史记录目录，并在[设置](installation.md#connect-your-histories)中核对选中的代理和目录。如果缺少较早的对话，请[检查历史记录日期范围（英文）](../indexing.md#add-older-history)。
+如果助手提示未找到编程代理的对话，请先在本机受支持的代理中保存一段对话，再运行 `mash init`。如果本已有对话，可以用 `mash status --installation` 查看 Mash 找到的历史记录目录，并在[设置](installation.md#connect-your-histories)中核对选中的代理和目录。如果缺少较早的对话，请[检查历史记录日期范围](indexing.md#add-older-history)。
 
 <span id="my-agent-cannot-find-mash"></span>
 
@@ -142,7 +142,7 @@ mash status --installation --agent claude-code --probe
 1. 查看[搜索模式](dashboard.md#choose-a-search-mode)。关键词搜索要求所有词出现在同一条消息里，可以先试一个有辨识度的词。按含义搜索时，试着用一个简短的英文问题。对于词与词之间没有空格的文本，可参阅[如何搜索其他语言的对话](search-languages.md)。
 2. 如果网页面板显示筛选标签，选择 **Clear filters** 后会用同一个查询重试。如果面板回到对话列表，请重新输入查询。在终端中，可移除筛选选项后再次搜索。
 3. 确认对话是否在列表中。选择 **Browse chats**，按当前筛选条件打开对话列表。如果记得标题的一部分，可以把它输入搜索框，在建议中的 **chats** 下查找。在终端中，可使用下文的命令。
-4. 如果缺少新的对话，或记录过早结束，请运行 `mash index` 后再检查。若缺少较早的对话，可以[扩大历史记录范围（英文）](../indexing.md#add-older-history)。如果缺少某个代理的对话，请[检查历史记录目录](#nothing-is-indexed-yet)。
+4. 如果缺少新的对话，或记录过早结束，请运行 `mash index` 后再检查。若缺少较早的对话，可以[扩大历史记录范围](indexing.md#add-older-history)。如果缺少某个代理的对话，请[检查历史记录目录](#nothing-is-indexed-yet)。
 
 搜索范围包括用户和代理之间的对话。要查看推理过程和工具输出，请搜索相关的消息并打开它所在的对话。
 
@@ -166,7 +166,7 @@ mash list-chats --title-contains 'part of the title'
 mash search 'auth_token' --intent exact-mention
 ```
 
-要按含义搜索，请[安装模型（英文）](../indexing.md#install-the-models)并[构建搜索数据（英文）](../indexing.md#build-search-data)。安装模型会保留现有设置。如果已在用 Mash，指南也说明了如何在现有配置中启用按含义搜索所需的索引。
+要按含义搜索，请[安装模型](indexing.md#install-the-models)并[构建搜索数据](indexing.md#build-search-data)。安装模型会保留现有设置。如果已在用 Mash，指南也说明了如何在现有配置中启用按含义搜索所需的索引。
 
 <span id="embedding-failed-during-indexing"></span>
 

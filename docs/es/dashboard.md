@@ -31,7 +31,7 @@ En la primera pantalla de revisión, **Skip agent connections** te permite index
 Mash aplica los cambios cuando eliges **Set up and index** o **Set up without indexing** en la revisión. Guarda la configuración, conecta cada agente elegido mediante su propia herramienta de terminal y, si lo pediste, empieza a indexar en segundo plano. La página indica qué se guardó, qué archivos modificó cada herramienta y cómo deshacer las conexiones. También muestra el progreso hasta que aparecen tus conversaciones.
 
 - Para indexar necesitas el servicio de búsqueda. Si está detenido, inícialo de la forma que corresponda a tu instalación. Si Mash indica un problema de conexión, consulta el motivo y [repara el servicio de búsqueda](troubleshooting.md#qdrant-connection-failed). Luego elige **Check search service again**. Puedes elegir **Set up without indexing** para guardar la configuración primero. Cuando la comprobación sea correcta, esta pantalla mostrará el comando para indexar tus conversaciones.
-- Para buscar por significado, [configura los modelos y prepara el índice](../indexing.md#enable-semantic-search). Después puedes [elegir la búsqueda por significado para una consulta](#choose-a-search-mode).
+- Para buscar por significado, [configura los modelos y prepara el índice](indexing.md#enable-semantic-search). Después puedes [elegir la búsqueda por significado para una consulta](#choose-a-search-mode).
 - Si vuelves a configurar un equipo que ya usaba Mash, se guarda la nueva configuración y se conserva una copia de la anterior junto a ella.
 - Para compartir con otros equipos, crear recuerdos a partir de conversaciones antiguas o leer historiales de otras ubicaciones, usa `mash init` o edita el archivo de configuración.
 - Si otros equipos pueden acceder al panel, la configuración desde el navegador requiere haber iniciado el panel con una configuración de servicios. La página de ajustes tiene el mismo requisito.
@@ -63,7 +63,7 @@ un índice actualizado.
 
 Si Mash no puede usar el servicio de búsqueda local, [comprueba qué falló](troubleshooting.md#qdrant-connection-failed)
 antes de volver a indexar. La búsqueda por palabras funciona sin modelos.
-Instala los modelos solo si quieres [buscar por significado (guía en inglés)](../indexing.md#enable-semantic-search).
+Instala los modelos solo si quieres [buscar por significado](indexing.md#enable-semantic-search).
 
 <span id="find-and-read-a-chat"></span>
 
@@ -86,7 +86,7 @@ Las vistas de conversaciones y recuerdos son de solo lectura.
 
 ### Elige un modo de búsqueda
 
-Después de buscar, localiza **search: default** junto a los filtros. Al llegar los resultados, la etiqueta muestra **default (words)** o **default (meaning)**. Abre el menú, elige **words** o **meaning** y selecciona **Apply filters** para repetir la consulta. **words** busca términos de la conversación. **meaning** usa [modelos opcionales](../indexing.md#enable-semantic-search) y recibe consultas en inglés. La elección se mantiene al pasar de página. Una nueva consulta vuelve al [modo predeterminado](../configuration.md#search-defaults).
+Después de buscar, localiza **search: default** junto a los filtros. Al llegar los resultados, la etiqueta muestra **default (words)** o **default (meaning)**. Abre el menú, elige **words** o **meaning** y selecciona **Apply filters** para repetir la consulta. **words** busca términos de la conversación. **meaning** usa [modelos opcionales](indexing.md#enable-semantic-search) y recibe consultas en inglés. La elección se mantiene al pasar de página. Una nueva consulta vuelve al [modo predeterminado](../configuration.md#search-defaults).
 
 Si tu panel no muestra el menú, elige el modo con [`mash search --intent`](search.md).
 

@@ -26,6 +26,7 @@ export const translationPages = [
   "supported-agents",
   "shared-index",
   "search-languages",
+  "indexing",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];
 
