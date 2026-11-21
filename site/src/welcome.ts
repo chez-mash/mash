@@ -311,7 +311,7 @@ function build(
       scene.el.classList.remove("tight");
       for (const name of ["--o", "--fit", "--lift", "--head-travel", "--show-travel"])
         scene.el.style.removeProperty(name);
-      scene.head?.style.removeProperty("--grow");
+      scene.copy?.style.removeProperty("--grow");
     }
     for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);
     context.revert();

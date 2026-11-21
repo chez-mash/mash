@@ -22,6 +22,8 @@ export interface Scene {
   readonly stage: HTMLElement;
   /** The heading, where the scene has one. */
   readonly head: HTMLElement | null;
+  /** The heading on its own, or the text column beside a product snapshot. */
+  readonly copy: HTMLElement | null;
   readonly show: HTMLElement;
   readonly art: SVGSVGElement | null;
   readonly steps: number;
@@ -98,7 +100,8 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   const head = el.querySelector<HTMLElement>(".head");
   const show = el.querySelector<HTMLElement>(".show");
   if (!stage || !show) return undefined;
-  const captions = [...show.querySelectorAll<HTMLElement>(".caps > li")];
+  const copy = stage.querySelector<HTMLElement>(".snapshot-copy") ?? head;
+  const captions = [...stage.querySelectorAll<HTMLElement>(".caps > li")];
   const steps = Math.max(1, captions.length);
   const art = el.querySelector<SVGSVGElement>("svg.art");
   const strength = Number(art?.dataset.strength ?? 0.5);
@@ -112,7 +115,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   if (head) timeline.to({}, { duration: HOLD_SECONDS });
   const titledAt = timeline.duration();
 
-  // The heading makes way for the panel, and the drawing recedes behind it.
+  // The panel comes in and the drawing recedes behind it.
   timeline.to(el, { "--t": 1, "--art": FAINT, duration: 0.55, ease: "power2.inOut" });
   const panelAt = timeline.duration();
 
@@ -151,6 +154,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
     el,
     stage,
     head,
+    copy,
     show,
     art,
     steps,
@@ -165,19 +169,17 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   };
 }
 
-/** How far a centered, scaled item can travel while staying inside the stage. */
-function entranceTravel(stageWidth: number, scaledWidth: number): number {
-  return Math.max(0, Math.min(144, stageWidth * 0.18, (stageWidth - scaledWidth) / 2 - 4));
-}
-
 /**
- * Sizes a scene for the screen: a panel too tall is scaled down to fit, and the
+ * Sizes a scene for the screen. A panel too tall is scaled down to fit, and the
  * heading and panel get room to move while staying inside the screen.
  */
 export function measure(scene: Scene): void {
   const style = getComputedStyle(scene.stage);
+  const sideBySide = style.getPropertyValue("--snapshot-columns").trim() === "1";
   const gap = Number.parseFloat(style.rowGap) || 0;
-  const above = scene.head ? scene.head.offsetHeight + gap : 0;
+  const { copy } = scene;
+  const snapshot = copy !== scene.head;
+  const above = copy && !sideBySide ? copy.offsetHeight + gap : 0;
   const room = scene.stage.clientHeight - 16 - above;
   const fit = Math.max(0.6, Math.min(1, room / scene.show.offsetHeight));
   scene.el.style.setProperty("--fit", String(fit));
@@ -189,18 +191,26 @@ export function measure(scene: Scene): void {
   const inner =
     stageWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight);
   const wide = scene.head?.querySelector("h2")?.offsetWidth ?? inner;
-  const grow = Math.max(0, Math.min(narrow ? 0.08 : 0.22, inner / wide - 1));
-  scene.head?.style.setProperty("--grow", String(grow));
+  const grow = snapshot ? 0 : Math.max(0, Math.min(narrow ? 0.08 : 0.22, inner / wide - 1));
+  copy?.style.setProperty("--grow", String(grow));
   // At --t: 0 the heading is enlarged and the panel is at 92% of its fitted
   // size. Their offsets both fall to zero as those scales settle.
-  const showTravel = entranceTravel(stageWidth, scene.show.offsetWidth * 0.92 * fit);
+  const arrivalSide = scene.index % 2 === 0 ? -1 : 1;
+  const travel = (element: HTMLElement, scale: number, side: number): number => {
+    const width = element.offsetWidth;
+    const left = sideBySide ? element.offsetLeft : (stageWidth - width) / 2;
+    const edge = side < 0 ? left : stageWidth - left - width;
+    const spare = edge + (width * (1 - scale)) / 2 - 4;
+    return Math.max(0, Math.min(144, stageWidth * 0.18, spare));
+  };
+  const showTravel = travel(scene.show, 0.92 * fit, arrivalSide);
   scene.el.style.setProperty("--show-travel", `${showTravel}px`);
-  if (scene.head) {
-    const headTravel = entranceTravel(stageWidth, scene.head.offsetWidth * (1 + grow));
+  if (copy) {
+    const headTravel = travel(copy, 1 + grow, -arrivalSide);
     scene.el.style.setProperty("--head-travel", `${headTravel}px`);
   }
   let drop = 0;
-  if (scene.art) {
+  if (scene.art && !snapshot) {
     // Measured without the drawing's own scaling.
     const stage = scene.stage.getBoundingClientRect();
     const was = scene.art.style.transform;
@@ -220,6 +230,6 @@ export function measure(scene: Scene): void {
         12
       : tall * Number(scene.art.dataset.drop ?? 0);
   }
-  const lift = (scene.show.offsetHeight * fit + gap) / 2 + drop;
+  const lift = snapshot ? 0 : (scene.show.offsetHeight * fit + gap) / 2 + drop;
   scene.el.style.setProperty("--lift", `${lift}px`);
 }

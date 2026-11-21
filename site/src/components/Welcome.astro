@@ -59,66 +59,78 @@ const drawn = {
 <div class="mash-welcome not-content">
   <Agents />
 
-  <section class="scene" id="welcome-search" aria-labelledby="welcome-search-title">
+  <section class="scene snapshot" id="welcome-search" aria-labelledby="welcome-search-title">
     <div class="stage">
       <Fragment set:html={searchArt} />
-      <div class="head">
-        <span class="eyebrow">Search</span>
-        <h2 id="welcome-search-title">Find it. <span>However you remember it.</span></h2>
+      <div class="snapshot-copy">
+        <div class="head">
+          <span class="eyebrow">Search</span>
+          <h2 id="welcome-search-title">Find it. <span>However you remember it.</span></h2>
+        </div>
+        <div class="caption-panel">
+          <ol class="caps">
+            <li>By meaning, with optional local models.</li>
+            <li>By the exact words.</li>
+            <li>Across machines through a server you run.</li>
+          </ol>
+          <p class="links">
+            <a href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
+          </p>
+        </div>
       </div>
       <div class="show">
         <img class="scene-image" src="/welcome/welcome-search.svg" width="672" height="393" decoding="async"
           alt="The example search ‘why does checkout keep failing’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines." />
-        <ol class="caps">
-          <li>By meaning, with optional local models.</li>
-          <li>By the exact words.</li>
-          <li>Across machines through a server you run.</li>
-        </ol>
-        <p class="links">
-          <a href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
-        </p>
       </div>
     </div>
   </section>
 
-  <section class="scene" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
+  <section class="scene snapshot reverse" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
     <div class="stage">
       <Fragment set:html={mashyArt} />
-      <div class="head">
-        <span class="eyebrow">Dashboard</span>
-        <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask your history anything.</span></h2>
+      <div class="snapshot-copy">
+        <div class="head">
+          <span class="eyebrow">Dashboard</span>
+          <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask your history anything.</span></h2>
+        </div>
+        <div class="caption-panel">
+          <ol class="caps">
+            <li>Ask in plain language.</li>
+            <li>Mashy reads across agents and machines.</li>
+            <li>Follow the quote back to the original chat.</li>
+            <li>Optional. Requires your own model service and API key.</li>
+          </ol>
+        </div>
       </div>
       <div class="show">
         <img class="scene-image" src="/welcome/welcome-mashy.svg" width="410" height="511" decoding="async"
           alt="The read-only assistant traces an example checkout outage to a database migration and quotes the Claude Code conversation that describes the lock." />
-        <ol class="caps">
-          <li>Ask in plain language.</li>
-          <li>Mashy reads across agents and machines.</li>
-          <li>Follow the quote back to the original chat.</li>
-          <li>Optional. Requires your own model service and API key.</li>
-        </ol>
       </div>
     </div>
   </section>
 
-  <section class="scene" id="welcome-memory" aria-labelledby="welcome-memory-title">
+  <section class="scene snapshot" id="welcome-memory" aria-labelledby="welcome-memory-title">
     <div class="stage">
       <Fragment set:html={memoryArt} />
-      <div class="head">
-        <span class="eyebrow">Memory</span>
-        <h2 id="welcome-memory-title">Save the decision. <span>Keep the source.</span></h2>
+      <div class="snapshot-copy">
+        <div class="head">
+          <span class="eyebrow">Memory</span>
+          <h2 id="welcome-memory-title">Save the decision. <span>Keep the source.</span></h2>
+        </div>
+        <div class="caption-panel">
+          <ol class="caps">
+            <li>You say it.</li>
+            <li>Ask the plugin to save the decision with your message as evidence.</li>
+            <li>The decision can come back in a later session.</li>
+          </ol>
+          <p class="links">
+            <a href="/demo/#/record/record-sign-in-tokens?node=laptop" data-astro-reload>Follow the sign-in decision in the demo ›</a>
+          </p>
+        </div>
       </div>
       <div class="show">
         <img class="scene-image" src="/welcome/welcome-memory.svg" width="672" height="452" decoding="async"
           alt="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session." />
-        <ol class="caps">
-          <li>You say it.</li>
-          <li>Ask the plugin to save the decision with your message as evidence.</li>
-          <li>The decision can come back in a later session.</li>
-        </ol>
-        <p class="links">
-          <a href="/demo/#/record/record-sign-in-tokens?node=laptop" data-astro-reload>Follow the sign-in decision in the demo ›</a>
-        </p>
       </div>
     </div>
   </section>

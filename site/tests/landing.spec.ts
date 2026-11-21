@@ -332,12 +332,12 @@ test("welcome illustrations and headings enter from opposite alternating sides",
       scene
         .locator(selector)
         .evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).m41);
-    expect(direction * (await offset(".head"))).toBeGreaterThan(0);
+    expect(direction * (await offset(".snapshot-copy"))).toBeGreaterThan(0);
     expect(direction * (await offset(".show"))).toBeLessThan(0);
 
     await play(page, heading, 0.4);
     await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
-    expect(await offset(".head")).toBeCloseTo(0);
+    expect(await offset(".snapshot-copy")).toBeCloseTo(0);
     expect(await offset(".show")).toBeCloseTo(0);
   }
 });

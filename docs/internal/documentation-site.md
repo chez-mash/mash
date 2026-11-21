@@ -83,11 +83,13 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **Scenes.** Search, Mashy, memory, performance, privacy, the tiles and Rust
   each pin under the header while the reader scrolls; only the closing call
   to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
-  builds each one. It draws the backdrop, then brings the heading and
-  illustration toward the center from opposite sides, starting with the
-  Search illustration on the left. The directions alternate by scene. Travel
-  fits the available width so headings stay within the stage. Captions appear
-  in order once the illustration settles.
+  builds each one. Search, Mashy, and Memory put their heading, captions,
+  and links beside the product snapshot on wide screens. The Search snapshot
+  sits on the left and the placement alternates by scene. On narrow screens
+  the copy comes first in a single column. The scene draws its backdrop,
+  then brings the heading and illustration in from opposite sides. Travel
+  fits the available space. Captions appear in order once the illustration
+  settles.
   Each scene is one GSAP timeline. Its position on screen sets the target time,
   and the timeline plays there at its own pace. A scene scrolled past unfinished
   gets the class `kept` and stays fixed until it finishes. A single scroll can
