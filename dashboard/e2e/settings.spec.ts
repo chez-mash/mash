@@ -76,6 +76,7 @@ async function mock(
       }
       return route.fulfill({ json: served });
     }
+    if (path === "/api/assistant") return route.fulfill({ json: { enabled: false, model: null } });
     if (path === "/api/assistant/models")
       return route.fulfill({ json: { models: ["another/model", "test/model"] } });
     if (path === "/api/services/access")
@@ -97,6 +98,13 @@ test("word search is ready when optional models are absent", async ({ page }) =>
   await expect(page.getByText("Local search ready", { exact: true })).toBeVisible();
   await expect(page.getByText("not needed for word search", { exact: true })).toBeVisible();
   await expect(page.getByText("mash models install", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Set up Mashy", exact: true })).toHaveAttribute(
+    "href",
+    "https://getmash.io/configuration/#the-dashboard-assistant",
+  );
+  await expect(page.getByText("Mashy is optional.", { exact: false })).toContainText(
+    "your model service and API key",
+  );
 });
 
 for (const [state, action, link] of [
@@ -219,6 +227,9 @@ test("Mashy is switched off and given another model where an assistant is config
   const posts: unknown[] = [{}];
   await mock(page, { ...settings, assistant: { enabled: true, model: "test/model" } }, posts);
   await page.goto("/#/settings");
+  await expect(
+    page.getByText("Set the API key named in your configuration", { exact: false }),
+  ).toBeVisible();
   const model = page.getByRole("combobox", { name: "Mashy's model" });
   await expect(model).toHaveValue("test/model");
   // The service's own list of models is offered as choices.

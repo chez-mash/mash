@@ -80,6 +80,11 @@ test("a first visit can confirm the detected local setup in one click", async ({
   await expect(review.getByText(rangeNotice)).toBeVisible();
   await expect(review).toContainText("this machine only");
   await expect(review.getByText("no agents", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Set up Mashy", exact: true })).toHaveAttribute(
+    "href",
+    "https://getmash.io/configuration/#the-dashboard-assistant",
+  );
+  await expect(page.getByText(/with your own model service and API key/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
   await page.getByText("Show history folders", { exact: true }).click();
   await expect(review.getByText("/fixture/.codex/sessions", { exact: true })).toBeVisible();

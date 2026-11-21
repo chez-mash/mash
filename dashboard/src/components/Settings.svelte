@@ -230,7 +230,10 @@ async function save(): Promise<void> {
     </dl>
   </section>
   <section class="set-s">
-    <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
+    <div class="hd">
+      <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
+      <a class="a meta" href="https://getmash.io/configuration/#the-dashboard-assistant">Set up Mashy</a>
+    </div>
     {#if file?.assistant && draft?.assistant && file.editable}
       <div class="set-r" class:changed={touched.has("mashy")}>
         <span class="set-l">Mashy<small>answers questions from your history, and sends the model the chat text it reads</small></span>
@@ -243,14 +246,17 @@ async function save(): Promise<void> {
           <datalist id="assistant-models">{#each models.data ?? [] as model (model)}<option value={model}></option>{/each}</datalist>
         </span>
       </div>
-      {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}<p class="meta warn">Mashy is switched on, but the key the configuration names is not set, so it stays unavailable.</p>{/if}
-      <p class="meta" style:margin-top="8px">The service's address and its key are set in the configuration file, not here.</p>
+      {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
+        <p class="meta warn">Set the API key named in your configuration on the computer running the dashboard, then restart it.</p>
+      {:else}
+        <p class="meta" style:margin-top="8px">Mashy uses your model service and API key on the computer running the dashboard.</p>
+      {/if}
     {:else}
       <dl>
         {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
         {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
       </dl>
-      {#if !file?.assistant && assistant.data && !assistant.data.enabled}<p class="meta">Mashy answers questions from your history using a model you choose, and sends it the chat text it reads. To turn it on, add an <code>[assistant]</code> table to the configuration file and set the key it names.</p>{/if}
+      {#if !file?.assistant && !assistant.data?.enabled}<p class="meta">Mashy is optional. To use it, configure your model service and API key on the computer running the dashboard.</p>{/if}
     {/if}
   </section>
   <section class="set-s">

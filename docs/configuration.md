@@ -135,9 +135,10 @@ embedded (`remote_inferences`, out of `model_inferences`) and its request time
 
 ## The dashboard assistant
 
-Mashy is a chat in the corner of the [dashboard](dashboard.md#ask-mashy) that
-answers questions about your history. Mash has no language model of its own,
-so Mashy exists only when you name one:
+Mashy is an optional chat in the corner of the [dashboard](dashboard.md#ask-mashy).
+It answers questions about your history using a model service and API key you
+provide. On the computer that runs the dashboard, add the service to your Mash
+configuration and set the environment variable that holds your API key.
 
 ```toml
 [assistant]

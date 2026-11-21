@@ -275,6 +275,9 @@ function toggleConnect(agent: Integration): void {
         {#if file.shared}
           <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>
         {/if}
+        {#if !file.configured && file.editable}
+          <p class="meta">Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</p>
+        {/if}
         {#if searchServiceReady}
           <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service is ready.</p>
         {:else}
