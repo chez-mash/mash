@@ -10,6 +10,8 @@
 | Un agent de programmation ne trouve pas Mash | [Vérifier la connexion de l’agent](#my-agent-cannot-find-mash) |
 | Après une mise à jour, Mash indique que le format de l’index est incompatible | [Récupérer ou mettre à jour l’index](#the-index-schema-is-older-or-newer-than-mash) |
 
+Le problème persiste ou vous soupçonnez une faille de sécurité ? [Obtenir de l’aide](#get-help).
+
 <span id="check-what-mash-sees"></span>
 
 ## Vérifier ce que Mash détecte
@@ -348,4 +350,25 @@ locaux avec un `shared_error`. Utilisez `--local` pour chercher uniquement
 sur cet ordinateur ou réparez la connexion partagée avant de vous fier
 aux résultats de tous les ordinateurs.
 
-<!-- mash-docs-source: e13005cb3992677f2f0049622c9016ed92f4334deaf7967dc76fc6cc86cedcc3 -->
+<span id="get-help"></span>
+
+## Obtenir de l’aide
+
+[Signalez le problème sur GitHub](https://github.com/mashium/mash/issues/new?template=bug_report.yml)
+si vous rencontrez une difficulté à l’installation, à la configuration ou à
+l’utilisation. Indiquez votre système d’exploitation, la méthode d’installation,
+l’étape qui a échoué et le résultat attendu. Si `mash --version` fonctionne, ajoutez
+son résultat. Si l’installation a échoué, le message d’erreur suffit pour ouvrir
+un ticket.
+
+Les tickets GitHub sont publics. Partagez seulement l’erreur concernée ou un
+court extrait de [`mash doctor`](#check-what-mash-sees). Retirez les chemins et
+adresses privés, les conversations et les identifiants secrets. Si un exemple
+est nécessaire, utilisez une conversation fictive.
+
+Si vous pensez que Mash a exposé un historique privé, permis de contourner
+l’authentification ou publié un paquet dont la somme de contrôle est incorrecte,
+utilisez le [formulaire privé de GitHub](https://github.com/mashium/mash/security/advisories/new).
+Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
+
+<!-- mash-docs-source: 368d69706cb6e367dff031775c66bd6040b69bdd46a1c3f008e8e68b8d730693 -->

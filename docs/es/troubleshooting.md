@@ -10,6 +10,8 @@
 | Un agente de programación no encuentra Mash | [Comprueba la conexión del agente](#my-agent-cannot-find-mash) |
 | Tras actualizar, Mash dice que el formato del índice es incompatible | [Recupera o actualiza el índice](#the-index-schema-is-older-or-newer-than-mash) |
 
+¿Sigues sin resolverlo o te preocupa un problema de seguridad? [Pide ayuda](#get-help).
+
 <span id="check-what-mash-sees"></span>
 
 ## Comprueba qué detecta Mash
@@ -338,4 +340,24 @@ Si una búsqueda entre varios equipos devuelve resultados locales con
 `shared_error`, usa `--local` para limitar la búsqueda a este equipo o
 repara la conexión compartida antes de basarte en los resultados de toda la red.
 
-<!-- mash-docs-source: e13005cb3992677f2f0049622c9016ed92f4334deaf7967dc76fc6cc86cedcc3 -->
+<span id="get-help"></span>
+
+## Pide ayuda
+
+[Abre un informe de error](https://github.com/mashium/mash/issues/new?template=bug_report.yml)
+si tienes problemas al instalar, configurar o usar Mash. Indica tu sistema
+operativo, cómo intentaste instalar Mash, qué paso falló y qué esperabas que
+ocurriera. Si `mash --version` funciona, incluye el resultado. Si Mash no
+llegó a instalarse, basta con el error del instalador para abrir un informe.
+
+Los informes de GitHub son públicos. Comparte solo el error pertinente o un
+fragmento breve de [`mash doctor`](#check-what-mash-sees). Elimina rutas y
+direcciones privadas, texto de conversaciones y credenciales. Si necesitas
+un ejemplo, usa una conversación inventada.
+
+Si crees que Mash expuso un historial privado, permitió saltarse el inicio de
+sesión o publicó un paquete con una suma de comprobación incorrecta, usa el
+[formulario privado de GitHub](https://github.com/mashium/mash/security/advisories/new).
+Consulta [qué incluir al informar de un problema de seguridad](../../SECURITY.md#report-a-vulnerability) (en inglés).
+
+<!-- mash-docs-source: 368d69706cb6e367dff031775c66bd6040b69bdd46a1c3f008e8e68b8d730693 -->

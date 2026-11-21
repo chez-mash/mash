@@ -4,14 +4,8 @@ Bug reports, fixes and documentation improvements are welcome.
 
 ## Report a problem
 
-Open an [issue](https://github.com/mashium/mash/issues/new/choose) with the Mash
-version (`mash --version`), your platform, the command you ran and what
-happened. `mash status` output helps for setup and indexing problems.
-
-Your chats are private. Do not paste real conversation text, tokens or
-exported history into an issue; describe the shape of the data or use a
-made-up example. Report security problems privately, as
-[SECURITY.md](SECURITY.md) describes.
+See [Get help](docs/troubleshooting.md#get-help) for the bug form and which
+diagnostics to share. [Report security problems privately](SECURITY.md#report-a-vulnerability).
 
 ## Propose a change
 

@@ -145,10 +145,10 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
   });
 }
 
-for (const [locale, lang, title] of [
-  ["es", "es", "Solución de problemas"],
-  ["fr", "fr", "Dépannage"],
-  ["zh-cn", "zh-CN", "故障排查"],
+for (const [locale, lang, title, help] of [
+  ["es", "es", "Solución de problemas", "Pide ayuda"],
+  ["fr", "fr", "Dépannage", "Obtenir de l’aide"],
+  ["zh-cn", "zh-CN", "故障排查", "获取帮助"],
 ]) {
   test(`the ${locale} setup and search guides open troubleshooting in the same language`, async ({
     page,
@@ -165,6 +165,13 @@ for (const [locale, lang, title] of [
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
     await expect(page.locator("#mash-command-not-found")).toBeAttached();
     await expect(guide.locator('pre[data-language="powershell"]')).toContainText("mash --version");
+    await guide.getByRole("link", { name: help, exact: true }).click();
+    await expect(page).toHaveURL(`${trouble}#get-help`);
+    await expect(guide.locator("#get-help")).toBeAttached();
+    await expect(guide.getByRole("heading", { name: help, exact: true })).toBeVisible();
+    await expect(
+      guide.locator('a[href="https://github.com/mashium/mash/security/advisories/new"]'),
+    ).toBeVisible();
 
     await page.goto(`/${locale}/dashboard/#find-and-read-a-chat`);
     await guide.locator(`a[href="${empty}"]`).click();

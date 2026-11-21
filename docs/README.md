@@ -32,6 +32,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 ### Manage Mash
 
 - [Fix setup errors, empty results or stale history](troubleshooting.md)
+- [Report a bug or a security concern](troubleshooting.md#get-help)
 - [Manage the local search service or run your own Qdrant](local-search.md)
 - [Keep new chats searchable](synchronization.md)
 - [Include older history or search by meaning](indexing.md)

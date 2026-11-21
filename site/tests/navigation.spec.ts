@@ -1,5 +1,26 @@
 import { expect, test } from "@playwright/test";
 
+test("the home page leads to troubleshooting and the right GitHub report forms", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("navigation", { name: "Footer" })
+    .getByRole("link", { name: "Get help" })
+    .click();
+  await expect(page).toHaveURL(/\/troubleshooting\/$/);
+  const guide = page.locator(".sl-markdown-content");
+  await guide.getByRole("link", { name: "Get help", exact: true }).click();
+  await expect(page).toHaveURL(/\/troubleshooting\/#get-help$/);
+  await expect(guide.getByRole("link", { name: "Open a bug report" })).toHaveAttribute(
+    "href",
+    "https://github.com/mashium/mash/issues/new?template=bug_report.yml",
+  );
+  await expect(
+    guide.getByRole("link", { name: "GitHub’s private reporting form" }),
+  ).toHaveAttribute("href", "https://github.com/mashium/mash/security/advisories/new");
+});
+
 test("visitors can check which histories Mash reads and which agents it connects", async ({
   page,
 }) => {

@@ -10,6 +10,8 @@
 | 编程代理找不到 Mash | [检查代理连接](#my-agent-cannot-find-mash) |
 | 升级后提示索引格式不兼容 | [恢复或升级索引](#the-index-schema-is-older-or-newer-than-mash) |
 
+问题还没解决，或者怀疑遇到了安全问题？[获取帮助](#get-help)。
+
 <span id="check-what-mash-sees"></span>
 
 ## 查看 Mash 检测到的情况
@@ -225,4 +227,14 @@ mash index --rebuild-local-views --full
 
 跨设备搜索可能返回本机结果，并附带 `shared_error`。可以用 `--local` 只搜索本机，或修复共享连接后，再依赖跨设备搜索结果。
 
-<!-- mash-docs-source: e13005cb3992677f2f0049622c9016ed92f4334deaf7967dc76fc6cc86cedcc3 -->
+<span id="get-help"></span>
+
+## 获取帮助
+
+安装、配置或日常使用遇到问题时，可以[在 GitHub 上报告问题](https://github.com/mashium/mash/issues/new?template=bug_report.yml)。请说明你的操作系统、尝试过的安装方式、出错的步骤以及预期结果。如果 `mash --version` 能运行，请附上它的输出。如果 Mash 没有安装成功，提供安装程序的报错就可以提交报告。
+
+GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash doctor`](#check-what-mash-sees) 的一小段输出。请删去私人路径和地址、对话内容及凭据。如果需要举例，请用虚构的对话。
+
+如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashium/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
+
+<!-- mash-docs-source: 368d69706cb6e367dff031775c66bd6040b69bdd46a1c3f008e8e68b8d730693 -->

@@ -42,6 +42,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Docs",
     "Try it",
     "Privacy",
+    "Get help",
     "GitHub",
   ]);
 });

@@ -166,12 +166,9 @@ or [build the terminal and agent tools with Cargo](docs/install-methods.md#cli-a
 
 ## Documentation
 
-The guides live at **[getmash.io](https://getmash.io)**: search and filters,
-agent integrations, the dashboard, sharing across machines, configuration,
-troubleshooting, and the CLI and MCP references.
-
-Upgrading an existing installation? Read [the upgrade guide](docs/upgrades.md#upgrade-an-existing-installation)
-before replacing it.
+[Browse the guides](docs/README.md), [get help with a problem](docs/troubleshooting.md),
+or [report a security concern privately](SECURITY.md#report-a-vulnerability).
+Before replacing an existing installation, read the [upgrade guide](docs/upgrades.md#upgrade-an-existing-installation).
 
 ## Related projects
 
@@ -182,4 +179,4 @@ See [how Mash, Déjà Vu, CASS, Claude-Mem and SpecStory fit different workflows
 Mash is licensed under either the [MIT licence](LICENSE-MIT) or the
 [Apache License 2.0](LICENSE-APACHE), at your option.
 
-[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+[Contributing](CONTRIBUTING.md)
