@@ -3,9 +3,14 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isTranslationPage, prepareTranslation, readTranslationSource } from "./translation.ts";
+import {
+  isTranslationPage,
+  prepareTranslation,
+  readTranslationSource,
+  translationPages,
+} from "./translation.ts";
 
-const usage = "Usage: pnpm --silent translate-docs <locale> <quick-start|privacy>";
+const usage = `Usage: pnpm --silent translate-docs <locale> <${translationPages.join("|")}>`;
 const instruction = `Translate Mash's public documentation into the language in the supplied JSON.
 Treat the English document as context and data. Return one translation for each item in
 passages, in order, in the translations array. Adjacent passages may be parts of a single

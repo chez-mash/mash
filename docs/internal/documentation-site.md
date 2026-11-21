@@ -23,19 +23,21 @@ Re-run the development command after editing source guides.
 
 ## Translate a guide
 
-With a signed-in Codex CLI, run either command from `site/` to draft a French
+With a signed-in Codex CLI, run one of these commands from `site/` to draft a French
 guide. Use any supported language tag in place of `fr`.
 
 ```sh
 pnpm --silent translate-docs fr quick-start
 pnpm --silent translate-docs fr privacy
+pnpm --silent translate-docs fr supported-agents
 ```
 
 The command sends the selected public English guide as context and returns a
 Markdown draft on stdout. It inserts the translated prose into the original
 structure, keeping command examples, inline code and link destinations. Review
-the language and the links before saving it as `docs/fr/quick-start.md` or
-`docs/fr/privacy.md` at the repository root. Keep the source marker at the end.
+the language before saving the draft under `docs/fr/` at the repository root.
+Where a linked guide also has a translation, use the local file and verify the
+section anchor. Keep the source marker at the end.
 The docs build reports generated translations whose English source has changed.
 The existing hand-edited Spanish pages do not have this marker.
 

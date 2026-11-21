@@ -35,6 +35,26 @@ test("the language picker keeps the page and labels English fallbacks", async ({
   await expect(page.getByText("Esta página aún no está disponible en tu idioma.")).toBeVisible();
 });
 
+for (const [locale, language, supportTitle, quickStartTitle] of [
+  ["es", "es", "Agentes compatibles", "Guía de inicio rápido"],
+  ["fr", "fr", "Agents compatibles", "Guide de démarrage rapide"],
+  ["zh-cn", "zh-CN", "支持的代理", "快速入门"],
+]) {
+  test(`the ${locale} support guide leads to setup in the same language`, async ({ page }) => {
+    await page.goto(`/${locale}/`);
+    await page.locator(`.sl-markdown-content a[href="/${locale}/supported-agents/"]`).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(supportTitle);
+    await expect(page.locator("html")).toHaveAttribute("lang", language);
+    await expect(
+      page.getByRole("table").first().getByText("GitHub Copilot CLI", { exact: true }),
+    ).toBeVisible();
+
+    await page.locator(`.sl-markdown-content a[href="/${locale}/quick-start/"]`).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(quickStartTitle);
+    await expect(page).toHaveURL(`/${locale}/quick-start/`);
+  });
+}
+
 for (const locale of [
   {
     path: "fr",

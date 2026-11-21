@@ -5,7 +5,8 @@ import type { Root, Text } from "mdast";
 import { visit } from "unist-util-visit";
 import { markdown, rewriteMarkdownUrls } from "./markdown.ts";
 
-export type TranslationPage = "quick-start" | "privacy";
+export const translationPages = ["quick-start", "privacy", "supported-agents"] as const;
+export type TranslationPage = (typeof translationPages)[number];
 
 export type TranslationSource = {
   file: string;
@@ -16,6 +17,7 @@ export type TranslationSource = {
 const repo = new URL("../../", import.meta.url);
 const sourceMarker = /^<!-- mash-docs-source: ([a-f0-9]{64}) -->$/m;
 const uiLabels = new Set([
+  "Customize setup",
   "Set up and index",
   "Set up and index without connecting agents",
   "Skip agent connections",
@@ -24,11 +26,11 @@ const uiLabels = new Set([
 ]);
 
 export function isTranslationPage(page: string | undefined): page is TranslationPage {
-  return page === "quick-start" || page === "privacy";
+  return translationPages.some((candidate) => candidate === page);
 }
 
 export async function readTranslationSource(page: TranslationPage): Promise<TranslationSource> {
-  const file = page === "quick-start" ? "README.md" : "docs/privacy.md";
+  const file = page === "quick-start" ? "README.md" : `docs/${page}.md`;
   let body = await readFile(new URL(file, repo), "utf8");
   if (page === "quick-start") {
     const start = /^## Quick start$/m.exec(body)?.index;

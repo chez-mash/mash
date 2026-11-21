@@ -7,6 +7,8 @@ You can also [connect an agent](agents.md#connect-claude-code-codex-or-copilot)
 and ask it to find past work for you. This is optional. A connected agent can
 search any history you've indexed, including chats from other agents.
 
+[Set up Mash and find your first chat](../README.md#quick-start).
+
 | Agent | Saved chats Mash can read | Connect with `mash init` |
 | --- | --- | --- |
 | Claude Code | Local Claude Code conversations | Yes |

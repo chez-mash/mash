@@ -81,4 +81,15 @@ describe("documentation translation drafts", () => {
     expect(quickStart.body).not.toContain("[Español]");
     expect(quickStart.body).not.toContain("## Licence");
   });
+
+  it("drafts the support guide while keeping the setup wizard label and source revision", async () => {
+    const support = await readTranslationSource("supported-agents");
+    const draft = prepareTranslation(support, "docs/es/supported-agents.md");
+    expect(draft.passages).toContain("Supported agents");
+    expect(draft.passages).not.toContain("Customize setup");
+    const output = draft.render({ translations: draft.passages });
+    expect(output).toContain("**Customize setup**");
+    expect(output).toContain("../agents.md#connect-claude-code-codex-or-copilot");
+    expect(recordedTranslationRevision(output)).toBe(support.revision);
+  });
 });
