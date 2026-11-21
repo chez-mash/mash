@@ -1,72 +1,86 @@
 # Search across your machines
 
-A shared index lets your laptop find chats indexed on your desktop, and the
-reverse. Each computer keeps its own local index and also publishes it to one
-Mash server that you run. Computers in the same group can then search and read
-each other's published history.
+If your laptop and desktop both save agent chats, a shared index lets you find
+them from either computer. Each computer keeps a searchable local copy and
+publishes its index to one Mash server you run.
 
-Sharing is optional. On one computer, skip this guide: local search already
-works offline.
+| What you want to do | Where to start |
+| --- | --- |
+| Read one computer’s chats from your phone or another browser | [Open that computer’s dashboard remotely](dashboard.md#open-it-from-your-phone-or-another-computer) |
+| Search chat histories indexed on several computers | [Set up a shared index](#the-quick-way) |
+| Search only the history on this computer | [Use the local dashboard](dashboard.md#find-and-read-a-chat) |
 
-**Sharing uploads chat history.** A computer that publishes sends the chats it
-has indexed, with their retained attachments, to your server, where every
-computer holding a token for the same group can read them. Run the server only
-on a machine and network you trust.
+To see what a result from another machine looks like, search the demo and
+open **Choose a queue for invoice exports**, a chat from the workstation.
+[Try the sample search](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+
+## Before sharing
+
+**Publishing sends your indexed chats and retained attachments to the server.**
+Any computer with a token for the same group can search and read that history.
+Use a server and network you trust. Review the chats you already have indexed,
+including older ones that Mash has kept, before you start publishing.
+[When history can leave your machine](privacy.md#when-history-can-leave-your-machine)
 
 ## What runs where
 
 | Where | What runs | You set it up |
 | --- | --- | --- |
-| One server machine | `mash-server` and a Qdrant 1.20+ instance for it, both with persistent storage | once, in step 1 |
-| Each computer | `mash` with its local index and local Qdrant, as in [installation](installation.md) | in steps 2 and 3 |
+| One server machine | `mash-server` and a Qdrant 1.20+ instance for it, both with persistent storage | once |
+| Each computer that indexes chats | `mash` with its local index and local Qdrant, as in [installation](installation.md) | once per computer |
 
 The server machine can be one of your computers or a separate always-on host.
 `mash-server` ships with `mash`; run the same release on the server and on
 every computer.
 
-Before you connect a computer you need:
-
-- a server URL that the computer can reach: HTTPS, or a private-network address
-  you trust;
-- a group ID, shared by all your computers (the examples use `personal`);
-- a node ID, unique to that computer (`laptop`, `desktop`);
-- a token for that computer, different from every other computer's.
-
-If someone already runs the server for you, get these four from them and go to
-[step 2](#2-connect-each-computer).
+If you already have a server, ask its operator for a join string for each
+computer. You can also connect using the server URL, group ID, a name for the
+computer (its node ID), and its own token. [Connect each computer](#2-connect-each-computer)
 
 ## The quick way
 
-On Linux or macOS with [Tailscale](https://tailscale.com) connected and Qdrant
-running (`mash qdrant install`), two commands set everything up.
+Use this path when the server runs Linux or macOS, has Qdrant running, and
+can use Tailscale Serve. Connect the server and the computers to your tailnet.
+Enable MagicDNS and HTTPS certificates for that network.
+[Start Qdrant](installation.md#start-the-local-search-service) · [Enable HTTPS in Tailscale](https://tailscale.com/docs/how-to/set-up-https-certificates)
 
-On the machine that will hold the shared index, naming the first computer to
-connect:
+On the server, add your laptop to a group called `personal`.
 
 ```sh
 mash-server --setup --add-node personal/laptop
 ```
 
-This writes a first configuration under `~/.mash/server`, keeps the server
-running as a user service, gives it an HTTPS address that only devices on your
-tailnet can reach, and prints a `join` value. On the laptop:
+This writes the server settings under `~/.mash/server`, starts a user service,
+and prints its private HTTPS address and a `join` value. To add another
+computer, run the command on the server again with a different name, such as
+`personal/desktop`. Use a different join string for each computer. The join
+string contains its credential, so pass it privately. Rerunning setup with a
+name already added repairs the service and reuses that registration.
+
+### Join and review each computer
+
+On a computer you want to connect, install Mash and start its local Qdrant.
+Pause any background indexing on that computer while you review. Then run
+this with the full join value for that computer.
 
 ```sh
-mash init --join 'mash-join.…'
+mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents
 ```
 
-Run the first command again with another name for each further computer; a
-rerun with a name already added just repairs the service.
-`mash-server --setup --remove` stops the server and takes its address down,
-keeping its configuration and history so the same command brings it back. The join value
-contains that computer's token, so pass it privately. To browse everything
-from a phone, add [`mash dash remote`](dashboard.md#open-it-from-your-phone-or-another-computer)
-on any machine that has joined, or `mash dash remote --shared-only` on the
-server itself.
+Joining saves the server, group, and node settings, and stores the credential
+in `~/.mash/node.env`, readable only by you. These options skip indexing and
+leave agent settings alone. A plain `mash init --join` also connects detected
+supported agents and starts indexing and publishing without a wizard.
 
-The server it sets up uses word search only, so it needs no models. For
-semantic search on the server, a public address, or a host without Tailscale,
-set it up by hand as below.
+Run `mash status --installation` to check the configured history folders and use
+the local dashboard to review any chats already indexed. When you are ready
+to send that history to the server, [publish and check each computer](#3-publish-and-check).
+
+This setup uses word search on the server and needs no model download. For a
+host without Tailscale or a server that needs semantic search, use the manual
+setup below. To take a server created with `--setup` offline, run
+`mash-server --setup --remove`. It keeps the settings and history for the next
+time you start the server.
 
 ## 1. Set up the server
 
@@ -140,9 +154,8 @@ running.
 
 ### With a join string
 
-The quickest way needs no token variables and no configuration editing. On the
-server, add the computer by name and say which address it should use to reach
-the server:
+On the server, register each computer with a unique node ID in the group.
+Supply the address that computer will use to reach the server.
 
 ```sh
 mash-server --server-config /absolute/path/to/server.toml \
@@ -150,18 +163,10 @@ mash-server --server-config /absolute/path/to/server.toml \
 ```
 
 It prints a `join` value starting with `mash-join.`. Restart the server so it
-accepts the new computer, then on that computer run:
-
-```sh
-mash init --join 'mash-join.…'
-```
-
-That writes the sharing settings, saves the computer's token in
-`~/.mash/node.env` (readable only by you), then indexes and uploads. The join
-string contains the token, so pass it privately and treat it like a password.
-The server keeps only a hash of the token, in `server.toml.nodes` beside its
-configuration. To issue a new string for a computer, delete its `[[nodes]]`
-entry from that file and add it again.
+accepts the new computer, then [join and review that computer](#join-and-review-each-computer).
+The server saves a hash of the credential in a separate file beside its
+configuration, such as `server.toml.nodes`.
+[Replace or revoke a join credential](#revoke-or-replace-a-computers-credential)
 
 ### By hand
 
@@ -175,10 +180,13 @@ server.
 
 Then either use the wizard or edit the configuration.
 
-**Wizard.** Run `mash init` in a terminal and choose **Customize setup**,
-then **Connect to an existing shared server**. Enter the server URL, group ID,
-this computer's node ID, and the name of the token variable. The wizard checks
-that the server accepts the token, then offers to index and upload.
+**Wizard.** Run `mash init --no-index --no-agents` in a terminal. If you start on
+a review screen, choose **Customize setup** (called **Review and edit settings**
+in v0.1.1-alpha). When asked where to search, choose **Connect to an existing shared server**.
+Enter the server URL, group ID,
+this computer's node ID, and the name of the token variable. Review the
+history folders and choose **Set up without indexing**. The next step sends
+the history to the server.
 
 **By hand.** Edit the node configuration that `mash init` created. Keep its
 providers and local Qdrant settings. In the existing `[index]` table set
@@ -215,10 +223,11 @@ mash index
 mash status --shared
 ```
 
-`mash index` updates the local index, then uploads it. It publishes history
-from the last `since_days` days; `mash index --all-history` includes older
-chats. `mash status --shared` reports the server's view under `shared_index`,
-or a `shared_error` when the server could not be reached or refused the token.
+`mash index` updates the local index, then publishes the history it retains.
+The configured date range controls which history files Mash reads on this
+pass. Older chats already in the local index can still be published.
+`mash status --shared` reports what the server received under `shared_index`.
+If you see `shared_error`, check the server address, connection, and token.
 
 A computer's chats appear on the others only after that computer has
 published. If publishing fails, local history is kept: fix the reported error
@@ -227,14 +236,23 @@ and run `mash index` again. To keep publishing new chats, run a
 
 ## Search
 
+Open `mash dash`, go to **chats**, and search for something you remember from
+the other computer. The result shows which machine it came from. To narrow
+to one computer, use the machine filter and choose **Apply filters**.
+[Read a chat in the dashboard](dashboard.md#find-and-read-a-chat)
+
+From the terminal:
+
 ```sh
 mash search 'authentication'            # this computer and the shared index
 mash search 'authentication' --shared   # the shared index only, including this computer's published chats
 mash search 'authentication' --local    # this computer only; the server is not contacted
 ```
 
-Add `--node desktop` to keep only chats published by that node ID. It filters
-results; it does not connect to that computer.
+Add `--node desktop` to keep only chats from that node. Requests for shared
+history go to the server, so the desktop can be asleep. For mobile access,
+[open the dashboard remotely](dashboard.md#open-it-from-your-phone-or-another-computer)
+from a computer already set up to search this group.
 
 ## Remove a machine, or let a rebuilt one publish again
 
@@ -243,7 +261,13 @@ so another machine cannot overwrite that history by reusing the name. A machine
 whose index was deleted and rebuilt is refused for the same reason: publishing
 fails with "shared node ownership or revision changed". Restoring the index
 from a [backup](upgrades.md#replace-an-index-that-cannot-be-upgraded) with
-`--keep-identity` keeps the name. Otherwise, retire the name on the server:
+`--keep-identity` keeps the name. Otherwise, retire the name on the server.
+To remove a computer for good, stop publishing from that computer and retire
+its history before revoking its credential. Uninstalling Mash on a computer
+leaves the server's copy in place.
+
+Stop `mash-server` and keep its Qdrant running. Run this with the same server
+configuration and environment the service uses:
 
 ```sh
 # On the server machine, with mash-server stopped.
@@ -256,9 +280,24 @@ command prints how many chats and messages it removed and exits without
 serving. Other machines and the retired machine's own local history are not
 touched.
 
-Start `mash-server` again, then run `mash index` on the machine to publish
-from its current index. To remove a machine for good, retire it and delete its
-`[[nodes]]` entry from `server.toml` instead.
+If you are rebuilding a computer’s index, start `mash-server` again, then run
+`mash index` on that computer to publish from its current index. If you are
+removing the computer, revoke its credential before restarting the server.
+
+### Revoke or replace a computer’s credential
+
+On the server, find the `[[nodes]]` block with that computer’s `group_id` and
+`node_id`. For a computer added with `--add-node`, the block is in the file
+next to your server configuration, usually `server.toml.nodes`. For a computer
+added by hand, it is in `server.toml`. Remove the block and restart the server
+to revoke access. If this was the last computer in the configuration, leave
+the server stopped. Skip the retirement command to keep the published files
+on the server.
+
+To replace a lost or exposed join string, remove the old block, add the same
+group and node again, and restart the server. Join from the same computer
+with the new string. It can still publish under the same name if it kept its
+local index.
 
 Before installing a new Mash release, read
 [upgrades and backups](upgrades.md#upgrade-a-shared-index).

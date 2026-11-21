@@ -43,6 +43,6 @@ La compétence tente d’actualiser l’index, puis vérifie s’il existe une n
 2. Une fois que l’agent a terminé de rédiger la note, exécutez `mash index` sur l’ordinateur où la conversation est enregistrée. Sur ce même ordinateur, la compétence `resume` peut aussi actualiser l’index lorsque vous reprenez le travail.
 3. Ouvrez le projet lors de votre prochaine session et demandez à l’agent d’utiliser `resume`. Vous pouvez aussi rechercher `"Mash handoff"` dans le tableau de bord et lire la note vous-même.
 
-Si vous changez d’ordinateur, configurez d’abord le partage, puis lancez l’indexation sur l’ordinateur où la note a été rédigée pour qu’il puisse publier la conversation. Pour une passation manuelle, copiez la note dans la nouvelle session. Partagez uniquement les informations que vous souhaitez transmettre au prochain agent. [Rechercher sur plusieurs ordinateurs (en anglais)](../shared-index.md) · [Ce qu’un agent peut voir](privacy.md#when-history-can-leave-your-machine)
+Si vous changez d’ordinateur, configurez d’abord le partage, puis lancez l’indexation sur l’ordinateur où la note a été rédigée pour qu’il puisse publier la conversation. Pour une passation manuelle, copiez la note dans la nouvelle session. Partagez uniquement les informations que vous souhaitez transmettre au prochain agent. [Rechercher sur plusieurs ordinateurs](shared-index.md) · [Ce qu’un agent peut voir](privacy.md#when-history-can-leave-your-machine)
 
 <!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->

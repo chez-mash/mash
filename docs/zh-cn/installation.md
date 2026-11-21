@@ -181,7 +181,7 @@ mash uninstall --yes    # removes it
 
 要删除程序本身，请按报告中的最后一条指令操作。JSON 报告中请查看 `binary.remove`。根据安装方法，可能需要运行 `brew uninstall mash`、`scoop uninstall mash`、`sudo apt remove mash-cli` 或 `cargo uninstall mash`，也可能需要删除脚本安装的文件。
 
-代理保存的原始对话和已发布到[共享索引（英文）](../shared-index.md)中的历史记录都会保留。Mash 会列出并保留 `~/.mash` 中并非由它创建的文件。如果你自行运行 Qdrant，它的服务和其中的 Mash 搜索数据也会保留，需单独管理。
+代理保存的原始对话和已发布到[共享索引](shared-index.md)中的历史记录都会保留。Mash 会列出并保留 `~/.mash` 中并非由它创建的文件。如果你自行运行 Qdrant，它的服务和其中的 Mash 搜索数据也会保留，需单独管理。
 
 如果计划日后重新安装，可以用 `--keep-history` 保留 Mash 中可搜索的对话副本、配置、保存的令牌，以及 Mash 管理的 Qdrant 中的搜索数据。此选项仍会移除服务、代理连接和下载的模型。如果你想另存备份，请运行 [`mash export DIRECTORY`（英文）](../upgrades.md)。
 

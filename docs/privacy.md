@@ -41,7 +41,9 @@ folder on Windows. Add `--yes` when you are ready to uninstall.
   can also add excerpts to the agent’s context without an MCP connection. To
   keep searches in the local dashboard or terminal, leave agents disconnected
   and disable or remove any Mash plugin you installed.
-- **Sharing across machines** uploads history to your configured Mash server.
+- **Sharing across machines** uploads retained indexed chats and attachments
+  to the Mash server you configure. Each computer with a token for that group
+  can read them. [Review what you will share before publishing](shared-index.md#before-sharing).
 - **A remote embedding worker** receives prepared searchable text, which may
   contain sensitive history. Embedding inference runs locally by default, and
   query embeddings always stay local.

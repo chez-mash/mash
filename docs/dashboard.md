@@ -331,9 +331,10 @@ shell where that variable is set, and it is saved for the service in
 property list (`~/Library/LaunchAgents/dev.mash.dash.plist`) holds the same
 tokens and is just as private; its output goes to `~/.mash/dashboard.log`.
 
-A machine with no agent history of its own, such as the server that holds the
-shared index, can still host the dashboard: with `--shared-only`, chats, search
-and memories come from the shared index alone.
+A computer already configured to access the shared index can host the dashboard
+with `mash dash remote --shared-only`. This includes a server with no local chat
+index if the dashboard host has a shared-index connection and a node token.
+Chats, search and memories then come from that shared index.
 
 `--public` publishes the address on the internet with
 [Tailscale Funnel](https://tailscale.com/kb/1223/funnel), so a phone or

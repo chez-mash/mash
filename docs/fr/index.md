@@ -15,6 +15,7 @@ nécessaire.
 - [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).
 - [Configurez le module Mash dans votre agent](plugin.md).
+- [Recherchez des conversations sur plusieurs ordinateurs](shared-index.md).
 - [Découvrez où votre historique est conservé](privacy.md).
 - [Résolvez les problèmes d’installation et de recherche](troubleshooting.md).
 - [Essayez la démo avec des conversations d’exemple](https://getmash.io/demo/).

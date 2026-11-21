@@ -177,7 +177,15 @@ export default defineConfig({
             },
             "synchronization",
             "indexing",
-            "shared-index",
+            {
+              label: "Search across your machines",
+              translations: {
+                es: "Buscar en varios equipos",
+                fr: "Rechercher sur plusieurs ordinateurs",
+                "zh-CN": "跨设备搜索",
+              },
+              slug: "shared-index",
+            },
             "upgrades",
             "services",
           ],

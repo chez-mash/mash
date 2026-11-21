@@ -189,6 +189,37 @@ for (const [locale, lang, pluginLabel] of [
   });
 }
 
+for (const [locale, lang, sidebarLabel] of [
+  ["es", "es", "Buscar en varios equipos"],
+  ["fr", "fr", "Rechercher sur plusieurs ordinateurs"],
+  ["zh-cn", "zh-CN", "跨设备搜索"],
+]) {
+  test(`the ${locale} privacy guide leads to shared-index setup and revocation`, async ({
+    page,
+  }) => {
+    const guide = page.locator(".sl-markdown-content");
+    const shared = `/${locale}/shared-index/`;
+    await page.goto(`/${locale}/privacy/`);
+    await guide.locator(`a[href="${shared}#before-sharing"]`).click();
+    await expect(page).toHaveURL(`${shared}#before-sharing`);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.locator('nav.sidebar [aria-current="page"]')).toHaveText(sidebarLabel);
+    await expect(guide.locator("#before-sharing")).toBeAttached();
+    await guide.locator('a[href="#the-quick-way"]:not(.sl-anchor-link)').click();
+    await expect(page).toHaveURL(`${shared}#the-quick-way`);
+    await expect(
+      guide
+        .locator("pre")
+        .filter({ hasText: "mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents" }),
+    ).toBeVisible();
+    const revoke = "#revoke-or-replace-a-computers-credential";
+    await guide.locator(`a[href="${revoke}"]:not(.sl-anchor-link)`).click();
+    await expect(page).toHaveURL(`${shared}${revoke}`);
+    await expect(guide.locator(revoke)).toBeAttached();
+    await expect(guide.getByText("server.toml.nodes", { exact: true }).last()).toBeVisible();
+  });
+}
+
 for (const [locale, lang, title, help] of [
   ["es", "es", "Solución de problemas", "Pide ayuda"],
   ["fr", "fr", "Dépannage", "Obtenir de l’aide"],

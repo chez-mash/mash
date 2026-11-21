@@ -21,6 +21,7 @@ export const translationPages = [
   "agents",
   "plugin",
   "supported-agents",
+  "shared-index",
   "search-languages",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];
@@ -41,6 +42,7 @@ const uiLabels = new Set([
   "Clear filters",
   "Copy",
   "Copy session ID",
+  "Connect to an existing shared server",
   "Custom number of days",
   "Customize setup",
   "Export",
@@ -51,6 +53,7 @@ const uiLabels = new Set([
   "Next",
   "Next page",
   "Retry",
+  "Review and edit settings",
   "Save as PDF",
   "Save configuration only",
   "See all",

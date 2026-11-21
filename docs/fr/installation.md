@@ -307,7 +307,7 @@ bilan. En JSON, elle figure dans `binary.remove`. Il peut s’agir de
 par script.
 
 Les historiques d’origine des agents et les données déjà publiées dans un
-[index partagé (en anglais)](../shared-index.md) restent en place. Mash
+[index partagé](shared-index.md) restent en place. Mash
 signale et conserve les fichiers de `~/.mash` qu’il n’a pas créés. Si vous
 gérez votre propre Qdrant, son service et les données de recherche qu’il
 contient restent en place. Gérez ces données séparément.

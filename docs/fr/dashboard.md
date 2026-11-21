@@ -157,7 +157,7 @@ Ouvrez **chats**, puis **export chats**. Réduisez la liste avec les filtres par
 
 Laissez la page ouverte jusqu’au début du téléchargement. Si une conversation est illisible, l’export s’arrête sans enregistrer de fichier. Les exports comprennent le texte complet, y compris les passages sensibles. Les pièces jointes restent hors de l’archive.
 
-Pour restaurer des conversations dans Mash, faites une [sauvegarde portable](../upgrades.md#make-a-portable-backup). Les exports du tableau de bord servent à lire les conversations. Pour voir les conversations stockées sur d’autres machines, suivez le [guide de partage](../shared-index.md).
+Pour restaurer des conversations dans Mash, faites une [sauvegarde portable](../upgrades.md#make-a-portable-backup). Les exports du tableau de bord servent à lire les conversations. Pour voir les conversations stockées sur d’autres machines, suivez le [guide de partage](shared-index.md).
 
 <span id="open-it-from-your-phone-or-another-computer"></span>
 
@@ -193,9 +193,9 @@ Depuis un téléphone connecté à Tailscale, scannez le QR code ou ouvrez l’a
 
 Le code s’utilise une fois et expire après dix minutes. Le QR code contient le jeton durable après le `#` dans l’adresse. Le navigateur n’envoie pas ce fragment au serveur lorsqu’il charge la page. Le tableau de bord vous connecte puis retire le jeton de l’adresse. Traitez une image du QR code comme un mot de passe.
 
-Le tableau de bord cherche dans l’historique de la machine et, si vous avez un [index partagé](../shared-index.md), dans celui des autres machines. Pour l’index partagé, lancez `mash dash remote` depuis un terminal où la variable du jeton de la machine est définie. Mash l’enregistre dans `~/.mash/dashboard.env`, que vous seul pouvez lire. Sous macOS, le fichier `~/Library/LaunchAgents/dev.mash.dash.plist` contient les mêmes jetons et bénéficie de la même protection. La sortie est enregistrée dans `~/.mash/dashboard.log`.
+Le tableau de bord cherche dans l’historique de la machine et, si vous avez un [index partagé](shared-index.md), dans celui des autres machines. Pour l’index partagé, lancez `mash dash remote` depuis un terminal où la variable du jeton de la machine est définie. Mash l’enregistre dans `~/.mash/dashboard.env`, que vous seul pouvez lire. Sous macOS, le fichier `~/Library/LaunchAgents/dev.mash.dash.plist` contient les mêmes jetons et bénéficie de la même protection. La sortie est enregistrée dans `~/.mash/dashboard.log`.
 
-Une machine sans historique local peut aussi héberger le tableau de bord, par exemple le serveur qui détient l’index partagé. Avec `--shared-only`, les conversations, les recherches et les souvenirs proviennent de l’index partagé.
+Un ordinateur déjà configuré pour accéder à l’index partagé peut héberger le tableau de bord avec `mash dash remote --shared-only`. Un serveur sans index local peut aussi l’héberger si la connexion à l’index partagé est configurée et si le serveur dispose d’un jeton pour son nœud. Les conversations, les recherches et les souvenirs proviennent alors de cet index.
 
 `--public` publie l’adresse sur Internet via [Tailscale Funnel](https://tailscale.com/kb/1223/funnel). Elle devient accessible depuis un appareil hors de votre réseau. Tailscale doit autoriser Funnel pour cette machine et seuls les ports 443, 8443 et 10000 peuvent être publiés. Tout le monde peut alors ouvrir la page de connexion. Le jeton et les codes à usage unique protègent tout votre historique. Dix essais incorrects en une minute bloquent temporairement la connexion pour tout le monde. Préférez le réseau privé chaque fois que possible.
 
@@ -225,4 +225,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: eb4e56faead31998f30017eedbef07183243934e4ebff603a12c9cce6e71630d -->
+<!-- mash-docs-source: 464fc8d1316a110c3e32b3f4ef2217ba02cf41e8d0115c6bee4aa11ab27b9d34 -->

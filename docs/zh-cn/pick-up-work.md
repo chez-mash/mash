@@ -43,6 +43,6 @@ claude --resume SESSION_ID
 2. 代理写完交接说明后，在保存这段对话的电脑上运行 `mash index`。下次回到这台电脑时，`resume` 技能也可以刷新索引。
 3. 在下次会话中打开项目，并让代理使用 `resume`。你也可以在网页面板中搜索 `"Mash handoff"`，然后自行阅读交接说明。
 
-如果要换电脑，请先设置共享，再在写下交接说明的电脑上更新索引，以便发布这段对话。若要手动交接，请将交接说明复制到新会话中。只分享你希望下一个代理看到的内容。 [跨电脑搜索（英文）](../shared-index.md) · [代理能看到哪些内容](privacy.md#when-history-can-leave-your-machine)
+如果要换电脑，请先设置共享，再在写下交接说明的电脑上更新索引，以便发布这段对话。若要手动交接，请将交接说明复制到新会话中。只分享你希望下一个代理看到的内容。 [跨电脑搜索](shared-index.md) · [代理能看到哪些内容](privacy.md#when-history-can-leave-your-machine)
 
 <!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->

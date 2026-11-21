@@ -43,6 +43,6 @@ La habilidad intenta actualizar el índice, luego comprueba si alguien dejó not
 2. Cuando el agente termine de escribir el resumen, ejecuta `mash index` en el equipo donde está el chat. En ese mismo equipo, la habilidad `resume` también puede actualizar el índice cuando vuelvas.
 3. Abre el proyecto en tu próxima sesión y pídele al agente que use `resume`. También puedes buscar `"Mash handoff"` en el panel y leer el resumen por tu cuenta.
 
-Si cambias de equipo, configura primero el uso compartido y ejecuta la indexación en el equipo donde se escribió el resumen para que pueda publicar el chat. Para hacer el traspaso manualmente, copia el resumen en la nueva sesión. Comparte solo los detalles que quieras que lea el próximo agente. [Busca en todos tus equipos (en inglés)](../shared-index.md) · [Qué puede ver un agente](privacy.md#when-history-can-leave-your-machine)
+Si cambias de equipo, configura primero el uso compartido y ejecuta la indexación en el equipo donde se escribió el resumen para que pueda publicar el chat. Para hacer el traspaso manualmente, copia el resumen en la nueva sesión. Comparte solo los detalles que quieras que lea el próximo agente. [Busca en todos tus equipos](shared-index.md) · [Qué puede ver un agente](privacy.md#when-history-can-leave-your-machine)
 
 <!-- mash-docs-source: 6248ed759dbb495e792ddf0cdb080fb54a4a6d188e6948c31407a5aed576c670 -->

@@ -43,8 +43,9 @@ cuando quieras desinstalar Mash.
   también pueden añadir fragmentos al contexto sin una conexión MCP. Para
   buscar solo desde el panel local o la terminal, deja los agentes sin conectar
   y desactiva o elimina el complemento de Mash si lo instalaste.
-- **Historial compartido.** Si habilitas la búsqueda entre equipos, Mash
-  envía el historial al servidor que configures y alojes.
+- **Historial compartido.** Mash envía al servidor que configures las conversaciones
+  y los adjuntos que conserva en el índice. Cada equipo con un token para ese grupo
+  puede leerlos. [Revisa qué se compartirá antes de publicar](shared-index.md#before-sharing).
 - **Servicios remotos opcionales.** Si configuras un servicio remoto para
   preparar el índice o reordenar resultados, ese servicio puede recibir
   texto de las conversaciones. Si habilitas el asistente del panel, enviará

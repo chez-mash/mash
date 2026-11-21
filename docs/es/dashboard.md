@@ -157,7 +157,7 @@ Abre **chats** y elige **export chats**. Filtra por agente, equipo, proyecto y f
 
 Deja abierta la página hasta que empiece la descarga. Si una conversación no puede leerse, la exportación se detiene y no guarda archivos. Las descargas incluyen el texto completo, también el contenido sensible.
 
-Para restaurar conversaciones en Mash, utiliza una [copia de seguridad portable](../upgrades.md#make-a-portable-backup). La exportación del panel sirve para leer las conversaciones y excluye los adjuntos. Para ver conversaciones de otros equipos en el panel, consulta [cómo compartir el historial](../shared-index.md).
+Para restaurar conversaciones en Mash, utiliza una [copia de seguridad portable](../upgrades.md#make-a-portable-backup). La exportación del panel sirve para leer las conversaciones y excluye los adjuntos. Para ver conversaciones de otros equipos en el panel, consulta [cómo compartir el historial](shared-index.md).
 
 <span id="open-it-from-your-phone-or-another-computer"></span>
 
@@ -193,9 +193,9 @@ Con el teléfono conectado a Tailscale, escanea el código QR o abre la direcci�
 
 El código de un solo uso caduca a los diez minutos. El QR incluye el token de larga duración después de `#` en la dirección, en el fragmento que el navegador no envía al servidor al cargar la página. El panel inicia sesión y quita el token de la dirección enseguida. Trata una imagen del QR como una contraseña.
 
-El panel busca en el historial local y, si tienes un [índice compartido](../shared-index.md), en el historial de los demás equipos. Para consultar el índice compartido, ejecuta `mash dash remote` en una terminal que tenga configurada la variable con el token del equipo. Mash la guarda en `~/.mash/dashboard.env`, que solo tú puedes leer. En macOS, `~/Library/LaunchAgents/dev.mash.dash.plist` contiene los mismos tokens con acceso restringido y el registro se escribe en `~/.mash/dashboard.log`.
+El panel busca en el historial local y, si tienes un [índice compartido](shared-index.md), en el historial de los demás equipos. Para consultar el índice compartido, ejecuta `mash dash remote` en una terminal que tenga configurada la variable con el token del equipo. Mash la guarda en `~/.mash/dashboard.env`, que solo tú puedes leer. En macOS, `~/Library/LaunchAgents/dev.mash.dash.plist` contiene los mismos tokens con acceso restringido y el registro se escribe en `~/.mash/dashboard.log`.
 
-Un equipo sin conversaciones propias, como el servidor del índice compartido, también puede servir el panel. Con `--shared-only`, las conversaciones, búsquedas y recuerdos proceden del índice compartido.
+Puedes ejecutar `mash dash remote --shared-only` desde un equipo con acceso al índice compartido. Un servidor sin índice local también puede alojar el panel si tiene configurada la conexión y dispone de un token para su nodo. Las conversaciones, las búsquedas y los recuerdos proceden de ese índice compartido.
 
 `--public` publica la dirección en Internet con [Tailscale Funnel](https://tailscale.com/kb/1223/funnel), para que puedas abrirla desde un dispositivo que esté fuera de tu red. Tailscale debe permitir Funnel para ese equipo y solo se pueden publicar los puertos 443, 8443 y 10000. Cualquiera puede abrir la página de inicio de sesión. El token y los códigos de un solo uso protegen todo tu historial. Diez intentos fallidos en un minuto bloquean temporalmente el inicio de sesión para todos. Usa la red privada predeterminada siempre que puedas.
 
@@ -225,4 +225,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: eb4e56faead31998f30017eedbef07183243934e4ebff603a12c9cce6e71630d -->
+<!-- mash-docs-source: 464fc8d1316a110c3e32b3f4ef2217ba02cf41e8d0115c6bee4aa11ab27b9d34 -->

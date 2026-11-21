@@ -68,3 +68,22 @@ test("the guide to picking up work opens the original decision and shows what is
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
   await expect(page.getByText(/store the refresh token in the device keychain/)).toBeVisible();
 });
+
+test("the sharing guide leads to remote access and to a chat from another machine", async ({
+  page,
+}) => {
+  await page.goto("/shared-index/");
+  await page.getByRole("link", { name: /Open that computer.s dashboard remotely/ }).click();
+  await expect(page).toHaveURL("/dashboard/#open-it-from-your-phone-or-another-computer");
+  await page.goBack();
+  const demo = page.getByRole("link", { name: "Try the sample search", exact: true });
+  await expect(demo).toHaveAttribute("href", /^https:\/\/getmash\.io\/demo\/#\/search\?q=/);
+  const target = new URL((await demo.getAttribute("href")) ?? "");
+  await page.goto(target.pathname + target.hash);
+  const result = page.getByRole("link", { name: /Choose a queue for invoice exports/ }).first();
+  await expect(result).toHaveAttribute("href", /[?&]node=workstation(?:&|$)/);
+  await result.click();
+  await expect(
+    page.getByRole("heading", { name: "Choose a queue for invoice exports" }),
+  ).toBeVisible();
+});

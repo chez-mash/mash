@@ -301,7 +301,7 @@ aparece en `binary.remove`. Puede indicar `brew uninstall mash`,
 o los archivos que debes borrar si usaste el script.
 
 Los historiales originales de tus agentes y los datos publicados en un
-[índice compartido (en inglés)](../shared-index.md) permanecen donde estaban.
+[índice compartido](shared-index.md) permanecen donde estaban.
 Mash enumera y conserva los archivos de `~/.mash` que no creó. Si administras
 tu propio Qdrant, su servicio y los datos de búsqueda que contiene siguen
 ahí. Gestiona esos datos por separado.

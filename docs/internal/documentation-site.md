@@ -37,6 +37,7 @@ pnpm --silent translate-docs fr pick-up-work
 pnpm --silent translate-docs fr agents
 pnpm --silent translate-docs fr plugin
 pnpm --silent translate-docs fr supported-agents
+pnpm --silent translate-docs fr shared-index
 pnpm --silent translate-docs fr search-languages
 ```
 
