@@ -16,7 +16,7 @@
 
 ## 自行安装
 
-你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下脚本会安装 Mash 和网页面板，启动本地搜索服务，并打开设置向导。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](installation.md#package-manager-alternatives)。
+你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下脚本会安装 Mash 和网页面板，启动本地搜索服务，并打开设置向导。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](install-methods.md#install-with-a-package-manager)。
 
 在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
@@ -67,4 +67,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 394f4057e120fcb655b1171f8819c71e79c7218b1716059442787a978e93dd05 -->
+<!-- mash-docs-source: e1f15f278fb9100ce2c9232a9c4b549f3ae750b3dea63c7a15e580e6238ef499 -->

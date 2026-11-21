@@ -2,7 +2,7 @@
 
 在演示中[搜索发票导出相关的对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一项结果就能看到原始对话。也可以[打开一项已保存的决定](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)，选择 **open the message** 查看决定的出处。演示在示例对话中精确匹配词语和短语。
 
-Mash 的预编译版本包含网页面板。如果自行编译，请按步骤[将面板编译进去](../install-methods.md#include-the-web-dashboard)。[安装 Mash](quick-start.md) 后，在终端运行以下命令。
+Mash 的预编译版本包含网页面板。如果自行编译，请按步骤[将面板编译进去](install-methods.md#include-the-web-dashboard)。[安装 Mash](quick-start.md) 后，在终端运行以下命令。
 
 ```sh
 mash dash

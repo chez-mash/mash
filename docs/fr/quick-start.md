@@ -26,7 +26,7 @@ demandez à votre agent d’utiliser la compétence `setup`.
 Vous devez avoir au moins une conversation enregistrée avec un [agent compatible](supported-agents.md).
 Les scripts installent Mash avec le tableau de bord, démarrent le service de
 recherche local et ouvrent l’assistant. Pour Homebrew, apt, Scoop ou un autre
-gestionnaire de paquets, consultez les [commandes d’installation](installation.md#package-manager-alternatives).
+gestionnaire de paquets, consultez les [commandes d’installation](install-methods.md#install-with-a-package-manager).
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
@@ -89,4 +89,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 394f4057e120fcb655b1171f8819c71e79c7218b1716059442787a978e93dd05 -->
+<!-- mash-docs-source: e1f15f278fb9100ce2c9232a9c4b549f3ae750b3dea63c7a15e580e6238ef499 -->

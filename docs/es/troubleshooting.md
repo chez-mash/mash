@@ -80,7 +80,7 @@ mash dash --listen 127.0.0.1:8791
 
 Abre [http://127.0.0.1:8791](http://127.0.0.1:8791). Si la página indica que
 el panel no se ha compilado, instala una versión precompilada o
-[incluye el panel al compilar desde el código fuente (en inglés)](../install-methods.md#include-the-web-dashboard).
+[incluye el panel al compilar desde el código fuente](install-methods.md#include-the-web-dashboard).
 
 <span id="qdrant-connection-failed"></span>
 

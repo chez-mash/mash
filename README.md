@@ -72,7 +72,7 @@ you can ask for its `setup` skill.
 You need at least one saved conversation from a [supported agent](docs/supported-agents.md).
 The scripts install Mash with the browser dashboard, start the local search
 service, and open the setup wizard. For Homebrew, apt, Scoop or another
-package manager, see the [package install commands](docs/installation.md#package-manager-alternatives).
+package manager, see the [package install commands](docs/install-methods.md#install-with-a-package-manager).
 
 On macOS (Apple silicon) or Linux (x86-64 or ARM64), use the command below.
 On Linux or WSL it needs a systemd user session to start Qdrant.

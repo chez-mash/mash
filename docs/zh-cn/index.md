@@ -7,6 +7,7 @@ Mash 是开源软件，在你自己的电脑上运行。默认在本机建立索
 
 - [安装 Mash 并开始第一次搜索](quick-start.md)。
 - [查看详细安装、校验下载文件和卸载说明](installation.md)。
+- [使用软件包管理器安装，或从源码构建](install-methods.md)。
 - [在网页面板中查找和阅读对话](dashboard.md)。
 - [继续之前的工作，或为下次会话留下交接说明](pick-up-work.md)。
 - [查看支持的代理和对话历史](supported-agents.md)。

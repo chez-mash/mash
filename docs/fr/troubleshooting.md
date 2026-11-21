@@ -81,7 +81,7 @@ mash dash --listen 127.0.0.1:8791
 
 Ouvrez [http://127.0.0.1:8791](http://127.0.0.1:8791). Si la page indique que
 le tableau de bord n’a pas été compilé, installez une archive de version
-ou [incluez le tableau de bord dans votre compilation (en anglais)](../install-methods.md#include-the-web-dashboard).
+ou [incluez le tableau de bord dans votre compilation](install-methods.md#include-the-web-dashboard).
 
 <span id="qdrant-connection-failed"></span>
 

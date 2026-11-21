@@ -46,13 +46,13 @@ irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 
 ### 使用包管理器安装
 
-可以用 [Homebrew、apt、Scoop、mise 或 cargo-binstall 安装（英文）](../install-methods.md#install-with-a-package-manager)。安装后请[启动搜索服务](#start-the-local-search-service)。
+可以用 [Homebrew、apt、Scoop、mise 或 cargo-binstall 安装](install-methods.md#install-with-a-package-manager)。安装后请[启动搜索服务](#start-the-local-search-service)。
 
 <span id="build-from-source"></span>
 
 ### 从源代码构建
 
-要在浏览器中搜索，请[构建包含网页面板的版本（英文）](../install-methods.md#include-the-web-dashboard)。如果只需要[终端搜索和代理工具（英文）](../install-methods.md#cli-and-agent-tools)，可以用较短的 Cargo 命令。
+要在浏览器中搜索，请[构建包含网页面板的版本](install-methods.md#include-the-web-dashboard)。如果只需要[终端搜索和代理工具](install-methods.md#cli-and-agent-tools)，可以用较短的 Cargo 命令。
 
 <span id="start-the-local-search-service"></span>
 

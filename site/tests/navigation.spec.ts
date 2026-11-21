@@ -58,8 +58,8 @@ test("the quick start goes from setup to a first chat and links to package insta
   ]);
   await expect(guide.locator("#try-it")).toBeAttached();
   await guide.getByRole("link", { name: "package install commands" }).click();
-  await expect(page).toHaveURL("/installation/#package-manager-alternatives");
-  await expect(page.locator("#package-manager-alternatives")).toBeAttached();
+  await expect(page).toHaveURL("/install-methods/#install-with-a-package-manager");
+  await expect(page.locator("#install-with-a-package-manager")).toBeAttached();
 });
 
 test("internal links and browser history keep the current document alive", async ({ page }) => {

@@ -64,7 +64,7 @@ mash --version
 mash dash --listen 127.0.0.1:8791
 ```
 
-打开 [http://127.0.0.1:8791](http://127.0.0.1:8791)。如果页面提示未构建网页面板，请安装发布版压缩包，或[从源码构建时加入网页面板（英文）](../install-methods.md#include-the-web-dashboard)。
+打开 [http://127.0.0.1:8791](http://127.0.0.1:8791)。如果页面提示未构建网页面板，请安装发布版压缩包，或[从源码构建时加入网页面板](install-methods.md#include-the-web-dashboard)。
 
 <span id="qdrant-connection-failed"></span>
 

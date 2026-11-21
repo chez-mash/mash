@@ -11,6 +11,7 @@ nécessaire.
 
 - [Installez Mash et lancez votre première recherche](quick-start.md).
 - [Vérifiez les téléchargements et consultez la procédure de désinstallation](installation.md).
+- [Installez Mash avec un gestionnaire de paquets ou compilez-le depuis le code source](install-methods.md).
 - [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
 - [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).

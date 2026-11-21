@@ -2,7 +2,7 @@
 
 Dans la démo, [recherchez les exports de factures](https://getmash.io/demo/#/search?q=invoice+exports+queue). Ouvrez un résultat pour retrouver la conversation d’origine. Vous pouvez aussi [ouvrir une décision enregistrée](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) et choisir **open the message** pour voir d’où elle vient. La démo recherche les mots et expressions exacts dans des conversations d’exemple.
 
-Les versions précompilées de Mash incluent le tableau de bord. Si vous compilez Mash, suivez les étapes pour [inclure le tableau de bord](../install-methods.md#include-the-web-dashboard). Après avoir [installé Mash](quick-start.md), lancez cette commande dans un terminal.
+Les versions précompilées de Mash incluent le tableau de bord. Si vous compilez Mash, suivez les étapes pour [inclure le tableau de bord](install-methods.md#include-the-web-dashboard). Après avoir [installé Mash](quick-start.md), lancez cette commande dans un terminal.
 
 ```sh
 mash dash

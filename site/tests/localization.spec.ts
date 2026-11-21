@@ -72,6 +72,38 @@ for (const [locale, lang, installationTitle] of [
 }
 
 for (const [locale, lang, title] of [
+  ["es", "es", "Otras formas de instalar Mash"],
+  ["fr", "fr", "Autres façons d’installer Mash"],
+  ["zh-cn", "zh-CN", "Mash 的其他安装方式"],
+]) {
+  test(`the ${locale} package install journey stays in the same language`, async ({ page }) => {
+    const packages = `/${locale}/install-methods/#install-with-a-package-manager`;
+    const install = `/${locale}/installation/`;
+    const guide = page.locator(".sl-markdown-content");
+    await page.goto(`/${locale}/quick-start/`);
+    await guide.locator(`a[href="${packages}"]`).click();
+    await expect(page).toHaveURL(packages);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(guide.locator("#install-with-a-package-manager")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: /^brew install mashium\/tap\/mash$/ }),
+    ).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: "sudo apt install mash-cli" }),
+    ).toBeVisible();
+    const verify = `${install}#check-the-release-download`;
+    await guide.locator(`a[href="${verify}"]`).click();
+    await expect(page).toHaveURL(verify);
+    await page.goBack();
+    const localSearch = `${install}#start-the-local-search-service`;
+    await guide.locator(`a[href="${localSearch}"]`).first().click();
+    await expect(page).toHaveURL(localSearch);
+    await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
+  });
+}
+
+for (const [locale, lang, title] of [
   ["es", "es", "Servicio de búsqueda local (Qdrant)"],
   ["fr", "fr", "Service de recherche local (Qdrant)"],
   ["zh-cn", "zh-CN", "本地搜索服务（Qdrant）"],

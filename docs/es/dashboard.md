@@ -2,7 +2,7 @@
 
 Prueba una [búsqueda sobre la exportación de facturas](https://getmash.io/demo/#/search?q=invoice+exports+queue) en la demo. Abre un resultado para ver la conversación original. También puedes [abrir una decisión guardada](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop) y elegir **open the message** para ver de dónde salió. La demo busca palabras y frases exactas en conversaciones de ejemplo.
 
-Las versiones precompiladas de Mash incluyen el panel web. Si compilas Mash, sigue los pasos para [incluir el panel en la compilación](../install-methods.md#include-the-web-dashboard). Una vez [instalado Mash](quick-start.md), abre una terminal y ejecuta este comando.
+Las versiones precompiladas de Mash incluyen el panel web. Si compilas Mash, sigue los pasos para [incluir el panel en la compilación](install-methods.md#include-the-web-dashboard). Una vez [instalado Mash](quick-start.md), abre una terminal y ejecuta este comando.
 
 ```sh
 mash dash

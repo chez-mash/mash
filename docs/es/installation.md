@@ -65,15 +65,15 @@ perfil de tu terminal. Si el comando `mash` no aparece, consulta
 
 ### Instala con un gestor de paquetes
 
-Puedes usar [Homebrew, apt, Scoop, mise o cargo-binstall (en inglés)](../install-methods.md#install-with-a-package-manager).
+Puedes usar [Homebrew, apt, Scoop, mise o cargo-binstall](install-methods.md#install-with-a-package-manager).
 Después de instalar Mash, [inicia el servicio de búsqueda](#start-the-local-search-service).
 
 <span id="build-from-source"></span>
 
 ### Compila a partir del código fuente
 
-Para buscar desde el navegador, [compila Mash con el panel web (en inglés)](../install-methods.md#include-the-web-dashboard).
-Si quieres [buscar en la terminal y usar las herramientas de agente (en inglés)](../install-methods.md#cli-and-agent-tools),
+Para buscar desde el navegador, [compila Mash con el panel web](install-methods.md#include-the-web-dashboard).
+Si quieres [buscar en la terminal y usar las herramientas de agente](install-methods.md#cli-and-agent-tools),
 usa el comando de Cargo más corto.
 
 <span id="start-the-local-search-service"></span>
