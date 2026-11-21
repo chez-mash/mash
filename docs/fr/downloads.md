@@ -1,8 +1,9 @@
 # Télécharger et vérifier Mash
 
 Téléchargez les fichiers prêts à l’emploi, vérifiez leur somme de contrôle
-et lancez Mash depuis le dossier où vous les extrayez. Vous pouvez aussi
-lire le script d’installation ou [utiliser un gestionnaire de paquets](install-methods.md).
+et ouvrez le tableau de bord depuis le dossier où vous les extrayez.
+Cette méthode évite d’exécuter le script d’installation. Vous pouvez aussi
+[examiner le script](#inspect-the-installer) ou [utiliser un gestionnaire de paquets](install-methods.md).
 
 <span id="choose-your-download"></span>
 
@@ -63,10 +64,33 @@ dossier, lancez `./mash --version` sur macOS ou Linux, ou
 `.\mash.exe --version` dans PowerShell. La commande affiche la version
 téléchargée.
 
-[Démarrez ensuite le service de recherche local](installation.md#start-the-local-search-service)
-et choisissez quelles conversations Mash peut lire. Utilisez le chemin
-complet de `mash` dans les commandes ou
-[ajoutez son dossier à votre PATH](troubleshooting.md#mash-command-not-found).
+Depuis le même dossier, démarrez la recherche locale et ouvrez le tableau
+de bord. La première commande télécharge Qdrant et démarre le service sous
+votre compte. Vous pouvez l’ignorer si vous avez déjà un
+[Qdrant local compatible](local-search.md#run-qdrant-yourself).
+Sous Linux ou WSL, elle nécessite une
+[session utilisateur systemd](local-search.md#linux-without-a-systemd-user-session).
+
+**macOS ou Linux**
+
+```sh
+./mash qdrant install
+./mash dash
+```
+
+**Windows PowerShell**
+
+```powershell
+.\mash.exe qdrant install
+.\mash.exe dash
+```
+
+Laissez le terminal ouvert, puis ouvrez l’adresse qu’il affiche dans votre
+navigateur, généralement [http://127.0.0.1:8790](http://127.0.0.1:8790).
+Vérifiez les conversations que Mash pourra lire et la période retenue.
+Pour effectuer vos propres recherches, laissez les agents déconnectés,
+puis choisissez **Set up and index**.
+[Étapes de configuration dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="inspect-the-installer"></span>
 
@@ -100,4 +124,4 @@ gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/ma
 Le workflow vérifie les attestations avant de publier ces archives. Jusqu’à
 `v0.1.1-alpha`, utilisez la somme de contrôle ci-dessus.
 
-<!-- mash-docs-source: 594b9d6aebb6145cc4183bc3c653c9262c2e692f6fbe4963c3e44038960682c0 -->
+<!-- mash-docs-source: d089547ce72f1abd31d192459b684cc330176a9a9a11aeeadbb18065c6b8f2c4 -->

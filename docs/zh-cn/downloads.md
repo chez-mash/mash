@@ -1,6 +1,6 @@
 # 下载并校验 Mash
 
-下载适合你电脑的预编译文件，核对发布时提供的校验值，然后从解压目录启动 Mash。你也可以查看安装脚本，或[使用软件包管理器安装](install-methods.md)。
+下载适合你电脑的预编译文件，核对发布时提供的校验值，然后从解压目录启动网页面板。这种方式可以跳过 Mash 安装脚本。你也可以[查看脚本](#inspect-the-installer)，或[使用软件包管理器安装](install-methods.md)。
 
 <span id="choose-your-download"></span>
 
@@ -49,7 +49,27 @@ Get-FileHash -Algorithm SHA256 .\mash-x86_64-pc-windows-msvc.zip
 
 将 `mash` 和 `mash-server` 解压到你自己的目录，Windows 上则解压两个 `.exe` 文件。在该目录打开终端。在 macOS 或 Linux 上运行 `./mash --version`，或在 PowerShell 中运行 `.\mash.exe --version`。命令会显示你下载的版本。
 
-接下来[启动本地搜索服务](installation.md#start-the-local-search-service)，再选择要读取的对话。运行这些命令时，请使用 `mash` 的完整路径，或[将它所在的目录添加到 PATH](troubleshooting.md#mash-command-not-found)。
+在同一个目录中启动本地搜索和网页面板。第一条命令会下载 Qdrant，并以你的用户身份启动服务。
+如果你已经运行[兼容的本地 Qdrant](local-search.md#run-qdrant-yourself)，可以跳过第一条命令。
+在 Linux 或 WSL 上，安装服务需要 [systemd 用户会话](local-search.md#linux-without-a-systemd-user-session)。
+
+**macOS 或 Linux**
+
+```sh
+./mash qdrant install
+./mash dash
+```
+
+**Windows PowerShell**
+
+```powershell
+.\mash.exe qdrant install
+.\mash.exe dash
+```
+
+保持终端运行，在浏览器中打开终端显示的地址，通常是 [http://127.0.0.1:8790](http://127.0.0.1:8790)。
+确认 Mash 可以读取哪些对话以及读取的时间范围。如果想自己搜索，可以不连接代理，然后选择 **Set up and index**。
+[浏览器设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="inspect-the-installer"></span>
 
@@ -71,4 +91,4 @@ gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/ma
 
 发布流程会在发布这些安装包之前核验构建证明。`v0.1.1-alpha` 及更早的版本使用上面的校验值核对步骤。
 
-<!-- mash-docs-source: 594b9d6aebb6145cc4183bc3c653c9262c2e692f6fbe4963c3e44038960682c0 -->
+<!-- mash-docs-source: d089547ce72f1abd31d192459b684cc330176a9a9a11aeeadbb18065c6b8f2c4 -->

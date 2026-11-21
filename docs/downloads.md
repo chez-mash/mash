@@ -1,8 +1,9 @@
 # Download and verify Mash
 
 Download the ready-to-run files for your computer, check them against the
-published checksum, and open Mash from the folder where you extract them.
-You can also inspect the setup script or [install with a package manager](install-methods.md).
+published checksum, and open the dashboard from the folder where you extract
+them. This path skips the Mash install script. You can also
+[inspect the script](#inspect-the-installer) or [install with a package manager](install-methods.md).
 
 ## Choose your download
 
@@ -55,9 +56,30 @@ directory you own. In a terminal opened there, run `./mash --version` on
 macOS or Linux, or `.\mash.exe --version` in PowerShell. It prints the
 version you downloaded.
 
-Then [start the local search service](installation.md#start-the-local-search-service)
-and choose which chats Mash can read. Use the full path to `mash` in those
-commands or [add its directory to your PATH](troubleshooting.md#mash-command-not-found).
+From the same folder, start local search and open the dashboard. The first
+command downloads Qdrant and starts it as a service under your account. Skip
+it if you already run a [compatible local Qdrant](local-search.md#run-qdrant-yourself).
+On Linux or WSL, the install command needs a
+[systemd user session](local-search.md#linux-without-a-systemd-user-session).
+
+**macOS or Linux**
+
+```sh
+./mash qdrant install
+./mash dash
+```
+
+**Windows PowerShell**
+
+```powershell
+.\mash.exe qdrant install
+.\mash.exe dash
+```
+
+Leave the terminal open and visit the address it prints, usually
+[http://127.0.0.1:8790](http://127.0.0.1:8790). Review which chats Mash can
+read and how far back to look. Leave agent connections off to search on your
+own, then choose **Set up and index**. [Follow the browser setup steps](dashboard.md#set-up-mash-from-the-dashboard)
 
 ## Inspect the installer
 

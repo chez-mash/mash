@@ -1,7 +1,9 @@
 # Mash のダウンロードと検証
 
 お使いのコンピューター向けのアーカイブをダウンロードし、公開されているチェックサムと照合します。
-展開先のフォルダーから Mash を起動できます。[パッケージマネージャーでインストールする（英語）](../install-methods.md)方法もあります。
+展開先のフォルダーからダッシュボードを起動でき、この方法では Mash のインストールスクリプトを実行する必要がありません。
+[スクリプトの内容](#inspect-the-installer)も確認できます。
+[パッケージマネージャーでインストールする（英語）](../install-methods.md)方法もあります。
 
 <span id="choose-your-download"></span>
 
@@ -56,9 +58,28 @@ Get-FileHash -Algorithm SHA256 .\mash-x86_64-pc-windows-msvc.zip
 そのフォルダーで端末を開き、macOS または Linux では `./mash --version`、
 PowerShell では `.\mash.exe --version` を実行すると、ダウンロードしたバージョンが表示されます。
 
-[ローカル検索サービスを起動し（英語）](../installation.md#start-the-local-search-service)、読み込むチャットを選びます。
-コマンドを実行するときは Mash のフルパスを指定するか、
-[展開先を PATH に追加（英語）](../troubleshooting.md#mash-command-not-found)してください。
+同じフォルダーでローカル検索サービスとダッシュボードを起動します。
+最初のコマンドは Qdrant をダウンロードし、自分のユーザー権限でサービスを起動します。
+[対応するローカル Qdrant（英語）](../local-search.md#run-qdrant-yourself)をすでに使っている場合は、最初のコマンドを省けます。
+Linux または WSL でインストールするには、[systemd のユーザーセッション（英語）](../local-search.md#linux-without-a-systemd-user-session)が必要です。
+
+**macOS または Linux**
+
+```sh
+./mash qdrant install
+./mash dash
+```
+
+**Windows PowerShell**
+
+```powershell
+.\mash.exe qdrant install
+.\mash.exe dash
+```
+
+端末を開いたまま、表示されたアドレス（通常は [http://127.0.0.1:8790](http://127.0.0.1:8790)）をブラウザーで開きます。
+Mash が読み込むチャットと期間を確認します。自分で検索する場合はエージェントを接続せずに **Set up and index** を選びます。
+[ブラウザーでのセットアップ手順](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="inspect-the-installer"></span>
 
@@ -88,4 +109,4 @@ gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/ma
 リリースワークフローでもアーカイブの公開前に証明書を検証します。
 `v0.1.1-alpha` までのリリースは、上記のチェックサムで確認してください。
 
-<!-- mash-docs-source: 594b9d6aebb6145cc4183bc3c653c9262c2e692f6fbe4963c3e44038960682c0 -->
+<!-- mash-docs-source: d089547ce72f1abd31d192459b684cc330176a9a9a11aeeadbb18065c6b8f2c4 -->

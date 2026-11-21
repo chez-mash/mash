@@ -1,8 +1,9 @@
 # Descarga y verifica Mash
 
-Descarga los archivos listos para usar, comprueba la suma publicada y
-abre Mash desde la carpeta donde los extraigas. También puedes leer el
-script de instalación o [instalar con un gestor de paquetes](install-methods.md).
+Descarga los archivos listos para usar, comprueba la suma publicada y abre
+el panel web desde la carpeta donde los extraigas. Así puedes omitir el
+script de instalación. También puedes [revisar el script](#inspect-the-installer)
+o [instalar con un gestor de paquetes](install-methods.md).
 
 <span id="choose-your-download"></span>
 
@@ -61,9 +62,31 @@ carpeta tuya. En una terminal abierta en esa carpeta, ejecuta
 `./mash --version` en macOS o Linux, o `.\mash.exe --version` en PowerShell.
 El comando muestra la versión que descargaste.
 
-Después [inicia el servicio de búsqueda local](installation.md#start-the-local-search-service)
-y elige qué conversaciones puede leer Mash. Usa la ruta completa de
-`mash` en esos comandos o [añade su carpeta a tu PATH](troubleshooting.md#mash-command-not-found).
+Desde esa misma carpeta, inicia la búsqueda local y abre el panel web.
+El primer comando descarga Qdrant e inicia el servicio con tu cuenta.
+Omítelo si ya tienes un [Qdrant local compatible](local-search.md#run-qdrant-yourself).
+En Linux o WSL, el comando de instalación requiere una
+[sesión de usuario de systemd](local-search.md#linux-without-a-systemd-user-session).
+
+**macOS o Linux**
+
+```sh
+./mash qdrant install
+./mash dash
+```
+
+**Windows PowerShell**
+
+```powershell
+.\mash.exe qdrant install
+.\mash.exe dash
+```
+
+Deja abierta la terminal y abre en el navegador la dirección que muestra,
+por lo general [http://127.0.0.1:8790](http://127.0.0.1:8790).
+Revisa qué conversaciones puede leer Mash y el intervalo de fechas.
+Si prefieres buscar por tu cuenta, deja los agentes sin conectar y elige
+**Set up and index**. [Pasos de configuración en el navegador](dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="inspect-the-installer"></span>
 
@@ -97,4 +120,4 @@ gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/ma
 El proceso de publicación comprueba las certificaciones antes de publicar
 esos archivos. Hasta `v0.1.1-alpha`, usa la comprobación de suma anterior.
 
-<!-- mash-docs-source: 594b9d6aebb6145cc4183bc3c653c9262c2e692f6fbe4963c3e44038960682c0 -->
+<!-- mash-docs-source: d089547ce72f1abd31d192459b684cc330176a9a9a11aeeadbb18065c6b8f2c4 -->

@@ -137,6 +137,30 @@ test("the release check bookmark leads to the right archives and checksum steps"
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("an archive download leads from verification to browser setup", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Install it yourself", exact: true }).click();
+  await page.getByRole("link", { name: "Download and verify an archive", exact: true }).click();
+  await expect(page).toHaveURL("/downloads/");
+  const guide = page.locator(".sl-markdown-content");
+  await expect(guide.locator("pre").filter({ hasText: "sha256sum mash-" })).toBeVisible();
+  await expect(
+    guide
+      .locator("pre")
+      .filter({ hasText: "./mash qdrant install" })
+      .filter({ hasText: "./mash dash" }),
+  ).toBeVisible();
+  await expect(
+    guide
+      .locator("pre")
+      .filter({ hasText: ".\\mash.exe qdrant install" })
+      .filter({ hasText: ".\\mash.exe dash" }),
+  ).toBeVisible();
+  await guide.getByRole("link", { name: "Follow the browser setup steps" }).click();
+  await expect(page).toHaveURL("/dashboard/#set-up-mash-from-the-dashboard");
+  await expect(guide.getByText("no agents", { exact: true })).toBeVisible();
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

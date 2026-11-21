@@ -28,7 +28,7 @@ or [search from the terminal](docs/search.md). You can also
 Mash is open source and self-hosted. The default setup keeps indexing and
 search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
 
-[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Download and verify Mash](docs/downloads.md)
+[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Download and verify a release archive](docs/downloads.md)
 
 [![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
 
