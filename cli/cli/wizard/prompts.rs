@@ -1,4 +1,4 @@
-use super::{AppError, Draft, InitRequest, config};
+use super::{AppError, Decision, Draft, InitRequest, config};
 use crate::core::{Paths, installation::Agent, setup::InitPlan};
 use crate::provider::{Provider, ProviderRoots};
 use inquire::{Confirm, CustomType, InquireError, MultiSelect, Select, Text};
@@ -9,7 +9,6 @@ use std::path::PathBuf;
 enum Choice {
     Local,
     Shared,
-    Later,
     Keep,
     Review,
     Cancel,
@@ -26,9 +25,8 @@ impl std::fmt::Display for Choice {
         f.write_str(match self {
             Self::Local => "Just this computer (recommended)",
             Self::Shared => "Connect to an existing shared server",
-            Self::Later => "Set up sharing later",
             Self::Keep => "Use existing settings",
-            Self::Review => "Review and edit settings",
+            Self::Review => "Customize setup",
             Self::Cancel => "Cancel",
             Self::Recent => "Last 90 days",
             Self::All => "All history",
@@ -71,14 +69,15 @@ fn cancelled<T>(result: Result<T, Failure>) -> Result<Option<T>, AppError> {
     }
 }
 
-pub(super) fn collect(paths: &Paths, init: InitRequest) -> Result<Option<Draft>, AppError> {
-    cancelled(collect_inner(paths, init))
+pub(super) fn collect(
+    paths: &Paths,
+    init: InitRequest,
+    customize: bool,
+) -> Result<Option<Draft>, AppError> {
+    cancelled(collect_inner(paths, init, customize))
 }
 
-fn collect_inner(paths: &Paths, mut init: InitRequest) -> Result<Draft, Failure> {
-    eprintln!(
-        "Mash setup — search your coding-agent histories. Esc or Ctrl-C cancels before changes."
-    );
+fn collect_inner(paths: &Paths, mut init: InitRequest, customize: bool) -> Result<Draft, Failure> {
     let current = config::load(paths.config.as_deref())?;
     let previous = if current.loaded {
         Some(std::fs::read_to_string(&current.path).map_err(AppError::io)?)
@@ -92,7 +91,7 @@ fn collect_inner(paths: &Paths, mut init: InitRequest) -> Result<Draft, Failure>
             true
         } else {
             match Select::new(
-                "Use your existing configuration?",
+                "Keep your current settings or change them?",
                 vec![Choice::Keep, Choice::Review, Choice::Cancel],
             )
             .prompt()?
@@ -119,13 +118,28 @@ fn collect_inner(paths: &Paths, mut init: InitRequest) -> Result<Draft, Failure>
             None
         },
     };
-    if review {
-        choices.shared = sharing(choices.shared.as_ref())?;
-        choices.providers = histories(choices.providers)?;
-        choices.since_days = coverage(choices.since_days)?;
+    let quick = !customize
+        && !current.loaded
+        && !choices.providers.is_empty()
+        && init.backfill_memory.is_none();
+    if !current.loaded && choices.providers.is_empty() {
+        eprintln!(
+            "Mash did not find any coding-agent chats. Choose a history folder, or cancel and run `mash init` after saving a chat."
+        );
     }
-    select_agents(&mut init)?;
-    select_backfill(&mut init, &mut choices)?;
+    if quick {
+        if init.agents {
+            init.selected_agents = Some(available_agents());
+        }
+    } else {
+        if review {
+            choices.shared = sharing(choices.shared.as_ref())?;
+            choices.providers = histories(choices.providers)?;
+            choices.since_days = coverage(choices.since_days)?;
+        }
+        select_agents(&mut init)?;
+        select_backfill(&mut init, &mut choices)?;
+    }
     if review || init.backfill_memory.is_some() {
         // Validate before readiness probes and final confirmation, without writing.
         let base = match &previous {
@@ -139,12 +153,12 @@ fn collect_inner(paths: &Paths, mut init: InitRequest) -> Result<Draft, Failure>
         });
     }
     let summary = setup_summary(&current.path, &choices, &init);
-    eprintln!("{summary}");
     Ok(Draft {
         init,
         qdrant: current.qdrant,
         shared: choices.shared,
         summary,
+        quick,
     })
 }
 
@@ -161,9 +175,9 @@ fn setup_summary(
         );
     }
     summary.push_str(if choices.shared.is_some() {
-        "Search: local and shared; indexed history will be uploaded to your server.\n"
+        "Mash will keep a local index and publish history to your server.\n"
     } else {
-        "Search: this computer only.\n"
+        "Mash will keep the index on this computer. No sharing is configured.\n"
     });
     if let Some(shared) = &choices.shared {
         let _ = writeln!(
@@ -172,36 +186,36 @@ fn setup_summary(
             shared.api_url, shared.group_id, shared.node_id, shared.token_env
         );
     }
+    let _ = writeln!(
+        summary,
+        "Chat files to index: {}",
+        choices.since_days.map_or_else(
+            || "all history".into(),
+            |days| format!("files updated in the last {days} days")
+        )
+    );
     for (provider, roots) in &choices.providers {
         for root in roots {
             let _ = writeln!(summary, "  {provider}: {}", root.display());
         }
     }
-    let _ = writeln!(
-        summary,
-        "History: {}",
-        choices.since_days.map_or_else(
-            || "all history".into(),
-            |days| format!("sources modified in the last {days} days")
-        )
-    );
     let agents = init
         .selected_agents
         .as_deref()
         .unwrap_or_default()
         .iter()
-        .map(|agent| match agent {
-            Agent::ClaudeCode => "Claude Code",
-            Agent::Codex => "Codex",
-            Agent::Copilot => "GitHub Copilot",
-        })
+        .copied()
+        .map(Agent::display_name)
         .collect::<Vec<_>>()
         .join(", ");
     let _ = writeln!(
         summary,
-        "Agent integrations: {}",
+        "Agents to connect: {}",
         if agents.is_empty() { "none" } else { &agents }
     );
+    if !agents.is_empty() {
+        summary.push_str("Mash will update those agents' settings. When they search with Mash, matching messages can enter their context.\n");
+    }
     summary
 }
 
@@ -252,17 +266,11 @@ fn select_backfill(
 
 fn select_agents(init: &mut InitRequest) -> Result<(), Failure> {
     if init.agents {
-        let available: Vec<_> = [
-            ("Claude Code", "claude", Agent::ClaudeCode),
-            ("Codex", "codex", Agent::Codex),
-            ("GitHub Copilot", "copilot", Agent::Copilot),
-        ]
-        .into_iter()
-        .filter(|(_, command, _)| crate::core::setup::which(command).is_some())
-        .collect();
+        let available = available_agents();
         let labels = available
             .iter()
-            .map(|(label, _, _)| *label)
+            .copied()
+            .map(Agent::display_name)
             .collect::<Vec<_>>();
         let defaults: Vec<_> = (0..labels.len()).collect();
         let selected = if labels.is_empty() {
@@ -274,7 +282,7 @@ fn select_agents(init: &mut InitRequest) -> Result<(), Failure> {
             MultiSelect::new("Which agents should get access to Mash search?", labels)
                 .with_default(&defaults)
                 .with_help_message("These agents can search all histories selected above. Installs the Mash MCP connection and history plugin; select none for CLI-only use.")
-                .prompt()?.into_iter().filter_map(|label| available.iter().find(|(name, _, _)| *name == label).map(|(_, _, kind)| *kind)).collect()
+                .prompt()?.into_iter().filter_map(|label| available.iter().copied().find(|agent| agent.display_name() == label)).collect()
         };
         init.agents = !selected.is_empty();
         init.selected_agents = Some(selected);
@@ -282,19 +290,21 @@ fn select_agents(init: &mut InitRequest) -> Result<(), Failure> {
     Ok(())
 }
 
+fn available_agents() -> Vec<Agent> {
+    [Agent::ClaudeCode, Agent::Codex, Agent::Copilot]
+        .into_iter()
+        .filter(|agent| crate::core::setup::which(agent.program()).is_some())
+        .collect()
+}
+
 fn sharing(
     existing: Option<&config::SharedConfig>,
 ) -> Result<Option<config::SharedConfig>, Failure> {
-    let options = vec![Choice::Local, Choice::Shared, Choice::Later];
+    let options = vec![Choice::Local, Choice::Shared];
     let selection = Select::new("Where do you want to search your history?", options)
         .with_starting_cursor(usize::from(existing.is_some()))
         .prompt()?;
     if selection != Choice::Shared {
-        if selection == Choice::Later {
-            eprintln!(
-                "Finish local setup now. Hosting guide: https://getmash.io/shared-index/\nLater, rerun `mash init` and choose Review and edit settings."
-            );
-        }
         return Ok(None);
     }
     eprintln!(
@@ -407,29 +417,60 @@ fn coverage(current: Option<u32>) -> Result<Option<u32>, Failure> {
     }
 }
 
-pub(super) fn confirm(draft: &mut Draft, ready: bool) -> Result<bool, AppError> {
-    let result = (|| -> Result<bool, Failure> {
-        eprintln!("Ready to apply:\n{}", draft.summary);
-        let options = if !draft.init.index {
-            vec![Choice::Configure, Choice::Save, Choice::Cancel]
-        } else if ready {
-            vec![Choice::Index, Choice::Save, Choice::Cancel]
-        } else {
-            vec![Choice::Save, Choice::Cancel]
-        };
-        match Select::new("Apply these choices?", options).prompt()? {
-            Choice::Index | Choice::Configure => Ok(true),
-            Choice::Save => {
-                draft.init.index = false;
-                draft.init.agents = false;
-                draft.init.backfill_memory = None;
-                eprintln!(
-                    "Saving configuration only. Run `mash init` again to connect agents and index."
-                );
-                Ok(true)
-            }
-            _ => Err(Failure::Cancelled),
+pub(super) fn confirm(draft: &mut Draft, ready: bool) -> Result<Option<Decision>, AppError> {
+    cancelled(confirm_inner(draft, ready))
+}
+
+fn confirm_inner(draft: &mut Draft, ready: bool) -> Result<Decision, Failure> {
+    eprintln!("{}", draft.summary);
+    match Select::new(
+        "Set up Mash with these settings?",
+        actions(draft.init.index, ready, draft.quick),
+    )
+    .prompt()?
+    {
+        Choice::Index | Choice::Configure => Ok(Decision::Apply),
+        Choice::Review => Ok(Decision::Customize),
+        Choice::Save => {
+            draft.init.index = false;
+            draft.init.agents = false;
+            draft.init.backfill_memory = None;
+            Ok(Decision::Apply)
         }
-    })();
-    Ok(cancelled(result)?.unwrap_or(false))
+        _ => Err(Failure::Cancelled),
+    }
+}
+
+fn actions(index: bool, ready: bool, quick: bool) -> Vec<Choice> {
+    let mut options = if !index {
+        vec![Choice::Configure, Choice::Save]
+    } else if ready {
+        vec![Choice::Index]
+    } else {
+        vec![Choice::Save]
+    };
+    if quick {
+        options.push(Choice::Review);
+    } else if index && ready {
+        options.push(Choice::Save);
+    }
+    options.push(Choice::Cancel);
+    options
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recommended_setup_offers_index_customize_or_cancel() {
+        assert!(actions(true, true, true) == [Choice::Index, Choice::Review, Choice::Cancel]);
+    }
+
+    #[test]
+    fn setup_keeps_configuration_only_when_indexing_cannot_run() {
+        assert!(actions(true, false, true) == [Choice::Save, Choice::Review, Choice::Cancel]);
+        assert!(actions(true, false, false) == [Choice::Save, Choice::Cancel]);
+        assert!(actions(false, false, false) == [Choice::Configure, Choice::Save, Choice::Cancel]);
+    }
 }

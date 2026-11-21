@@ -28,7 +28,7 @@ const MAX_CHATS: usize = 100;
 pub(crate) struct Outcome {
     reviewed: usize,
     complete: bool,
-    message: String,
+    pub(super) message: String,
 }
 
 /// Backfill runs Codex or Claude Code headless. Copilot is deliberately not

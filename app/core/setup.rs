@@ -9,8 +9,8 @@ use serde::Serialize;
 use super::installation::{Agent, Registration};
 use super::models::{IndexMode, IndexRequest, Operation, Paths, Response};
 use crate::AppError;
-
 pub(super) mod backfill;
+mod terminal;
 
 /// The plugin marketplace that `init` adds to agents unless told otherwise.
 pub const MARKETPLACE: &str = "mashium/mash";

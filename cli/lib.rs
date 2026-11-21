@@ -7,7 +7,7 @@ mod cli;
 mod server_cli;
 
 use std::ffi::OsString;
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 
 use mash_app::{
     BROKEN_PIPE, blocking, chat_catalog, config, core, observability, remote, runtime,
@@ -39,7 +39,14 @@ pub fn main_entry() -> i32 {
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
         return code;
     }
-    execute(std::env::args_os(), &mut io::stdout(), &mut io::stderr())
+    let mut stdout = io::stdout();
+    let terminal = stdout.is_terminal();
+    execute(
+        std::env::args_os(),
+        &mut stdout,
+        &mut io::stderr(),
+        terminal,
+    )
 }
 
 /// Run an entry point on a thread with an 8 MiB stack, the Linux default.
@@ -70,7 +77,7 @@ pub fn server_main_entry() -> i32 {
     }
     match server_cli::run(std::env::args_os()) {
         Ok(Some(server_cli::Information::Help { help })) => {
-            write_help(&mut io::stdout(), &mut io::stderr(), &help)
+            write_text(&mut io::stdout(), &mut io::stderr(), &help)
         }
         Ok(Some(response)) => write_json(&mut io::stdout(), &response).map_or_else(
             |error| {
@@ -90,7 +97,7 @@ pub fn server_main_entry() -> i32 {
     }
 }
 
-fn execute<I, T>(args: I, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32
+fn execute<I, T>(args: I, stdout: &mut dyn Write, stderr: &mut dyn Write, terminal: bool) -> i32
 where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,
@@ -112,7 +119,21 @@ where
             }
         }
         // Help is for a person to read: plain text, as clap renders it.
-        Ok(cli::Response::Help { help }) => write_help(stdout, stderr, &help),
+        Ok(cli::Response::Help { help }) => write_text(stdout, stderr, &help),
+        Ok(cli::Response::Setup(value)) if terminal => {
+            let core::Response::Init(report) = value.as_ref() else {
+                let error = AppError::internal("wizard did not return a setup report");
+                let _ = write_json(stderr, &error);
+                return error.code;
+            };
+            let written = write_text(stdout, stderr, &report.terminal_summary());
+            if written == 0 {
+                operation_exit(&value, None)
+            } else {
+                written
+            }
+        }
+        Ok(cli::Response::InitCancelled { .. }) if terminal => 0,
         Ok(response) => match write_json(stdout, &response) {
             // A reader that stopped early (`mash ... | head`) is not a failure.
             Err(error) if error.code == BROKEN_PIPE => 0,
@@ -121,17 +142,8 @@ where
                 error.code
             }
             Ok(()) => match response {
-                // A partial success keeps its report on stdout and its typed
-                // error on stderr, as a failure would.
-                cli::Response::Operation(value) => {
-                    if let Some(error) = value.failure() {
-                        let _ = write_json(stderr, error);
-                        error.code
-                    } else if value.needs_retry() {
-                        9
-                    } else {
-                        i32::from(value.reports_problem())
-                    }
+                cli::Response::Operation(value) | cli::Response::Setup(value) => {
+                    operation_exit(&value, Some(stderr))
                 }
                 _ => 0,
             },
@@ -141,6 +153,19 @@ where
             let _ = write_json(stderr, &error);
             error.code
         }
+    }
+}
+
+fn operation_exit(value: &core::Response, error_output: Option<&mut dyn Write>) -> i32 {
+    if let Some(error) = value.failure() {
+        if let Some(output) = error_output {
+            let _ = write_json(output, error);
+        }
+        error.code
+    } else if value.needs_retry() {
+        9
+    } else {
+        i32::from(value.reports_problem())
     }
 }
 
@@ -160,10 +185,10 @@ impl WatchRestart {
     }
 }
 
-/// Prints help text and returns the exit code. A reader that stopped early
+/// Prints terminal text and returns the exit code. A reader that stopped early
 /// (`mash --help | head`) is not a failure.
-fn write_help(stdout: &mut dyn Write, stderr: &mut dyn Write, help: &str) -> i32 {
-    let text = help.trim_end();
+fn write_text(stdout: &mut dyn Write, stderr: &mut dyn Write, text: &str) -> i32 {
+    let text = text.trim_end();
     match writeln!(stdout, "{text}").and_then(|()| stdout.flush()) {
         Ok(()) => 0,
         Err(error) if error.kind() == io::ErrorKind::BrokenPipe => 0,
@@ -194,7 +219,7 @@ mod output_tests {
     #[test]
     fn a_closed_output_pipe_exits_quietly() {
         let mut stderr = Vec::new();
-        let code = super::execute(["mash", "--version"], &mut Closed, &mut stderr);
+        let code = super::execute(["mash", "--version"], &mut Closed, &mut stderr, false);
         assert_eq!(code, 0);
         assert!(stderr.is_empty(), "{}", String::from_utf8_lossy(&stderr));
     }

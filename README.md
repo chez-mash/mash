@@ -71,8 +71,9 @@ covers using your own Qdrant and removing the service.
 mash init
 ```
 
-Choose **Just this computer** in the terminal wizard. Review which histories
-to index (the last 90 days by default) and which installed agents to connect.
+Review the local setup, including the histories and installed agents Mash
+found, then choose **Set up and index**. The default covers the last 90 days.
+Choose **Customize setup** to change what Mash reads or connects.
 For a browser wizard, run `mash dash` instead and open
 [the local dashboard setup](docs/dashboard.md#set-up-mash-from-the-dashboard).
 See [setup options and results](docs/installation.md#connect-your-histories)

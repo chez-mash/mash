@@ -51,7 +51,6 @@ pub(crate) struct Cli {
 #[derive(Debug, Clone, Subcommand)]
 enum Command {
     /// Set up Mash with a terminal wizard, or accept defaults with --yes.
-    /// Configure histories, connect agent integrations, and index.
     ///
     /// Indexing and every search need a running local Qdrant service (by
     /// default on this machine's port 6333); init checks it before changing
@@ -468,6 +467,7 @@ struct SearchArguments {
 #[serde(untagged)]
 pub(super) enum Response {
     Operation(Box<core::Response>),
+    Setup(Box<core::Response>),
     Help {
         help: String,
     },

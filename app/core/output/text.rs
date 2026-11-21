@@ -10,7 +10,7 @@ fn line(out: &mut String, text: &str) {
     out.push('\n');
 }
 
-fn safe(text: &str) -> String {
+pub(in crate::core) fn safe(text: &str) -> String {
     text.chars().fold(String::new(), |mut out, character| {
         if character.is_control() {
             out.extend(character.escape_debug());

@@ -175,12 +175,10 @@ server.
 
 Then either use the wizard or edit the configuration.
 
-**Wizard.** Run `mash init` in a terminal and choose **Connect to an existing
-shared server**. If Mash is already configured, choose **Review and edit
-settings** first. Enter the server URL, group ID, this computer's node ID, and
-the name of the token variable. The wizard checks that the server accepts the
-token, then offers to index and upload. **Set up sharing later** finishes local
-setup without sharing.
+**Wizard.** Run `mash init` in a terminal and choose **Customize setup**,
+then **Connect to an existing shared server**. Enter the server URL, group ID,
+this computer's node ID, and the name of the token variable. The wizard checks
+that the server accepts the token, then offers to index and upload.
 
 **By hand.** Edit the node configuration that `mash init` created. Keep its
 providers and local Qdrant settings. In the existing `[index]` table set

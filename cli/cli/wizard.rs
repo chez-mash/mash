@@ -11,25 +11,49 @@ pub(super) const fn interactive(yes: bool, input_terminal: bool, output_terminal
 }
 
 pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
-    let paths = cli.paths();
     let request = cli.into_request()?;
     let Operation::Init(init) = request.operation else {
         return Err(AppError::internal("wizard requires init"));
     };
-    let draft = crate::blocking(move || prompts::collect(&paths, init)).await?;
-    let Some(mut draft) = draft else {
-        return Ok(Response::InitCancelled { cancelled: true });
-    };
-    eprintln!("Checking local Qdrant (no changes yet)...");
+    eprintln!(
+        "Mash setup\nMash is open source and runs on your computer. Esc or Ctrl-C cancels before changes."
+    );
+    let mut customize = false;
+    loop {
+        let paths = request.paths.clone();
+        let init = init.clone();
+        let draft = crate::blocking(move || prompts::collect(&paths, init, customize)).await?;
+        let Some(mut draft) = draft else {
+            return Ok(Response::InitCancelled { cancelled: true });
+        };
+        let ready = !draft.init.index || services_ready(&draft).await;
+        let (decision, init) = crate::blocking(move || {
+            let decision = prompts::confirm(&mut draft, ready)?;
+            Ok((decision, draft.init))
+        })
+        .await?;
+        match decision {
+            None => return Ok(Response::InitCancelled { cancelled: true }),
+            Some(Decision::Customize) => customize = true,
+            Some(Decision::Apply) => {
+                return core::execute(core::Request {
+                    paths: request.paths,
+                    operation: Operation::Init(init),
+                })
+                .await
+                .map(Box::new)
+                .map(Response::Setup);
+            }
+        }
+    }
+}
+
+async fn services_ready(draft: &Draft) -> bool {
     let observed = crate::views::qdrant::reachability(&draft.qdrant).await;
     let mut ready = observed.state == crate::views::qdrant::Reachability::Reachable;
-    if ready {
+    if !ready {
         eprintln!(
-            "Local Qdrant HTTP endpoint is reachable. Indexing will also require its gRPC endpoint."
-        );
-    } else {
-        eprintln!(
-            "Local Qdrant is unavailable. {}\nYou can save configuration now and run `mash init` again afterward.",
+            "The local search service (Qdrant) is unavailable. {}\nYou can save settings now and run `mash init` again once it is running.",
             observed.message.unwrap_or_default()
         );
     }
@@ -48,24 +72,12 @@ pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
             );
         }
     }
-    let confirmed = crate::blocking(move || {
-        if prompts::confirm(&mut draft, ready)? {
-            Ok(Some(draft))
-        } else {
-            Ok(None)
-        }
-    })
-    .await?;
-    let Some(draft) = confirmed else {
-        return Ok(Response::InitCancelled { cancelled: true });
-    };
-    core::execute(core::Request {
-        paths: request.paths,
-        operation: Operation::Init(draft.init),
-    })
-    .await
-    .map(Box::new)
-    .map(Response::Operation)
+    ready
+}
+
+enum Decision {
+    Apply,
+    Customize,
 }
 
 struct Draft {
@@ -73,6 +85,7 @@ struct Draft {
     qdrant: QdrantConfig,
     shared: Option<config::SharedConfig>,
     summary: String,
+    quick: bool,
 }
 
 #[cfg(test)]

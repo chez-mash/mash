@@ -19,7 +19,7 @@ destination = "local"
 ```
 
 To change history selection, coverage or sharing interactively, rerun
-`mash init` in a terminal and choose **Review and edit settings**. The wizard
+`mash init` in a terminal and choose **Customize setup**. The wizard
 preserves your other settings and keeps the previous file as a backup; comments
 and formatting are regenerated.
 

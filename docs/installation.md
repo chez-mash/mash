@@ -247,24 +247,22 @@ Word search needs no models, and setup never downloads any. For search by
 meaning, run `mash models install` before `mash init`; see
 [model setup](indexing.md) for download details and enabling it later.
 
-In a terminal, `mash init` opens a setup wizard:
+On a fresh setup, the terminal wizard shows the history folders it found,
+the history range (files updated in the last 90 days), and the agents it can
+connect. Choose **Set up and index** to keep the index on this machine and
+apply those choices.
 
-1. Choose **Just this computer** (the default), connect to an existing shared
-   server, or set up sharing later.
-2. Select detected histories, or add or replace a provider's history path.
-3. Choose the last 90 days, all history, or a custom number of days.
-4. Select Claude Code, Codex and GitHub Copilot integrations found on `PATH`.
-5. Optionally backfill memory from chats active in the last 3 days using a
-   selected signed-in agent (Claude Code or Codex). It runs here after indexing, uses agent tokens,
-   and sends selected chat text to that agent's service. Older chats are never
-   assigned to future conversations. See [memory backfill](records.md#backfill-earlier-memory).
-6. Review the summary and confirm. You can save configuration only or cancel.
+Choose **Customize setup** to use a different date range or history folder,
+pick specific integrations, connect an existing shared server, or save
+settings without indexing. This path also offers an optional
+[memory backfill](records.md#backfill-earlier-memory) after indexing. Backfill
+uses your signed-in Claude Code or Codex and sends selected chat text to its
+model service.
 
-Press Esc or Ctrl-C during the prompts to cancel without changing configuration
-or agent settings. Before confirmation, the wizard checks Qdrant's HTTP
-endpoint (indexing also requires its gRPC endpoint) and, when selected,
-shared-server authentication. If a connection fails, save configuration and
-finish setup after fixing it.
+Esc or Ctrl-C cancels before configuration or agent settings change. When
+indexing is selected, the wizard checks the local search service's HTTP
+endpoint and, for sharing, server authentication. If a connection fails, you
+can save settings and finish setup afterward.
 
 Restart your agents after setup. The history plugin's hooks need Python 3.9+;
 see [agent setup](agents.md).
@@ -298,7 +296,9 @@ then stops with the commands to start it and says how many chats it saved.
 
 ### Read the result
 
-Prompts and progress go to stderr; the final JSON result goes to stdout.
+The terminal wizard ends with a short report and a next step. For the full
+JSON report, run `mash init --yes` or redirect the wizard's stdout with
+`mash init > setup.json`. Prompts and progress go to stderr.
 
 - `"agents": []` means no agents were connected, even if indexing succeeded.
   Read `next` for the reason and follow [agent setup](agents.md). CLI search

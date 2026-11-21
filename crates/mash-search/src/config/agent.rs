@@ -15,6 +15,14 @@ pub enum Agent {
 }
 
 impl Agent {
+    pub const fn display_name(self) -> &'static str {
+        match self {
+            Self::Codex => "Codex",
+            Self::ClaudeCode => "Claude Code",
+            Self::Copilot => "GitHub Copilot",
+        }
+    }
+
     /// The `--agent` value and JSON name.
     pub const fn as_str(self) -> &'static str {
         match self {
