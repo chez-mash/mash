@@ -154,7 +154,7 @@ for (const [locale, lang, installationTitle] of [
     page,
   }) => {
     const install = `/${locale}/installation/`;
-    const verify = `${install}#check-the-release-download`;
+    const verify = `/${locale}/downloads/`;
     const uninstall = `/${locale}/uninstall/`;
     const changes = `${install}#what-setup-changes`;
     const guide = page.locator(".sl-markdown-content");
@@ -166,13 +166,14 @@ for (const [locale, lang, installationTitle] of [
     await expect(guide.locator("#what-setup-changes")).toBeAttached();
     await expect(guide.locator('a[href="#skip-agent-connections"]')).toBeVisible();
     await expect(guide.locator(`a[href="${uninstall}"]`).first()).toBeVisible();
-    await guide.locator('a[href="#check-the-release-download"]').first().click();
+    await guide.locator(`a[href="${verify}"]`).first().click();
     await expect(page).toHaveURL(verify);
-    await expect(page.locator("#check-the-release-download")).toBeAttached();
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(guide.locator("#verify-the-checksum")).toBeAttached();
     await expect(
       guide.locator("pre").filter({ hasText: "sha256sum mash-x86_64-unknown-linux-gnu.tar.gz" }),
     ).toBeVisible();
-    await guide.locator('a[href="#start-the-local-search-service"]').last().click();
+    await guide.locator(`a[href="${install}#start-the-local-search-service"]`).click();
     await expect(page).toHaveURL(`${install}#start-the-local-search-service`);
     await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
     await expect(
@@ -247,7 +248,7 @@ for (const [locale, lang, title] of [
     await expect(
       guide.locator("pre").filter({ hasText: "sudo apt install mash-cli" }),
     ).toBeVisible();
-    const verify = `${install}#check-the-release-download`;
+    const verify = `/${locale}/downloads/`;
     await guide.locator(`a[href="${verify}"]`).click();
     await expect(page).toHaveURL(verify);
     await page.goBack();

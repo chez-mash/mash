@@ -1,0 +1,100 @@
+# Descarga y verifica Mash
+
+Descarga los archivos listos para usar, comprueba la suma publicada y
+abre Mash desde la carpeta donde los extraigas. También puedes leer el
+script de instalación o [instalar con un gestor de paquetes](install-methods.md).
+
+<span id="choose-your-download"></span>
+
+## Elige la descarga
+
+Los enlaces llevan a los archivos de la última versión publicada. Cada
+archivo incluye el programa de terminal y el panel web.
+
+| Equipo | Descarga |
+| --- | --- |
+| Mac con Apple silicon | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
+| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
+| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
+| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
+
+Consulta las [notas de la versión y el archivo de sumas en GitHub](https://github.com/mashium/mash/releases/latest).
+Para comprobar una descarga, usa el archivo y el `SHA256SUMS` de la misma
+versión. Consulta los [requisitos de Linux](installation.md#recommended-release-installers).
+En plataformas como Mac con Intel, puedes [compilar desde el código fuente](install-methods.md#build-from-source).
+
+<span id="verify-the-checksum"></span>
+
+## Comprueba la suma
+
+Desde la carpeta de la descarga, ejecuta el comando de tu sistema.
+En Linux ARM64, sustituye el nombre por el de tu archivo.
+
+**Linux**
+
+```sh
+sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
+```
+
+**macOS**
+
+```sh
+shasum -a 256 mash-aarch64-apple-darwin.tar.gz
+```
+
+**PowerShell de Windows**
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\mash-x86_64-pc-windows-msvc.zip
+```
+
+Busca el nombre exacto del archivo en `SHA256SUMS` y compara la suma de
+esa línea con la que muestra el comando. Las mayúsculas y minúsculas son
+equivalentes en la suma. Si coincide, el archivo es igual al que se publicó.
+
+<span id="use-the-archive"></span>
+
+## Usa los archivos descargados
+
+Extrae `mash` y `mash-server` (o los dos archivos `.exe` en Windows) a una
+carpeta tuya. En una terminal abierta en esa carpeta, ejecuta
+`./mash --version` en macOS o Linux, o `.\mash.exe --version` en PowerShell.
+El comando muestra la versión que descargaste.
+
+Después [inicia el servicio de búsqueda local](installation.md#start-the-local-search-service)
+y elige qué conversaciones puede leer Mash. Usa la ruta completa de
+`mash` en esos comandos o [añade su carpeta a tu PATH](troubleshooting.md#mash-command-not-found).
+
+<span id="inspect-the-installer"></span>
+
+## Revisa el instalador
+
+Puedes leer el [instalador de macOS y Linux](https://github.com/mashium/mash/blob/main/install.sh)
+o el [instalador de Windows](https://github.com/mashium/mash/blob/main/install.ps1)
+antes de ejecutarlo. Los scripts comprueban la suma del archivo y colocan
+Mash en tu carpeta de usuario sin privilegios de administrador.
+[Qué cambia al configurar Mash](installation.md#what-setup-changes)
+
+<span id="check-how-it-was-built"></span>
+
+## Comprueba cómo se compiló
+
+El [proceso público de publicación](https://github.com/mashium/mash/actions/workflows/release.yml)
+prepara los archivos tras comprobar que las pruebas de Linux y Windows
+pasaron para el código de la versión. Las
+[pruebas públicas de instalación](https://github.com/mashium/mash/actions/workflows/release-check.yml)
+muestran qué instaladores se ejecutaron y confirmaron la versión esperada.
+
+Para las versiones que incluyen una certificación de compilación, GitHub
+CLI puede verificar qué proceso y etiqueta de origen produjeron el archivo.
+Inicia sesión en GitHub CLI y sustituye `ARCHIVE` por la ruta de la descarga
+y `RELEASE_TAG` por su etiqueta, incluida la `v` inicial.
+
+```sh
+gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+```
+
+El proceso de publicación comprueba las certificaciones antes de publicar
+esos archivos. Hasta `v0.1.1-alpha`, usa la comprobación de suma anterior.
+
+<!-- mash-docs-source: 594b9d6aebb6145cc4183bc3c653c9262c2e692f6fbe4963c3e44038960682c0 -->

@@ -20,7 +20,7 @@ Pour passer à une nouvelle version, suivez les [étapes de mise à jour](upgrad
 
 1. **Installez les programmes.** L’[installateur de base](#recommended-release-installers)
    place `mash` et `mash-server` dans votre dossier utilisateur. Vous pouvez
-   aussi [vérifier et décompresser une archive de la version](#check-the-release-download).
+   aussi [vérifier et décompresser une archive de la version](downloads.md).
 2. **Démarrez la recherche locale.** `mash qdrant install` télécharge Qdrant et
    le configure pour qu’il se lance sous votre compte à l’ouverture de session.
    Mash limite les connexions à cet ordinateur et désactive la télémétrie de
@@ -56,7 +56,7 @@ qu’ils cherchent dans vos conversations.
 
 Les versions précompilées couvrent Linux x86-64 et ARM64, macOS sur puce
 Apple et Windows x64. Choisissez la commande correspondant à votre système.
-Vous pouvez [examiner l’installateur ou vérifier le fichier téléchargé](#check-the-release-download)
+Vous pouvez [examiner l’installateur ou vérifier le fichier téléchargé](downloads.md)
 au préalable.
 
 Sous Linux, les exécutables nécessitent glibc 2.34 ou une version ultérieure,
@@ -300,45 +300,8 @@ la sortie d’erreur.
 
 ## Vérifier le téléchargement
 
-Vous pouvez lire [l’installateur macOS et Linux](https://github.com/mashium/mash/blob/main/install.sh)
-ou [l’installateur Windows](https://github.com/mashium/mash/blob/main/install.ps1)
-avant de le lancer. Les scripts installent Mash dans votre dossier utilisateur
-sans droits administrateur. [Ce que la configuration change](#what-setup-changes).
-
-Le [workflow public de publication](https://github.com/mashium/mash/actions/workflows/release.yml)
-construit les archives après avoir vérifié que la révision source a passé
-les tests Linux et Windows. Consultez les
-[tests publics d’installation](https://github.com/mashium/mash/actions/workflows/release-check.yml)
-pour savoir quels installateurs ont passé les tests pour votre version.
-
-Pour installer Mash sans exécuter un script téléchargé, récupérez l’archive
-de votre plateforme et `SHA256SUMS` depuis la même
-[version publiée sur GitHub](https://github.com/mashium/mash/releases).
-Comparez la somme SHA-256 de l’archive à la ligne de son nom de fichier
-exact avant de l’extraire. Par exemple, sous Linux x86-64, utilisez la
-commande suivante.
-
-```sh
-sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
-```
-
-Sous macOS, utilisez `shasum -a 256` avec l’archive macOS. Sous Windows,
-utilisez `Get-FileHash -Algorithm SHA256` avec le ZIP Windows dans
-PowerShell. Si la somme correspond à celle publiée, extrayez `mash` et
-`mash-server` (ou les deux fichiers `.exe`) dans un dossier à vous, puis
-[démarrez le service de recherche](#start-the-local-search-service).
-
-Si la version comprend une attestation de compilation, GitHub CLI peut aussi
-vérifier le workflow et l’étiquette source de l’archive. Remplacez `ARCHIVE`
-par le fichier téléchargé et `RELEASE_TAG` par son étiquette, avec le `v`
-initial.
-
-```sh
-gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
-```
-
-Le workflow vérifie les attestations avant de publier les archives.
-Pour les versions jusqu’à `v0.1.1-alpha`, utilisez la somme SHA-256 ci-dessus.
+[Choisissez une archive et vérifiez sa somme de contrôle](downloads.md) ou
+[examinez l’installateur avant de le lancer](downloads.md#inspect-the-installer).
 
 <span id="uninstall"></span>
 
@@ -346,4 +309,4 @@ Pour les versions jusqu’à `v0.1.1-alpha`, utilisez la somme SHA-256 ci-dessus
 
 Lancez `mash uninstall` pour voir ce qui serait retiré. [Vérifiez ce qui reste et comment désinstaller Mash](uninstall.md).
 
-<!-- mash-docs-source: a966c25c54f06810be24db443c66df5ae4b12319579733914b26439648c648bf -->
+<!-- mash-docs-source: 52ce3de441d218c0570a52571fd86f47587a6a60e2bdd2d55cf2b6fe726eef61 -->

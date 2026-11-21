@@ -18,7 +18,7 @@ Already using Mash and moving to a new release? Follow the [upgrade steps](upgra
 
 1. **Install the programs.** The [basic installer](#recommended-release-installers)
    puts `mash` and `mash-server` in your user directory. You can also
-   [verify and unpack a release archive](#check-the-release-download).
+   [verify and unpack a release archive](downloads.md).
 2. **Start local search.** `mash qdrant install` downloads Qdrant and sets it
    to run under your account at login. Mash limits it to connections from this
    computer and switches off Qdrant telemetry. [Search service files](local-search.md#where-qdrant-stores-data)
@@ -46,7 +46,7 @@ you can [set up Mash in your browser](#set-up-in-your-browser). You can also
 
 Prebuilt releases cover Linux x86-64 and ARM64, macOS Apple silicon, and
 Windows x64. Choose one command for your system. You can
-[inspect the installer or verify a download](#check-the-release-download) first.
+[inspect the installer or verify a download](downloads.md) first.
 
 The Linux binaries need glibc 2.34 or newer, which Ubuntu 22.04, Debian 12,
 RHEL 9 and later releases provide. Alpine and other musl systems are not
@@ -248,42 +248,8 @@ go to stderr.
 
 ## Check the release download
 
-Read the [macOS and Linux installer](https://github.com/mashium/mash/blob/main/install.sh)
-or [Windows installer](https://github.com/mashium/mash/blob/main/install.ps1)
-before you run it. The scripts install into your user directory and need no
-administrator rights. [See what setup changes](#what-setup-changes).
-
-The [public release workflow](https://github.com/mashium/mash/actions/workflows/release.yml)
-builds the platform archives after checking that Linux and Windows CI passed on
-the source commit. See which installers passed for your version in the
-[public install checks](https://github.com/mashium/mash/actions/workflows/release-check.yml).
-
-To install without running a downloaded script, get the
-archive for your platform and `SHA256SUMS` from the same
-[versioned GitHub release](https://github.com/mashium/mash/releases). Compare
-the archive's SHA-256 hash to the line for its exact filename before extracting
-it. For example, on Linux x86-64:
-
-```sh
-sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
-```
-
-On macOS, use `shasum -a 256` with the macOS archive. On Windows, use
-`Get-FileHash -Algorithm SHA256` with the Windows ZIP in PowerShell. The
-checksum confirms the file matches the published hash. If it matches, extract
-`mash` and `mash-server` (or the two `.exe` files) to a directory you own, then
-continue with [the search service](#start-the-local-search-service).
-
-For releases that include a build attestation, GitHub CLI can also verify
-which workflow and source tag produced an archive. Replace `ARCHIVE` with the
-file you downloaded and `RELEASE_TAG` with its tag, including the leading `v`.
-
-```sh
-gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
-```
-
-The release workflow checks the attestations before publishing the platform
-archives. Releases through `v0.1.1-alpha` use the checksum check above.
+[Choose a release archive and check its checksum](downloads.md), or
+[inspect the installer before running it](downloads.md#inspect-the-installer).
 
 ## Uninstall
 

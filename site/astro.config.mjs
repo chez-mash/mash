@@ -70,6 +70,15 @@ export default defineConfig({
               slug: "installation",
             },
             {
+              label: "Download and verify",
+              translations: {
+                es: "Descarga y verificación",
+                fr: "Téléchargement et vérification",
+                "zh-CN": "下载与校验",
+              },
+              slug: "downloads",
+            },
+            {
               label: "Other install methods",
               translations: {
                 es: "Otros métodos de instalación",

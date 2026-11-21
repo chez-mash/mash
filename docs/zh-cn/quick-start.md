@@ -2,7 +2,7 @@
 
 [在演示中试搜](https://getmash.io/demo/#/search?q=invoice+exports+queue)，打开一条结果即可查看原始对话。按下面的步骤设置 Mash，即可在浏览器或终端中搜索自己的历史记录，也可以让你连接的代理帮忙搜索。
 
-运行命令前，可以先了解[设置会更改什么](installation.md#what-setup-changes)以及[如何校验下载文件](installation.md#check-the-release-download)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
+运行命令前，可以先了解[设置会更改什么](installation.md#what-setup-changes)以及[如何校验下载文件](downloads.md#verify-the-checksum)。如果只想先用一个代理的近期记录试用，请参阅 [本地试用指南](privacy.md#用少量本地历史试用)。
 
 ## 让代理帮你设置
 
@@ -68,4 +68,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 71579f3583b9237b23b3c4122fb531b06b41f856d535c1fca5b8f8d62fa99b5c -->
+<!-- mash-docs-source: 9cf2a17136bb1f967985184a309d9c85b23f7b21bbe4b4e19db0a42d258b7d56 -->

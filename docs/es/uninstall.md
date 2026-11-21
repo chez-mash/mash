@@ -89,7 +89,7 @@ reintentar los pasos que fallen, reiniciar los agentes y quitar el programa.
 
 1. En el mismo equipo y con la misma cuenta de usuario, instala la misma
    versión de Mash con el [instalador básico](installation.md#recommended-release-installers)
-   o extrae el mismo [archivo publicado](installation.md#check-the-release-download).
+   o extrae el mismo [archivo publicado](downloads.md).
    Para una versión más reciente, consulta la [guía de actualización](upgrades.md#upgrade-an-existing-installation).
 2. Si Mash instaló el servicio de búsqueda, ejecuta `mash qdrant install`
    para reinstalarlo y reutilizar sus datos. Si [gestionabas Qdrant por tu cuenta](local-search.md#run-qdrant-yourself),
@@ -103,4 +103,4 @@ Si la búsqueda necesita actualizarse, consulta [cómo mantener el historial al 
 Si usabas la búsqueda por significado, [vuelve a instalar sus modelos](indexing.md#install-the-models).
 También puedes [volver a conectar un agente](agents.md#connect-claude-code-codex-or-copilot).
 
-<!-- mash-docs-source: c0ce484c0b6bf22eb36094db4c4a6dad0d1256a12dbcc4615d5183aa0e20d912 -->
+<!-- mash-docs-source: 3a463198930e9cd53451c2535953eec697d6f535f83799e0741c6ef33024027a -->

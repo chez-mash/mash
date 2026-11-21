@@ -10,7 +10,7 @@ If Mash is already installed, follow the [upgrade steps](upgrades.md#upgrade-an-
 The packages below use Mash's prebuilt releases. They include the browser
 dashboard, terminal search, and the tools a connected agent can use.
 Once local search is running, you can [finish setup in the browser](installation.md#set-up-in-your-browser).
-Before installing, you can [check the published release downloads](installation.md#check-the-release-download)
+Before installing, you can [check the published release downloads](downloads.md)
 and [see which installers passed for each release](https://github.com/mashium/mash/actions/workflows/release-check.yml).
 
 ### Homebrew, macOS or Linux

@@ -12,7 +12,7 @@ sigue los [pasos para actualizarlo](upgrades.md#upgrade-an-existing-installation
 Los paquetes de esta sección usan las versiones precompiladas de Mash. Incluyen el
 panel web, la búsqueda en la terminal y las herramientas que puede usar un agente
 conectado. Cuando la búsqueda local esté en marcha, puedes [terminar la configuración en el navegador](installation.md#set-up-in-your-browser).
-Antes de instalar, puedes [verificar las descargas publicadas](installation.md#check-the-release-download)
+Antes de instalar, puedes [verificar las descargas publicadas](downloads.md)
 y [ver qué instaladores pasaron las comprobaciones de cada versión](https://github.com/mashium/mash/actions/workflows/release-check.yml).
 
 <span id="homebrew-macos-or-linux"></span>
@@ -118,4 +118,4 @@ Luego [haz tu primera búsqueda en la terminal](search.md#your-first-search).
 Si la terminal no encuentra Mash después de la compilación, consulta
 [cómo añadir el directorio de ejecutables de Cargo a la ruta de comandos](troubleshooting.md#mash-command-not-found).
 
-<!-- mash-docs-source: a51d0d82a86d35ecb98d8d0b479607b86562714e79cd0d1660c19596c115930c -->
+<!-- mash-docs-source: 019cd7c27c3a21d40d80b37e6986812a71a5931f1d6ace0454cf6665eb9b9d63 -->

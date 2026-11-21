@@ -132,8 +132,11 @@ describe("documentation translation drafts", () => {
   });
 
   it("can draft the installation guide without translating setup choices or shell commands", async () => {
-    const installation = await readTranslationSource("installation");
-    const draft = prepareTranslation(installation, "docs/es/installation.md");
+    const [installation, guides] = await Promise.all([
+      readTranslationSource("installation"),
+      readLocaleGuides("es"),
+    ]);
+    const draft = prepareTranslation(installation, "docs/es/installation.md", guides);
     expect(draft.passages).not.toContain("Set up and index without connecting agents");
     const output = draft.render({
       translations: draft.passages.map((passage) =>
@@ -142,7 +145,7 @@ describe("documentation translation drafts", () => {
     });
     expect(output).toContain("**Set up and index without connecting agents**");
     expect(output).toContain("mash qdrant install");
-    expect(output).toContain("sha256sum mash-x86_64-unknown-linux-gnu.tar.gz");
+    expect(output).toContain("(downloads.md#inspect-the-installer)");
     expect(output).toContain('<span id="uninstall"></span>');
     expect(recordedTranslationRevision(output)).toBe(installation.revision);
   });

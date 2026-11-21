@@ -78,7 +78,7 @@ the program as in [Remove Mash and its local copy](#remove-mash-and-its-local-co
 
 1. On the same computer and user account, install the same Mash release
    with a [basic installer](installation.md#recommended-release-installers)
-   or extract the same [release archive](installation.md#check-the-release-download).
+   or extract the same [release archive](downloads.md).
    For a newer release, check the [upgrade guide](upgrades.md#upgrade-an-existing-installation).
 2. If Mash installed the search service, run `mash qdrant install` to reinstall
    the service and reuse its data. If you [ran Qdrant yourself](local-search.md#run-qdrant-yourself),

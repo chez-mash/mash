@@ -242,8 +242,8 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
 test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Inspect the installer", exact: true }).click();
-  await expect(page).toHaveURL(/\/installation\/#check-the-release-download$/);
-  await expect(page.getByRole("heading", { name: "Check the release download" })).toBeInViewport();
+  await expect(page).toHaveURL(/\/downloads\/#inspect-the-installer$/);
+  await expect(page.getByRole("heading", { name: "Inspect the installer" })).toBeInViewport();
   await expect(page.getByRole("link", { name: "public release workflow" })).toBeVisible();
 
   await page.goto("/");

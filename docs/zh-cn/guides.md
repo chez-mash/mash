@@ -13,6 +13,7 @@ Mash 可以帮你找到以前与编程代理的对话。如果是第一次使用
 - [在演示中搜索示例对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - [比较 Mash 和其他对话历史工具](compare.md)
 - [安装 Mash 并选择要读取的历史记录](installation.md)
+- [下载并校验安装包](downloads.md)
 - [使用软件包管理器安装，或从源码构建](install-methods.md)
 - [了解历史记录存在哪里，以及哪些数据会留在本机](privacy.md)
 
@@ -59,4 +60,4 @@ Mash 可以帮你找到以前与编程代理的对话。如果是第一次使用
 - [MCP 工具参考](../tools.md)
 - [直接调用记忆工具](../record-tools.md)
 
-<!-- mash-docs-source: 75a102b82663a5c61d39f82bcc42a89d0d0f0bd0f8182f7b16af702ce899806a -->
+<!-- mash-docs-source: f0f9a6f7891e0007b06356a7fc2bebdddac231c12f4660137cbb7d03451506d8 -->

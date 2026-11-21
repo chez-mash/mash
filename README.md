@@ -28,7 +28,7 @@ or [search from the terminal](docs/search.md). You can also
 Mash is open source and self-hosted. The default setup keeps indexing and
 search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
 
-[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Check the release download](docs/installation.md#check-the-release-download)
+[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Download and verify Mash](docs/downloads.md)
 
 [![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
 
@@ -54,7 +54,7 @@ and open a result in its conversation. Set up Mash below to search your own
 chats in the browser, in the terminal, or through an agent you connect.
 
 Before running a command, see [what setup changes](docs/installation.md#what-setup-changes)
-and [how to verify the download](docs/installation.md#check-the-release-download).
+and [how to verify the download](docs/downloads.md#verify-the-checksum).
 To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).
 
 ### Ask your agent

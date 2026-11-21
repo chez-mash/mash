@@ -14,6 +14,7 @@ programación. Si acabas de llegar, empieza por la [guía de inicio rápido](qui
 - [Prueba una búsqueda con conversaciones de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - [Compara Mash con otras herramientas de historial](compare.md)
 - [Instala Mash y elige qué historiales leer](installation.md)
+- [Descarga y verifica un archivo de la versión](downloads.md)
 - [Instala con un gestor de paquetes o compila desde el código fuente](install-methods.md)
 - [Consulta dónde se guarda tu historial y qué datos se quedan en tu equipo](privacy.md)
 
@@ -60,4 +61,4 @@ programación. Si acabas de llegar, empieza por la [guía de inicio rápido](qui
 - [Referencia de herramientas MCP](../tools.md)
 - [Utiliza directamente las herramientas de memoria](../record-tools.md)
 
-<!-- mash-docs-source: 75a102b82663a5c61d39f82bcc42a89d0d0f0bd0f8182f7b16af702ce899806a -->
+<!-- mash-docs-source: f0f9a6f7891e0007b06356a7fc2bebdddac231c12f4660137cbb7d03451506d8 -->

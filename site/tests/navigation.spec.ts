@@ -99,6 +99,33 @@ test("the old uninstall section leads to removal and reinstall choices", async (
   await expect(page.getByRole("heading", { name: "Reopen the retained history" })).toBeVisible();
 });
 
+test("the release check bookmark leads to the right archives and checksum steps", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/installation/#check-the-release-download");
+  await expect(page.locator("#check-the-release-download")).toBeAttached();
+  const guide = page.locator(".sl-markdown-content");
+  await guide.locator('a[href="/downloads/"]').last().click();
+  await expect(page).toHaveURL("/downloads/");
+  const archives = await guide
+    .locator("table tbody a")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  const base = "https://github.com/mashium/mash/releases/latest/download/";
+  expect(archives).toEqual(
+    [
+      "mash-aarch64-apple-darwin.tar.gz",
+      "mash-x86_64-unknown-linux-gnu.tar.gz",
+      "mash-aarch64-unknown-linux-gnu.tar.gz",
+      "mash-x86_64-pc-windows-msvc.zip",
+    ].map((name) => base + name),
+  );
+  await expect(
+    guide.locator("pre").filter({ hasText: "Get-FileHash -Algorithm SHA256" }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

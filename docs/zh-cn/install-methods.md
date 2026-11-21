@@ -8,7 +8,7 @@
 ## 用软件包管理器安装
 
 以下软件包使用 Mash 的预编译版本，包含网页面板、终端搜索，以及已连接的代理可使用的工具。
-本地搜索服务启动后，可以[在浏览器中完成设置](installation.md#set-up-in-your-browser)。安装前，你可以[校验已发布的下载文件](installation.md#check-the-release-download)，
+本地搜索服务启动后，可以[在浏览器中完成设置](installation.md#set-up-in-your-browser)。安装前，你可以[校验已发布的下载文件](downloads.md)，
 也可以[查看每个版本有哪些安装方式通过了检查](https://github.com/mashium/mash/actions/workflows/release-check.yml)。
 
 <span id="homebrew-macos-or-linux"></span>
@@ -114,4 +114,4 @@ mash --version
 如果构建后终端找不到 Mash，请参阅
 [如何将 Cargo 的可执行文件目录加入命令搜索路径](troubleshooting.md#mash-command-not-found)。
 
-<!-- mash-docs-source: a51d0d82a86d35ecb98d8d0b479607b86562714e79cd0d1660c19596c115930c -->
+<!-- mash-docs-source: 019cd7c27c3a21d40d80b37e6986812a71a5931f1d6ace0454cf6665eb9b9d63 -->

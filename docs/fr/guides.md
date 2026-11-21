@@ -15,6 +15,7 @@ vos agents de programmation. Découvrez Mash avec le
 - [Essayez une recherche avec des conversations d’exemple](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 - [Comparez Mash à d’autres outils d’historique](compare.md)
 - [Installez Mash et choisissez les historiques à lire](installation.md)
+- [Téléchargez et vérifiez une archive de la version](downloads.md)
 - [Utilisez un gestionnaire de paquets ou compilez depuis le code source](install-methods.md)
 - [Vérifiez où votre historique est stocké et ce qui reste sur votre ordinateur](privacy.md)
 
@@ -61,4 +62,4 @@ vos agents de programmation. Découvrez Mash avec le
 - [Référence des outils MCP](../tools.md)
 - [Appeler les outils de mémoire directement](../record-tools.md)
 
-<!-- mash-docs-source: 75a102b82663a5c61d39f82bcc42a89d0d0f0bd0f8182f7b16af702ce899806a -->
+<!-- mash-docs-source: f0f9a6f7891e0007b06356a7fc2bebdddac231c12f4660137cbb7d03451506d8 -->

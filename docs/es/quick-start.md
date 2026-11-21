@@ -12,7 +12,7 @@ Después de configurar Mash, ejecuta `mash dash` y abre en tu navegador la
 dirección que muestra. También puedes buscar en la terminal o conectar un
 agente para que busque por ti.
 
-[Qué cambia al configurar Mash](installation.md#what-setup-changes) · [Cómo verificar la descarga](installation.md#check-the-release-download) · [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
+[Qué cambia al configurar Mash](installation.md#what-setup-changes) · [Cómo verificar la descarga](downloads.md#verify-the-checksum) · [Privacidad del historial](privacy.md) · [Quick start in English](../../README.md#quick-start)
 
 Si quieres empezar con un solo agente y los últimos siete días, sigue la
 [guía de prueba local](privacy.md#prueba-con-menos-historial).
@@ -105,6 +105,6 @@ Para que los chats nuevos aparezcan en tus búsquedas, ejecuta `mash index` o
 [mantén el índice al día en segundo plano](synchronization.md).
 También puedes [hacer una copia de seguridad](backup.md).
 
-<!-- mash-docs-source: 71579f3583b9237b23b3c4122fb531b06b41f856d535c1fca5b8f8d62fa99b5c -->
+<!-- mash-docs-source: 9cf2a17136bb1f967985184a309d9c85b23f7b21bbe4b4e19db0a42d258b7d56 -->
 Para encontrar conversaciones nuevas, consulta [cómo actualizar el historial](synchronization.md).
 También puedes [hacer una copia de seguridad de tu historial](backup.md).

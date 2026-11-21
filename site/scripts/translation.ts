@@ -15,6 +15,7 @@ export const translationPages = [
   "quick-start",
   "compare",
   "installation",
+  "downloads",
   "install-methods",
   "local-search",
   "troubleshooting",

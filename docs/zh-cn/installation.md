@@ -12,7 +12,7 @@
 
 ## 设置会更改什么
 
-1. **安装程序。** [基本安装脚本](#recommended-release-installers)会将 `mash` 和 `mash-server` 放到你的用户目录。也可以自行[校验并解压发布归档](#check-the-release-download)。
+1. **安装程序。** [基本安装脚本](#recommended-release-installers)会将 `mash` 和 `mash-server` 放到你的用户目录。也可以自行[校验并解压发布归档](downloads.md)。
 2. **启动本地搜索。** `mash qdrant install` 会下载 Qdrant，并将它设置为在你登录时以你的账号运行。Mash 只允许本机连接该服务，并关闭 Qdrant 的遥测。[搜索服务文件](local-search.md#where-qdrant-stores-data)
 3. **选择 Mash 可以读取的内容。** 交互式 `mash init` 助手会先展示找到的历史记录目录，再保存设置或为对话建立索引。Mash 从原位置读取对话，默认在本机保存可搜索的副本。如果选择连接代理，设置助手会更新该代理的设置，让它可以从副本中请求对话片段。你也可以[跳过连接代理](#skip-agent-connections)，自行搜索。[Mash 的数据存放位置](privacy.md#where-mash-stores-data)
 
@@ -30,7 +30,7 @@
 
 ### 推荐的安装脚本
 
-预编译版本支持 Linux x86-64 和 ARM64、搭载 Apple 芯片的 macOS，以及 Windows x64。选择适用于你系统的命令。运行前可以先[查看脚本或校验下载文件](#check-the-release-download)。
+预编译版本支持 Linux x86-64 和 ARM64、搭载 Apple 芯片的 macOS，以及 Windows x64。选择适用于你系统的命令。运行前可以先[查看脚本或校验下载文件](downloads.md)。
 
 Linux 可执行文件需要 glibc 2.34 或更高版本。Ubuntu 22.04、Debian 12、RHEL 9 及其后续版本符合要求。Alpine 等使用 musl 的系统暂不支持。
 
@@ -183,25 +183,7 @@ Qdrant 启动前也可以阅读历史记录。先运行 `mash init --no-index`�
 
 ## 校验下载文件
 
-运行前可以阅读 [macOS 和 Linux 安装脚本](https://github.com/mashium/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/mashium/mash/blob/main/install.ps1)。脚本将文件安装到你的用户目录，无需管理员权限。[了解设置会更改什么](#what-setup-changes)。
-
-[公开发布流程](https://github.com/mashium/mash/actions/workflows/release.yml)会确认对应的源代码提交已通过 Linux 和 Windows 测试，再构建各平台的安装包。可以在[公开的安装测试](https://github.com/mashium/mash/actions/workflows/release-check.yml)中查看你的版本通过了哪些安装检查。
-
-如果不想运行下载的脚本，可以从同一个 [GitHub 发布版本](https://github.com/mashium/mash/releases)下载适合你平台的压缩包及 `SHA256SUMS`。解压前，计算压缩包的 SHA-256 值，并与校验文件中同名文件的值比较。例如，在 Linux x86-64 上运行以下命令。
-
-```sh
-sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
-```
-
-在 macOS 上用 `shasum -a 256` 校验 macOS 压缩包。在 Windows 上用 PowerShell 的 `Get-FileHash -Algorithm SHA256` 校验 Windows ZIP 文件。如果校验值与发布值相同，就把 `mash` 和 `mash-server`（Windows 上为两个 `.exe` 文件）解压到你自己的目录，然后[启动搜索服务](#start-the-local-search-service)。
-
-如果该版本提供构建证明，GitHub CLI 还可以验证安装包是由哪个发布流程和源代码标签生成的。将 `ARCHIVE` 替换为下载的文件，将 `RELEASE_TAG` 替换为该版本的标签，保留开头的 `v`。
-
-```sh
-gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
-```
-
-发布流程会在发布安装包前核验构建证明。`v0.1.1-alpha` 及更早版本使用上述 SHA-256 校验方式。
+[选择安装包并核对校验值](downloads.md)，或在运行前[查看安装脚本](downloads.md#inspect-the-installer)。
 
 <span id="uninstall"></span>
 
@@ -209,4 +191,4 @@ gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash
 
 运行 `mash uninstall` 可以预览将移除的内容。[查看哪些内容会保留，以及如何卸载 Mash](uninstall.md)。
 
-<!-- mash-docs-source: a966c25c54f06810be24db443c66df5ae4b12319579733914b26439648c648bf -->
+<!-- mash-docs-source: 52ce3de441d218c0570a52571fd86f47587a6a60e2bdd2d55cf2b6fe726eef61 -->
