@@ -9,7 +9,8 @@ import logoLight from "../../../assets/mash-logo-light.svg?url";
 const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, actions = [] } = data.hero ?? {};
 // What a visitor pastes into a coding agent to have it do the setup.
-const ask = "Read https://getmash.io/setup.md and set up Mash on this machine.";
+const ask =
+  "Read https://getmash.io/setup.md and set up Mash on this machine. Review the choices with me first.";
 
 const cargo = {
   id: "cargo",

@@ -62,6 +62,7 @@ To start with one agent and a short history range, follow the [local trial guide
 Paste this into Claude Code, Codex, or another coding agent.
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
+> Review the choices with me first.
 
 You can start with the dashboard and choose whether to connect agents.
 

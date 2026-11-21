@@ -195,7 +195,9 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "Copy the prompt for your agent" }).click();
   const prompt = await page.evaluate(() => navigator.clipboard.readText());
-  expect(prompt).toBe("Read https://getmash.io/setup.md and set up Mash on this machine.");
+  expect(prompt).toBe(
+    "Read https://getmash.io/setup.md and set up Mash on this machine. Review the choices with me first.",
+  );
   // The file the prompt names is published as plain Markdown.
   const setup = await request.get("/setup.md");
   expect(setup.ok()).toBe(true);
@@ -206,6 +208,11 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   expect(instructions).toContain("https://getmash.io/install-methods/#include-the-web-dashboard");
   expect(instructions).toContain("With only the terminal and agent tools, show them");
   expect(instructions).toContain("unless the person asked you to run their");
+  expect(instructions).toContain("`configuration.index.destination` set to `both`");
+  expect(instructions).toMatch(
+    /Proceed with\s+indexing only if they choose to use that destination/,
+  );
+  expect(instructions).toContain("If it is `rejected`, use `local_qdrant.message`");
 });
 
 test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {

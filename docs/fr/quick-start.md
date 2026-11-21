@@ -15,6 +15,7 @@ Pour commencer avec un seul agent et une période courte, consultez le
 Collez ce texte dans Claude Code, Codex ou un autre agent de programmation.
 
 > Lisez <https://getmash.io/setup.md> et configurez Mash sur cet ordinateur.
+> Passez d’abord les choix en revue avec moi.
 
 Vous pouvez commencer par le tableau de bord et choisir si vous souhaitez connecter des agents.
 
@@ -89,4 +90,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: a9c68be8a1b7921e08e9b2c39d59ef4330baecf985e1d0aa9a3832de160133e8 -->
+<!-- mash-docs-source: 093438374d60b452c7c6c2d57b784aa8deb2786af2988f6a7b29c18d4dc83b36 -->

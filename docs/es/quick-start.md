@@ -19,8 +19,8 @@ Si quieres empezar con un solo agente y los últimos siete días, sigue la
 
 Pega esta instrucción en Claude Code, Codex u otro agente de programación.
 
-> Lee https://getmash.io/setup.md y configura Mash en este equipo. Explícame
-> en español qué va a cambiar antes de empezar.
+> Lee https://getmash.io/setup.md y configura Mash en este equipo. Revisa
+> conmigo las opciones en español antes de empezar.
 
 Puedes empezar con el panel y elegir si quieres conectar agentes.
 

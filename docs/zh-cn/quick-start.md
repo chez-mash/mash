@@ -8,7 +8,7 @@
 
 将以下提示粘贴到 Claude Code、Codex 或其他编程代理中。
 
-> 请阅读 <https://getmash.io/setup.md>，并在这台电脑上配置 Mash。
+> 请阅读 <https://getmash.io/setup.md>，并在这台电脑上配置 Mash。开始前先和我核对设置选项。
 
 你可以先用网页面板，再决定是否连接代理。
 
@@ -67,4 +67,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: a9c68be8a1b7921e08e9b2c39d59ef4330baecf985e1d0aa9a3832de160133e8 -->
+<!-- mash-docs-source: 093438374d60b452c7c6c2d57b784aa8deb2786af2988f6a7b29c18d4dc83b36 -->

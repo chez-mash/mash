@@ -21,12 +21,20 @@ https://getmash.io/troubleshooting/.
 
 ## Review the setup with the person
 
+Identify the computer where your terminal runs. If it is remote, explain that
+the loopback dashboard opens on that computer. For access from their own
+browser, show the [private dashboard setup](https://getmash.io/dashboard/#open-it-from-your-phone-or-another-computer).
+
 If they want to see Mash first, send them to https://getmash.io/demo/. It uses
 sample chats and works before they install anything. Point them to
 https://getmash.io/installation/#check-the-release-download if they want to
 inspect the installers or check a release archive themselves.
 
-Explain what a new setup will do before asking the person to proceed:
+Check whether Mash is already installed with `mash --version`. If the command
+is missing from `PATH`, check `MASH_INSTALL_DIR` if set and the user's
+`.local/bin` directory (`mash.exe` on Windows). Use the full path if needed.
+
+For a new setup, explain these changes together before asking the person to proceed.
 
 - Install the `mash` and `mash-server` programs for their user (no
   administrator rights).
@@ -36,26 +44,36 @@ Explain what a new setup will do before asking the person to proceed:
   On Windows it stores search data outside the user profile in a short folder
   on the system drive, usually `C:\mash-qdrant\storage`. The main history
   database stays in their profile. See https://getmash.io/privacy/#where-mash-stores-data.
-- Index chats from the last 90 days across the supported histories it finds.
+- Index supported histories updated in the last 90 days.
   That can include this chat. Mash keeps a local copy and reads the original
   files without changing their contents.
 - Check that search is ready and show them how to find their first chat in
   the dashboard or terminal.
 
-Offer an agent connection as part of the same review. Ask whether they want
-Mash connected to the supported agent CLIs it finds, or want to search from the
-dashboard and terminal. Connecting uses those CLIs to edit their user settings
-and lets connected agents retrieve chat excerpts into their context. If they
-say only to proceed with setup, use the dashboard and terminal option.
+Use one review for the history range, search destination and any agent
+connections. Offer **Dashboard and terminal** as the default, and let them
+choose which available agents to connect. Connecting uses those agents' CLIs
+to edit their user settings and lets them retrieve excerpts into their
+context. Use the choices the person has already given you.
 If they already installed the Mash plugin, explain that enabled hooks can add
 excerpts even without an agent connection. Point them to the
 [plugin controls](https://getmash.io/plugin/#what-happens-without-asking).
 
 If they only want one agent's history or a shorter range, send them to
 https://getmash.io/privacy/#try-a-small-local-setup for the interactive choices.
-For an existing configuration, explain its search destination and agent
-connections during the review. If the person wants to change what is indexed or
-where it goes, use the settings review in https://getmash.io/installation/#connect-your-histories.
+For an existing install, run the read-only `mash status` first. If
+`configuration.loaded` is `true`, summarize the current histories in
+`configuration.providers`, the range and destination in `configuration.index`,
+and the agent connections in `installation.clients`.
+
+- With `configuration.index.destination` set to `both`, tell them that
+  indexing also sends chats to `configuration.shared.api_url`. Proceed with
+  indexing only if they choose to use that destination. If they want local
+  search only, use the [settings review](https://getmash.io/installation/#connect-your-histories)
+  to select **Just this computer (recommended)** before indexing.
+- `--no-agents` skips new connections. If they want to use the dashboard
+  without an agent that is already connected, show them how to
+  [disconnect it](https://getmash.io/agents/#disconnect-an-agent).
 
 Start with word and phrase search. If the person also asks for search by
 meaning, explain the optional model download in step 3 and get their approval
@@ -63,11 +81,7 @@ for that download.
 
 ## 1. Install Mash
 
-Skip this step if `mash --version` already prints a version.
-If `mash` is missing from `PATH`, also check for an existing binary in the
-user's `.local/bin` directory or in `MASH_INSTALL_DIR` if set
-(`mash.exe` on Windows). If it runs, use its full path through the rest
-of setup.
+If `mash --version` worked in the review, continue to step 2.
 
 For macOS on Apple silicon, Linux x86-64 and ARM64 (including WSL), or
 Windows x64, check whether a release is published:
@@ -129,9 +143,15 @@ mash --version
 
 ## 2. Start the local search service
 
-If the person already runs a working local Qdrant 1.20 or later, reuse it.
-The default HTTP and gRPC ports are 6333 and 6334 and must reach the same
-instance. On Linux and WSL, before using the built-in installer, run
+Run `mash status` and check `local_qdrant.state`. If it is `reachable`, reuse
+the running service. If it is `rejected`, use `local_qdrant.message` and the
+[connection guide](https://getmash.io/troubleshooting/#qdrant-connection-failed)
+to resolve the reported problem. If it is `unreachable` and the person already
+runs their own Qdrant, start that service using their existing setup. The HTTP
+and gRPC addresses must reach the same instance.
+
+If the local setup needs Mash to install or start Qdrant, use the command
+below. On Linux and WSL, first run
 `systemctl --user show-environment >/dev/null` in the same terminal. If it
 fails, explain the available options at
 https://getmash.io/local-search/#linux-without-a-systemd-user-session and
@@ -196,7 +216,8 @@ Read the result:
 mash status
 ```
 
-Read `ready` to see whether local search is usable. If `installation` lists
+Read `ready` to see whether local search is usable. If the person chose search
+by meaning, look for `realized_mode` set to `hybrid`. If `installation` lists
 unconfigured agents and has `next_action: null`, their connections are optional.
 If `ready` is `true`, show them the first step for the build they have.
 
@@ -204,7 +225,8 @@ If `ready` is `true`, show them the first step for the build they have.
   open the address it prints, usually http://127.0.0.1:8790. In **chats**,
   they can search for a word they remember and open a result.
 - With only the terminal and agent tools, show them
-  `mash search migration`, using a word they remember in place of `migration`, and
+  `mash search migration --local --intent exact-mention`, using a word they
+  remember in place of `migration`, and
   https://getmash.io/search/#your-first-search. If they want the dashboard too,
   show them https://getmash.io/install-methods/#include-the-web-dashboard.
 
@@ -231,8 +253,8 @@ title and date point to a conversation before this setup. Use that message
 to choose a term. For example, with Claude Code history:
 
 ```sh
-mash list-chats --provider claude-code --limit 10
-mash search migration --provider claude-code --intent exact-mention
+mash list-chats --local --provider claude-code --limit 10
+mash search migration --local --provider claude-code --intent exact-mention
 ```
 
 Use the actual provider and term from the earlier chat. Copy the matching
@@ -273,7 +295,7 @@ Each error is JSON with a `kind` and a message that names the fix.
 | ----------------------------------------- | ---------------------------------------------------------------------------------- |
 | `mash: command not found`                 | Use the full path from step 1, or add the install directory to `PATH`.             |
 | `usage` on a search                       | Put a query of several words in quotes.                                            |
-| `qdrant-unavailable`                      | Run `mash qdrant install`, then repeat the command that failed.                    |
+| `qdrant-unavailable`                      | Follow the connection check in step 2 before retrying.                             |
 | `database-missing`                        | Use the setup command from step 4, or run `mash index` if setup succeeded.         |
 | `model` or `search-not-ready` on a search | Search by words instead: add `--intent exact-mention`.                             |
 | `index-busy`                              | Another Mash process is indexing. Wait, then retry.                                |

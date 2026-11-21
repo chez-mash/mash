@@ -4,6 +4,7 @@ You are a coding agent on a developer's machine. The developer has never used
 Mash and sent you exactly this message:
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
+> Review the choices with me first.
 
 Do what a careful agent would do with that message: fetch the page and follow
 it. The developer is not at the keyboard, so their answers to what the page
