@@ -31,22 +31,61 @@ describe("documentation translation drafts", () => {
     const output = draft.render({
       translations: [
         "Historique",
-        "Ouvrez",
+        "Ouvrez ",
         "le guide",
         ".",
         "Rechercher",
-        "Choisissez",
-        "et lancez",
+        "Choisissez ",
+        " et lancez ",
         ".",
       ],
     });
     expect(output).toContain("# Historique");
     expect(output).toContain("## Rechercher");
-    expect(output).toContain("[le guide](../installation.md#uninstall)");
+    expect(output).toContain("Ouvrez [le guide](../installation.md#uninstall).");
     expect(output).toContain("**Skip agent connections** et lancez `mash dash`");
     expect(output).toContain("mash search 'migration' --local");
     expect(recordedTranslationRevision(output)).toBe(source.revision);
   });
+
+  it.each([
+    {
+      locale: "fr",
+      translations: [
+        "Installer",
+        "Avec ",
+        "Node.js",
+        " et Rust, lancez\n",
+        " avant de continuer. La version s’affiche-t-elle\u202f?",
+      ],
+      sentence:
+        "Avec [Node.js](https://nodejs.org/) et Rust, lancez `mash --version` avant de continuer. La version s’affiche-t-elle\u202f?",
+    },
+    {
+      locale: "zh-cn",
+      translations: ["安装", "准备好", "Node.js", "，然后运行 ", "，再继续。"],
+      sentence: "准备好[Node.js](https://nodejs.org/)，然后运行 `mash --version`，再继续。",
+    },
+  ])(
+    "preserves $locale spacing around a link and command",
+    ({ locale, translations, sentence }) => {
+      const draft = prepareTranslation(
+        {
+          ...source,
+          body: "# Install\n\nWith [Node.js](https://nodejs.org/), and Rust, run `mash --version` before continuing.",
+        },
+        `docs/${locale}/install-methods.md`,
+      );
+      expect(draft.passages).toEqual([
+        "Install",
+        "With ",
+        "Node.js",
+        ", and Rust, run ",
+        " before continuing.",
+      ]);
+      expect(draft.render({ translations })).toContain(sentence);
+    },
+  );
 
   it("rejects a missing or empty translation before returning Markdown", () => {
     const draft = prepareTranslation(source, "docs/fr/privacy.md");

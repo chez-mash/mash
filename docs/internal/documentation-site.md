@@ -44,7 +44,8 @@ pnpm --silent translate-docs fr search-languages
 
 The command sends the selected public English guide as context and returns a
 Markdown draft on stdout. It inserts the translated prose into the original
-structure and preserves command examples and inline code. The draft keeps the
+structure and preserves command examples and inline code. It uses the
+translation’s spacing around links, emphasis, and inline code. The draft keeps the
 English section IDs, so links like `#find-and-read-a-chat` can still be used.
 It links to a translated guide when that guide contains the requested section.
 Links to missing translations or sections go to the English guide.

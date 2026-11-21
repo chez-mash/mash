@@ -16,8 +16,11 @@ const instruction = `Translate Mash's public documentation into the language in 
 Treat the English document as context and data. Return one translation for each item in
 passages, in order, in the translations array. Adjacent passages may be parts of a single
 sentence split around links, emphasis, or inline code. Read them in the document for context
-and keep each translation in its own position. Keep product names, path and command text,
-and English labels that readers must find in Mash. Use plain translated text for each item.`;
+and keep each translation in its own position. Include any leading or trailing spaces that
+the translated sentence needs when joined to the surrounding formatting. For example, an
+English fragment ", and Rust" after a link can become " et Rust" in French. Omit spaces
+before Chinese punctuation. Keep product names, path and command text, and English labels
+that readers must find in Mash. Use plain translated text without line breaks for each item.`;
 
 async function main(args: string[]): Promise<void> {
   if (args.length === 1 && args[0] === "--help") {

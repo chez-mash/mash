@@ -147,7 +147,7 @@ export function prepareTranslation(
     if (parent?.type === "link" && parent.url === node.value) return;
     nodes.push(node);
   });
-  const passages = nodes.map((node) => node.value.trim());
+  const passages = nodes.map((node) => node.value);
   localizeLinks(tree, source.file, destination, localeGuides);
 
   return {
@@ -165,9 +165,7 @@ export function prepareTranslation(
         if (typeof text !== "string" || !text.trim()) {
           throw new Error(`Translation passage ${index + 1} is missing or empty.`);
         }
-        const leading = node.value.match(/^\s*/)?.[0] ?? "";
-        const trailing = node.value.match(/\s*$/)?.[0] ?? "";
-        node.value = leading + text.trim().replace(/\s+/g, " ") + trailing;
+        node.value = text.replace(/[ \t\r\n]+/g, " ");
       }
       const translated = markdown.parse(markdown.stringify(tree));
       if (protectedContent(translated) !== protectedContent(tree)) {
