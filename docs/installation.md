@@ -7,6 +7,13 @@ computer.
 Already using Mash? Read [upgrades and backups](upgrades.md) before replacing
 a release that uses a different database schema.
 
+For a new local setup in a terminal, use the [quick start](../README.md#quick-start).
+Its setup option installs the verified release, runs `mash qdrant install`
+to prepare the local search service, then opens `mash init` from the installed
+path. You review the detected histories and agent connections before indexing.
+Use the steps below to install the binaries alone, run your own search
+service, or do the steps separately.
+
 ## Install the CLI
 
 ### Recommended release installers

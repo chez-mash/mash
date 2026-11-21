@@ -23,42 +23,24 @@ pídele a tu agente que use la skill `setup`.
 
 Necesitas al menos una conversación guardada con un agente compatible.
 
-### 1. Descarga Mash
-
-En macOS con Apple silicon o en Linux (x86-64 o ARM64, incluido WSL), ejecuta
-este comando.
+En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
+este comando para una instalación local nueva.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
 En Windows x64, usa PowerShell.
 
 ```powershell
-irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
 ```
 
-El instalador verifica la suma de comprobación de la descarga y guarda los
-programas en `.local/bin`, dentro de tu carpeta de usuario. Si `mash` aún no
-está en tu `PATH`, usa la ruta que muestra el instalador en lugar de `mash`.
-[Otros métodos de instalación (en inglés)](../installation.md#package-manager-alternatives)
-
-### 2. Inicia el servicio de búsqueda
-
-```sh
-mash qdrant install
-```
-
-Mash descarga y verifica Qdrant (unos 30 MB). El servicio se ejecuta con tu
-usuario, solo acepta conexiones desde este equipo y se inicia de nuevo
-cuando entras en tu sesión. La búsqueda por palabras funciona sin descargar
-modelos.
-
-### 3. Revisa qué va a leer Mash
-
-```sh
-mash init
-```
+El instalador verifica las descargas, guarda Mash en `.local/bin`, inicia el
+servicio de búsqueda local (Qdrant, unos 30 MB) y abre el asistente de Mash.
+El servicio funciona con tu usuario y se inicia cuando entras en tu sesión.
+En Linux y WSL, esta opción requiere una sesión de usuario de systemd.
+La búsqueda por palabras funciona sin descargar modelos.
 
 Revisa las carpetas de historial y los agentes detectados. Elige
 **Set up and index** para crear el índice en este equipo. La configuración
@@ -67,8 +49,9 @@ Si el asistente te pregunta antes dónde buscar, elige **Just this computer**.
 Para elegir carpetas, fechas o agentes, usa **Customize setup** si está
 disponible.
 
-También puedes ejecutar `mash dash` en lugar de `mash init` y usar
-[el asistente del panel local (en inglés)](../dashboard.md#set-up-mash-from-the-dashboard).
+Para instalar por separado, usar tu propio Qdrant o configurar WSL sin systemd,
+consulta la [guía de instalación (en inglés)](../installation.md).
+También puedes [usar el asistente del panel local (en inglés)](../dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Encuentra una conversación anterior
 
@@ -79,6 +62,7 @@ función que recuerdes de una conversación anterior.
 mash search migración
 ```
 
+Si `mash` aún no está en tu `PATH`, usa la ruta que muestra el instalador.
 Para abrir el mensaje, pasa el `lookup.view.id` del resultado a
 `mash view MESSAGE_ID --context 3`. En el panel, busca el mismo término y
 abre el resultado.

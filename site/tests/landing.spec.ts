@@ -85,7 +85,8 @@ test("the hero's install command copies to the clipboard", async ({ page, contex
   await page.getByRole("button", { name: "Install it yourself" }).click();
   const command = page.locator(".mash-install .picked code");
   // The browser under test runs on Linux, so the picker opens on the shell script.
-  await expect(command).toHaveText(/^curl .*install\.sh \| sh$/);
+  await expect(command).toHaveText(/^curl .*install\.sh \| sh -s -- --setup$/);
+  await expect(page.getByRole("link", { name: "Install separately" })).toBeVisible();
   const copy = page.getByRole("button", { name: "Copy the install command" });
   await copy.click();
   await expect(copy).toHaveText("Copied");
@@ -109,10 +110,15 @@ test("the hero's install picker follows the chosen system and method", async ({
   await expect(install.locator(".command:visible")).toHaveCount(1);
   await expect(install.locator(".command:visible code")).toHaveText(/^curl /);
   await install.getByRole("button", { name: "Windows", exact: true }).click();
-  await expect(command).toHaveText(/^irm .*install\.ps1 \| iex$/);
+  await expect(command).toHaveText(/^& .*irm .*install\.ps1\)\)\) -Setup$/);
   await expect(install.locator(".picked .prompt")).toHaveText(">");
   await install.getByRole("button", { name: "Cargo", exact: true }).click();
   await expect(command).toHaveText(/^cargo \+stable install /);
+  await expect(
+    install.getByRole("link", {
+      name: "start the local search service and connect your histories",
+    }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Copy the install command" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     await command.textContent(),

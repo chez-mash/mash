@@ -53,51 +53,31 @@ Mash to search your own history.
 If you installed the [Mash plugin](docs/plugin.md#start-with-the-plugin),
 you can ask for its `setup` skill.
 
-**Set it up yourself.** The steps below search existing chats on one machine.
-You can try word and phrase search before downloading any models.
+**Set it up yourself.** Run one of these commands in a terminal for a new
+local setup. It installs Mash and the local search service, then asks you to
+review which histories to read and which agents to connect before indexing.
 
-### 1. Install Mash
-
-macOS (Apple silicon) or Linux (x86-64 or ARM64), including WSL:
+On macOS (Apple silicon) or Linux (x86-64 or ARM64):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup
 ```
 
-Windows x64, in PowerShell:
+On Windows x64, in PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup
 ```
 
-The scripts verify the release checksum and install to your user's
-`.local/bin`. Follow the commands the installer prints if `mash` is not on
-your `PATH` yet. These installs need no Rust, Docker or administrator rights.
+The scripts verify the downloads and install Mash into your `.local/bin`.
+Qdrant (about 30 MB) runs under your user and starts at login. Word search
+works without downloading any models. Linux and WSL need a systemd user
+session for this setup.
 
-### 2. Start the local search service
-
-```bash
-mash qdrant install
-```
-
-This downloads Qdrant (about 30 MB), checks its checksum, and starts it on
-this machine. It runs under your user and starts again when you log in.
-[Search service setup](docs/installation.md#start-the-local-search-service)
-covers using your own Qdrant and removing the service.
-
-### 3. Connect your histories
-
-```bash
-mash init
-```
-
-Review the local setup, including the histories and installed agents Mash
-found, then choose **Set up and index**. The default covers the last 90 days.
-Choose **Customize setup** to change what Mash reads or connects.
-For a browser wizard, run `mash dash` instead and open
-[the local dashboard setup](docs/dashboard.md#set-up-mash-from-the-dashboard).
-See [setup options and results](docs/installation.md#connect-your-histories)
-for unattended setup, custom folders, or help with the setup report.
+The default history range is 90 days. Review the setup and choose **Set up
+and index** when you’re ready. For WSL without systemd, a search service you
+already run, or a binary-only install, follow the [installation guide](docs/installation.md).
+You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Try it
 
@@ -108,6 +88,7 @@ Replace `migration` with that word.
 mash search migration
 ```
 
+If `mash` isn’t on your `PATH` yet, use the installed path shown during setup.
 Copy the `lookup.view.id` from a matching result and open it with
 `mash view MESSAGE_ID --context 3`. In the [dashboard](docs/dashboard.md),
 search for the word and click the result to open the conversation.

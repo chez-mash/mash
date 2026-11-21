@@ -1,17 +1,43 @@
 #!/bin/sh
 # Install the latest Mash release binary:
 #   curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
-# Set MASH_VERSION (for example v0.8.0) to pin a release and MASH_INSTALL_DIR to
-# choose the directory (default ~/.local/bin). Verifies the release checksum.
+# Add `-s -- --setup` after `sh` to also start local Qdrant and open the setup wizard.
 set -eu
 
-case "${1:-}" in
-  "") ;;
-  -h | --help)
-    sed -n '2,5s/^# \{0,1\}//p' "$0" 2> /dev/null || echo 'Installs the latest Mash release; see https://getmash.io/installation/'
-    exit 0 ;;
-  *) echo "mash: install.sh takes no arguments; set MASH_VERSION or MASH_INSTALL_DIR instead" >&2; exit 2 ;;
-esac
+usage() {
+  cat <<'EOF'
+Usage: sh install.sh [--setup]
+Installs the verified Mash release into ~/.local/bin by default.
+Set MASH_VERSION to pin a release or MASH_INSTALL_DIR to change the directory.
+Use --setup in a terminal to also install and start local Qdrant and review
+which histories Mash will read. When piping this script to sh, use sh -s -- --setup.
+EOF
+}
+
+setup=false
+if [ "$#" -gt 0 ]; then
+  case "$#:$1" in
+    1:--setup) setup=true ;;
+    1:-h | 1:--help) usage; exit 0 ;;
+    *) usage >&2; exit 2 ;;
+  esac
+fi
+
+setup_terminal_required() {
+  echo 'mash: --setup needs an interactive terminal. Run without --setup to install the binaries only.' >&2
+  exit 2
+}
+
+if "$setup"; then
+  [ -t 1 ] && [ -t 2 ] || setup_terminal_required
+  if [ -t 0 ]; then
+    exec 3<&0
+  else
+    # The installer itself may be piped to sh. Give the wizard the keyboard.
+    ( : </dev/tty ) 2>/dev/null || setup_terminal_required
+    exec 3</dev/tty
+  fi
+fi
 
 repository=mashium/mash
 directory=${MASH_INSTALL_DIR:-$HOME/.local/bin}
@@ -62,11 +88,18 @@ tar -xzf "$scratch/$archive" -C "$scratch"
 mkdir -p "$directory"
 install -m 0755 "$scratch/mash" "$directory/mash"
 install -m 0755 "$scratch/mash-server" "$directory/mash-server"
+mash="$directory/mash"
 echo "Installed $directory/mash and $directory/mash-server"
 case ":$PATH:" in
   *":$directory:"*) ;;
   *) echo "Add $directory to your PATH." ;;
 esac
-quoted_mash=$(printf '%s' "$directory/mash" | sed "s/'/'\\\\''/g")
+if "$setup"; then
+  echo 'Preparing the local search service (Qdrant). The setup wizard opens next.'
+  "$mash" qdrant install </dev/null >/dev/null
+  "$mash" init <&3 3<&-
+  exit
+fi
+quoted_mash=$(printf '%s' "$mash" | sed "s/'/'\\\\''/g")
 echo "For a new local setup, install the search service and then run the setup wizard."
 printf "  '%s' qdrant install\n  '%s' init\n" "$quoted_mash" "$quoted_mash"

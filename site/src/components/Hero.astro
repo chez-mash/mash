@@ -34,7 +34,8 @@ const script = {
   id: "script",
   label: "Script",
   prompt: "$",
-  command: "curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh",
+  command:
+    "curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --setup",
 };
 const systems = [
   { id: "macos", label: "macOS", icon: "apple", methods: [script, brew, cargo] },
@@ -48,7 +49,8 @@ const systems = [
         id: "script",
         label: "PowerShell",
         prompt: ">",
-        command: "irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex",
+        command:
+          "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Setup",
       },
       {
         id: "scoop",
@@ -148,6 +150,13 @@ const first = script;
           <button type="button" data-copy={first.command} aria-label="Copy the install command">Copy</button>
         </div>
         <p class="hint">Paste it into Claude Code, Codex or any coding agent.</p>
+        <p class="script-hint">
+          Run in a terminal to install Mash and the local search service, then review which histories to read.
+          <a href="/installation/">Install separately</a>
+        </p>
+        <p class="package-hint">
+          After installing, <a href="/installation/#start-the-local-search-service">start the local search service and connect your histories</a>.
+        </p>
       </div>
     </div>
   </div>
@@ -360,8 +369,14 @@ const first = script;
   .hint {
     color: var(--sl-color-gray-4);
   }
-  .mash-install[data-mode="manual"] .hint {
+  .mash-install[data-mode="manual"] .hint,
+  .script-hint,
+  .package-hint {
     display: none;
+  }
+  .mash-install[data-mode="manual"][data-method="script"] .script-hint,
+  .mash-install[data-mode="manual"][data-method]:not([data-method="script"]) .package-hint {
+    display: block;
   }
   .mash-install p {
     margin: 0;

@@ -80,6 +80,41 @@ try {
     Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip' 'latest release URL'
     Assert-Equal @(Get-ChildItem -LiteralPath $destination -Force -Filter '.mash-incoming-*').Count 0 'staging cleanup'
 
+    $setupSteps = Join-Path $root 'setup-steps.txt'
+    $env:MASH_INSTALL_TEST_STEPS = $setupSteps
+    if ($originalOs -eq 'Windows_NT') {
+        $setupFixture = Join-Path $destination 'setup-fixture.cmd'
+        @'
+@echo off
+echo %*>>"%MASH_INSTALL_TEST_STEPS%"
+if "%MASH_INSTALL_TEST_QDRANT_FAIL%"=="1" if "%1"=="qdrant" exit /b 7
+echo ran %*
+'@ | Set-Content -LiteralPath $setupFixture -Encoding Ascii
+    } else {
+        $setupFixture = Join-Path $destination 'setup-fixture'
+        @'
+#!/bin/sh
+printf '%s\n' "$*" >> "$MASH_INSTALL_TEST_STEPS"
+if [ "${MASH_INSTALL_TEST_QDRANT_FAIL:-0}" = 1 ] && [ "$1" = qdrant ]; then exit 7; fi
+printf 'ran %s\n' "$*"
+'@ | Set-Content -LiteralPath $setupFixture -Encoding Ascii
+        chmod +x $setupFixture
+    }
+    $output = @(Start-MashSetup -Executable $setupFixture 6>$null)
+    Assert-Equal ($output -join ',') 'ran init' 'only the wizard writes to output'
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install,init' 'setup order'
+    Remove-Item -LiteralPath $setupSteps
+    $env:MASH_INSTALL_TEST_QDRANT_FAIL = '1'
+    Assert-Fails { Start-MashSetup -Executable $setupFixture 6>$null } 'could not start the local search service'
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install' 'failed search service stops setup'
+
+    if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected) {
+        $downloadsBefore = $script:requests.Count
+        $installer = [scriptblock]::Create((Get-Content -LiteralPath (Join-Path $PSScriptRoot '../install.ps1') -Raw))
+        Assert-Fails { & $installer -Setup } 'needs an interactive terminal'
+        Assert-Equal $script:requests.Count $downloadsBefore 'noninteractive setup does not download'
+    }
+
     Remove-Item -LiteralPath $archive
     $wrongFile = Join-Path $root 'README.txt'
     Set-Content -LiteralPath $wrongFile -Value 'not an executable'
@@ -99,5 +134,6 @@ try {
     $env:OS = $originalOs
     $env:PROCESSOR_ARCHITECTURE = $originalArchitecture
     $env:PROCESSOR_ARCHITEW6432 = $originalWowArchitecture
+    Remove-Item Env:MASH_INSTALL_TEST_STEPS, Env:MASH_INSTALL_TEST_QDRANT_FAIL -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $root -Recurse -Force
 }

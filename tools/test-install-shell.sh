@@ -63,4 +63,44 @@ if sh "$repository/install.sh" >"$scratch/output" 2>&1; then
 fi
 grep -Fxq 'cli fixture' "$destination/mash"
 grep -Fxq 'server fixture' "$destination/mash-server"
+
+export TEST_INSTALL_SCRIPT="$repository/install.sh" TEST_INSTALL_STEPS="$scratch/steps"
+cat > "$scratch/archive/mash" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >> "$TEST_INSTALL_STEPS"
+case "$*" in
+    'qdrant install')
+        echo 'search service JSON fixture'
+        if [ "${TEST_INSTALL_QDRANT_FAIL:-0}" = 1 ]; then
+            echo 'search service failure fixture' >&2
+            exit 7
+        fi ;;
+    init)
+        [ -t 0 ] && [ -t 1 ] && [ -t 2 ] || exit 8
+        printf 'Review the histories\n'
+        IFS= read -r answer && [ "$answer" = 'fixture consent' ] || exit 9 ;;
+    *) exit 10 ;;
+esac
+SH
+package mash mash-server
+if sh "$repository/install.sh" --setup >"$scratch/output" 2>&1; then
+    echo 'Setup ran with redirected output.' >&2; exit 1
+fi
+grep -q -- '--setup needs an interactive terminal' "$scratch/output"
+grep -Fxq 'cli fixture' "$destination/mash"
+[[ ! -e $TEST_INSTALL_STEPS ]]
+
+printf 'fixture consent\n' | script -eqc 'cat "$TEST_INSTALL_SCRIPT" | sh -s -- --setup' /dev/null >"$scratch/output"
+diff -u <(printf 'qdrant install\ninit\n') "$TEST_INSTALL_STEPS"
+grep -q 'Review the histories' "$scratch/output"
+if grep -q 'search service JSON fixture' "$scratch/output"; then
+    echo 'Setup printed the search service JSON.' >&2; exit 1
+fi
+
+: > "$TEST_INSTALL_STEPS"
+setup_status=0
+TEST_INSTALL_QDRANT_FAIL=1 script -eqc 'sh "$TEST_INSTALL_SCRIPT" --setup' /dev/null </dev/null >"$scratch/output" || setup_status=$?
+[[ $setup_status == 7 ]]
+diff -u <(printf 'qdrant install\n') "$TEST_INSTALL_STEPS"
+grep -q 'search service failure fixture' "$scratch/output"
 echo 'Shell installer fixtures passed.'
