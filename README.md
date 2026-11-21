@@ -89,10 +89,14 @@ The scripts verify the downloads and install Mash into your `.local/bin`.
 Qdrant (about 30 MB) runs under your user and starts at login. Word search
 works without downloading any models.
 
-The default history range is 90 days. Review the setup and choose **Set up
-and index** when you’re ready. If the wizard first asks where to search, choose
-**Just this computer (recommended)**. To use a search service you already run,
-or to install Mash separately, follow the [installation guide](docs/installation.md).
+Review the histories before you start. The default range is 90 days. If asked
+where to search, choose **Just this computer (recommended)**.
+
+- **Search in the dashboard yourself.** [Skip agent connections](docs/installation.md#skip-agent-connections) and index your chats. You can connect agents later.
+- **Let an agent search for you.** Check the agents listed in the review before choosing **Set up and index**.
+
+To use a search service you already run or to install Mash separately, follow
+the [installation guide](docs/installation.md).
 You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>

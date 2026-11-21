@@ -46,8 +46,7 @@
 3. 选择 **Set up and index**，然后运行 `mash dash`。在浏览器中打开显示的地址，
    选择 **chats**，搜索那段对话中的一个词。
 
-如果想使用所有建议的历史，同时保持代理连接关闭，请在首次核对设置时选择
-**Set up and index without connecting agents**。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
+如果想使用所有建议的历史，请按步骤[跳过代理连接](installation.md#skip-agent-connections)。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
 [查看卸载会删除什么](installation.md#uninstall)
@@ -73,4 +72,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](../upgrades.md)。
 
-<!-- mash-docs-source: c658788724aed122c6f22e902d0e80c403d672a51dbf4a302fb1d990410ed8fd -->
+<!-- mash-docs-source: 7444dec489b38d5298396025767027dc21f467445130808b09e6534848ab0572 -->

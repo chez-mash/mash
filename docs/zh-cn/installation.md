@@ -86,13 +86,25 @@ Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台�
 mash init
 ```
 
-首次设置时，终端助手会显示找到的历史记录目录、读取范围（最近 90 天内更新过的文件），以及可连接的代理。选择 **Set up and index** 将索引保存在本机并应用这些选项。选择 **Set up and index without connecting agents** 也会为同一批历史记录建立索引，供你自己搜索。即使代理的命令不在本机，Mash 也能读取它已保存的对话。你可以[稍后再连接代理](agents.md#connect-claude-code-codex-or-copilot)，让代理帮你搜索。
+首次设置时，终端助手会显示找到的历史记录目录、读取范围（最近 90 天内更新过的文件），以及可连接的代理。如果向导询问在哪里搜索，请选择 **Just this computer (recommended)**，将索引保存在本机。**Set up and index** 会应用摘要中的选项，包括连接已选中的代理。即使代理的命令不在本机，Mash 也能读取它已保存的对话。
 
 选择 **Customize setup** 可以修改读取范围或历史记录目录，选择要接入的代理，连接已有的共享服务器，或先保存设置，稍后再建立索引。这个选项还允许在建立索引后[从旧对话中补录记忆（英文）](../records.md#backfill-earlier-memory)。补录时，Mash 会使用你已登录的 Claude Code 或 Codex，将选中的对话文字发送给该代理的模型服务。
 
 在应用设置前按 Esc 或 Ctrl-C，可以取消对 Mash 配置和代理设置的更改。如果选择建立索引，助手会检查本地搜索服务的 HTTP 接口。如果选择共享，还会检查能否通过服务器的身份验证。如果连接失败，可以先保存设置，稍后再完成配置。
 
 如果连接了代理，请重启代理以加载 Mash。历史记录插件的钩子需要 Python 3.9 或更高版本。[在代理中使用 Mash](agents.md)
+
+<span id="skip-agent-connections"></span>
+
+### 跳过代理连接
+
+你可以自己在网页面板或终端搜索对话，无需授权代理使用 Mash 搜索。根据向导显示的选项操作。
+
+- 如果首次核对设置时看到 **Set up and index without connecting agents**，选择它，为列出的历史记录建立索引。
+- 如果向导询问 **Which agents should get access to Mash search?**，用空格键取消选中所有代理，然后按回车键。如果向导询问是否从旧对话中补录记忆，请跳过补录。
+- 如果摘要显示没有要连接的代理，选择 **Set up and index**。
+
+搜索就绪后，[打开网页面板](#try-your-first-search)。你也可以[稍后再连接代理](agents.md#connect-claude-code-codex-or-copilot)。
 
 <span id="try-your-first-search"></span>
 
@@ -191,4 +203,4 @@ mash uninstall --yes    # removes it
 
 如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
 
-<!-- mash-docs-source: c76dffd3a597e79d18239cc19705058e55ca3becb67218dbad0a8bda868aeb52 -->
+<!-- mash-docs-source: e9fdc82da63b901e9fbc86e2c87b4aa88f83b1670d47a01b3094284023646838 -->

@@ -29,8 +29,11 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 
 这些脚本会校验下载内容，并将 Mash 安装到你的 `.local/bin` 目录。Qdrant（约 30 MB）以你的用户身份运行，登录时自动启动。关键词搜索不需要下载模型。
 
-默认读取最近 90 天的历史。核对设置后，选择 **Set up and index** 继续。
-如果设置助手先询问在哪里搜索，请选择 **Just this computer (recommended)**。
+开始前先核对要读取的历史记录。默认范围为最近 90 天。如果设置向导询问在哪里搜索，请选择 **Just this computer (recommended)**。
+
+- **自己在网页面板中搜索。** [跳过代理连接](installation.md#skip-agent-connections)，为对话建立索引。之后也可以再连接代理。
+- **让代理帮你搜索。** 选择 **Set up and index** 之前，先核对摘要中列出的代理。
+
 如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 <span id="try-it"></span>
@@ -60,4 +63,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 69701a6a3572e0152149d51adff02a80c78a94f9b4d5dfeff6fc0616f21a3255 -->
+<!-- mash-docs-source: ab23d879eacfb69c5fe289e4394fa7c26f96b61c71a69b67878af152168dc7ed -->

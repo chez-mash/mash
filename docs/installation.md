@@ -101,11 +101,10 @@ mash init
 
 On a fresh setup, the terminal wizard shows the history folders it found,
 the history range (files updated in the last 90 days), and the agents it can
-connect. Choose **Set up and index** to keep the index on this machine and
-apply those choices. Choose **Set up and index without connecting agents**
-to use the same histories and search them yourself. Mash can read saved chats
-even if the agent's command is missing. You can [connect an agent later](agents.md#connect-claude-code-codex-or-copilot)
-if you want it to search Mash for you.
+connect. If asked where to search, choose **Just this computer (recommended)**
+to keep the index on this machine. **Set up and index** applies the options in
+the review, including any selected agent connections. Mash can read saved
+chats even if the agent's command is missing.
 
 Choose **Customize setup** to use a different date range or history folder,
 pick specific integrations, connect an existing shared server, or save
@@ -121,6 +120,21 @@ can save settings and finish setup afterward.
 
 If you connected an agent, restart it to load Mash. The history plugin's
 hooks need Python 3.9+. [Use Mash with your agent](agents.md)
+
+### Skip agent connections
+
+You can search your chats in the dashboard or terminal without giving a
+coding agent access to your Mash search. The wizard offers one of these paths.
+
+- If the first review offers **Set up and index without connecting agents**,
+  choose it to index the histories shown.
+- If the wizard asks **Which agents should get access to Mash search?**, use
+  Space to clear every selection, then press Enter. If asked about memory
+  backfill, decline it.
+- If the review lists no agents to connect, choose **Set up and index**.
+
+Once search is ready, [open the dashboard](#try-your-first-search). You can
+[connect an agent later](agents.md#connect-claude-code-codex-or-copilot).
 
 ## Try your first search
 

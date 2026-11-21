@@ -57,8 +57,8 @@ Pour essayer Mash avec l’un de vos propres historiques :
 3. Choisissez **Set up and index**, puis lancez `mash dash`. Ouvrez l’adresse
    affichée, sélectionnez **chats** et cherchez un mot de cette conversation.
 
-Pour utiliser tous les historiques proposés sans connecter d’agents, choisissez
-**Set up and index without connecting agents** au premier récapitulatif.
+Pour utiliser tous les historiques proposés, suivez les étapes pour
+[ignorer la connexion aux agents](installation.md#skip-agent-connections).
 Vous pouvez aussi [faire ces choix dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard).
 
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
@@ -85,4 +85,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](../upgrades.md) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: c658788724aed122c6f22e902d0e80c403d672a51dbf4a302fb1d990410ed8fd -->
+<!-- mash-docs-source: 7444dec489b38d5298396025767027dc21f467445130808b09e6534848ab0572 -->

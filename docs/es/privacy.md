@@ -70,8 +70,8 @@ Para probar Mash con uno de tus historiales:
 3. Elige **Set up and index** y ejecuta `mash dash`. Abre la dirección que
    aparezca, selecciona **chats** y busca una palabra de esa conversación.
 
-Para usar todos los historiales sugeridos sin conectar agentes, elige
-**Set up and index without connecting agents** en el primer resumen.
+Para usar todos los historiales sugeridos, sigue los pasos para
+[omitir las conexiones a agentes](installation.md#skip-agent-connections).
 También puedes [elegir estas opciones en el navegador](dashboard.md#set-up-mash-from-the-dashboard).
 
 `mash uninstall` muestra qué se eliminaría antes de confirmar y conserva las

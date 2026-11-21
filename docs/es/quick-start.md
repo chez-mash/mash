@@ -53,12 +53,12 @@ servicio de búsqueda local (Qdrant, unos 30 MB) y abre el asistente de Mash.
 El servicio funciona con tu usuario y se inicia cuando entras en tu sesión.
 La búsqueda por palabras funciona sin descargar modelos.
 
-Revisa las carpetas de historial y los agentes detectados. Elige
-**Set up and index** para crear el índice en este equipo. La configuración
-predeterminada incluye archivos actualizados en los últimos 90 días.
-Si el asistente te pregunta antes dónde buscar, elige **Just this computer**.
-Para elegir carpetas, fechas o agentes, usa **Customize setup** si está
-disponible.
+Revisa los historiales antes de empezar. Por defecto se incluyen los archivos
+actualizados en los últimos 90 días. Si el asistente pregunta dónde buscar,
+elige **Just this computer (recommended)**.
+
+- **Busca por tu cuenta en el panel.** [Omite las conexiones a agentes](installation.md#skip-agent-connections) e indexa tus conversaciones. Puedes conectar agentes más adelante.
+- **Deja que un agente busque por ti.** Comprueba qué agentes aparecen en la revisión antes de elegir **Set up and index**.
 
 Para instalar por separado o usar tu propio Qdrant, consulta la
 [guía de instalación](installation.md).

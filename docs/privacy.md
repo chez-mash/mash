@@ -71,9 +71,9 @@ in the demo first. To try Mash on one of your own histories:
 3. Choose **Set up and index**, then run `mash dash`. Open the address it
    prints, select **chats**, and search for a word from that conversation.
 
-To use all the suggested histories without connecting agents, choose
-**Set up and index without connecting agents** on the first review. You can
-also [make these choices in the browser](dashboard.md#set-up-mash-from-the-dashboard).
+To use all the suggested histories, follow the steps to
+[skip agent connections](installation.md#skip-agent-connections). You can also
+[make these choices in the browser](dashboard.md#set-up-mash-from-the-dashboard).
 
 If you decide to stop, run `mash uninstall` to preview removal. When you
 confirm, Mash removes its own index and services and keeps your agents'

@@ -45,9 +45,13 @@ Les scripts vérifient les téléchargements et installent Mash dans le dossier
 l’ouverture de votre session. La recherche par mots fonctionne sans téléchargement
 de modèles.
 
-La période proposée couvre les 90 derniers jours. Vérifiez les options, puis
-choisissez **Set up and index** quand vous êtes prêt. Si l’assistant commence
-par vous demander où chercher, choisissez **Just this computer (recommended)**.
+Vérifiez les historiques avant de commencer. La période proposée couvre les
+90 derniers jours. Si l’assistant vous demande où chercher, choisissez
+**Just this computer (recommended)**.
+
+- **Cherchez vous-même dans le tableau de bord.** [Ignorez la connexion aux agents](installation.md#skip-agent-connections) et indexez vos conversations. Vous pourrez connecter des agents plus tard.
+- **Demandez à un agent de chercher pour vous.** Vérifiez les agents indiqués dans le récapitulatif avant de choisir **Set up and index**.
+
 Si votre service de recherche tourne déjà ou si vous voulez seulement les
 exécutables, consultez le [guide d’installation](installation.md).
 Vous pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
@@ -81,4 +85,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 69701a6a3572e0152149d51adff02a80c78a94f9b4d5dfeff6fc0616f21a3255 -->
+<!-- mash-docs-source: ab23d879eacfb69c5fe289e4394fa7c26f96b61c71a69b67878af152168dc7ed -->

@@ -120,13 +120,11 @@ mash init
 
 En una instalación nueva, el asistente de la terminal muestra las carpetas
 que encontró, el periodo que va a leer (archivos actualizados en los últimos
-90 días) y los agentes que puede conectar. Elige **Set up and index** para
-guardar el índice en este equipo y aplicar esas opciones. Con
-**Set up and index without connecting agents** se indexan los mismos
-historiales y puedes buscar por tu cuenta. Mash puede leer conversaciones
-guardadas aunque falte el comando del agente. También puedes
-[conectar un agente más adelante](agents.md#connect-claude-code-codex-or-copilot)
-para que busque por ti.
+90 días) y los agentes que puede conectar. Si el asistente pregunta dónde
+buscar, elige **Just this computer (recommended)** para guardar el índice en
+este equipo. **Set up and index** aplica las opciones de la revisión, incluidas
+las conexiones a los agentes seleccionados. Mash puede leer conversaciones
+guardadas aunque falte el comando del agente.
 
 Elige **Customize setup** para cambiar el periodo o la carpeta de un
 historial, elegir integraciones concretas, conectar un servidor compartido
@@ -144,6 +142,24 @@ terminar más adelante.
 
 Si conectaste un agente, reinícialo para que cargue Mash. Los hooks del plugin
 de historial necesitan Python 3.9 o posterior. [Usa Mash con tu agente](agents.md)
+
+<span id="skip-agent-connections"></span>
+
+### Omite las conexiones a agentes
+
+Puedes buscar tus conversaciones en el panel o la terminal sin dar acceso a
+la búsqueda de Mash a un agente de programación. Sigue la opción que muestre
+el asistente.
+
+- Si la primera revisión ofrece **Set up and index without connecting agents**,
+  elígela para indexar los historiales que aparecen.
+- Si el asistente pregunta **Which agents should get access to Mash search?**,
+  usa la barra espaciadora para desmarcar todos los agentes y pulsa Intro. Si
+  pregunta si quieres extraer recuerdos de conversaciones anteriores, elige que no.
+- Si la revisión indica que no se conectará ningún agente, elige **Set up and index**.
+
+Cuando la búsqueda esté lista, [abre el panel](#try-your-first-search). Puedes
+[conectar un agente más adelante](agents.md#connect-claude-code-codex-or-copilot).
 
 <span id="try-your-first-search"></span>
 
@@ -325,4 +341,4 @@ Conserva los datos de Qdrant salvo que añadas `--delete-storage`. Esos datos
 contienen lo necesario para las búsquedas. Puedes regenerarlos a partir del
 índice con `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: c76dffd3a597e79d18239cc19705058e55ca3becb67218dbad0a8bda868aeb52 -->
+<!-- mash-docs-source: e9fdc82da63b901e9fbc86e2c87b4aa88f83b1670d47a01b3094284023646838 -->
