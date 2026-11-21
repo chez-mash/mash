@@ -251,6 +251,7 @@ const first = script;
 
   .mash-install {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.625rem;
     justify-items: center;
     min-width: 0;
@@ -275,9 +276,7 @@ const first = script;
   .choice:empty {
     display: none;
   }
-  /* The system and the method sit side by side. Where there is no room for
-     both, the systems keep their marks and drop their names from view. */
-  .choices,
+  /* Keep each group together. The groups can wrap at narrow widths. */
   .choices .choice {
     flex-wrap: nowrap;
   }
@@ -293,7 +292,8 @@ const first = script;
       clip-path: inset(50%);
       white-space: nowrap;
     }
-    .choices .choice :global(button) {
+    .choices .choice :global(button),
+    .mode :global(button) {
       padding-inline: 0.5rem;
     }
     /* The methods keep their names and drop their marks. */
@@ -308,6 +308,7 @@ const first = script;
      it there is no toggle, and both boxes show under their headings. */
   .mode {
     justify-self: center;
+    max-width: 100%;
   }
   .mash-install:not([data-mode]) .mode,
   .mash-install[data-mode] h2,

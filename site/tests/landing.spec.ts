@@ -168,6 +168,7 @@ test("a Homebrew visitor can review the package source and see what to do next",
   await install.getByRole("button", { name: "Homebrew", exact: true }).click();
   await expect(install.locator(".picked code")).toHaveText("brew install mashium/tap/mash");
   await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(
     install.getByRole("link", {
       name: "start the local search service and choose which histories to read",
