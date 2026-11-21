@@ -253,8 +253,8 @@ fn index(database: &Path, status: &StatusResponse) -> Finding {
         .into_iter()
         .find(|home| home.join("mash.sqlite3").is_file());
     let home = database.parent().unwrap_or(database).display();
-    match earlier {
-        Some(earlier) => Finding::found(
+    if let Some(earlier) = earlier {
+        return Finding::found(
             Check::Index,
             State::Problem,
             format!("No index at {}, but an earlier release left one in {}.", database.display(), earlier.display()),
@@ -263,9 +263,13 @@ fn index(database: &Path, status: &StatusResponse) -> Finding {
         .repair(format!(
             "Copy `mash.sqlite3`, `mash.sqlite3.attachments`, `config.toml` and `models` from {} into {home}, then run `mash index`.",
             earlier.display()
-        )),
-        None => Finding::found(Check::Index, State::Warning, "Nothing is indexed yet.")
-            .repair(status.recommended_action.map_or("mash index", command)),
+        ));
+    }
+    let finding = Finding::found(Check::Index, State::Warning, "Nothing is indexed yet.");
+    if let Some(action) = status.recommended_action {
+        finding.repair(command(action))
+    } else {
+        finding.cause("See the search-service finding first.")
     }
 }
 
@@ -403,40 +407,22 @@ fn unread(configuration: &ResolvedConfig, sources: &SourceStates) -> Finding {
 fn search_service(status: &StatusResponse) -> Finding {
     let service = &status.local_qdrant;
     let url = &service.url;
-    let managed = service.installed.is_some();
-    match service.state {
+    let (summary, repair) = match service.state {
         Reachability::Reachable => {
-            Finding::ok(Check::SearchService, format!("Qdrant answers at {url}."))
+            return Finding::ok(Check::SearchService, format!("Qdrant answers at {url}."));
         }
-        Reachability::Unreachable => {
-            let finding = Finding::found(
-                Check::SearchService,
-                State::Problem,
-                format!("Qdrant does not answer at {url}; indexing and search need it."),
-            )
-            .repair("mash qdrant install");
-            match &service.message {
-                Some(message) => finding.cause(message.clone()),
-                None => finding,
-            }
-        }
-        Reachability::Rejected => {
-            let finding = Finding::found(
-                Check::SearchService,
-                State::Problem,
-                format!("The Qdrant at {url} cannot serve this release."),
-            )
-            .repair(if managed {
-                "mash qdrant install (upgrades the Qdrant Mash installed and keeps its data)"
-            } else {
-                "Upgrade that Qdrant to 1.20 or later on its existing storage. Mash did not install it, so `mash qdrant install` will not replace it."
-            });
-            match &service.message {
-                Some(message) => finding.cause(message.clone()),
-                None => finding,
-            }
-        }
-    }
+        Reachability::Unreachable => (
+            format!("Qdrant does not answer at {url}. Indexing and search need it."),
+            "mash qdrant install",
+        ),
+        Reachability::Rejected => (
+            format!("Mash cannot use the search service configured at {url}."),
+            "Check the Qdrant address, version and API key, then run `mash doctor` again.",
+        ),
+    };
+    let mut finding = Finding::found(Check::SearchService, State::Problem, summary).repair(repair);
+    finding.cause.clone_from(&service.message);
+    finding
 }
 
 fn search(status: &StatusResponse) -> Finding {
@@ -452,7 +438,7 @@ fn search(status: &StatusResponse) -> Finding {
     let problem = |summary: &str| Finding::found(Check::Search, State::Problem, summary);
     if status.local_qdrant.state != Reachability::Reachable {
         return problem("Search cannot be served.")
-            .cause("Qdrant must answer first; see search-service.");
+            .cause("See the search-service finding for the cause and repair.");
     }
     if let Some(error) = &status.local_views_error {
         return problem("Search cannot be served.").cause(error.clone());

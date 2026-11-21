@@ -90,9 +90,17 @@ ou [incluez le tableau de bord dans votre compilation](install-methods.md#includ
 
 ## La connexion à Qdrant a échoué
 
-Les erreurs peuvent afficher `qdrant-unavailable`, `qdrant-install` ou
-« Could not reach Qdrant at … ». Dans `mash status`, `local_qdrant` peut
-indiquer `unreachable` avec la valeur `start-qdrant` dans `recommended_action`.
+Lancez `mash doctor` et cherchez `search-service` pour voir ce qui bloque la recherche.
+
+Si `mash status` affiche `rejected` dans `local_qdrant`, vérifiez la raison
+indiquée avant de relancer la configuration ou l’indexation. Mash peut utiliser
+le mauvais port ou la mauvaise clé d’API, ou joindre une version trop ancienne
+de Qdrant. Les adresses HTTP et gRPC doivent joindre la même instance de
+Qdrant de la série 1.x, à partir de la version 1.20. Voyez [comment configurer
+les adresses et la clé d’API (en anglais)](../configuration.md#local-qdrant).
+
+Si vous voyez `qdrant-unavailable`, `qdrant-install` ou « Could not reach
+Qdrant at … », ou si `local_qdrant` affiche `unreachable`, vérifiez que le service tourne.
 
 Si l’installation a échoué sous Linux ou WSL avec une erreur de `systemctl`,
 [vérifiez votre session et choisissez comment démarrer Qdrant](local-search.md#linux-without-a-systemd-user-session).
@@ -117,11 +125,6 @@ Si vous n’avez jamais installé Qdrant, suivez
 [les étapes d’installation](installation.md#start-the-local-search-service).
 Le service est prêt lorsque [la page de vérification](http://127.0.0.1:6333/readyz)
 affiche « all shards are ready ».
-
-Si `local_qdrant` indique `rejected`, un service a répondu mais a refusé la
-requête ou annonce une version incompatible. Le statut indique la raison.
-Les ports HTTP et gRPC doivent correspondre à la même instance de Qdrant
-1.20 ou ultérieure. Voyez [comment changer les adresses (en anglais)](../configuration.md#local-qdrant).
 
 `qdrant-failure` signifie que Qdrant a répondu avec une erreur. Lisez ses
 journaux pour repérer un problème de stockage, d’identifiants ou de format
@@ -374,4 +377,4 @@ l’authentification ou publié un paquet dont la somme de contrôle est incorre
 utilisez le [formulaire privé de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
 
-<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->
+<!-- mash-docs-source: f174be304d981e17d943dda57d7aeb769d7ac14235d03c73a7e4d55406066641 -->

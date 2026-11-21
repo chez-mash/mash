@@ -341,8 +341,8 @@ fn mash(env: &[(&str, String)], arguments: &[&str]) -> (i32, Value, Value) {
     )
 }
 
-/// A configuration whose Qdrant endpoints refuse connections.
-fn unreachable_qdrant(home: &std::path::Path, url: &str) -> std::path::PathBuf {
+/// Word search with a test HTTP endpoint and an unreachable gRPC endpoint.
+fn configure_search_service(home: &std::path::Path, url: &str) -> std::path::PathBuf {
     let config = home.join(".mash/config.toml");
     std::fs::create_dir_all(config.parent().unwrap()).unwrap();
     std::fs::write(
@@ -360,7 +360,7 @@ fn unreachable_qdrant(home: &std::path::Path, url: &str) -> std::path::PathBuf {
 fn init_without_qdrant_changes_nothing_and_status_says_to_start_it() {
     let (root, env) = fixture(false);
     let home = root.path();
-    let config = unreachable_qdrant(home, "http://127.0.0.1:9");
+    let config = configure_search_service(home, "http://127.0.0.1:9");
     let before = std::fs::read_to_string(&config).unwrap();
     let (code, stdout, error) = mash(&env, &["init", "--yes"]);
     assert_eq!(code, 11, "{error}");
@@ -489,6 +489,46 @@ fn reads_before_and_after_a_failed_index(env: &[(&str, String)]) {
     assert_eq!(listed["chats"].as_array().unwrap().len(), 1, "{listed}");
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn qdrant_rejection_directs_status_and_doctor_to_connection() {
+    let (root, env) = fixture(false);
+    let home = root.path();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let config =
+        configure_search_service(home, &format!("http://{}", listener.local_addr().unwrap()));
+    let before = std::fs::read(&config).unwrap();
+    let stub = axum::Router::new().route(
+        "/",
+        axum::routing::get(|| async { axum::http::StatusCode::UNAUTHORIZED }),
+    );
+    let server = tokio::spawn(async move { axum::serve(listener, stub).await.unwrap() });
+
+    let (code, status, _) = mash(&env, &["status"]);
+    assert_eq!(code, 0, "{status}");
+    assert_eq!(status["ready"], false);
+    assert_eq!(status["local_qdrant"]["state"], "rejected");
+    assert!(status["recommended_action"].is_null(), "{status}");
+
+    let (code, doctor, _) = mash(&env, &["doctor"]);
+    assert_eq!(code, 1, "{doctor}");
+    let finding = |check: &str| {
+        doctor["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|finding| finding["check"] == check)
+            .unwrap()
+    };
+    let service = finding("search-service");
+    assert_eq!(service["state"], "problem");
+    assert!(service["cause"].as_str().unwrap().contains("HTTP 401"));
+    assert!(service["repair"].as_str().unwrap().contains("API key"));
+    assert!(finding("index").get("repair").is_none(), "{doctor}");
+    assert_eq!(std::fs::read(&config).unwrap(), before);
+    assert!(!home.join(".mash/mash.sqlite3").exists());
+    server.abort();
+}
+
 /// Answers every HTTP request as Qdrant 1.20 would answer its root, so the
 /// reachability check passes while every later collection request fails.
 fn version_only_qdrant() -> String {
@@ -515,7 +555,7 @@ fn version_only_qdrant() -> String {
 fn init_keeps_its_setup_report_when_the_first_index_fails() {
     let (root, env) = fixture(false);
     let home = root.path();
-    unreachable_qdrant(home, &version_only_qdrant());
+    configure_search_service(home, &version_only_qdrant());
     let (code, report, error) = mash(&env, &["init", "--yes"]);
     assert_ne!(code, 0, "{report}");
     // The error still fails the command, on stderr as any failure would.

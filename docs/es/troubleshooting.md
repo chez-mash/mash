@@ -89,9 +89,17 @@ Si la página indica que el panel no se ha compilado, instala una versión preco
 
 ## Falló la conexión con Qdrant
 
-Busca `qdrant-unavailable`, `qdrant-install` o «Could not reach Qdrant at …».
-En `mash status`, también puede aparecer `local_qdrant` con el estado
-`unreachable` y la acción `recommended_action` con el valor `start-qdrant`.
+Ejecuta `mash doctor` y busca `search-service` para saber qué impide la búsqueda.
+
+Si `mash status` muestra `rejected` en `local_qdrant`, comprueba el motivo
+antes de repetir la configuración o la indexación. Mash puede estar usando
+el puerto o la clave de API incorrectos, o conectándose a una versión antigua
+de Qdrant. Las direcciones HTTP y gRPC deben apuntar a la misma instancia de
+Qdrant de la serie 1.x, a partir de la versión 1.20. Consulta [cómo configurar
+las direcciones y la clave de API (en inglés)](../configuration.md#local-qdrant).
+
+Si ves `qdrant-unavailable`, `qdrant-install` o «Could not reach Qdrant at …»,
+o si `local_qdrant` muestra `unreachable`, comprueba si el servicio está activo.
 
 Si el asistente falló en Linux o WSL con un error de `systemctl`,
 [comprueba tu sesión y elige cómo iniciar Qdrant](local-search.md#linux-without-a-systemd-user-session).
@@ -116,11 +124,6 @@ Si todavía no lo has configurado, sigue los
 [pasos de instalación](installation.md#start-the-local-search-service).
 El servicio está listo cuando la [comprobación de disponibilidad](http://127.0.0.1:6333/readyz)
 muestra «all shards are ready».
-
-Si `local_qdrant` indica `rejected`, algo respondió pero rechazó la solicitud
-o devolvió una versión incompatible. El estado muestra el motivo. Los
-puertos HTTP y gRPC deben apuntar a la misma instancia de Qdrant 1.20 o
-posterior. Consulta [cómo cambiar las direcciones (en inglés)](../configuration.md#local-qdrant).
 
 `qdrant-failure` significa que Qdrant devolvió un error. Lee su registro
 para detectar problemas con el almacenamiento, las credenciales o el
@@ -363,4 +366,4 @@ sesión o publicó un paquete con una suma de comprobación incorrecta, usa el
 [formulario privado de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consulta [qué incluir al informar de un problema de seguridad](../../SECURITY.md#report-a-vulnerability) (en inglés).
 
-<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->
+<!-- mash-docs-source: f174be304d981e17d943dda57d7aeb769d7ac14235d03c73a7e4d55406066641 -->

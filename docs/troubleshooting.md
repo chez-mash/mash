@@ -81,9 +81,16 @@ If the page says the dashboard has not been built, install a release archive or
 
 ## Qdrant connection failed
 
-**You see:** `qdrant-unavailable`, `qdrant-install`, “Could not reach
-Qdrant at …”, or `mash status` reporting `local_qdrant` as `unreachable`
-with `recommended_action` `start-qdrant`.
+Run `mash doctor` and look for `search-service` to see what's blocking search.
+
+If `mash status` shows `local_qdrant` as `rejected`, check the reported reason
+before retrying setup or indexing. Mash may be connecting to the wrong port,
+using the wrong API key, or reaching an older Qdrant. The HTTP and gRPC
+addresses must reach the same Qdrant 1.20+ instance in the 1.x series. See
+[custom endpoints and API keys](configuration.md#local-qdrant).
+
+If you see `qdrant-unavailable`, `qdrant-install`, “Could not reach Qdrant
+at …”, or `local_qdrant` is `unreachable`, check whether the service is running.
 
 If setup failed on Linux or WSL with a `systemctl` error,
 [check your user session and choose a way to start Qdrant](local-search.md#linux-without-a-systemd-user-session).
@@ -108,11 +115,6 @@ If Qdrant was never set up, follow
 [installation](installation.md#start-the-local-search-service). It is ready
 when [the readiness check](http://127.0.0.1:6333/readyz) reports
 “all shards are ready.”
-
-`local_qdrant` `rejected` means something answered but refused the request or
-is not a supported version; the status gives the reason. The HTTP and gRPC
-endpoints must point to the same Qdrant 1.20+ instance. See
-[custom endpoints](configuration.md#local-qdrant).
 
 `qdrant-failure` means Qdrant answered with an error. Read its output (above)
 for storage, credential or schema errors.

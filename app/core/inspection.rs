@@ -136,14 +136,13 @@ pub(super) async fn status(
         }
     }
     // Setup and indexing both need Qdrant, so recommending them would loop.
-    if response.local_qdrant.state == Reachability::Unreachable
-        && matches!(
-            response.recommended_action,
-            Some(crate::Action::Init | crate::Action::Index)
-        )
-    {
-        response.recommended_action = Some(crate::Action::StartQdrant);
-    }
+    response.recommended_action = match (response.local_qdrant.state, response.recommended_action) {
+        (Reachability::Unreachable, Some(crate::Action::Init | crate::Action::Index)) => {
+            Some(crate::Action::StartQdrant)
+        }
+        (Reachability::Rejected, Some(crate::Action::Init | crate::Action::Index)) => None,
+        (_, action) => action,
+    };
     if let Some(scope) = coverage {
         response.coverage = Some(super::coverage::local(database, configuration, scope).await?);
     }

@@ -72,7 +72,11 @@ mash dash --listen 127.0.0.1:0
 
 ## 无法连接 Qdrant
 
-报错可能包含 `qdrant-unavailable`、`qdrant-install` 或“Could not reach Qdrant at …”。在 `mash status` 中，`local_qdrant` 也可能显示为 `unreachable`，并在 `recommended_action` 中显示 `start-qdrant`。
+运行 `mash doctor` 并查看 `search-service`，找出搜索无法使用的原因。
+
+如果 `mash status` 中的 `local_qdrant` 显示 `rejected`，请先查看原因，再重试设置或索引。Mash 可能使用了错误的端口或 API 密钥，也可能连接到了较旧的 Qdrant。HTTP 和 gRPC 地址必须指向同一个 Qdrant 实例，版本需为 1.x 系列中的 1.20 或以上。请参阅[如何设置自定义地址和 API 密钥（英文）](../configuration.md#local-qdrant)。
+
+如果看到 `qdrant-unavailable`、`qdrant-install` 或“Could not reach Qdrant at …”，或者 `local_qdrant` 显示 `unreachable`，请检查服务是否正在运行。
 
 如果在 Linux 或 WSL 上遇到 `systemctl` 错误，请[检查当前用户会话并选择 Qdrant 的启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
@@ -89,8 +93,6 @@ mash dash --listen 127.0.0.1:0
 - **自行运行的 Qdrant**。从原目录重启，并查看终端输出。
 
 如果还未设置 Qdrant，请按照[安装步骤](installation.md#start-the-local-search-service)操作。[就绪检查](http://127.0.0.1:6333/readyz)显示“all shards are ready”时，服务就可以用了。
-
-`local_qdrant` 显示 `rejected`，表示有服务响应，但它拒绝了请求或版本不兼容。状态输出会说明原因。HTTP 和 gRPC 端口必须指向同一个 Qdrant 1.20 或更高版本的实例。请参阅[如何设置自定义地址（英文）](../configuration.md#local-qdrant)。
 
 `qdrant-failure` 表示 Qdrant 返回了错误。可以检查日志中的存储、凭据或数据格式错误。
 
@@ -239,4 +241,4 @@ GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash do
 
 如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashium/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
 
-<!-- mash-docs-source: fe8614403eeed65a2fb4a5aaab7fbd91ec486017544e7a9dc1c6e36383dacbe9 -->
+<!-- mash-docs-source: f174be304d981e17d943dda57d7aeb769d7ac14235d03c73a7e4d55406066641 -->
