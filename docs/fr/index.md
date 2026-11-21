@@ -11,6 +11,7 @@ nécessaire.
 
 - [Installez Mash et lancez votre première recherche](quick-start.md).
 - [Essayez la démo avec des conversations d’exemple](https://getmash.io/demo/).
+- [Vérifiez quels historiques Mash lit et quels agents il peut connecter](supported-agents.md).
 - [Comparez Mash à d’autres outils d’historique pour agents](compare.md).
 - [Découvrez où votre historique est conservé](privacy.md).
 - [Parcourez les guides en français](guides.md).
