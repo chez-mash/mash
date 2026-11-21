@@ -131,6 +131,9 @@ printf 'ran %s\n' "$*"
     Assert-Fails { Start-MashSetup -Executable $setupFixture -Dashboard 6>$null } 'dashboard exited with an error'
     Remove-Item Env:MASH_INSTALL_TEST_DASH_FAIL
     Assert-Fails { Install-Mash -Directory $destination -Setup -Dashboard } 'Choose -Dashboard'
+    Remove-Item -LiteralPath $setupSteps
+    Start-MashSetup -Executable $setupFixture -Dashboard 6>$null | Out-Null
+    Assert-Equal ((Get-Content -LiteralPath $setupSteps) -join ',') 'qdrant install,dash' 'browser setup succeeds on retry'
 
     if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected) {
         $downloadsBefore = $script:requests.Count
