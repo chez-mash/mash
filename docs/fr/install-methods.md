@@ -30,6 +30,7 @@ brew install mashium/tap/mash
 
 ### apt sous Debian ou Ubuntu
 
+Cette méthode fonctionne sous Debian 12 ou ultérieur et Ubuntu 22.04 ou ultérieur, sur x86-64 ou ARM64.
 Le dépôt apt de Mashium publie des métadonnées de paquets signées. L’option
 `signed-by` utilise la [clé de signature de Mashium](https://getmash.io/apt/mash-archive-keyring.gpg)
 pour ce dépôt. Vous pouvez [examiner les métadonnées signées](https://getmash.io/apt/dists/stable/InRelease)
@@ -47,7 +48,7 @@ Le paquet s’appelle `mash-cli` car Debian et Ubuntu proposent déjà un autre 
 
 ### Scoop sous Windows
 
-Dans PowerShell, une fois Scoop installé, ajoutez le dépôt de Mashium et installez son
+Sous Windows x64, une fois Scoop installé, ouvrez PowerShell, ajoutez le dépôt de Mashium et installez son
 [paquet Mash](https://github.com/mashium/mash/blob/main/bucket/mash.json). Le manifeste indique l’archive Windows et son empreinte SHA-256.
 
 ```powershell
@@ -118,4 +119,4 @@ Ensuite, [lancez votre première recherche dans le terminal](search.md#your-firs
 Si le terminal ne trouve pas Mash après la compilation, consultez la procédure pour
 [ajouter le dossier des exécutables de Cargo au chemin de recherche des commandes](troubleshooting.md#mash-command-not-found).
 
-<!-- mash-docs-source: 019cd7c27c3a21d40d80b37e6986812a71a5931f1d6ace0454cf6665eb9b9d63 -->
+<!-- mash-docs-source: 400da6d93d5805098a5628678b37ade9f61dc9fdc1eedfb23cf768d2c4e84eec -->

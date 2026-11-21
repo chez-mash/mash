@@ -69,15 +69,15 @@ irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
 
 ### パッケージマネージャーでインストールする
 
-[Homebrew、apt、Scoop、mise、cargo-binstall を使う手順（英語）](../install-methods.md#install-with-a-package-manager)をご覧ください。
+[Homebrew、apt、Scoop、mise、cargo-binstall を使う手順](install-methods.md#install-with-a-package-manager)をご覧ください。
 インストール後は[検索サービスを起動](#start-the-local-search-service)します。
 
 <span id="build-from-source"></span>
 
 ### ソースからビルドする
 
-ブラウザーで検索するには、[ダッシュボードを含めてビルド（英語）](../install-methods.md#include-the-web-dashboard)します。
-[端末での検索とエージェントのツール（英語）](../install-methods.md#cli-and-agent-tools)だけを使う場合は、そちらの短い Cargo コマンドでビルドできます。
+ブラウザーで検索するには、[ダッシュボードを含めてビルド](install-methods.md#include-the-web-dashboard)します。
+[端末での検索とエージェントのツール](install-methods.md#cli-and-agent-tools)だけを使う場合は、そちらの短い Cargo コマンドでビルドできます。
 
 <span id="start-the-local-search-service"></span>
 
@@ -119,7 +119,7 @@ Qdrant はこのコンピューターからの接続だけを受け付け、次�
 
 ### ブラウザーでセットアップする
 
-リリースをインストールした場合、または[ダッシュボードを含めてビルド（英語）](../install-methods.md#include-the-web-dashboard)した場合は、端末で次のコマンドを実行します。
+リリースをインストールした場合、または[ダッシュボードを含めてビルド](install-methods.md#include-the-web-dashboard)した場合は、端末で次のコマンドを実行します。
 
 ```sh
 mash dash

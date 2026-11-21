@@ -26,6 +26,7 @@ brew install mashium/tap/mash
 
 ### apt, Debian or Ubuntu
 
+Use this on Debian 12+ or Ubuntu 22.04+ on x86-64 or ARM64.
 The Mashium apt repository publishes signed package metadata. The
 `signed-by` setting uses [Mashium's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
 for this repository. You can [inspect the signed metadata](https://getmash.io/apt/dists/stable/InRelease)
@@ -43,8 +44,8 @@ be installed together, and apt offers to remove the other one.
 
 ### Scoop, Windows
 
-In PowerShell with Scoop installed, add Mashium's bucket and install its
-[Mash package](https://github.com/mashium/mash/blob/main/bucket/mash.json).
+On Windows x64 with Scoop installed, open PowerShell, add Mashium's bucket
+and install its [Mash package](https://github.com/mashium/mash/blob/main/bucket/mash.json).
 The manifest lists the Windows archive and its SHA-256 hash.
 
 ```powershell

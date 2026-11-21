@@ -26,6 +26,7 @@ brew install mashium/tap/mash
 
 ### apt，适用于 Debian 或 Ubuntu
 
+此方法适用于 x86-64 或 ARM64 上的 Debian 12 及以上版本或 Ubuntu 22.04 及以上版本。
 Mashium 的 apt 仓库发布带有签名的软件包元数据。选项 `signed-by` 为此仓库指定
 [Mashium 的签名密钥](https://getmash.io/apt/mash-archive-keyring.gpg)。
 添加仓库前，可以[查看签名后的元数据](https://getmash.io/apt/dists/stable/InRelease)。
@@ -43,7 +44,7 @@ sudo apt update && sudo apt install mash-cli
 
 ### Scoop，适用于 Windows
 
-安装 Scoop 后，在 PowerShell 中添加 Mashium 的软件包仓库，再安装
+在 Windows x64 上安装 Scoop 后，打开 PowerShell，添加 Mashium 的软件包仓库，再安装
 [Mash 软件包](https://github.com/mashium/mash/blob/main/bucket/mash.json)。清单列出了 Windows 压缩包及其 SHA-256 哈希值。
 
 ```powershell
@@ -114,4 +115,4 @@ mash --version
 如果构建后终端找不到 Mash，请参阅
 [如何将 Cargo 的可执行文件目录加入命令搜索路径](troubleshooting.md#mash-command-not-found)。
 
-<!-- mash-docs-source: 019cd7c27c3a21d40d80b37e6986812a71a5931f1d6ace0454cf6665eb9b9d63 -->
+<!-- mash-docs-source: 400da6d93d5805098a5628678b37ade9f61dc9fdc1eedfb23cf768d2c4e84eec -->

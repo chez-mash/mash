@@ -256,6 +256,7 @@ for (const [locale, lang, title] of [
   ["es", "es", "Otras formas de instalar Mash"],
   ["fr", "fr", "Autres façons d’installer Mash"],
   ["zh-cn", "zh-CN", "Mash 的其他安装方式"],
+  ["ja", "ja", "Mash のほかのインストール方法"],
 ]) {
   test(`the ${locale} package install journey stays in the same language`, async ({ page }) => {
     const packages = `/${locale}/install-methods/#install-with-a-package-manager`;
@@ -275,9 +276,12 @@ for (const [locale, lang, title] of [
     await expect(
       guide.locator("pre").filter({ hasText: "sudo apt install mash-cli" }),
     ).toBeVisible();
+    await expect(guide).toContainText("Debian 12");
+    await expect(guide).toContainText("Windows x64");
     const verify = `/${locale}/downloads/`;
     await guide.locator(`a[href="${verify}"]`).click();
     await expect(page).toHaveURL(verify);
+    await expect(guide.locator(`a[href="/${locale}/install-methods/"]`)).toBeVisible();
     await page.goBack();
     const localSearch = `${install}#start-the-local-search-service`;
     await guide.locator(`a[href="${localSearch}"]`).first().click();
@@ -674,7 +678,9 @@ test("the Japanese guide directory distinguishes available translations", async 
   await expect(guide.locator('a[href="/ja/installation/"]')).toHaveText(
     "Mash をインストールして読み込む履歴を選ぶ",
   );
-  await expect(guide.locator('a[href="/install-methods/"]')).toContainText("（英語）");
+  await expect(guide.locator('a[href="/ja/install-methods/"]')).toHaveText(
+    "パッケージマネージャーでインストールする、またはソースからビルドする",
+  );
   await guide
     .getByRole("link", { name: "Mash が読み取れる履歴と接続できるエージェントを確認する" })
     .click();

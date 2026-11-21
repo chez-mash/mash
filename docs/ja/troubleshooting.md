@@ -84,7 +84,7 @@ mash dash --listen 127.0.0.1:0
 ポートを固定したい場合は、`127.0.0.1:8791` など、使われていないアドレスを指定します。
 
 ダッシュボードがビルドされていないとページに表示された場合は、リリースのアーカイブからインストールするか、
-[ソースからビルドするときにダッシュボードを含めてください（英語）](../install-methods.md#include-the-web-dashboard)。
+[ソースからビルドするときにダッシュボードを含めてください](install-methods.md#include-the-web-dashboard)。
 
 <span id="qdrant-connection-failed"></span>
 

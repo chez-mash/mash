@@ -20,7 +20,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 - [Mash をインストールして読み込む履歴を選ぶ](installation.md)
 - [リリースのアーカイブをダウンロードして検証する](downloads.md)
-- [パッケージマネージャーでインストールする、またはソースからビルドする（英語）](../install-methods.md)
+- [パッケージマネージャーでインストールする、またはソースからビルドする](install-methods.md)
 - [ローカル検索サービスを管理する、または Qdrant を自分で実行する](local-search.md)
 
 <span id="using-mash"></span>

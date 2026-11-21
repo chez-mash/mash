@@ -3,7 +3,7 @@
 お使いのコンピューター向けのアーカイブをダウンロードし、公開されているチェックサムと照合します。
 展開先のフォルダーからダッシュボードを起動でき、この方法では Mash のインストールスクリプトを実行する必要がありません。
 [スクリプトの内容](#inspect-the-installer)も確認できます。
-[パッケージマネージャーでインストールする（英語）](../install-methods.md)方法もあります。
+[パッケージマネージャーでインストールする](install-methods.md)方法もあります。
 
 <span id="choose-your-download"></span>
 
@@ -20,7 +20,7 @@
 
 アーカイブと `SHA256SUMS` は同じ [GitHub リリースページ](https://github.com/mashium/mash/releases/latest)から取得してください。
 Linux の動作要件は [対応環境](installation.md#recommended-release-installers)をご覧ください。
-Intel Mac などでは [ソースからビルド（英語）](../install-methods.md#build-from-source)できます。
+Intel Mac などでは [ソースからビルド](install-methods.md#build-from-source)できます。
 
 <span id="verify-the-checksum"></span>
 

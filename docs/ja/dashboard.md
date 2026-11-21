@@ -5,7 +5,7 @@
 デモの検索では、サンプルチャットに出てくる単語やフレーズを使えます。
 
 配布版の Mash にはダッシュボードが含まれています。ソースから作る場合は
-[ダッシュボードを含めてビルド（英語）](../install-methods.md#include-the-web-dashboard)します。
+[ダッシュボードを含めてビルド](install-methods.md#include-the-web-dashboard)します。
 [Mash をインストール](quick-start.md#install-it-yourself)したら、端末で次のコマンドを実行してください。
 
 ```sh
