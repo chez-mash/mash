@@ -57,14 +57,14 @@ set `MASH_AUTO_INDEX=off` in the agent's environment.
 
 ## Understand freshness warnings
 
-“Live indexing is inactive” means no watcher is running. This is normal after
-`mash init` or a one-time `mash index`. It does not mean that setup failed or
-that the index is out of date; results come from the last indexing run.
+Manual updates work after `mash init` or a one-time `mash index`. Search uses
+the history from the last indexing run. If an older release says “Live
+indexing is inactive,” it means updates happen when indexing runs again.
 
-A search may also warn that provider coverage is incomplete or unverified. It
-still returns the history already indexed.
+A search can still return earlier chats when the last scan was incomplete or
+Mash could not read its status. Follow the warning to check or refresh your
+index. If a recent chat is missing, run `mash index` and search again.
 
-- Run `mash index` to refresh now, and check its result for errors.
 - Keep a watcher running if you need ongoing updates. A running watcher is not
   proof that every source was read successfully.
 - If the warning follows an upgrade or mentions a schema mismatch, use the

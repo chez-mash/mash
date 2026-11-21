@@ -1,4 +1,6 @@
 //! Local and combined retrieval; validation precedes inference and HTTP.
+mod freshness;
+
 use super::{SearchMode, SearchResponse, required_shared};
 use crate::AppError;
 use crate::config::ResolvedConfig;
@@ -20,71 +22,6 @@ pub(super) struct Input {
     pub(super) filters: crate::search_filter::Selection,
     pub(super) shared: bool,
     pub(super) local: bool,
-}
-
-fn freshness_warnings(database: &Path, providers: &[crate::provider::Provider]) -> Vec<String> {
-    if providers.is_empty() {
-        return Vec::new();
-    }
-    let mut warnings = Vec::new();
-    match crate::watch::active(database) {
-        Ok(false) => warnings.push("Live indexing is inactive: search uses the last indexed history. Run `mash index` for a one-time refresh or `mash index --watch` for continuous updates.".into()),
-        Ok(true) => {},
-        Err(_) => warnings.push("Watcher activity could not be determined for this local database. Recent history may be missing; check `mash status` and run `mash index` to refresh.".into()),
-    }
-    let Ok(storage) = Storage::open_silver(database) else {
-        warnings.push("Recorded local provider scan evidence could not be read; history freshness is unknown.".into());
-        return warnings;
-    };
-    for &provider in providers {
-        match storage.coverage_scan(provider) {
-            Ok((crate::silver::certificate::Completeness::Complete, 0)) => {},
-            Ok((state, rejected)) => warnings.push(format!(
-                "Local {provider} scan evidence is {state:?} with {rejected} rejected sources. Results may omit history even if a watcher is active. Run `mash index` and inspect its result."
-            )),
-            Err(_) => warnings.push(format!("Local {provider} scan evidence is unavailable; history freshness is unknown.")),
-        }
-    }
-    warnings
-}
-
-#[test]
-fn freshness_inspection_never_creates_a_missing_database() {
-    let directory = tempfile::tempdir().unwrap();
-    let database = directory.path().join("missing.sqlite3");
-    let warnings = freshness_warnings(&database, &[crate::provider::Provider::Codex]);
-    assert!(
-        warnings
-            .iter()
-            .any(|warning| warning.contains("could not be read"))
-    );
-    assert!(!database.exists());
-}
-
-#[test]
-fn freshness_warnings_distinguish_watch_and_scan_evidence() {
-    use crate::provider::Provider;
-    let directory = tempfile::tempdir().unwrap();
-    let database = directory.path().join("silver.sqlite3");
-    let mut storage = Storage::open_writer(&database).unwrap();
-    storage.begin_silver_scan(Provider::Codex).unwrap();
-    storage.finish_silver_scan(Provider::Codex, true).unwrap();
-    storage.commit_writer().unwrap();
-    drop(storage);
-    assert_eq!(freshness_warnings(&database, &[]), Vec::<String>::new());
-    let warnings = freshness_warnings(&database, &[Provider::Codex]);
-    assert_eq!(warnings.len(), 1);
-    assert!(warnings[0].contains("Live indexing is inactive"));
-    let lock = std::fs::File::create(directory.path().join("silver.sqlite3.watch-lock")).unwrap();
-    lock.lock().unwrap();
-    assert_eq!(
-        freshness_warnings(&database, &[Provider::Codex]),
-        Vec::<String>::new()
-    );
-    let warnings = freshness_warnings(&database, &[Provider::ClaudeCode]);
-    assert_eq!(warnings.len(), 1);
-    assert!(warnings[0].contains("Unverified"));
-    drop(lock);
 }
 
 pub(super) async fn preflight(
@@ -211,6 +148,21 @@ pub(super) async fn run(
 ) -> Result<SearchResponse, AppError> {
     let vector_override = input.shared_vector_search;
     let shared_only = input.shared;
+    let local = !shared_only
+        && (input.filters.node.is_empty()
+            || input
+                .filters
+                .node
+                .iter()
+                .any(|id| id == node(configuration)));
+    let providers = configuration
+        .providers
+        .keys()
+        .copied()
+        .filter(|provider| {
+            input.filters.provider.is_empty() || input.filters.provider.contains(provider)
+        })
+        .collect::<Vec<_>>();
     let sort = input.filters.sort;
     let (page, _) = configuration
         .views
@@ -251,11 +203,13 @@ pub(super) async fn run(
         }
         result => result?,
     };
-    if !shared_only && configuration.views.query.freshness_warnings {
+    if local && configuration.views.query.freshness_warnings {
         let database = database.to_path_buf();
-        let providers = configuration.providers.keys().copied().collect::<Vec<_>>();
         response.freshness_warnings =
-            crate::blocking(move || Ok(freshness_warnings(&database, &providers))).await?;
+            crate::blocking(move || Ok(freshness::scan_warnings(&database, &providers))).await?;
+    }
+    if page.offset == 0 {
+        response.notice = empty_notice(&response, configuration, local);
     }
     // Only the page's results are reordered: pages still partition the
     // relevance ranking, so paging never skips or repeats a result.
@@ -692,35 +646,39 @@ fn search_mode(failed: bool, shared_only: bool) -> SearchMode {
     }
 }
 
-/// Exact-mention needs every word in one message, and a quoted query in that
-/// order, so an empty result often means "not together", not "never discussed".
-pub(super) fn empty_notice(
+fn empty_notice(
     search: &SearchResponse,
-    configuration: &crate::config::ResolvedConfig,
+    configuration: &ResolvedConfig,
+    local: bool,
 ) -> Option<String> {
     let empty = match &search.results {
         crate::search_results::Results::Chats(chats) => chats.is_empty(),
         crate::search_results::Results::Messages(messages) => messages.is_empty(),
     };
-    let query = search.query.trim();
-    let quoted = crate::views::exact::quoted(query);
-    if !empty || search.intent != crate::views::exact::Intent::ExactMention {
+    if !empty {
         return None;
     }
+    let refresh = "For a recent chat on this computer, run `mash index` and search again.";
+    if search.intent != crate::views::exact::Intent::ExactMention {
+        return local.then(|| refresh.to_owned());
+    }
     // The query itself stays out of the notice: it is redacted separately.
-    let mut notice = if quoted && crate::views::matching::tokens(query).len() > 1 {
-        "No chat contains this exact phrase. Remove the quotes to match the words in any order"
-    } else if crate::views::matching::tokens(query).len() > 1 {
-        "No message contains all of these words. Try fewer words or the most distinctive one"
+    let query = search.query.trim();
+    let words = crate::views::matching::tokens(query).len();
+    let mut notice = if words > 1 && crate::views::exact::quoted(query) {
+        "No indexed match for this phrase. Remove the quotes to match the words in any order."
+    } else if words > 1 {
+        "No indexed message contains all of these words. Try fewer words or the most distinctive one."
     } else {
-        "No indexed message contains this text. Word-exact search reads message text, not project paths or chat IDs (use --project or `mash list-chats` for those)"
+        "No indexed match for this text. Word search checks message text. Use `--project` for paths or `mash list-chats` for chat IDs."
     }
     .to_owned();
-    if !configuration.views.build.dense_enabled() {
-        notice.push_str(
-            "; to search by meaning, run `mash models install`, then update your existing configuration using https://getmash.io/indexing/#enable-semantic-search",
-        );
+    if local {
+        notice.push(' ');
+        notice.push_str(refresh);
+        if !configuration.views.build.dense_enabled() {
+            notice.push_str(" To search by meaning, run `mash models install` and follow https://getmash.io/indexing/#enable-semantic-search");
+        }
     }
-    notice.push('.');
     Some(notice)
 }

@@ -223,7 +223,6 @@ async fn execute_operation(
     })?;
     drop(model_permit);
     if let Response::Search(search) = &mut response {
-        search.notice = search::empty_notice(search, &configuration);
         search.query = configuration.redaction.output().text(&search.query);
     }
     Ok(response)

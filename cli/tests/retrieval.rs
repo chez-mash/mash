@@ -635,11 +635,16 @@ fn exact_search_requires_every_word_and_explains_an_empty_result() {
         assert_eq!(found["intent"], "exact-mention");
         assert_eq!(found["realized_mode"], "lexical");
         assert!(found.get("notice").is_none(), "{found}");
+        assert!(found.get("freshness_warnings").is_none(), "{found}");
     }
     let missing = search("deploy nowhere");
     assert_eq!(missing["results"], serde_json::json!([]), "{missing}");
     let notice = missing["notice"].as_str().unwrap();
     assert!(notice.contains("all of these words"), "{notice}");
+    assert!(
+        notice.contains("For a recent chat on this computer, run `mash index`"),
+        "{notice}"
+    );
     assert!(notice.contains("mash models install"), "{notice}");
     // Quotes ask for the words together, in order.
     let phrase = search("\"deploy 401\"");

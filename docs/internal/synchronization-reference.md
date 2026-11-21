@@ -65,14 +65,14 @@ watcher separately; all MCP sessions reading that database see its committed
 updates without reconnecting. Without a watcher, refreshes come from explicit CLI/MCP indexing or the
 plugin's throttled session-start indexing pass. No daemon is installed.
 
-Local and combined searches include `freshness_warnings` in JSON and MCP text
-when no watcher holds the database's leader lock, watcher activity cannot be
-checked, or configured providers have incomplete/unverified scan evidence.
-These warnings do not block results or start indexing. Shared-only searches do
-not inspect the caller's local watcher. A running watcher and a completed scan
-do not prove that current provider files are indexed: this lightweight check
-does not crawl history, detect newly created files, or report a last-success
-timestamp or historical indexing error. Check the watcher's output for failures.
+Searches that include this computer report `freshness_warnings` in JSON, MCP
+text, and the dashboard when local provider scan evidence is incomplete,
+unverified, or unreadable. Searches still return results from the retained
+index. Search no longer inspects watcher activity. Check `mash status` or
+`mash doctor` for a configured watcher service, and the watcher's output for
+failures. A completed scan describes the last pass. This check does not crawl
+source history or detect newly created files. Empty first pages for local
+search include a refresh hint in `notice`.
 To suppress these warnings (enabled by default, no rebuild required):
 
 ```toml

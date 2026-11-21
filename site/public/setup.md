@@ -200,6 +200,9 @@ message comes from the earlier chat. The setup conversation can
 appear in results too. An empty `results` list with no error means the search
 found no match. Try a different word from the earlier chat.
 
+If search says “Live indexing is inactive,” this is normal for manual
+updates. Run `mash index` to pick up newer chats.
+
 - Pass several words as one shell argument, for example
   `mash search 'log rotation'`. Word search checks for every word in any
   order. To require that exact phrase, use `mash search '"log rotation"'`.

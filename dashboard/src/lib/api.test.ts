@@ -53,6 +53,15 @@ describe("dashboard API boundary", () => {
     expect(catalog.chats[0]?.messageCount).toBeUndefined();
     expect(catalog.warnings).toHaveLength(2);
   });
+  it("shows local scan warnings and advice on an empty search", () => {
+    const warning = "Could not verify a complete local scan for codex.";
+    const advice = "For a recent chat on this computer, run `mash index` and search again.";
+    const page = parseSearch(
+      { results: [], freshness_warnings: [warning], notice: advice },
+      "local",
+    );
+    expect(page.warnings).toEqual([warning, advice]);
+  });
   it("applies project, machine, agent and date filters to empty searches", () => {
     const catalog = parseCatalog({
       local_node: "local",

@@ -52,22 +52,23 @@ async fn schema_mismatch_guidance_reaches_mcp_even_with_freshness_warnings_disab
 }
 
 #[test]
-fn freshness_warning_survives_compact_and_extended_search_output() {
-    let warning = "Live indexing is inactive; recent messages may be missing.";
+fn scan_warning_and_refresh_notice_survive_compact_and_extended_search_output() {
+    let warning = "Could not verify a complete local scan for codex.";
+    let notice = "For a recent chat on this computer, run `mash index` and search again.";
     for detail in [Detail::Compact, Detail::Extended] {
         let response: core::SearchResponse = serde_json::from_value(serde_json::json!({
             "query": "missing recent chat", "realized_mode": "local-lexical",
             "unit": "chats", "results": [], "shared": false,
-            "freshness_warnings": [warning]
+            "freshness_warnings": [warning], "notice": notice
         }))
         .unwrap();
         let result = tool_result_detailed(Ok(core::Response::Search(response)), detail);
         assert_ne!(result.is_error, Some(true));
-        assert_eq!(
-            result.structured_content.unwrap()["freshness_warnings"][0],
-            warning
-        );
-        assert!(result.content[0].as_text().unwrap().text.contains(warning));
+        let structured = result.structured_content.unwrap();
+        assert_eq!(structured["freshness_warnings"][0], warning);
+        assert_eq!(structured["notice"], notice);
+        let text = &result.content[0].as_text().unwrap().text;
+        assert!(text.contains(warning) && text.contains(notice));
     }
 }
 

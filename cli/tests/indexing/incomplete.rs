@@ -265,6 +265,10 @@ fn rejected_source_preserves_cli_search_and_offline_views_rebuild() {
             .concat(),
         );
         assert_eq!(results["results"].as_array().unwrap().len(), 1);
+        let warnings = results["freshness_warnings"].as_array().unwrap();
+        assert_eq!(warnings.len(), 1);
+        let warning = warnings[0].as_str().unwrap();
+        assert!(warning.contains("1 rejected sources") && warning.contains("mash index"));
         assert_eq!(std::fs::read(&broken).unwrap(), corrupt);
         // The second operation must use stored silver, without provider files.
         std::fs::remove_file(&healthy).ok();

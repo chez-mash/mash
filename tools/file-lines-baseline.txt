@@ -1,14 +1,14 @@
 # Files longer than the 500-line limit when it was introduced, with their
 # length then. Each may shrink but not grow; lower its entry as it shrinks
 # (python3 tools/check_file_lines.py --update). Do not add files.
-628 app/core.rs
+627 app/core.rs
 713 app/core/doctor.rs
 689 app/core/installation.rs
 711 app/core/installation/clients.rs
 506 app/core/installation/plugin.rs
-606 app/core/output/text.rs
+605 app/core/output/text.rs
 706 app/core/qdrant.rs
-726 app/core/search.rs
+684 app/core/search.rs
 642 app/core/setup.rs
 572 app/core/uninstall.rs
 785 app/remote.rs

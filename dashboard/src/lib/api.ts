@@ -148,9 +148,12 @@ export function parseSearch(body: Answer<"/api/search">, localNode: string): Sea
       ];
     }),
     nextOffset: body.next_offset ?? null,
-    warnings: [body.shared_error, body.shared_context_error, body.notice].flatMap((text) =>
-      text ? [text] : [],
-    ),
+    warnings: [
+      body.shared_error,
+      body.shared_context_error,
+      ...(Array.isArray(body.freshness_warnings) ? body.freshness_warnings : []),
+      body.notice,
+    ].filter((text): text is string => typeof text === "string" && text.length > 0),
   };
 }
 function hasSomethingToShow(row: Answer<"/api/chat">["messages"][number]): boolean {

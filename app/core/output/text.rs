@@ -181,11 +181,10 @@ fn search(out: &mut String, value: &Search<'_>) -> Result<(), serde_json::Error>
     for message in value.freshness_warnings {
         warning(out, "local indexing", Some(message));
     }
-    if count == 0 {
-        line(
-            out,
-            "No matches returned; this does not prove complete history or absence of chats.",
-        );
+    if let Some(notice) = value.notice {
+        line(out, &safe(notice));
+    } else if count == 0 {
+        line(out, "No matches. Check coverage if you expected a chat.");
     }
     match &value.results {
         SearchResults::Chats(rows) => {
