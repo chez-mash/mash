@@ -140,8 +140,8 @@ If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit
 the query again. Choose **Browse chats** to open the chat list with the
 current filters. Use your browser's Back button to return to the search.
-Use **Search again** after [indexing a recent chat](troubleshooting.md#new-chats-are-missing-or-search-is-behind).
-If the chat is already listed, [check the query and search mode](troubleshooting.md#search-returns-no-results).
+Use **Search again** after refreshing the index. If you still can’t find
+what you’re looking for, [check for a missing chat](find-missing-chat.md).
 
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see

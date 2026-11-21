@@ -132,13 +132,17 @@ test("an empty search page can return to the first page and get search help", as
     route.fulfill({ json: { results: [], next_offset: null } }),
   );
   await page.goto("/#/search?q=needle&offset=20");
+  await expect(
+    page.getByRole("heading", { name: "No results on this page", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Find a missing chat", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "First page", exact: true }).click();
   await expect(page).toHaveURL("/#/search?q=needle");
   await expect(searchBox(page)).toHaveValue("needle");
-  await expect(page.getByRole("link", { name: "Troubleshoot search" })).toHaveAttribute(
-    "href",
-    "https://getmash.io/troubleshooting/#search-returns-no-results",
-  );
+  await expect(
+    page.getByRole("link", { name: "Find a missing chat", exact: true }),
+  ).toHaveAttribute("href", "https://getmash.io/find-missing-chat/");
+  await expect(page.getByRole("link", { name: "Troubleshoot search" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
 });
 
@@ -163,10 +167,9 @@ test("Search again checks for newly indexed matches with the applied query and f
   const address = "/#/search?q=needle&agent=codex&days=7&intent=exact-mention";
   await page.goto(address);
   await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Missing a recent chat?" })).toHaveAttribute(
-    "href",
-    "https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind",
-  );
+  await expect(
+    page.getByRole("link", { name: "Find a missing chat", exact: true }),
+  ).toHaveAttribute("href", "https://getmash.io/find-missing-chat/");
   expect(await fitsViewport(page)).toBe(true);
 
   indexed = true;

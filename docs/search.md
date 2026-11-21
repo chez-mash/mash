@@ -53,8 +53,8 @@ mash view MESSAGE_ID --context 3
 
 </details>
 
-Search reads the existing index and does not refresh it. To find a
-conversation you just had, run `mash index` first.
+Search uses the last index. If a conversation you expected is missing,
+[check whether it was indexed and how to search for it](find-missing-chat.md).
 
 ## Read the original messages
 

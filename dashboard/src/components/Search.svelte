@@ -251,7 +251,7 @@ const rangeLabel = $derived.by(() => {
           {:else if result.data.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
-        <p class="meta"><a class="a" href="https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind" target="_blank" rel="noreferrer">Missing a recent chat?</a></p>
+        <p class="meta"><a class="a" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer">Find a missing chat</a></p>
       {/if}
       <div class="acts" style:margin-top="12px">
         {#if result.data.first > 0}
@@ -259,12 +259,8 @@ const rangeLabel = $derived.by(() => {
         {/if}
         {#if filtered}
           <a class="btn" href={clearFiltersHref}>Clear filters</a>
-        {:else if result.data.first === 0}
-          {#if applied.query}
-            <a class="btn" href="https://getmash.io/troubleshooting/#search-returns-no-results" target="_blank" rel="noreferrer">Troubleshoot search</a>
-          {:else}
-            <a class="btn" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
-          {/if}
+        {:else if result.data.first === 0 && !applied.query}
+          <a class="btn" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
         {/if}
         {#if applied.query && result.data.first === 0}
           <a class="btn" href={browseChatsHref}>Browse chats</a>

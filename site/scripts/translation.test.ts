@@ -176,9 +176,7 @@ describe("documentation translation drafts", () => {
       readLocaleGuides("fr"),
     ]);
     const draft = prepareTranslation(source, "docs/fr/troubleshooting.md", guides);
-    for (const label of ["Browse chats", "Clear filters", "Save configuration only"]) {
-      expect(draft.passages).not.toContain(label);
-    }
+    expect(draft.passages).not.toContain("Save configuration only");
     const output = draft.render({
       translations: draft.passages.map((passage) =>
         passage === "Search returns no results" ? "La recherche ne donne aucun résultat" : passage,
@@ -186,8 +184,10 @@ describe("documentation translation drafts", () => {
     });
     expect(output).toContain('<span id="search-returns-no-results"></span>');
     expect(output).toContain("mash status --installation --agent claude-code --probe");
-    expect(output).toContain("(search-languages.md)");
-    expect(output).toContain("(supported-agents.md#if-a-chat-is-missing)");
+    expect(output).toContain("**Save configuration only**");
+    expect(output).toContain(
+      "(../find-missing-chat.md#the-chat-is-listed-but-search-finds-nothing)",
+    );
     expect(recordedTranslationRevision(output)).toBe(source.revision);
   });
 

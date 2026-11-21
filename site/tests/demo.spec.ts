@@ -53,10 +53,13 @@ test("the guide index opens a sample search that fits a narrow screen", async ({
   await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Browse chats", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Search again", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Missing a recent chat?" })).toHaveAttribute(
-    "href",
-    "https://getmash.io/troubleshooting/#new-chats-are-missing-or-search-is-behind",
-  );
+  const help = page.getByRole("link", { name: "Find a missing chat", exact: true });
+  await expect(help).toHaveAttribute("href", "https://getmash.io/find-missing-chat/");
+  await expect(page.getByRole("link", { name: "Troubleshoot search" })).toHaveCount(0);
+  await page.goto(new URL((await help.getAttribute("href")) ?? "").pathname);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Find a missing chat");
+  await expect(page.locator("#the-chat-is-listed-but-search-finds-nothing")).toBeVisible();
+  await expect(page.locator("#the-chat-is-on-another-machine")).toBeVisible();
 });
 
 test("the welcome examples open the checkout source and the cross-agent handoff", async ({

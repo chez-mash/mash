@@ -6,8 +6,7 @@
 | Setup says it could not reach the search service | [Start Qdrant](#qdrant-connection-failed) |
 | The dashboard address does not open | [Check dashboard startup](#the-dashboard-doesnt-open) |
 | Mash found no history, or nothing is indexed yet | [Check history setup](#nothing-is-indexed-yet) |
-| A recent chat is missing | [Check for new history](#new-chats-are-missing-or-search-is-behind) |
-| You can browse chats, but a search finds nothing | [Check the query, filters and dates](#search-returns-no-results) |
+| A chat is missing, or a search finds nothing | [Find a missing chat](find-missing-chat.md) |
 | A coding agent cannot see Mash | [Check the agent connection](#my-agent-cannot-find-mash) |
 | An upgrade says the index schema is incompatible | [Recover or upgrade the index](#the-index-schema-is-older-or-newer-than-mash) |
 
@@ -177,34 +176,8 @@ See [agent setup](agents.md).
 
 ## Search returns no results
 
-1. Check the [search mode](dashboard.md#choose-a-search-mode). In word
-   search, all the words you enter must appear in the same message. Try one
-   distinctive word you remember. For search by meaning, try a short question
-   in English. See [search in other languages](search-languages.md)
-   for text without spaces between words.
-2. If the dashboard shows filter tags, use **Clear filters** to retry the
-   same search. If it opens the chat list, enter your search again. In
-   the terminal, run the same search without the filter flags.
-3. Check whether the chat is listed. Choose **Browse chats** to open the
-   dashboard's chat list with your current filters. If you remember part of
-   the title, type it and look under **chats** in the search box suggestions.
-   In the terminal, use the title command below.
-4. If a new chat is missing or its transcript ends too early,
-   [check for new history](#new-chats-are-missing-or-search-is-behind). For an older chat,
-   [include more history](indexing.md#add-older-history). If an agent's
-   chats are missing, [check the history folders](#nothing-is-indexed-yet).
-
-Search covers user and assistant messages only. Tool output and reasoning are
-kept for reading: search for a nearby message, then open the transcript.
-
-To find a chat by title from the terminal, use:
-
-```sh
-mash list-chats --title-contains 'part of the title'
-```
-
-Read it from its first message with `mash view` and the row's
-`lookup.view.id`, or search inside its chat ID.
+Start by [checking whether the chat is listed](find-missing-chat.md). If it is,
+follow the guide’s [query and filter checks](find-missing-chat.md#the-chat-is-listed-but-search-finds-nothing).
 
 ## Models are missing
 
@@ -258,8 +231,8 @@ The agent plugin starts a catch-up index when a session begins, at most once
 every ten minutes. For continuous updates, see
 [keep history up to date](synchronization.md).
 
-If chats from an agent have never appeared in Mash, check
-[which local histories Mash reads and how to select them](supported-agents.md#if-a-chat-is-missing).
+If the chat still doesn’t appear after refreshing, [check its original
+machine, history range, and agent](find-missing-chat.md).
 
 ## A chat still shows what an older release read
 

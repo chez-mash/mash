@@ -32,6 +32,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 ### Search
 
 - [Search from the terminal](search.md#your-first-search)
+- [Find a missing chat](find-missing-chat.md)
 - [Search chats in other languages](search-languages.md)
 - [Keep new chats searchable](synchronization.md)
 - [Include older history or search by meaning](indexing.md)

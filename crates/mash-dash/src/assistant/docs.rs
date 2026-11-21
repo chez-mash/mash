@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 
 /// The guides, each with the page it is published at on the documentation
 /// site.
-const GUIDES: [(&str, &str, &str); 19] = [
+const GUIDES: [(&str, &str, &str); 20] = [
     (
         "quick-start",
         "Quick start",
@@ -21,6 +21,11 @@ const GUIDES: [(&str, &str, &str); 19] = [
         "search",
         "Search",
         include_str!("../../../../docs/search.md"),
+    ),
+    (
+        "find-missing-chat",
+        "Find a missing chat",
+        include_str!("../../../../docs/find-missing-chat.md"),
     ),
     (
         "indexing",
@@ -368,5 +373,7 @@ mod tests {
         assert!(look_up("", "mashy").contains("API key"));
         assert!(look_up("", "dashboard-access").contains("mash dash remote"));
         assert!(look_up("open the dashboard on my phone", "").contains("(page dashboard-access)"));
+        assert!(page("find-missing-chat"));
+        assert!(look_up("find a missing chat", "").contains("(page find-missing-chat)"));
     }
 }

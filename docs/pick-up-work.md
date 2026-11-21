@@ -20,7 +20,7 @@ Start with a past chat and find the first thing you can do next.
    Include the goal, the decision that still applies, and what remains to do.
 
 For help finding the right chat, see [dashboard search](dashboard.md#find-and-read-a-chat)
-and [what to check when a chat is missing](troubleshooting.md#search-returns-no-results).
+and [what to check when a chat is missing](find-missing-chat.md).
 
 ## Reopen the original session
 

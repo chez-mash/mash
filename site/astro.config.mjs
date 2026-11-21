@@ -186,6 +186,7 @@ export default defineConfig({
                   },
                   slug: "search",
                 },
+                "find-missing-chat",
                 {
                   label: "Search in other languages",
                   translations: {

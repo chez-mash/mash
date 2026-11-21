@@ -95,7 +95,7 @@ If your terminal can’t find `mash`, use the full path shown during setup or
 [add Mash to your PATH](docs/troubleshooting.md#mash-command-not-found).
 [Find and read a chat](docs/dashboard.md#find-and-read-a-chat) ·
 [Search from the terminal](docs/search.md#your-first-search) ·
-[Troubleshoot search](docs/troubleshooting.md#search-returns-no-results)
+[Find a missing chat](docs/find-missing-chat.md)
 
 ### Ask your agent
 
