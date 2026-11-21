@@ -224,13 +224,19 @@
     content: "";
   }
   .scene .head {
-    transform: translateY(calc((1 - var(--t, 0)) * var(--lift, 0px)))
+    transform: translate(
+        calc((1 - var(--t, 0)) * -1 * var(--arrival-side, -1) * var(--head-travel, 0px)),
+        calc((1 - var(--t, 0)) * var(--lift, 0px))
+      )
       scale(calc(1 + (1 - var(--t, 0)) * var(--grow, 0.22)));
     will-change: transform;
   }
   .show {
     opacity: var(--t, 0);
-    transform: translateY(calc((1 - var(--t, 0)) * 5rem))
+    transform: translate(
+        calc((1 - var(--t, 0)) * var(--arrival-side, -1) * var(--show-travel, 0px)),
+        calc((1 - var(--t, 0)) * 5rem)
+      )
       scale(calc((0.92 + 0.08 * var(--t, 0)) * var(--fit, 1)));
     transform-origin: 50% 0;
     will-change: transform, opacity;

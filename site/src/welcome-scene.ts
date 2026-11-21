@@ -90,7 +90,7 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   const timeline = gsap.timeline({ paused: true });
 
   // The drawing, then a moment with the heading alone.
-  gsap.set(el, { "--t": 0, "--art": strength });
+  gsap.set(el, { "--t": 0, "--art": strength, "--arrival-side": index % 2 === 0 ? -1 : 1 });
   draw(timeline, strokes, dots);
   const drawnAt = timeline.duration();
   if (head) timeline.to({}, { duration: HOLD_SECONDS });
@@ -148,12 +148,18 @@ export function sceneIn(el: HTMLElement, index: number): Scene | undefined {
   };
 }
 
+/** How far a centered, scaled item can travel while staying inside the stage. */
+function entranceTravel(stageWidth: number, scaledWidth: number): number {
+  return Math.max(0, Math.min(144, stageWidth * 0.18, (stageWidth - scaledWidth) / 2 - 4));
+}
+
 /**
  * Sizes a scene for the screen: a panel too tall is scaled down to fit, and the
- * heading learns how far down it sits while it has the screen to itself.
+ * heading and panel get room to move while staying inside the screen.
  */
 export function measure(scene: Scene): void {
-  const gap = Number.parseFloat(getComputedStyle(scene.stage).rowGap) || 0;
+  const style = getComputedStyle(scene.stage);
+  const gap = Number.parseFloat(style.rowGap) || 0;
   const above = scene.head ? scene.head.offsetHeight + gap : 0;
   const room = scene.stage.clientHeight - 16 - above;
   const fit = Math.max(0.6, Math.min(1, room / scene.show.offsetHeight));
@@ -162,14 +168,20 @@ export function measure(scene: Scene): void {
   // The heading is enlarged while it has the screen to itself, but never past
   // the screen's edges: a long one-line heading grows only as far as it fits.
   const narrow = matchMedia("(max-width: 48rem)").matches;
-  const style = getComputedStyle(scene.stage);
+  const stageWidth = scene.stage.clientWidth;
   const inner =
-    scene.stage.clientWidth -
-    Number.parseFloat(style.paddingLeft) -
-    Number.parseFloat(style.paddingRight);
+    stageWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight);
   const wide = scene.head?.querySelector("h2")?.offsetWidth ?? inner;
   const grow = Math.max(0, Math.min(narrow ? 0.08 : 0.22, inner / wide - 1));
   scene.head?.style.setProperty("--grow", String(grow));
+  // At --t: 0 the heading is enlarged and the panel is at 92% of its fitted
+  // size. Their offsets both fall to zero as those scales settle.
+  const showTravel = entranceTravel(stageWidth, scene.show.offsetWidth * 0.92 * fit);
+  scene.el.style.setProperty("--show-travel", `${showTravel}px`);
+  if (scene.head) {
+    const headTravel = entranceTravel(stageWidth, scene.head.offsetWidth * (1 + grow));
+    scene.el.style.setProperty("--head-travel", `${headTravel}px`);
+  }
   let drop = 0;
   if (scene.art) {
     // Measured without the drawing's own scaling.

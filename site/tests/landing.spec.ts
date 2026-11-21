@@ -317,6 +317,31 @@ async function play(page: Page, heading: string, share: number): Promise<void> {
     .toBe(true);
 }
 
+test("welcome illustrations and headings enter from opposite alternating sides", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 850 });
+  await page.goto("/");
+  await expect(page.locator(".mash-welcome")).toHaveClass(/\bmotion\b/);
+  for (const [id, heading, direction] of [
+    ["welcome-search", "Find it.", 1],
+    ["welcome-mashy", "Meet Mashy.", -1],
+  ] as const) {
+    const scene = page.locator(`#${id}`);
+    const offset = (selector: string) =>
+      scene
+        .locator(selector)
+        .evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).m41);
+    expect(direction * (await offset(".head"))).toBeGreaterThan(0);
+    expect(direction * (await offset(".show"))).toBeLessThan(0);
+
+    await play(page, heading, 0.4);
+    await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
+    expect(await offset(".head")).toBeCloseTo(0);
+    expect(await offset(".show")).toBeCloseTo(0);
+  }
+});
+
 test("scrolling reveals the search illustration and plays its captions in order", async ({
   page,
 }) => {

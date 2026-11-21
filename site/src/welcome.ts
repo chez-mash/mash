@@ -309,7 +309,8 @@ function build(
       gsap.killTweensOf([scene.timeline, scene.el]);
       unkeep(scene);
       scene.el.classList.remove("tight");
-      for (const name of ["--o", "--fit", "--lift"]) scene.el.style.removeProperty(name);
+      for (const name of ["--o", "--fit", "--lift", "--head-travel", "--show-travel"])
+        scene.el.style.removeProperty(name);
       scene.head?.style.removeProperty("--grow");
     }
     for (const backdrop of backdrops) gsap.killTweensOf(backdrop.timeline);

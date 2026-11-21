@@ -83,8 +83,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **Scenes.** Search, Mashy, memory, performance, privacy, the tiles and Rust
   each pin under the header while the reader scrolls; only the closing call
   to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
-  builds each one: it draws the scene's drawing, moves the heading aside for
-  the illustration, and brings in its captions in order.
+  builds each one. It draws the backdrop, then brings the heading and
+  illustration toward the center from opposite sides, starting with the
+  Search illustration on the left. The directions alternate by scene. Travel
+  fits the available width so headings stay within the stage. Captions appear
+  in order once the illustration settles.
   Each scene is one GSAP timeline. Its position on screen sets the target time,
   and the timeline plays there at its own pace. A scene scrolled past unfinished
   gets the class `kept` and stays fixed until it finishes. A single scroll can
@@ -94,9 +97,8 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   programmatic scroll changes mid-gesture and can shake. The pacing constants
   are at the top of that file.
 - **GSAP** (with its ScrollTrigger and DrawSVG plugins) drives the motion. Its
-  licence is GSAP's own no-charge licence, not an open-source one; it covers
-  this use. Timelines hold measured heights, so they are rebuilt when the
-  window's width changes.
+  proprietary no-charge licence covers this use. The stage dimensions and
+  travel are measured again when the window changes size.
 - **Without scripting** the illustrations, captions, and links are visible
   in ordinary sections. The script adds `motion` to the wrapper to enable
   pinning and animation.
