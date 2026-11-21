@@ -140,7 +140,7 @@ mash status --installation --agent claude-code --probe
 進行中の会話をリアルタイムで追う機能ではありません。無効にするには、エージェントの環境で `MASH_AUTO_INDEX=off` を設定します。
 
 すぐに読み込むには `mash index` を実行します。変更を継続して読み込むには、別の端末で `mash index --watch` を実行しておきます。
-[履歴の更新方法（英語）](../synchronization.md)
+[履歴の更新方法](synchronization.md)
 
 <span id="disconnect-an-agent"></span>
 

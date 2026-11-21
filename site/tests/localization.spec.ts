@@ -716,7 +716,7 @@ test("Japanese readers can go from a verified archive to browser setup in Japane
   await expect(guide.getByText("Search your history", { exact: true })).toBeVisible();
 });
 
-test("the Japanese dashboard guide keeps setup, search and private access in Japanese", async ({
+test("the Japanese dashboard guide keeps setup, search, refresh and private access in Japanese", async ({
   page,
 }) => {
   const guide = page.locator(".sl-markdown-content");
@@ -735,6 +735,21 @@ test("the Japanese dashboard guide keeps setup, search and private access in Jap
   await expect(page).toHaveURL("/ja/agents/#connect-claude-code-codex-or-copilot");
   await openSection("search-languages", "choose-a-search-mode");
   await expect(guide.getByText("search: default", { exact: true })).toBeVisible();
+  const refresh = "/ja/synchronization/#refresh-now";
+  await guide.locator(`a[href="${refresh}"]`).click();
+  await expect(page).toHaveURL(refresh);
+  await expect(page.locator("#refresh-now")).toBeAttached();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await expect(
+    guide.locator("pre").filter({ hasText: "mash index" }).filter({ hasText: "mash status" }),
+  ).toBeVisible();
+  await expect(guide.locator("pre").filter({ hasText: /^mash index --watch$/ })).toBeVisible();
+
+  await page.goto("/ja/troubleshooting/#new-chats-are-missing-or-search-is-behind");
+  const published = "/ja/synchronization/#across-machines";
+  await guide.locator(`a[href="${published}"]`).click();
+  await expect(page).toHaveURL(published);
+  await expect(page.locator("#across-machines")).toBeAttached();
   await openSection("privacy", "open-it-from-your-phone-or-another-computer");
   await expect(guide.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
 });

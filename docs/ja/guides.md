@@ -42,7 +42,7 @@ Mash は、コーディングエージェントとの過去の会話を探すツ
 
 - [端末から検索する（英語）](../search.md#your-first-search)
 - [日本語など、英語以外のチャットを検索する](search-languages.md)
-- [新しいチャットを検索できるようにする（英語）](../synchronization.md)
+- [新しいチャットを検索できるようにする](synchronization.md)
 - [古い履歴を含める、または意味で検索する（英語）](../indexing.md)
 - [複数のコンピューターにある履歴を検索する（英語）](../shared-index.md)
 

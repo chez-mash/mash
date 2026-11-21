@@ -257,14 +257,14 @@ mash index
 
 インデックス作成が終わったら、ダッシュボードで **Search again** を選びます。
 このボタンがなければ検索ページを再読み込みします。
-別のコンピューターのチャットなら、[共有インデックスに反映されたか確認します（英語）](../synchronization.md#across-machines)。
+別のコンピューターのチャットなら、[共有インデックスに反映されたか確認します](synchronization.md#across-machines)。
 
 - 「search is catching up with new history」なら、インデックス作成中です。少し待ってから再試行します。
 - 「search is behind the stored history and nothing is refreshing it」なら、`mash index` を実行します。
 
 エージェント用プラグインは、セッション開始時に新しい履歴を読み込みます。
 実行頻度は最大で 10 分に 1 回です。継続して更新する場合は、
-[履歴を最新に保つ手順（英語）](../synchronization.md)をご覧ください。
+[履歴を最新に保つ手順](synchronization.md)をご覧ください。
 
 あるエージェントのチャットが一度も表示されていない場合は、
 [Mash が読み込む履歴とその選び方](supported-agents.md#if-a-chat-is-missing)を確認してください。
