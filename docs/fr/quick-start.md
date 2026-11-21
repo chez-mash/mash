@@ -28,6 +28,8 @@ Vous devez avoir au moins une conversation enregistrée avec un [agent compatibl
 Les scripts installent Mash avec le tableau de bord, démarrent le service de
 recherche local et ouvrent l’assistant. Pour Homebrew, apt, Scoop ou un autre
 gestionnaire de paquets, consultez les [commandes d’installation](install-methods.md#install-with-a-package-manager).
+Pour choisir les historiques dans le navigateur, suivez les [étapes d’installation séparées](installation.md)
+puis [configurez Mash dans le tableau de bord](installation.md#set-up-in-your-browser).
 
 Sous macOS (puce Apple) ou Linux (x86-64 ou ARM64), exécutez cette commande.
 Sous Linux ou WSL, elle nécessite une session utilisateur systemd pour démarrer
@@ -59,7 +61,6 @@ Vérifiez les historiques avant de commencer. La période proposée couvre les
 
 Si votre service de recherche tourne déjà ou si vous voulez seulement les
 exécutables, consultez le [guide d’installation](installation.md).
-Vous pouvez aussi [vérifier les options dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>
 
@@ -90,4 +91,4 @@ Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 42f6f008b906263670c0b3a0b04f7e29cc18d3279a2ab34c54364de25e991eec -->
+<!-- mash-docs-source: 71579f3583b9237b23b3c4122fb531b06b41f856d535c1fca5b8f8d62fa99b5c -->

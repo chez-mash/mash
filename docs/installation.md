@@ -38,8 +38,8 @@ installed and how to remove it. [Preview removal](#uninstall)
 
 ## Get Mash for your system
 
-The release includes the browser dashboard. After setup, run `mash dash`
-and open the address it prints. During setup, you can also choose to
+The release includes the browser dashboard. Once the search service is running,
+you can [set up Mash in your browser](#set-up-in-your-browser). You can also
 [connect coding agents](agents.md) so they can search your chats for you.
 
 ### Recommended release installers
@@ -114,6 +114,30 @@ If you need to start one, choose the instructions for your environment.
 - <span id="native-macos-or-linux-without-docker"></span>[macOS or Linux without Docker](local-search.md#native-macos-or-linux-without-docker)
 
 ## Connect your histories
+
+Once the local search service is running, use the browser dashboard or
+the terminal wizard to choose which chats Mash reads.
+
+### Set up in your browser
+
+If you installed a release or [built with the dashboard](install-methods.md#include-the-web-dashboard),
+run this in a terminal:
+
+```sh
+mash dash
+```
+
+Keep the terminal open and visit the address it prints. On a fresh install,
+the dashboard opens to setup. Check the histories and date range. Leave
+agent connections off if you want to search on your own. Choose
+**Set up and index**. Once the index is ready, open **chats** and search for
+a word you remember.
+[See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard)
+
+### Set up in a terminal
+
+Use the terminal wizard for a source build without the dashboard or to
+choose a history folder or connect to a shared server.
 
 ```sh
 mash init

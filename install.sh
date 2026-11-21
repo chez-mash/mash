@@ -108,9 +108,13 @@ if "$setup"; then
     exit "$status"
   }
   "$mash" init <&3 3<&-
+  echo 'After setup, start the browser dashboard and open the address it prints.'
 else
-  echo 'For a new local setup, install the search service and then run the setup wizard.'
-  printf "  '%s' qdrant install\n  '%s' init\n" "$quoted_mash" "$quoted_mash"
+  echo 'For a new local setup, start the search service first.'
+  printf "  '%s' qdrant install\n" "$quoted_mash"
+  echo 'Then choose either the terminal wizard or the browser dashboard.'
+  echo 'To set up in the terminal, run the wizard.'
+  printf "  '%s' init\n" "$quoted_mash"
+  echo 'To set up in your browser, start the dashboard and open the address it prints.'
 fi
-echo 'After setup, start the browser dashboard and open the address it prints.'
 printf "  '%s' dash\n" "$quoted_mash"

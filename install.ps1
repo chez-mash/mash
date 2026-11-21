@@ -83,13 +83,16 @@ function Install-Mash {
     Write-Host 'The setup wizard lets you choose which coding agents can search your chats.'
     if ($Setup) {
         Start-MashSetup -Executable $mash
+        Write-Host 'After setup, start the browser dashboard and open the address it prints.'
     } else {
-        Write-Host 'For a new local setup, install the search service and then run the setup wizard.'
-        Write-Host "  & '$quotedMash' qdrant install"
-        Write-Host "  & '$quotedMash' init"
         Write-Host 'After an upgrade, reconnect your Mash MCP sessions.'
+        Write-Host 'For a new local setup, start the search service first.'
+        Write-Host "  & '$quotedMash' qdrant install"
+        Write-Host 'Then choose either the terminal wizard or the browser dashboard.'
+        Write-Host 'To set up in the terminal, run the wizard.'
+        Write-Host "  & '$quotedMash' init"
+        Write-Host 'To set up in your browser, start the dashboard and open the address it prints.'
     }
-    Write-Host 'After setup, start the browser dashboard and open the address it prints.'
     Write-Host "  & '$quotedMash' dash"
 }
 

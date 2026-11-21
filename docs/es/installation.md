@@ -44,9 +44,9 @@ instaló y cómo retirarlo. [Vista previa de la desinstalación](#uninstall)
 
 ## Descarga Mash para tu sistema
 
-La versión precompilada incluye el panel web. Una vez configurado Mash,
-ejecuta `mash dash` y abre la dirección que muestra. Durante la configuración
-también puedes [conectar tus agentes](agents.md) para que busquen en tus
+La versión precompilada incluye el panel web. Cuando el servicio de búsqueda
+esté en marcha, puedes [configurar Mash en el navegador](#set-up-in-your-browser).
+También puedes [conectar tus agentes](agents.md) para que busquen en tus
 conversaciones por ti.
 
 <span id="recommended-release-installers"></span>
@@ -137,6 +137,32 @@ Para iniciar uno, elige la guía para tu entorno.
 <span id="connect-your-histories"></span>
 
 ## Configura tus historiales
+
+Cuando el servicio de búsqueda local esté en marcha, puedes elegir qué
+conversaciones lee Mash en el panel del navegador o en la terminal.
+
+<span id="set-up-in-your-browser"></span>
+
+### Configura Mash en el navegador
+
+Si instalaste una versión publicada o [compilaste con el panel](install-methods.md#include-the-web-dashboard),
+ejecuta este comando en una terminal:
+
+```sh
+mash dash
+```
+
+Deja la terminal abierta y visita la dirección que aparece. En una instalación
+nueva, el panel abre la configuración. Comprueba los historiales y el periodo.
+Deja desactivadas las conexiones a agentes si prefieres hacer las búsquedas por
+tu cuenta. Elige **Set up and index**. Cuando el índice esté listo, abre
+**chats** y busca una palabra que recuerdes.
+[Consulta los pasos de configuración en el panel](dashboard.md#set-up-mash-from-the-dashboard)
+
+### Configura Mash en la terminal
+
+Usa el asistente de la terminal si compilaste Mash sin el panel, si quieres
+elegir una carpeta de historial o si vas a conectarte a un servidor compartido.
 
 ```sh
 mash init
@@ -361,4 +387,4 @@ Conserva los datos de Qdrant salvo que añadas `--delete-storage`. Esos datos
 contienen lo necesario para las búsquedas. Puedes regenerarlos a partir del
 índice con `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: dd1d8702bdf06d4e4897f4f5c3277777fd07d567f2c005fccb71f39cdef13003 -->
+<!-- mash-docs-source: 69b3c7b52bd00771495d3c16d56938a04ea962d54a507f41f338e8e1ea7d4e47 -->

@@ -64,6 +64,15 @@ test("the quick start goes from setup to a first chat and links to package insta
   await guide.getByRole("link", { name: "package install commands" }).click();
   await expect(page).toHaveURL("/install-methods/#install-with-a-package-manager");
   await expect(page.locator("#install-with-a-package-manager")).toBeAttached();
+  await guide.getByRole("link", { name: "finish setup in the browser" }).click();
+  await expect(page).toHaveURL("/installation/#set-up-in-your-browser");
+  await expect(guide.getByRole("heading", { name: "Set up in your browser" })).toBeVisible();
+  await expect(guide.locator("pre").filter({ hasText: /^mash dash$/ })).toBeVisible();
+  await guide.getByRole("link", { name: "See the dashboard setup steps" }).click();
+  await expect(page).toHaveURL("/dashboard/#set-up-mash-from-the-dashboard");
+  await expect(
+    guide.getByRole("heading", { name: "Set up Mash from the dashboard" }),
+  ).toBeVisible();
 });
 
 test("the old restore section leads to the portable backup guide", async ({ page }) => {

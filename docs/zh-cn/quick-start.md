@@ -17,6 +17,7 @@
 ## 自行安装
 
 你需要至少一条来自[受支持代理](supported-agents.md)的已保存对话。以下脚本会安装 Mash 和网页面板，启动本地搜索服务，并打开设置向导。如果想用 Homebrew、apt、Scoop 或其他软件包管理器，请参阅[软件包安装命令](install-methods.md#install-with-a-package-manager)。
+如果想在浏览器中选择要读取的历史记录，请按[分步安装指南](installation.md)操作，再[在网页面板中设置 Mash](installation.md#set-up-in-your-browser)。
 
 在搭载 Apple 芯片的 macOS 或 Linux（x86-64 或 ARM64）上运行以下命令。在 Linux 或 WSL 上，此命令需要 systemd 用户会话来启动 Qdrant。[检查当前会话或查看其他启动方式](local-search.md#linux-without-a-systemd-user-session)。
 
@@ -38,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 - **自己在网页面板中搜索。** [跳过代理连接](installation.md#skip-agent-connections)，为对话建立索引。之后也可以再连接代理。
 - **让代理帮你搜索。** 选择 **Set up and index** 之前，先核对摘要中列出的代理。
 
-如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](installation.md)。你也可以 [在网页面板中核对设置](dashboard.md#set-up-mash-from-the-dashboard)。
+如果你已运行自己的搜索服务，或只想安装可执行文件，请参阅 [安装指南](installation.md)。
 
 <span id="try-it"></span>
 
@@ -67,4 +68,4 @@ mash dash
 
 Mash 的界面目前使用英文。要按原文查找中文，请参阅[如何搜索其他语言的对话](search-languages.md)。
 
-<!-- mash-docs-source: 42f6f008b906263670c0b3a0b04f7e29cc18d3279a2ab34c54364de25e991eec -->
+<!-- mash-docs-source: 71579f3583b9237b23b3c4122fb531b06b41f856d535c1fca5b8f8d62fa99b5c -->

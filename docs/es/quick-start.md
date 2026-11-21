@@ -32,6 +32,8 @@ pídele a tu agente que use la skill `setup`.
 Necesitas al menos una conversación guardada con un [agente compatible](supported-agents.md).
 El instalador incluye el panel web. Si prefieres Homebrew, apt, Scoop u otro
 gestor de paquetes, consulta los [comandos de instalación](install-methods.md#install-with-a-package-manager).
+Para elegir los historiales en el navegador, sigue los [pasos de instalación por separado](installation.md)
+y [configura Mash en el panel](installation.md#set-up-in-your-browser).
 
 En un terminal de macOS con Apple silicon o de Linux (x86-64 o ARM64), ejecuta
 este comando para una instalación local nueva. En Linux o WSL necesitas una
@@ -64,7 +66,6 @@ elige **Just this computer (recommended)**.
 
 Para instalar por separado o usar tu propio Qdrant, consulta la
 [guía de instalación](installation.md).
-También puedes [usar el asistente del panel local](dashboard.md#set-up-mash-from-the-dashboard).
 
 ## Encuentra una conversación anterior
 

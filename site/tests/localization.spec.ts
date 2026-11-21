@@ -166,6 +166,13 @@ for (const [locale, lang, title] of [
     await guide.locator(`a[href="${localSearch}"]`).first().click();
     await expect(page).toHaveURL(localSearch);
     await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
+    await page.goBack();
+    const browserSetup = `${install}#set-up-in-your-browser`;
+    await guide.locator(`a[href="${browserSetup}"]`).click();
+    await expect(page).toHaveURL(browserSetup);
+    await expect(guide.locator("#set-up-in-your-browser")).toBeAttached();
+    await expect(guide.locator("pre").filter({ hasText: /^mash dash$/ })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
   });
 }
 

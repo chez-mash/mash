@@ -45,10 +45,10 @@ Qdrant avant d’afficher le récapitulatif. Si vous annulez à cette étape,
 
 ## Télécharger Mash pour votre système
 
-La version précompilée comprend le tableau de bord web. Après la configuration,
-lancez `mash dash` et ouvrez l’adresse affichée. Vous pouvez aussi
-[connecter des agents de programmation](agents.md) pendant la configuration
-pour qu’ils cherchent dans vos conversations.
+La version précompilée comprend le tableau de bord web. Une fois le service
+de recherche démarré, vous pouvez [configurer Mash dans le navigateur](#set-up-in-your-browser).
+Vous pouvez aussi [connecter des agents de programmation](agents.md) pour
+qu’ils cherchent dans vos conversations.
 
 <span id="recommended-release-installers"></span>
 
@@ -139,6 +139,33 @@ Pour en démarrer une, choisissez la procédure adaptée à votre environnement.
 <span id="connect-your-histories"></span>
 
 ## Configurer vos historiques
+
+Une fois le service de recherche local démarré, choisissez les conversations
+que Mash peut lire dans le tableau de bord ou dans le terminal.
+
+<span id="set-up-in-your-browser"></span>
+
+### Configurer Mash dans le navigateur
+
+Si vous avez installé une version publiée ou [compilé Mash avec le tableau de bord](install-methods.md#include-the-web-dashboard),
+lancez cette commande dans un terminal :
+
+```sh
+mash dash
+```
+
+Laissez le terminal ouvert et ouvrez l’adresse qu’il affiche. Sur une nouvelle
+installation, le tableau de bord ouvre la configuration. Vérifiez les historiques
+et la période. Laissez les connexions aux agents désactivées si vous préférez
+faire vos recherches vous-même. Choisissez **Set up and index**. Une fois
+l’index prêt, ouvrez **chats** et cherchez un mot dont vous vous souvenez.
+[Voir les étapes de configuration dans le tableau de bord](dashboard.md#set-up-mash-from-the-dashboard)
+
+### Configurer Mash dans le terminal
+
+Utilisez l’assistant du terminal si vous avez compilé Mash sans le tableau de
+bord, si vous voulez choisir un dossier d’historique ou si vous souhaitez
+vous connecter à un serveur partagé.
 
 ```sh
 mash init
@@ -368,4 +395,4 @@ La commande conserve les données de Qdrant sauf si vous ajoutez
 `--delete-storage`. Ces données servent à la recherche. Vous pouvez les
 reconstruire à partir de votre index avec `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: dd1d8702bdf06d4e4897f4f5c3277777fd07d567f2c005fccb71f39cdef13003 -->
+<!-- mash-docs-source: 69b3c7b52bd00771495d3c16d56938a04ea962d54a507f41f338e8e1ea7d4e47 -->

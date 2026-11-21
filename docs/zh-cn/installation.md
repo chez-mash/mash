@@ -24,7 +24,7 @@
 
 ## 下载适合你的系统的 Mash
 
-预编译版本包含网页面板。完成设置后，运行 `mash dash`，在浏览器中打开显示的地址。设置时也可以[连接编程代理](agents.md)，让它们帮你搜索历史记录。
+预编译版本包含网页面板。搜索服务启动后，可以[在浏览器中设置 Mash](#set-up-in-your-browser)。也可以[连接编程代理](agents.md)，让它们帮你搜索历史记录。
 
 <span id="recommended-release-installers"></span>
 
@@ -91,6 +91,25 @@ Mash 校验下载的 Qdrant（约 30 MB），再以你的用户身份在后台�
 <span id="connect-your-histories"></span>
 
 ## 设置要读取的历史记录
+
+本地搜索服务启动后，可以在网页面板或终端里选择 Mash 要读取哪些对话。
+
+<span id="set-up-in-your-browser"></span>
+
+### 在浏览器中设置 Mash
+
+如果你安装了已发布的版本，或[构建了带网页面板的 Mash](install-methods.md#include-the-web-dashboard)，请在终端运行：
+
+```sh
+mash dash
+```
+
+保持终端运行，在浏览器中打开终端显示的网址。首次安装时，网页面板会打开设置页。核对历史记录和日期范围。如果只想自己搜索，请保持代理连接关闭。选择 **Set up and index**。索引就绪后，打开 **chats**，搜索一个你记得的词。
+[查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)
+
+### 在终端中设置 Mash
+
+如果你的构建没有网页面板，或你想自行选择历史记录目录、连接共享服务器，请使用终端设置助手。
 
 ```sh
 mash init
@@ -213,4 +232,4 @@ mash uninstall --yes    # removes it
 
 如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
 
-<!-- mash-docs-source: dd1d8702bdf06d4e4897f4f5c3277777fd07d567f2c005fccb71f39cdef13003 -->
+<!-- mash-docs-source: 69b3c7b52bd00771495d3c16d56938a04ea962d54a507f41f338e8e1ea7d4e47 -->

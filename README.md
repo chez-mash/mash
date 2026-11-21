@@ -75,6 +75,8 @@ You need at least one saved conversation from a [supported agent](docs/supported
 The scripts install Mash with the browser dashboard, start the local search
 service, and open the setup wizard. For Homebrew, apt, Scoop or another
 package manager, see the [package install commands](docs/install-methods.md#install-with-a-package-manager).
+To choose your histories in the browser, follow the [separate installation steps](docs/installation.md)
+and [set up in the dashboard](docs/installation.md#set-up-in-your-browser).
 
 On macOS (Apple silicon) or Linux (x86-64 or ARM64), use the command below.
 On Linux or WSL it needs a systemd user session to start Qdrant.
@@ -104,7 +106,6 @@ where to search, choose **Just this computer (recommended)**.
 
 To use a search service you already run or to install Mash separately, follow
 the [installation guide](docs/installation.md).
-You can also [review setup in the dashboard](docs/dashboard.md#set-up-mash-from-the-dashboard).
 
 <span id="try-it"></span>
 

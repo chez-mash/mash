@@ -55,6 +55,8 @@ try {
     Assert-Equal ($output -contains "  & '$commandPath' qdrant install") $true 'search service command'
     Assert-Equal ($output -contains "  & '$commandPath' init") $true 'setup command'
     Assert-Equal ($output -contains "  & '$commandPath' dash") $true 'browser dashboard command'
+    Assert-Equal ($output -contains 'Then choose either the terminal wizard or the browser dashboard.') $true 'choice of setup'
+    Assert-Equal ($output -contains 'To set up in your browser, start the dashboard and open the address it prints.') $true 'browser setup guidance'
     Assert-Equal ($output -contains 'The setup wizard lets you choose which coding agents can search your chats.') $true 'optional agent connections'
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'fresh install'
     Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'mash-server.exe') -Raw) 'new server' 'server install'
