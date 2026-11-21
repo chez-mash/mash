@@ -172,6 +172,10 @@ for (const [locale, lang, installationTitle] of [
     await expect(guide.locator("#what-setup-changes")).toBeAttached();
     await expect(guide.locator('a[href="#skip-agent-connections"]')).toBeVisible();
     await expect(guide.locator(`a[href="${uninstall}"]`).first()).toBeVisible();
+    await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
+    await expect(
+      guide.getByText("Set up and index without connecting agents", { exact: true }),
+    ).toBeVisible();
     await guide.locator(`a[href="${verify}"]`).first().click();
     await expect(page).toHaveURL(verify);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
@@ -179,12 +183,13 @@ for (const [locale, lang, installationTitle] of [
     await expect(
       guide.locator("pre").filter({ hasText: "sha256sum mash-x86_64-unknown-linux-gnu.tar.gz" }),
     ).toBeVisible();
-    await guide.locator(`a[href="${install}#start-the-local-search-service"]`).click();
-    await expect(page).toHaveURL(`${install}#start-the-local-search-service`);
-    await expect(guide.locator("pre").filter({ hasText: /^mash qdrant install$/ })).toBeVisible();
     await expect(
-      guide.getByText("Set up and index without connecting agents", { exact: true }),
+      guide.locator("pre").filter({ hasText: ".\\mash.exe qdrant install" }),
     ).toBeVisible();
+    const browserSetup = `/${locale}/dashboard/#set-up-mash-from-the-dashboard`;
+    await guide.locator(`a[href="${browserSetup}"]`).click();
+    await expect(page).toHaveURL(browserSetup);
+    await expect(guide.getByText("no agents", { exact: true })).toBeVisible();
 
     await page.goto(`/${locale}/privacy/`);
     await guide.locator(`a[href="${uninstall}"]`).last().click();
