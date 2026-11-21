@@ -119,11 +119,21 @@ for (const width of [1440, 390]) {
     await expect(page.locator("#message-message-1")).toContainText("<plan> first");
     await expect(page.locator("#message-message-1 p br")).toHaveCount(1);
     const sessions = page.getByRole("navigation", { name: "Prompts and sessions" });
-    await expect(sessions).toBeVisible();
-    await page.getByRole("button", { name: "Hide session list" }).click();
-    await expect(sessions).toBeHidden();
-    await page.getByRole("button", { name: "Show session list" }).click();
-    await expect(sessions).toBeVisible();
+    const showSessions = page.getByRole("button", { name: "Show session list" });
+    if (width <= 700) {
+      await expect(sessions).toBeHidden();
+      await showSessions.click();
+      await expect(sessions).toBeVisible();
+      await sessions.getByRole("button", { name: "Back to chat" }).click();
+      await expect(sessions).toBeHidden();
+      await expect(page.locator("#message-message-1")).toBeVisible();
+    } else {
+      await expect(sessions).toBeVisible();
+      await page.getByRole("button", { name: "Hide session list" }).click();
+      await expect(sessions).toBeHidden();
+      await showSessions.click();
+      await expect(sessions).toBeVisible();
+    }
     await page.evaluate(() => window.scrollTo(0, 200));
     await page.goBack();
     await expect(searchBox(page)).toHaveValue("watcher");
