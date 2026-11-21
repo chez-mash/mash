@@ -22,7 +22,7 @@ and Antigravity already saved on your machine.
 Mash is open source and self-hosted. The default setup keeps indexing and
 search on your machine and needs no account. [How Mash handles your history](docs/privacy.md)
 
-[Try the live dashboard demo](https://getmash.io/demo/) · [Quick start](#quick-start)
+[Try the demo without installing](https://getmash.io/demo/) · [Quick start](#quick-start) · [Check the release download](docs/installation.md#check-the-release-download)
 
 [![Mash dashboard showing a sample conversation and the message behind a saved decision](assets/dashboard-demo.png)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop)
 
@@ -45,6 +45,9 @@ search on your machine and needs no account. [How Mash handles your history](doc
 
 [Try the browser demo](https://getmash.io/demo/) with sample chats, or set up
 Mash to search your own history.
+
+Before running a command, you can [inspect the installer and check the release download](docs/installation.md#check-the-release-download).
+To start with one agent and a short history range, follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).
 
 **Ask your agent.** Paste this into Claude Code, Codex, or another coding agent.
 

@@ -6,14 +6,16 @@
 
 The default setup indexes and searches locally without changing your agents'
 original history files. You run Mash on your own machine and need no Mash
-account. The public documentation website receives none of your indexed
-chats.
+account. Mash keeps its own copy of the indexed chats, which can include
+sensitive text. By default, the search service installed by Mash listens
+only on this machine. The [public demo](https://getmash.io/demo/) uses sample
+chats and has no access to your local history.
 
 An agent that keeps history in a SQLite database, such as OpenCode, may gain
 `-wal` and `-shm` files beside that database when Mash reads it. SQLite
 creates them for any reader; the database's contents are unchanged.
 
-History leaves the machine only through features you turn on:
+## When history can leave your machine
 
 - **Agent connections** let the connected agent request search results and
   excerpts. Those results enter the agent's context and can be sent to its
@@ -28,9 +30,23 @@ History leaves the machine only through features you turn on:
   memories it reads to answer them, to the
   [model service you configure](configuration.md#the-dashboard-assistant).
   There is no assistant unless you configure one.
+- **Memory backfill** sends selected existing chats to the provider of the
+  signed-in agent you choose. Mash asks before doing this during setup.
+  [How memory backfill works](records.md#backfill-earlier-memory)
 
 The local dashboard has no login. Keep its default address or restrict access
 to a trusted private network.
+
+## Try a small local setup
+
+During setup, choose one agent's history and a short date range. Leave agent
+connections off to keep excerpts out of agent prompts. You can search the
+index yourself in the local dashboard or terminal, then widen the history
+range later. [Dashboard setup](dashboard.md#set-up-mash-from-the-dashboard)
+
+If you decide to stop, `mash uninstall` lists what Mash would remove before
+you confirm. The uninstall keeps your agents' original chats.
+[See what uninstall removes](installation.md#uninstall)
 
 ## Sensitive information
 

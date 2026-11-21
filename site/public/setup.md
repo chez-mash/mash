@@ -20,6 +20,11 @@ https://getmash.io/troubleshooting/.
 
 ## Review the setup with the person
 
+If they want to see Mash first, send them to https://getmash.io/demo/. It uses
+sample chats and works before they install anything. Point them to
+https://getmash.io/installation/#check-the-release-download if they want to
+inspect the installers or check a release archive themselves.
+
 Tell the person what setup will do, and get a yes before you continue:
 
 - Install the `mash` and `mash-server` programs for their user (no
@@ -32,6 +37,14 @@ Tell the person what setup will do, and get a yes before you continue:
   tools it finds, by
   running those tools' own commands. This edits the agents' settings files;
   the result lists each file and the command that undoes it.
+- Open one matching message from an older chat to confirm search.
+  That excerpt enters this agent's context. The person can choose to run the
+  first search themselves in the local dashboard or terminal instead.
+
+If they want to try Mash without connecting agents, add `--no-agents` to
+`mash init --yes` in step 4. If they prefer a smaller history range or only
+one agent's chats, direct them to the interactive review in `mash init` or
+https://getmash.io/dashboard/#set-up-mash-from-the-dashboard.
 
 Start with word and phrase search. If the person also asks for search by
 meaning, explain the optional model download in step 3 and get their approval
@@ -150,6 +163,10 @@ mash index --all-history
 ```sh
 mash status
 ```
+
+If the person chose to run the first search themselves, stop after status.
+Tell them how to use `mash dash` or `mash search`, and leave the results for
+them to open locally.
 
 Search for a distinctive term from an older conversation, such as a function
 name, error, or project term the person remembers. If you need a starting

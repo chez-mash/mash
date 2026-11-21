@@ -153,6 +153,19 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
   expect(await setup.text()).toContain("mash init --yes");
 });
 
+test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Inspect the installer", exact: true }).click();
+  await expect(page).toHaveURL(/\/installation\/#check-the-release-download$/);
+  await expect(page.getByRole("heading", { name: "Check the release download" })).toBeInViewport();
+  await expect(page.getByRole("link", { name: "public release workflow" })).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("link", { name: "See what stays local", exact: true }).click();
+  await expect(page).toHaveURL(/\/privacy\/$/);
+  await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
+});
+
 /**
  * Scrolls so that a scene has played the given share of its pinned stretch.
  * A scene on the way that has not finished holds the page until it has, so

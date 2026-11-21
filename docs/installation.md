@@ -47,6 +47,33 @@ Set `MASH_VERSION` to a published tag to pin a release, or
 `MASH_INSTALL_DIR` to choose another
 directory. They do not modify your shell profile or download models.
 
+### Check the release download
+
+Read the [macOS and Linux installer](https://github.com/mashium/mash/blob/main/install.sh)
+or [Windows installer](https://github.com/mashium/mash/blob/main/install.ps1)
+before you run it. The scripts install into your user directory and need no
+administrator rights. The one-command setup also starts a local search service
+under your user. Mash shows the histories and agent connections for review
+before it indexes chats or edits agent settings.
+
+The [public release workflow](https://github.com/mashium/mash/actions/workflows/release.yml)
+builds the platform archives after checking that Linux and Windows CI passed on
+the source commit. To install without running a downloaded script, get the
+archive for your platform and `SHA256SUMS` from the same
+[versioned GitHub release](https://github.com/mashium/mash/releases). Compare
+the archive's SHA-256 hash to the line for its exact filename before extracting
+it. For example, on Linux x86-64:
+
+```sh
+sha256sum mash-x86_64-unknown-linux-gnu.tar.gz
+```
+
+On macOS, use `shasum -a 256` with the macOS archive. On Windows, use
+`Get-FileHash -Algorithm SHA256` with the Windows ZIP in PowerShell. The
+checksum confirms the file matches the published hash. If it matches, extract
+`mash` and `mash-server` (or the two `.exe` files) to a directory you own, then
+continue with [the search service](#start-the-local-search-service).
+
 ### Package manager alternatives
 
 **Homebrew, macOS or Linux**
