@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 
 test("the landing page leads to a working demo of the dashboard", async ({ page }) => {
@@ -121,6 +122,32 @@ for (const [language, query, title, message, guide = "/search-languages/"] of [
     await expect(source).toContainText(query);
   });
 }
+
+test("the Japanese dashboard guide leads to a downloadable sample chat", async ({ page }) => {
+  await page.goto("/ja/quick-start/");
+  await page
+    .locator(".sl-markdown-content")
+    .getByRole("link", { name: "ダッシュボードで検索する", exact: true })
+    .click();
+  await expect(page).toHaveURL("/ja/dashboard/#find-and-read-a-chat");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mash のダッシュボードを使う");
+  await expect(page.getByText("Export to Markdown", { exact: true })).toBeVisible();
+  const example = page.getByRole("link", { name: "日本語のサンプルチャットをデモで検索" });
+  const target = new URL((await example.getAttribute("href")) ?? "");
+  await page.goto(target.pathname + target.hash);
+  await page
+    .getByRole("link", { name: /認証トークンの更新手順/ })
+    .first()
+    .click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export to Markdown", exact: true }).click();
+  const markdown = await downloaded;
+  expect(markdown.suggestedFilename()).toMatch(/\.md$/);
+  expect(await readFile(await markdown.path(), "utf8")).toContain(
+    "認証トークンの更新手順を見直した",
+  );
+});
 
 test("the sharing guide leads to remote access and to a chat from another machine", async ({
   page,

@@ -11,7 +11,7 @@ Mash は読み込んだチャットのコピーを保存します。コピーに
 
 既定のダッシュボードと検索サービスは、同じコンピューター上のプログラムからログインなしで利用できます。
 そのコンピューターを利用する人を信頼できる環境で、既定の設定を使ってください。
-別の端末から開くには、[サインイン付きのダッシュボード（英語）](../dashboard.md#open-it-from-your-phone-or-another-computer)を使います。
+別の端末から開くには、[サインイン付きのダッシュボード](dashboard.md#open-it-from-your-phone-or-another-computer)を使います。
 
 OpenCode など、履歴を SQLite に保存するエージェントでは、Mash が読み取るときに
 隣に `-wal` や `-shm` ファイルが作られる場合があります。これは SQLite の動作で、データベースの内容は変更されません。
@@ -67,7 +67,7 @@ Windows では通常、システムドライブ上の `C:\mash-qdrant\storage` �
    **Set up and index** を選びます。読み込みが終わったら **chats** を開き、そのチャットで使った言葉を検索します。
 
 あとから期間を広げたり、エージェントを接続したりできます。
-[ダッシュボードでのセットアップ（英語）](../dashboard.md#set-up-mash-from-the-dashboard)
+[ダッシュボードでのセットアップ](dashboard.md#set-up-mash-from-the-dashboard)
 
 試用を終えるときは `mash uninstall` で削除内容を確認できます。
 実行すると Mash のインデックスとサービスが削除され、エージェントの元のチャットは残ります。

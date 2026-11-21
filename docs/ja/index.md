@@ -10,6 +10,7 @@ Mash は、Claude Code、Codex、GitHub Copilot、Cursor、OpenCode、Antigravit
 
 - [インストールして最初のチャットを探す](quick-start.md)
 - [日本語のサンプルチャットをデモで検索する](https://getmash.io/demo/#/search?q=%E8%AA%8D%E8%A8%BC%E3%83%88%E3%83%BC%E3%82%AF%E3%83%B3%E3%81%AE%E6%9B%B4%E6%96%B0%E6%89%8B%E9%A0%86%E3%82%92%E8%A6%8B%E7%9B%B4%E3%81%97%E3%81%9F)
+- [ダッシュボードで自分のチャットを検索して保存する](dashboard.md)
 - [対応するエージェントと接続方法を確認する](supported-agents.md)
 - [履歴の保存場所とプライバシーを確認する](privacy.md)
 - [日本語ガイドの目次](guides.md)

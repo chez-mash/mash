@@ -62,7 +62,7 @@ Qdrant（約 30 MB）は自分のユーザー権限で動き、ログイン時�
 - **自分で検索する。** エージェントが選択されていないことを確認します。最初から選択されている場合は、**Skip agent connections** を選ぶか、エージェントの画面で選択を解除します。
 - **エージェントに検索してもらう。** **Choose agents to connect** またはエージェントの画面で、接続したいものを選びます。確認画面に表示された名前を確認します。
 
-**Set up and index** を選びます。[ダッシュボードでのセットアップ手順（英語）](../dashboard.md#set-up-mash-from-the-dashboard)
+**Set up and index** を選びます。[ダッシュボードでのセットアップ手順](dashboard.md#set-up-mash-from-the-dashboard)
 
 すでにある検索サービスを使う場合や、インストールとセットアップを分ける場合は、
 [インストールガイド（英語）](../installation.md)をご覧ください。
@@ -82,7 +82,7 @@ Qdrant（約 30 MB）は自分のユーザー権限で動き、ログイン時�
 
 - [検索結果が見つからないときの確認（英語）](../troubleshooting.md#search-returns-no-results)
 - [日本語やほかの言語のチャットを検索する](search-languages.md)
-- [ダッシュボードで検索する（英語）](../dashboard.md#find-and-read-a-chat) · [端末で検索する（英語）](../search.md#your-first-search)
+- [ダッシュボードで検索する](dashboard.md#find-and-read-a-chat) · [端末で検索する（英語）](../search.md#your-first-search)
 
 **エージェントから検索する。** セットアップで接続したエージェントを再起動します。
 Codex なら「Mash を使って、Claude Code で認証について決めたことを探してください。

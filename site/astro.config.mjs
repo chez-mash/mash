@@ -118,7 +118,12 @@ export default defineConfig({
           items: [
             {
               label: "Dashboard",
-              translations: { es: "Panel", fr: "Tableau de bord", "zh-CN": "网页面板" },
+              translations: {
+                es: "Panel",
+                fr: "Tableau de bord",
+                "zh-CN": "网页面板",
+                ja: "ダッシュボード",
+              },
               slug: "dashboard",
             },
             {

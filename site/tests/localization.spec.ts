@@ -642,7 +642,7 @@ test("the Japanese guide directory distinguishes available translations", async 
   await page.getByPlaceholder("検索", { exact: true }).fill("プライバシー");
   await expect(page.getByText(/「プライバシー」の検索結果 \d+ 件/)).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(guide.locator('a[href="/dashboard/"]')).toContainText("（英語）");
+  await expect(guide.locator('a[href="/installation/"]')).toContainText("（英語）");
   await guide
     .getByRole("link", { name: "Mash が読み取れる履歴と接続できるエージェントを確認する" })
     .click();
@@ -652,4 +652,27 @@ test("the Japanese guide directory distinguishes available translations", async 
   await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
   await expect(guide.getByText("Connect an agent", { exact: true })).toBeVisible();
   await expect(guide.getByText("Set up without indexing", { exact: true }).first()).toBeVisible();
+});
+
+test("the Japanese dashboard guide keeps setup, search and private access in Japanese", async ({
+  page,
+}) => {
+  const guide = page.locator(".sl-markdown-content");
+  const openSection = async (from: string, section: string) => {
+    await page.goto(`/ja/${from}/`);
+    const destination = `/ja/dashboard/#${section}`;
+    await guide.locator(`a[href="${destination}"]`).click();
+    await expect(page).toHaveURL(destination);
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+    await expect(page.locator(`#${section}`)).toBeAttached();
+  };
+
+  await openSection("quick-start", "set-up-mash-from-the-dashboard");
+  await expect(guide.getByText("Choose agents to connect", { exact: true })).toBeVisible();
+  await guide.getByRole("link", { name: "履歴を読み込み直さずにエージェントを接続" }).click();
+  await expect(page).toHaveURL("/ja/agents/#connect-claude-code-codex-or-copilot");
+  await openSection("search-languages", "choose-a-search-mode");
+  await expect(guide.getByText("search: default", { exact: true })).toBeVisible();
+  await openSection("privacy", "open-it-from-your-phone-or-another-computer");
+  await expect(guide.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
 });

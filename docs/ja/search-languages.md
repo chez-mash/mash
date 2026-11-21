@@ -1,6 +1,6 @@
 # 日本語など、英語以外のチャットを検索する
 
-Mash は元の言語のままチャットを保存します。英語以外のチャットからメッセージを見つけるには、単語検索で、アクセント記号も含めてチャットに書かれているとおりに入力します。[ブラウザーのダッシュボード（英語）](../dashboard.md#find-and-read-a-chat)で **chats** を開き、**Search your history** に入力します。既定は単語検索です。端末では、次のように指定できます。
+Mash は元の言語のままチャットを保存します。英語以外のチャットからメッセージを見つけるには、単語検索で、アクセント記号も含めてチャットに書かれているとおりに入力します。[ブラウザーのダッシュボード](dashboard.md#find-and-read-a-chat)で **chats** を開き、**Search your history** に入力します。既定は単語検索です。端末では、次のように指定できます。
 
 ```sh
 mash search 'autenticación' --intent exact-mention
@@ -34,6 +34,6 @@ mash list-chats --title-contains '身份验证'
 
 オプションの[MiniLM 埋め込みモデル](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)は英語のテキスト向けです。意味で検索するときは英語で質問してください。同じ話題でも、別の言語で書かれたチャットは英語の質問で見つからない場合があります。目的のメッセージを探すには、元のチャットに出てくる言葉を使ってください。
 
-ダッシュボードで検索ごとにモードを切り替えるには、**words** を[検索モードのメニュー（英語）](../dashboard.md#choose-a-search-mode)で選び、**Apply filters** を押します。メニューが表示されない場合は、上記の単語検索コマンドを使ってください。
+ダッシュボードで検索ごとにモードを切り替えるには、**words** を[検索モードのメニュー](dashboard.md#choose-a-search-mode)で選び、**Apply filters** を押します。メニューが表示されない場合は、上記の単語検索コマンドを使ってください。
 
 <!-- mash-docs-source: 5b106b1548f31cf83fd1530542f3bcd86db96597bd5ac3728288286ce9cfddc0 -->
