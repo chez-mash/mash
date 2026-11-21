@@ -202,6 +202,15 @@ export default defineConfig({
               },
               slug: "shared-index",
             },
+            {
+              label: "Back up and restore history",
+              translations: {
+                es: "Copia y restaura tu historial",
+                fr: "Sauvegarder et restaurer l’historique",
+                "zh-CN": "备份和恢复历史记录",
+              },
+              slug: "backup",
+            },
             "upgrades",
             "services",
           ],

@@ -38,7 +38,8 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 - [Keep new chats searchable](synchronization.md)
 - [Include older history or search by meaning](indexing.md)
 - [Search history across your machines](shared-index.md)
-- [Upgrade Mash, back up history or restore it](upgrades.md)
+- [Back up and restore your history](backup.md)
+- [Upgrade Mash](upgrades.md)
 - [Check and manage services](services.md)
 
 ## Reference

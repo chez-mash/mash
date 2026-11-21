@@ -346,7 +346,7 @@ Para una reinstalación futura, `--keep-history` guarda la copia consultable de
 tus conversaciones, la configuración, los tokens y los datos de búsqueda del
 Qdrant gestionado por Mash. Aun con esta opción, la desinstalación quita los
 servicios, las conexiones con agentes y los modelos descargados. Si prefieres
-una copia de seguridad independiente, usa [`mash export DIRECTORY` (en inglés)](../upgrades.md).
+una copia de seguridad independiente, usa [`mash export DIRECTORY`](backup.md#make-a-portable-backup).
 
 Revisa primero con `mash uninstall --keep-history` y luego confirma con
 `mash uninstall --yes --keep-history`.
@@ -361,4 +361,4 @@ Conserva los datos de Qdrant salvo que añadas `--delete-storage`. Esos datos
 contienen lo necesario para las búsquedas. Puedes regenerarlos a partir del
 índice con `mash index --rebuild-local-views --full`.
 
-<!-- mash-docs-source: 8bfec2259dd60f10ca2995f25317371e495517879c8f1a4b588483f32a9062bc -->
+<!-- mash-docs-source: dd1d8702bdf06d4e4897f4f5c3277777fd07d567f2c005fccb71f39cdef13003 -->

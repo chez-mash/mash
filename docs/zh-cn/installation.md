@@ -205,7 +205,7 @@ mash uninstall --yes    # removes it
 
 代理保存的原始对话和已发布到[共享索引](shared-index.md)中的历史记录都会保留。Mash 会列出并保留 `~/.mash` 中并非由它创建的文件。如果你自行运行 Qdrant，它的服务和其中的 Mash 搜索数据也会保留，需单独管理。
 
-如果计划日后重新安装，可以用 `--keep-history` 保留 Mash 中可搜索的对话副本、配置、保存的令牌，以及 Mash 管理的 Qdrant 中的搜索数据。此选项仍会移除服务、代理连接和下载的模型。如果你想另存备份，请运行 [`mash export DIRECTORY`（英文）](../upgrades.md)。
+如果计划日后重新安装，可以用 `--keep-history` 保留 Mash 中可搜索的对话副本、配置、保存的令牌，以及 Mash 管理的 Qdrant 中的搜索数据。此选项仍会移除服务、代理连接和下载的模型。如果你想另存备份，请运行 [`mash export DIRECTORY`](backup.md#make-a-portable-backup)。
 
 先用 `mash uninstall --keep-history` 查看预览，再用 `mash uninstall --yes --keep-history` 确认。
 
@@ -213,4 +213,4 @@ mash uninstall --yes    # removes it
 
 如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
 
-<!-- mash-docs-source: 8bfec2259dd60f10ca2995f25317371e495517879c8f1a4b588483f32a9062bc -->
+<!-- mash-docs-source: dd1d8702bdf06d4e4897f4f5c3277777fd07d567f2c005fccb71f39cdef13003 -->

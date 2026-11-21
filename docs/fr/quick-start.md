@@ -85,9 +85,9 @@ Consultez le [guide du tableau de bord](dashboard.md#find-and-read-a-chat) ou ap
 [Vérifiez la connexion de l’agent](agents.md#confirm-the-connection) si Mash n’est pas accessible.
 Si vous avez passé cette étape, vous pouvez [connecter un agent plus tard](agents.md#connect-claude-code-codex-or-copilot).
 
-Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`mash index` ou la surveillance en arrière-plan](synchronization.md). Vous pouvez aussi [exporter et sauvegarder votre historique](../upgrades.md).
+Pour rendre les nouvelles conversations accessibles à la recherche, utilisez [`mash index` ou la surveillance en arrière-plan](synchronization.md). Vous pouvez aussi [sauvegarder votre historique](backup.md).
 
 Les menus de Mash sont en anglais. Pour trouver les mots de vos conversations,
 consultez [la recherche dans d’autres langues](search-languages.md).
 
-<!-- mash-docs-source: 093438374d60b452c7c6c2d57b784aa8deb2786af2988f6a7b29c18d4dc83b36 -->
+<!-- mash-docs-source: 42f6f008b906263670c0b3a0b04f7e29cc18d3279a2ab34c54364de25e991eec -->

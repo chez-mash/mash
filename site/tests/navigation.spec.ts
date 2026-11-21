@@ -66,6 +66,15 @@ test("the quick start goes from setup to a first chat and links to package insta
   await expect(page.locator("#install-with-a-package-manager")).toBeAttached();
 });
 
+test("the old restore section leads to the portable backup guide", async ({ page }) => {
+  const section = "#restore-without-replacing-your-current-history";
+  await page.goto(`/upgrades/${section}`);
+  await expect(page.locator(section)).toBeAttached();
+  await page.getByRole("link", { name: "Check a restored copy in a separate database" }).click();
+  await expect(page).toHaveURL(`/backup/${section}`);
+  await expect(page.locator("pre").filter({ hasText: "mash import" })).toBeVisible();
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

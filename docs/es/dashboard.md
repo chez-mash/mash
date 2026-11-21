@@ -174,7 +174,7 @@ Abre **chats** y elige **export chats**. Filtra por agente, equipo, proyecto y f
 
 Deja abierta la página hasta que empiece la descarga. Si una conversación no puede leerse, la exportación se detiene y no guarda archivos. Las descargas incluyen el texto completo, también el contenido sensible.
 
-Para restaurar conversaciones en Mash, utiliza una [copia de seguridad portable](../upgrades.md#make-a-portable-backup). La exportación del panel sirve para leer las conversaciones y excluye los adjuntos. Para ver conversaciones de otros equipos en el panel, consulta [cómo compartir el historial](shared-index.md).
+Para restaurar conversaciones en Mash, utiliza una [copia de seguridad portable](backup.md#make-a-portable-backup). La exportación del panel sirve para leer las conversaciones y excluye los adjuntos. Para ver conversaciones de otros equipos en el panel, consulta [cómo compartir el historial](shared-index.md).
 
 <span id="open-it-from-your-phone-or-another-computer"></span>
 
@@ -244,4 +244,4 @@ La dirección predeterminada solo es accesible desde tu equipo. Si ejecutas `mas
 
 Prefiere una red privada. En Internet, el token protege todo el historial. Un servicio que termina la conexión HTTPS, como Cloudflare Tunnel, puede leer los datos que pasan por él.
 
-<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->
+<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->

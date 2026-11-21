@@ -3,8 +3,8 @@
 Updating Mash keeps your settings and indexed chats. Save a backup first,
 then install the new version, run `mash index`, and reopen the dashboard or
 agents you use. If you just need a backup or want to recover a chat, go to
-[Make a portable backup](#make-a-portable-backup) or
-[Restore a separate copy](#restore-without-replacing-your-current-history).
+[Make a portable backup](backup.md#make-a-portable-backup) or
+[Restore a separate copy](backup.md#restore-without-replacing-your-current-history).
 
 ## Upgrade an existing installation
 
@@ -109,38 +109,11 @@ and its publishing computers are on the same release.
 
 ## Make a portable backup
 
-Export to a new directory:
-
-```sh
-mash export /absolute/path/to/new-backup
-```
-
-This saves your indexed conversations, saved memory, and retained attachments.
-For a rollback, also keep the version that wrote the export. Keep your
-configuration, service credentials, and original agent files separately.
-Mash builds search data again after you import the archive.
-
-**Keep backups private.** They contain the full text of your chats, including
-any credentials that appeared in them, even though search results mask those.
+[Export your indexed chats to a private directory](backup.md#make-a-portable-backup).
 
 ## Restore without replacing your current history
 
-Import into a new database file, rebuild its search data, and try a search.
-Keep the local search service running:
-
-```sh
-mash import /absolute/path/to/new-backup --into /absolute/path/to/restored.sqlite3
-mash --db /absolute/path/to/restored.sqlite3 index --rebuild-local-views --full
-mash --db /absolute/path/to/restored.sqlite3 search 'a word you remember' --local
-```
-
-The restored copy is separate from your usual index: pass `--db` every time
-you want to use it. Also pass `--config PATH` or `--models-dir PATH` if yours
-are not in the default locations.
-
-The backup must come from a release whose archive format this one reads. If
-import fails, keep the backup and use the release that wrote it. In particular,
-an archive with saved open questions may need that older version.
+[Check a restored copy in a separate database](backup.md#restore-without-replacing-your-current-history).
 
 ## Replace an index that cannot be upgraded
 

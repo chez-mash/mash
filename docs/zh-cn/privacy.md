@@ -70,6 +70,6 @@ mash forget CHAT_ID
 Mash 会从本机移除这条对话，并记住以后不要再导入它。启用共享后，Mash 也会尝试同步这次移除。请查看命令结果，确认是否还有操作待完成。
 
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
-[备份](../upgrades.md)。
+[备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: 7444dec489b38d5298396025767027dc21f467445130808b09e6534848ab0572 -->
+<!-- mash-docs-source: deb468c83a6fb401e2a46e29ce24c4351d4c94ba681b84df0e4dcd24a592bb8b -->

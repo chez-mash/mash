@@ -17,6 +17,7 @@ nécessaire.
 - [Recherchez des conversations depuis le terminal](search.md).
 - [Incluez des conversations plus anciennes et cherchez par le sens](indexing.md).
 - [Gardez l’historique à jour](synchronization.md).
+- [Sauvegardez et restaurez votre historique](backup.md).
 - [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md).
 - [Consultez les agents et les historiques pris en charge](supported-agents.md).
 - [Configurez le module Mash dans votre agent](plugin.md).

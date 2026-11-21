@@ -28,6 +28,7 @@ export const translationPages = [
   "search-languages",
   "indexing",
   "synchronization",
+  "backup",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];
 

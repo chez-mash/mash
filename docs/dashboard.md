@@ -295,7 +295,7 @@ the chats in full, including anything sensitive said in them.
 
 These exports and saved transcripts cannot be brought back into Mash. For a
 copy Mash can restore, use
-[a portable backup](upgrades.md#make-a-portable-backup). Chats from your other
+[a portable backup](backup.md#make-a-portable-backup). Chats from your other
 machines appear in the dashboard through [sharing](shared-index.md).
 
 ## Open it from your phone or another computer

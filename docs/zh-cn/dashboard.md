@@ -168,7 +168,7 @@ Mashy 使用只读工具查询你的历史和内置指南。它无法建立索�
 
 保持页面打开直到下载开始。一旦有对话无法读取，导出会停止且不会保存文件。导出包含完整的对话文本，包括可能出现的敏感内容，附件不在其中。
 
-如果要把历史恢复到 Mash 中，请使用[可移植备份](../upgrades.md#make-a-portable-backup)。网页面板导出的文件用于阅读和分享。要在面板查看其他机器的对话，请参阅[共享历史指南](shared-index.md)。
+如果要把历史恢复到 Mash 中，请使用[可移植备份](backup.md#make-a-portable-backup)。网页面板导出的文件用于阅读和分享。要在面板查看其他机器的对话，请参阅[共享历史指南](shared-index.md)。
 
 <span id="open-it-from-your-phone-or-another-computer"></span>
 
@@ -238,4 +238,4 @@ mash dash remote
 
 请优先使用私有网络。面板发布到互联网后，令牌保护所有对话历史。代你处理 HTTPS 连接的服务，例如 Cloudflare Tunnel，可以读取经过它的数据。
 
-<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->
+<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->

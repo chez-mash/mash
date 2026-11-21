@@ -83,6 +83,6 @@ mash forget CHAT_ID
 Mash retire la conversation de son index local et mémorise ce retrait pour ne pas la réimporter. Si le partage est activé, Mash tente aussi de transmettre la suppression. Consultez le résultat de la commande pour voir si une opération est encore en attente.
 
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
-[une sauvegarde](../upgrades.md) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
+[une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 7444dec489b38d5298396025767027dc21f467445130808b09e6534848ab0572 -->
+<!-- mash-docs-source: deb468c83a6fb401e2a46e29ce24c4351d4c94ba681b84df0e4dcd24a592bb8b -->

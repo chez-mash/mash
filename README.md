@@ -135,7 +135,7 @@ cannot see Mash. If you skipped this during setup, you can
 [connect an agent later](docs/agents.md#connect-claude-code-codex-or-copilot).
 
 Keep new chats searchable with [`mash index` or a background watcher](docs/synchronization.md).
-You can also [export and back up your history](docs/upgrades.md).
+You can also [back up your history](docs/backup.md).
 
 <!-- quick-start-end -->
 

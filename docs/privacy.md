@@ -105,4 +105,4 @@ for any pending work.
 
 This does not delete the agent's original files, earlier backups, or copies
 independently indexed on another machine. There is no undo command. Make
-[a backup](upgrades.md) first if you may need the chat later.
+[a backup](backup.md#make-a-portable-backup) first if you may need the chat later.

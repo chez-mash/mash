@@ -15,6 +15,7 @@ las búsquedas se ejecutan en tu equipo y no necesitas una cuenta de Mash.
 - [Busca conversaciones desde la terminal](search.md).
 - [Incluye conversaciones antiguas y busca por significado](indexing.md).
 - [Mantén el historial al día](synchronization.md).
+- [Haz una copia y restaura tu historial](backup.md).
 - [Retoma un trabajo anterior o deja notas para la próxima sesión](pick-up-work.md).
 - [Consulta qué agentes e historiales admite Mash](supported-agents.md).
 - [Configura el complemento de Mash en tu agente](plugin.md).

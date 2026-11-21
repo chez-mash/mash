@@ -96,3 +96,4 @@ Los menús de Mash están en inglés. Para buscar palabras de tus conversaciones
 consulta [cómo buscar en otros idiomas](search-languages.md).
 
 Para encontrar conversaciones nuevas, consulta [cómo actualizar el historial](synchronization.md).
+También puedes [hacer una copia de seguridad de tu historial](backup.md).

@@ -174,7 +174,7 @@ Ouvrez **chats**, puis **export chats**. Réduisez la liste avec les filtres par
 
 Laissez la page ouverte jusqu’au début du téléchargement. Si une conversation est illisible, l’export s’arrête sans enregistrer de fichier. Les exports comprennent le texte complet, y compris les passages sensibles. Les pièces jointes restent hors de l’archive.
 
-Pour restaurer des conversations dans Mash, faites une [sauvegarde portable](../upgrades.md#make-a-portable-backup). Les exports du tableau de bord servent à lire les conversations. Pour voir les conversations stockées sur d’autres machines, suivez le [guide de partage](shared-index.md).
+Pour restaurer des conversations dans Mash, faites une [sauvegarde portable](backup.md#make-a-portable-backup). Les exports du tableau de bord servent à lire les conversations. Pour voir les conversations stockées sur d’autres machines, suivez le [guide de partage](shared-index.md).
 
 <span id="open-it-from-your-phone-or-another-computer"></span>
 
@@ -244,4 +244,4 @@ L’adresse par défaut est accessible seulement depuis votre machine. Si vous u
 
 Préférez un réseau privé. Sur Internet, le jeton protège tout l’historique. Un service qui termine HTTPS à votre place, comme Cloudflare Tunnel, peut lire les données qui y transitent.
 
-<!-- mash-docs-source: bb3e5d5fa672dcc69b7a6fa46caa9622a266bc93690361638df4b4bde4009f9c -->
+<!-- mash-docs-source: 9333cd17a6028dbceb6c1dd85ef0fe4d650fe89da81e2a6c288b9799443a337e -->

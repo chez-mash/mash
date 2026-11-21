@@ -99,6 +99,14 @@ for (const [locale, lang, installationTitle] of [
     await expect(page).toHaveURL(uninstall);
     await expect(page.locator("#uninstall")).toBeAttached();
     await expect(guide.locator("pre").filter({ hasText: "mash uninstall --yes" })).toBeVisible();
+    const backup = `/${locale}/backup/#make-a-portable-backup`;
+    await guide.locator(`a[href="${backup}"]`).click();
+    await expect(page).toHaveURL(backup);
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await expect(guide.locator("#make-a-portable-backup")).toBeAttached();
+    await expect(
+      guide.locator("pre").filter({ hasText: "list-chats --local --limit 5" }),
+    ).toBeVisible();
   });
 }
 

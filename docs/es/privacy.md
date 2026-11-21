@@ -87,3 +87,5 @@ que las conversaciones originales.
 
 Para quitar un chat del índice, consulta la
 [guía completa de privacidad (en inglés)](../privacy.md#remove-a-chat).
+Si puedes necesitar esa conversación más adelante, haz antes
+[una copia de seguridad](backup.md#make-a-portable-backup).

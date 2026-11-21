@@ -297,7 +297,7 @@ Use `--keep-history` to keep Mash's searchable copy of your chats, its
 configuration, saved tokens, and the search data in its managed Qdrant for a
 future reinstall. Mash still removes its services, agent connections and
 downloaded models. If you want a separate backup before uninstalling, run
-[`mash export DIRECTORY`](upgrades.md).
+[`mash export DIRECTORY`](backup.md#make-a-portable-backup).
 
 Preview with `mash uninstall --keep-history`, then confirm with
 `mash uninstall --yes --keep-history`.
