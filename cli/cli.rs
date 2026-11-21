@@ -309,14 +309,14 @@ enum Command {
         "It never removes the mash executable (the last line says how), your agents' ",
         "own chat histories, history already published to a shared server, or files ",
         "in Mash's directory that these commands did not create. ",
-        "Exits 1 when a step fails; running it again retries what is left.",
+        "Exits 1 when a step fails. Rerun with the same flags to retry what is left.",
     ))]
     Uninstall {
         /// Carry out the removal. Without it nothing changes.
         #[arg(short = 'y', long)]
         yes: bool,
-        /// Keep the index, its search data, the configuration and saved tokens,
-        /// for reinstalling later.
+        /// Keep Mash's searchable copy of your chats for a future reinstall,
+        /// along with Mash's configuration and saved tokens.
         #[arg(long)]
         keep_history: bool,
     },

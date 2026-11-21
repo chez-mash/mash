@@ -409,15 +409,20 @@ the install script.
 Mash never touches your agents' own chat histories, and history already
 published to a [shared index](shared-index.md) stays on that server. Files in
 `~/.mash` that these commands did not create are listed and left in place.
+If you run your own Qdrant, the service and any Mash search data it holds
+stay in place. Manage that data separately.
 
-To keep a copy of your indexed history first, run
-[`mash export DIRECTORY`](upgrades.md). To reinstall later without indexing
-again, add `--keep-history`: the index, its search data, the configuration and
-saved tokens stay, and everything else goes.
+Use `--keep-history` to keep Mash's searchable copy of your chats, its
+configuration and saved tokens for a future reinstall. Mash still removes
+its services, agent connections and downloaded models. If you want a separate
+backup before uninstalling, run [`mash export DIRECTORY`](upgrades.md).
 
-A step that fails is marked `failed` with the reason, and the command exits 1;
-running it again retries what is left. Restart your agents afterwards so they
-stop loading Mash.
+Preview with `mash uninstall --keep-history`, then confirm with
+`mash uninstall --yes --keep-history`.
+
+A step that fails is marked `failed` with the reason and the command exits 1.
+Rerun the command with the same flags to retry what is left. Restart your
+agents afterwards so they stop loading Mash.
 
 To remove only the search service, run `mash qdrant uninstall`. It keeps
 Qdrant's data unless you add `--delete-storage`; that data holds only Mash's

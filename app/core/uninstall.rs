@@ -11,6 +11,9 @@ use super::installation::Agent;
 use super::models::Paths;
 use crate::AppError;
 
+mod guidance;
+use guidance::{binary, next};
+
 /// The watcher service `mash-fleet watch start` installs, per manager.
 const WATCHER_UNIT: &str = "mash-index-watch.service";
 const WATCHER_LABEL: &str = "dev.mash.index-watch";
@@ -198,12 +201,14 @@ pub(super) async fn run(paths: Paths, request: Request) -> Result<Response, AppE
     let shared = crate::blocking(move || Ok(crate::config::load(Some(&config)).ok()))
         .await?
         .and_then(|configuration| configuration.shared);
+    let custom_paths = paths.config.is_some() || paths.db.is_some() || paths.models_dir.is_some();
     let running = crate::blocking(move || Ok(crate::runtime::inspect(&paths).processes.len()))
         .await
         .unwrap_or(0);
 
     let qdrant = super::qdrant::Host::system().ok();
     let installed = qdrant.as_ref().and_then(super::qdrant::installed);
+    let unmanaged_search = installed.is_none() && target.database.is_file();
     let mut services = Vec::new();
     let mut search_data = Vec::new();
     if let Some((service, directories)) = installed {
@@ -246,6 +251,12 @@ pub(super) async fn run(paths: Paths, request: Request) -> Result<Response, AppE
         path: None,
         reason: "Your agents' own chat histories: Mash only ever read them.".to_owned(),
     });
+    if unmanaged_search {
+        kept.push(Kept {
+            path: None,
+            reason: "Any search data in a Qdrant service you run yourself is kept.".to_owned(),
+        });
+    }
     if let Some(shared) = shared {
         kept.push(Kept {
             path: None,
@@ -266,7 +277,7 @@ pub(super) async fn run(paths: Paths, request: Request) -> Result<Response, AppE
         binary,
         next: Vec::new(),
     };
-    response.next = next(&response, request, running);
+    response.next = next(&response, request, custom_paths, running);
     Ok(response)
 }
 
@@ -559,75 +570,6 @@ fn remove(path: &Path, user: &Path) -> Result<(), String> {
     }
 }
 
-/// How to remove the executable, judged from where it is installed.
-fn binary(executable: Option<&Path>) -> Binary {
-    let Some(path) = executable else {
-        return Binary {
-            path: None,
-            remove: "Remove the mash executable with whatever installed it.".to_owned(),
-        };
-    };
-    let text = path.to_string_lossy().replace('\\', "/").to_lowercase();
-    let remove = if ["/cellar/", "/homebrew/", "/linuxbrew/"]
-        .iter()
-        .any(|part| text.contains(part))
-    {
-        "brew uninstall mash".to_owned()
-    } else if text.contains("/scoop/") {
-        "scoop uninstall mash".to_owned()
-    } else if text.contains("/.cargo/bin/") {
-        "cargo uninstall mash".to_owned()
-    } else if text == "/usr/bin/mash" {
-        "sudo apt remove mash-cli".to_owned()
-    } else {
-        // The install script puts `mash-server` beside `mash`.
-        let server = path.with_file_name(format!("mash-server{}", std::env::consts::EXE_SUFFIX));
-        if server.is_file() {
-            format!("Delete {} and {}", path.display(), server.display())
-        } else {
-            format!("Delete {}", path.display())
-        }
-    };
-    Binary {
-        path: Some(path.to_path_buf()),
-        remove,
-    }
-}
-
-fn next(response: &Response, request: Request, running: usize) -> Vec<String> {
-    let mut next = Vec::new();
-    if !request.apply {
-        next.push(
-            "Nothing was changed. Run `mash uninstall --yes` to remove what is listed.".to_owned(),
-        );
-        if !request.keep_history
-            && response
-                .paths
-                .iter()
-                .any(|item| item.content == Content::Index)
-        {
-            next.push("To keep a copy of your indexed history first, run `mash export DIRECTORY`; to keep it in place, add --keep-history.".to_owned());
-        }
-        return next;
-    }
-    if response.incomplete() {
-        next.push("Some steps failed and are marked `failed`; fix what each message names, then run `mash uninstall --yes` again.".to_owned());
-    }
-    if !response.agents.is_empty() {
-        next.push("Restart your agents so they stop loading Mash.".to_owned());
-    }
-    if running > 0 {
-        next.push(format!(
-            "{running} Mash process(es) started before this ran, such as an agent's MCP server or a watcher in a terminal; each ends when the agent or terminal that started it closes."
-        ));
-    }
-    next.push(format!(
-        "Mash's executable is still installed. To remove it: {}",
-        response.binary.remove
-    ));
-    next
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -858,7 +800,7 @@ mod tests {
             apply: true,
             keep_history: false,
         };
-        let steps = next(&response, apply, 2);
+        let steps = next(&response, apply, false, 2);
         assert!(steps[0].contains("failed"), "{steps:?}");
         assert!(steps.iter().any(|step| step.contains("2 Mash process")));
         assert!(steps.last().unwrap().contains("still installed"));

@@ -10,7 +10,7 @@
 706 app/core/qdrant.rs
 726 app/core/search.rs
 645 app/core/setup.rs
-630 app/core/uninstall.rs
+572 app/core/uninstall.rs
 785 app/remote.rs
 736 cli/cli.rs
 961 crates/mash-dash/src/assistant.rs

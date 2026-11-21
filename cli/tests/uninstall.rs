@@ -130,9 +130,12 @@ fn uninstall_plans_first_then_removes_what_mash_created() {
         plan["next"][0]
             .as_str()
             .unwrap()
-            .contains("mash uninstall --yes"),
+            .contains("`mash uninstall --yes`"),
         "{plan}"
     );
+    assert!(plan["kept"].as_array().unwrap().iter().any(|entry| {
+        entry["reason"] == "Any search data in a Qdrant service you run yourself is kept."
+    }));
     // A plan changes nothing and asks the agents nothing.
     assert!(home.join(".mash/mash.sqlite3").exists());
     assert!(!home.join("calls.log").exists());
@@ -171,6 +174,13 @@ fn uninstall_plans_first_then_removes_what_mash_created() {
 fn uninstall_keeps_history_on_request_and_exits_1_when_a_step_fails() {
     let (root, env) = fixture(1);
     let home = root.path();
+    let (code, plan) = uninstall(&env, &["--keep-history"]);
+    assert_eq!(code, Some(0), "{plan}");
+    assert_eq!(plan["applied"], false);
+    assert_eq!(
+        plan["next"][0],
+        "Nothing was changed. Run `mash uninstall --yes --keep-history` to remove what is listed."
+    );
     let (code, done) = uninstall(&env, &["--yes", "--keep-history"]);
     assert_eq!(code, Some(1), "{done}");
     assert_eq!(done["agents"][0]["mcp"]["outcome"]["state"], "removed");
@@ -186,9 +196,48 @@ fn uninstall_keeps_history_on_request_and_exits_1_when_a_step_fails() {
     }
     assert!(!home.join(".mash/models").exists());
     assert!(
-        done["next"][0].as_str().unwrap().contains("failed"),
+        done["next"][0]
+            .as_str()
+            .unwrap()
+            .contains("`mash uninstall --yes --keep-history`"),
         "{done}"
     );
+}
+
+#[test]
+fn uninstall_guidance_preserves_an_explicit_index_path() {
+    let (root, env) = fixture(1);
+    let alternate = root.path().join("alternate index.sqlite3");
+    std::fs::write(&alternate, "alternate index").unwrap();
+    let path = alternate.to_str().unwrap();
+
+    let (code, plan) = uninstall(&env, &["--db", path, "--keep-history"]);
+    assert_eq!(code, Some(0), "{plan}");
+    assert!(
+        plan["kept"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|entry| { entry["path"] == path && entry["reason"] == "Kept by --keep-history." })
+    );
+    assert_eq!(
+        plan["next"][0],
+        "Nothing was changed. Add `--yes` to the command you just ran to remove what is listed."
+    );
+
+    let (code, done) = uninstall(&env, &["--db", path, "--keep-history", "--yes"]);
+    assert_eq!(code, Some(1), "{done}");
+    assert!(
+        done["next"][0]
+            .as_str()
+            .unwrap()
+            .contains("rerun the command with the same paths and options")
+    );
+    assert_eq!(
+        std::fs::read_to_string(alternate).unwrap(),
+        "alternate index"
+    );
+    assert!(root.path().join(".mash/mash.sqlite3").is_file());
 }
 
 #[test]
