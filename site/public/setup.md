@@ -10,8 +10,8 @@ connected agent looks up history, the messages it receives enter that agent's
 context. See the [source](https://github.com/mashium/mash) and
 [privacy guide](https://getmash.io/privacy/).
 
-Work through the steps in order. Every `mash` command prints one JSON result
-on stdout; read it to decide what to do next. Long commands also write
+Work through the steps in order. Read the JSON results from the installation,
+indexing, and status commands to decide what to do next. Long commands also write
 progress events to stderr, one JSON object per line: those are not errors and
 not the result. Stop and tell the person when a step says to
 ask them, or when a command fails in a way this page does not cover. Full

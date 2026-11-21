@@ -43,6 +43,9 @@ Interactive `mash init` gives a short setup summary in the terminal. For a
 script, run `mash init --yes` to accept the detected defaults and get a JSON
 report.
 
+`mash uninstall` shows a readable preview in the terminal. Capture its
+output in a file or pipe to get the structured JSON report.
+
 For sharing between machines, see [multi-machine setup](shared-index.md).
 
 ## Read the built-in help

@@ -230,8 +230,12 @@ mash uninstall          # lists what would be removed and changes nothing
 mash uninstall --yes    # removes it
 ```
 
-The first command prints the plan: each service, agent connection, file and
-directory, with its size. With `--yes`, Mash:
+Read the preview in your terminal. It shows which services, agent
+connections, and local files Mash would remove, including the size of its
+copy of your chats. When you redirect the output, or use an older release
+that prints JSON in the terminal, read `paths`, `kept`, and `next`.
+
+With `--yes`, Mash:
 
 1. stops and removes the services it set up: the search service and its data,
    the [remote dashboard](dashboard.md), and an installed index watcher;
@@ -240,10 +244,10 @@ directory, with its size. With `--yes`, Mash:
 3. deletes its index (Mash's copy of your chats), models, configuration and
    saved tokens.
 
-Then remove the program itself with whatever installed it. The last line of
-the output names the command: `brew uninstall mash`, `scoop uninstall mash`,
-`sudo apt remove mash-cli`, `cargo uninstall mash`, or the files to delete after
-the install script.
+Then use the last instruction in the terminal report to remove the program
+itself. In the JSON report, see `binary.remove`. This could be
+`brew uninstall mash`, `scoop uninstall mash`, `sudo apt remove mash-cli`,
+`cargo uninstall mash`, or the files to delete after the install script.
 
 Mash never touches your agents' own chat histories, and history already
 published to a [shared index](shared-index.md) stays on that server. Files in
@@ -260,9 +264,9 @@ downloaded models. If you want a separate backup before uninstalling, run
 Preview with `mash uninstall --keep-history`, then confirm with
 `mash uninstall --yes --keep-history`.
 
-A step that fails is marked `failed` with the reason and the command exits 1.
-Rerun the command with the same flags to retry what is left. Restart your
-agents afterwards so they stop loading Mash.
+The report names each failed step and gives its reason. The command exits 1
+when any step fails. Rerun it with the same flags to retry what is left.
+Restart your agents afterwards so they stop loading Mash.
 
 To remove only the search service, run `mash qdrant uninstall`. It keeps
 Qdrant's data unless you add `--delete-storage`; that data holds only Mash's

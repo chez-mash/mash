@@ -126,33 +126,50 @@ where
                 let _ = write_json(stderr, &error);
                 return error.code;
             };
-            let written = write_text(stdout, stderr, &report.terminal_summary());
-            if written == 0 {
-                operation_exit(&value, None)
-            } else {
-                written
-            }
+            write_summary(stdout, stderr, &value, &report.terminal_summary())
         }
         Ok(cli::Response::InitCancelled { .. }) if terminal => 0,
-        Ok(response) => match write_json(stdout, &response) {
-            // A reader that stopped early (`mash ... | head`) is not a failure.
-            Err(error) if error.code == BROKEN_PIPE => 0,
-            Err(error) => {
-                let _ = write_json(stderr, &error);
-                error.code
+        Ok(response) => {
+            if terminal
+                && let cli::Response::Operation(value) = &response
+                && let core::Response::Uninstall(report) = value.as_ref()
+            {
+                return write_summary(stdout, stderr, value, &report.terminal_summary());
             }
-            Ok(()) => match response {
-                cli::Response::Operation(value) | cli::Response::Setup(value) => {
-                    operation_exit(&value, Some(stderr))
+            match write_json(stdout, &response) {
+                // A reader that stopped early (`mash ... | head`) is not a failure.
+                Err(error) if error.code == BROKEN_PIPE => 0,
+                Err(error) => {
+                    let _ = write_json(stderr, &error);
+                    error.code
                 }
-                _ => 0,
-            },
-        },
+                Ok(()) => match response {
+                    cli::Response::Operation(value) | cli::Response::Setup(value) => {
+                        operation_exit(&value, Some(stderr))
+                    }
+                    _ => 0,
+                },
+            }
+        }
         Err(error) if error.code == BROKEN_PIPE => 0,
         Err(error) => {
             let _ = write_json(stderr, &error);
             error.code
         }
+    }
+}
+
+fn write_summary(
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+    value: &core::Response,
+    summary: &str,
+) -> i32 {
+    let written = write_text(stdout, stderr, summary);
+    if written == 0 {
+        operation_exit(value, None)
+    } else {
+        written
     }
 }
 
