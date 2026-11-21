@@ -83,6 +83,33 @@ test("the memory guide leads from a saved decision to its source message", async
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
 });
 
+for (const [language, query, title, message] of [
+  ["Spanish", "autenticación", "Depurar el inicio de sesión", "spanish-sign-in-0"],
+  ["French", "corrigé", "Valider le correctif de pagination", "french-pagination-0"],
+  ["Chinese", "我们更新了身份验证令牌", "更新身份验证令牌", "chinese-token-update-0"],
+  [
+    "Japanese",
+    "認証トークンの更新手順を見直した",
+    "認証トークンの更新手順",
+    "japanese-token-update-0",
+  ],
+]) {
+  test(`the language guide opens the ${language} example in the demo`, async ({ page }) => {
+    await page.goto("/search-languages/");
+    const example = page.getByRole("link", { name: language, exact: true });
+    const target = new URL((await example.getAttribute("href")) ?? "");
+    await page.goto(target.pathname + target.hash);
+    await expect(page.getByRole("textbox", { name: "Search your history" })).toHaveValue(query);
+    await page
+      .getByRole("link", { name: new RegExp(title) })
+      .first()
+      .click();
+    const source = page.locator(`#message-${message}`);
+    await expect(source).toHaveClass(/\bhit\b/);
+    await expect(source).toContainText(query);
+  });
+}
+
 test("the sharing guide leads to remote access and to a chat from another machine", async ({
   page,
 }) => {

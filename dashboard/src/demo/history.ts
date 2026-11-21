@@ -20,21 +20,6 @@ export interface DemoChat {
   readonly daysAgo: number;
   readonly messages: readonly DemoMessage[];
 }
-export interface DemoRecord {
-  readonly id: string;
-  readonly kind: "decision" | "preference" | "fact";
-  readonly statement: string;
-  readonly rationale: string;
-  readonly review: "candidate" | "established";
-  readonly recordedBy: string;
-  readonly project: string | null;
-  readonly daysAgo: number;
-  readonly alternatives?: readonly string[];
-  readonly consequences?: readonly string[];
-  /** The chat and the position of the message the record quotes. */
-  readonly source: { readonly chat: string; readonly message: number; readonly quote: string };
-}
-
 export const localMachine = "laptop";
 
 const user = (content: string): DemoMessage => ({ role: "user", content });
@@ -51,7 +36,7 @@ interface Project {
   readonly path: string;
   readonly repository: string;
 }
-const projects = {
+export const projects = {
   storefront: {
     path: "/home/sam/code/storefront",
     repository: "https://github.com/harbor-goods/storefront.git",
@@ -417,96 +402,46 @@ export const chats: readonly DemoChat[] = [
       ),
     ],
   ),
-];
-
-export const records: readonly DemoRecord[] = [
-  {
-    id: "record-sign-in-tokens",
-    kind: "decision",
-    statement:
-      "Sign-in uses fifteen-minute access tokens with a server-held refresh token. The mobile app follows the same scheme.",
-    rationale: "Chosen so that signing out reaches every device within fifteen minutes.",
-    review: "established",
-    recordedBy: "Claude Code",
-    project: projects.storefront.repository,
-    daysAgo: 0.1,
-    alternatives: ["Keep session cookies and add a server-side session table"],
-    consequences: ["The mobile app stores its refresh token in the device keychain"],
-    source: {
-      chat: "sign-in-tokens",
-      message: 2,
-      quote: "ok, go with the tokens. keep the mobile app on the same scheme",
-    },
-  },
-  {
-    id: "record-export-queue",
-    kind: "decision",
-    statement: "Invoice exports run as background jobs kept in a Postgres table.",
-    rationale:
-      "A job is created in the same transaction as the export request, so it cannot be lost.",
-    review: "established",
-    recordedBy: "Claude Code",
-    project: projects.billing.repository,
-    daysAgo: 2.3,
-    alternatives: ["Redis streams", "A hosted queue"],
-    consequences: [
-      "Workers claim a job for ten minutes at a time and extend the claim while working",
+  chat(
+    "spanish-sign-in",
+    "Depurar el inicio de sesión",
+    "codex",
+    "laptop",
+    projects.storefront,
+    12.4,
+    [
+      user("La autenticación falla al volver de la pantalla de inicio de sesión."),
+      agent(
+        "La prueba solo cubría el inicio de sesión inicial. Añadamos otra para la vuelta a la aplicación.",
+      ),
     ],
-    source: { chat: "invoice-export-queue", message: 2, quote: "agreed, postgres." },
-  },
-  {
-    id: "record-orders-lock",
-    kind: "preference",
-    statement: "Never take a write lock on the orders table in a migration.",
-    rationale: "A locking index build stopped checkout for forty minutes.",
-    review: "established",
-    recordedBy: "Codex",
-    project: projects.infra.repository,
-    daysAgo: 41.3,
-    source: {
-      chat: "checkout-outage-review",
-      message: 4,
-      quote: "remember that we never lock the orders table in a migration",
-    },
-  },
-  {
-    id: "record-refund-cents",
-    kind: "fact",
-    statement: "Refunds are calculated in whole cents, and the last part takes the remainder.",
-    rationale: "Rounding each part on its own refunded more than the order total.",
-    review: "candidate",
-    recordedBy: "GitHub Copilot",
-    project: projects.billing.repository,
-    daysAgo: 9.3,
-    source: { chat: "refund-rounding", message: 2, quote: "yes. and add a test for it" },
-  },
-  {
-    id: "record-key-rotation",
-    kind: "decision",
-    statement:
-      "Deploy keys are rotated every ninety days, and whenever someone with access leaves.",
-    rationale: "The keys had not been changed since the project started.",
-    review: "established",
-    recordedBy: "Claude Code",
-    project: projects.infra.repository,
-    daysAgo: 15.6,
-    alternatives: [],
-    consequences: ["A scheduled job opens a reminder issue every ninety days"],
-    source: { chat: "rotate-deploy-keys", message: 2, quote: "go ahead. ninety days is fine" },
-  },
-  {
-    id: "record-brand-orange",
-    kind: "preference",
-    statement: "The brand orange stays the same in the light and dark themes.",
-    rationale: "Asked for when the dark theme was added.",
-    review: "candidate",
-    recordedBy: "OpenCode",
-    project: projects.storefront.repository,
-    daysAgo: 27.1,
-    source: {
-      chat: "dark-theme",
-      message: 2,
-      quote: "keep the brand orange the same in both",
-    },
-  },
+  ),
+  chat(
+    "french-pagination",
+    "Valider le correctif de pagination",
+    "claude-code",
+    "workstation",
+    projects.billing,
+    17.2,
+    [
+      user("J’ai corrigé le calcul du décalage dans la liste des commandes."),
+      agent("Ajoutons un test pour le cas où la dernière page ne contient qu’une commande."),
+    ],
+  ),
+  chat("chinese-token-update", "更新身份验证令牌", "opencode", "laptop", projects.mobile, 20.1, [
+    user("我们更新了身份验证令牌。移动端需要重新登录吗？"),
+    agent("先用测试账号走一遍更新流程，确认现有会话是否仍然有效。"),
+  ]),
+  chat(
+    "japanese-token-update",
+    "認証トークンの更新手順",
+    "cursor",
+    "workstation",
+    projects.mobile,
+    21.3,
+    [
+      user("認証トークンの更新手順を見直した。次のリリースで確認したい。"),
+      agent("テスト用の端末で、更新後もログイン状態が続くか確認しましょう。"),
+    ],
+  ),
 ];

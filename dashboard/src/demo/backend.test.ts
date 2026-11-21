@@ -13,7 +13,8 @@ import { parseSettings } from "../lib/settings";
 import { parseFirstRun } from "../lib/setup";
 import { parseStatus } from "../lib/status";
 import { type Reply, respond, terms } from "./backend";
-import { chats, localMachine, records } from "./history";
+import { chats, localMachine } from "./history";
+import { records } from "./records";
 
 const now = Date.UTC(2026, 10, 12);
 function get(path: string): Reply {
@@ -70,6 +71,18 @@ describe("the demo answers in the shapes mash dash sends", () => {
     expect(file.hits.map((hit) => hit.messageId)).toEqual(["invoice-export-queue-5"]);
   });
 
+  it.each([
+    ["autenticación", "spanish-sign-in-0"],
+    ["corrigé", "french-pagination-0"],
+    ["我们更新了身份验证令牌", "chinese-token-update-0"],
+    ["認証トークンの更新手順を見直した", "japanese-token-update-0"],
+  ])("finds %s in the original language", (q, messageId) => {
+    const query = new URLSearchParams({ q, intent: "exact-mention" });
+    const results = parseSearch(body("/api/search", `?${query}`), localMachine);
+    expect(results.hits.map((hit) => hit.messageId)).toEqual([messageId]);
+    expect(results.hits[0]?.before).toContain(q);
+  });
+
   it("skips incomplete queries, terms split across messages, and tool output", () => {
     for (const q of [
       "invoice zebra",
@@ -78,6 +91,7 @@ describe("the demo answers in the shapes mash dash sends", () => {
       "choose a queue for invoice exports",
       '"exports invoice"',
       '"shows the order total"',
+      "身份验证",
     ]) {
       const results = body("/api/search", `?${new URLSearchParams({ q })}`).results;
       expect(results, q).toEqual([]);

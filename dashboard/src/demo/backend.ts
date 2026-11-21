@@ -1,9 +1,9 @@
-// Answers the dashboard's requests in the browser, in the shapes `mash dash`
-// sends, from the made-up history. The dashboard's own parsers read every
-// answer, so a shape that drifts from the real one fails the tests here.
+// Answers dashboard requests in the browser from demo history. The tests run
+// the responses through the same parsers used by `mash dash`.
 import type { Answer, ReadPath } from "../lib/routes";
 import type { Transport } from "../lib/transport";
-import { chats, type DemoChat, type DemoMessage, localMachine, records } from "./history";
+import { chats, type DemoChat, type DemoMessage, localMachine } from "./history";
+import { records } from "./records";
 import { messageMatcher, searchSnippet } from "./search";
 import tools from "./tools.json";
 
