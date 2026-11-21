@@ -37,8 +37,10 @@ cuando quieras desinstalar Mash.
 
 - **Agentes conectados.** Cuando un agente usa Mash, recibe resultados y
   fragmentos de las conversaciones. Esos fragmentos pasan al contexto del
-  agente y pueden enviarse a su proveedor de modelos. Para buscar por tu
-  cuenta, puedes usar el panel local o la terminal.
+  agente y pueden enviarse a su proveedor de modelos. Las [acciones automáticas del complemento](../plugin.md#what-happens-without-asking)
+  también pueden añadir fragmentos al contexto sin una conexión MCP. Para
+  buscar solo desde el panel local o la terminal, deja los agentes sin conectar
+  y desactiva o elimina el complemento de Mash si lo instalaste.
 - **Historial compartido.** Si habilitas la búsqueda entre equipos, Mash
   envía el historial al servidor que configures y alojes.
 - **Servicios remotos opcionales.** Si configuras un servicio remoto para

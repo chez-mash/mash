@@ -5,6 +5,9 @@ when you ask. A connected agent can search any history you've indexed, and
 the results it reads become part of its context. [Supported agents](supported-agents.md)
 · [How Mash handles your history](privacy.md)
 
+If you installed the Mash plugin from your agent’s marketplace, [finish setup in the agent](plugin.md#finish-setup-in-the-agent).
+For a different agent with a local MCP server option, [connect it manually](mcp.md#connect-another-mcp-client).
+
 <span id="connect-claude-code-codex-or-copilot"></span>
 
 ## Connect an agent after setup
@@ -29,12 +32,8 @@ If the agent is missing from your choices, check whether its command works in
 that terminal, for example with `codex --version`. Install its CLI or add
 it to `PATH`, then rerun the command above.
 
-GitHub Copilot CLI setup is available on the development branch. If your
-release only offers Claude Code and Codex, you can
-[configure MCP manually](mcp.md#connect-another-mcp-client).
-
-Already installed the plugin from your agent's marketplace? Use its
-[`setup` skill](plugin.md#start-with-the-plugin) to finish setting up Mash.
+Development builds include guided GitHub Copilot CLI setup. With v0.1.1-alpha,
+[connect Copilot CLI manually](plugin.md#github-copilot-cli).
 
 ### What the connection installs
 
@@ -124,8 +123,10 @@ To check one agent and also launch its MCP server in a fresh process:
 ```bash
 mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
-mash status --installation --agent copilot --probe
 ```
+
+Use `--agent copilot` in builds that offer it. For v0.1.1-alpha,
+[check from Copilot CLI](plugin.md#github-copilot-cli).
 
 A successful probe verifies a new process, not the connection in an
 already-open chat. Restart the agent after setup, repairs, or upgrades.

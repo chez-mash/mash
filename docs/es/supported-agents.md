@@ -15,7 +15,7 @@ historiales que hayas indexado, incluidas las conversaciones con otros agentes.
 | --- | --- | --- |
 | Claude Code | Conversaciones locales de Claude Code | Sí |
 | Codex | Conversaciones locales de Codex | Sí, mediante la CLI de Codex |
-| GitHub Copilot CLI | Sesiones locales de la línea de comandos | Sí |
+| GitHub Copilot CLI | Sesiones locales de la línea de comandos | Versiones de desarrollo. [Conexión manual en v0.1.1-alpha](../plugin.md#github-copilot-cli) |
 | GitHub Copilot Chat en VS Code | Conversaciones que VS Code guarda en tu equipo | — |
 | OpenCode | Conversaciones de la base de datos local de OpenCode | — |
 | Cursor | Conversaciones de la línea de comandos y formatos compatibles del editor | — |
@@ -71,4 +71,4 @@ se ejecutan bajo demanda. Si faltan conversaciones o se muestran mal, puedes
 [abrir una incidencia](https://github.com/mashium/mash/issues) con el nombre
 del agente, la versión y el sistema operativo.
 
-<!-- mash-docs-source: cae257f3a057c87cef874197ea58c49a155db99c696e9c52437110b8f9765c1c -->
+<!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

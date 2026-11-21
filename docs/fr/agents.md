@@ -5,6 +5,9 @@ retrouver des travaux antérieurs. Un agent connecté peut parcourir tout
 l’historique que vous avez indexé. Les résultats qu’il lit entrent dans
 son contexte. [Agents compatibles](supported-agents.md) · [Confidentialité de l’historique](privacy.md)
 
+Si vous avez installé le module depuis le catalogue de l’agent, [terminez la configuration dans l’agent](../plugin.md#finish-setup-in-the-agent).
+Pour un autre agent compatible avec un serveur MCP local, [configurez la connexion manuellement](../mcp.md#connect-another-mcp-client).
+
 <span id="connect-claude-code-codex-or-copilot"></span>
 
 ## Connecter un agent après la configuration
@@ -31,13 +34,8 @@ fonctionne dans ce terminal, par exemple avec `codex --version`. Installez
 son interface en ligne de commande ou ajoutez-la à votre `PATH`, puis
 relancez la commande ci-dessus.
 
-La configuration guidée de GitHub Copilot CLI est disponible sur la branche
-de développement. Si votre version propose uniquement Claude Code et Codex,
-vous pouvez [configurer MCP manuellement](../mcp.md#connect-another-mcp-client).
-
-Si vous avez déjà installé le module depuis le catalogue de l’agent,
-utilisez sa [compétence `setup`](../plugin.md#start-with-the-plugin)
-pour terminer la configuration.
+Les versions de développement proposent la configuration guidée de GitHub Copilot CLI.
+Avec v0.1.1-alpha, [connectez Copilot CLI manuellement](../plugin.md#github-copilot-cli).
 
 ### Ce que la connexion installe
 
@@ -129,8 +127,10 @@ processus, choisissez la commande correspondante.
 ```bash
 mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
-mash status --installation --agent copilot --probe
 ```
+
+Utilisez `--agent copilot` dans les versions qui proposent cette option. Avec
+v0.1.1-alpha, [vérifiez la connexion depuis Copilot CLI](../plugin.md#github-copilot-cli).
 
 Ce test vérifie une nouvelle connexion. Redémarrez l’agent après une
 configuration, une réparation ou une mise à jour pour que la connexion
@@ -178,4 +178,4 @@ ajoutez les variables d’environnement dont votre configuration a besoin.
 
 [Résoudre les problèmes de connexion](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: d890419b26152a4e78be6e843a0c4789881de03d39205a6b214101d802a2e9a2 -->
+<!-- mash-docs-source: d13297cbda95f0ed2a881c85c68f64a7582974147ff379a99ca977396ab0d265 -->

@@ -47,6 +47,9 @@ Mash connected to the supported agent CLIs it finds, or want to search from the
 dashboard and terminal. Connecting uses those CLIs to edit their user settings
 and lets connected agents retrieve chat excerpts into their context. If they
 say only to proceed with setup, use the dashboard and terminal option.
+If they already installed the Mash plugin, explain that enabled hooks can add
+excerpts even without an agent connection. Point them to the
+[plugin controls](https://getmash.io/plugin/#what-happens-without-asking).
 
 If they only want one agent's history or a shorter range, send them to
 https://getmash.io/privacy/#try-a-small-local-setup for the interactive choices.
@@ -171,6 +174,8 @@ mash init --yes --no-agents
 If they chose to connect their installed Claude Code, Codex or GitHub Copilot
 CLIs as well, run `mash init --yes`. For specific agents, send them to the
 [interactive setup guide](https://getmash.io/installation/#connect-your-histories).
+If they chose Copilot CLI and installed v0.1.1-alpha, follow the
+[manual Copilot connection](https://getmash.io/plugin/#github-copilot-cli).
 On a fresh setup, both commands find saved chats in their usual locations and
 index the last 90 days. Both check Qdrant before applying settings.
 

@@ -121,7 +121,7 @@ Qdrant 停止时仍可列出对话、阅读消息和导出备份。如果还未�
 mash status --installation --agent claude-code
 ```
 
-如果使用 Codex 或 Copilot，把选项换成 `--agent codex` 或 `--agent copilot`。如果报告在 `next_action` 中给出修复办法，请按提示操作。[设置代理连接](agents.md#connect-claude-code-codex-or-copilot)期间仍可在网页面板中搜索。
+如果使用 Codex，请将选项换成 `--agent codex`。如果使用 Copilot CLI，请参阅[适用于你的 Mash 版本的检查步骤](agents.md#confirm-the-connection)。如果报告在 `next_action` 中给出修复办法，请按提示操作。[设置代理连接](agents.md#connect-claude-code-codex-or-copilot)期间仍可在网页面板中搜索。
 
 完成设置或修复后，或者升级 Mash 可执行文件或插件后，请重启代理。已经打开的对话会继续使用原来的连接。要测试一个新的连接，可以运行以下命令。
 
@@ -237,4 +237,4 @@ GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash do
 
 如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashium/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
 
-<!-- mash-docs-source: 368d69706cb6e367dff031775c66bd6040b69bdd46a1c3f008e8e68b8d730693 -->
+<!-- mash-docs-source: e374cfaa1ee36aad9b88d7a2a214aa2bdd843f1b471a8839d0bf9075fccb15f2 -->

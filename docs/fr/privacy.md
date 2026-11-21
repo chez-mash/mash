@@ -31,7 +31,7 @@ serait supprimé, y compris le dossier séparé de Qdrant sous Windows. Ajoutez
 
 ## Quand votre historique peut quitter votre ordinateur
 
-* **La connexion aux agents** permet à un agent connecté de demander des résultats et des extraits. Ils entrent dans son contexte et peuvent être envoyés à son fournisseur de modèle. Pour chercher vous-même, utilisez le tableau de bord local ou le terminal.
+* **La connexion aux agents** permet à un agent connecté de demander des résultats et des extraits. Ils entrent dans son contexte et peuvent être envoyés à son fournisseur de modèle. Les [actions automatiques du module](../plugin.md#what-happens-without-asking) peuvent aussi ajouter des extraits au contexte sans connexion MCP. Pour chercher uniquement depuis le tableau de bord local ou le terminal, laissez les agents déconnectés et désactivez ou retirez le module Mash si vous l’avez installé.
 * **Le partage entre ordinateurs** transfère l’historique vers le serveur Mash que vous avez configuré.
 * **Un service distant de calcul des embeddings** reçoit le texte préparé pour la recherche, qui peut contenir des données sensibles. Par défaut, le calcul se fait sur votre ordinateur. Les embeddings des requêtes restent toujours locaux.
 * **Un service distant de reclassement** reçoit chaque requête et les extraits à classer. Le reclassement se fait localement tant que vous ne choisissez pas de service distant.
@@ -83,4 +83,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](../upgrades.md) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: 1f108ee89f243dcc3065e57d31c8745da4ecb202ec1ef12d37bea497cf4c125a -->
+<!-- mash-docs-source: e9af992046c03e50866e696ba638cdbd95a281ec69b2dc897049b14a41f3ae09 -->

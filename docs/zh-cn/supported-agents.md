@@ -13,7 +13,7 @@
 | --- | --- | --- |
 | Claude Code | 本机保存的 Claude Code 对话 | 可以 |
 | Codex | 本机保存的 Codex 对话 | 可以，通过 Codex CLI |
-| GitHub Copilot CLI | 本机保存的命令行会话 | 可以 |
+| GitHub Copilot CLI | 本机保存的命令行会话 | 开发版支持。[v0.1.1-alpha 手动连接步骤](../plugin.md#github-copilot-cli) |
 | VS Code 中的 GitHub Copilot Chat | VS Code 保存在本机的对话 | — |
 | OpenCode | OpenCode 本地数据库中的对话 | — |
 | Cursor | 命令行对话，以及编辑器以受支持格式保存的对话 | — |
@@ -61,4 +61,4 @@
 如果找不到对话，或显示内容有误，可以[提交问题](https://github.com/mashium/mash/issues)，
 并注明代理名称、版本和操作系统。
 
-<!-- mash-docs-source: cae257f3a057c87cef874197ea58c49a155db99c696e9c52437110b8f9765c1c -->
+<!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

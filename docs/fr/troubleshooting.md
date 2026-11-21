@@ -175,7 +175,7 @@ lancez cette commande.
 mash status --installation --agent claude-code
 ```
 
-Utilisez `--agent codex` ou `--agent copilot` pour ces agents. Suivez
+Utilisez `--agent codex` pour Codex. Pour Copilot CLI, consultez [les vérifications adaptées à votre version de Mash](agents.md#confirm-the-connection). Suivez
 l’étape dans `next_action` si le bilan propose une solution. Vous pouvez
 chercher dans le tableau de bord pendant que vous
 [configurez la connexion](agents.md#connect-claude-code-codex-or-copilot).
@@ -371,4 +371,4 @@ l’authentification ou publié un paquet dont la somme de contrôle est incorre
 utilisez le [formulaire privé de GitHub](https://github.com/mashium/mash/security/advisories/new).
 Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
 
-<!-- mash-docs-source: 368d69706cb6e367dff031775c66bd6040b69bdd46a1c3f008e8e68b8d730693 -->
+<!-- mash-docs-source: e374cfaa1ee36aad9b88d7a2a214aa2bdd843f1b471a8839d0bf9075fccb15f2 -->

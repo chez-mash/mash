@@ -5,6 +5,9 @@ trabajos anteriores. Un agente conectado puede buscar en todo el historial
 que hayas indexado. Los resultados que lea pasan a formar parte de su
 contexto. [Agentes compatibles](supported-agents.md) · [Cómo trata Mash tu historial](privacy.md)
 
+Si instalaste el complemento desde el catálogo de tu agente, [termina la configuración en el agente](../plugin.md#finish-setup-in-the-agent).
+Para otro agente compatible con servidores MCP locales, [configura la conexión manualmente](../mcp.md#connect-another-mcp-client).
+
 <span id="connect-claude-code-codex-or-copilot"></span>
 
 ## Conecta un agente después de configurar Mash
@@ -30,12 +33,8 @@ Si tu agente no aparece, comprueba si puedes ejecutar su comando en esa
 terminal, por ejemplo, `codex --version`. Instala la CLI del agente o añádela
 a `PATH` y vuelve a ejecutar el comando anterior.
 
-La configuración guiada de GitHub Copilot CLI está disponible en la rama
-de desarrollo. Si tu versión solo ofrece Claude Code y Codex, puedes
-[configurar MCP manualmente](../mcp.md#connect-another-mcp-client).
-
-Si ya instalaste el complemento desde el catálogo de tu agente, usa su
-[función `setup`](../plugin.md#start-with-the-plugin) para terminar la configuración.
+Las versiones de desarrollo incluyen la configuración guiada de GitHub Copilot CLI.
+Con v0.1.1-alpha, [conecta Copilot CLI manualmente](../plugin.md#github-copilot-cli).
 
 ### Qué instala la conexión
 
@@ -126,8 +125,10 @@ nuevo, elige el comando correspondiente:
 ```bash
 mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
-mash status --installation --agent copilot --probe
 ```
+
+Usa `--agent copilot` en las versiones que ofrecen esa opción. Con v0.1.1-alpha,
+[comprueba la conexión desde Copilot CLI](../plugin.md#github-copilot-cli).
 
 La prueba comprueba una conexión nueva. Para que los cambios se apliquen
 a tus conversaciones, reinicia el agente después de configurar, reparar o
@@ -175,4 +176,4 @@ e incluye las variables de entorno que necesites.
 
 [Solución de problemas de conexión](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: d890419b26152a4e78be6e843a0c4789881de03d39205a6b214101d802a2e9a2 -->
+<!-- mash-docs-source: d13297cbda95f0ed2a881c85c68f64a7582974147ff379a99ca977396ab0d265 -->

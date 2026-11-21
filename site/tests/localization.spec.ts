@@ -120,9 +120,14 @@ for (const [locale, language, supportTitle, quickStartTitle, agentsTitle] of [
     await page.locator(`.sl-markdown-content a[href="/${locale}/supported-agents/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(supportTitle);
     await expect(page.locator("html")).toHaveAttribute("lang", language);
-    await expect(
-      page.getByRole("table").first().getByText("GitHub Copilot CLI", { exact: true }),
-    ).toBeVisible();
+    const copilot = page
+      .getByRole("table")
+      .first()
+      .getByRole("row", { name: /GitHub Copilot CLI/ });
+    await expect(copilot.getByRole("link", { name: /v0\.1\.1-alpha/ })).toHaveAttribute(
+      "href",
+      "/plugin/#github-copilot-cli",
+    );
 
     await page.locator(`.sl-markdown-content a[href="/${locale}/quick-start/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(quickStartTitle);

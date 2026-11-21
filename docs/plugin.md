@@ -1,14 +1,67 @@
 # The Mash plugin for Claude Code, Codex and Copilot
 
-The plugin is what makes an agent use Mash without being told to. It adds
-twelve skills, their slash commands, and hooks that bring earlier work into a session
-and keep the index current. `mash init` installs it for Claude Code, Codex
-and [GitHub Copilot CLI](#github-copilot-cli). This page says what you get and
-how to control it.
+The Mash plugin lets Claude Code, Codex, or GitHub Copilot CLI look up previous
+work as you chat, save a decision when you ask, and open the Mash dashboard.
+It adds skills and hooks. Mash’s [MCP server](mcp.md) gives the agent the
+search tools those skills use. You can also use MCP on its own and ask the agent
+to search with Mash.
 
-The plugin sits on top of the [MCP server](mcp.md), which gives the agent the
-Mash tools themselves. Without the plugin the tools still work when you ask
-for them by name.
+- **Already using the Mash dashboard or terminal?** [Connect your agent](agents.md#connect-claude-code-codex-or-copilot)
+  without indexing again. Setup installs the plugin for agents it connects.
+- **Already installed the plugin from your agent’s marketplace?** [Finish setup in the agent](#finish-setup-in-the-agent).
+- **Starting from scratch?** Follow the [quick start](../README.md#quick-start),
+  or [install the plugin first](#start-with-the-plugin) and let your agent walk
+  you through setup.
+
+<span id="install-update-and-remove"></span>
+
+## Install the plugin
+
+<span id="requirements"></span>
+
+Installation needs internet access. The hooks need Python 3.9 or later
+(`python3`, `python`, or the Windows `py` launcher).
+
+### Start with the plugin
+
+Run the two terminal commands for your agent. If you already added the Mash
+marketplace, use the second command.
+
+#### Claude Code
+
+```sh
+claude plugin marketplace add mashium/mash
+claude plugin install mash@mash
+```
+
+#### Codex
+
+```sh
+codex plugin marketplace add mashium/mash
+codex plugin add mash@mash
+```
+
+#### Install in GitHub Copilot CLI
+
+```sh
+copilot plugin marketplace add mashium/mash
+copilot plugin install mash@mash
+```
+
+### Finish setup in the agent
+
+Start a new session. In Claude Code, run `/mash:setup`. In Codex or Copilot,
+say “Use the Mash setup skill to set up Mash on this computer.” The agent
+reviews what will be installed and which chats to index with you, then shows
+you how to open the dashboard. Agent connections are optional. If you choose
+to connect Copilot CLI and use Mash v0.1.1-alpha, [complete the Copilot connection](#github-copilot-cli)
+after setup.
+
+If you connected an agent, restart it and ask “Use Mash to find an earlier chat
+about authentication. Show me the message behind the answer.” Use a topic you
+have discussed before. To turn on the Codex hooks, open `/hooks` in Codex and review
+and trust Mash’s hooks. [Check a connection](agents.md#confirm-the-connection)
+if the agent cannot find Mash.
 
 ## Skills and commands
 
@@ -48,7 +101,7 @@ chat at a time and always shows it and asks first.
 
 | When | What the plugin does | Turn it off |
 | --- | --- | --- |
-| A session starts | Shows the agent this project's saved records and recent chats, and starts a background `mash index` at most once every ten minutes | `MASH_AUTO_INDEX=off` stops the indexing; `MASH_RECORD_RECALL=off` stops the record context |
+| A session starts | Shows the agent this project's saved records and recent chats, and starts a background `mash index` at most once every ten minutes | `MASH_AUTO_INDEX=off` stops the indexing. `MASH_RECORD_RECALL=off` stops the saved records in session and file hints. Chat hints still appear. |
 | You send a message that looks back at earlier work, or names something the conversation has not mentioned | Reminds the agent to search Mash before guessing | `MASH_PROMPT_RECALL=off` |
 | You state a lasting decision or preference | Reminds the agent how to save it. A session that runs long without saving anything gets one reminder at most every fifteen minutes | `MASH_RECORD_CAPTURE=off` |
 | The agent reads a file in the project | Shows records and earlier chats about that file, once per file and session | `MASH_FILE_RECALL=off` |
@@ -58,59 +111,14 @@ after the read, not before it.
 
 Set a switch in the environment the agent starts in. Every hook does nothing,
 silently, when Mash is missing, not set up, or slow to answer, so it never
-blocks the agent. Nothing here sends your history anywhere: the hooks call the
-`mash` program on your machine. [Record what you worked out](records.md) has
-the detail on saving and recall.
+blocks the agent. The hooks call Mash on your machine. Excerpts they show at
+session start or on file reads enter the agent’s context, which it can send to
+its model provider. Enabled hooks can run without an MCP connection. For
+dashboard or terminal use only, [remove any installed Mash plugin](#update-or-remove-the-plugin)
+and [disconnect the agent](agents.md#disconnect-an-agent).
+[When history can leave your machine](privacy.md#when-history-can-leave-your-machine)
 
-## Requirements
-
-- Python 3.9 or later for the hooks (`python3`, `python`, or the Windows `py`
-  launcher).
-- Network access to install or update the plugin; the agent downloads it from
-  the Mash repository.
-
-## Install, update and remove
-
-`mash init` installs the plugin with the agent's own commands. The terminal
-wizard summarizes the connections, and the JSON report lists the files edited
-and the undo commands. See the [installation guide](installation.md#read-the-result).
-
-### Start with the plugin
-
-If you prefer to start from your agent's marketplace, use the commands for
-that agent. If you already added the Mash marketplace, start with the second
-command.
-
-**Claude Code**
-
-```sh
-claude plugin marketplace add mashium/mash
-claude plugin install mash@mash
-```
-
-**Codex**
-
-```sh
-codex plugin marketplace add mashium/mash
-codex plugin add mash@mash
-```
-
-**GitHub Copilot CLI**
-
-```sh
-copilot plugin marketplace add mashium/mash
-copilot plugin install mash@mash
-```
-
-Start a new agent session and invoke the Mash `setup` skill. In Claude Code,
-run `/mash:setup`. In Codex or Copilot, say “Use the Mash setup skill to set
-up Mash on this computer.” The plugin brings the skill. The setup then
-installs the local programs and search service with your approval, indexes
-your history, and shows you how to open the dashboard. You can choose to
-connect agents or ask the agent to run your first search. See
-[how Mash handles your history](privacy.md).
-
-### Update or remove the plugin
+## Update or remove the plugin
 
 The plugin and the `mash` program are released together. A marketplace can
 offer a newer plugin before the matching binary is published. Run
@@ -125,21 +133,27 @@ codex plugin remove mash@mash
 copilot plugin uninstall mash@mash
 ```
 
+To remove the search tools too, [disconnect the agent](agents.md#disconnect-an-agent).
+
 ## GitHub Copilot CLI
 
-`mash init` connects Copilot as it does the other two: when the `copilot`
-command is on your `PATH`, it registers the Mash tools and installs the
-plugin, and `mash status --installation` reports on both. Start a new Copilot
-session afterwards. To do it yourself:
+Development builds can connect GitHub Copilot CLI from `mash init` when
+`copilot` is on your `PATH`. The v0.1.1-alpha release can read Copilot’s saved
+chats, and you can manually give Copilot access to Mash search. After [setting
+up Mash](../README.md#quick-start), register its tools from a terminal.
 
 ```sh
-copilot plugin marketplace add mashium/mash
-copilot plugin install mash@mash
 copilot mcp add mash -- mash mcp
 ```
 
-`copilot plugin list` then shows `mash@mash` and `copilot mcp list` shows
-`mash`. To remove both:
+If Copilot cannot find `mash`, replace the executable after `--` with the
+quoted full path to your installation. Optionally [install the Copilot plugin](#install-in-github-copilot-cli)
+for skills and hooks. Open a new Copilot session and ask it to use Mash to
+find an earlier chat. `copilot mcp list` shows `mash`, and `copilot plugin list`
+shows `mash@mash` if you installed the plugin.
+
+With v0.1.1-alpha, remove the Copilot connection before uninstalling Mash.
+If you installed the plugin, run its removal command too.
 
 ```sh
 copilot plugin uninstall mash@mash
@@ -156,8 +170,8 @@ copilot mcp remove mash
   can read Copilot's running session. `mash --version-info` lists `copilot`
   under `session_citations` when it can; with an older `mash` the plugin
   recalls but does not ask Copilot to save.
-- On Windows the hooks run through PowerShell and call `python`. This has not
-  been tried on a Windows machine yet.
+- On Windows the Copilot hooks run through PowerShell and call `python`.
+  The hooks have no recorded Windows verification yet.
 
 ## Check that it is working
 
@@ -167,5 +181,6 @@ mash status --installation
 
 Each agent's `connection` is `full` when the tools and plugin are both in
 place, and `mcp-only` when only the tools are connected. `next_action` gives
-the next step when an integration needs attention. See
-[Use Mash with your agent](agents.md#confirm-the-connection).
+the next step when an integration needs attention. For Copilot with v0.1.1-alpha,
+use [Copilot’s own checks](#github-copilot-cli).
+[Use Mash with your agent](agents.md#confirm-the-connection)

@@ -37,7 +37,10 @@ folder on Windows. Add `--yes` when you are ready to uninstall.
 
 - **Agent connections** let the connected agent request search results and
   excerpts. Those results enter the agent's context and can be sent to its
-  model provider. Use the local dashboard or terminal to search by yourself.
+  model provider. The [plugin’s hooks](plugin.md#what-happens-without-asking)
+  can also add excerpts to the agent’s context without an MCP connection. To
+  keep searches in the local dashboard or terminal, leave agents disconnected
+  and disable or remove any Mash plugin you installed.
 - **Sharing across machines** uploads history to your configured Mash server.
 - **A remote embedding worker** receives prepared searchable text, which may
   contain sensitive history. Embedding inference runs locally by default, and

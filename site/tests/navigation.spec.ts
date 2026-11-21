@@ -28,7 +28,8 @@ test("visitors can check which histories Mash reads and which agents it connects
   await page.getByRole("link", { name: "Check support for your agent" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Supported agents");
   const support = page.getByRole("table").first();
-  await expect(support.getByRole("row", { name: /GitHub Copilot CLI/ })).toContainText("Yes");
+  const copilot = support.getByRole("row", { name: /GitHub Copilot CLI/ });
+  await expect(copilot).toContainText("Development builds");
   await expect(support.getByRole("row", { name: /GitHub Copilot Chat in VS Code/ })).toContainText(
     "Chats saved by VS Code on your computer",
   );
@@ -36,6 +37,12 @@ test("visitors can check which histories Mash reads and which agents it connects
   await expect(page).toHaveURL(/\/agents\/#connect-claude-code-codex-or-copilot$/);
   await expect(page.locator("#connect-claude-code-codex-or-copilot")).toBeAttached();
   await expect(page.getByRole("heading", { name: "Connect an agent after setup" })).toBeVisible();
+  await page.getByRole("link", { name: "connect Copilot CLI manually" }).click();
+  await expect(page).toHaveURL(/\/plugin\/#github-copilot-cli$/);
+  await expect(
+    page.locator("pre").filter({ hasText: /^copilot mcp add mash -- mash mcp$/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Finish setup in the agent" })).toBeVisible();
 });
 
 test("internal links and browser history keep the current document alive", async ({ page }) => {

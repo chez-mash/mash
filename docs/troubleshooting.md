@@ -155,8 +155,8 @@ Check the agent you want to use. For Claude Code, run:
 mash status --installation --agent claude-code
 ```
 
-Use `--agent codex` or `--agent copilot` for those CLIs. Follow the report's
-`next_action` if it gives a repair. You can keep searching in the dashboard
+Use `--agent codex` for Codex. For Copilot CLI, see [checks for your Mash version](agents.md#confirm-the-connection).
+Follow the report's `next_action` if it gives a repair. You can keep searching in the dashboard
 while you [set up the agent connection](agents.md#connect-claude-code-codex-or-copilot).
 
 Restart the agent after setup, a repair, or a binary or plugin upgrade; an open
