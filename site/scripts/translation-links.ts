@@ -82,7 +82,8 @@ export function localizeLinks(
       if (quickStart && target.hash === "#quick-start") return `quick-start.md${target.search}`;
       if (quickStart?.has(target.hash)) return `quick-start.md${target.search}${target.hash}`;
     }
-    const name = /^docs\/([a-z0-9-]+\.md)$/.exec(file)?.[1];
+    const name =
+      file === "docs/README.md" ? "guides.md" : /^docs\/([a-z0-9-]+\.md)$/.exec(file)?.[1];
     if (name) {
       const translated = localeGuides.get(name);
       if (translated && (!target.hash || translated.has(target.hash))) {

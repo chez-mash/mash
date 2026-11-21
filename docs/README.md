@@ -4,7 +4,7 @@ Mash helps you find conversations you've already had with your coding agents.
 New here? Follow the [quick start](../README.md#quick-start), or browse the
 [documentation website](https://getmash.io).
 
-[Español](es/index.md) · [Français](fr/index.md) · [简体中文](zh-cn/index.md)
+[Español](es/guides.md) · [Français](fr/guides.md) · [简体中文](zh-cn/guides.md)
 
 ## What would you like to do?
 

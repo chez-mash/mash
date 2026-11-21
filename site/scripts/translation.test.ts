@@ -282,6 +282,22 @@ describe("documentation translation drafts", () => {
     expect(await readLocaleGuides("unconfigured-test-locale")).toEqual(new Map());
   });
 
+  it("uses the English documentation index as the source for translated directories", async () => {
+    const guides = await readTranslationSource("guides");
+    expect(guides.file).toBe("docs/README.md");
+    expect(guides.body).toContain("### Find past work");
+
+    const localeGuides = await readLocaleGuides("fr");
+    const draft = prepareTranslation(
+      { ...source, body: "# Guide\n\n[Find past work](README.md#find-past-work)." },
+      "docs/fr/privacy.md",
+      localeGuides,
+    );
+    expect(draft.render({ translations: draft.passages })).toContain(
+      "[Find past work](guides.md#find-past-work)",
+    );
+  });
+
   it("rejects a translation that would make an old section link point to a different heading", () => {
     const draft = prepareTranslation(
       { ...source, body: "# Guide\n\n## Start\n\n## Finish" },

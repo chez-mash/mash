@@ -13,6 +13,9 @@ quick start comes from the repository README. There is no second maintained
 copy: `site/scripts/content.ts` prepares ignored build inputs and rewrites
 relative Markdown links for the website. Links to repository source stay on
 GitHub. Each generated guide has an edit link to its original file.
+The English docs directory at `/guides/` comes from `docs/README.md`.
+Each translated directory comes from `docs/<locale>/guides.md`. Its welcome
+page comes from that locale's `index.md`.
 
 Add a guide to `docs/README.md` and, when appropriate, the sidebar in
 `site/astro.config.mjs`. New Markdown guides are included in builds and search

@@ -35,6 +35,34 @@ test("the language picker keeps the page and labels English fallbacks", async ({
   await expect(page.getByText("Esta página aún no está disponible en tu idioma.")).toBeVisible();
 });
 
+for (const [locale, language, label, docsLabel, title] of [
+  ["es", "es", "Español", "Documentación", "Documentación de Mash"],
+  ["fr", "fr", "Français", "Documentation", "Documentation de Mash"],
+  ["zh-cn", "zh-CN", "简体中文", "文档", "Mash 文档"],
+]) {
+  test(`the ${locale} guide directory keeps the selected language`, async ({ page }) => {
+    await page.goto("/guides/");
+    await page.getByRole("combobox", { name: "Select language" }).selectOption({ label });
+    const directory = `/${locale}/guides/`;
+    await expect(page).toHaveURL(directory);
+    await expect(page.locator("html")).toHaveAttribute("lang", language);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    const guide = page.locator(".sl-markdown-content");
+    await expect(guide.locator("#find-past-work")).toBeAttached();
+    await expect(guide.locator('a[href="/upgrades/"]')).toBeVisible();
+    const memory = `/${locale}/records/`;
+    await guide.locator(`a[href="${memory}"]`).click();
+    await expect(page).toHaveURL(memory);
+    await page.getByRole("link", { name: docsLabel, exact: true }).click();
+    await expect(page).toHaveURL(directory);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+
+    await page.goto(`/${locale}/`);
+    await guide.locator(`a[href="${directory}"]`).click();
+    await expect(page).toHaveURL(directory);
+  });
+}
+
 for (const [locale, label, lang, title] of [
   ["es", "Español", "es", "Usa la memoria de Mash"],
   ["fr", "Français", "fr", "Utiliser la mémoire de Mash"],

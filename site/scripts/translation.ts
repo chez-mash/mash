@@ -11,6 +11,7 @@ import {
 } from "./translation-links.ts";
 
 export const translationPages = [
+  "guides",
   "quick-start",
   "compare",
   "installation",
@@ -33,6 +34,11 @@ export const translationPages = [
   "uninstall",
 ] as const;
 export type TranslationPage = (typeof translationPages)[number];
+
+const sourceFiles: Partial<Record<TranslationPage, string>> = {
+  guides: "docs/README.md",
+  "quick-start": "README.md",
+};
 
 export type TranslationSource = {
   file: string;
@@ -104,7 +110,7 @@ export function isTranslationPage(page: string | undefined): page is Translation
 }
 
 export async function readTranslationSource(page: TranslationPage): Promise<TranslationSource> {
-  const file = page === "quick-start" ? "README.md" : `docs/${page}.md`;
+  const file = sourceFiles[page] ?? `docs/${page}.md`;
   let body = await readFile(new URL(file, repo), "utf8");
   if (page === "quick-start") {
     body = `# Quick start\n\n${readmeQuickStart(body)}`;

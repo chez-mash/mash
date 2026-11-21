@@ -10,22 +10,7 @@ l’indexation et la recherche restent locales et aucun compte Mash n’est
 nécessaire.
 
 - [Installez Mash et lancez votre première recherche](quick-start.md).
-- [Comparez Mash à d’autres outils d’historique pour agents](compare.md).
-- [Installez Mash et vérifiez le téléchargement](installation.md).
-- [Installez Mash avec un gestionnaire de paquets ou compilez-le depuis le code source](install-methods.md).
-- [Recherchez et lisez les conversations dans le tableau de bord](dashboard.md).
-- [Enregistrez des décisions et retrouvez leurs sources](records.md).
-- [Recherchez des conversations depuis le terminal](search.md).
-- [Incluez des conversations plus anciennes et cherchez par le sens](indexing.md).
-- [Gardez l’historique à jour](synchronization.md).
-- [Sauvegardez et restaurez votre historique](backup.md).
-- [Désinstallez Mash ou gardez l’historique pour une réinstallation](uninstall.md).
-- [Reprenez un travail ou laissez des notes pour la prochaine session](pick-up-work.md).
-- [Consultez les agents et les historiques pris en charge](supported-agents.md).
-- [Configurez le module Mash dans votre agent](plugin.md).
-- [Recherchez des conversations sur plusieurs ordinateurs](shared-index.md).
-- [Découvrez où votre historique est conservé](privacy.md).
-- [Résolvez les problèmes d’installation et de recherche](troubleshooting.md).
 - [Essayez la démo avec des conversations d’exemple](https://getmash.io/demo/).
-
-[Documentation complète en anglais](../README.md)
+- [Comparez Mash à d’autres outils d’historique pour agents](compare.md).
+- [Découvrez où votre historique est conservé](privacy.md).
+- [Parcourez les guides en français](guides.md).

@@ -6,22 +6,7 @@ Antigravity 已保存的对话中找到过去的决定和解决方案。打开�
 Mash 是开源软件，在你自己的电脑上运行。默认在本机建立索引和搜索，无需 Mash 账号。
 
 - [安装 Mash 并开始第一次搜索](quick-start.md)。
-- [比较 Mash 和其他编程代理对话历史工具](compare.md)。
-- [安装 Mash 并校验下载文件](installation.md)。
-- [使用软件包管理器安装，或从源码构建](install-methods.md)。
-- [在网页面板中查找和阅读对话](dashboard.md)。
-- [保存决定并查看原始消息](records.md)。
-- [在终端中搜索对话](search.md)。
-- [纳入较早的对话并按含义搜索](indexing.md)。
-- [保持历史记录最新](synchronization.md)。
-- [备份和恢复历史记录](backup.md)。
-- [卸载 Mash，或为重装保留历史记录](uninstall.md)。
-- [继续之前的工作，或为下次会话留下交接说明](pick-up-work.md)。
-- [查看支持的代理和对话历史](supported-agents.md)。
-- [在代理中设置 Mash 插件](plugin.md)。
-- [跨设备搜索对话](shared-index.md)。
-- [了解历史记录存放在哪里](privacy.md)。
-- [排查安装和搜索问题](troubleshooting.md)。
 - [用示例对话试用演示](https://getmash.io/demo/)。
-
-[完整英文文档](../README.md)
+- [比较 Mash 和其他编程代理对话历史工具](compare.md)。
+- [了解历史记录存放在哪里](privacy.md)。
+- [浏览简体中文指南](guides.md)。
