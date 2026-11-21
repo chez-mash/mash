@@ -1,9 +1,13 @@
 name: Release check
+run-name: Install checks for ${{ inputs.tag || github.event.workflow_run.head_branch }}
 
-# Installs a published release on each platform the way the guides say, and
-# runs it. Dispatch it after a release:
+# Installs a published release on each platform using the documented commands.
+# It runs after a tagged release. To repeat the checks manually:
 #   gh workflow run release-check.yml -f tag=v0.1.0-alpha
 on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
     inputs:
       tag:
@@ -15,10 +19,32 @@ permissions:
   contents: read
 
 env:
-  TAG: ${{ inputs.tag }}
+  TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
 
 jobs:
+  published:
+    # Branch dispatches build artifacts or repair packages for an existing tag.
+    # A tag push identifies the release whose version these jobs must find.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm the tag has a published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$TAG" != v[0-9]* ]] ||
+             [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" != false ]; then
+            echo "::error::A published release tag is required."
+            exit 1
+          fi
+
   installer:
+    needs: published
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +54,7 @@ jobs:
     steps:
       - name: Install with the shell installer
         if: runner.os != 'Windows'
+        shell: bash
         run: |
           curl -fsSL "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/install.sh" | MASH_VERSION="$TAG" sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -47,6 +74,7 @@ jobs:
           grep -q '"ready"' status.json
 
   homebrew:
+    needs: published
     strategy:
       fail-fast: false
       matrix:
@@ -61,18 +89,41 @@ jobs:
           [ "$(mash --version)" = "mash ${TAG#v}" ]
 
   apt:
+    needs: published
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Install from the apt repository and run it
+        shell: bash
+        env:
+          LC_ALL: C
         run: |
           curl -fsSL https://getmash.io/apt/mash-archive-keyring.gpg | sudo tee /usr/share/keyrings/mash-archive-keyring.gpg >/dev/null
           echo "deb [signed-by=/usr/share/keyrings/mash-archive-keyring.gpg] https://getmash.io/apt stable main" | sudo tee /etc/apt/sources.list.d/mash.list
-          sudo apt-get update
+          expected=${TAG#v}
+          # Match the Debian spelling of prerelease versions in build-repo.sh.
+          expected=${expected/-/\~}
+          # Documentation deploys the signed apt index after Release completes.
+          # Wait for apt to select the new version using normal signature checks.
+          for attempt in {1..30}; do
+            if sudo apt-get -o Dir::Etc::sourcelist=sources.list.d/mash.list \
+                -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 \
+                -o APT::Update::Error-Mode=any -o Acquire::https::Timeout=10 update &&
+                [ "$(apt-cache policy mash-cli | awk '/Candidate:/ { print $2 }')" = "$expected" ]; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              apt-cache policy mash-cli
+              echo "::error::apt did not offer mash-cli $expected before the package check timed out."
+              exit 1
+            fi
+            sleep 20
+          done
           sudo apt-get install -y mash-cli
           [ "$(mash --version)" = "mash ${TAG#v}" ]
 
   scoop:
+    needs: published
     runs-on: windows-latest
     timeout-minutes: 15
     steps:

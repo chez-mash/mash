@@ -58,7 +58,10 @@ before it indexes chats or edits agent settings.
 
 The [public release workflow](https://github.com/mashium/mash/actions/workflows/release.yml)
 builds the platform archives after checking that Linux and Windows CI passed on
-the source commit. To install without running a downloaded script, get the
+the source commit. See which installers passed for your version in the
+[public install checks](https://github.com/mashium/mash/actions/workflows/release-check.yml).
+
+To install without running a downloaded script, get the
 archive for your platform and `SHA256SUMS` from the same
 [versioned GitHub release](https://github.com/mashium/mash/releases). Compare
 the archive's SHA-256 hash to the line for its exact filename before extracting
