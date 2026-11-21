@@ -39,13 +39,21 @@ By default, indexing and search stay on your machine and require no account.
   [Open the saved sign-in decision](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
 - **Export a whole conversation.** Save it from the dashboard as Markdown,
   HTML, or PDF. [Export a transcript](docs/dashboard.md#save-a-transcript)
-- **Mashy, an optional dashboard assistant.** Bring your own model service and
-  API key to ask questions about your history and get links to chats and
-  saved decisions. [Configure Mashy](docs/configuration.md#the-dashboard-assistant)
+- <img src="dashboard/public/mashy.png" alt="" width="20"> **Mashy, an optional dashboard assistant.**
+  Bring your own model service and API key to ask questions about your history
+  and get links to chats and saved decisions.
+  [Configure Mashy](docs/configuration.md#the-dashboard-assistant)
 - **GPU acceleration for semantic search.** Optional embeddings use DirectML
   on supported Windows GPUs, Core ML on Apple silicon, or the CPU when local
   acceleration is unavailable. Indexing can also use a configured remote worker.
   [Embedding inference](docs/configuration.md#embedding-inference)
+
+<details>
+<summary>See Mashy answer a question</summary>
+
+![Mashy traces a sample checkout outage to a database migration and quotes the source conversation](site/public/welcome/welcome-mashy.svg)
+
+</details>
 
 ## Quick start
 
