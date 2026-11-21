@@ -49,7 +49,7 @@
 如果想使用所有建议的历史，请按步骤[跳过代理连接](installation.md#skip-agent-connections)。你也可以[在浏览器中选择这些设置](dashboard.md#set-up-mash-from-the-dashboard)。
 
 如果决定卸载，`mash uninstall` 会在你确认前列出要删除的内容。卸载时，代理的原始对话保持原样。
-[查看卸载会删除什么](installation.md#uninstall)
+[查看卸载会删除什么](uninstall.md)
 
 ## 敏感信息
 
@@ -72,4 +72,4 @@ Mash 会从本机移除这条对话，并记住以后不要再导入它。启用
 代理的原始文件、先前的备份和其他电脑独立建立的索引副本会保留。此操作在 Mash 中无法撤销。如果之后可能还要用到这条对话，请先
 [备份](backup.md#make-a-portable-backup)。
 
-<!-- mash-docs-source: deb468c83a6fb401e2a46e29ce24c4351d4c94ba681b84df0e4dcd24a592bb8b -->
+<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->

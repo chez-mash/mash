@@ -16,7 +16,7 @@
 2. **启动本地搜索。** `mash qdrant install` 会下载 Qdrant，并将它设置为在你登录时以你的账号运行。Mash 只允许本机连接该服务，并关闭 Qdrant 的遥测。[搜索服务文件](local-search.md#where-qdrant-stores-data)
 3. **选择 Mash 可以读取的内容。** 交互式 `mash init` 助手会先展示找到的历史记录目录，再保存设置或为对话建立索引。Mash 从原位置读取对话，默认在本机保存可搜索的副本。如果选择连接代理，设置助手会更新该代理的设置，让它可以从副本中请求对话片段。你也可以[跳过连接代理](#skip-agent-connections)，自行搜索。[Mash 的数据存放位置](privacy.md#where-mash-stores-data)
 
-快速入门命令会先安装程序并启动 Qdrant，再打开设置确认页。如果在这里取消，可以运行 `mash uninstall` 查看已安装的内容和移除方法。[预览卸载](#uninstall)
+快速入门命令会先安装程序并启动 Qdrant，再打开设置确认页。如果在这里取消，可以运行 `mash uninstall` 查看已安装的内容和移除方法。[预览卸载](uninstall.md)
 
 <span id="install-the-cli"></span>
 
@@ -207,29 +207,6 @@ gh attestation verify ARCHIVE --repo mashium/mash --signer-workflow mashium/mash
 
 ## 卸载 Mash
 
-```sh
-mash uninstall          # lists what would be removed and changes nothing
-mash uninstall --yes    # removes it
-```
+运行 `mash uninstall` 可以预览将移除的内容。[查看哪些内容会保留，以及如何卸载 Mash](uninstall.md)。
 
-先在终端中查看预览。它会列出将移除的服务、代理连接和本地文件，包括 Mash 保存的对话副本占用的空间。如果重定向了输出，或所用版本在终端中显示 JSON，请查看 `paths`、`kept` 和 `next`。
-
-指定 `--yes` 后，Mash 会执行以下操作。
-
-1. 停止并移除由 Mash 设置的服务，包括搜索服务及其数据、[远程网页面板](dashboard.md)，以及已安装的索引监视服务。
-2. 使用 Claude Code、Codex 和 GitHub Copilot 自己的命令解除连接，详见[断开代理连接](agents.md#disconnect-an-agent)。
-3. 删除 Mash 的索引（对话副本）、模型、配置和保存的令牌。
-
-要删除程序本身，请按报告中的最后一条指令操作。JSON 报告中请查看 `binary.remove`。根据安装方法，可能需要运行 `brew uninstall mash`、`scoop uninstall mash`、`sudo apt remove mash-cli` 或 `cargo uninstall mash`，也可能需要删除脚本安装的文件。
-
-代理保存的原始对话和已发布到[共享索引](shared-index.md)中的历史记录都会保留。Mash 会列出并保留 `~/.mash` 中并非由它创建的文件。如果你自行运行 Qdrant，它的服务和其中的 Mash 搜索数据也会保留，需单独管理。
-
-如果计划日后重新安装，可以用 `--keep-history` 保留 Mash 中可搜索的对话副本、配置、保存的令牌，以及 Mash 管理的 Qdrant 中的搜索数据。此选项仍会移除服务、代理连接和下载的模型。如果你想另存备份，请运行 [`mash export DIRECTORY`](backup.md#make-a-portable-backup)。
-
-先用 `mash uninstall --keep-history` 查看预览，再用 `mash uninstall --yes --keep-history` 确认。
-
-报告会列出失败的步骤及原因。只要有一步失败，命令就会返回退出码 1。用相同的选项重新运行即可重试剩余步骤。卸载完成后请重启代理，使它们停止加载 Mash。
-
-如果只想移除搜索服务，请运行 `mash qdrant uninstall`。默认会保留 Qdrant 的数据。加上 `--delete-storage` 才会删除。这些数据用于搜索，可以用 `mash index --rebuild-local-views --full` 从 Mash 索引重建。
-
-<!-- mash-docs-source: 69b3c7b52bd00771495d3c16d56938a04ea962d54a507f41f338e8e1ea7d4e47 -->
+<!-- mash-docs-source: a966c25c54f06810be24db443c66df5ae4b12319579733914b26439648c648bf -->

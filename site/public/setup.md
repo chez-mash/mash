@@ -285,7 +285,7 @@ Report, in a few lines:
   and whether to restart any connected agent to load its Mash tools;
 - how to review removal with `mash uninstall`, which previews what it
   would remove and keeps the original agent chats. See
-  https://getmash.io/installation/#uninstall.
+  https://getmash.io/uninstall/.
 
 ## If something fails
 

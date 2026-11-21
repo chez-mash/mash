@@ -7,7 +7,7 @@
   [l’export du tableau de bord](dashboard.md#export-many-chats-at-once) pour
   obtenir des fichiers que vous pourrez ouvrir en dehors de Mash.
 - **Réinstaller Mash plus tard sur le même ordinateur.** Utilisez
-  [`mash uninstall --keep-history`](installation.md#uninstall) pour garder sur
+  [`mash uninstall --keep-history`](uninstall.md#keep-history-for-a-reinstall) pour garder sur
   place la copie consultable de Mash et ses réglages. Faites une sauvegarde
   si vous avez besoin d’une copie séparée.
 
@@ -73,4 +73,4 @@ Passez `--db` chaque fois que vous voulez utiliser la copie restaurée. Si vos
 réglages ou modèles se trouvent ailleurs, passez aussi `--config PATH` ou
 `--models-dir PATH`.
 
-<!-- mash-docs-source: ec7faa9045f83b2fb013c3e419ec659c83099c2c1a0269a9e2a6cf8b62a9fc66 -->
+<!-- mash-docs-source: 6e60fff6c2bbe05cb0dcefc8bc1c14ffc6d70d8d220650fe25fc9d0cc762e945 -->

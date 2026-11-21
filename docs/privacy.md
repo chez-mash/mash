@@ -31,7 +31,7 @@ Run `mash status` to see `database_path` and, when Mash installed Qdrant,
 `local_qdrant.installed.storage`. Run `mash uninstall` to preview what would
 be removed. It lists the managed directories, including the separate Qdrant
 folder on Windows. Add `--yes` when you are ready to uninstall.
-[See what uninstall removes](installation.md#uninstall)
+[See what uninstall removes](uninstall.md)
 
 ## When history can leave your machine
 
@@ -77,7 +77,7 @@ To use all the suggested histories, follow the steps to
 
 If you decide to stop, run `mash uninstall` to preview removal. When you
 confirm, Mash removes its own index and services and keeps your agents'
-original chats. [See what uninstall removes](installation.md#uninstall)
+original chats. [See what uninstall removes](uninstall.md)
 
 ## Sensitive information
 

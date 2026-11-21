@@ -212,6 +212,15 @@ export default defineConfig({
               slug: "backup",
             },
             "upgrades",
+            {
+              label: "Uninstall Mash",
+              translations: {
+                es: "Desinstala Mash",
+                fr: "Désinstaller Mash",
+                "zh-CN": "卸载 Mash",
+              },
+              slug: "uninstall",
+            },
             "services",
           ],
         },

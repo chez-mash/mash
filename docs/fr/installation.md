@@ -37,7 +37,7 @@ Pour passer à une nouvelle version, suivez les [étapes de mise à jour (en ang
 La commande du guide de démarrage rapide installe les programmes et démarre
 Qdrant avant d’afficher le récapitulatif. Si vous annulez à cette étape,
 `mash uninstall` indique ce qui a déjà été installé et comment le retirer.
-[Aperçu de la désinstallation](#uninstall)
+[Aperçu de la désinstallation](uninstall.md)
 
 <span id="install-the-cli"></span>
 
@@ -344,55 +344,6 @@ Pour les versions jusqu’à `v0.1.1-alpha`, utilisez la somme SHA-256 ci-dessus
 
 ## Désinstaller Mash
 
-```sh
-mash uninstall          # lists what would be removed and changes nothing
-mash uninstall --yes    # removes it
-```
+Lancez `mash uninstall` pour voir ce qui serait retiré. [Vérifiez ce qui reste et comment désinstaller Mash](uninstall.md).
 
-Lisez l’aperçu dans votre terminal. Il montre quels services, connexions
-et fichiers locaux seraient retirés, ainsi que la taille de la copie de
-vos conversations. Si vous redirigez la sortie ou utilisez une ancienne
-version qui affiche du JSON dans le terminal, lisez `paths`, `kept` et `next`.
-
-Avec `--yes`, Mash effectue les opérations suivantes.
-
-1. Il arrête et retire les services qu’il a mis en place, dont le service de
-   recherche et ses données, le [tableau de bord distant](dashboard.md) et
-   le service de mise à jour automatique de l’index s’il est installé.
-2. Il déconnecte Claude Code, Codex et GitHub Copilot via leurs commandes,
-   décrites dans [la procédure pour déconnecter un agent](agents.md#disconnect-an-agent).
-3. Il supprime son index (la copie de vos conversations), les modèles, les
-   réglages et les jetons enregistrés.
-
-Pour retirer le programme lui-même, suivez la dernière instruction du
-bilan. En JSON, elle figure dans `binary.remove`. Il peut s’agir de
-`brew uninstall mash`, `scoop uninstall mash`, `sudo apt remove mash-cli`,
-`cargo uninstall mash` ou de fichiers à supprimer après une installation
-par script.
-
-Les historiques d’origine des agents et les données déjà publiées dans un
-[index partagé](shared-index.md) restent en place. Mash
-signale et conserve les fichiers de `~/.mash` qu’il n’a pas créés. Si vous
-gérez votre propre Qdrant, son service et les données de recherche qu’il
-contient restent en place. Gérez ces données séparément.
-
-Pour une réinstallation ultérieure, `--keep-history` conserve la copie
-consultable de vos conversations, la configuration, les jetons enregistrés
-et les données de recherche dans le Qdrant géré par Mash. Mash retire quand
-même les services, les connexions et les modèles téléchargés. Si vous voulez
-une sauvegarde distincte, utilisez [`mash export DIRECTORY`](backup.md#make-a-portable-backup).
-
-Affichez d’abord l’aperçu avec `mash uninstall --keep-history`, puis
-confirmez avec `mash uninstall --yes --keep-history`.
-
-Le bilan indique chaque étape en échec et sa raison. La commande renvoie le
-code 1 si une étape échoue. Relancez-la avec les mêmes options pour terminer
-les étapes restantes. Redémarrez ensuite vos agents pour qu’ils cessent de
-charger Mash.
-
-Pour retirer uniquement le service de recherche, lancez `mash qdrant uninstall`.
-La commande conserve les données de Qdrant sauf si vous ajoutez
-`--delete-storage`. Ces données servent à la recherche. Vous pouvez les
-reconstruire à partir de votre index avec `mash index --rebuild-local-views --full`.
-
-<!-- mash-docs-source: 69b3c7b52bd00771495d3c16d56938a04ea962d54a507f41f338e8e1ea7d4e47 -->
+<!-- mash-docs-source: a966c25c54f06810be24db443c66df5ae4b12319579733914b26439648c648bf -->

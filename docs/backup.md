@@ -6,7 +6,7 @@
   [dashboard export](dashboard.md#export-many-chats-at-once). It gives you files
   to open outside Mash.
 - **Reinstall on the same computer later.** Use
-  [`mash uninstall --keep-history`](installation.md#uninstall) to leave Mash's
+  [`mash uninstall --keep-history`](uninstall.md#keep-history-for-a-reinstall) to leave Mash's
   searchable copy and settings in place. Make a separate backup if you need one.
 
 ## Make a portable backup

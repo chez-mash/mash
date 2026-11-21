@@ -70,7 +70,7 @@ for (const [locale, lang, installationTitle] of [
   }) => {
     const install = `/${locale}/installation/`;
     const verify = `${install}#check-the-release-download`;
-    const uninstall = `${install}#uninstall`;
+    const uninstall = `/${locale}/uninstall/`;
     const changes = `${install}#what-setup-changes`;
     const guide = page.locator(".sl-markdown-content");
     await page.goto(`/${locale}/quick-start/`);
@@ -80,7 +80,7 @@ for (const [locale, lang, installationTitle] of [
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(installationTitle);
     await expect(guide.locator("#what-setup-changes")).toBeAttached();
     await expect(guide.locator('a[href="#skip-agent-connections"]')).toBeVisible();
-    await expect(guide.locator('a[href="#uninstall"]')).toBeVisible();
+    await expect(guide.locator(`a[href="${uninstall}"]`).first()).toBeVisible();
     await guide.locator('a[href="#check-the-release-download"]').first().click();
     await expect(page).toHaveURL(verify);
     await expect(page.locator("#check-the-release-download")).toBeAttached();
@@ -95,10 +95,14 @@ for (const [locale, lang, installationTitle] of [
     ).toBeVisible();
 
     await page.goto(`/${locale}/privacy/`);
-    await guide.locator(`a[href="${uninstall}"]`).click();
+    await guide.locator(`a[href="${uninstall}"]`).last().click();
     await expect(page).toHaveURL(uninstall);
-    await expect(page.locator("#uninstall")).toBeAttached();
-    await expect(guide.locator("pre").filter({ hasText: "mash uninstall --yes" })).toBeVisible();
+    await expect(page.locator("#remove-mash-and-its-local-copy")).toBeAttached();
+    await expect(guide.locator("pre").filter({ hasText: /^mash uninstall --yes$/ })).toBeVisible();
+    await expect(
+      guide.locator("pre").filter({ hasText: /^mash uninstall --yes --keep-history$/ }),
+    ).toBeVisible();
+    await expect(guide.locator("#reopen-the-retained-history")).toBeAttached();
     const backup = `/${locale}/backup/#make-a-portable-backup`;
     await guide.locator(`a[href="${backup}"]`).click();
     await expect(page).toHaveURL(backup);

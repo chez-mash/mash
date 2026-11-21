@@ -163,7 +163,7 @@ copilot plugin uninstall mash@mash
 ```
 
 Si quieres quitar también Mash del equipo, consulta
-[cómo desinstalarlo](installation.md#uninstall). Si vas a seguir usando
+[cómo desinstalarlo](uninstall.md). Si vas a seguir usando
 Mash, quita el agente de [`[agents] connected`](../configuration.md#connected-agents)
 para que Mash deje de comprobar esa conexión.
 
@@ -176,4 +176,4 @@ e incluye las variables de entorno que necesites.
 
 [Solución de problemas de conexión](troubleshooting.md#my-agent-cannot-find-mash)
 
-<!-- mash-docs-source: d13297cbda95f0ed2a881c85c68f64a7582974147ff379a99ca977396ab0d265 -->
+<!-- mash-docs-source: 8477458114d5b9d54fe3843a95827a8da4afee33c21ab223158453c2a50793f0 -->

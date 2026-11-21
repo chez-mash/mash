@@ -6,7 +6,7 @@
   [exportación del panel web](dashboard.md#export-many-chats-at-once) para obtener
   archivos que puedes abrir fuera de Mash.
 - **Reinstala más adelante en el mismo equipo.** Usa
-  [`mash uninstall --keep-history`](installation.md#uninstall) para dejar en su
+  [`mash uninstall --keep-history`](uninstall.md#keep-history-for-a-reinstall) para dejar en su
   sitio la copia consultable y la configuración. Si necesitas una copia separada,
   haz una copia de seguridad.
 
@@ -70,4 +70,4 @@ mash --db "/absolute/path/to/restored.sqlite3" search 'a word you remember' --lo
 Pasa `--db` cada vez que quieras usar la copia restaurada. Si tu configuración
 o tus modelos están en otro lugar, pasa también `--config PATH` o `--models-dir PATH`.
 
-<!-- mash-docs-source: ec7faa9045f83b2fb013c3e419ec659c83099c2c1a0269a9e2a6cf8b62a9fc66 -->
+<!-- mash-docs-source: 6e60fff6c2bbe05cb0dcefc8bc1c14ffc6d70d8d220650fe25fc9d0cc762e945 -->

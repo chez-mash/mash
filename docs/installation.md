@@ -32,7 +32,7 @@ Already using Mash and moving to a new release? Follow the [upgrade steps](upgra
 
 The quick-start command installs the programs and starts Qdrant before it
 opens the review. If you cancel there, `mash uninstall` shows what is already
-installed and how to remove it. [Preview removal](#uninstall)
+installed and how to remove it. [Preview removal](uninstall.md)
 
 <span id="install-the-cli"></span>
 
@@ -287,50 +287,4 @@ archives. Releases through `v0.1.1-alpha` use the checksum check above.
 
 ## Uninstall
 
-```sh
-mash uninstall          # lists what would be removed and changes nothing
-mash uninstall --yes    # removes it
-```
-
-Read the preview in your terminal. It shows which services, agent
-connections, and local files Mash would remove, including the size of its
-copy of your chats. When you redirect the output, or use an older release
-that prints JSON in the terminal, read `paths`, `kept`, and `next`.
-
-With `--yes`, Mash:
-
-1. stops and removes the services it set up: the search service and its data,
-   the [remote dashboard](dashboard.md), and an installed index watcher;
-2. disconnects Claude Code, Codex and GitHub Copilot through their own commands, the ones
-   under [disconnect an agent](agents.md#disconnect-an-agent);
-3. deletes its index (Mash's copy of your chats), models, configuration and
-   saved tokens.
-
-Then use the last instruction in the terminal report to remove the program
-itself. In the JSON report, see `binary.remove`. This could be
-`brew uninstall mash`, `scoop uninstall mash`, `sudo apt remove mash-cli`,
-`cargo uninstall mash`, or the files to delete after the install script.
-
-Mash never touches your agents' own chat histories, and history already
-published to a [shared index](shared-index.md) stays on that server. Files in
-`~/.mash` that these commands did not create are listed and left in place.
-If you run your own Qdrant, the service and any Mash search data it holds
-stay in place. Manage that data separately.
-
-Use `--keep-history` to keep Mash's searchable copy of your chats, its
-configuration, saved tokens, and the search data in its managed Qdrant for a
-future reinstall. Mash still removes its services, agent connections and
-downloaded models. If you want a separate backup before uninstalling, run
-[`mash export DIRECTORY`](backup.md#make-a-portable-backup).
-
-Preview with `mash uninstall --keep-history`, then confirm with
-`mash uninstall --yes --keep-history`.
-
-The report names each failed step and gives its reason. The command exits 1
-when any step fails. Rerun it with the same flags to retry what is left.
-Restart your agents afterwards so they stop loading Mash.
-
-To remove only the search service, run `mash qdrant uninstall`. It keeps
-Qdrant's data unless you add `--delete-storage`; that data holds only Mash's
-search data, which `mash index --rebuild-local-views --full` rebuilds from
-your index.
+Preview what Mash would remove with `mash uninstall`. [See what stays on your computer and how to uninstall](uninstall.md).

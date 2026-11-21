@@ -2,7 +2,7 @@
 
 - **保存一份可以恢复的独立副本。** 升级或卸载 Mash 前，或者要把历史记录迁移到另一台电脑时，可以运行 [`mash export`](#make-a-portable-backup)。
 - **保存对话文本供阅读或分享。** 使用[网页面板的导出功能](dashboard.md#export-many-chats-at-once)，即可获得能在 Mash 之外打开的文件。
-- **日后在同一台电脑重装。** 使用 [`mash uninstall --keep-history`](installation.md#uninstall)，在原处保留 Mash 中可搜索的对话副本及设置。需要独立副本时，请另外备份。
+- **日后在同一台电脑重装。** 使用 [`mash uninstall --keep-history`](uninstall.md#keep-history-for-a-reinstall)，在原处保留 Mash 中可搜索的对话副本及设置。需要独立副本时，请另外备份。
 
 <span id="make-a-portable-backup"></span>
 
@@ -44,4 +44,4 @@ mash --db "/absolute/path/to/restored.sqlite3" search 'a word you remember' --lo
 
 每次要使用恢复的副本时都请传入 `--db`。如果配置或模型放在其他位置，也请传入 `--config PATH` 或 `--models-dir PATH`。
 
-<!-- mash-docs-source: ec7faa9045f83b2fb013c3e419ec659c83099c2c1a0269a9e2a6cf8b62a9fc66 -->
+<!-- mash-docs-source: 6e60fff6c2bbe05cb0dcefc8bc1c14ffc6d70d8d220650fe25fc9d0cc762e945 -->

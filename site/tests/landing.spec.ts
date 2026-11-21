@@ -252,8 +252,9 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await expect(page.getByRole("heading", { name: "Try a small local setup" })).toBeVisible();
   await expect(page.getByText("Custom number of days", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "See what uninstall removes", exact: true }).last().click();
-  await expect(page).toHaveURL(/\/installation\/#uninstall$/);
-  await expect(page.getByRole("heading", { name: "Uninstall", exact: true })).toBeInViewport();
+  await expect(page).toHaveURL(/\/uninstall\/$/);
+  await expect(page.getByRole("heading", { name: "Uninstall Mash", exact: true })).toBeInViewport();
+  await expect(page.getByRole("link", { name: "Keep Mash’s copy in place" })).toBeVisible();
 });
 
 /**

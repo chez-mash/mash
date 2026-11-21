@@ -40,6 +40,7 @@ New here? Follow the [quick start](../README.md#quick-start), or browse the
 - [Search history across your machines](shared-index.md)
 - [Back up and restore your history](backup.md)
 - [Upgrade Mash](upgrades.md)
+- [Uninstall Mash or keep history for a reinstall](uninstall.md)
 - [Check and manage services](services.md)
 
 ## Reference

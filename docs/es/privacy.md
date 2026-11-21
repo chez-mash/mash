@@ -76,7 +76,7 @@ También puedes [elegir estas opciones en el navegador](dashboard.md#set-up-mash
 
 `mash uninstall` muestra qué se eliminaría antes de confirmar y conserva las
 conversaciones originales de tus agentes.
-[Cómo desinstalar Mash](installation.md#uninstall)
+[Cómo desinstalar Mash](uninstall.md)
 
 ## Credenciales y copias
 

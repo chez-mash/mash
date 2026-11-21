@@ -62,7 +62,7 @@ Pour utiliser tous les historiques proposés, suivez les étapes pour
 Vous pouvez aussi [faire ces choix dans le navigateur](dashboard.md#set-up-mash-from-the-dashboard).
 
 Si vous décidez de désinstaller Mash, `mash uninstall` affiche les éléments qui seront retirés avant votre confirmation. Vos conversations d’origine restent dans les agents.
-[Voir ce que retire la désinstallation](installation.md#uninstall)
+[Voir ce que retire la désinstallation](uninstall.md)
 
 ## Informations sensibles
 
@@ -85,4 +85,4 @@ Mash retire la conversation de son index local et mémorise ce retrait pour ne p
 Les fichiers d’origine de l’agent, les sauvegardes précédentes et les copies indexées séparément sur un autre ordinateur restent en place. L’opération est irréversible dans Mash. Faites
 [une sauvegarde](backup.md#make-a-portable-backup) avant de continuer si vous pensez avoir besoin de cette conversation plus tard.
 
-<!-- mash-docs-source: deb468c83a6fb401e2a46e29ce24c4351d4c94ba681b84df0e4dcd24a592bb8b -->
+<!-- mash-docs-source: 45e464bd1848a6400f84c2057e21d2d1e57ab7208cefd921bebb88f33a718cd2 -->

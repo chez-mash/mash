@@ -84,6 +84,21 @@ test("the old restore section leads to the portable backup guide", async ({ page
   await expect(page.locator("pre").filter({ hasText: "mash import" })).toBeVisible();
 });
 
+test("the old uninstall section leads to removal and reinstall choices", async ({ page }) => {
+  await page.goto("/installation/#uninstall");
+  await expect(page.locator("#uninstall")).toBeAttached();
+  await page
+    .getByRole("link", { name: "See what stays on your computer and how to uninstall" })
+    .click();
+  await expect(page).toHaveURL("/uninstall/");
+  await page.getByRole("link", { name: "Keep Mash’s copy in place" }).click();
+  await expect(page).toHaveURL("/uninstall/#keep-history-for-a-reinstall");
+  await expect(
+    page.locator("pre").filter({ hasText: /^mash uninstall --yes --keep-history$/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Reopen the retained history" })).toBeVisible();
+});
+
 test("internal links and browser history keep the current document alive", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

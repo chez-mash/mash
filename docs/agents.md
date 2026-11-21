@@ -160,7 +160,7 @@ copilot plugin uninstall mash@mash
 ```
 
 To remove Mash from the machine as well, see
-[uninstall](installation.md#uninstall).
+[uninstall](uninstall.md).
 If you keep Mash, remove the agent from
 [`[agents] connected`](configuration.md#connected-agents) so status stops
 expecting that connection.

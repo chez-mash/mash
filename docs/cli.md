@@ -34,7 +34,7 @@ open the [dashboard](dashboard.md) with `mash dash` or ask a
 | `mash import DIRECTORY --into NEW_DATABASE` | Restores a backup into a new database. | `--keep-identity` is for [upgrades](upgrades.md) only. |
 | `mash mcp` | Serves Mash's tools to an agent over stdio. Agents start it themselves; see [connect another MCP client](mcp.md). | `--lean` offers only the eight tools that find and read, for a small model. |
 | `mash qdrant uninstall` | Stops and removes the search service that `mash qdrant install` set up. | `--delete-storage` also deletes its data, which `mash index` rebuilds. |
-| `mash uninstall` | Lists everything Mash set up on this machine: services, agent connections, index, models and configuration. See [uninstall](installation.md#uninstall). | `--yes` removes what is listed; without it nothing changes. `--keep-history` keeps the index, its search data and the configuration. |
+| `mash uninstall` | Previews removal of Mash services, connections, and local data. See [uninstall](uninstall.md). | Use `--yes` to remove what is listed. Use `--keep-history` to leave Mash's copy of your chats for a reinstall. |
 
 Every command also accepts `--config PATH`, `--db PATH` and `--models-dir PATH`
 for files outside their default locations.
