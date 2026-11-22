@@ -84,7 +84,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
             <div>
               {#each chain.filter((part) => part.notes.length > 0) as part (part.label)}
             {#each part.notes as note (note.message)}
-              <p class="meta" style:margin-top="8px" style:overflow-wrap="anywhere"><span class={part.state === "attention" ? "warn" : ""}>{part.label}:</span> {note.message}{#if note.remediation && part.state === "attention"} <span style:display="block" style:color="var(--body)">{note.remediation}</span>{/if}</p>
+              <p class="meta" style:margin-top="8px" style:overflow-wrap="anywhere"><span class={part.state === "attention" ? "warn" : ""}>{part.label}:</span> {note.message}{#if note.remediation && part.state === "attention"} <span style:display="block" style:color="var(--text-body)">{note.remediation}</span>{/if}</p>
             {/each}
           {/each}
             </div>
@@ -92,7 +92,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
         {:else}
           {#each chain.filter((part) => part.notes.length > 0) as part (part.label)}
             {#each part.notes as note (note.message)}
-              <p class="meta" style:margin-top="8px" style:overflow-wrap="anywhere"><span class={part.state === "attention" ? "warn" : ""}>{part.label}:</span> {note.message}{#if note.remediation && part.state === "attention"} <span style:display="block" style:color="var(--body)">{note.remediation}</span>{/if}</p>
+              <p class="meta" style:margin-top="8px" style:overflow-wrap="anywhere"><span class={part.state === "attention" ? "warn" : ""}>{part.label}:</span> {note.message}{#if note.remediation && part.state === "attention"} <span style:display="block" style:color="var(--text-body)">{note.remediation}</span>{/if}</p>
             {/each}
           {/each}
         {/if}

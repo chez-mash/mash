@@ -30,7 +30,7 @@ const now = Date.now();
     {@const agent = group.chats[0]?.agent}
     <a class="tile" href={field === "agent" ? agentHref(group.key) : machineHref(group.key)}>
       <span class="tile-h">
-        {#if field === "agent" && agent}<AgentMark {agent} size={24} /><b>{agentInfo[agent].name}</b>{:else}<Laptop size={26} color="var(--blue)" aria-hidden="true" /><b>{group.key}</b>{/if}
+        {#if field === "agent" && agent}<AgentMark {agent} size={24} /><b>{agentInfo[agent].name}</b>{:else}<Laptop size={26} color="var(--hue-machines)" aria-hidden="true" /><b>{group.key}</b>{/if}
       </span>
       <span class="big"><b>{group.chats.length.toLocaleString()}</b><span>chats</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((group.chats.length / Math.max(1, chats.length)) * 100))}%"></i></span>

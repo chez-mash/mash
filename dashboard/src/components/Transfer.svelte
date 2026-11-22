@@ -123,21 +123,21 @@ const formats = [
     value: "markdown",
     name: "Markdown",
     icon: FileText,
-    tint: "var(--sky)",
+    tint: "var(--hue-export-markdown)",
     about: "One readable file per chat, in folders by project. For sharing or keeping in notes.",
   },
   {
     value: "json",
     name: "JSON",
     icon: Braces,
-    tint: "var(--teal)",
+    tint: "var(--hue-export-json)",
     about: "One file per chat with every message and its details. For your own scripts.",
   },
   {
     value: "archive",
     name: "Mash archive",
     icon: Archive,
-    tint: "var(--clay2)",
+    tint: "var(--hue-export-archive)",
     about: "A full backup of one machine, the only kind Mash can restore. Made on that machine.",
   },
 ] as const satisfies readonly { value: Format; [key: string]: unknown }[];
@@ -231,7 +231,7 @@ async function copy(): Promise<void> {
   </div>
 
   <p class="meta" role="status" style:font-size="13.5px">
-    <b style:color="var(--fg)">{count(chosen.length, "chat")}</b> will be exported{#if !filtered}, which is every chat this dashboard lists{/if}.
+    <b style:color="var(--text-strong)">{count(chosen.length, "chat")}</b> will be exported{#if !filtered}, which is every chat this dashboard lists{/if}.
     {#if leftOut > 0}
       {count(leftOut, "chat")} left out by hand:
       <button class="a" type="button" onclick={() => { onlyLeftOut = !onlyLeftOut; go(applied); }}>{onlyLeftOut ? "show all" : "show them"}</button>

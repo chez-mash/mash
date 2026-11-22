@@ -42,22 +42,52 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
 const machines = $derived(groupChats(chats, (chat) => chat.machine));
 
 const sections = [
-  { id: "overview", label: "overview", href: "#/", icon: House, tint: "var(--clay2)" },
-  { id: "chats", label: "chats", href: "#/search", icon: MessagesSquare, tint: "var(--sky)" },
-  { id: "agents", label: "agents", href: "#/agents", icon: Bot, tint: "var(--lilac)" },
-  { id: "machines", label: "machines", href: "#/machines", icon: Laptop, tint: "var(--blue)" },
-  { id: "projects", label: "projects", href: "#/projects", icon: Folder, tint: "var(--warn)" },
-  { id: "memory", label: "memory", href: "#/records?", icon: Brain, tint: "var(--pink)" },
-  { id: "services", label: "services", href: "#/services", icon: Server, tint: "var(--teal)" },
+  { id: "overview", label: "overview", href: "#/", icon: House, tint: "var(--hue-overview)" },
+  { id: "chats", label: "chats", href: "#/search", icon: MessagesSquare, tint: "var(--hue-chats)" },
+  { id: "agents", label: "agents", href: "#/agents", icon: Bot, tint: "var(--hue-agents)" },
+  {
+    id: "machines",
+    label: "machines",
+    href: "#/machines",
+    icon: Laptop,
+    tint: "var(--hue-machines)",
+  },
+  {
+    id: "projects",
+    label: "projects",
+    href: "#/projects",
+    icon: Folder,
+    tint: "var(--hue-projects)",
+  },
+  { id: "memory", label: "memory", href: "#/records?", icon: Brain, tint: "var(--hue-memory)" },
+  {
+    id: "services",
+    label: "services",
+    href: "#/services",
+    icon: Server,
+    tint: "var(--hue-services)",
+  },
   {
     id: "fleet",
     label: "fleet manager",
     href: "#/fleet",
     icon: SlidersHorizontal,
-    tint: "var(--indigo)",
+    tint: "var(--hue-fleet)",
   },
-  { id: "console", label: "tool explorer", href: "#/console", icon: Wrench, tint: "var(--sky)" },
-  { id: "settings", label: "settings", href: "#/settings", icon: Settings, tint: "var(--ok)" },
+  {
+    id: "console",
+    label: "tool explorer",
+    href: "#/console",
+    icon: Wrench,
+    tint: "var(--hue-tools)",
+  },
+  {
+    id: "settings",
+    label: "settings",
+    href: "#/settings",
+    icon: Settings,
+    tint: "var(--hue-settings)",
+  },
 ] as const;
 type Section = (typeof sections)[number]["id"];
 const expandable: readonly Section[] = ["chats", "agents", "machines", "projects", "memory"];
@@ -193,9 +223,9 @@ function toggle(id: Section): void {
       </div>
       {#if isOpen}
         {#if section.id === "chats"}
-          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={16} color="var(--sky)" aria-hidden="true" /><span>recent chats</span></a>
-          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={16} color="var(--sky)" aria-hidden="true" /><span>viewing history</span></a>
-          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={16} color="var(--sky)" aria-hidden="true" /><span>export chats</span></a>
+          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={16} color="var(--hue-chats)" aria-hidden="true" /><span>recent chats</span></a>
+          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={16} color="var(--hue-chats)" aria-hidden="true" /><span>viewing history</span></a>
+          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={16} color="var(--hue-chats)" aria-hidden="true" /><span>export chats</span></a>
         {:else if section.id === "agents"}
           {#each providers as provider (provider.key)}
             {@const agent = provider.chats[0]?.agent}
@@ -207,12 +237,12 @@ function toggle(id: Section): void {
           {/each}
         {:else if section.id === "projects"}
           {#each projects as project (project.key)}
-            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={15} color="var(--warn)" aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
+            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={15} color="var(--hue-projects)" aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
           {/each}
         {:else if section.id === "memory"}
           {#each kinds as kind (kind)}
             {@const KindIcon = kindIcons[kind]}
-            <a class="sub" class:on={child === kind} href={recordsHref(new URLSearchParams({ kind }))} onclick={close}><KindIcon size={16} color="var(--pink)" aria-hidden="true" /><span>{kindLabel(kind).toLowerCase()}s</span></a>
+            <a class="sub" class:on={child === kind} href={recordsHref(new URLSearchParams({ kind }))} onclick={close}><KindIcon size={16} color="var(--hue-memory)" aria-hidden="true" /><span>{kindLabel(kind).toLowerCase()}s</span></a>
           {/each}
         {/if}
       {/if}

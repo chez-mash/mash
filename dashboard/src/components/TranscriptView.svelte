@@ -552,7 +552,7 @@ const prompts = $derived(
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p role="status" class="meta">{warning}</p>{/each}
     {#if live.isPending}
       <div class="state-c" role="status">
-        <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--clay2)" aria-hidden="true" />Loading messages…</p>
+        <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--accent)" aria-hidden="true" />Loading messages…</p>
         <div class="skel" style:width="82%"></div><div class="skel" style:width="64%"></div><div class="skel" style:width="74%"></div>
       </div>
     {/if}

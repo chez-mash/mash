@@ -95,7 +95,7 @@ async function save(): Promise<void> {
 </script>
 
 {#snippet row(name: string, value: string)}
-  <div class="kv" style:align-items="center" style:min-height="50px" style:border-bottom="1px solid var(--hair)" style:padding="0"><dt>{name}</dt><dd style:overflow-wrap="anywhere">{value}</dd></div>
+  <div class="kv" style:align-items="center" style:min-height="50px" style:border-bottom="var(--border-divider)" style:padding="0"><dt>{name}</dt><dd style:overflow-wrap="anywhere">{value}</dd></div>
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>

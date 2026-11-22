@@ -120,10 +120,10 @@ const dirty = $derived(
 
 <div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and facts, with the conversations behind them.</p></div>
 <nav class="chips" aria-label="Memory kind">
-  <a class="chip big-c" class:on={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Brain size={15} color="var(--pink)" aria-hidden="true" />all</a>
+  <a class="chip big-c" class:on={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Brain size={15} color="var(--hue-memory)" aria-hidden="true" />all</a>
   {#each kinds as value (value)}
     {@const Icon = kindIcons[value]}
-    <a class="chip big-c" class:on={kind === value} href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><Icon size={15} color="var(--pink)" aria-hidden="true" />{label(value).toLowerCase()}s</a>
+    <a class="chip big-c" class:on={kind === value} href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><Icon size={15} color="var(--hue-memory)" aria-hidden="true" />{label(value).toLowerCase()}s</a>
   {/each}
 </nav>
 <form onsubmit={submit} class="chips" aria-label="Memory filters">
@@ -156,7 +156,7 @@ const dirty = $derived(
       {#if revision}
         {@const Icon = kindIcons[revision.details.kind]}
         {@const ScopeIcon = scopeIcons[record.scope.kind]}
-        <article style:padding="14px 0" style:border-bottom="1px solid var(--hair)">
+        <article style:padding="14px 0" style:border-bottom="var(--border-divider)">
           <p class="mts">
             <span class="mt kind"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span>
             <span class="mt">{label(revision.details.state).toLowerCase()}</span>

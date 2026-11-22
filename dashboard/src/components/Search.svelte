@@ -231,7 +231,7 @@ const rangeLabel = $derived.by(() => {
 <QueryError title="Couldn’t load results" query={result} />
 {#if (result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
   <div class="state-c" role="status">
-    <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--clay2)" aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
+    <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--accent)" aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
     <div class="skel" style:width="82%"></div><div class="skel" style:width="64%"></div><div class="skel" style:width="74%"></div>
   </div>
 {/if}

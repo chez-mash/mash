@@ -1,0 +1,284 @@
+/*
+ * The dashboard's theme. Every colour, line width, corner, shadow and typeface
+ * the dashboard draws with is defined here, as a role ("the main action",
+ * "a divider", "selected"), and nowhere else: components use these tokens
+ * only, and src/theme/theme.test.ts fails if a literal colour, font name,
+ * radius or shadow appears outside this folder. To change the look, change
+ * the values below; to add a role, add it to both themes.
+ *
+ * Dark is the default. The light theme restates only what differs.
+ */
+:root {
+  /* Type. */
+  --type-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --type-display: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Surfaces: the page, the rail and top bar on it, raised panels, filled chips, form fields. */
+  --surface-page: #1b1a18;
+  --surface-rail: #1b1a18;
+  --surface-top: #1b1a18;
+  --surface-raised: #24221f;
+  --surface-muted: #2b2926;
+  --surface-hover: #2b2926;
+  --surface-field: #1b1a18;
+  /* Text. */
+  --text-strong: #f0ece4;
+  --text-body: #d8d3ca;
+  --text-muted: #b0aaa0;
+  --text-faint: #77736b;
+  --text-on-accent: #1b1a18;
+  /* Lines: outlines of panels and boxes, strong lines of controls and menus, dividers inside lists. */
+  --line-outline: #3d3a35;
+  --line-strong: #66625a;
+  --line-divider: #2f2d29;
+  --stroke-outline: 1px;
+  --stroke-strong: 1px;
+  --stroke-divider: 1px;
+  --border-outline: var(--stroke-outline) solid var(--line-outline);
+  --border-strong: var(--stroke-strong) solid var(--line-strong);
+  --border-divider: var(--stroke-divider) solid var(--line-divider);
+  /* Corners: one scale; components pick a step. */
+  --radius-1: 2px;
+  --radius-2: 3px;
+  --radius-3: 4px;
+  --radius-4: 5px;
+  --radius-5: 6px;
+  --radius-6: 8px;
+  --radius-7: 10px;
+  --radius-8: 12px;
+  --radius-9: 15px;
+  --radius-10: 20px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+  /* Shadows. */
+  --shadow-float: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-fab: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-panel: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --shadow-pick: 0 6px 18px rgb(0 0 0 / 35%);
+  --shadow-knob: 0 1px 2px rgb(0 0 0 / 0.35);
+  --scrim: rgba(12, 11, 10, 0.72);
+  /* Accent: links and hover, and the stronger accent for lines that mark something. */
+  --accent: #e8926f;
+  --accent-strong: #d97757;
+  --focus: #e8926f;
+  /* The main action on a screen. */
+  --action-bg: #d97757;
+  --action-hover-bg: #e8926f;
+  /* Selected and current: the page in the rail, the chosen tab, chip, toggle or step. */
+  --selected-surface: #2b2926;
+  --selected-text: #e8926f;
+  --selected-line: #d97757;
+  --selected-bg: #d97757;
+  --selected-soft-bg: #3b2a22;
+  --selected-soft-text: #ffc9b3;
+  --toggle-on: #d97757;
+  --toggle-off: #66625a;
+  --toggle-knob: #fff;
+  /* Signals: progress, the linked message, find in chat, unread and unsaved. */
+  --progress: #d97757;
+  --linked-line: #d97757;
+  --linked-text: #e8926f;
+  --find-bg: #4a3026;
+  --find-text: #ffc9b3;
+  --find-soft-bg: rgb(233 196 106 / 0.38);
+  --find-current-bg: #d97757;
+  --find-current-line: #e8926f;
+  --notify: #d97757;
+  --changed: #d97757;
+  /* Status. */
+  --status-ok: #8fce9b;
+  --status-warn: #e5c07b;
+  --status-bad: #ef9a8f;
+  --status-ok-bg: #17301f;
+  --status-ok-text: #b4f0c4;
+  --status-warn-bg: #3a3320;
+  --status-warn-text: #f6e3a8;
+  --status-bad-bg: #3d1f1c;
+  --status-bad-text: #ffc4bc;
+  --status-running-bg: #3b2a22;
+  --status-running-text: #ffc9b3;
+  --status-ok-dot: #4ade80;
+  --status-warn-dot: #fbbf24;
+  --status-bad-dot: #f87171;
+  --status-running-dot: #ff9a70;
+  /* Mashy. */
+  --mashy-pick-bg: #d97757;
+  --mashy-pick-text: #1b1a18;
+  --mashy-dot: #d97757;
+  /* The reader's own messages, set on the mash of the logo. */
+  --you-bg: #f3e6c4;
+  --you-text: #2a2419;
+  --you-inset: #e6d7b0;
+  --you-rule: #c9b98f;
+  /* The demo banner at the top of getmash.io/demo. */
+  --banner-bg: #f3e6c4;
+  --banner-text: #2a2419;
+  /* Section colours: one per part of the dashboard, used on its icons. */
+  --hue-overview: #e8926f;
+  --hue-chats: #a7d8f0;
+  --hue-agents: #b6a6f0;
+  --hue-machines: #7fb8ea;
+  --hue-projects: #e5c07b;
+  --hue-memory: #eba6cf;
+  --hue-services: #70cfc4;
+  --hue-fleet: #8fa0f5;
+  --hue-tools: #a7d8f0;
+  --hue-settings: #8fce9b;
+  --hue-time: #70cfc4;
+  --hue-links: #8fa0f5;
+  --hue-files: #c9c4b8;
+  --hue-thinking: #e5c07b;
+  --hue-history: #7fb8ea;
+  --hue-operation: #70cfc4;
+  --hue-export-markdown: #a7d8f0;
+  --hue-export-json: #70cfc4;
+  --hue-export-archive: #e8926f;
+  /* Agents: each agent's logo colour. */
+  --agent-claude-code: #d97757;
+  --agent-codex: #f0ece4;
+  --agent-opencode: #bdb8ad;
+  --agent-copilot: #b6a6f0;
+  --agent-cursor: #f0ece4;
+  --agent-antigravity: #7fb8ea;
+  /* Code, JSON and quotes. */
+  --code-keyword: #e8926f;
+  --code-string: #a9d8a0;
+  --code-key: #7fb8ea;
+  --code-value: #f3e6c4;
+  --code-literal: #e5c07b;
+  --code-type: #70cfc4;
+  --quote-line: #4a463f;
+  --code-block-bg: #24221f;
+  --code-block-bar: #2b2926;
+  --code-block-text: #d8d3ca;
+  --code-block-caption: #a9b0bc;
+  /* Badges in the tool explorer. */
+  --badge-read-bg: #7fb8ea;
+  --badge-read-text: #10202c;
+  --badge-write-bg: #3b2a22;
+  --badge-write-text: #ffc9b3;
+  /* The brand. */
+  --brand-name: #e8926f;
+  --brand-cursor: #8a857c;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  /* Surfaces: the page, the rail and top bar on it, raised panels, filled chips, form fields. */
+  --surface-page: #fbf6e9;
+  --surface-rail: #fbf6e9;
+  --surface-top: #fbf6e9;
+  --surface-raised: #f5ecd5;
+  --surface-muted: #efe2bd;
+  --surface-hover: #efe2bd;
+  --surface-field: #fbf6e9;
+  /* Text. */
+  --text-strong: #2a2419;
+  --text-body: #3a3225;
+  --text-muted: #6b5f49;
+  --text-faint: #6f6450;
+  --text-on-accent: #fbf6e9;
+  /* Lines: outlines of panels and boxes, strong lines of controls and menus, dividers inside lists. */
+  --line-outline: #d6c79f;
+  --line-strong: #a8997a;
+  --line-divider: #e8dcba;
+  /* Accent: links and hover, and the stronger accent for lines that mark something. */
+  --accent: #a84a26;
+  --accent-strong: #c0562f;
+  --focus: #a84a26;
+  /* The main action on a screen. */
+  --action-bg: #c0562f;
+  --action-hover-bg: #a84a26;
+  /* Selected and current: the page in the rail, the chosen tab, chip, toggle or step. */
+  --selected-surface: #efe2bd;
+  --selected-text: #a84a26;
+  --selected-line: #c0562f;
+  --selected-bg: #c0562f;
+  --selected-soft-bg: #f1d9c9;
+  --selected-soft-text: #7a3318;
+  --toggle-on: #c0562f;
+  --toggle-off: #a8997a;
+  /* Signals: progress, the linked message, find in chat, unread and unsaved. */
+  --progress: #c0562f;
+  --linked-line: #c0562f;
+  --linked-text: #a84a26;
+  --find-bg: #f6dc9a;
+  --find-text: #7a3318;
+  --find-current-bg: #c0562f;
+  --find-current-line: #a84a26;
+  --notify: #c0562f;
+  --changed: #c0562f;
+  /* Status. */
+  --status-ok: #2f7d47;
+  --status-warn: #8a6100;
+  --status-bad: #b3372b;
+  --status-ok-bg: #d9efdd;
+  --status-ok-text: #1d5a31;
+  --status-warn-bg: #f3e3b4;
+  --status-warn-text: #6b4b00;
+  --status-bad-bg: #f6dcd8;
+  --status-bad-text: #8f271d;
+  --status-running-bg: #f1d9c9;
+  --status-running-text: #7a3318;
+  --status-ok-dot: #22a35a;
+  --status-warn-dot: #d99a00;
+  --status-bad-dot: #dc4b3f;
+  --status-running-dot: #d9652f;
+  /* Mashy. */
+  --mashy-pick-bg: #c0562f;
+  --mashy-dot: #c0562f;
+  /* The reader's own messages, set on the mash of the logo. */
+  --you-bg: #2a2419;
+  --you-text: #f3e6c4;
+  --you-inset: #3d3527;
+  --you-rule: #5a4f3c;
+  /* The demo banner at the top of getmash.io/demo. */
+  --banner-bg: #2a2419;
+  --banner-text: #f3e6c4;
+  /* Section colours: one per part of the dashboard, used on its icons. */
+  --hue-overview: #a84a26;
+  --hue-chats: #226a8e;
+  --hue-agents: #6a55c2;
+  --hue-machines: #2b6ca8;
+  --hue-projects: #8a6100;
+  --hue-memory: #a8477f;
+  --hue-services: #177a70;
+  --hue-fleet: #4a57c4;
+  --hue-tools: #226a8e;
+  --hue-settings: #2f7d47;
+  --hue-time: #177a70;
+  --hue-links: #4a57c4;
+  --hue-files: #6f6a5e;
+  --hue-thinking: #8a6100;
+  --hue-history: #2b6ca8;
+  --hue-operation: #177a70;
+  --hue-export-markdown: #226a8e;
+  --hue-export-json: #177a70;
+  --hue-export-archive: #a84a26;
+  /* Code, JSON and quotes. */
+  --code-keyword: #a84a26;
+  --code-string: #2f7d47;
+  --code-key: #2b6ca8;
+  --code-value: #2a2419;
+  --code-literal: #8a6100;
+  --code-type: #177a70;
+  --quote-line: #c9b98f;
+  /* Badges in the tool explorer. */
+  --badge-read-bg: #2b6ca8;
+  --badge-read-text: #ffffff;
+  --badge-write-bg: #f1d9c9;
+  --badge-write-text: #7a3318;
+  /* The brand. */
+  --brand-name: #2a2419;
+  --brand-cursor: #9a948a;
+  color-scheme: light;
+}
+
+/* Theme rules that a value alone cannot express. */
+:root[data-theme="light"] :is(.brand, #burger) img {
+  content: url("/mash-mark-light.svg");
+}
+/* Agent logos are tinted for a dark ground; flip their lightness, keep the hue. */
+:root[data-theme="light"] .mark {
+  filter: invert(1) hue-rotate(180deg);
+}

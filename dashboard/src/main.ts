@@ -1,12 +1,6 @@
 import { mount } from "svelte";
-// The fonts ship with the dashboard: it is served on a private network and
-// never fetches type from a font service.
-import "@fontsource/ibm-plex-sans/latin-400.css";
-import "@fontsource/ibm-plex-sans/latin-400-italic.css";
-import "@fontsource/ibm-plex-sans/latin-500.css";
-import "@fontsource/ibm-plex-sans/latin-600.css";
-import "@fontsource/ibm-plex-mono/latin-400.css";
-import "@fontsource/ibm-plex-mono/latin-500.css";
+import "./theme/fonts";
+import "./theme/tokens.css";
 import "./app.css";
 import "./terminal.css";
 

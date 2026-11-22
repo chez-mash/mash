@@ -239,7 +239,7 @@ function toggleConnect(agent: Integration): void {
         {:else}
           <dl>
             {#each review as line (line.label)}
-              <div class="kv" style:align-items="center" style:min-height="44px" style:border-bottom="1px solid var(--hair)" style:padding="0"><dt>{line.label}</dt><dd style:overflow-wrap="anywhere">{line.value}</dd></div>
+              <div class="kv" style:align-items="center" style:min-height="44px" style:border-bottom="var(--border-divider)" style:padding="0"><dt>{line.label}</dt><dd style:overflow-wrap="anywhere">{line.value}</dd></div>
             {/each}
           </dl>
           {#if answers.sinceDays !== null}

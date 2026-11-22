@@ -86,7 +86,7 @@ const now = Date.now();
 <div class="grid-tiles">
   {#each shown.slice(0, limit) as project (project.key)}
     <a class="tile" href={projectHref(project.key)} title={project.key}>
-      <span class="tile-h"><Folder size={24} color="var(--warn)" aria-hidden="true" /><b style:min-width="0" style:overflow="hidden" style:text-overflow="ellipsis" style:white-space="nowrap">{projectLabel(project.key)}</b></span>
+      <span class="tile-h"><Folder size={24} color="var(--hue-projects)" aria-hidden="true" /><b style:min-width="0" style:overflow="hidden" style:text-overflow="ellipsis" style:white-space="nowrap">{projectLabel(project.key)}</b></span>
       <span class="big"><b>{project.chats.length.toLocaleString()}</b><span>chat{project.chats.length === 1 ? "" : "s"}</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((project.chats.length / largest) * 100))}%"></i></span>
       <span class="mts">

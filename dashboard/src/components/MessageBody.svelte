@@ -46,12 +46,12 @@ $effect(() => {
 .prose :global(ul) { list-style: disc; padding-left: 1.5rem; margin-bottom: .8rem; }
 .prose :global(ol) { list-style: decimal; padding-left: 1.5rem; margin-bottom: .8rem; }
 .prose :global(li) { margin: .3rem 0; }
-.prose :global(blockquote) { border-left: 3px solid var(--color-line); padding-left: 1rem; color: var(--color-muted); }
-.prose :global(pre) { white-space: pre; overflow-x: auto; padding: 12px; background: var(--raised); border-radius: 6px; font-size: 12px; }
+.prose :global(blockquote) { border-left: 3px solid var(--line-outline); padding-left: 1rem; color: var(--text-muted); }
+.prose :global(pre) { white-space: pre; overflow-x: auto; padding: 12px; background: var(--surface-raised); border-radius: var(--radius-5); font-size: 12px; }
 .prose :global(code) { font-size: 12.5px; }
-.prose :global(:not(pre) > code) { padding: 1px 5px; border-radius: 4px; background: var(--soft); }
+.prose :global(:not(pre) > code) { padding: 1px 5px; border-radius: var(--radius-3); background: var(--surface-muted); }
 .prose :global(p:last-child) { margin-bottom: 0; }
-.prose :global(a) { color: var(--clay2); text-decoration: underline; text-underline-offset: 3px; }
+.prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .prose :global(table) { display: block; overflow-x: auto; border-collapse: collapse; }
-.prose :global(td), .prose :global(th) { padding: .4rem .6rem; border-bottom: 1px solid var(--color-line); text-align: left; }
+.prose :global(td), .prose :global(th) { padding: .4rem .6rem; border-bottom: var(--border-outline); text-align: left; }
 </style>

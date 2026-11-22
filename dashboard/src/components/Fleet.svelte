@@ -211,7 +211,7 @@ const outcomeClass = {
     <div class="state-c"><h1 class="h1">Not available</h1><p class="meta" style:margin-top="6px">This dashboard's inventory does not allow that action.</p></div>
   {:else}
     {@const Icon = icons[current.action]}
-    <div style:display="flex" style:align-items="center" style:gap="12px"><Icon size={26} color="var(--teal)" aria-hidden="true" /><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
+    <div style:display="flex" style:align-items="center" style:gap="12px"><Icon size={26} color="var(--hue-operation)" aria-hidden="true" /><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
     <p>{blurb[current.action]}{readOnly.includes(current.action) ? "" : " It keeps running if you leave this page."}</p>
     <section>
       <div class="hd" style:align-items="center"><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2><button class="a" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }} style:min-height="44px" style:font-size="14px">Select all</button></div>

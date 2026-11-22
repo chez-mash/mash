@@ -1,3 +1,4 @@
+import { exportDocumentStyle } from "../theme/exportDocument";
 import { type MessagePage, transcript, WHOLE_PAGE } from "./api";
 import { markdown } from "./markdown";
 import { isStep, messageText } from "./message";
@@ -131,7 +132,7 @@ function htmlBody(message: Message): string {
 }
 
 export function htmlExport(title: string, node: string, messages: readonly Message[]): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{max-width:850px;margin:40px auto;padding:0 24px;font:16px/1.6 system-ui;color:#222}header{border-bottom:1px solid #ccc}article{margin:32px 0}h2{font-size:14px;color:#555}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f5f5f5;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px}img{display:none}@media print{body{margin:0;max-width:none}pre{white-space:pre-wrap}a{color:inherit}}</style></head><body><header><h1>${escapeHtml(title)}</h1><p>Machine: ${escapeHtml(node)} · ${messages.length} messages</p></header>${messages.map((message) => `<article><h2>${escapeHtml(label(message))} · ${escapeHtml(message.at)}</h2>${htmlBody(message)}</article>`).join("\n")}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>${exportDocumentStyle}</style></head><body><header><h1>${escapeHtml(title)}</h1><p>Machine: ${escapeHtml(node)} · ${messages.length} messages</p></header>${messages.map((message) => `<article><h2>${escapeHtml(label(message))} · ${escapeHtml(message.at)}</h2>${htmlBody(message)}</article>`).join("\n")}</body></html>`;
 }
 
 export function downloadChat(content: string, format: "markdown" | "html"): void {
