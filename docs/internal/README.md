@@ -3,7 +3,7 @@
 These notes are for contributors and operators. They are kept out of the public
 documentation website and its search. User guides live in [docs](../README.md).
 
-- [History model](agent-history.md) and [code organization](architecture.md)
+- [History model](agent-history.md) and [system map and code organization](architecture.md)
 - [Transcript rendering model](transcript-rendering.md) (proposed)
 - [Team product architecture](team-architecture.md) (deferred; a possible separate product)
 - [Development](development.md) and [verification](verification.md)

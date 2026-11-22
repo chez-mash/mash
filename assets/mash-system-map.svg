@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" role="img" aria-labelledby="title description">
+  <title id="title">Mash system map</title>
+  <desc id="description">People and agents reach the mash executable through the dashboard, the CLI and the stdio MCP server. All three, and the optional watcher, send typed requests to one application core. The core reads agent histories without writing to them, commits silver SQLite, builds Qdrant views from silver, searches them, and uses local models for embedding and reranking. Optionally it publishes to and searches a mash-server you run, which keeps per-machine silver SQLite and its own Qdrant views. Optional services are a remote GPU embedding worker and the OpenAI-compatible model the dashboard assistant asks.</desc>
+  <style>
+    svg { --background: #f7f3ee; --panel: #fffdfb; --group: #efe7de; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
+    @media (prefers-color-scheme: dark) {
+      svg { --background: #201c18; --panel: #2d2722; --group: #26211d; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
+    }
+    text { fill: var(--text); font: 600 15px system-ui, sans-serif; }
+    .title { font-size: 17px; }
+    .detail { fill: var(--quiet); font: 13px system-ui, sans-serif; }
+    .label { fill: var(--quiet); font: italic 12px system-ui, sans-serif; }
+    .optional-label { fill: var(--accent); font: italic 12px system-ui, sans-serif; }
+    .outline { stroke: var(--line); stroke-width: 1.5; }
+    .area { fill: var(--background); }
+    .group { fill: var(--group); }
+    .panel { fill: var(--panel); }
+    .optional { fill: var(--optional); stroke: var(--accent); stroke-dasharray: 5 4; }
+    .arrow { fill: none; stroke: var(--line); stroke-width: 1.75; marker-end: url(#arrow); }
+    .line { fill: none; stroke: var(--line); stroke-width: 1.75; }
+    .optional-arrow { fill: none; stroke: var(--accent); stroke-width: 1.75; stroke-dasharray: 5 4; marker-end: url(#optional-arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--line)"/>
+    </marker>
+    <marker id="optional-arrow" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+
+  <!-- People and agents -->
+  <rect class="area outline" x="16" y="160" width="172" height="250" rx="12"/>
+  <text class="title" x="30" y="186">Clients</text>
+  <rect class="panel outline" x="31" y="210" width="140" height="48" rx="8"/>
+  <text x="101" y="230" text-anchor="middle">Your agents</text>
+  <text class="detail" x="101" y="248" text-anchor="middle">over MCP</text>
+  <rect class="panel outline" x="31" y="270" width="140" height="48" rx="8"/>
+  <text x="101" y="290" text-anchor="middle">Terminal</text>
+  <text class="detail" x="101" y="308" text-anchor="middle">and Raycast</text>
+  <rect class="panel outline" x="31" y="330" width="140" height="48" rx="8"/>
+  <text x="101" y="350" text-anchor="middle">Browser</text>
+  <text class="detail" x="101" y="368" text-anchor="middle">and desktop app</text>
+
+  <!-- Your machine -->
+  <rect class="area outline" x="206" y="16" width="548" height="470" rx="12"/>
+  <text class="title" x="222" y="40">Your machine</text>
+
+  <rect class="panel outline" x="226" y="52" width="148" height="52" rx="8"/>
+  <text x="300" y="74" text-anchor="middle">Agent histories</text>
+  <text class="detail" x="300" y="93" text-anchor="middle">files and databases</text>
+
+  <rect class="group outline" x="222" y="120" width="156" height="300" rx="10"/>
+  <text x="234" y="141">mash</text>
+  <rect class="panel optional" x="234" y="152" width="132" height="44" rx="8"/>
+  <text x="300" y="170" text-anchor="middle">index --watch</text>
+  <text class="detail" x="300" y="187" text-anchor="middle">watcher</text>
+  <rect class="panel outline" x="234" y="212" width="132" height="44" rx="8"/>
+  <text x="300" y="230" text-anchor="middle">mash mcp</text>
+  <text class="detail" x="300" y="247" text-anchor="middle">stdio</text>
+  <rect class="panel outline" x="234" y="272" width="132" height="44" rx="8"/>
+  <text x="300" y="290" text-anchor="middle">mash CLI</text>
+  <text class="detail" x="300" y="307" text-anchor="middle">JSON output</text>
+  <rect class="panel outline" x="234" y="332" width="132" height="44" rx="8"/>
+  <text x="300" y="350" text-anchor="middle">mash dash</text>
+  <text class="detail" x="300" y="367" text-anchor="middle">web dashboard</text>
+
+  <rect class="panel outline" x="398" y="232" width="144" height="64" rx="8"/>
+  <text x="470" y="259" text-anchor="middle">Application core</text>
+  <text class="detail" x="470" y="279" text-anchor="middle">mash-app</text>
+
+  <rect class="group outline" x="562" y="120" width="176" height="300" rx="10"/>
+  <text x="574" y="141">Local index</text>
+  <rect class="panel outline" x="574" y="152" width="152" height="56" rx="8"/>
+  <text x="650" y="175" text-anchor="middle">Silver SQLite</text>
+  <text class="detail" x="650" y="195" text-anchor="middle">the chats themselves</text>
+  <rect class="panel outline" x="574" y="236" width="152" height="56" rx="8"/>
+  <text x="650" y="259" text-anchor="middle">Qdrant views</text>
+  <text class="detail" x="650" y="279" text-anchor="middle">words and meaning</text>
+  <rect class="panel outline" x="574" y="320" width="152" height="56" rx="8"/>
+  <text x="650" y="343" text-anchor="middle">Models</text>
+  <text class="detail" x="650" y="363" text-anchor="middle">embed and rerank</text>
+
+  <!-- Shared server -->
+  <rect class="optional outline" x="774" y="16" width="210" height="250" rx="12"/>
+  <text class="title" x="790" y="40">Shared server</text>
+  <rect class="panel outline" x="790" y="52" width="178" height="52" rx="8"/>
+  <text x="879" y="74" text-anchor="middle">mash-server</text>
+  <text class="detail" x="879" y="93" text-anchor="middle">authenticated HTTP</text>
+  <rect class="panel outline" x="790" y="124" width="178" height="56" rx="8"/>
+  <text x="879" y="147" text-anchor="middle">Silver SQLite</text>
+  <text class="detail" x="879" y="167" text-anchor="middle">one per machine</text>
+  <rect class="panel outline" x="790" y="196" width="178" height="56" rx="8"/>
+  <text x="879" y="219" text-anchor="middle">Qdrant views</text>
+  <text class="detail" x="879" y="239" text-anchor="middle">shared search</text>
+
+  <!-- Optional services -->
+  <rect class="optional outline" x="774" y="280" width="210" height="206" rx="12"/>
+  <text class="title" x="790" y="304">Optional services</text>
+  <rect class="panel outline" x="790" y="322" width="178" height="52" rx="8"/>
+  <text x="879" y="344" text-anchor="middle">GPU worker</text>
+  <text class="detail" x="879" y="363" text-anchor="middle">batch embeddings</text>
+  <rect class="panel outline" x="790" y="400" width="178" height="52" rx="8"/>
+  <text x="879" y="422" text-anchor="middle">Mashy's model</text>
+  <text class="detail" x="879" y="441" text-anchor="middle">OpenAI-compatible</text>
+
+  <!-- People to the mash executable -->
+  <path class="arrow" d="M171 234H232"/>
+  <path class="arrow" d="M171 294H232"/>
+  <path class="arrow" d="M171 354H232"/>
+
+  <!-- Histories feed the watcher and the core -->
+  <path class="optional-arrow" d="M300 104V150"/>
+  <path class="arrow" d="M374 78H450V230"/>
+  <text class="label" x="384" y="71">read only</text>
+
+  <!-- Entry points to the core -->
+  <path class="line" d="M366 174H390V354H366"/>
+  <path class="line" d="M366 234H390"/>
+  <path class="line" d="M366 294H390"/>
+  <path class="arrow" d="M390 264H396"/>
+
+  <!-- Core to the local index -->
+  <path class="arrow" d="M542 264H572"/>
+  <path class="arrow" d="M554 264V180H572"/>
+  <path class="arrow" d="M554 264V348H572"/>
+  <path class="arrow" d="M650 208V234"/>
+  <text class="label" x="656" y="226">builds</text>
+
+  <!-- Sharing -->
+  <path class="optional-arrow" d="M510 232V96H760V78H788"/>
+  <text class="optional-label" x="572" y="90">publishes, searches</text>
+  <path class="arrow" d="M879 104V122"/>
+  <path class="arrow" d="M879 180V194"/>
+
+  <!-- Optional services -->
+  <path class="optional-arrow" d="M726 348H788"/>
+  <path class="optional-arrow" d="M300 376V462H768V426H788"/>
+  <text class="optional-label" x="420" y="456">dashboard assistant asks</text>
+
+  <!-- Legend -->
+  <path class="arrow" d="M222 522H262"/>
+  <text class="detail" x="272" y="527">always on this machine</text>
+  <path class="optional-arrow" d="M452 522H492"/>
+  <text class="detail" x="502" y="527">optional: you configure it</text>
+</svg>

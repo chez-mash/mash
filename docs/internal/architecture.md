@@ -1,6 +1,57 @@
-# Code organization
+# Architecture
 
 [Documentation](../README.md) · [Project home](../../README.md)
+
+## System map
+
+![Clients reach the mash executable's dashboard, CLI and stdio MCP server, which all call one application core. The core reads agent histories, commits silver SQLite, builds and searches Qdrant views, and runs local models. Optionally it publishes to a mash-server with per-machine silver and shared Qdrant views, sends embedding batches to a GPU worker, and the dashboard assistant asks an OpenAI-compatible model.](../../assets/mash-system-map.svg)
+
+Solid arrows run on every installation; dashed ones exist only when configured.
+The user-facing version of this picture is in [How Mash works](../architecture.md).
+
+**Entry points.** One `mash` executable serves three front ends: `mash mcp`
+(stdio, `crates/mash-mcp`) for agents, the CLI (`cli/`) for the terminal and
+the Raycast extension, and `mash dash` (`crates/mash-dash`) for the browser
+and the desktop app, which only loads the dashboard. Each translates its input
+into a typed request for the core; none calls another. The optional watcher,
+`mash index --watch` (`app/watch.rs`), runs as its own process and sends the
+same typed indexing requests; the plugin's SessionStart catch-up is a detached
+one-shot `mash index`. The dashboard never indexes itself: its setup page
+starts a separate `mash index` process.
+
+**Application core.** `app/core.rs` (`mash-app`) owns every operation and
+admits one local writer across a silver commit and its view certification.
+
+**Indexing.** Provider adapters in `crates/mash-silver` read agent histories
+(bronze) without writing to them, respecting their WAL files. The core
+commits chats, messages and branch ancestry to silver SQLite
+(`crates/mash-storage`) and derives turns after every write. It then builds
+the Qdrant views (`crates/mash-search`) from silver: dialogue text for BM25
+word search and embeddings for meaning. Tool calls stay in silver and are
+never indexed. Views are replayable from silver, so they can be rebuilt
+without rereading the agents' histories.
+
+**Search.** CLI, MCP and the dashboard read local Qdrant directly, without
+HTTP. Word and meaning candidates are fused with RRF and reranked within a
+bound. Query embeddings and the default reranker run locally on the models
+that `mash models install` downloads; Core ML (Apple Silicon) and DirectML
+(Windows GPU) accelerate embedding where available.
+
+**Sharing (optional).** With a shared destination configured, the node-side
+facade in `crates/mash-sync` publishes exactly the local index to
+`mash-server` (`crates/mash-server`, a separate executable). The server
+commits each machine's silver SQLite before synchronizing the shared Qdrant
+views, and serves shared candidates that the node fuses with its own.
+Publication commits are announced on `/v1/events`, which the dashboard relays
+for live updates.
+
+**Optional services.** A configured remote GPU worker can compute embedding
+batches, and an opt-in reranking worker (not drawn) can score a reranking
+pass, with the CPU as the fallback. The dashboard assistant, Mashy, is the
+only part of Mash that calls a language model: an OpenAI-compatible service
+named in `[assistant]`, with read-only lookups and the key kept server-side.
+
+## Code organization
 
 CLI and MCP are wrappers around the same typed application core in `app/core.rs`.
 The core owns indexing, search, chat listing, view, status, forgetting, silver export/import, and model installation.
