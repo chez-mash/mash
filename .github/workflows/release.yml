@@ -203,6 +203,33 @@ jobs:
           git commit -m "Scoop: mash ${GITHUB_REF_NAME}"
           git push origin HEAD:main
 
+  # winget manifests are rendered for a maintainer to submit to
+  # microsoft/winget-pkgs (see packaging/winget/README.md); nothing is
+  # submitted from here.
+  winget:
+    needs: publish
+    if: ${{ always() && (needs.publish.result == 'success' || inputs.republish) }}
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.republish || github.ref_name }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Render the winget manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
+          for template in packaging/winget/*.yaml.in; do
+            name=$(basename "$template" .in)
+            python3 packaging/render.py "$TAG" dist/SHA256SUMS "$template" "winget-manifests/$name"
+          done
+          cat winget-manifests/*
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: winget-manifests
+          path: winget-manifests
+          if-no-files-found: error
+
   # Each package channel is its own job, so one failing does not hold back the
   # other, and both can be run again for a release that is already published.
   homebrew:
