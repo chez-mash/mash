@@ -30,7 +30,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   ]);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
-  await expect(illustrations).toHaveCount(4);
+  await expect(illustrations).toHaveCount(3);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAccessibleName(/\w/);
   }
@@ -324,7 +324,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
   const windows = welcome.locator("[role=img]");
-  await expect(windows).toHaveCount(4);
+  await expect(windows).toHaveCount(3);
   await expect(windows.first()).toHaveAccessibleName(/why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
