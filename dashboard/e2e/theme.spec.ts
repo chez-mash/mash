@@ -18,10 +18,8 @@ test("the light and dark switch sits in the top corner and keeps its choice", as
   await toLight.click();
   await expect(html).toHaveAttribute("data-theme", "light");
   expect(await ground()).not.toBe(dark);
-  // The logo follows: the light one has the dark dome.
-  await expect
-    .poll(() => page.locator("#rail .brand img").evaluate((img) => getComputedStyle(img).content))
-    .toContain("mash-mark-light.svg");
+  // The logo is the same butter tile in both themes.
+  await expect(page.locator("#rail .brand img")).toHaveAttribute("src", /mash-mark\.svg$/);
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
   await toLight.click();

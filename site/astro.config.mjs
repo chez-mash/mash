@@ -12,7 +12,7 @@ export default defineConfig({
       locales: docsLocales,
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
-      logo: { dark: "./public/mash-mark.svg", light: "./public/mash-mark-light.svg" },
+      logo: { src: "./public/mash-mark.svg" },
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/mashium/mash" }],
       // The fonts are bundled with the site, as they are with the dashboard.
       customCss: [

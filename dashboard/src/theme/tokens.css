@@ -286,6 +286,3 @@
 }
 
 /* Theme rules that a value alone cannot express. */
-:root[data-theme="light"] :is(.brand, #burger) img {
-  content: url("/mash-mark-light.svg");
-}

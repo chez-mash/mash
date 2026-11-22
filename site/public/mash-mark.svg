@@ -1,15 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mash">
-  <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#ece3c9" stroke-width="3" stroke-linejoin="round" />
+  <!-- The Mash logo: the mark as a sticker on a butter tile, the same in both themes and as the app icon. -->
   <rect
-    x="26"
-    y="13.5"
-    width="13"
-    height="10"
-    rx="2.2"
-    fill="#f4a583"
-    stroke="#ece3c9"
+    x="1.5"
+    y="1.5"
+    width="61"
+    height="61"
+    rx="14"
+    fill="#ffd34e"
+    stroke="#16150f"
     stroke-width="3"
-    transform="rotate(-12 32.5 18.5)"
   />
-  <path d="M6 54h52" fill="none" stroke="#ece3c9" stroke-width="4" stroke-linecap="round" />
+  <g transform="translate(6.4 5.2) scale(.8)">
+    <path
+      d="M9 47a23 23 0 0 1 46 0z"
+      fill="#fff6dc"
+      stroke="#16150f"
+      stroke-width="3"
+      stroke-linejoin="round"
+    />
+    <rect
+      x="26"
+      y="13.5"
+      width="13"
+      height="10"
+      rx="2.2"
+      fill="#f4a583"
+      stroke="#16150f"
+      stroke-width="3"
+      transform="rotate(-12 32.5 18.5)"
+    />
+    <path d="M6 54h52" fill="none" stroke="#16150f" stroke-width="4" stroke-linecap="round" />
+  </g>
 </svg>
