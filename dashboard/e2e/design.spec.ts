@@ -73,10 +73,11 @@ for (const width of [1440, 390]) {
     await expect(page).toHaveURL(/#\/machine\/local$/);
     await expect(page.getByRole("heading", { name: "local", exact: true })).toBeVisible();
     await page.goBack();
-    // The agent's mark is its logo used as a mask over the agent's colour:
-    // the logo must load and the colour must not be transparent.
+    // The agent's mark is its logo used as a mask over the agent's colour,
+    // drawn inside the mark's tile: the logo must load and the colour must not
+    // be transparent.
     const mark = await recentChat.locator(".mark").evaluate(async (element) => {
-      const style = getComputedStyle(element);
+      const style = getComputedStyle(element, "::before");
       const source = /url\("?([^")]+)"?\)/.exec(style.maskImage || style.webkitMaskImage)?.[1];
       const logo = source ? await fetch(source) : null;
       return { loaded: logo?.ok === true, colour: style.backgroundColor };

@@ -94,6 +94,15 @@ describe("the theme is defined in one place", () => {
     expect(unknown).toEqual([]);
   });
 
+  it("defines no role that nothing uses", () => {
+    const used = new Set(
+      [...sources.map(({ text }) => text), tokens].flatMap((text) =>
+        [...text.matchAll(/var\(--([a-z0-9-]+)/g)].map((m) => m[1]),
+      ),
+    );
+    expect([...dark.keys()].filter((name) => !used.has(name))).toEqual([]);
+  });
+
   it("restates in the light theme only roles the dark theme defines", () => {
     expect([...light.keys()].filter((name) => !dark.has(name))).toEqual([]);
   });

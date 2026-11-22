@@ -7,7 +7,7 @@ import Trash2 from "@lucide/svelte/icons/trash-2";
 import X from "@lucide/svelte/icons/x";
 import { createQuery } from "@tanstack/svelte-query";
 import { tick } from "svelte";
-import { agents } from "../lib/agents";
+import { agents, paintMark } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
 import { plainTitle } from "../lib/markdown";
@@ -227,11 +227,7 @@ function chips(node: HTMLElement): { destroy(): void } {
       const chat = catalogue.data?.chats.find((entry) => entry.id === id);
       if (!chat) continue;
       const mark = document.createElement("span");
-      mark.className = "mark tint";
-      mark.setAttribute("aria-hidden", "true");
-      mark.style.backgroundColor = agents[chat.agent].tint;
-      mark.style.maskImage = `url(${agents[chat.agent].logo})`;
-      mark.style.setProperty("-webkit-mask-image", `url(${agents[chat.agent].logo})`);
+      paintMark(mark, agents[chat.agent]);
       link.prepend(mark);
       link.title = `${plainTitle(chat.title)} · ${agents[chat.agent].name}`;
     }
@@ -282,11 +278,7 @@ function dress(node: HTMLElement): void {
       if (agent in agents) {
         const known = agents[agent as keyof typeof agents];
         const mark = document.createElement("span");
-        mark.className = "mark tint";
-        mark.setAttribute("aria-hidden", "true");
-        mark.style.backgroundColor = known.tint;
-        mark.style.maskImage = `url(${known.logo})`;
-        mark.style.setProperty("-webkit-mask-image", `url(${known.logo})`);
+        paintMark(mark, known);
         link.prepend(mark);
       }
     } else link.prepend(icon(href.startsWith("#/project") ? "project" : "machine"));

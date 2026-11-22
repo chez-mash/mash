@@ -37,7 +37,9 @@ visible partial-history warning rather than hiding local chats.
 
 ## Theme
 
-Everything the dashboard draws with is in `src/theme/`:
+The current theme is Sticker: ink outlines and flat colour on warm paper, with
+one job per accent (the list is at the top of `tokens.css`). Everything the
+dashboard draws with is in `src/theme/`:
 
 - `tokens.css` holds every colour, line width, corner, shadow and typeface as
   a role: `--surface-page`, `--line-divider`, `--action-bg`, `--selected-text`,

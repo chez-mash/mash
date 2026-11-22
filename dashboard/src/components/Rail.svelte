@@ -42,51 +42,57 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
 const machines = $derived(groupChats(chats, (chat) => chat.machine));
 
 const sections = [
-  { id: "overview", label: "overview", href: "#/", icon: House, tint: "var(--hue-overview)" },
-  { id: "chats", label: "chats", href: "#/search", icon: MessagesSquare, tint: "var(--hue-chats)" },
-  { id: "agents", label: "agents", href: "#/agents", icon: Bot, tint: "var(--hue-agents)" },
+  { id: "overview", label: "overview", href: "#/", icon: House, tile: "var(--tile-overview)" },
+  {
+    id: "chats",
+    label: "chats",
+    href: "#/search",
+    icon: MessagesSquare,
+    tile: "var(--tile-chats)",
+  },
+  { id: "agents", label: "agents", href: "#/agents", icon: Bot, tile: "var(--tile-agents)" },
   {
     id: "machines",
     label: "machines",
     href: "#/machines",
     icon: Laptop,
-    tint: "var(--hue-machines)",
+    tile: "var(--tile-machines)",
   },
   {
     id: "projects",
     label: "projects",
     href: "#/projects",
     icon: Folder,
-    tint: "var(--hue-projects)",
+    tile: "var(--tile-projects)",
   },
-  { id: "memory", label: "memory", href: "#/records?", icon: Brain, tint: "var(--hue-memory)" },
+  { id: "memory", label: "memory", href: "#/records?", icon: Brain, tile: "var(--tile-memory)" },
   {
     id: "services",
     label: "services",
     href: "#/services",
     icon: Server,
-    tint: "var(--hue-services)",
+    tile: "var(--tile-services)",
   },
   {
     id: "fleet",
     label: "fleet manager",
     href: "#/fleet",
     icon: SlidersHorizontal,
-    tint: "var(--hue-fleet)",
+    tile: "var(--tile-fleet)",
   },
   {
     id: "console",
     label: "tool explorer",
     href: "#/console",
     icon: Wrench,
-    tint: "var(--hue-tools)",
+    tile: "var(--tile-tools)",
   },
   {
     id: "settings",
     label: "settings",
     href: "#/settings",
     icon: Settings,
-    tint: "var(--hue-settings)",
+    tile: "var(--tile-settings)",
   },
 ] as const;
 type Section = (typeof sections)[number]["id"];
@@ -216,7 +222,7 @@ function toggle(id: Section): void {
       {@const on = section.id === area && !child}
       {@const isOpen = expanded.includes(section.id)}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} onclick={close}><section.icon size={18} color={section.tint} aria-hidden="true" />{section.label}</a>
+        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico" style:background={section.tile}><section.icon size={16} aria-hidden="true" /></span>{section.label}</a>
         {#if expandable.includes(section.id)}
           <button class="chev" type="button" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={15} /></button>
         {/if}

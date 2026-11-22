@@ -56,7 +56,7 @@ let root: HTMLDivElement;
             if (!multiple) open = false;
           }}
         >
-          <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Check size={14} color="var(--selected-text)" aria-hidden="true" />{/if}</span>
+          <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Check size={14} color="var(--selected-mark)" aria-hidden="true" />{/if}</span>
           <span class="oi">{#if optionIcon}{@render optionIcon(option.value)}{:else}{@render icon()}{/if}</span>
           <span class="g">{option.label}</span>
           {#if option.count !== undefined}<span class="n">{option.count.toLocaleString()}</span>{/if}

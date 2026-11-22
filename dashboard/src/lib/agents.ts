@@ -9,6 +9,14 @@ export interface AgentInfo {
   readonly tint: string;
 }
 
+/** Turn an element into an agent's mark: its logo, in its colour, on a tile. */
+export function paintMark(mark: HTMLElement, info: AgentInfo): void {
+  mark.className = "mark tint";
+  mark.setAttribute("aria-hidden", "true");
+  mark.style.setProperty("--mark-colour", info.tint);
+  mark.style.setProperty("--mark-logo", `url(${info.logo})`);
+}
+
 export const agents: Readonly<Record<Agent, AgentInfo>> = {
   "claude-code": {
     name: "Claude Code",
