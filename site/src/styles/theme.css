@@ -1,0 +1,132 @@
+/*
+ * The site's theme. Every colour, line width, corner, shadow and typeface the
+ * site draws with is defined here, as a role, and nowhere else: the other
+ * stylesheets and the components use these tokens only, and
+ * scripts/theme.test.ts fails if a literal colour, font name, corner or
+ * shadow appears outside this file. Starlight's own variables are set from
+ * the roles at the end, so its pages follow the same theme.
+ *
+ * Dark is the default. The light theme restates only what differs.
+ */
+:root {
+  /* Type. */
+  --type-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Surfaces: the page, raised panels, the landing page's tiles, a pressed segment, the current page in the sidebar. */
+  --surface-page: #1b1a18;
+  --surface-raised: #24221f;
+  --surface-panel: #24221f;
+  --surface-sunken: #24221f;
+  --surface-pressed: #3d3a35;
+  --surface-selected: #2b2926;
+  /* Text. */
+  --text-strong: #f0ece4;
+  --text-heading: #e6e1d8;
+  --text-body: #d8d3ca;
+  --text-muted: #b0aaa0;
+  --text-faint: #66625a;
+  --text-on-accent: #1b1a18;
+  /* The light-on-dark button inside the install command, and its hover. */
+  --inverse-bg: #f0ece4;
+  --inverse-hover-bg: #d8d3ca;
+  --inverse-text: #1b1a18;
+  /* Lines: outlines, strong lines, an opened item's outline, dividers, pill chips. */
+  --line-outline: #3d3a35;
+  --line-strong: #66625a;
+  --line-emphasis: #b0aaa0;
+  --line-divider: #24221f;
+  --line-chip: #3d3a35;
+  --stroke-outline: 1px;
+  --stroke-divider: 1px;
+  --border-outline: var(--stroke-outline) solid var(--line-outline);
+  --border-divider: var(--stroke-divider) solid var(--line-divider);
+  --border-chip: var(--stroke-outline) solid var(--line-chip);
+  --control-knob: #66625a;
+  /* Corners. */
+  --radius-1: 0.3125rem;
+  --radius-2: 0.5rem;
+  --radius-3: 0.625rem;
+  --radius-4: 0.875rem;
+  --radius-5: 1.25rem;
+  --radius-6: 1.5rem;
+  --radius-7: 2rem;
+  --radius-pill: 999px;
+  /* Shadows. */
+  --shadow-card: 0 0.5rem 1.25rem -0.75rem rgb(0 0 0 / 0.55);
+  /* Accent: links and hover, the stronger accent for marks and drawings, a soft accent fill. */
+  --accent: #e8926f;
+  --accent-strong: #d97757;
+  --accent-soft: #3b2a22;
+  --link: #e8926f;
+  /* The main action. */
+  --action-bg: #d97757;
+  --action-hover-bg: #e8926f;
+  /* Badges in the MCP tool reference: a plain badge, and the one for read-only tools. */
+  --badge-bg: #3d3a35;
+  --badge-text: #d8d3ca;
+  --badge-read-bg: var(--sl-color-blue-low);
+  --badge-read-text: var(--sl-color-blue-high);
+  /* The brand: the name, its cursor, and the colour of the turn in a card title. */
+  --brand-name: #e8926f;
+  --brand-cursor: #8a857c;
+  --brand-turn: #f3e6c4;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --surface-page: #fbf6e9;
+  --surface-raised: #ecdcae;
+  --surface-panel: #f5ecd5;
+  --surface-sunken: #f5ecd5;
+  --surface-pressed: #c9b98f;
+  --surface-selected: #ecdcae;
+  --text-strong: #2a2419;
+  --text-heading: #2a2419;
+  --text-body: #3a3225;
+  --text-muted: #6b5f49;
+  --text-faint: #8a7c61;
+  --text-on-accent: #fbf6e9;
+  --inverse-bg: #2a2419;
+  --inverse-hover-bg: #3a3225;
+  --inverse-text: #fbf6e9;
+  --line-outline: #c9b98f;
+  --line-strong: #8a7c61;
+  --line-emphasis: #6b5f49;
+  --line-divider: #ecdcae;
+  --line-chip: #ecdcae;
+  --control-knob: #8a7c61;
+  --accent: #7a3318;
+  --accent-strong: #a84a26;
+  --accent-soft: #f3e6c4;
+  --link: #a84a26;
+  --action-bg: #a84a26;
+  --action-hover-bg: #7a3318;
+  --badge-bg: #c9b98f;
+  --badge-text: #3a3225;
+  --brand-name: #2a2419;
+  --brand-cursor: #9a948a;
+  --brand-turn: #a84a26;
+  color-scheme: light;
+}
+
+/* Starlight's variables, set from the roles. Starlight restates its colours
+   for the light theme with an attribute selector, so these do too. */
+:root,
+:root[data-theme="light"] {
+  --sl-font: var(--type-sans);
+  --sl-font-mono: var(--type-mono);
+  --sl-color-white: var(--text-strong);
+  --sl-color-gray-1: var(--text-heading);
+  --sl-color-gray-2: var(--text-body);
+  --sl-color-gray-3: var(--text-muted);
+  --sl-color-gray-4: var(--line-strong);
+  --sl-color-gray-5: var(--line-outline);
+  --sl-color-gray-6: var(--surface-raised);
+  --sl-color-black: var(--surface-page);
+  --sl-color-accent-low: var(--accent-soft);
+  --sl-color-accent: var(--accent-strong);
+  --sl-color-accent-high: var(--accent);
+}
+:root[data-theme="light"] {
+  --sl-color-gray-7: var(--surface-sunken);
+}

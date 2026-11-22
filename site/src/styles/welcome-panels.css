@@ -7,7 +7,7 @@
     gap: clamp(0.875rem, 2.7vw, 2.5rem);
   }
   .stats dt {
-    color: var(--clay);
+    color: var(--accent-strong);
     font-size: clamp(2.75rem, 1.5rem + 5.4vw, 5.75rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -15,7 +15,7 @@
     letter-spacing: -0.04em;
   }
   .stats dt b {
-    color: var(--ink);
+    color: var(--text-strong);
     font-weight: inherit;
   }
   .stats dt small {
@@ -24,7 +24,7 @@
   }
   .stats dd {
     margin-top: 0.5rem;
-    color: var(--ink-3);
+    color: var(--text-muted);
   }
   .light {
     display: flex;
@@ -35,8 +35,8 @@
   }
   .light li {
     padding: 0.25rem 0.75rem;
-    border: 1px solid var(--sl-color-hairline-light);
-    border-radius: 999px;
+    border: var(--border-chip);
+    border-radius: var(--radius-pill);
   }
   .trio {
     display: grid;
@@ -52,18 +52,18 @@
     gap: 0.375rem;
   }
   .trio h3 {
-    color: var(--ink);
+    color: var(--text-strong);
     font-size: 1.125rem;
     line-height: 1.2;
     letter-spacing: -0.01em;
   }
   .trio p {
-    color: var(--ink-3);
+    color: var(--text-muted);
     font-size: 0.9375rem;
     line-height: 1.4;
   }
   .ico {
-    color: var(--clay);
+    color: var(--accent-strong);
   }
   .trio .ico {
     width: 2.25rem;
@@ -85,8 +85,8 @@
     gap: 0.25rem;
     min-height: 11rem;
     padding: clamp(1rem, 2vw, 1.5rem);
-    border-radius: 1.5rem;
-    background: var(--panel);
+    border-radius: var(--radius-6);
+    background: var(--surface-panel);
   }
   .tiles article.wide {
     grid-column: span 3;
@@ -94,7 +94,7 @@
   }
   .tiles h3 {
     margin-top: 1.25rem;
-    color: var(--ink);
+    color: var(--text-strong);
     font-size: clamp(1.5rem, 1rem + 1.6vw, 2.25rem);
     line-height: 1.08;
     letter-spacing: -0.025em;
@@ -104,7 +104,7 @@
     font-size: clamp(1.75rem, 1rem + 2.6vw, 3rem);
   }
   .tiles p {
-    color: var(--ink-3);
+    color: var(--text-muted);
   }
   .tiles .ico {
     width: 2.75rem;
@@ -125,8 +125,8 @@
     width: auto;
     height: 100%;
     aspect-ratio: 1;
-    color: var(--clay);
-    fill: var(--clay);
+    color: var(--accent-strong);
+    fill: var(--accent-strong);
   }
 
   @media (max-width: 64rem) {
@@ -147,10 +147,6 @@
       gap: 0.875rem;
     }
   }
-}
-
-:root[data-theme="light"] .mash-welcome {
-  --panel: var(--sl-color-gray-7);
 }
 
 .mash-welcome.motion {
@@ -200,7 +196,7 @@
       column-gap: 0.625rem;
       min-height: 0;
       padding: 0.6rem 0.75rem;
-      border-radius: 0.875rem;
+      border-radius: var(--radius-4);
     }
     .tiles .ico {
       grid-row: span 2;
@@ -243,7 +239,7 @@
       grid-column: span 2;
       min-height: 0;
       padding: 0.625rem 0.875rem;
-      border-radius: 0.875rem;
+      border-radius: var(--radius-4);
     }
     .tiles article.wide {
       grid-column: span 3;

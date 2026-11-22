@@ -36,13 +36,13 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
     gap: 0.5rem 1.5rem;
     margin-top: 4rem;
     padding-top: 1.25rem;
-    border-top: 1px solid var(--sl-color-gray-5);
+    border-top: var(--border-outline);
   }
   .name {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--mash-name);
+    color: var(--brand-name);
     font-size: var(--sl-text-lg);
     font-weight: 600;
   }
@@ -50,7 +50,7 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
   .name::after {
     content: "_";
     margin-inline-start: -0.35em;
-    color: var(--mash-cursor);
+    color: var(--brand-cursor);
     animation: mash-cursor 1.6s ease-in-out infinite;
   }
   .light,
@@ -69,11 +69,11 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
     display: flex;
     align-items: center;
     min-height: 2.75rem;
-    color: var(--sl-color-gray-2);
+    color: var(--text-body);
     font-weight: 500;
     text-decoration: none;
   }
   nav a:hover {
-    color: var(--sl-color-white);
+    color: var(--text-strong);
   }
 </style>

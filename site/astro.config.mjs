@@ -22,6 +22,7 @@ export default defineConfig({
         "@fontsource/ibm-plex-sans/latin-600.css",
         "@fontsource/ibm-plex-mono/latin-400.css",
         "@fontsource/ibm-plex-mono/latin-500.css",
+        "./src/styles/theme.css",
         "./src/styles/custom.css",
       ],
       components: {

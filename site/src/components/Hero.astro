@@ -263,11 +263,11 @@ const first = script;
     font-size: clamp(var(--sl-text-3xl), calc(0.25rem + 5vw), var(--sl-text-6xl));
     line-height: var(--sl-line-height-headings);
     font-weight: 600;
-    color: var(--sl-color-white);
+    color: var(--text-strong);
   }
   .tagline {
     font-size: clamp(var(--sl-text-base), calc(0.0625rem + 2vw), var(--sl-text-xl));
-    color: var(--sl-color-gray-2);
+    color: var(--text-body);
   }
 
   .mash-install {
@@ -291,8 +291,8 @@ const first = script;
     justify-content: center;
     gap: 0.125rem;
     padding: 0.1875rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--sl-color-gray-6) 70%, transparent);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
   }
   .choice:empty {
     display: none;
@@ -350,18 +350,18 @@ const first = script;
     min-width: 0;
     padding: 0.3125rem 0.875rem;
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: none;
-    color: var(--sl-color-gray-2);
-    font: 500 var(--sl-text-sm) var(--sl-font);
+    color: var(--text-body);
+    font: 500 var(--sl-text-sm) var(--type-sans);
     cursor: pointer;
   }
   .choice :global(button:hover) {
-    color: var(--sl-color-white);
+    color: var(--text-strong);
   }
   .choice :global(button[aria-pressed="true"]) {
-    background: var(--sl-color-gray-5);
-    color: var(--sl-color-white);
+    background: var(--surface-pressed);
+    color: var(--text-strong);
   }
   /* One box for the agent's prompt and for the install command: a single
      monospace line that scrolls sideways when the screen is narrower than it. */
@@ -372,14 +372,14 @@ const first = script;
     width: 100%;
     min-width: 0;
     padding: 0.75rem 0.75rem 0.75rem 1.25rem;
-    border-radius: 1.25rem;
-    background: var(--sl-color-gray-6);
-    font-family: var(--sl-font-mono);
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    font-family: var(--type-mono);
     font-size: var(--sl-text-sm);
     text-align: start;
   }
   .prompt {
-    color: var(--sl-color-gray-3);
+    color: var(--text-muted);
     user-select: none;
   }
   code {
@@ -388,7 +388,7 @@ const first = script;
     overflow-x: auto;
     padding: 0;
     background: none;
-    color: var(--sl-color-white);
+    color: var(--text-strong);
     white-space: nowrap;
   }
   .command button {
@@ -396,17 +396,17 @@ const first = script;
     min-width: 4.25rem;
     padding: 0.4375rem 1rem;
     border: 0;
-    border-radius: 999px;
-    background: var(--sl-color-white);
-    color: var(--sl-color-black);
-    font: 600 var(--sl-text-sm) var(--sl-font);
+    border-radius: var(--radius-pill);
+    background: var(--inverse-bg);
+    color: var(--inverse-text);
+    font: 600 var(--sl-text-sm) var(--type-sans);
     cursor: pointer;
   }
   .command button:hover {
-    background: var(--sl-color-gray-2);
+    background: var(--inverse-hover-bg);
   }
   .hint {
-    color: var(--sl-color-gray-4);
+    color: var(--text-faint);
   }
   .mash-install[data-mode="manual"] .hint,
   .script-hint,
@@ -425,12 +425,12 @@ const first = script;
   }
   .mash-install p {
     margin: 0;
-    color: var(--sl-color-gray-3);
+    color: var(--text-muted);
     font-size: var(--sl-text-sm);
   }
   .mash-install h2 {
     margin: 0;
-    color: var(--sl-color-gray-2);
+    color: var(--text-body);
     font-size: var(--sl-text-sm);
     font-weight: 600;
     line-height: 1.4;
@@ -439,7 +439,7 @@ const first = script;
     margin-top: 0.75rem;
   }
   .mash-install a {
-    color: var(--sl-color-text-accent);
+    color: var(--link);
   }
 
   .mash-hero {

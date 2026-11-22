@@ -1,17 +1,9 @@
 /* The welcome scenes are ordinary sections until welcome.ts mounts. */
 .mash-welcome {
-  --ink: var(--sl-color-white);
-  --ink-2: var(--sl-color-gray-2);
-  --ink-3: var(--sl-color-gray-3);
-  --ink-4: var(--sl-color-gray-4);
-  --ground: var(--sl-color-black);
-  --clay: var(--sl-color-accent);
-  --clay-high: var(--sl-color-accent-high);
-  --panel: var(--sl-color-gray-6);
   --pad: 1.25rem;
 
   margin-inline: calc(-1 * var(--sl-content-pad-x, 1rem));
-  color: var(--ink-2);
+  color: var(--text-body);
   font-size: 1.0625rem;
   line-height: 1.5;
 
@@ -20,12 +12,12 @@
     padding: 0;
   }
   :where(h2) {
-    color: var(--ink);
+    color: var(--text-strong);
     font-weight: 600;
     text-wrap: balance;
   }
   :where(a) {
-    color: var(--clay);
+    color: var(--accent-strong);
     text-decoration: none;
   }
   :where(a):hover {
@@ -33,12 +25,12 @@
   }
 
   .eyebrow {
-    color: var(--clay);
+    color: var(--accent-strong);
     font-size: 0.9375rem;
     font-weight: 600;
   }
   .turn {
-    color: var(--clay);
+    color: var(--accent-strong);
     font-weight: 600;
   }
   .head {
@@ -54,7 +46,7 @@
   }
   .head h2 span {
     display: block;
-    color: var(--ink-4);
+    color: var(--text-faint);
   }
   .blurb {
     max-width: 38rem;
@@ -70,13 +62,13 @@
   }
   .button {
     padding: 0.75rem 1.625rem;
-    border-radius: 999px;
-    background: var(--clay);
-    color: var(--ground);
+    border-radius: var(--radius-pill);
+    background: var(--action-bg);
+    color: var(--text-on-accent);
     font-weight: 600;
   }
   .button:hover {
-    background: var(--clay-high);
+    background: var(--action-hover-bg);
     text-decoration: none;
   }
 
@@ -123,7 +115,7 @@
   .caps {
     display: grid;
     gap: 0.25rem;
-    color: var(--ink);
+    color: var(--text-strong);
     font-size: clamp(1.125rem, 1rem + 0.7vw, 1.4375rem);
     font-weight: 500;
     letter-spacing: -0.01em;
@@ -131,7 +123,7 @@
   }
 
   .art {
-    color: var(--clay);
+    color: var(--accent-strong);
   }
   .scene .art,
   .close .art {
@@ -157,7 +149,7 @@
   }
   .measured summary {
     display: inline-block;
-    color: var(--clay);
+    color: var(--accent-strong);
     cursor: pointer;
     list-style: none;
   }
@@ -172,7 +164,7 @@
   }
   .measurement-copy {
     padding: 0.5rem;
-    color: var(--ink-3);
+    color: var(--text-muted);
     text-align: start;
   }
   .measurement-copy dl {
@@ -182,7 +174,7 @@
   }
   .measurement-copy dt {
     display: inline;
-    color: var(--ink);
+    color: var(--text-strong);
     font-weight: 600;
   }
   .measurement-copy dd {
@@ -239,7 +231,7 @@
     inset: 0;
     background: radial-gradient(
       42rem 26rem at 50% 62%,
-      color-mix(in srgb, var(--clay) 13%, transparent),
+      color-mix(in srgb, var(--accent-strong) 13%, transparent),
       transparent 70%
     );
     opacity: var(--t, 0);
@@ -310,8 +302,8 @@
   .scene h2,
   .backdrop h2 {
     text-shadow:
-      0 0 0.5rem var(--ground),
-      0 0 1.75rem var(--ground);
+      0 0 0.5rem var(--surface-page),
+      0 0 1.75rem var(--surface-page);
   }
 
   @media (max-width: 48rem) {

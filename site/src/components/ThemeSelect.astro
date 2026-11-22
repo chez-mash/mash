@@ -58,14 +58,14 @@
     width: 3.5rem;
     height: 1.875rem;
     padding: 0 0.4375rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 999px;
-    background: var(--sl-color-gray-6);
-    color: var(--sl-color-gray-3);
+    border: var(--border-outline);
+    border-radius: var(--radius-pill);
+    background: var(--surface-raised);
+    color: var(--text-muted);
     cursor: pointer;
   }
   .mash-theme:hover {
-    border-color: var(--sl-color-gray-4);
+    border-color: var(--line-strong);
   }
   .sun,
   .moon {
@@ -80,21 +80,21 @@
     width: 1.375rem;
     height: 1.375rem;
     border-radius: 50%;
-    background: var(--sl-color-gray-4);
+    background: var(--control-knob);
     translate: 1.625rem -50%;
     transition: translate 0.2s ease;
   }
   .moon {
-    color: var(--sl-color-white);
+    color: var(--text-strong);
   }
   :global([data-theme="light"]) .knob {
     translate: 0 -50%;
   }
   :global([data-theme="light"]) .moon {
-    color: var(--sl-color-gray-3);
+    color: var(--text-muted);
   }
   :global([data-theme="light"]) .sun {
-    color: var(--sl-color-white);
+    color: var(--text-strong);
   }
   @media (prefers-reduced-motion: reduce) {
     .knob,

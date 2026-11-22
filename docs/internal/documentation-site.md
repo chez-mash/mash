@@ -133,6 +133,19 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   795,000 messages, so the page makes no claim about memory in use overall.
   Re-measure before changing a figure, and keep the small print true.
 
+## Theme
+
+Every colour, line width, corner, shadow and typeface the site draws with is
+a role in `site/src/styles/theme.css` (`--surface-page`, `--line-outline`,
+`--action-bg`, `--text-muted` and so on), which also sets Starlight's
+`--sl-color-*` and `--sl-font*` variables from those roles. The other
+stylesheets and the components' styles use the roles only;
+`site/scripts/theme.test.ts` fails when a literal colour, typeface, corner or
+shadow, or an unknown role, appears anywhere else. To change the look, change
+the values in `theme.css` and the bundled fonts listed in
+`site/astro.config.mjs`. The dashboard keeps the same arrangement in
+`dashboard/src/theme/`.
+
 ## Local preview and checks
 
 From `site/`, with Node 24 and pnpm installed:
