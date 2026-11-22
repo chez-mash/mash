@@ -19,6 +19,8 @@ export type Route =
   | { readonly page: "settings" }
   /** First-run setup: the questions `mash init` asks. */
   | { readonly page: "setup" }
+  /** The desktop app's quick search panel, shown alone from the menu bar. */
+  | { readonly page: "quick" }
   | { readonly page: "records"; readonly params: string }
   | { readonly page: "record"; readonly id: string; readonly node: string; readonly back: string }
   | {
@@ -38,6 +40,7 @@ const plain = {
   "#/console": { page: "console" },
   "#/settings": { page: "settings" },
   "#/setup": { page: "setup" },
+  "#/quick": { page: "quick" },
   "#/fleet": { page: "fleet", action: "" },
   // Earlier dashboards linked these; they now live on other pages.
   "#/status": { page: "services", params: "" },

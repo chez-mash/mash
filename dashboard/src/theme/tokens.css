@@ -188,6 +188,25 @@
   /* The brand. */
   --brand-name: #f3ead2;
   --brand-cursor: #e2966f;
+  /* The quick search panel the desktop app shows from the menu bar. It looks
+     like the operating system rather than this theme: system colours that
+     follow the system's light or dark mode, the system font, and the system's
+     accent colour for the selected row. Older engines without AccentColor
+     use the selection highlight instead. */
+  --type-native: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --native-scheme: light dark;
+  --native-backdrop: transparent;
+  --native-surface: Canvas;
+  --native-text: CanvasText;
+  --native-muted: GrayText;
+  --native-line: color-mix(in srgb, CanvasText 12%, transparent);
+  --native-hover: color-mix(in srgb, CanvasText 7%, transparent);
+  --native-selected-bg: AccentColor;
+  --native-selected-text: AccentColorText;
+  --native-selected-fallback-bg: Highlight;
+  --native-selected-fallback-text: HighlightText;
+  --native-radius-panel: 12px;
+  --native-radius-row: 7px;
   color-scheme: dark;
 }
 

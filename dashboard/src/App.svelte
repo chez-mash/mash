@@ -13,6 +13,7 @@ import Mashy from "./components/Mashy.svelte";
 import Missing from "./components/Missing.svelte";
 import Overview from "./components/Overview.svelte";
 import Projects from "./components/Projects.svelte";
+import QuickSearch from "./components/QuickSearch.svelte";
 import Rail from "./components/Rail.svelte";
 import RecordsView from "./components/RecordsView.svelte";
 import RecordView from "./components/RecordView.svelte";
@@ -98,6 +99,11 @@ let searchParams = $state<string | null>(null);
 $effect(() => {
   if (route.page === "search") searchParams = route.params;
 });
+// The quick panel draws in the system's look; the rest in the theme's.
+$effect(() => {
+  if (route.page === "quick") document.documentElement.dataset.surface = "native";
+  else delete document.documentElement.dataset.surface;
+});
 let railOpen = $state(false);
 $effect(() => {
   void route;
@@ -120,6 +126,9 @@ $effect(() => {
   {#if route.page === "setup"}
     <!-- Setup is a screen of its own: before it, the rail and search lead nowhere. -->
     <Setup />
+  {:else if route.page === "quick"}
+    <!-- The desktop app's menu bar panel: search alone, in the system's look. -->
+    <QuickSearch />
   {:else}
   <Rail open={railOpen} close={() => (railOpen = false)} />
   <div id="col">
