@@ -12,6 +12,12 @@ the agents' own histories or files in `~/.mash` it did not create), `mcp`, and `
 (the local web dashboard: history is read-only; service management is opt-in),
 with `dash remote` to keep it running behind a sign-in at a private Tailscale
 address.
+The desktop app (`desktop/`, Tauri 2) is a window onto `mash dash`: it bundles
+the `mash` binary, runs the dashboard on loopback and loads it like a browser
+would. Keep it that thin. Never give it pages, API routes or behaviour of its
+own; change the dashboard instead. It adds only engine start and stop,
+`mash://` links (the dashboard's route behind the scheme), one window, and
+sending other addresses to the browser. See `docs/internal/desktop-app.md`.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple

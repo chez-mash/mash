@@ -15,6 +15,7 @@ documentation website and its search. User guides live in [docs](../README.md).
 - [Upgrade operations](upgrades.md)
 - [Database migration policy and design](database-migrations.md)
 - [Documentation website](documentation-site.md)
+- [Desktop app](desktop-app.md)
 - [Native first-user setup audits](setup-audits.md)
 - [Fleet deployment](../../deployment/README.md)
 - [Protocol models](../../protocol/README.md)

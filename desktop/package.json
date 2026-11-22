@@ -1,0 +1,15 @@
+{
+  "name": "mash-desktop",
+  "private": true,
+  "description": "Build tools for the Mash desktop app",
+  "packageManager": "pnpm@11.28.5",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "tauri icon icons/mash-app.png --output src-tauri/icons && rm -rf src-tauri/icons/android src-tauri/icons/ios src-tauri/icons/Square*Logo.png src-tauri/icons/StoreLogo.png"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}
