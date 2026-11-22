@@ -2,6 +2,7 @@
 import Copy from "@lucide/svelte/icons/copy";
 import Link2 from "@lucide/svelte/icons/link-2";
 import { saidText } from "../lib/message";
+import { shareLink } from "../lib/shareLink";
 import type { Message } from "../lib/types";
 
 let { message, href }: { message: Message; href: string } = $props();
@@ -12,7 +13,7 @@ async function copy(kind: "message" | "link"): Promise<void> {
   try {
     const value =
       kind === "link"
-        ? new URL(href, `${location.origin}${location.pathname}`).href
+        ? shareLink(href, `${location.origin}${location.pathname}`)
         : saidText(message);
     await navigator.clipboard.writeText(value);
     notice = kind === "link" ? "Copied message link." : "Copied message.";
