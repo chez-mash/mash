@@ -1,16 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mash">
-  <rect width="64" height="64" rx="14" fill="#1b1a18" />
-  <g transform="translate(5.6 4.4) scale(.825)">
-    <path d="M9 47a23 23 0 0 1 46 0z" fill="#f3e6c4" />
-    <rect
-      x="26"
-      y="15.5"
-      width="13"
-      height="10"
-      rx="2.2"
-      fill="#d97757"
-      transform="rotate(-12 32.5 20.5)"
-    />
-    <path d="M8 53.5h48" fill="none" stroke="#d97757" stroke-width="4" stroke-linecap="round" />
+  <!-- The Mash mark as a sticker on a butter tile, as in the app icon. -->
+  <rect x="1.5" y="1.5" width="61" height="61" rx="14" fill="#ffd34e" stroke="#16150f" stroke-width="3" />
+  <g transform="translate(6.4 5.2) scale(.8)">
+    <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#16150f" stroke-width="3" stroke-linejoin="round" />
+    <rect x="26" y="13.5" width="13" height="10" rx="2.2" fill="#f4a583" stroke="#16150f" stroke-width="3" transform="rotate(-12 32.5 18.5)" />
+    <path d="M6 54h52" fill="none" stroke="#16150f" stroke-width="4" stroke-linecap="round" />
   </g>
 </svg>
