@@ -415,6 +415,24 @@
   color: var(--text-on-fill);
 }
 
+/* The guides' section icons are coloured stickers, cycling through the
+   palette so neighbouring cards differ. The colours mark no state here: they
+   only help the eye tell the sections apart. */
+.mash-guide .mash-guide-head .mash-ico {
+  border-color: var(--line-ink);
+  background: var(--fill-peach);
+  color: var(--text-on-fill);
+}
+.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico {
+  background: var(--fill-mint);
+}
+.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico {
+  background: var(--fill-butter);
+}
+.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico {
+  background: var(--fill-lilac);
+}
+
 /* The guides directory: the lead beside a tip, then a grid of cards. */
 .sl-markdown-content .mash-guides-intro {
   display: flex;
