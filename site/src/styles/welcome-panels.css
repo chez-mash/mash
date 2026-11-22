@@ -241,25 +241,6 @@
     color: var(--text-ink);
   }
 
-  /* Open source: a terminal. */
-  .terminal {
-    flex: none;
-    width: 26.5rem;
-    max-width: 100%;
-  }
-  .terminal pre {
-    padding: 1rem 1.125rem;
-    color: var(--text-ink);
-    font: 0.84375rem / 1.7 var(--type-mono);
-    white-space: pre-wrap;
-  }
-  .terminal .p {
-    color: var(--text-muted);
-  }
-  .terminal .o {
-    color: var(--text-ok);
-  }
-
   @media (width < 40rem) {
     .record dl {
       grid-template-columns: minmax(0, 1fr);

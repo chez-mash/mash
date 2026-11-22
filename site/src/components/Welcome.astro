@@ -253,16 +253,8 @@ import Agents from "./Agents.astro";
           <a class="more" href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
         </p>
       </div>
-      <div class="rust-art">
-        <!-- Ferris, Rust's unofficial mascot, sits on the terminal. -->
-        <Fragment set:html={ferris} />
-        <div class="window terminal" role="img" aria-label="A terminal search that finds three chats in 66 milliseconds.">
-          <div class="window-h" aria-hidden="true"><u></u><u></u><u></u><span>terminal</span></div>
-          <pre aria-hidden="true"><span class="p">$</span> mash search 'authentication token' --limit 3
-<span class="o">3 chats · 66 ms</span>
-<span class="p">$</span> mash view MESSAGE_ID --context 3</pre>
-        </div>
-      </div>
+      <!-- Ferris, Rust's unofficial mascot. -->
+      <Fragment set:html={ferris} />
     </div>
   </section>
 

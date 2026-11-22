@@ -357,7 +357,7 @@
     color: var(--text-on-fill);
   }
 
-  /* Open source: the words beside a small terminal. */
+  /* Open source: the words beside Ferris. */
   .rust {
     display: flex;
     align-items: center;
@@ -367,21 +367,13 @@
     flex: 1;
     gap: 0.875rem;
   }
-  /* Ferris perches on the terminal's title bar, his feet just over its edge. */
-  .rust-art {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-  .rust-art .ferris {
-    width: 10.5rem;
+  .rust .ferris {
+    flex: none;
+    width: 17rem;
     height: auto;
-    margin: 0 1.5rem -0.875rem 0;
     color: var(--mark-rust);
     /* As heavy as the page's 2px outlines at this size. */
-    stroke-width: 20;
-    position: relative;
-    z-index: 1;
+    stroke-width: 14;
   }
   .blurb {
     max-width: 35rem;
@@ -454,6 +446,11 @@
     .rust {
       flex-direction: column;
       align-items: stretch;
+    }
+    .rust .ferris {
+      width: 12rem;
+      align-self: center;
+      stroke-width: 18;
     }
     .privacy-head .aside {
       padding-top: 0;
