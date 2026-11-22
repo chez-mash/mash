@@ -219,7 +219,9 @@ impl Local {
     }
 
     /// Candidates for a reader still typing, by words even for one term; see
-    /// `Store::search_typing`.
+    /// `Store::search_typing`. Call it on a `Local` just opened with
+    /// `open_words_current`: it relies on that open's freshness proof and
+    /// checks again only after the search.
     pub async fn typing_candidates(
         &self,
         input: super::retrieval::Search,
@@ -238,7 +240,11 @@ impl Local {
         } else {
             Stage::LocalCandidates
         });
-        if self.current().await?.is_none() {
+        // A typing search runs right after `open_words_current` proved the
+        // views current, and the check after the search below catches any
+        // change since, so on a keystroke the check before is repeated work
+        // (two SQLite certificate reads and the views manifest from Qdrant).
+        if !typing && self.current().await?.is_none() {
             return Err(AppError::search_catching_up());
         }
         let active = std::collections::BTreeSet::from([self.scope.node_id.clone()]);

@@ -44,11 +44,16 @@ machine's index only (no shared request on a keystroke), returns at most 20
 chats (8 by default), runs no freshness scan and has a 5-second deadline. Its
 one route to the store is `Store::search_typing` through
 `Local::typing_candidates` and `shared::search_typing`, which ranks with the
-same `rank_words` as the full word search. The full search a reader submits is
-unchanged. Measured on 2026-11-22 with a release build, 837k messages and a warm
-vocabulary cache: 80 to 330 ms per keystroke including process start, against
+same `rank_words` as the full word search. It asks each BM25 query for 48
+candidates rather than the full search's 200, because every candidate carries
+its message's whole text to decode, hydrate and check, and it skips the
+freshness check before the search, which the open just made and the check after
+the search repeats. The full search a reader submits is unchanged. Measured on
+2026-11-22 with a release build, 837k messages and a warm vocabulary cache:
+77 to 106 ms per keystroke including process start (about 15 ms of it), against
 up to 3 s, or the candidate cap, for the same single words through the literal
-path. A vocabulary cache older than 5 minutes adds about a second to the next
+path. Of the rest, the views manifest (174 KB, read at open and after the
+search) and the certificate reads are about 25 ms. A vocabulary cache older than 5 minutes adds about a second to the next
 search, live or not. Prefix alternatives are still the first eight in
 alphabetical order, not the most frequent; that limits what a very short
 prefix finds.

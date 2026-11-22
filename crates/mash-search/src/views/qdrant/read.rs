@@ -9,6 +9,12 @@ use std::collections::{BTreeMap, BTreeSet};
 /// Payload field whose full-text index ranks and filters word search.
 const TEXT: &str = "unit.text";
 
+/// Candidates per BM25 query while the reader types. A live search shows at
+/// most 20 chats, and every candidate carries its message's whole text, which
+/// is then decoded, hydrated from SQLite and checked for its matching word;
+/// the full search's 200 make that most of a keystroke's time.
+const TYPING_CANDIDATES: usize = 48;
+
 pub fn validate_search(input: &protocol::Search, identity: &Scope) -> Result<(), AppError> {
     if let Some(policy) = input.vector_policy {
         policy.validate_request()?;
@@ -176,6 +182,7 @@ impl Store {
         active: &BTreeSet<String>,
         filter: &api::Filter,
         build: Option<&crate::views::config::Build>,
+        limit: usize,
     ) -> Result<Vec<SearchHit>, AppError> {
         let name = collection(&identity.group_id, false);
         let original = crate::views::matching::Plan::new(
@@ -200,7 +207,7 @@ impl Store {
                     exact: true,
                     hnsw_ef: 200,
                 },
-                limit: input.unit.candidate_limit(),
+                limit,
                 with_payload: true,
             }
         };
@@ -231,7 +238,7 @@ impl Store {
                 lexical.push(hit);
             }
         }
-        lexical.truncate(input.unit.candidate_limit());
+        lexical.truncate(limit);
         Ok(lexical)
     }
     /// Every query word in one message, ranked by BM25; no vectors.
@@ -240,6 +247,7 @@ impl Store {
         identity: &Scope,
         input: &protocol::Search,
         active: &BTreeSet<String>,
+        limit: usize,
     ) -> Result<protocol::Candidates, AppError> {
         let active = active
             .iter()
@@ -251,7 +259,7 @@ impl Store {
         }
         let filter = search_filter(input, &active)?;
         let lexical = self
-            .lexical(identity, input, &active, &filter, None)
+            .lexical(identity, input, &active, &filter, None, limit)
             .await?;
         Ok(candidates(lexical, Vec::new()))
     }
@@ -270,7 +278,7 @@ impl Store {
         crate::search_query::validate_words(&input.query)?;
         tokio::time::timeout(
             crate::views::retrieval::EXACT_SEARCH_TIMEOUT,
-            self.search_words(identity, input, active),
+            self.search_words(identity, input, active, TYPING_CANDIDATES),
         )
         .await
         .map_err(|_| AppError::usage(crate::views::retrieval::EXACT_SEARCH_BUDGET_ERROR))?
@@ -291,7 +299,8 @@ impl Store {
                 if crate::views::exact::literal(&input.query) {
                     self.search_exact(identity, input, active).await
                 } else {
-                    self.search_words(identity, &input, active).await
+                    let limit = input.unit.candidate_limit();
+                    self.search_words(identity, &input, active, limit).await
                 }
             };
             return tokio::time::timeout(crate::views::retrieval::EXACT_SEARCH_TIMEOUT, search)
@@ -329,7 +338,14 @@ impl Store {
             with_payload: true,
         };
         let name = collection(&identity.group_id, false);
-        let lexical_query = self.lexical(identity, &input, &active, &filter, Some(&self.build));
+        let lexical_query = self.lexical(
+            identity,
+            &input,
+            &active,
+            &filter,
+            Some(&self.build),
+            input.unit.candidate_limit(),
+        );
         let (lexical, semantic) = tokio::try_join!(
             lexical_query,
             self.api.query::<Document>(&name, &semantic_query)
