@@ -241,13 +241,12 @@ test("direct links remain usable without JavaScript", async ({ browser }) => {
 });
 
 test("the sidebar groups related guides under two top-level sections", async ({ page }) => {
+  // The guides directory is a page of cards, one per group, with no sidebar.
   await page.goto("/guides/#find-past-work");
-  const sidebar = page.locator("nav.sidebar");
-  await expect(sidebar.locator(".top-level > li > details > summary")).toHaveText([
-    "Start here",
-    "Using Mash",
-  ]);
+  await expect(page.locator("nav.sidebar")).toHaveCount(0);
   const guide = page.locator(".sl-markdown-content");
+  await expect(guide.locator(".mash-guide")).toHaveCount(8);
+  await expect(guide.locator(".mash-guide").first().getByRole("heading")).toHaveText("Start here");
   await expect(guide.getByRole("heading", { level: 2 })).toHaveText(["Start here", "Using Mash"]);
   await expect(guide.locator("#find-past-work")).toBeAttached();
   await expect(
@@ -259,6 +258,12 @@ test("the sidebar groups related guides under two top-level sections", async ({ 
   );
   await expect(guide.getByRole("link", { name: "Español", exact: true })).toHaveCount(0);
 
+  await page.goto("/quick-start/");
+  const sidebar = page.locator("nav.sidebar");
+  await expect(sidebar.locator(".top-level > li > details > summary")).toHaveText([
+    "Start here",
+    "Using Mash",
+  ]);
   const languageSearch = sidebar.getByRole("link", {
     name: "Search in other languages",
     includeHidden: true,

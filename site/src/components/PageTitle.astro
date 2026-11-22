@@ -1,0 +1,62 @@
+---
+// The page title, under a breadcrumb of the sidebar groups that hold the page
+// (Start here › Quick start). Pages outside the sidebar show the title alone.
+import { Icon } from "@astrojs/starlight/components";
+import Default from "@astrojs/starlight/components/PageTitle.astro";
+
+type Entry = (typeof Astro.locals.starlightRoute.sidebar)[number];
+
+/** The labels of the groups that lead to the current page, outermost first. */
+function trail(entries: readonly Entry[]): string[] | undefined {
+  for (const entry of entries) {
+    if (entry.type === "link") {
+      if (entry.isCurrent) return [];
+      continue;
+    }
+    const inner = trail(entry.entries);
+    if (inner) return [entry.label, ...inner];
+  }
+  return undefined;
+}
+
+const groups = trail(Astro.locals.starlightRoute.sidebar) ?? [];
+const title = Astro.locals.starlightRoute.entry.data.title;
+---
+
+{
+  groups.length > 0 && (
+    <nav class="mash-crumbs" aria-label={Astro.locals.t("mash.crumbs")}>
+      <ol>
+        {groups.map((label) => (
+          <li>
+            {label}
+            <Icon name="right-caret" size="0.875rem" />
+          </li>
+        ))}
+        <li aria-current="page">{title}</li>
+      </ol>
+    </nav>
+  )
+}
+<Default />
+
+<style>
+  .mash-crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .mash-crumbs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+  }
+</style>

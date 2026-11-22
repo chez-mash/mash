@@ -8,39 +8,25 @@ for (const [name, side] of [
 ] as const) {
   const stacked = side === "below";
   const placement = stacked ? "below" : `${side} of`;
-  test(`the ${name} snapshot sits ${placement} its heading and captions`, async ({ page }) => {
+  test(`the ${name} window sits ${placement} its heading and points`, async ({ page }) => {
     await page.setViewportSize(
       stacked ? { width: 320, height: 568 } : { width: 1280, height: 850 },
     );
     await page.goto(`/#welcome-${name}`);
-    await expect(page.locator(".mash-welcome")).toHaveClass(/\bmotion\b/);
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-    });
-    const scene = page.locator(`#welcome-${name}`);
-    await scene.evaluate((element) => {
-      const stage = element.querySelector<HTMLElement>(".stage");
-      if (!stage) throw new Error("Missing welcome stage");
-      const { top, height } = element.getBoundingClientRect();
-      const pinnedAt = Number.parseFloat(getComputedStyle(stage).top);
-      scrollTo({
-        top: scrollY + top - pinnedAt + 0.3 * (height - stage.offsetHeight),
-        behavior: "instant",
-      });
-    });
-
-    const copy = scene.locator(".snapshot-copy");
-    const picture = scene.locator(".scene-image");
-    await expect(scene.locator(".show")).toHaveCSS("opacity", "1");
-    await expect(copy).toBeInViewport({ ratio: 0.98 });
-    await expect(picture).toBeInViewport({ ratio: 0.98 });
-    const copyBox = await copy.boundingBox();
+    await page.evaluate(() => document.fonts.ready);
+    const band = page.locator(`#welcome-${name}`);
+    const words = band.locator(".words");
+    const picture = band.locator("[role=img]");
+    await band.locator("[data-reveal]").scrollIntoViewIfNeeded();
+    await expect(band.locator("[data-reveal]")).toHaveClass(/\bshown\b/);
+    const wordsBox = await words.boundingBox();
     const pictureBox = await picture.boundingBox();
-    if (!copyBox || !pictureBox) throw new Error("Missing welcome scene bounds");
+    if (!wordsBox || !pictureBox) throw new Error("Missing welcome band bounds");
     if (stacked) {
-      expect(copyBox.y + copyBox.height).toBeLessThan(pictureBox.y);
+      expect(wordsBox.y + wordsBox.height).toBeLessThan(pictureBox.y);
+      expect(pictureBox.x + pictureBox.width).toBeLessThanOrEqual(320);
     } else {
-      const [first, second] = side === "left" ? [pictureBox, copyBox] : [copyBox, pictureBox];
+      const [first, second] = side === "left" ? [pictureBox, wordsBox] : [wordsBox, pictureBox];
       expect(first.x + first.width).toBeLessThan(second.x);
       expect(first.y).toBeLessThan(second.y + second.height);
       expect(second.y).toBeLessThan(first.y + first.height);

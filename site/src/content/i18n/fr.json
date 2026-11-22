@@ -2,5 +2,12 @@
   "mash.nav.docs": "Documentation",
   "mash.nav.demo": "Essayer Mash",
   "mash.theme.dark": "Mode sombre",
-  "mash.theme.switch": "Basculer entre les modes clair et sombre"
+  "mash.theme.switch": "Basculer entre les modes clair et sombre",
+  "mash.crumbs": "Fil d’Ariane",
+  "mash.guides.tipBefore": "Vous ne savez pas où chercher ? Appuyez sur",
+  "mash.guides.tipAfter": "et cherchez dans la documentation.",
+  "mash.menu": "Menu",
+  "mash.copy": "Copier",
+  "mash.copied": "Copié",
+  "mash.copyPrompt": "Copier la demande pour votre agent"
 }

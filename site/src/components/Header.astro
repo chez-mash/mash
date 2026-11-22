@@ -1,0 +1,111 @@
+---
+// Starlight's header, plus a menu for pages without a sidebar (the landing
+// page and the guides directory) on a phone, where the header's links, theme
+// switch and language picker do not fit. Docs pages keep Starlight's own menu
+// button, which opens the sidebar with the same controls at its foot.
+import Default from "@astrojs/starlight/components/Header.astro";
+import LanguageSelect from "@astrojs/starlight/components/LanguageSelect.astro";
+import SocialIcons from "./SocialIcons.astro";
+import ThemeSelect from "./ThemeSelect.astro";
+
+const { hasSidebar } = Astro.locals.starlightRoute;
+---
+
+<!-- The copy buttons on code blocks show this word beside their icon. -->
+<style is:inline set:html={`:root{--mash-copy-label:${JSON.stringify(Astro.locals.t("mash.copy"))}}`}></style>
+<div class="mash-header">
+  {
+    !hasSidebar && (
+      <details class="mash-menu">
+        <summary aria-label={Astro.locals.t("mash.menu")}>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </summary>
+        <div class="panel">
+          <nav class="links"><SocialIcons /></nav>
+          <div class="controls">
+            <ThemeSelect />
+            <LanguageSelect />
+          </div>
+        </div>
+      </details>
+    )
+  }
+  <div class="bar"><Default {...Astro.props} /></div>
+</div>
+
+<style>
+  .mash-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 100%;
+  }
+  .bar {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+  }
+  .mash-menu {
+    display: none;
+  }
+  @media (width < 50rem) {
+    .mash-menu {
+      display: block;
+    }
+  }
+  .mash-menu summary {
+    display: grid;
+    place-items: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-2);
+    background: var(--surface-paper);
+    color: var(--text-ink);
+    list-style: none;
+    cursor: pointer;
+  }
+  .mash-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .panel {
+    position: fixed;
+    inset: var(--sl-nav-height) 0 auto;
+    z-index: var(--sl-z-index-menu);
+    display: grid;
+    gap: 1rem;
+    padding: 1rem var(--sl-nav-pad-x) 1.25rem;
+    border-bottom: var(--border-outline);
+    background: var(--surface-side);
+  }
+  .links {
+    display: grid;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+</style>
+
+<script>
+  // Copy buttons anywhere on the site, such as the prompt for an agent: one
+  // listener serves every page change. The button says so once it has copied.
+  document.addEventListener("click", async (event) => {
+    const button = event.target instanceof Element ? event.target.closest("button[data-copy]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const label = button.textContent;
+    try {
+      await navigator.clipboard.writeText(button.dataset.copy ?? "");
+      button.textContent = button.dataset.copied ?? "Copied";
+      setTimeout(() => {
+        button.textContent = label;
+      }, 2000);
+    } catch {
+      // Without clipboard access, select the words so they can be copied by hand.
+      const words = button.parentElement?.querySelector("code, p");
+      if (words) getSelection()?.selectAllChildren(words);
+    }
+  });
+</script>

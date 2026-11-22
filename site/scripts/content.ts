@@ -30,6 +30,24 @@ for (const { name: locale } of localeFolders) {
 }
 routes.set("README.md", "/quick-start/");
 routes.set("docs/home.mdx", "/");
+/** The words the page layouts add, from the site's own translations. */
+async function layoutStrings(locale: string | undefined) {
+  const languages: Readonly<Record<string, { label: string; lang?: string }>> = docsLocales;
+  const lang = locale ? (languages[locale]?.lang ?? locale) : "en";
+  const read = async (name: string): Promise<Record<string, string>> =>
+    JSON.parse(
+      await readFile(new URL(`../src/content/i18n/${name}.json`, import.meta.url), "utf8"),
+    );
+  const strings = { ...(await read("en")), ...(locale ? await read(lang) : {}) };
+  const word = (key: string): string => strings[key] ?? "";
+  return {
+    tipBefore: word("mash.guides.tipBefore"),
+    tipAfter: word("mash.guides.tipAfter"),
+    copy: word("mash.copy"),
+    copied: word("mash.copied"),
+    copyPrompt: word("mash.copyPrompt"),
+  };
+}
 const architectureImage = "mash-architecture.svg";
 const markdownRoutes = new Map(routes).set(`assets/${architectureImage}`, `/${architectureImage}`);
 await rm(output, { recursive: true, force: true });
@@ -53,10 +71,17 @@ for (const [source, route] of routes) {
     body = `<span id="quick-start"></span>\n\n${readmeQuickStart(body)}`;
   } else body = body.replace(/^# .+\n/m, "");
   const filename = source.endsWith("/index.md") ? `${route.slice(1)}index` : route.slice(1, -1);
-  const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n---\n`;
+  // The guides directory is a page of cards across the full width.
+  const template = page === "guides" ? "template: splash\n" : "";
+  const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n${template}---\n`;
+  const locale = route.split("/")[1];
+  const layout = {
+    page: page ?? "",
+    strings: await layoutStrings(locales.has(locale ?? "") ? locale : undefined),
+  };
   await writeFile(
     new URL(`${filename}.md`, output),
-    frontmatter + renderMarkdown(body, source, markdownRoutes),
+    frontmatter + renderMarkdown(body, source, markdownRoutes, layout),
   );
 }
 await copyFile(new URL("docs/home.mdx", repo), new URL("index.mdx", output));
@@ -64,7 +89,11 @@ await copyFile(
   new URL(`assets/${architectureImage}`, repo),
   new URL(`../public/${architectureImage}`, import.meta.url),
 );
-// The landing page shows the dashboard's own agent marks.
+// The landing page shows the dashboard's own agent marks and its mascot.
+await copyFile(
+  new URL("dashboard/public/mashy.png", repo),
+  new URL("../public/mashy.png", import.meta.url),
+);
 await cp(new URL("dashboard/public/agents/", repo), new URL("../public/agents/", import.meta.url), {
   recursive: true,
 });

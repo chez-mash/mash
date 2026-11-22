@@ -2,5 +2,12 @@
   "mash.nav.docs": "Docs",
   "mash.nav.demo": "Try Mash",
   "mash.theme.dark": "Dark mode",
-  "mash.theme.switch": "Switch between light and dark mode"
+  "mash.theme.switch": "Switch between light and dark mode",
+  "mash.crumbs": "Breadcrumb",
+  "mash.guides.tipBefore": "Not sure where to look? Press",
+  "mash.guides.tipAfter": "and search the docs.",
+  "mash.menu": "Menu",
+  "mash.copy": "Copy",
+  "mash.copied": "Copied",
+  "mash.copyPrompt": "Copy the prompt for your agent"
 }

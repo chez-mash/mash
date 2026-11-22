@@ -1,6 +1,8 @@
 ---
-// The agents Mash reads, as their marks over their names. The names, files and
-// colours are the dashboard's own, so the site and the product always agree.
+// The agents Mash reads, each mark in ink on a light tile beside its name, in
+// a cream band. The names and logo files are the dashboard's own, so the site
+// and the product always agree. The logos are plain images: a CSS mask through
+// an inline style left the tiles empty on some iPhones.
 import { agents } from "../../../dashboard/src/lib/agents.ts";
 
 const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigravity"] as const;
@@ -10,10 +12,11 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
   <ul aria-label="Supported agents" data-reveal>
     {shown.map((key) => {
       const agent = agents[key];
-      const mask = `url(${agent.logo})`;
       return (
         <li>
-          <span class="mark" aria-hidden="true" style={{ backgroundColor: agent.tint, maskImage: mask, WebkitMaskImage: mask }} />
+          <span class="tile" aria-hidden="true">
+            <img class="mark" src={agent.logo} alt="" width="24" height="24" />
+          </span>
           <span class="name">{agent.name}</span>
         </li>
       );
@@ -24,43 +27,79 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
 
 <style>
   .mash-agents {
-    margin-block: 1rem clamp(3rem, 8vw, 6rem);
-    padding-inline: 1.25rem;
-    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.875rem;
+    padding: 2.125rem var(--mash-gutter);
+    border-bottom: var(--border-outline);
+    background: var(--surface-side);
   }
   a {
-    display: inline-block;
-    margin-top: 1rem;
-    font-size: var(--sl-text-sm);
+    color: var(--link);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
   ul {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem 2.25rem;
+    gap: 0.875rem 1.5rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  /* Each mark stands over its agent's name. */
   li {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0;
+    color: var(--text-ink);
+    font-weight: 700;
+  }
+  /* Each mark sits on an ivory sticker in ink, in both themes. */
+  .tile {
     display: grid;
-    justify-items: center;
-    gap: 0.5rem;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-large);
+    background: var(--fill-sticker);
   }
-  .name {
-    color: var(--text-faint);
-    font-size: var(--sl-text-xs);
-  }
-  .mash-agents .mark {
+  .mark {
     display: block;
-    width: 1.75rem;
-    height: 1.75rem;
-    mask: center / contain no-repeat;
-    -webkit-mask: center / contain no-repeat;
+    width: 1.5rem;
+    height: 1.5rem;
   }
-  /* The marks are tinted for a dark ground; flip their lightness, keep the hue. */
-  :global([data-theme="light"]) .mark {
-    filter: invert(1) hue-rotate(180deg);
+  /* On a phone the six tiles make one row and the names are read, not shown. */
+  @media (width < 40rem) {
+    .mash-agents {
+      padding-block: 1.25rem;
+    }
+    ul {
+      flex-wrap: nowrap;
+      gap: 0.625rem;
+    }
+    .tile {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: var(--radius-1);
+    }
+    .mark {
+      width: 1rem;
+      height: 1rem;
+    }
+    .name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 </style>

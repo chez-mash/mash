@@ -2,5 +2,12 @@
   "mash.nav.docs": "文档",
   "mash.nav.demo": "试用 Mash",
   "mash.theme.dark": "深色模式",
-  "mash.theme.switch": "切换浅色和深色模式"
+  "mash.theme.switch": "切换浅色和深色模式",
+  "mash.crumbs": "面包屑导航",
+  "mash.guides.tipBefore": "不知道从哪里找？按",
+  "mash.guides.tipAfter": "搜索文档。",
+  "mash.menu": "菜单",
+  "mash.copy": "复制",
+  "mash.copied": "已复制",
+  "mash.copyPrompt": "复制给代理的提示"
 }

@@ -1,155 +1,225 @@
-/* The welcome scenes are ordinary sections until welcome.ts mounts. */
+/*
+ * The landing page's bands: each idea is a full-width section ruled off in
+ * ink, on the page's beige or on a colour (cream for figures and features,
+ * lilac for Mashy, butter for the close). Text on a colour band is ink in
+ * both themes. The windows inside the bands are in welcome-panels.css.
+ */
 .mash-welcome {
-  --pad: 1.25rem;
-
-  margin-inline: calc(-1 * var(--sl-content-pad-x, 1rem));
   color: var(--text-body);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.5;
 
-  :where(h2, h3, p, ul, ol, dl, dd) {
+  :where(h2, h3, p, ul, ol, dl, dd, figure, pre) {
     margin: 0;
     padding: 0;
   }
-  :where(h2) {
-    color: var(--text-strong);
-    font-weight: 600;
-    text-wrap: balance;
-  }
-  :where(a) {
-    color: var(--accent-strong);
-    text-decoration: none;
-  }
-  :where(a):hover {
-    text-decoration: underline;
-  }
-
-  .eyebrow {
-    color: var(--accent-strong);
-    font-size: 0.9375rem;
-    font-weight: 600;
-  }
-  .turn {
-    color: var(--accent-strong);
-    font-weight: 600;
-  }
-  .head {
-    display: grid;
-    justify-items: center;
-    gap: 0.75rem;
-  }
-  .head h2,
-  .close h2 {
-    font-size: clamp(2.25rem, 1rem + 5.6vw, 4.75rem);
-    line-height: 1.04;
-    letter-spacing: -0.032em;
-  }
-  .head h2 span {
-    display: block;
-    color: var(--text-faint);
-  }
-  .blurb {
-    max-width: 38rem;
-    font-size: clamp(1.0625rem, 0.95rem + 0.6vw, 1.3125rem);
-    text-wrap: pretty;
-  }
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.25rem 1.75rem;
-    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.1875rem);
-  }
-  .button {
-    padding: 0.75rem 1.625rem;
-    border-radius: var(--radius-pill);
-    background: var(--action-bg);
-    color: var(--text-on-accent);
-    font-weight: 600;
-  }
-  .button:hover {
-    background: var(--action-hover-bg);
-    text-decoration: none;
-  }
-
-  .scene {
-    padding: clamp(3.5rem, 9vw, 7rem) var(--pad);
-  }
-  .stage {
-    display: grid;
-    justify-items: center;
-    gap: clamp(1.5rem, 4vw, 2.5rem);
-    text-align: center;
-  }
-  .show {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    gap: 1.25rem;
-    width: min(100%, 47.5rem);
-  }
-  .show.wide {
-    gap: clamp(1rem, 2.5vw, 2.25rem);
-    width: min(100%, 68rem);
-  }
-  .snapshot-copy,
-  .caption-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    min-width: 0;
-    width: 100%;
-  }
-  .snapshot-copy {
-    gap: clamp(0.625rem, 2.25vw, 1.5rem);
-  }
-  .caption-panel {
-    gap: 0.625rem;
-  }
-  .scene-image {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    height: auto;
-  }
-  .caps {
-    display: grid;
-    gap: 0.25rem;
-    color: var(--text-strong);
-    font-size: clamp(1.125rem, 1rem + 0.7vw, 1.4375rem);
-    font-weight: 500;
-    letter-spacing: -0.01em;
+  :where(ul, ol) {
     list-style: none;
   }
-
-  .art {
-    color: var(--accent-strong);
+  h2 {
+    color: var(--text-ink);
+    font-size: clamp(2rem, 1.25rem + 2.4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
   }
-  .scene .art,
-  .close .art {
-    display: none;
-  }
-  .ferris .dot {
-    fill: currentColor;
-    stroke: none;
-  }
-  .privacy .art,
-  .rust .art {
+  h2 > span:not(.under) {
     display: block;
-    width: min(78%, 22rem);
-    height: auto;
   }
-  .rust .art {
-    width: min(100%, 30rem);
+  h2 > .quiet {
+    color: var(--text-muted);
+  }
+  :where(h3) {
+    color: var(--text-ink);
+    font-weight: 700;
+  }
+  :where(a) {
+    color: var(--link);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  :where(a):hover {
+    text-decoration-color: var(--text-ink);
+  }
+  .more {
+    align-self: flex-start;
   }
 
-  .measured {
-    max-width: 44rem;
-    font-size: 0.9375rem;
+  .band {
+    padding: 4.5rem var(--mash-gutter);
+    border-bottom: var(--border-outline);
+  }
+  .band.cream {
+    background: var(--surface-side);
+  }
+  .band.lilac,
+  .band.butter {
+    --text-ink: var(--text-on-fill);
+    --text-body: var(--text-on-fill);
+    --text-muted: var(--text-on-fill-muted);
+    --link: var(--text-on-fill);
+    --line-outline: var(--line-ink);
+    --surface-paper: var(--fill-sticker);
+    --surface-cream: var(--fill-sticker-cream);
+    --surface-side: var(--fill-sticker-cream);
+    color: var(--text-on-fill);
+  }
+  .band.lilac {
+    background: var(--fill-lilac);
+  }
+  .band.butter {
+    background: var(--fill-butter);
+  }
+  .wrapper {
+    max-width: var(--mash-wrapper);
+    margin-inline: auto;
+  }
+
+  /* A label stamped on the page: upright, in mono capitals. */
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 0.3125rem 0.75rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-2);
+    background: var(--surface-paper);
+    color: var(--text-ink);
+    font: 700 0.75rem / 1 var(--type-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .under {
+    background: linear-gradient(
+      transparent 62%,
+      var(--fill-butter) 62%,
+      var(--fill-butter) 92%,
+      transparent 92%
+    );
+  }
+
+  /* Icon tiles: an outlined square on cream. */
+  .ico {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-icon);
+    background: var(--surface-cream);
+    color: var(--text-ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .ico svg {
+    width: 1.0625rem;
+    height: 1.0625rem;
+  }
+
+  /* A window beside its words, alternating sides. */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 3.5rem;
+    align-items: center;
+  }
+  .split.reverse {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  }
+  .words {
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+  }
+  .points {
+    display: grid;
+    gap: 0.625rem;
+    color: var(--text-ink);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+  .points li {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .points .small {
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
+
+  /* The figures: four outlined cards, then what needs no GPU or cloud, and
+     the conditions folded away until asked for. */
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1rem 1.125rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-3);
+    background: var(--surface-paper);
+  }
+  .stats dt {
+    color: var(--text-ink);
+    font-size: 2.75rem;
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats dt b {
+    font-weight: inherit;
+  }
+  .stats dt small {
+    font-size: 1.375rem;
+    letter-spacing: 0;
+  }
+  .light {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+  .light li {
+    display: inline-flex;
+    align-items: center;
+    height: 1.75rem;
+    padding: 0 0.6875rem;
+    border: var(--stroke-fill) solid var(--line-outline);
+    border-radius: var(--radius-pill);
+    background: var(--surface-paper);
+    color: var(--text-ink);
+    font-size: 0.78125rem;
+    font-weight: 600;
   }
   .measured summary {
     display: inline-block;
-    color: var(--accent-strong);
+    color: var(--link);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
     cursor: pointer;
     list-style: none;
   }
@@ -163,211 +233,239 @@
     content: " ⌄";
   }
   .measurement-copy {
-    padding: 0.5rem;
-    color: var(--text-muted);
-    text-align: start;
+    display: grid;
+    gap: 0.625rem;
+    margin-top: 0.75rem;
+    padding: 1rem 1.125rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-3);
+    background: var(--surface-paper);
+    font-size: 0.8125rem;
   }
   .measurement-copy dl {
     display: grid;
-    gap: 0.375rem;
-    margin-bottom: 0.5rem;
+    gap: 0.625rem;
   }
   .measurement-copy dt {
     display: inline;
-    color: var(--text-strong);
-    font-weight: 600;
+    color: var(--text-ink);
+    font-weight: 700;
+  }
+  .measurement-copy dt::after {
+    content: ".";
   }
   .measurement-copy dd {
     display: inline;
     margin-inline-start: 0.5ch;
   }
 
-  .closing {
-    display: grid;
-    justify-items: center;
-    gap: 1.5rem;
+  /* Privacy: the heading beside what it means, then four outlined cards. */
+  .privacy-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.5rem 2rem;
   }
-  .close {
+  .privacy-head .head {
+    flex: 1 1 24rem;
+  }
+  .privacy-head .aside {
+    display: flex;
+    flex: 0 1 25rem;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-top: 2.75rem;
+    color: var(--text-ink);
+    font-weight: 500;
+  }
+  .caps {
     display: grid;
-    justify-items: center;
+    gap: 0.375rem;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .cards li,
+  .tiles article {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1rem 1.125rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-3);
+    background: var(--surface-paper);
+    font-size: 0.8125rem;
+  }
+  .cards h3 {
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* More about Mash: two large tiles over three small ones, the second
+     large one in butter. */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .tiles article {
+    grid-column: span 2;
+    justify-content: flex-end;
+    min-height: 9.375rem;
+    font-size: 0.875rem;
+  }
+  .tiles article.big {
+    grid-column: span 3;
+    min-height: 12.5rem;
+  }
+  .tiles .ico {
+    margin-bottom: auto;
+  }
+  .tiles h3 {
+    font-size: 1.25rem;
+    letter-spacing: -0.025em;
+  }
+  .tiles .big h3 {
+    font-size: 1.875rem;
+    letter-spacing: -0.035em;
+  }
+  .tiles article.butter {
+    --text-ink: var(--text-on-fill);
+    --text-body: var(--text-on-fill);
+    --link: var(--text-on-fill);
+    --line-outline: var(--line-ink);
+    border-color: var(--line-ink);
+    background: var(--fill-butter);
+    color: var(--text-on-fill);
+  }
+  .tiles article.butter .ico {
+    background: var(--fill-sticker);
+  }
+
+  /* Open source: the words beside a small terminal. */
+  .rust {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  .rust .words {
+    flex: 1;
+    gap: 0.875rem;
+  }
+  .blurb {
+    max-width: 35rem;
+    font-size: 1.1875rem;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.125rem;
+  }
+
+  /* The close: Mashy over the last call to action, on butter. */
+  .close {
+    padding-block: 5.25rem;
+  }
+  .closing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 1.5rem;
-    padding: clamp(4rem, 12vw, 9rem) var(--pad);
     text-align: center;
+  }
+  .closing img {
+    width: 7.5rem;
+    height: auto;
+  }
+  .closing h2 {
+    font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem 1.5rem;
-    font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.25rem);
+    gap: 0.75rem 1.125rem;
+  }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    height: 2.875rem;
+    padding: 0 1.25rem;
+    border: var(--stroke-outline) solid var(--line-ink);
+    border-radius: var(--radius-large);
+    background: var(--fill-peach);
+    color: var(--text-on-fill);
+    font-size: 1rem;
+    text-decoration: none;
+  }
+  .button:hover {
+    background: var(--action-hover-bg);
+  }
+
+  @media (width < 62rem) {
+    .split,
+    .split.reverse {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2rem;
+    }
+    /* The words lead; their window follows. */
+    .split .words {
+      order: -1;
+    }
+    .stats,
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .rust {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .privacy-head .aside {
+      padding-top: 0;
+    }
+  }
+  @media (width < 40rem) {
+    .band {
+      padding-block: 2.5rem;
+    }
+    .points {
+      font-size: 1rem;
+    }
+    .stats dt {
+      font-size: 2.25rem;
+    }
+    .cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .tiles {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .tiles article,
+    .tiles article.big {
+      grid-column: auto;
+      min-height: 0;
+    }
   }
 }
 
-.mash-welcome.motion {
-  /* Each scene pins under the header for a heading, its captions and an exit. */
-  .scene {
-    height: calc(100svh + (var(--n) + 2.5) * 50svh);
-    padding: 0;
-  }
-  .scene.more {
-    height: 220svh;
-  }
-  .stage {
-    position: sticky;
-    top: var(--sl-nav-height);
-    align-content: center;
-    height: calc(100svh - var(--sl-nav-height));
-    padding: 0.75rem var(--pad) 0;
-    overflow: hidden;
-    opacity: var(--o, 0);
-  }
-  .scene.tight .stage {
-    align-content: start;
-  }
-  .stage::before {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    background: radial-gradient(
-      42rem 26rem at 50% 62%,
-      color-mix(in srgb, var(--accent-strong) 13%, transparent),
-      transparent 70%
-    );
-    opacity: var(--t, 0);
-    content: "";
-  }
-  .scene:not(.snapshot) .head,
-  .snapshot .snapshot-copy {
-    transform: translate(
-        calc((1 - var(--t, 0)) * -1 * var(--arrival-side, -1) * var(--head-travel, 0px)),
-        calc((1 - var(--t, 0)) * var(--lift, 0px))
-      )
-      scale(calc(1 + (1 - var(--t, 0)) * var(--grow, 0.22)));
-    will-change: transform;
-  }
-  .show {
-    opacity: var(--t, 0);
-    transform: translate(
-        calc((1 - var(--t, 0)) * var(--arrival-side, -1) * var(--show-travel, 0px)),
-        calc((1 - var(--t, 0)) * 5rem)
-      )
-      scale(calc((0.92 + 0.08 * var(--t, 0)) * var(--fit, 1)));
-    transform-origin: 50% 0;
-    will-change: transform, opacity;
-  }
-  .scene-image {
-    max-height: 50svh;
-  }
-  .caps {
-    gap: 0;
-  }
-  .caps li {
-    grid-area: 1 / 1;
+/* A gentle entrance as each band scrolls into view, when motion is welcome.
+   Without the script every band is simply shown. */
+@media (prefers-reduced-motion: no-preference) {
+  .mash-welcome.reveal [data-reveal] {
     opacity: 0;
-    will-change: opacity, transform;
+    transform: translateY(1.5rem);
   }
-  .measurement-copy {
-    max-height: 32svh;
-    overflow-y: auto;
-  }
-  .scene .art,
-  .close .art {
-    display: block;
-    position: absolute;
-    z-index: -1;
-    will-change: opacity, transform;
-  }
-  .scene .art {
-    inset: 1.5rem var(--pad);
-    width: calc(100% - 2 * var(--pad));
-    height: calc(100% - 3rem);
-    opacity: var(--art, 0);
-    transform: scale(var(--art-s, 1));
-  }
-  .backdrop {
-    position: relative;
-    isolation: isolate;
-    align-content: center;
-    min-height: 92svh;
-    overflow: hidden;
-  }
-  .close .art {
-    inset: 6% var(--pad);
-    width: calc(100% - 2 * var(--pad));
-    height: 88%;
-    opacity: var(--art, 0.3);
-    transform: rotate(16deg);
-  }
-  .scene h2,
-  .backdrop h2 {
-    text-shadow:
-      0 0 0.5rem var(--surface-page),
-      0 0 1.75rem var(--surface-page);
-  }
-
-  @media (max-width: 48rem) {
-    .scene .art {
-      inset: 1rem 2rem 42%;
-      width: calc(100% - 4rem);
-      height: calc(58% - 1rem);
-    }
-    .scene .head {
-      --grow: 0.08;
-    }
-  }
-  @media (max-height: 32rem) and (orientation: landscape) {
-    .stage,
-    .show,
-    .head {
-      gap: 0.625rem;
-    }
-    .head h2 {
-      font-size: clamp(1.5rem, 4vw, 2.25rem);
-    }
-    .snapshot-copy,
-    .caption-panel {
-      gap: 0.375rem;
-    }
-    .scene-image {
-      max-height: 38svh;
-    }
-  }
-}
-
-@media (min-width: 56rem) {
-  .mash-welcome {
-    .snapshot .stage {
-      --snapshot-columns: 1;
-      grid-template-areas: "preview copy";
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-      align-items: center;
-      column-gap: clamp(2.5rem, 5vw, 5.5rem);
-      padding-inline: max(var(--pad), calc((100% - 73rem) / 2));
-    }
-    .snapshot.reverse .stage {
-      grid-template-areas: "copy preview";
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-    }
-    .snapshot-copy {
-      grid-area: copy;
-      text-align: start;
-    }
-    .snapshot-copy,
-    .snapshot .head,
-    .caption-panel {
-      justify-items: start;
-    }
-    .snapshot .head h2 {
-      font-size: clamp(2.5rem, 4.25vw, 4.375rem);
-    }
-    .snapshot .show {
-      grid-area: preview;
-      min-width: 0;
-      width: 100%;
-    }
-  }
-  .mash-welcome.motion .snapshot .scene-image {
-    max-height: 62svh;
+  .mash-welcome.reveal [data-reveal].shown {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
   }
 }

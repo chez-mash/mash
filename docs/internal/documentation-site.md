@@ -80,47 +80,25 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 (`Agents.astro`) and everything below them (`Welcome.astro`, styled by
 `site/src/styles/welcome.css`).
 
-- **Scenes.** Search, Mashy, memory, performance, privacy, the tiles and Rust
-  each pin under the header while the reader scrolls; only the closing call
-  to action does not. The tiles are a scene with no drawing or heading. `site/src/welcome.ts` steers them and `site/src/welcome-scene.ts`
-  builds each one. Search, Mashy, and Memory put their heading, captions,
-  and links beside the product snapshot on wide screens. The Search snapshot
-  sits on the left and the placement alternates by scene. On narrow screens
-  the copy comes first in a single column. The scene draws its backdrop,
-  then brings the heading and illustration in from opposite sides. Travel
-  fits the available space. Captions appear in order once the illustration
-  settles.
-  Each scene has one paused GSAP timeline. The drawing follows its entry into
-  the viewport, and the remaining timeline follows the distance the section
-  scrolls while pinned. Jumping past scenes lands at the destination, and
-  scrolling back seeks to the earlier state. The durations in
-  `site/src/welcome-scene.ts` divide the available scroll distance among the
-  animation and reading phases.
-- **GSAP** (with its ScrollTrigger and DrawSVG plugins) drives the motion. Its
-  proprietary no-charge licence covers this use. The stage dimensions and
-  travel are measured again when the window changes size.
-- **Without scripting** the illustrations, captions, and links are visible
-  in ordinary sections. The script adds `motion` to the wrapper to enable
-  pinning and animation.
-- **Reduced motion.** The page animates whatever the device's motion setting
-  is. This was a deliberate choice by the project owner; honouring
-  `prefers-reduced-motion` means not calling `mountWelcome`.
-- **Drawings** are the SVG files in `site/src/drawings/`, inlined at build
-  time. Each `path` is one stroke, drawn in file order; `data-drop` places the
-  heading inside the drawing and `data-strength` is its opacity behind a
-  heading. Ferris is outlined from the public-domain artwork at rustacean.net.
-  Drawings are strokes only: never fill a shape with the page's background
-  colour to hide lines behind it, because dark-mode browser extensions recolour
-  SVG fills and backgrounds differently and the shape turns solid.
-- **Product illustrations** use SVG exports with outlined text from editable
-  Figma frames. The Search, Mashy, and Memory snapshots are in
-  `site/public/welcome/` and the README snapshot is `assets/dashboard-demo.svg`.
-  Follow the dashboard's layout with a few readable labels and subdued lines
-  for secondary details. Use fictional history from the demo. Keep captions
-  and links in the page so they work independently of the snapshots.
-- **Feature cards and explanations** are live HTML. The privacy and feature
-  cards draw their inline SVG icons as each card appears. The filled operating
-  system marks fade in with their card.
+- **Bands.** Each idea is one full-width band: a stamped label, a heading,
+  a few points with icons, and a small window or set of cards drawn the way
+  the dashboard draws them (search results, Mashy's answer, a saved
+  decision). The windows are live HTML styled by
+  `site/src/styles/welcome-panels.css`, each exposed as one image named for
+  what it shows. On wide screens the copy sits beside the window and the side
+  alternates; on narrow screens the copy comes first. Bands take the theme's
+  surfaces (beige, cream, butter, and lilac only for Mashy).
+- **Motion** is a gentle fade and rise as a band scrolls into view
+  (`site/src/welcome.ts`, an `IntersectionObserver`). Without scripting, or
+  when the reader prefers reduced motion, every band is simply shown: the
+  stylesheet hides a band only once the page has the `reveal` class and only
+  under `prefers-reduced-motion: no-preference`.
+- **Agent marks** under the hero are `<img>` logos in ink on ivory tiles
+  (`Agents.astro`). Do not draw them as CSS masks through an inline custom
+  property: iPhone Safari rendered those tiles empty.
+- **The README snapshots** (`assets/dashboard-demo.svg` and
+  `site/public/welcome/welcome-mashy.svg`) are SVG exports with outlined text
+  from editable Figma frames. Use fictional history from the demo.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA

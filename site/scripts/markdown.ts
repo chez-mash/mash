@@ -5,6 +5,7 @@ import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
+import { type LayoutStrings, layoutPage } from "./layouts.ts";
 
 export const markdown = unified().use(remarkParse).use(remarkGfm).use(remarkStringify);
 
@@ -30,8 +31,22 @@ export function rewriteMarkdownUrls(tree: Root, rewrite: (url: string) => string
   });
 }
 
-/** Resolve repository Markdown links without changing examples inside code blocks. */
-export function renderMarkdown(body: string, source: string, routes: ReadonlyMap<string, string>) {
+/** The website layout to apply to a page, named by its route's last part. */
+export interface Layout {
+  readonly page: string;
+  readonly strings: LayoutStrings;
+}
+
+/**
+ * Resolve repository Markdown links without changing examples inside code
+ * blocks, then lay the page out for the website.
+ */
+export function renderMarkdown(
+  body: string,
+  source: string,
+  routes: ReadonlyMap<string, string>,
+  layout?: Layout,
+) {
   const tree = markdown.parse(body);
   rewriteMarkdownUrls(tree, (url) => {
     if (/^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(url)) return url;
@@ -42,5 +57,6 @@ export function renderMarkdown(body: string, source: string, routes: ReadonlyMap
     const route = routes.get(file);
     return route ? `${route}${target.search}${target.hash}` : target.href;
   });
+  if (layout) layoutPage(tree, layout.page, layout.strings);
   return markdown.stringify(tree);
 }

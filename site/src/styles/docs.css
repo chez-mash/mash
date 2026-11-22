@@ -1,0 +1,701 @@
+/*
+ * The blocks inside a docs page, drawn as the dashboard draws its own: code
+ * windows, boxed tables, callouts, Mashy's tips, the tool reference's rows,
+ * the guides' cards and the agents' tiles and pills. scripts/layouts.ts adds
+ * the classes this file names to the generated pages. Every colour, line,
+ * corner and typeface comes from a role in theme.css.
+ */
+
+/* Inline code is a small outlined chip. */
+.sl-markdown-content :not(pre, .mash-tool summary, .mash-tool .param .name) > code {
+  padding: 0.0625rem 0.375rem;
+  border: var(--stroke-fill) solid var(--line-outline);
+  border-radius: var(--radius-1);
+  background: var(--surface-paper);
+  color: var(--text-ink);
+  font-size: 0.875em;
+}
+
+/* Code windows: the title bar's three dots, a left-aligned mono title, and
+   an outlined copy button that is always there. */
+.expressive-code .frame :is(.header, figcaption.header) {
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding-inline: 0.75rem 3rem;
+}
+.expressive-code .frame.is-terminal .header::before,
+.expressive-code .frame.has-title:not(.is-terminal) .header::before {
+  content: "";
+  position: static;
+  flex: none;
+  width: 2.875rem;
+  height: 0.6875rem;
+  mask: none;
+  opacity: 1;
+  background:
+    radial-gradient(
+      circle at 0.34375rem 50%,
+      var(--fill-peach) 0 0.25rem,
+      var(--line-outline) 0.26rem 0.34rem,
+      transparent 0.35rem
+    ),
+    radial-gradient(
+      circle at 1.4375rem 50%,
+      var(--fill-butter) 0 0.25rem,
+      var(--line-outline) 0.26rem 0.34rem,
+      transparent 0.35rem
+    ),
+    radial-gradient(
+      circle at 2.53125rem 50%,
+      var(--fill-mint) 0 0.25rem,
+      var(--line-outline) 0.26rem 0.34rem,
+      transparent 0.35rem
+    );
+}
+.expressive-code .frame.has-title:not(.is-terminal) .header {
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
+  background: var(--surface-cream);
+  border-bottom: var(--border-outline);
+}
+.expressive-code .frame.has-title:not(.is-terminal) .title {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.expressive-code .frame.has-title:not(.is-terminal) .title::after {
+  display: none;
+}
+.expressive-code .frame .title {
+  margin: 0;
+  color: var(--text-ink);
+}
+.expressive-code .copy button {
+  opacity: 1;
+  border: var(--border-outline);
+  border-radius: var(--radius-1);
+}
+.expressive-code .frame:is(.is-terminal, .has-title) .copy {
+  inset-block-start: 0.1875rem;
+}
+/* The button names itself, as the wireframe's does: the icon (Expressive
+   Code's ::after), then "Copy" in the page's language (set by
+   components/Header.astro) in ::before, which Expressive Code otherwise uses
+   only for a border the button already has. */
+.expressive-code .frame:is(.is-terminal, .has-title) .copy button {
+  display: flex;
+  align-items: center;
+  width: auto;
+  height: 1.875rem;
+  padding-inline: 1.625rem 0.625rem;
+}
+.expressive-code .frame:is(.is-terminal, .has-title) .copy button::before {
+  content: var(--mash-copy-label, "Copy");
+  position: relative;
+  z-index: 1;
+  border: 0;
+  opacity: 1;
+  color: var(--text-ink);
+  font: 600 0.75rem / 1 var(--type-sans);
+}
+.expressive-code .frame:is(.is-terminal, .has-title) .copy button::after {
+  inset: 0 auto 0 0.5rem;
+  width: 0.875rem;
+  margin: auto 0;
+  height: 0.875rem;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+}
+
+/* A short note moved under the code block it qualifies. */
+.sl-markdown-content .mash-note {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+/* Tables sit in an outlined card: a cream header row of small labels, and
+   hairlines between the rows. */
+.sl-markdown-content table {
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface-paper);
+  font-size: 0.875rem;
+}
+@media (min-width: 50rem) {
+  .sl-markdown-content table {
+    display: table;
+    width: 100%;
+  }
+}
+.sl-markdown-content :is(th, td) {
+  padding: 0.6875rem 1rem;
+  border: 0;
+  border-top: var(--border-divider);
+  vertical-align: middle;
+}
+.sl-markdown-content th {
+  border-top: 0;
+  border-bottom: var(--border-outline);
+  background: var(--surface-cream);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sl-markdown-content th code {
+  text-transform: none;
+}
+.sl-markdown-content tr:nth-child(1) > td {
+  border-top: 0;
+}
+.sl-markdown-content tr:nth-child(2n) {
+  background: none;
+}
+.sl-markdown-content thead th:first-child {
+  border-start-start-radius: var(--radius-2);
+}
+.sl-markdown-content thead th:last-child {
+  border-start-end-radius: var(--radius-2);
+}
+
+/* Callouts: Starlight's asides and the quick start's lead line, on cream. */
+.starlight-aside,
+.sl-markdown-content .mash-callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.8125rem 0.9375rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-large);
+  background: var(--surface-cream);
+  color: var(--text-ink);
+}
+.starlight-aside {
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.starlight-aside__title {
+  color: var(--text-ink);
+}
+.sl-markdown-content .mash-callout > p {
+  margin: 0;
+}
+.sl-markdown-content .mash-callout .mash-ico {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+}
+
+/* Icon tiles: an outlined square on cream. */
+.mash-ico {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-icon);
+  background: var(--surface-cream);
+  color: var(--text-ink);
+}
+.mash-ico svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+/* Mashy beside a tip, on paper or, in the guides, on butter. */
+.sl-markdown-content .mash-mashy,
+.mash-mashy {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background: var(--surface-paper);
+  color: var(--text-body);
+}
+.mash-mashy > div > p,
+.mash-mashy > p {
+  margin: 0;
+}
+.mash-mashy-face {
+  flex: none;
+  width: 4rem;
+  height: auto;
+}
+.mash-mashy.butter {
+  background: var(--fill-butter);
+  color: var(--text-on-fill);
+}
+.mash-mashy kbd {
+  padding: 0.1875rem 0.3125rem;
+  border: var(--stroke-fill) solid var(--line-ink);
+  border-radius: var(--radius-key);
+  background: var(--fill-sticker);
+  color: var(--text-on-fill);
+  font-family: var(--type-mono);
+  font-size: 0.6875rem;
+}
+
+/* The prompt to paste into an agent: a butter card with its copy button. */
+.sl-markdown-content .mash-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background: var(--fill-butter);
+  color: var(--text-on-fill);
+}
+.sl-markdown-content .mash-ask > p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--type-mono);
+  font-size: 0.84375rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.mash-button,
+.sl-markdown-content .mash-ask > button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4375rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0 0.8125rem;
+  border: var(--stroke-outline) solid var(--line-ink);
+  border-radius: var(--radius-2);
+  background: var(--fill-sticker);
+  color: var(--text-on-fill);
+  font: 600 0.875rem var(--type-sans);
+  cursor: pointer;
+}
+@media (width < 36rem) {
+  .sl-markdown-content .mash-ask {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Pills: READ and WRITE, a yes, and how well an agent was tested. */
+.mash-badge,
+.mash-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 0.5625rem;
+  border: var(--stroke-fill) solid var(--line-outline);
+  border-radius: var(--radius-pill);
+  background: var(--surface-paper);
+  color: var(--text-ink);
+  font-size: 0.71875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.mash-badge.write,
+.mash-tool.write .mash-badge {
+  border-color: var(--line-ink);
+  background: var(--fill-mustard);
+  color: var(--text-on-fill);
+}
+.mash-pill.ok {
+  border-color: var(--line-ink);
+  background: var(--fill-mint);
+  color: var(--text-on-fill);
+}
+.mash-pill.warn {
+  border-color: var(--line-ink);
+  background: var(--fill-mustard);
+  color: var(--text-on-fill);
+}
+
+/* The agents' marks, each on a light tile in both themes. */
+.mash-agent-tile {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-inline-end: 0.625rem;
+  border: var(--stroke-fill) solid var(--line-outline);
+  border-radius: var(--radius-2);
+  background: var(--fill-sticker);
+  vertical-align: middle;
+}
+.mash-agent-tile::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  background: var(--mark);
+  mask: var(--logo) center / contain no-repeat;
+}
+[data-agent="claude-code"] {
+  --mark: var(--agent-claude-code);
+  --logo: url("/agents/claude.svg");
+}
+[data-agent="codex"] {
+  --mark: var(--agent-codex);
+  --logo: url("/agents/openai.svg");
+}
+[data-agent="copilot"] {
+  --mark: var(--agent-copilot);
+  --logo: url("/agents/githubcopilot.svg");
+}
+[data-agent="cursor"] {
+  --mark: var(--agent-cursor);
+  --logo: url("/agents/cursor.svg");
+}
+[data-agent="opencode"] {
+  --mark: var(--agent-opencode);
+  --logo: url("/agents/opencode.svg");
+}
+[data-agent="antigravity"] {
+  --mark: var(--agent-antigravity);
+  --logo: url("/agents/antigravity.svg");
+}
+.mash-agent {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-ink);
+  font-weight: 700;
+}
+
+/* The comparison's "when Mash fits": three cards, the first in butter. */
+.sl-markdown-content .mash-fits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+.sl-markdown-content .mash-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem 1.125rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background: var(--surface-paper);
+  font-size: 0.875rem;
+}
+.sl-markdown-content .mash-fit > p {
+  margin: 0;
+}
+.sl-markdown-content .mash-fit strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-ink);
+  font-size: 0.9375rem;
+}
+.sl-markdown-content .mash-fit.butter {
+  background: var(--fill-butter);
+  color: var(--text-on-fill);
+}
+.sl-markdown-content .mash-fit.butter :is(strong, a) {
+  color: var(--text-on-fill);
+}
+.sl-markdown-content .mash-fit.butter a {
+  text-decoration-color: var(--text-on-fill);
+}
+.mash-fit.butter .mash-ico {
+  border-color: var(--line-ink);
+  background: var(--fill-sticker);
+  color: var(--text-on-fill);
+}
+
+/* The guides directory: the lead beside a tip, then a grid of cards. */
+.sl-markdown-content .mash-guides-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+.mash-guides-intro .lead {
+  flex: 1 1 24rem;
+  font-size: 1.1875rem;
+}
+.mash-guides-intro .mash-mashy {
+  flex: 0 1 18rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.mash-guides-intro .mash-mashy-face {
+  width: 2.875rem;
+}
+.sl-markdown-content .mash-guides {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+@media (width < 60rem) {
+  .sl-markdown-content .mash-guides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width < 36rem) {
+  .sl-markdown-content .mash-guides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.sl-markdown-content .mash-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 1rem 1.125rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background: var(--surface-paper);
+}
+.sl-markdown-content .mash-guide.wide {
+  grid-column: 1 / -1;
+  background: var(--surface-cream);
+}
+.sl-markdown-content .mash-guide > * {
+  margin: 0;
+}
+.sl-markdown-content .mash-guide-head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.sl-markdown-content .mash-guide-head > * {
+  margin: 0;
+}
+.sl-markdown-content .mash-guide ul {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sl-markdown-content .mash-guide li {
+  margin: 0;
+}
+.sl-markdown-content .mash-guide.wide ul {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+.mash-guide-group {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The MCP tool reference: one row per tool, as in the dashboard's tool
+   explorer, opening to its points and parameters. Nothing runs from here. */
+.sl-markdown-content .mash-tools {
+  display: grid;
+  gap: 0.75rem;
+}
+.sl-markdown-content .mash-tools.pair {
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+}
+.sl-markdown-content .mash-tools.pair .mash-tool[open] {
+  grid-column: 1 / -1;
+}
+.sl-markdown-content .mash-tool {
+  margin: 0;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background: var(--surface-paper);
+  overflow: hidden;
+  scroll-margin-top: 5rem;
+}
+.sl-markdown-content .mash-tool.write {
+  border-style: dashed;
+}
+.mash-tool > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+.mash-tool > summary::-webkit-details-marker {
+  display: none;
+}
+/* Starlight draws its own marker before a summary; this row has one chevron. */
+.sl-markdown-content .mash-tool > summary::before,
+.sl-markdown-content .mash-tool > summary::marker {
+  content: none;
+}
+.mash-tool > summary::after {
+  content: "";
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-inline: auto 0.375rem;
+  border-right: 2px solid var(--text-ink);
+  border-bottom: 2px solid var(--text-ink);
+  rotate: -45deg;
+  transition: rotate 0.12s;
+}
+.mash-tool[open] > summary::after {
+  rotate: 45deg;
+}
+.mash-tool[open] > summary {
+  border-bottom: var(--border-outline);
+  background: var(--surface-cream);
+}
+.mash-tool .badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 0.5625rem;
+  border: var(--stroke-fill) solid var(--line-outline);
+  border-radius: var(--radius-pill);
+  background: var(--surface-paper);
+  color: var(--text-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.mash-tool.write .badge {
+  border-color: var(--line-ink);
+  background: var(--fill-mustard);
+  color: var(--text-on-fill);
+}
+.mash-tool > summary > code {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.mash-tool > summary .about {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-body);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mash-tool[open] > summary {
+  flex-wrap: wrap;
+}
+.mash-tool[open] > summary .about {
+  flex-basis: 100%;
+  order: 3;
+  white-space: normal;
+}
+.mash-tools.pair .mash-tool:not([open]) > summary .about {
+  display: none;
+}
+.sl-markdown-content .mash-tool > :not(summary) {
+  margin: 0.875rem 1rem 0;
+  font-size: 0.84375rem;
+}
+.sl-markdown-content .mash-tool > :last-child:not(summary) {
+  margin-bottom: 1rem;
+}
+.sl-markdown-content .mash-tool h4 {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mash-tool .none {
+  color: var(--text-muted);
+  font-size: var(--sl-text-sm);
+}
+.sl-markdown-content .mash-tool .params {
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  overflow: hidden;
+}
+.mash-tool .param {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.9fr) minmax(0, 2fr);
+  gap: 0.25rem 1rem;
+  align-items: start;
+  padding: 0.5625rem 0.875rem;
+  border-top: var(--border-divider);
+  font-size: var(--sl-text-sm);
+}
+.mash-tool .param:first-child {
+  border-top: 0;
+}
+.mash-tool .param .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5625rem;
+}
+.mash-tool .param .name > code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-ink);
+  font-weight: 600;
+}
+.mash-tool .param .name > small {
+  color: var(--text-muted);
+  font-family: var(--type-mono);
+  font-size: var(--sl-text-xs);
+}
+.mash-tool .param .name > small code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+.mash-tool .param .name > b {
+  color: var(--text-ink);
+  font-size: var(--sl-text-xs);
+  font-weight: 700;
+}
+.mash-tool .params .param .about {
+  color: var(--text-body);
+}
+.mash-tool .params .param .about small {
+  color: var(--text-muted);
+}
+@media (width < 40rem) {
+  .mash-tool .param {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The guides directory has no sidebar: its title and cards take the full
+   width. */
+main:has(.mash-guides) .sl-container {
+  max-width: 70rem;
+}
+.sl-markdown-content .mash-guide-head .sl-heading-wrapper {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.sl-markdown-content .mash-guide-head :is(h2, h3) {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+/* Anchors kept for old links take no room in a card. */
+.sl-markdown-content .mash-guide > p {
+  position: absolute;
+}

@@ -21,7 +21,7 @@
   --surface-page: #16150f;
   --surface-nav: #16150f;
   --surface-raised: #1f1d15;
-  --surface-sidebar: #1f1d15;
+  --surface-sidebar: #201e15;
   --surface-panel: #1f1d15;
   --surface-sunken: #1f1d15;
   --surface-code: #2b2817;
@@ -69,11 +69,11 @@
   /* Shadows: none; outlines separate things instead. */
   --shadow-card: none;
   --scrim: rgba(10, 9, 6, 0.6);
-  /* Accent: links and hover, the stronger accent for marks and drawings, a soft accent fill. */
+  /* Accent: hover, the stronger accent for marks and drawings, a soft accent fill. */
   --accent: #f0a785;
   --accent-strong: #f0a785;
   --accent-soft: #3a3220;
-  --link: #f0a785;
+  --link: #ece3c9;
   /* The main action. */
   --action-bg: #e2966f;
   --action-hover-bg: #eaa682;
@@ -87,15 +87,49 @@
   --brand-name: #f3ead2;
   --brand-cursor: #e2966f;
   --brand-turn: #f0a785;
+  /* The Sticker palette by job, for the landing page and the docs' cards:
+     the docs sidebar and colour bands (deeper than the page), cream headers,
+     paper cards, and one job per colour. Text on any colour fill is ink. */
+  --surface-side: #201e15;
+  --surface-cream: #2b2817;
+  --surface-paper: #16150f;
+  --fill-butter: #ecc244;
+  --fill-peach: #e2966f;
+  --fill-mint: #93cfb2;
+  --fill-mustard: #cf9a2a;
+  --fill-lilac: #a895c6;
+  /* A sticker stuck onto a colour stays light in both themes: agent tiles,
+     and cards on a colour band. */
+  --fill-sticker: #fbf7ef;
+  --fill-sticker-cream: #efe4cc;
+  --text-on-fill: #16150f;
+  --text-on-fill-muted: #3f3b2c;
+  --text-on-sticker: #2c2a21;
+  /* Ink: headings, links and the outline of things you can touch. */
+  --text-ink: #ece3c9;
+  --link-underline: #e2966f;
+  /* Output that went well, such as a terminal's result line. */
+  --text-ok: #a8e6c9;
+  /* The marks of the agents Mash reads, drawn on their light tiles. */
+  --agent-claude-code: #d97757;
+  --agent-codex: #16150f;
+  --agent-opencode: #16150f;
+  --agent-copilot: #8957e5;
+  --agent-cursor: #16150f;
+  --agent-antigravity: #3d7fd6;
+  /* Corners for small keys, icon tiles and large buttons. */
+  --radius-key: 0.3125rem;
+  --radius-icon: 0.625rem;
+  --radius-large: 0.75rem;
   color-scheme: dark;
 }
 
 :root[data-theme="light"] {
-  /* Surfaces: a beige page with ivory panels and sidebar. */
+  /* Surfaces: a beige page with ivory panels and a deeper beige sidebar. */
   --surface-page: #f3ebdc;
   --surface-nav: #f3ebdc;
   --surface-raised: #fbf7ef;
-  --surface-sidebar: #fbf7ef;
+  --surface-sidebar: #eadfc8;
   --surface-panel: #fbf7ef;
   --surface-sunken: #fbf7ef;
   --surface-code: #efe4cc;
@@ -118,13 +152,24 @@
   --accent: #a8461f;
   --accent-strong: #a8461f;
   --accent-soft: #ffe58f;
-  --link: #a8461f;
+  --link: #16150f;
   --action-bg: #f4a583;
   --action-hover-bg: #f09a74;
   --badge-bg: #e3a92f;
   --brand-name: #16150f;
   --brand-cursor: #f4a583;
   --brand-turn: #a8461f;
+  --surface-side: #eadfc8;
+  --surface-cream: #efe4cc;
+  --surface-paper: #fbf7ef;
+  --fill-butter: #ffd34e;
+  --fill-peach: #f4a583;
+  --fill-mint: #a8e6c9;
+  --fill-mustard: #e3a92f;
+  --fill-lilac: #cfc4ff;
+  --text-ink: #16150f;
+  --link-underline: #f4a583;
+  --text-ok: #0f7a4f;
   color-scheme: light;
 }
 

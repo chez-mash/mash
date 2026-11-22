@@ -1,13 +1,13 @@
 ---
 // A switch in place of Starlight's three-way menu: light or dark, as the
-// dashboard offers. The choice is kept under the key Starlight itself reads
-// when a page loads, so it holds across pages and visits.
+// dashboard offers, drawn as a two-part segmented control. The choice is kept
+// under the key Starlight itself reads when a page loads, so it holds across
+// pages and visits.
 ---
 
 <button class="mash-theme" type="button" role="switch" aria-checked="false" aria-label={Astro.locals.t("mash.theme.dark")} title={Astro.locals.t("mash.theme.switch")}>
   <svg class="sun" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
   <svg class="moon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"></path></svg>
-  <span class="knob" aria-hidden="true"></span>
 </button>
 
 <script>
@@ -48,60 +48,38 @@
 </script>
 
 <style>
-  /* A track with the sun at one end and the moon at the other; the knob
-     rests on the mode in use. */
+  /* Two halves, sun and moon, as the dashboard's segmented controls are
+     drawn: the half for the mode in use is butter. It stays one switch for
+     assistive technology, which reads it as "Dark mode", on or off. */
   .mash-theme {
-    position: relative;
     display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 3.5rem;
-    height: 1.875rem;
-    padding: 0 0.4375rem;
+    align-items: stretch;
+    height: 2.125rem;
+    padding: 0;
+    overflow: hidden;
     border: var(--border-outline);
-    border-radius: var(--radius-pill);
-    background: var(--surface-raised);
-    color: var(--text-muted);
+    border-radius: var(--radius-2);
+    background: var(--surface-paper);
+    color: var(--text-ink);
     cursor: pointer;
-  }
-  .mash-theme:hover {
-    border-color: var(--line-strong);
   }
   .sun,
   .moon {
-    position: relative;
-    z-index: 1;
-    transition: color 0.2s ease;
-  }
-  .knob {
-    position: absolute;
-    top: 50%;
-    left: 0.1875rem;
-    width: 1.375rem;
-    height: 1.375rem;
-    border: var(--border-fill);
-    border-radius: var(--radius-round);
-    background: var(--control-knob);
-    translate: 1.625rem -50%;
-    transition: translate 0.2s ease;
+    box-sizing: content-box;
+    padding: 0 0.6875rem;
+    height: 100%;
+    width: 0.875rem;
   }
   .moon {
-    color: var(--knob-icon);
+    border-inline-start: var(--border-outline);
   }
-  :global([data-theme="light"]) .knob {
-    translate: 0 -50%;
+  .mash-theme[aria-checked="true"] .moon,
+  .mash-theme[aria-checked="false"] .sun {
+    background: var(--fill-butter);
+    color: var(--text-on-fill);
   }
-  :global([data-theme="light"]) .moon {
-    color: var(--text-muted);
-  }
-  :global([data-theme="light"]) .sun {
-    color: var(--knob-icon);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .knob,
-    .sun,
-    .moon {
-      transition: none;
-    }
+  .mash-theme:focus-visible {
+    outline: 2px solid var(--line-outline);
+    outline-offset: 2px;
   }
 </style>

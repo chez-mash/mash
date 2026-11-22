@@ -28,30 +28,43 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
 }
 
 <style>
+  /* A band in the sidebar's deeper beige, ruled off in ink: the brand, then
+     the ways onward in bold ink. */
   .mash-footer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem 1.5rem;
+    padding: 2.75rem max(var(--mash-gutter), calc((100% - var(--mash-wrapper)) / 2)) 2.25rem;
+    background: var(--surface-side);
+  }
+  :global(.sl-container) > .mash-footer {
     margin-top: 4rem;
-    padding-top: 1.25rem;
     border-top: var(--border-outline);
+  }
+  :global(main:has(.mash-hero)) .mash-footer {
+    margin-top: 0;
+    border-top: 0;
   }
   .name {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.5625rem;
     color: var(--brand-name);
-    font-size: var(--sl-text-lg);
-    font-weight: 600;
+    font-size: 1.4375rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
-  /* As in the header: the name is followed by the fading cursor. */
+  .name img {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+  /* As in the header: the name is followed by the cursor, in peach. */
   .name::after {
     content: "_";
-    margin-inline-start: -0.35em;
+    margin-inline-start: -0.5em;
     color: var(--brand-cursor);
-    animation: mash-cursor 1.6s ease-in-out infinite;
   }
   .light,
   :global([data-theme="light"]) .dark {
@@ -63,17 +76,20 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
   nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.375rem;
+    gap: 0.25rem 1.5rem;
   }
   nav a {
     display: flex;
     align-items: center;
     min-height: 2.75rem;
-    color: var(--text-body);
-    font-weight: 500;
+    color: var(--text-ink);
+    font-weight: 700;
     text-decoration: none;
   }
   nav a:hover {
-    color: var(--text-strong);
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 </style>

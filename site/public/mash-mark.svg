@@ -1,13 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mash">
-  <path d="M9 47a23 23 0 0 1 46 0z" fill="#f3e6c4" />
+  <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#ece3c9" stroke-width="3" stroke-linejoin="round" />
   <rect
     x="26"
-    y="15.5"
+    y="13.5"
     width="13"
     height="10"
     rx="2.2"
-    fill="#d97757"
-    transform="rotate(-12 32.5 20.5)"
+    fill="#f4a583"
+    stroke="#ece3c9"
+    stroke-width="3"
+    transform="rotate(-12 32.5 18.5)"
   />
-  <path d="M8 53.5h48" fill="none" stroke="#d97757" stroke-width="4" stroke-linecap="round" />
+  <path d="M6 54h52" fill="none" stroke="#ece3c9" stroke-width="4" stroke-linecap="round" />
 </svg>

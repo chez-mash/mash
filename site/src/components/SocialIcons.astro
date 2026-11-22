@@ -1,8 +1,7 @@
 ---
-// The header's links: the guides and the demo by name, then Starlight's own
-// icons. The demo is a separate app, so its link loads it afresh.
+// The header's links, each a word with its icon: the guides, the demo and the
+// source. The demo is a separate app, so its link loads it afresh.
 import { Icon } from "@astrojs/starlight/components";
-import Default from "@astrojs/starlight/components/SocialIcons.astro";
 
 const { locale } = Astro.locals.starlightRoute;
 const guides = locale ? `/${locale}/guides/` : "/guides/";
@@ -10,18 +9,24 @@ const guides = locale ? `/${locale}/guides/` : "/guides/";
 
 <a class="mash-nav" href={guides}><Icon name="open-book" />{Astro.locals.t("mash.nav.docs")}</a>
 <a class="mash-nav" href="/demo/" data-astro-reload><Icon name="laptop" />{Astro.locals.t("mash.nav.demo")}</a>
-<Default />
+<a class="mash-nav" href="https://github.com/mashium/mash" rel="me"><Icon name="github" />GitHub</a>
 
 <style>
   .mash-nav {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    color: var(--text-body);
-    font-weight: 500;
+    min-height: 2.75rem;
+    color: var(--text-ink);
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
   }
   .mash-nav:hover {
-    color: var(--text-strong);
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 </style>
