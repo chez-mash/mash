@@ -16,12 +16,12 @@ export default defineConfig({
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/mashium/mash" }],
       // The fonts are bundled with the site, as they are with the dashboard.
       customCss: [
-        "@fontsource/ibm-plex-sans/latin-400.css",
-        "@fontsource/ibm-plex-sans/latin-400-italic.css",
-        "@fontsource/ibm-plex-sans/latin-500.css",
-        "@fontsource/ibm-plex-sans/latin-600.css",
-        "@fontsource/ibm-plex-mono/latin-400.css",
-        "@fontsource/ibm-plex-mono/latin-500.css",
+        "@fontsource/space-grotesk/latin-400.css",
+        "@fontsource/space-grotesk/latin-500.css",
+        "@fontsource/space-grotesk/latin-600.css",
+        "@fontsource/space-grotesk/latin-700.css",
+        "@fontsource/geist-mono/latin-400.css",
+        "@fontsource/geist-mono/latin-500.css",
         "./src/styles/theme.css",
         "./src/styles/custom.css",
       ],

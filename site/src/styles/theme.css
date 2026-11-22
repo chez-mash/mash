@@ -4,108 +4,127 @@
  * stylesheets and the components use these tokens only, and
  * scripts/theme.test.ts fails if a literal colour, font name, corner or
  * shadow appears outside this file. Starlight's own variables are set from
- * the roles at the end, so its pages follow the same theme.
+ * the roles at the end, so its pages follow the same theme. The dashboard
+ * keeps the same arrangement in dashboard/src/theme/tokens.css.
+ *
+ * This is the Sticker theme: ink outlines and flat colour on warm paper, with
+ * nothing lifted off the page. Butter is selected, peach is the main action,
+ * and text on any colour is ink.
  *
  * Dark is the default. The light theme restates only what differs.
  */
 :root {
   /* Type. */
-  --type-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --type-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  /* Surfaces: the page, raised panels, the landing page's tiles, a pressed segment, the current page in the sidebar. */
-  --surface-page: #1b1a18;
-  --surface-raised: #24221f;
-  --surface-panel: #24221f;
-  --surface-sunken: #24221f;
-  --surface-pressed: #3d3a35;
-  --surface-selected: #2b2926;
+  --type-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Surfaces: the page and its header, raised panels, the docs sidebar, the landing page's tiles, inline code, a pressed segment, the current page in the sidebar. */
+  --surface-page: #16150f;
+  --surface-nav: #16150f;
+  --surface-raised: #1f1d15;
+  --surface-sidebar: #1f1d15;
+  --surface-panel: #1f1d15;
+  --surface-sunken: #1f1d15;
+  --surface-code: #2b2817;
+  --surface-pressed: #ecc244;
+  --surface-selected: #ecc244;
   /* Text. */
-  --text-strong: #f0ece4;
-  --text-heading: #e6e1d8;
-  --text-body: #d8d3ca;
-  --text-muted: #b0aaa0;
-  --text-faint: #66625a;
-  --text-on-accent: #1b1a18;
-  /* The light-on-dark button inside the install command, and its hover. */
-  --inverse-bg: #f0ece4;
-  --inverse-hover-bg: #d8d3ca;
-  --inverse-text: #1b1a18;
-  /* Lines: outlines, strong lines, an opened item's outline, dividers, pill chips. */
-  --line-outline: #3d3a35;
-  --line-strong: #66625a;
-  --line-emphasis: #b0aaa0;
-  --line-divider: #24221f;
-  --line-chip: #3d3a35;
-  --stroke-outline: 1px;
+  --text-strong: #f3ead2;
+  --text-heading: #f3ead2;
+  --text-body: #e6dfc8;
+  --text-muted: #b3ab93;
+  --text-faint: #958e78;
+  --text-on-accent: #16150f;
+  /* Text on a selected fill, and the icon on the theme switch's knob. */
+  --selected-text: #16150f;
+  --knob-icon: #16150f;
+  /* The copy button inside the install command, and its hover. */
+  --command-button-bg: #ecc244;
+  --command-button-hover-bg: #f2cf63;
+  --command-button-text: #16150f;
+  /* Lines: outlines, strong lines, an opened item's outline, dividers, pill chips, the ink round a colour fill. */
+  --line-outline: #e9e0c6;
+  --line-strong: #e9e0c6;
+  --line-emphasis: #e9e0c6;
+  --line-divider: rgba(233, 224, 198, 0.2);
+  --line-chip: #e9e0c6;
+  --line-ink: #16150f;
+  --stroke-outline: 2px;
   --stroke-divider: 1px;
+  --stroke-fill: 1.5px;
   --border-outline: var(--stroke-outline) solid var(--line-outline);
   --border-divider: var(--stroke-divider) solid var(--line-divider);
   --border-chip: var(--stroke-outline) solid var(--line-chip);
-  --control-knob: #66625a;
+  --border-fill: var(--stroke-fill) solid var(--line-ink);
+  --control-knob: #ecc244;
   /* Corners. */
-  --radius-1: 0.3125rem;
-  --radius-2: 0.5rem;
-  --radius-3: 0.625rem;
+  --radius-1: 0.375rem;
+  --radius-2: 0.5625rem;
+  --radius-3: 0.875rem;
   --radius-4: 0.875rem;
-  --radius-5: 1.25rem;
-  --radius-6: 1.5rem;
-  --radius-7: 2rem;
+  --radius-5: 0.875rem;
+  --radius-6: 0.875rem;
+  --radius-7: 1rem;
   --radius-pill: 999px;
-  /* Shadows. */
-  --shadow-card: 0 0.5rem 1.25rem -0.75rem rgb(0 0 0 / 0.55);
+  --radius-round: 50%;
+  /* Shadows: none; outlines separate things instead. */
+  --shadow-card: none;
+  --scrim: rgba(10, 9, 6, 0.6);
   /* Accent: links and hover, the stronger accent for marks and drawings, a soft accent fill. */
-  --accent: #e8926f;
-  --accent-strong: #d97757;
-  --accent-soft: #3b2a22;
-  --link: #e8926f;
+  --accent: #f0a785;
+  --accent-strong: #f0a785;
+  --accent-soft: #3a3220;
+  --link: #f0a785;
   /* The main action. */
-  --action-bg: #d97757;
-  --action-hover-bg: #e8926f;
-  /* Badges in the MCP tool reference: a plain badge, and the one for read-only tools. */
-  --badge-bg: #3d3a35;
-  --badge-text: #d8d3ca;
-  --badge-read-bg: var(--sl-color-blue-low);
-  --badge-read-text: var(--sl-color-blue-high);
+  --action-bg: #e2966f;
+  --action-hover-bg: #eaa682;
+  --action-line: #16150f;
+  /* Badges in the MCP tool reference: writing needs attention, reading is neutral. */
+  --badge-bg: #cf9a2a;
+  --badge-text: #16150f;
+  --badge-read-bg: #fbf7ef;
+  --badge-read-text: #16150f;
   /* The brand: the name, its cursor, and the colour of the turn in a card title. */
-  --brand-name: #e8926f;
-  --brand-cursor: #8a857c;
-  --brand-turn: #f3e6c4;
+  --brand-name: #f3ead2;
+  --brand-cursor: #e2966f;
+  --brand-turn: #f0a785;
   color-scheme: dark;
 }
 
 :root[data-theme="light"] {
-  --surface-page: #fbf6e9;
-  --surface-raised: #ecdcae;
-  --surface-panel: #f5ecd5;
-  --surface-sunken: #f5ecd5;
-  --surface-pressed: #c9b98f;
-  --surface-selected: #ecdcae;
-  --text-strong: #2a2419;
-  --text-heading: #2a2419;
-  --text-body: #3a3225;
-  --text-muted: #6b5f49;
-  --text-faint: #8a7c61;
-  --text-on-accent: #fbf6e9;
-  --inverse-bg: #2a2419;
-  --inverse-hover-bg: #3a3225;
-  --inverse-text: #fbf6e9;
-  --line-outline: #c9b98f;
-  --line-strong: #8a7c61;
-  --line-emphasis: #6b5f49;
-  --line-divider: #ecdcae;
-  --line-chip: #ecdcae;
-  --control-knob: #8a7c61;
-  --accent: #7a3318;
-  --accent-strong: #a84a26;
-  --accent-soft: #f3e6c4;
-  --link: #a84a26;
-  --action-bg: #a84a26;
-  --action-hover-bg: #7a3318;
-  --badge-bg: #c9b98f;
-  --badge-text: #3a3225;
-  --brand-name: #2a2419;
-  --brand-cursor: #9a948a;
-  --brand-turn: #a84a26;
+  /* Surfaces: a beige page with ivory panels and sidebar. */
+  --surface-page: #f3ebdc;
+  --surface-nav: #f3ebdc;
+  --surface-raised: #fbf7ef;
+  --surface-sidebar: #fbf7ef;
+  --surface-panel: #fbf7ef;
+  --surface-sunken: #fbf7ef;
+  --surface-code: #efe4cc;
+  --surface-pressed: #ffd34e;
+  --surface-selected: #ffd34e;
+  --text-strong: #16150f;
+  --text-heading: #16150f;
+  --text-body: #2c2a21;
+  --text-muted: #5f5847;
+  --text-faint: #68604d;
+  --command-button-bg: #ffd34e;
+  --command-button-hover-bg: #ffdc6e;
+  --line-outline: #16150f;
+  --line-strong: #16150f;
+  --line-emphasis: #16150f;
+  --line-divider: rgba(22, 21, 15, 0.18);
+  --line-chip: #16150f;
+  --control-knob: #ffd34e;
+  --scrim: rgba(22, 21, 15, 0.45);
+  --accent: #a8461f;
+  --accent-strong: #a8461f;
+  --accent-soft: #ffe58f;
+  --link: #a8461f;
+  --action-bg: #f4a583;
+  --action-hover-bg: #f09a74;
+  --badge-bg: #e3a92f;
+  --brand-name: #16150f;
+  --brand-cursor: #f4a583;
+  --brand-turn: #a8461f;
   color-scheme: light;
 }
 
@@ -122,11 +141,21 @@
   --sl-color-gray-4: var(--line-strong);
   --sl-color-gray-5: var(--line-outline);
   --sl-color-gray-6: var(--surface-raised);
+  --sl-color-gray-7: var(--surface-sunken);
   --sl-color-black: var(--surface-page);
   --sl-color-accent-low: var(--accent-soft);
   --sl-color-accent: var(--accent-strong);
   --sl-color-accent-high: var(--accent);
-}
-:root[data-theme="light"] {
-  --sl-color-gray-7: var(--surface-sunken);
+  --sl-color-text-accent: var(--link);
+  --sl-color-text-invert: var(--text-on-accent);
+  --sl-color-bg-nav: var(--surface-nav);
+  --sl-color-bg-sidebar: var(--surface-sidebar);
+  --sl-color-bg-inline-code: var(--surface-code);
+  --sl-color-hairline-light: var(--line-divider);
+  --sl-color-hairline: var(--line-divider);
+  --sl-color-hairline-shade: var(--line-outline);
+  --sl-color-backdrop-overlay: var(--scrim);
+  --sl-shadow-sm: var(--shadow-card);
+  --sl-shadow-md: var(--shadow-card);
+  --sl-shadow-lg: var(--shadow-card);
 }

@@ -291,6 +291,7 @@ const first = script;
     justify-content: center;
     gap: 0.125rem;
     padding: 0.1875rem;
+    border: var(--border-outline);
     border-radius: var(--radius-pill);
     background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
   }
@@ -361,7 +362,8 @@ const first = script;
   }
   .choice :global(button[aria-pressed="true"]) {
     background: var(--surface-pressed);
-    color: var(--text-strong);
+    box-shadow: inset 0 0 0 var(--stroke-fill) var(--line-ink);
+    color: var(--selected-text);
   }
   /* One box for the agent's prompt and for the install command: a single
      monospace line that scrolls sideways when the screen is narrower than it. */
@@ -372,6 +374,7 @@ const first = script;
     width: 100%;
     min-width: 0;
     padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+    border: var(--border-outline);
     border-radius: var(--radius-5);
     background: var(--surface-raised);
     font-family: var(--type-mono);
@@ -395,15 +398,15 @@ const first = script;
     flex: none;
     min-width: 4.25rem;
     padding: 0.4375rem 1rem;
-    border: 0;
+    border: var(--border-fill);
     border-radius: var(--radius-pill);
-    background: var(--inverse-bg);
-    color: var(--inverse-text);
+    background: var(--command-button-bg);
+    color: var(--command-button-text);
     font: 600 var(--sl-text-sm) var(--type-sans);
     cursor: pointer;
   }
   .command button:hover {
-    background: var(--inverse-hover-bg);
+    background: var(--command-button-hover-bg);
   }
   .hint {
     color: var(--text-faint);
