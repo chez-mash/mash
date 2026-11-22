@@ -117,6 +117,8 @@
   --agent-copilot: #8957e5;
   --agent-cursor: #16150f;
   --agent-antigravity: #3d7fd6;
+  /* Rust's orange, for Ferris on the welcome page. */
+  --mark-rust: #de5a24;
   /* Corners for small keys, icon tiles and large buttons. */
   --radius-key: 0.3125rem;
   --radius-icon: 0.625rem;

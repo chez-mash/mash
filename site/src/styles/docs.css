@@ -337,6 +337,7 @@
   position: absolute;
   inset: 18%;
   background: var(--mark);
+  -webkit-mask: var(--logo) center / contain no-repeat;
   mask: var(--logo) center / contain no-repeat;
 }
 [data-agent="claude-code"] {

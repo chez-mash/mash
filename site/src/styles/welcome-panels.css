@@ -244,7 +244,7 @@
   /* Open source: a terminal. */
   .terminal {
     flex: none;
-    width: 23.75rem;
+    width: 26.5rem;
     max-width: 100%;
   }
   .terminal pre {

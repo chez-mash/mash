@@ -1,9 +1,27 @@
 ---
-// The agents Mash reads, each mark in ink on a light tile beside its name, in
+// The agents Mash reads, each mark in colour on a light tile beside its name, in
 // a cream band. The names and logo files are the dashboard's own, so the site
-// and the product always agree. The logos are plain images: a CSS mask through
-// an inline style left the tiles empty on some iPhones.
+// and the product always agree. Each logo is inlined at build time and drawn in
+// its brand colour through currentColor: a CSS mask through an inline style
+// left the tiles empty on some iPhones, and an <img> cannot take a colour.
 import { agents } from "../../../dashboard/src/lib/agents.ts";
+
+const files = import.meta.glob<string>("../../../dashboard/public/agents/*.svg", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+
+/** The logo's SVG markup, filled with the current colour. */
+function logo(path: string): string {
+  const name = path.split("/").pop();
+  const svg = Object.entries(files).find(([file]) => file.endsWith(`/${name}`))?.[1];
+  if (svg === undefined) throw new Error(`No agent logo named ${name}`);
+  return svg
+    .replace(/<title>.*?<\/title>/s, "")
+    .replace(/\s(width|height|style|fill|role)="[^"]*"/g, "")
+    .replace("<svg", '<svg class="mark" fill="currentColor" aria-hidden="true"');
+}
 
 const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigravity"] as const;
 ---
@@ -14,9 +32,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
       const agent = agents[key];
       return (
         <li>
-          <span class="tile" aria-hidden="true">
-            <img class="mark" src={agent.logo} alt="" width="24" height="24" />
-          </span>
+          <span class="tile" aria-hidden="true" style={`color: ${agent.tint}`} set:html={logo(agent.logo)} />
           <span class="name">{agent.name}</span>
         </li>
       );
@@ -60,7 +76,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
     color: var(--text-ink);
     font-weight: 700;
   }
-  /* Each mark sits on an ivory sticker in ink, in both themes. */
+  /* Each mark sits on an ivory sticker in its brand colour, in both themes. */
   .tile {
     display: grid;
     place-items: center;
@@ -70,7 +86,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
     border-radius: var(--radius-large);
     background: var(--fill-sticker);
   }
-  .mark {
+  .tile :global(.mark) {
     display: block;
     width: 1.5rem;
     height: 1.5rem;
@@ -89,7 +105,7 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
       height: 1.75rem;
       border-radius: var(--radius-1);
     }
-    .mark {
+    .tile :global(.mark) {
       width: 1rem;
       height: 1rem;
     }
