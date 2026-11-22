@@ -33,7 +33,10 @@ pub fn route(link: &str) -> Option<String> {
         Some((path, query)) => (path, Some(query)),
         None => (rest, None),
     };
-    if path.split('/').any(|segment| segment == "." || segment == "..") {
+    if path
+        .split('/')
+        .any(|segment| segment == "." || segment == "..")
+    {
         return None;
     }
     let path = path.trim_end_matches('/');
@@ -64,8 +67,14 @@ mod tests {
             route("mash://record/record-sign-in-tokens?node=laptop").as_deref(),
             Some("#/record/record-sign-in-tokens?node=laptop")
         );
-        assert_eq!(route("mash://search?q=checkout%20outage").as_deref(), Some("#/search?q=checkout%20outage"));
-        assert_eq!(route("mash://records?kind=decision").as_deref(), Some("#/records?kind=decision"));
+        assert_eq!(
+            route("mash://search?q=checkout%20outage").as_deref(),
+            Some("#/search?q=checkout%20outage")
+        );
+        assert_eq!(
+            route("mash://records?kind=decision").as_deref(),
+            Some("#/records?kind=decision")
+        );
     }
 
     #[test]

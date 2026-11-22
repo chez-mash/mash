@@ -48,7 +48,10 @@ impl Engine {
         let mut child = command
             .spawn()
             .map_err(|error| format!("Couldn’t start {}: {error}.", program.display()))?;
-        let stderr = child.stderr.take().ok_or("The engine has no output to read.")?;
+        let stderr = child
+            .stderr
+            .take()
+            .ok_or("The engine has no output to read.")?;
         let (found, address) = mpsc::channel();
         // `mash dash` writes one JSON line naming its address when its output is
         // not a terminal; everything it writes later is drained so it never blocks.
@@ -69,7 +72,9 @@ impl Engine {
                 let _ = child.kill();
                 let _ = child.wait();
                 Err(match status {
-                    Some(status) => format!("The Mash engine stopped before it was ready ({status})."),
+                    Some(status) => {
+                        format!("The Mash engine stopped before it was ready ({status}).")
+                    }
                     None => "The Mash engine didn’t start within a minute.".to_owned(),
                 })
             }
@@ -119,7 +124,10 @@ fn locate() -> Result<PathBuf, String> {
     if engine.is_file() {
         Ok(engine)
     } else {
-        Err(format!("The Mash engine is missing from this app ({}).", engine.display()))
+        Err(format!(
+            "The Mash engine is missing from this app ({}).",
+            engine.display()
+        ))
     }
 }
 
@@ -130,7 +138,10 @@ mod tests {
     #[test]
     fn reads_the_address_mash_dash_reports() {
         let address = dashboard_address(r#"{"dashboard":"http://127.0.0.1:53817/"}"#);
-        assert_eq!(address.map(String::from).as_deref(), Some("http://127.0.0.1:53817/"));
+        assert_eq!(
+            address.map(String::from).as_deref(),
+            Some("http://127.0.0.1:53817/")
+        );
         let warned = dashboard_address(r#"{"dashboard":"http://[::1]:8790/","warning":"x"}"#);
         assert!(warned.is_some());
     }

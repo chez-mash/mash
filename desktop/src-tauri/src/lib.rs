@@ -43,9 +43,11 @@ pub fn run() {
     // A second launch, such as a mash:// link opened elsewhere, hands its link
     // to the running app and quits; the deep-link plugin delivers the link.
     #[cfg(any(target_os = "linux", target_os = "macos", windows))]
-    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _arguments, _directory| {
-        show(app);
-    }));
+    let builder = builder.plugin(tauri_plugin_single_instance::init(
+        |app, _arguments, _directory| {
+            show(app);
+        },
+    ));
     let app = builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
@@ -80,10 +82,12 @@ fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
     let opener = app.clone();
     let popups = app.clone();
     let downloads = app.clone();
+    let (width, height) = window_size(app);
     WebviewWindowBuilder::new(app, WINDOW, WebviewUrl::App("index.html".into()))
         .title("Mash")
-        .inner_size(1280.0, 820.0)
-        .min_inner_size(420.0, 480.0)
+        .inner_size(width, height)
+        .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
+        .center()
         // The dashboard is dark until it says otherwise (see window.js).
         .theme(Some(Theme::Dark))
         .initialization_script(include_str!("window.js"))
@@ -116,6 +120,36 @@ fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
     Ok(())
 }
 
+/// The window's size when the screen has room, and its smallest size, in
+/// logical pixels.
+const PREFERRED_SIZE: (f64, f64) = (1280.0, 820.0);
+const MIN_SIZE: (f64, f64) = (420.0, 480.0);
+
+/// The window's opening size: the preferred size, shrunk to fit the main
+/// screen's work area (the screen less its taskbar or dock).
+fn window_size(app: &AppHandle) -> (f64, f64) {
+    let Ok(Some(monitor)) = app.primary_monitor() else {
+        return PREFERRED_SIZE;
+    };
+    let area = monitor
+        .work_area()
+        .size
+        .to_logical::<f64>(monitor.scale_factor());
+    fit(area.width, area.height)
+}
+
+/// The preferred size, shrunk to leave a margin and room for the title bar
+/// inside a work area of `width` by `height`, but never below the minimum.
+fn fit(width: f64, height: f64) -> (f64, f64) {
+    const TITLE_BAR: f64 = 40.0;
+    let room =
+        |preferred: f64, available: f64, minimum: f64| preferred.min(available * 0.94).max(minimum);
+    (
+        room(PREFERRED_SIZE.0, width, MIN_SIZE.0),
+        room(PREFERRED_SIZE.1, height - TITLE_BAR, MIN_SIZE.1),
+    )
+}
+
 /// Whether the window may load an address itself: the app's own page, or a
 /// page of the dashboard. Everything else belongs in the reader's browser.
 fn stays_in_app(url: &Url, dashboard: Option<&Url>) -> bool {
@@ -134,9 +168,18 @@ fn open_outside(app: &AppHandle, url: &Url) {
 
 /// A file in `folder` named like the download, numbered so nothing is replaced.
 fn unused_path(folder: &Path, suggested: &Path) -> PathBuf {
-    let name = suggested.file_name().map(PathBuf::from).unwrap_or_else(|| "download".into());
-    let stem = name.file_stem().unwrap_or_default().to_string_lossy().into_owned();
-    let extension = name.extension().map(|extension| format!(".{}", extension.to_string_lossy()));
+    let name = suggested
+        .file_name()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| "download".into());
+    let stem = name
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .into_owned();
+    let extension = name
+        .extension()
+        .map(|extension| format!(".{}", extension.to_string_lossy()));
     let extension = extension.unwrap_or_default();
     let mut path = folder.join(&name);
     for number in 1.. {
@@ -257,19 +300,26 @@ fn show_error(app: &AppHandle, message: &str) {
     }
     local.set_path("/index.html");
     local.set_fragment(None);
-    local.query_pairs_mut().clear().append_pair("error", message);
+    local
+        .query_pairs_mut()
+        .clear()
+        .append_pair("error", message);
     let _ = window.navigate(local);
 }
 
 /// The address the app serves its own page from on this platform.
 fn local_page() -> Url {
-    let address = if cfg!(windows) { "http://tauri.localhost/" } else { "tauri://localhost/" };
+    let address = if cfg!(windows) {
+        "http://tauri.localhost/"
+    } else {
+        "tauri://localhost/"
+    };
     Url::parse(address).expect("a fixed, valid address")
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{page, stays_in_app, unused_path};
+    use super::{fit, page, stays_in_app, unused_path};
     use tauri::Url;
 
     fn url(text: &str) -> Url {
@@ -297,7 +347,25 @@ mod tests {
         ] {
             assert!(!stays_in_app(&url(outside), Some(&dashboard)), "{outside}");
         }
-        assert!(!stays_in_app(&dashboard, None), "before the engine is ready");
+        assert!(
+            !stays_in_app(&dashboard, None),
+            "before the engine is ready"
+        );
+    }
+
+    #[test]
+    fn the_window_fits_the_screen() {
+        assert_eq!(
+            fit(2560.0, 1400.0),
+            (1280.0, 820.0),
+            "a large screen gets the preferred size"
+        );
+        let (width, height) = fit(1280.0, 760.0);
+        assert!(
+            width < 1280.0 && height + 40.0 < 760.0,
+            "{width}x{height} fits 1280x760"
+        );
+        assert_eq!(fit(300.0, 300.0), (420.0, 480.0), "never below the minimum");
     }
 
     #[test]
@@ -318,7 +386,11 @@ mod tests {
         let version = workspace
             .split("[workspace.package]")
             .nth(1)
-            .and_then(|section| section.lines().find_map(|line| line.strip_prefix("version = ")))
+            .and_then(|section| {
+                section
+                    .lines()
+                    .find_map(|line| line.strip_prefix("version = "))
+            })
             .map(|value| value.trim().trim_matches('"'));
         assert_eq!(version, Some(env!("CARGO_PKG_VERSION")));
     }
@@ -330,7 +402,10 @@ mod tests {
         let first = unused_path(&folder, "/somewhere/chat.md".as_ref());
         assert_eq!(first, folder.join("chat.md"));
         std::fs::write(&first, "").unwrap();
-        assert_eq!(unused_path(&folder, "chat.md".as_ref()), folder.join("chat (1).md"));
+        assert_eq!(
+            unused_path(&folder, "chat.md".as_ref()),
+            folder.join("chat (1).md")
+        );
         std::fs::remove_dir_all(&folder).unwrap();
     }
 }

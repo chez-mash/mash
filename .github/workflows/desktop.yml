@@ -54,6 +54,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
           toolchain: stable
+          components: rustfmt
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           package_json_file: desktop/package.json
@@ -88,7 +89,9 @@ jobs:
           cp "target/release/mash$suffix" "desktop/src-tauri/binaries/mash-${{ matrix.target }}$suffix"
       - name: Test the app
         working-directory: desktop/src-tauri
-        run: cargo test --locked
+        run: |
+          cargo fmt --check
+          cargo test --locked
       - name: Build the installers
         working-directory: desktop
         run: |
