@@ -11,7 +11,7 @@ vos agents de programmation. Découvrez Mash avec le
 ## Premiers pas
 
 - [Essayez une recherche avec des conversations d’exemple](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- [Comparez Mash à d’autres outils d’historique](compare.md)
+- [Voyez si Mash vous convient](compare.md)
 - [Vérifiez où votre historique est stocké et ce qui reste sur votre ordinateur](privacy.md)
 
 ### Installation

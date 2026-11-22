@@ -112,11 +112,12 @@ export default defineConfig({
               slug: "quick-start",
             },
             {
-              label: "Compare tools",
+              label: "Is Mash for you?",
               translations: {
-                es: "Comparar herramientas",
-                fr: "Comparer les outils",
-                "zh-CN": "比较工具",
+                es: "¿Es Mash para ti?",
+                fr: "Mash est-il fait pour vous ?",
+                "zh-CN": "Mash 适合你吗？",
+                ja: "Mash は向いている？",
               },
               slug: "compare",
             },

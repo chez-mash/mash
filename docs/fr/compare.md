@@ -1,4 +1,4 @@
-# Comparez les outils d’historique pour agents de code
+# Mash est-il fait pour vous ?
 
 Mash vous aide à retrouver les conversations que vos agents ont déjà
 enregistrées et à ouvrir le message à l’origine d’une décision. Vous pouvez
@@ -36,18 +36,6 @@ ajouter des modèles locaux pour la recherche par sens et connecter un agent
 quand vous le souhaitez. [Installation](installation.md) · [Confidentialité](privacy.md) ·
 [Recherche par sens](indexing.md#enable-semantic-search)
 
-<span id="other-workflows"></span>
-
-## Autres façons de travailler
-
-| Si vous voulez… | Essayez | Ce que l’outil propose |
-| --- | --- | --- |
-| Rechercher et reprendre des sessions ou récupérer une modification de fichier | Déjà Vu | Un seul exécutable indexe l’historique enregistré et permet d’y faire des recherches en local. Reprenez une session dans son agent d’origine, transmettez le travail à un autre agent ou récupérez du texte à partir de modifications enregistrées. [Vue d’ensemble](https://github.com/vshulcz/deja-vu#overview) · [Recherche interactive](https://github.com/vshulcz/deja-vu#interactive-search) |
-| Rechercher au clavier dans les historiques de nombreux agents | CASS | L’outil propose une recherche interactive dans le terminal et des résultats structurés pour les scripts ou les agents. [Dépôt CASS](https://github.com/Dicklesworthstone/coding_agent_session_search) |
-| Retrouver la session d’agent à l’origine d’une ligne de code ou d’un commit | ctx | L’outil indexe l’historique enregistré en local pour y faire des recherches. `ctx blame` s’appuie sur l’historique Git et l’activité enregistrée de l’agent pour citer les éléments de la session. [Recherche](https://ctx.rs/search/) · [Blame](https://ctx.rs/blame/) |
-| Réutiliser des résumés automatiques du travail dans les nouvelles sessions | Claude-Mem | Les intégrations capturent l’activité et un agent observateur la résume. La prochaine session peut charger les notes pertinentes. [Fonctionnement de Claude-Mem](https://github.com/thedotmack/claude-mem#how-it-works) |
-| Enregistrer les conversations en Markdown dans votre projet ou les reprendre dans un agent | SpecStory | Ses extensions et son interface en ligne de commande peuvent enregistrer les sessions capturées en Markdown dans le projet. La ligne de commande permet de rouvrir une session dans son agent d’origine ou de la reconstituer pour un autre agent compatible. [Enregistrer les conversations](https://docs.specstory.com/specstory/features) · [Rechercher et reprendre une session](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
-
 [Installez Mash et retrouvez votre première conversation](quick-start.md).
 
-<!-- mash-docs-source: e46b86ce4739cba4e7caa3de5458a8a8928d9850fd953a45ddffc1f1d8788368 -->
+<!-- mash-docs-source: 0eb4bc99fad7c3d96d03dc79b728b346692efb0c9dfc92e68ee20e9ca4c5d290 -->

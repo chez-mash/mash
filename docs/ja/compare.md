@@ -1,4 +1,4 @@
-# コーディングエージェントの履歴ツールを比較する
+# Mash はあなたに向いていますか？
 
 Mash では、エージェントがすでに保存した会話を検索し、決定の根拠になった元のメッセージを開けます。
 ブラウザー、端末、接続済みのエージェントから検索できます。
@@ -27,18 +27,6 @@ Mash は Qdrant というローカル検索サービスを使います。イン�
 あとからローカルモデルを追加して意味で検索したり、エージェントを接続したりできます。
 [インストール](installation.md) · [プライバシー](privacy.md) · [意味で検索する（英語）](../indexing.md#enable-semantic-search)
 
-<span id="other-workflows"></span>
-
-## ほかのツールが向いている場面
-
-| やりたいこと | ツール | できること |
-| --- | --- | --- |
-| セッションを検索して再開する、または以前のファイル編集を復元する | Déjà Vu | ひとつの実行ファイルで保存済みの履歴にインデックスを作り、ローカルで検索できます。元のエージェントでセッションを再開したり、別のエージェントに作業を引き継いだり、記録された編集から以前のテキストを復元したりできます。[概要（英語）](https://github.com/vshulcz/deja-vu#overview) · [対話型検索（英語）](https://github.com/vshulcz/deja-vu#interactive-search) |
-| さまざまなエージェントの保存済み履歴をキーボードで検索する | CASS | 端末で対話型検索ができ、スクリプトやエージェントに構造化された検索結果を返せます。[CASS リポジトリ（英語）](https://github.com/Dicklesworthstone/coding_agent_session_search) |
-| コードの行やコミットを元のエージェントのセッションまでたどる | ctx | ローカルに保存された履歴にインデックスを作り、検索できます。`ctx blame` は Git の履歴と記録されたエージェントの操作をもとに、セッション内の根拠を引用します。[検索（英語）](https://ctx.rs/search/) · [Blame（英語）](https://ctx.rs/blame/) |
-| 作業の自動要約を次のエージェントセッションで参照する | Claude-Mem | エージェントのフックで操作を記録し、別のエージェントが要約します。次のセッションで関連するメモを読み込めます。[Claude-Mem の仕組み（英語）](https://github.com/thedotmack/claude-mem#how-it-works) |
-| 会話をプロジェクト内に Markdown で保存する、またはエージェントで再開する | SpecStory | 拡張機能と CLI で、記録したセッションをプロジェクト内に Markdown で保存できます。CLI では、元のエージェントで再開したり、対応する別のエージェントで開けるようにセッションを再構成したりできます。[会話の保存（英語）](https://docs.specstory.com/specstory/features) · [検索と再開（英語）](https://docs.specstory.com/integrations/terminal-coding-agents/resume) |
-
 [Mash をインストールして、最初の会話を探す](quick-start.md)。
 
-<!-- mash-docs-source: e46b86ce4739cba4e7caa3de5458a8a8928d9850fd953a45ddffc1f1d8788368 -->
+<!-- mash-docs-source: 0eb4bc99fad7c3d96d03dc79b728b346692efb0c9dfc92e68ee20e9ca4c5d290 -->

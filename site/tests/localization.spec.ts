@@ -125,12 +125,12 @@ for (const [locale, label, lang, title] of [
 }
 
 for (const [locale, label, lang, title] of [
-  ["es", "Español", "es", "Compara las herramientas de historial de agentes de código"],
-  ["fr", "Français", "fr", "Comparez les outils d’historique pour agents de code"],
-  ["zh-cn", "简体中文", "zh-CN", "比较编程代理对话历史工具"],
-  ["ja", "日本語", "ja", "コーディングエージェントの履歴ツールを比較する"],
+  ["es", "Español", "es", "¿Es Mash para ti?"],
+  ["fr", "Français", "fr", "Mash est-il fait pour vous ?"],
+  ["zh-cn", "简体中文", "zh-CN", "Mash 适合你吗？"],
+  ["ja", "日本語", "ja", "Mash はあなたに向いていますか？"],
 ]) {
-  test(`the ${locale} comparison guide offers a demo and a localized setup`, async ({ page }) => {
+  test(`the ${locale} “is Mash for you” guide offers a demo and a localized setup`, async ({ page }) => {
     const compare = `/${locale}/compare/`;
     const quickStart = `/${locale}/quick-start/`;
     const guide = page.locator(".sl-markdown-content");
@@ -139,8 +139,8 @@ for (const [locale, label, lang, title] of [
     await expect(page).toHaveURL(compare);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
-    await expect(guide.getByRole("row")).toHaveCount(6);
-    await expect(guide.getByRole("row").filter({ hasText: "ctx blame" })).toHaveCount(1);
+    // The page is about Mash alone: it lists no other tools.
+    await expect(guide.getByRole("table")).toHaveCount(0);
     await expect(guide.locator('a[href^="https://getmash.io/demo/#/search?"]')).toBeVisible();
     await expect(guide.locator(`a[href="/${locale}/privacy/"]`)).toBeVisible();
     await guide.locator(`a[href="${quickStart}"]`).click();

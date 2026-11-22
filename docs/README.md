@@ -8,7 +8,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 ## Start here
 
 - [Try a dashboard search with sample chats](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- [Compare Mash with other coding-agent history tools](compare.md)
+- [See whether Mash fits how you work](compare.md)
 - [See where your history is stored and what stays private](privacy.md)
 
 ### Installation
