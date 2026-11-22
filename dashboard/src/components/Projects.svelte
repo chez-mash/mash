@@ -88,7 +88,7 @@ const now = Date.now();
 <div class="sums g2">
   {#each shown.slice(0, limit) as project (project.key)}
     <a class="card sum" href={projectHref(project.key)} title={project.key}>
-      <span class="sum-h"><span class="ico lg"><Folder size={20} aria-hidden="true" /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
+      <span class="sum-h"><span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
       <span class="big"><b>{project.chats.length.toLocaleString()}</b><span>chat{project.chats.length === 1 ? "" : "s"}</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((project.chats.length / largest) * 100))}%"></i></span>
       <span class="sum-f">

@@ -189,7 +189,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   {@const KindIcon = service ? kindIcon[service.kind] : Server}
   <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><ChevronLeft size={15} aria-hidden="true" />services</a>
   <div class="hd">
-    <div class="dh"><span class="ico lg"><KindIcon size={20} aria-hidden="true" /></span><div><h1 class="h1">{service?.name ?? serviceId}</h1><p class="meta">{selectedId}{service ? ` / ${service.kind}` : ""}</p></div></div>
+    <div class="dh"><span class="ico lg services"><KindIcon size={20} aria-hidden="true" /></span><div><h1 class="h1">{service?.name ?? serviceId}</h1><p class="meta">{selectedId}{service ? ` / ${service.kind}` : ""}</p></div></div>
     <span class="acts"><button class="btn" type="button" disabled={!enabled || fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />{fleet.isFetching ? "Checking…" : "Check again"}</button></span>
   </div>
 {:else}

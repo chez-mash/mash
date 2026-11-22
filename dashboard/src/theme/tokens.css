@@ -150,20 +150,20 @@
   --hue-export-markdown: var(--text-strong);
   --hue-export-json: var(--text-strong);
   --hue-export-archive: var(--text-strong);
-  /* Section tiles in the rail: one muted shade each, an ink icon on it. They stay light in both themes. */
-  --tile-overview: #ecd38c;
-  --tile-chats: #eebfa3;
-  --tile-agents: #e2c4c4;
-  --tile-machines: #c6d3dd;
-  --tile-projects: #d7d0a4;
-  --tile-memory: #e3cfae;
-  --tile-services: #c9d9d2;
-  --tile-fleet: #d8cbbd;
-  --tile-tools: #d6d2c8;
-  --tile-settings: #cdd0d6;
+  /* Section tiles in the rail, and icon tiles that stand for a section: one
+     clear pastel each with an ink icon on it. They stay light in both themes. */
+  --tile-overview: #f4cf5d;
+  --tile-chats: #f3ad8a;
+  --tile-agents: #eeaabb;
+  --tile-machines: #9fc6ec;
+  --tile-projects: #dfd27a;
+  --tile-memory: #f0c27e;
+  --tile-services: #98dcbc;
+  --tile-fleet: #e9b98e;
+  --tile-tools: #c3d48c;
+  --tile-settings: #bcc6d8;
   --tile-icon: #16150f;
-  /* Agents: an ink logo on an ivory tile in both themes. The brand colours
-     are for the desktop quick panel, which draws marks its own way. */
+  /* Agents: a logo in its brand colour on an ivory tile in both themes. */
   --agent-tile-bg: #fbf7ef;
   --agent-tile-border: var(--border-fill);
   --agent-claude-code: #d97757;

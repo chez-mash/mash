@@ -246,9 +246,9 @@ function percent(target: FleetJob["targets"][number]): number | null {
             {#each group.actions as item (item)}
               {@const Icon = icons[item]}
               {#if allowed.some((entry) => entry.action === item)}
-                <a class="card opc" href={fleetHref(item)} aria-label={fleetActionLabel[item]} aria-describedby="fleet-about-{item}"><span class="ico"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span></a>
+                <a class="card opc" href={fleetHref(item)} aria-label={fleetActionLabel[item]} aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span></a>
               {:else}
-                <div class="card opc off"><span class="ico"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span>{blurb[item]}</span><span class="pill">Not available</span></div>
+                <div class="card opc off"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span>{blurb[item]}</span><span class="pill">Not available</span></div>
               {/if}
             {/each}
           </div>
@@ -263,7 +263,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
     <div class="card cream"><h1 class="h2">Not available</h1><p class="meta" style:margin-top="6px">This dashboard's inventory does not allow that action.</p></div>
   {:else}
     {@const Icon = icons[current.action]}
-    <div class="dh"><span class="ico lg"><Icon size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
+    <div class="dh"><span class="ico lg fleet"><Icon size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
     <p style:max-width="640px" style:font-size="15px">{blurb[current.action]}{readOnly.includes(current.action) ? "" : " It keeps running if you leave this page."}</p>
     <section class="sec">
       <div class="hd"><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2><button class="a" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }} style:font-size="12.5px">Select all</button></div>

@@ -409,28 +409,26 @@
 .sl-markdown-content .mash-fit.butter a {
   text-decoration-color: var(--text-on-fill);
 }
-.mash-fit.butter .mash-ico {
-  border-color: var(--line-ink);
-  background: var(--fill-sticker);
-  color: var(--text-on-fill);
-}
-
-/* The guides' section icons are coloured stickers, cycling through the
-   palette so neighbouring cards differ. The colours mark no state here: they
-   only help the eye tell the sections apart. */
-.mash-guide .mash-guide-head .mash-ico {
+/* Icon tiles in the docs are coloured stickers with ink icons, cycling
+   through the palette by position so neighbouring cards differ. The colours
+   mark no state: they only help the eye tell the items apart. */
+.mash-guide .mash-guide-head .mash-ico,
+.mash-fit .mash-ico {
   border-color: var(--line-ink);
   background: var(--fill-peach);
   color: var(--text-on-fill);
 }
-.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico {
+.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico,
+.mash-fit:nth-of-type(4n + 2) .mash-ico {
   background: var(--fill-mint);
 }
-.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico {
-  background: var(--fill-butter);
-}
-.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico {
+.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico,
+.mash-fit:nth-of-type(4n + 3) .mash-ico {
   background: var(--fill-lilac);
+}
+.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico,
+.mash-fit:nth-of-type(4n + 4) .mash-ico {
+  background: var(--fill-butter);
 }
 
 /* The guides directory: the lead beside a tip, then a grid of cards. */

@@ -340,9 +340,6 @@
     background: var(--fill-butter);
     color: var(--text-on-fill);
   }
-  .tiles article.butter .ico {
-    background: var(--fill-sticker);
-  }
 
   /* Open source: the words beside a small terminal. */
   .rust {
@@ -484,4 +481,21 @@
       opacity 0.6s ease,
       transform 0.6s ease;
   }
+}
+
+/* Every icon tile is a coloured sticker with an ink icon, cycling through the
+   palette by position so neighbours differ. The colours mark no state. */
+.mash-welcome :is(.points, .cards, .tiles) > * > .ico {
+  border-color: var(--line-ink);
+  background: var(--fill-peach);
+  color: var(--text-on-fill);
+}
+.mash-welcome :is(.points, .cards, .tiles) > :nth-child(4n + 2) > .ico {
+  background: var(--fill-mint);
+}
+.mash-welcome :is(.points, .cards, .tiles) > :nth-child(4n + 3) > .ico {
+  background: var(--fill-lilac);
+}
+.mash-welcome :is(.points, .cards, .tiles) > :nth-child(4n + 4) > .ico {
+  background: var(--fill-butter);
 }

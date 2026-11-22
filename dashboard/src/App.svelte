@@ -158,7 +158,7 @@ $effect(() => {
       {:else if route.page === "project"}
         {#key route.name}
           <BrowseDetail field="project" value={route.name} title={projectLabel(route.name)} back={{ href: "#/projects", label: "projects" }}>
-            {#snippet icon()}<span class="ico lg"><Folder size={20} aria-hidden="true" /></span>{/snippet}
+            {#snippet icon()}<span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span>{/snippet}
           </BrowseDetail>
         {/key}
       {:else if route.page === "agents"}
@@ -180,7 +180,7 @@ $effect(() => {
         {@const id = route.id}
         {#key id}
           <BrowseDetail field="machine" value={id} title={id} back={{ href: "#/machines", label: "machines" }}>
-            {#snippet icon()}<span class="ico lg"><Laptop size={20} aria-hidden="true" /></span>{/snippet}
+            {#snippet icon()}<span class="ico lg machines"><Laptop size={20} aria-hidden="true" /></span>{/snippet}
             {#snippet extra()}<MachineExtras machineId={id} />{/snippet}
           </BrowseDetail>
         {/key}

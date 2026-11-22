@@ -280,7 +280,7 @@ async function copy(): Promise<void> {
     {#each formats as option (option.value)}
       <label class="card pick" class:butter={format === option.value}>
         <input class="radio" type="radio" name="format" value={option.value} bind:group={format} />
-        <span class="ico"><option.icon size={17} color={option.tint} aria-hidden="true" /></span>
+        <span class="ico chats"><option.icon size={17} color={option.tint} aria-hidden="true" /></span>
         <span style:min-width="0"><b>{option.name}</b><span class="pick-a">{option.about}</span></span>
       </label>
     {/each}

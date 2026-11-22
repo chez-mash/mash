@@ -625,6 +625,27 @@ a.card.sum:hover {
 .sum-f > .sp {
   padding-left: 6px;
 }
+/* A tile that stands for a part of Mash takes that part's colour from the
+   rail, so a machine or a project looks the same wherever it appears. */
+.ico:is(.chats, .machines, .projects, .services, .fleet) {
+  border: var(--border-fill);
+  color: var(--tile-icon);
+}
+.ico.chats {
+  background: var(--tile-chats);
+}
+.ico.machines {
+  background: var(--tile-machines);
+}
+.ico.projects {
+  background: var(--tile-projects);
+}
+.ico.services {
+  background: var(--tile-services);
+}
+.ico.fleet {
+  background: var(--tile-fleet);
+}
 .ico.lg {
   width: 44px;
   height: 44px;
