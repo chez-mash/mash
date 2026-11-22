@@ -102,6 +102,41 @@ async fn qdrant_flexible_lexical_search_matches_prefixes_and_typos() {
     fixture.cleanup().await;
 }
 
+#[tokio::test]
+async fn qdrant_typing_search_takes_one_term_as_words_with_its_prefixes() {
+    use crate::views::matching::{Kind, Mode};
+    let fixture = Fixture::new(VectorIndex::default()).await;
+    fixture
+        .server
+        .index(&fixture.identity, fixture.file(1, "idempotency redis4"))
+        .await
+        .unwrap();
+    let active = std::collections::BTreeSet::from([fixture.identity.node_id.clone()]);
+    let typing = |text: &str| {
+        let mut input = exact_query(&fixture, text);
+        input.match_mode = Mode::Flexible;
+        let active = active.clone();
+        let store = fixture.store.clone();
+        let identity = fixture.identity.clone();
+        async move { store.search_typing(&identity, &input, &active).await }
+    };
+    // A half-typed single word reaches the same messages through its prefix,
+    // ranked by words rather than scanned as a literal.
+    let hits = typing("idemp").await.unwrap().lexical;
+    assert!(!hits.is_empty());
+    assert!(hits.iter().all(|hit| {
+        hit.lexical_match
+            .as_ref()
+            .is_some_and(|e| e.kind == Kind::Prefix)
+    }));
+    for text in ["idempotency", "redis4", "redis4 idemp"] {
+        assert!(!typing(text).await.unwrap().lexical.is_empty(), "{text}");
+    }
+    assert!(typing("zzqqxx").await.unwrap().lexical.is_empty());
+    assert!(typing("  ").await.is_err(), "no words is a usage error");
+    fixture.cleanup().await;
+}
+
 fn exact_query(fixture: &Fixture, text: &str) -> protocol::Search {
     let mut query = fixture.query();
     query.intent = crate::views::exact::Intent::ExactMention;

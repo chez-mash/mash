@@ -106,6 +106,14 @@ pub enum Operation {
         shared: bool,
         local: bool,
     },
+    /// Search while the reader types: this machine's index only, by words,
+    /// each also by its prefix and typo alternatives, even for one term.
+    /// Pressing Enter runs the full `Search`.
+    LiveSearch {
+        query: String,
+        limit: Option<usize>,
+        filters: Box<crate::search_filter::Selection>,
+    },
     View {
         id: String,
         context: u32,

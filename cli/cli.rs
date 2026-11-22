@@ -15,6 +15,7 @@ use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
 mod request;
+use request::SearchArguments;
 mod watch;
 mod wizard;
 
@@ -197,6 +198,19 @@ enum Command {
         /// without contacting the shared service.
         #[arg(long, conflicts_with = "shared")]
         local: bool,
+        /// Search as the reader types: this machine only, by words (each also
+        /// as a prefix), at most 20 chats, fast enough to run on each
+        /// keystroke. Run the search again without it for literal matches,
+        /// other machines and more results.
+        #[arg(
+            long,
+            conflicts_with_all = [
+                "shared", "local", "intent", "offset", "unit", "shared_vector_search",
+                "fusion_rank_constant", "lexical_weight", "semantic_weight",
+                "recency_weight", "ranking", "diagnostics",
+            ]
+        )]
+        live: bool,
     },
     /// Return a message, by message ID, and adjacent context.
     View {
@@ -426,41 +440,6 @@ enum QdrantCommand {
         #[arg(long)]
         delete_storage: bool,
     },
-}
-
-#[derive(Debug, Clone, Default, clap::Args)]
-struct SearchArguments {
-    /// Lexical matching: flexible (prefixes and typos), strict, prefix, or typo.
-    #[arg(long, value_enum, default_value = "flexible")]
-    match_mode: crate::views::matching::Mode,
-    /// Order qualifying results by relevance (default) or recent (newest first).
-    #[arg(long, value_enum, default_value = "relevance")]
-    sort: crate::search_filter::Sort,
-    #[arg(long)]
-    provider: Vec<Provider>,
-    #[arg(long)]
-    days: Option<u32>,
-    #[arg(long)]
-    node: Vec<String>,
-    #[arg(long)]
-    role: Vec<crate::role::Role>,
-    #[arg(long = "chat")]
-    chat: Vec<String>,
-    /// Exact recorded working directory; repeat for alternatives.
-    #[arg(long)]
-    project: Vec<String>,
-    /// Exact Git origin URL; repeat for alternatives.
-    #[arg(long)]
-    repository: Vec<String>,
-    /// Inclusive date or RFC3339 timestamp.
-    #[arg(long)]
-    after: Option<String>,
-    /// Exclusive date or RFC3339 timestamp.
-    #[arg(long)]
-    before: Option<String>,
-    /// JSON Boolean expression using all/any/not and metadata predicates.
-    #[arg(long)]
-    filter: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -882,6 +861,41 @@ mod tests {
             };
             assert_eq!((limit, unit), expected);
             assert!(fusion.is_empty());
+        }
+    }
+
+    #[test]
+    fn live_search_is_its_own_narrow_request() {
+        let request = Cli::try_parse_from([
+            "mash",
+            "search",
+            "chec",
+            "--live",
+            "--limit",
+            "5",
+            "--provider",
+            "codex",
+        ])
+        .unwrap()
+        .into_request()
+        .unwrap();
+        let Operation::LiveSearch { query, limit, .. } = request.operation else {
+            panic!("live search request")
+        };
+        assert_eq!((query.as_str(), limit), ("chec", Some(5)));
+        // Live search never reaches other machines, pages or ranking knobs.
+        for flags in [
+            &["--shared"][..],
+            &["--local"],
+            &["--offset", "20"],
+            &["--intent", "related-discussion"],
+            &["--unit", "messages"],
+            &["--recency-weight", "3"],
+            &["--diagnostics"],
+        ] {
+            let mut args = vec!["mash", "search", "chec", "--live"];
+            args.extend_from_slice(flags);
+            assert!(Cli::try_parse_from(args).is_err(), "{flags:?}");
         }
     }
 

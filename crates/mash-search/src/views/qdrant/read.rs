@@ -256,6 +256,26 @@ impl Store {
         Ok(candidates(lexical, Vec::new()))
     }
 
+    /// Word search for a reader still typing: BM25 over the query's words,
+    /// each also by its prefix and typo alternatives, even when the query is a
+    /// single term. `search` verifies a single term as a literal, which scans
+    /// every candidate before it can rank and is too slow to repeat on each
+    /// keystroke; the reader's full search (Enter) still does that.
+    pub async fn search_typing(
+        &self,
+        identity: &Scope,
+        input: &protocol::Search,
+        active: &BTreeSet<String>,
+    ) -> Result<protocol::Candidates, AppError> {
+        crate::search_query::validate_words(&input.query)?;
+        tokio::time::timeout(
+            crate::views::retrieval::EXACT_SEARCH_TIMEOUT,
+            self.search_words(identity, input, active),
+        )
+        .await
+        .map_err(|_| AppError::usage(crate::views::retrieval::EXACT_SEARCH_BUDGET_ERROR))?
+    }
+
     #[tracing::instrument(name = "backend_search", skip_all, fields(backend = "qdrant"))]
     pub async fn search(
         &self,

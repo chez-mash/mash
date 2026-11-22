@@ -1,5 +1,9 @@
 //! Local and combined retrieval; validation precedes inference and HTTP.
 mod freshness;
+mod words;
+
+use words::lexical;
+pub(super) use words::live;
 
 use super::{SearchMode, SearchResponse, required_shared};
 use crate::AppError;
@@ -455,46 +459,6 @@ async fn local_exact(
         query,
         shared: false,
         shared_error: None,
-        shared_context_error: None,
-    })
-}
-
-/// Exact-mention for several unquoted words: each required, ranked by BM25
-/// and recency.
-async fn lexical(
-    (configuration, database, use_shared, use_local): (&ResolvedConfig, &Path, bool, bool),
-    query: String,
-    (options, page): (crate::views::config::Options, crate::search_results::Page),
-    filters: &crate::search_filter::Scope,
-) -> Result<SearchResponse, AppError> {
-    let database = (!use_shared).then_some(database);
-    let shared = use_shared || (!use_local && configuration.shared.is_some());
-    let (hits, shared_error) = shared::search_lexical(
-        shared.then(|| required_shared(configuration)).transpose()?,
-        database.map(|database| (database, configuration)),
-        &query,
-        options,
-        filters,
-    )
-    .await?;
-    let collected =
-        crate::search_results::collect(hits, options.unit, page, &query, options.output_redaction);
-    Ok(SearchResponse {
-        notice: None,
-        freshness_warnings: Vec::new(),
-        diagnostics: None,
-        intent: crate::views::exact::Intent::ExactMention,
-        realized_mode: if shared {
-            exact_mode(shared_error.is_some(), database.is_none())
-        } else {
-            SearchMode::Lexical
-        },
-        unit: options.unit,
-        results: collected.results,
-        next_offset: collected.next_offset,
-        query,
-        shared: shared && shared_error.is_none(),
-        shared_error,
         shared_context_error: None,
     })
 }

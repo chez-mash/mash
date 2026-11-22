@@ -27,6 +27,7 @@ pub mod server;
 use crate::silver::revision as silver_revision;
 pub mod silver_store;
 pub mod sync;
+mod words;
 pub use mash_storage::shared::validation;
 mod views_manifest;
 
@@ -44,7 +45,8 @@ pub use publication::publish;
 pub use publication::status;
 pub use publication::write_event;
 pub use retrieval::prepare_candidates;
-pub use retrieval::{SearchOutcome, require_dense, search, search_lexical};
+pub use retrieval::{SearchOutcome, require_dense, search};
+pub use words::{search_lexical, search_typing};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]

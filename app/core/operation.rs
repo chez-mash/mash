@@ -18,6 +18,7 @@ impl Operation {
             Self::Index(_) => "index",
             Self::ListChats { .. } | Self::DashboardCatalog { .. } => "list_chats",
             Self::Search { .. } => "search",
+            Self::LiveSearch { .. } => "live_search",
             Self::View { .. } | Self::ChatMessages { .. } | Self::ChatContext { .. } => "view",
             Self::Status { .. } | Self::Installation { .. } => "status",
             Self::Doctor => "doctor",
@@ -33,6 +34,19 @@ impl Operation {
             Self::ImportSilver { .. } => "import_silver",
             Self::ListAttachments { .. } => "list_attachments",
             Self::GetAttachment { .. } => "get_attachment",
+        }
+    }
+
+    /// How long it may run before it fails as timed out. Only searches have
+    /// one: every search, including any wait for model capacity, ends by it
+    /// rather than hanging, though blocking work already started may finish
+    /// unobserved. A search run on each keystroke is worth nothing once the
+    /// reader has typed on, so it gives up far sooner.
+    pub fn deadline(&self) -> Option<std::time::Duration> {
+        match self {
+            Self::Search { .. } => Some(std::time::Duration::from_secs(15)),
+            Self::LiveSearch { .. } => Some(std::time::Duration::from_secs(5)),
+            _ => None,
         }
     }
 
@@ -62,6 +76,7 @@ impl Operation {
             | Self::DashboardCatalog { .. }
             | Self::ChatContext { .. }
             | Self::Search { .. }
+            | Self::LiveSearch { .. }
             | Self::View { .. }
             | Self::ChatMessages { .. }
             | Self::Status { .. }

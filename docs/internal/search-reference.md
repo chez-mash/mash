@@ -34,6 +34,25 @@ identifiers such as `voyage-code-4` are not split. Ranking and vector overrides 
 API applies the same rule to `exact-mention` requests, so a node older than
 this change rejects unquoted multiword answers as nonliteral until upgraded.
 
+Live search (`mash search --live`, the dashboard's `/api/search/live`, and
+the Raycast extension in `raycast/`) is a separate operation,
+`Operation::LiveSearch`, for a reader still typing. It always takes the word
+path above, even for a single term: the literal path scrolls every candidate's
+text out of Qdrant before it can rank, which on a large index takes seconds for
+a short prefix and can stop at the 10,000-candidate cap. Live search reads this
+machine's index only (no shared request on a keystroke), returns at most 20
+chats (8 by default), runs no freshness scan and has a 5-second deadline. Its
+one route to the store is `Store::search_typing` through
+`Local::typing_candidates` and `shared::search_typing`, which ranks with the
+same `rank_words` as the full word search. The full search a reader submits is
+unchanged. Measured on 2026-11-22 with a release build, 837k messages and a warm
+vocabulary cache: 80 to 330 ms per keystroke including process start, against
+up to 3 s, or the candidate cap, for the same single words through the literal
+path. A vocabulary cache older than 5 minutes adds about a second to the next
+search, live or not. Prefix alternatives are still the first eight in
+alphabetical order, not the most frequent; that limits what a very short
+prefix finds.
+
 Semantic (related-discussion) search supports English queries. Exact-mention
 search does not use this model-language check. Unsupported scripts and confidently
 detected non-English queries return a usage error asking for an English query,

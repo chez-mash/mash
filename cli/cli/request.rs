@@ -1,8 +1,8 @@
 //! Turn parsed command-line arguments into the typed core request.
 use super::{
     AppError, Cli, Command, IndexRequest, ModelsCommand, Operation, Paths, QdrantCommand, Request,
-    SearchArguments,
 };
+use crate::provider::Provider;
 
 impl SearchArguments {
     pub(crate) fn into_selection(self) -> Result<crate::search_filter::Selection, AppError> {
@@ -113,6 +113,17 @@ impl Cli {
                 defer_publication: false,
                 backfill,
             }),
+            Command::Search {
+                query,
+                limit,
+                filters,
+                live: true,
+                ..
+            } => Operation::LiveSearch {
+                query,
+                limit,
+                filters: Box::new(filters.into_selection()?),
+            },
             Command::Search {
                 shared_vector_search,
                 shared_hnsw_ef,
@@ -255,4 +266,40 @@ impl Cli {
         };
         Ok(Request { paths, operation })
     }
+}
+
+/// The filters `mash search` takes, shared by full and live search.
+#[derive(Debug, Clone, Default, clap::Args)]
+pub(super) struct SearchArguments {
+    /// Lexical matching: flexible (prefixes and typos), strict, prefix, or typo.
+    #[arg(long, value_enum, default_value = "flexible")]
+    match_mode: crate::views::matching::Mode,
+    /// Order qualifying results by relevance (default) or recent (newest first).
+    #[arg(long, value_enum, default_value = "relevance")]
+    sort: crate::search_filter::Sort,
+    #[arg(long)]
+    provider: Vec<Provider>,
+    #[arg(long)]
+    days: Option<u32>,
+    #[arg(long)]
+    node: Vec<String>,
+    #[arg(long)]
+    role: Vec<crate::role::Role>,
+    #[arg(long = "chat")]
+    chat: Vec<String>,
+    /// Exact recorded working directory; repeat for alternatives.
+    #[arg(long)]
+    project: Vec<String>,
+    /// Exact Git origin URL; repeat for alternatives.
+    #[arg(long)]
+    repository: Vec<String>,
+    /// Inclusive date or RFC3339 timestamp.
+    #[arg(long)]
+    after: Option<String>,
+    /// Exclusive date or RFC3339 timestamp.
+    #[arg(long)]
+    before: Option<String>,
+    /// JSON Boolean expression using all/any/not and metadata predicates.
+    #[arg(long)]
+    filter: Option<String>,
 }

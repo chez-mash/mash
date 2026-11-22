@@ -50,7 +50,7 @@ async fn execute_admitted(
         let started = std::time::Instant::now();
         let capture = matches!(&request.operation, Operation::Search { diagnostics: true, .. })
             .then(crate::observability::retrieval::Capture::default);
-        let deadline = matches!(&request.operation, Operation::Search { .. }).then_some(SEARCH_DEADLINE);
+        let deadline = request.operation.deadline();
         let run = within(deadline, execute_inner(request, capacity).boxed());
         let mut result = match &capture {
             Some(capture) => capture.scope(run).await,
@@ -79,10 +79,6 @@ async fn execute_admitted(
         ))
         .await
 }
-
-/// Every search, including any wait for model capacity, ends by this deadline
-/// rather than hanging. Blocking work already started may finish unobserved.
-const SEARCH_DEADLINE: std::time::Duration = std::time::Duration::from_secs(15);
 
 async fn within<T>(
     deadline: Option<std::time::Duration>,
@@ -153,10 +149,7 @@ async fn execute_operation(
     let configuration = crate::blocking(move || config::load(path.as_deref())).await?;
     let database = request.paths.db.unwrap_or_else(default_database_path);
     let models = request.paths.models_dir.unwrap_or_else(default_models_path);
-    if !configuration.loaded
-        && matches!(request.operation, Operation::Search { .. })
-        && !database.exists()
-    {
+    if !configuration.loaded && request.operation.deadline().is_some() && !database.exists() {
         return Err(AppError::not_set_up(&database));
     }
     search::preflight(&configuration, &request.operation).await?;
@@ -518,6 +511,13 @@ async fn dispatch(
         )
         .await
         .map(Response::Search),
+        Operation::LiveSearch {
+            query,
+            limit,
+            filters,
+        } => search::live(configuration, database, query, limit, *filters)
+            .await
+            .map(Response::Search),
         Operation::ChatContext { id, context, node } => {
             let remote = node.filter(|node| {
                 node != configuration

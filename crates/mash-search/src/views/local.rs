@@ -215,6 +215,23 @@ impl Local {
         &self,
         input: super::retrieval::Search,
     ) -> Result<super::retrieval::Candidates, AppError> {
+        self.retrieve(input, false).await
+    }
+
+    /// Candidates for a reader still typing, by words even for one term; see
+    /// `Store::search_typing`.
+    pub async fn typing_candidates(
+        &self,
+        input: super::retrieval::Search,
+    ) -> Result<super::retrieval::Candidates, AppError> {
+        self.retrieve(input, true).await
+    }
+
+    async fn retrieve(
+        &self,
+        input: super::retrieval::Search,
+        typing: bool,
+    ) -> Result<super::retrieval::Candidates, AppError> {
         use crate::observability::retrieval::{Guard, Stage};
         let mut measured = Guard::begin(if input.intent == super::exact::Intent::ExactMention {
             Stage::LocalExact
@@ -225,7 +242,13 @@ impl Local {
             return Err(AppError::search_catching_up());
         }
         let active = std::collections::BTreeSet::from([self.scope.node_id.clone()]);
-        let mut result = self.store.search(&self.scope, input, &active).await?;
+        let mut result = if typing {
+            self.store
+                .search_typing(&self.scope, &input, &active)
+                .await?
+        } else {
+            self.store.search(&self.scope, input, &active).await?
+        };
         let database = self.database.clone();
         result = crate::blocking(move || {
             let silver = Storage::open_silver(&database)?;

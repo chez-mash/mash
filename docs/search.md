@@ -183,5 +183,11 @@ Use `--local` to search only this computer. If you share history, see
 [which machines a search covers](search-across-machines.md#search-from-the-terminal)
 for options to search published chats or narrow results to one machine.
 
+`--live` is for tools that search as you type, such as the dashboard's search
+box and launchers: it answers in a fraction of a second, searches only this
+computer, matches by words (each also as the start of a longer word) and
+returns at most 20 chats. Run the search without it to match an identifier as
+written, include other machines or page through more results.
+
 If results are missing or stale, start with [troubleshooting](troubleshooting.md).
 For other commands, see [useful commands](cli.md).
