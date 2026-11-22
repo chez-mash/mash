@@ -6,6 +6,8 @@ also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tok
 and select **open the message** to see where it came from. The demo matches
 exact words and phrases in sample chats.
 
+![The dashboard overview: recent chats, recent memories, and chat counts by machine and agent](../assets/screenshots/overview.webp)
+
 - [Find and read a chat](#find-and-read-a-chat)
 - [Save a transcript](#save-a-transcript)
 - [Ask Mashy about your chats](mashy.md)
@@ -125,6 +127,8 @@ Without a query, the page lists your chats. Narrow either list with the chips
 for agent, machine, project and date. A changed chip has a dashed border until
 you choose **Apply filters**. Applied filters appear as tags in the search box.
 Choose a tag to remove it.
+
+![Searching for “checkout” finds chats from two agents, with the matching words highlighted](../assets/screenshots/search.webp)
 
 If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit
@@ -248,6 +252,8 @@ project and time filters; every matching chat is exported, on every page,
 unless you untick it. Choose **Markdown** to read or **JSON** for scripts, then
 **Export**. Your browser saves one `.zip` file with a folder per project and a
 file per chat.
+
+![Export chats: filter the chats to include, then choose Markdown, JSON or a Mash archive](../assets/screenshots/export.webp)
 
 Keep the page open until the download starts. If any chat cannot be read, the
 export stops and saves nothing. Attachments are not included. The files hold

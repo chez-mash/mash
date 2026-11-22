@@ -112,26 +112,6 @@ export default defineConfig({
               slug: "quick-start",
             },
             {
-              label: "Is Mash for you?",
-              translations: {
-                es: "¿Es Mash para ti?",
-                fr: "Mash est-il fait pour vous ?",
-                "zh-CN": "Mash 适合你吗？",
-                ja: "Mash は向いている？",
-              },
-              slug: "compare",
-            },
-            {
-              label: "Privacy",
-              translations: {
-                es: "Privacidad",
-                fr: "Confidentialité",
-                "zh-CN": "隐私",
-                ja: "プライバシー",
-              },
-              slug: "privacy",
-            },
-            {
               label: "Installation",
               translations: {
                 es: "Instalación",
@@ -180,6 +160,26 @@ export default defineConfig({
                   slug: "local-search",
                 },
               ],
+            },
+            {
+              label: "Why Mash",
+              translations: {
+                es: "Por qué Mash",
+                fr: "Pourquoi Mash",
+                "zh-CN": "为什么选择 Mash",
+                ja: "Mash を選ぶ理由",
+              },
+              slug: "compare",
+            },
+            {
+              label: "Privacy",
+              translations: {
+                es: "Privacidad",
+                fr: "Confidentialité",
+                "zh-CN": "隐私",
+                ja: "プライバシー",
+              },
+              slug: "privacy",
             },
           ],
         },

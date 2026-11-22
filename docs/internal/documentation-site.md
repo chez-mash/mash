@@ -111,6 +111,17 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   795,000 messages, so the page makes no claim about memory in use overall.
   Re-measure before changing a figure, and keep the small print true.
 
+## Dashboard pictures
+
+The guides show real dashboard pages from the demo's sample history. They are
+WebP files in `assets/screenshots/`, committed so the guides render on GitHub
+too, and the site build copies them to `/screenshots/`. After a visible
+dashboard change, build the demo (`pnpm build:demo` in `dashboard/`), run
+`pnpm screenshots` in `site/`, and look at every picture before committing.
+`site/scripts/screenshots.ts` lists the pages, hides the demo's own banner
+and notes, and crops out the rail where the page itself should be readable.
+Write alt text that says what the picture shows.
+
 ## Theme
 
 Every colour, line width, corner, shadow and typeface the site draws with is

@@ -42,11 +42,6 @@ const icons = {
     "M12 17h.01",
   ]),
   reference: icon(["M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z", "M5 17a3 3 0 0 1 3-3h9"]),
-  chat: icon([
-    "M12 4c4.4 0 8 3 8 6.8s-3.6 6.7-8 6.7c-1 0-2-.1-2.9-.4L5 19l1-3.4C4.8 14.4 4 12.7 4 10.8 4 7 7.6 4 12 4z",
-  ]),
-  pin: icon(["M9 4h6l-1 6 3 3H7l3-3z", "M12 13v7"]),
-  machines: icon(["M3 5h8v6H3z", "M13 13h8v6h-8z", "M7 11v3a2 2 0 0 0 2 2h4"]),
   reload: icon([
     "M20 11a8 8 0 0 0-14.5-4.5L4 8",
     "M4 4v4h4",
@@ -225,36 +220,6 @@ function guideCards(tree: Root, strings: LayoutStrings): void {
   tree.children = out;
 }
 
-/** A list item's paragraphs, as Markdown blocks inside an HTML card. */
-function itemBlocks(item: List["children"][number]): BlockContent[] {
-  return item.children as BlockContent[];
-}
-
-/**
- * The comparison: the first list whose every point starts in bold is when
- * Mash fits, drawn as cards, the first in butter.
- */
-function fitCards(tree: Root): void {
-  const index = tree.children.findIndex(
-    (node) =>
-      node.type === "list" &&
-      !node.ordered &&
-      node.children.every((item) => {
-        const first = item.children[0];
-        return first?.type === "paragraph" && first.children[0]?.type === "strong";
-      }),
-  );
-  const list = tree.children[index];
-  if (list?.type !== "list") return;
-  const marks = [icons.chat, icons.pin, icons.machines];
-  const cards = list.children.flatMap((item, at) => [
-    html(`<li class="mash-fit${at === 0 ? " butter" : ""}">${marks[at % marks.length]}`),
-    ...itemBlocks(item),
-    html("</li>"),
-  ]);
-  tree.children.splice(index, 1, html('<ul class="mash-fits">'), ...cards, html("</ul>"));
-}
-
 /** The agents Mash reads, by the name a table row starts with. */
 const agentTiles: readonly [RegExp, string][] = [
   [/^Claude Code/, "claude-code"],
@@ -346,9 +311,10 @@ function quickStart(tree: Root, strings: LayoutStrings): void {
     );
   }
 
-  const quote = children.findIndex((node) => node.type === "blockquote");
-  const prompt = children[quote];
-  if (prompt?.type === "blockquote") {
+  // Every quote in the quick start is something to say to an agent, so each
+  // one becomes a prompt with a copy button.
+  for (const [quote, prompt] of children.entries()) {
+    if (prompt.type !== "blockquote") continue;
     const words = text(prompt).replace(/\s+/g, " ").trim();
     children.splice(
       quote,
@@ -366,7 +332,6 @@ export function layoutPage(tree: Root, page: string, strings: LayoutStrings): vo
   badgePills(tree);
   if (page === "guides") guideCards(tree, strings);
   if (page === "tools") toolStacks(tree);
-  if (page === "compare") fitCards(tree);
   if (page === "supported-agents") agentTables(tree);
   if (page === "quick-start") quickStart(tree, strings);
 }

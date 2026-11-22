@@ -9,6 +9,7 @@
     "dev": "pnpm prepare-content && astro dev",
     "build": "pnpm prepare-content && astro build",
     "add-demo": "node scripts/demo.ts",
+    "screenshots": "node scripts/screenshots.ts",
     "check": "pnpm prepare-content && astro sync && tsc --noEmit",
     "lint": "biome check .",
     "test": "vitest run scripts",

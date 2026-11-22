@@ -9,6 +9,8 @@ where it came up. Open the quote whenever you want to check the context.
 and select **open the message** below its quote. The demo jumps to the
 message about keeping the refresh token in the device keychain.
 
+![The memory page lists saved decisions, preferences and facts with their project, machine and agent](../assets/screenshots/memory.webp)
+
 For your own history, run `mash dash`, open the address it prints, and choose
 **memory**. Open a record to see its source, revisions, and related records.
 [Find and filter memory in the dashboard](dashboard.md#inspect-conversation-records)
@@ -38,6 +40,8 @@ hasn't saved as memory. [Use Mash from an agent](agents.md#try-it)
 
 Mash checks the quote against the original chat. That gives you a source to
 read yourself. Agents can still miss or misread what you meant.
+
+![A saved decision with its reason, the quoted message it came from, and its revision history](../assets/screenshots/record.webp)
 
 - The agent can establish decisions and preferences based on your own words.
   Other interpretations may appear as **candidates** that need review.

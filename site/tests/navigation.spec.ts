@@ -58,9 +58,16 @@ test("the quick start goes from setup to a first chat and links to package insta
   await expect(guide.locator("#quick-start")).toBeAttached();
   await expect(guide.getByRole("heading", { level: 2 })).toHaveText([
     "Install it yourself",
+    "Choose what Mash reads",
     "Find your first chat",
+    "Read it in context",
+    "Let your agent remember",
+    "See it all at a glance",
+    "Keep going",
     "Ask your agent",
   ]);
+  // Every step after installing shows the dashboard it describes.
+  await expect(guide.locator('img[src^="/screenshots/"]')).toHaveCount(6);
   await expect(guide.locator('a[href^="https://getmash.io/demo/"]')).toHaveCount(0);
   await expect(guide.locator("#try-it")).toBeAttached();
   await expect(guide.locator("pre").filter({ hasText: "sh -s -- --dashboard" })).toBeVisible();

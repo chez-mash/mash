@@ -371,63 +371,21 @@
   font-weight: 700;
 }
 
-/* The comparison's "when Mash fits": three cards, the first in butter. */
-.sl-markdown-content .mash-fits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 1rem;
-  padding: 0;
-  list-style: none;
-}
-.sl-markdown-content .mash-fit {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 1rem 1.125rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
-  background: var(--surface-paper);
-  font-size: 0.875rem;
-}
-.sl-markdown-content .mash-fit > p {
-  margin: 0;
-}
-.sl-markdown-content .mash-fit strong {
-  display: block;
-  margin-bottom: 0.25rem;
-  color: var(--text-ink);
-  font-size: 0.9375rem;
-}
-.sl-markdown-content .mash-fit.butter {
-  background: var(--fill-butter);
-  color: var(--text-on-fill);
-}
-.sl-markdown-content .mash-fit.butter :is(strong, a) {
-  color: var(--text-on-fill);
-}
-.sl-markdown-content .mash-fit.butter a {
-  text-decoration-color: var(--text-on-fill);
-}
-/* Icon tiles in the docs are coloured stickers with ink icons, cycling
+/* The guides' section icons are coloured stickers with ink icons, cycling
    through the palette by position so neighbouring cards differ. The colours
    mark no state: they only help the eye tell the items apart. */
-.mash-guide .mash-guide-head .mash-ico,
-.mash-fit .mash-ico {
+.mash-guide .mash-guide-head .mash-ico {
   border-color: var(--line-ink);
   background: var(--fill-peach);
   color: var(--text-on-fill);
 }
-.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico,
-.mash-fit:nth-of-type(4n + 2) .mash-ico {
+.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico {
   background: var(--fill-mint);
 }
-.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico,
-.mash-fit:nth-of-type(4n + 3) .mash-ico {
+.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico {
   background: var(--fill-lilac);
 }
-.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico,
-.mash-fit:nth-of-type(4n + 4) .mash-ico {
+.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico {
   background: var(--fill-butter);
 }
 
@@ -715,4 +673,15 @@ main:has(.mash-guides) .sl-container {
 /* Anchors kept for old links take no room in a card. */
 .sl-markdown-content .mash-guide > p {
   position: absolute;
+}
+
+/* Pictures of the dashboard sit in an outlined frame, like a window. */
+.sl-markdown-content img[src^="/screenshots/"] {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-block: 1.25rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-large);
+  background: var(--surface-cream);
 }

@@ -51,6 +51,8 @@ before choosing **Set up and index**. When search is ready,
 [find your first chat](#try-your-first-search).
 [See the dashboard setup steps](dashboard.md#set-up-mash-from-the-dashboard).
 
+![Setup lists the histories Mash will read, how far back it goes, and which agents it connects to](../assets/screenshots/setup.webp)
+
 ### Set up in a terminal
 
 Run the terminal wizard in an interactive terminal. Use it for a build without

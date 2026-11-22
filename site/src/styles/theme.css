@@ -92,6 +92,13 @@
      paper cards, and one job per colour. Text on any colour fill is ink. */
   --surface-side: #201e15;
   --surface-cream: #2b2817;
+  /* Soft colours behind the landing page's bands. Text on them keeps the theme's colours. */
+  --band-sky: #17222c;
+  --band-mint: #15251d;
+  --band-butter: #2a2412;
+  --band-peach: #2c1d15;
+  --band-rose: #2b1a20;
+  --band-apricot: #2a2011;
   --surface-paper: #16150f;
   --fill-butter: #ecc244;
   --fill-peach: #e2966f;
@@ -163,6 +170,12 @@
   --brand-turn: #a8461f;
   --surface-side: #eadfc8;
   --surface-cream: #efe4cc;
+  --band-sky: #dde9f3;
+  --band-mint: #d9eee1;
+  --band-butter: #f8e8b4;
+  --band-peach: #f6dccb;
+  --band-rose: #f3dae0;
+  --band-apricot: #f4e0c3;
   --surface-paper: #fbf7ef;
   --fill-butter: #ffd34e;
   --fill-peach: #f4a583;

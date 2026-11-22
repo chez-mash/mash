@@ -59,10 +59,13 @@ By default, indexing and search stay on your machine and require no account.
 
 Already using Mash? [Upgrade your installation](docs/upgrades.md#upgrade-an-existing-installation).
 
+By the end you'll have every chat your coding agents saved on this machine
+in one searchable place, and an agent that remembers your decisions.
+
 ### Install it yourself
 
-Run the command for your system to download Mash and start the browser
-setup. You’ll need at least one saved chat from a [supported agent](docs/supported-agents.md).
+Run the command for your system. It downloads Mash and opens setup in your
+browser. You’ll need at least one saved chat from a [supported agent](docs/supported-agents.md).
 See [what setup changes](docs/installation.md#what-setup-changes) and
 [how to verify the download](docs/downloads.md#verify-the-checksum).
 
@@ -80,28 +83,90 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
 ```
 
-Open the link the installer shows you and leave the terminal open. Follow the
-steps in your browser, then choose **Set up and index**. You can skip connecting
-agents or clear any preselected agents. [See the dashboard setup steps](docs/dashboard.md#set-up-mash-from-the-dashboard)
+Open the link the installer shows you and leave the terminal open.
+
+### Choose what Mash reads
+
+Setup lists the agent histories it found on this machine. Pick the agents,
+how far back to go, and which agents should be able to search Mash. Then
+choose **Set up and index**. Your original chats are only read, never changed.
+
+![Setup lists the histories Mash will read, how far back it goes, and which agents it connects to](assets/screenshots/setup.webp)
+
+You can skip connecting agents or clear any preselected agents.
+[See every setup step](docs/dashboard.md#set-up-mash-from-the-dashboard)
 
 <span id="try-it"></span>
 
 ### Find your first chat
 
-When setup says search is ready, open **chats**. Type a word you remember, such
-as an error or function name, and press Enter. Open a result to see the original
-message in its conversation.
+When setup says search is ready, type a word you remember into the search
+box at the top: an error message, a function name, a ticket number. Mash
+searches every agent at once and highlights where each chat matches.
+
+![Searching for “checkout” finds a Codex chat and a Claude Code chat, with the matching words highlighted](assets/screenshots/search.webp)
+
+Use the filters to narrow the results to one agent, machine, project or time.
+[Ways to search](docs/search.md#your-first-search) ·
+[Find a missing chat](docs/find-missing-chat.md)
+
+### Read it in context
+
+Open a result and Mash takes you to the exact message, with the conversation
+around it. The left column lists your own prompts in that chat, so you can
+jump between them, and the other sessions from the same project.
+
+![A chat opened at its matching message, with your prompts and the project’s other sessions beside it](assets/screenshots/chat.webp)
+
+Choose **Find in chat** to search inside a long conversation, or
+**Export** to save it as Markdown. [Find and read a chat](docs/dashboard.md#find-and-read-a-chat)
+
+### Let your agent remember
+
+Connect an agent during setup and it can save what you decide, quoting the
+message where you said it. Just ask:
+
+> Remember that this project keeps its refresh tokens in the device keychain.
+
+Open **memory** to see every decision, preference and fact your agents saved.
+
+![The memory page lists saved decisions, preferences and facts with their project, machine and agent](assets/screenshots/memory.webp)
+
+Each one keeps its evidence. Choose **open the message** to read the exact
+words it came from. A later session can ask Mash what was decided and why.
+
+![A saved decision with the reason, the quoted message it came from, and its revision history](assets/screenshots/record.webp)
+
+[Use Mash memory](docs/records.md) · [Connect an agent](docs/agents.md#connect-claude-code-codex-or-copilot)
+
+### See it all at a glance
+
+The overview is where the dashboard opens. It shows your latest chats, the
+newest memories, and how many chats each machine and agent has.
+
+![The overview: recent chats on the left, recent memories, machines and agents on the right](assets/screenshots/overview.webp)
 
 To reopen the dashboard later, run `mash dash` and open the address it prints.
 If your terminal can’t find `mash`, use the full path shown during setup or
 [add Mash to your PATH](docs/troubleshooting.md#mash-command-not-found).
-[Find and read a chat](docs/dashboard.md#find-and-read-a-chat) ·
-[Search from the terminal](docs/search.md#your-first-search) ·
-[Find a missing chat](docs/find-missing-chat.md)
+
+### Keep going
+
+- **Search every machine.** Share chats from your laptop and workstation
+  through a Mash server you run. [Set up a shared index](docs/shared-index.md)
+- **Ask Mashy.** Ask questions about your history in plain language and
+  follow the answer back to its sources. [Ask Mashy](docs/mashy.md)
+- **Search from the terminal.** `mash search 'refresh token'` works anywhere.
+  [Search from the terminal](docs/search.md#your-first-search)
+- **Export chats.** Save many chats at once as Markdown, JSON or a Mash
+  archive. [Export many chats](docs/dashboard.md#export-many-chats-at-once)
+- **Open it on your phone.** Reach the dashboard from another device.
+  [Open the dashboard elsewhere](docs/dashboard-access.md)
 
 ### Ask your agent
 
-Paste this into Claude Code, Codex, or another coding agent.
+Prefer to let your agent do the setup? Paste this into Claude Code, Codex, or
+another coding agent.
 
 > Read https://getmash.io/setup.md and set up Mash on this machine.
 > Review the choices with me first.

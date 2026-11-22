@@ -5,6 +5,8 @@ where it keeps new history. These settings belong to the computer running
 the dashboard. If you haven’t set up Mash yet, [choose your first
 histories](installation.md#connect-your-histories).
 
+![Dashboard settings: the agent histories Mash reads, indexing, privacy and the assistant](../assets/screenshots/settings.webp)
+
 ## Choose which histories Mash reads
 
 Under **agent histories**, use the switch beside each agent to choose which

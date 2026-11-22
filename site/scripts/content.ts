@@ -52,6 +52,12 @@ async function layoutStrings(locale: string | undefined) {
 const diagrams = ["mash-architecture.svg", "mash-shared-index.svg"];
 const markdownRoutes = new Map(routes);
 for (const diagram of diagrams) markdownRoutes.set(`assets/${diagram}`, `/${diagram}`);
+// Pictures of the dashboard the guides show, captured by scripts/screenshots.ts.
+const screenshots = (await readdir(new URL("assets/screenshots/", repo))).filter((file) =>
+  file.endsWith(".webp"),
+);
+for (const file of screenshots)
+  markdownRoutes.set(`assets/screenshots/${file}`, `/screenshots/${file}`);
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 for (const { name: locale } of localeFolders) await mkdir(new URL(`${locale}/`, output));
@@ -93,6 +99,9 @@ for (const diagram of diagrams) {
     new URL(`../public/${diagram}`, import.meta.url),
   );
 }
+await cp(new URL("assets/screenshots/", repo), new URL("../public/screenshots/", import.meta.url), {
+  recursive: true,
+});
 // The landing page shows the dashboard's own agent marks and its mascot.
 await copyFile(
   new URL("dashboard/public/mashy.png", repo),

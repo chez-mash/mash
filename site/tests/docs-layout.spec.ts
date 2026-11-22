@@ -21,13 +21,18 @@ test("the quick start draws its callout, Mashy's tip and a prompt that copies", 
   await page.goto("/quick-start/");
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.locator(".mash-callout")).toContainText("Already using Mash?");
-  await expect(guide.locator(".mash-mashy")).toContainText("mash dash");
+  await expect(guide.locator(".mash-mashy")).toContainText("filters");
+  // Each step after installing shows the dashboard page it describes.
+  await expect(guide.locator('img[src^="/screenshots/"]').first()).toBeVisible();
   // Each install command is titled in its window and wraps rather than scrolls.
   await expect(guide.locator(".expressive-code .title")).toHaveText([
     "macOS (Apple silicon) or Linux (x86-64 or ARM64)",
     "Windows x64 (PowerShell)",
   ]);
-  const copy = guide.getByRole("button", { name: "Copy the prompt for your agent" });
+  // Both things to say to an agent copy: remembering a decision, and setup.
+  const prompts = guide.getByRole("button", { name: "Copy the prompt for your agent" });
+  await expect(prompts).toHaveCount(2);
+  const copy = prompts.last();
   await copy.click();
   await expect(copy).toHaveText("Copied");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
@@ -56,11 +61,10 @@ test("the tool reference marks reading and writing tools with pills", async ({ p
   await expect(tool.locator(".params, .none").first()).toBeVisible();
 });
 
-test("the comparison and the agent list use cards, tiles and pills", async ({ page }) => {
+test("why Mash shows each feature and the agent list uses tiles and pills", async ({ page }) => {
   await page.goto("/compare/");
-  const fits = page.locator(".sl-markdown-content .mash-fits > li");
-  await expect(fits).toHaveCount(3);
-  await expect(fits.first()).toContainText("You already have chats worth keeping.");
+  await expect(page.locator("h1")).toHaveText("Why Mash");
+  await expect(page.locator('.sl-markdown-content img[src^="/screenshots/"]')).toHaveCount(5);
   await page.goto("/supported-agents/");
   const first = page.locator(".sl-markdown-content table").first();
   await expect(first.locator(".mash-agent-tile")).toHaveCount(7);

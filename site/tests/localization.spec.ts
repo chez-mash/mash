@@ -130,7 +130,9 @@ for (const [locale, label, lang, title] of [
   ["zh-cn", "简体中文", "zh-CN", "Mash 适合你吗？"],
   ["ja", "日本語", "ja", "Mash はあなたに向いていますか？"],
 ]) {
-  test(`the ${locale} “is Mash for you” guide offers a demo and a localized setup`, async ({ page }) => {
+  test(`the ${locale} “is Mash for you” guide offers a demo and a localized setup`, async ({
+    page,
+  }) => {
     const compare = `/${locale}/compare/`;
     const quickStart = `/${locale}/quick-start/`;
     const guide = page.locator(".sl-markdown-content");

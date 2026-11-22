@@ -3,6 +3,8 @@
 Search saved chats in the [browser dashboard](dashboard.md) with `mash dash`
 or from the [terminal](search.md). Both work with any of the histories below.
 
+![The agents page: chat counts, machines and latest activity for each agent](../assets/screenshots/agents.webp)
+
 You can also [connect an agent](agents.md#connect-claude-code-codex-or-copilot)
 and ask it to find past work for you. This is optional. A connected agent can
 search any history you've indexed, including chats from other agents.

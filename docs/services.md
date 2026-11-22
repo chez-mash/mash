@@ -5,6 +5,8 @@ local SQLite schema, registered MCP and watcher processes, the dashboard
 process, and configured Qdrant and shared-server endpoints. Checks never start
 indexing, migrate SQLite or rebuild Qdrant.
 
+![The services page: each machine’s search services and agent setup, with their status](../assets/screenshots/services.webp)
+
 The page is a table of machines against kinds of service: index, search, API,
 watcher, MCP and dashboard. Choose a machine's row to list its services, then a
 service to see its diagnostics, schema compatibility and any controls.
