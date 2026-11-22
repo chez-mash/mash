@@ -48,8 +48,10 @@ async function layoutStrings(locale: string | undefined) {
     copyPrompt: word("mash.copyPrompt"),
   };
 }
-const architectureImage = "mash-architecture.svg";
-const markdownRoutes = new Map(routes).set(`assets/${architectureImage}`, `/${architectureImage}`);
+// Diagrams the guides link from the repository's assets directory.
+const diagrams = ["mash-architecture.svg", "mash-shared-index.svg"];
+const markdownRoutes = new Map(routes);
+for (const diagram of diagrams) markdownRoutes.set(`assets/${diagram}`, `/${diagram}`);
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 for (const { name: locale } of localeFolders) await mkdir(new URL(`${locale}/`, output));
@@ -85,10 +87,12 @@ for (const [source, route] of routes) {
   );
 }
 await copyFile(new URL("docs/home.mdx", repo), new URL("index.mdx", output));
-await copyFile(
-  new URL(`assets/${architectureImage}`, repo),
-  new URL(`../public/${architectureImage}`, import.meta.url),
-);
+for (const diagram of diagrams) {
+  await copyFile(
+    new URL(`assets/${diagram}`, repo),
+    new URL(`../public/${diagram}`, import.meta.url),
+  );
+}
 // The landing page shows the dashboard's own agent marks and its mascot.
 await copyFile(
   new URL("dashboard/public/mashy.png", repo),

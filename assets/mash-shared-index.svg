@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" role="img" aria-labelledby="title description">
+  <title id="title">A shared index across machines</title>
+  <desc id="description">Three machines, a laptop, a desktop and a build box, each run several agents. On each machine Mash reads every agent's history into its own local index of SQLite chats and a Qdrant search index, which keeps working offline. Each machine publishes its own index to one Mash server you run, and searches everything the group has published. The server checks each machine's token, keeps a SQLite copy of the chats from each machine, and builds one shared Qdrant search index for the group.</desc>
+  <style>
+    svg { --background: #f7f3ee; --panel: #fffdfb; --chip: #efe7de; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
+    @media (prefers-color-scheme: dark) {
+      svg { --background: #201c18; --panel: #2d2722; --chip: #26211d; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
+    }
+    text { fill: var(--text); font: 600 16px system-ui, sans-serif; }
+    .title { font-size: 19px; }
+    .chip-text { font: 600 12px system-ui, sans-serif; }
+    .detail { fill: var(--quiet); font: 14px system-ui, sans-serif; }
+    .label { fill: var(--accent); font: italic 14px system-ui, sans-serif; }
+    .outline { stroke: var(--line); stroke-width: 1.5; }
+    .machine { fill: var(--background); }
+    .panel { fill: var(--panel); }
+    .chip { fill: var(--chip); }
+    .optional { fill: var(--optional); stroke: var(--accent); stroke-dasharray: 5 4; }
+    .arrow { fill: none; stroke: var(--line); stroke-width: 1.75; marker-end: url(#arrow); }
+    .sync { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; marker-start: url(#sync-start); marker-end: url(#sync-end); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--line)"/>
+    </marker>
+    <marker id="sync-end" markerWidth="5" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L5 3L0 6Z" fill="var(--accent)"/>
+    </marker>
+    <marker id="sync-start" markerWidth="5" markerHeight="6" refX="0" refY="3" orient="auto">
+      <path d="M5 0L0 3L5 6Z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+
+  <!-- Laptop -->
+  <rect class="machine outline" x="16" y="16" width="312" height="272" rx="12"/>
+  <text class="title" x="32" y="44">Laptop</text>
+  <rect class="chip outline" x="26" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="73" y="82" text-anchor="middle">Claude Code</text>
+  <rect class="chip outline" x="125" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="172" y="82" text-anchor="middle">Codex</text>
+  <rect class="chip outline" x="224" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="271" y="82" text-anchor="middle">Cursor</text>
+  <path class="arrow" d="M73 96V124"/>
+  <path class="arrow" d="M172 96V124"/>
+  <path class="arrow" d="M271 96V124"/>
+  <rect class="panel outline" x="32" y="126" width="280" height="56" rx="8"/>
+  <text x="172" y="150" text-anchor="middle">Mash</text>
+  <text class="detail" x="172" y="170" text-anchor="middle">reads every agent’s history</text>
+  <path class="arrow" d="M172 182V208"/>
+  <rect class="panel outline" x="32" y="210" width="280" height="62" rx="8"/>
+  <text x="172" y="235" text-anchor="middle">Local index</text>
+  <text class="detail" x="172" y="257" text-anchor="middle">SQLite chats · Qdrant · offline</text>
+
+  <!-- Desktop -->
+  <rect class="machine outline" x="344" y="16" width="312" height="272" rx="12"/>
+  <text class="title" x="360" y="44">Desktop</text>
+  <rect class="chip outline" x="354" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="401" y="82" text-anchor="middle">Claude Code</text>
+  <rect class="chip outline" x="453" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="500" y="82" text-anchor="middle">OpenCode</text>
+  <rect class="chip outline" x="552" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="599" y="82" text-anchor="middle">Copilot</text>
+  <path class="arrow" d="M401 96V124"/>
+  <path class="arrow" d="M500 96V124"/>
+  <path class="arrow" d="M599 96V124"/>
+  <rect class="panel outline" x="360" y="126" width="280" height="56" rx="8"/>
+  <text x="500" y="150" text-anchor="middle">Mash</text>
+  <text class="detail" x="500" y="170" text-anchor="middle">reads every agent’s history</text>
+  <path class="arrow" d="M500 182V208"/>
+  <rect class="panel outline" x="360" y="210" width="280" height="62" rx="8"/>
+  <text x="500" y="235" text-anchor="middle">Local index</text>
+  <text class="detail" x="500" y="257" text-anchor="middle">SQLite chats · Qdrant · offline</text>
+
+  <!-- Build box -->
+  <rect class="machine outline" x="672" y="16" width="312" height="272" rx="12"/>
+  <text class="title" x="688" y="44">Build box</text>
+  <rect class="chip outline" x="682" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="729" y="82" text-anchor="middle">Codex</text>
+  <rect class="chip outline" x="781" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="828" y="82" text-anchor="middle">Claude Code</text>
+  <rect class="chip outline" x="880" y="58" width="94" height="38" rx="8"/>
+  <text class="chip-text" x="927" y="82" text-anchor="middle">Antigravity</text>
+  <path class="arrow" d="M729 96V124"/>
+  <path class="arrow" d="M828 96V124"/>
+  <path class="arrow" d="M927 96V124"/>
+  <rect class="panel outline" x="688" y="126" width="280" height="56" rx="8"/>
+  <text x="828" y="150" text-anchor="middle">Mash</text>
+  <text class="detail" x="828" y="170" text-anchor="middle">reads every agent’s history</text>
+  <path class="arrow" d="M828 182V208"/>
+  <rect class="panel outline" x="688" y="210" width="280" height="62" rx="8"/>
+  <text x="828" y="235" text-anchor="middle">Local index</text>
+  <text class="detail" x="828" y="257" text-anchor="middle">SQLite chats · Qdrant · offline</text>
+
+  <!-- Publishing and shared search -->
+  <path class="sync" d="M172 276V340H300V384"/>
+  <path class="sync" d="M500 276V384"/>
+  <path class="sync" d="M828 276V340H700V384"/>
+  <text class="label" x="488" y="326" text-anchor="end">publishes its own chats</text>
+  <text class="label" x="488" y="346" text-anchor="end">searches the whole group</text>
+
+  <!-- Server -->
+  <rect class="optional outline" x="200" y="388" width="600" height="196" rx="12"/>
+  <text class="title" x="216" y="416">Mash server you run</text>
+  <text class="detail" x="784" y="416" text-anchor="end">optional · one group, such as personal</text>
+  <rect class="panel outline" x="216" y="434" width="176" height="64" rx="8"/>
+  <text x="304" y="460" text-anchor="middle">mash-server</text>
+  <text class="detail" x="304" y="482" text-anchor="middle">a token per machine</text>
+  <path class="arrow" d="M392 466H418"/>
+  <rect class="panel outline" x="420" y="434" width="176" height="64" rx="8"/>
+  <text x="508" y="460" text-anchor="middle">Chats</text>
+  <text class="detail" x="508" y="482" text-anchor="middle">SQLite, per machine</text>
+  <path class="arrow" d="M596 466H622"/>
+  <rect class="panel outline" x="624" y="434" width="160" height="64" rx="8"/>
+  <text x="704" y="460" text-anchor="middle">Search index</text>
+  <text class="detail" x="704" y="482" text-anchor="middle">Qdrant, shared</text>
+  <text class="detail" x="216" y="530">Every machine in the group can search and read what the others publish.</text>
+  <text class="detail" x="216" y="554">Each machine keeps searching its own index when the server is away.</text>
+</svg>

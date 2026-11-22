@@ -21,6 +21,13 @@ including older ones that Mash has kept, before you start publishing.
 
 ## What runs where
 
+![Three machines, a laptop, a desktop and a build box, each run several agents. On each one, Mash reads every agent's history into its own local index, which keeps working offline. Each machine publishes its own chats to one Mash server you run and searches everything the group has published. The server checks each machine's token, keeps the chats from each machine in SQLite, and builds one shared Qdrant search index.](../assets/mash-shared-index.svg)
+
+Each computer indexes the agents installed on it, as it would without
+sharing, and then publishes that index to the server. Search on any computer
+in the group combines its own index with what the other computers published.
+If the server is unreachable, each computer still searches its own chats.
+
 | Where | What runs | You set it up |
 | --- | --- | --- |
 | One server machine | `mash-server` and a Qdrant 1.20+ instance for it, both with persistent storage | once |
