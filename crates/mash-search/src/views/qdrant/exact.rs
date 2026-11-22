@@ -49,7 +49,8 @@ impl Store {
         {
             std::sync::Arc::default()
         } else {
-            self.vocabulary(identity, &active, &filter).await?
+            self.vocabulary(identity, &active, &filter, super::vocabulary::MAX_AGE)
+                .await?
         };
         let plan = crate::views::matching::Plan::new(&input.query, literal.mode(), &vocabulary)?;
         for group in plan.groups {

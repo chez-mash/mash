@@ -9,11 +9,32 @@ use std::collections::{BTreeMap, BTreeSet};
 /// Payload field whose full-text index ranks and filters word search.
 const TEXT: &str = "unit.text";
 
-/// Candidates per BM25 query while the reader types. A live search shows at
-/// most 20 chats, and every candidate carries its message's whole text, which
-/// is then decoded, hydrated from SQLite and checked for its matching word;
-/// the full search's 200 make that most of a keystroke's time.
-const TYPING_CANDIDATES: usize = 48;
+/// What one word search may spend: candidates per BM25 query, and how old a
+/// kept matching vocabulary it accepts instead of reading the words again.
+#[derive(Clone, Copy)]
+struct WordBudget {
+    candidates: usize,
+    vocabulary_age: std::time::Duration,
+}
+
+impl WordBudget {
+    fn full(unit: crate::search_results::SearchUnit) -> Self {
+        Self {
+            candidates: unit.candidate_limit(),
+            vocabulary_age: super::vocabulary::MAX_AGE,
+        }
+    }
+
+    /// While the reader types. A live search shows at most 20 chats, and every
+    /// candidate carries its message's whole text, which is then decoded,
+    /// hydrated from SQLite and checked for its matching word; the full
+    /// search's 200 make that most of a keystroke's time. Rereading the
+    /// vocabulary takes about a second; see `TYPING_MAX_AGE`.
+    const TYPING: Self = Self {
+        candidates: 48,
+        vocabulary_age: super::vocabulary::TYPING_MAX_AGE,
+    };
+}
 
 pub fn validate_search(input: &protocol::Search, identity: &Scope) -> Result<(), AppError> {
     if let Some(policy) = input.vector_policy {
@@ -168,7 +189,8 @@ impl Store {
             return;
         }
         if let Ok(filter) = search_filter(input, &active) {
-            let _ = self.vocabulary(identity, &active, &filter).await;
+            let age = super::vocabulary::MAX_AGE;
+            let _ = self.vocabulary(identity, &active, &filter, age).await;
         }
     }
 
@@ -182,7 +204,7 @@ impl Store {
         active: &BTreeSet<String>,
         filter: &api::Filter,
         build: Option<&crate::views::config::Build>,
-        limit: usize,
+        budget: WordBudget,
     ) -> Result<Vec<SearchHit>, AppError> {
         let name = collection(&identity.group_id, false);
         let original = crate::views::matching::Plan::new(
@@ -207,7 +229,7 @@ impl Store {
                     exact: true,
                     hnsw_ef: 200,
                 },
-                limit,
+                limit: budget.candidates,
                 with_payload: true,
             }
         };
@@ -219,7 +241,9 @@ impl Store {
             {
                 return Ok((original, Vec::new()));
             }
-            let vocabulary = self.vocabulary(identity, active, filter).await?;
+            let vocabulary = self
+                .vocabulary(identity, active, filter, budget.vocabulary_age)
+                .await?;
             let plan =
                 crate::views::matching::Plan::new(&input.query, input.match_mode, &vocabulary)?;
             let points = self.api.query::<Document>(&name, &request(&plan)).await?;
@@ -238,7 +262,7 @@ impl Store {
                 lexical.push(hit);
             }
         }
-        lexical.truncate(limit);
+        lexical.truncate(budget.candidates);
         Ok(lexical)
     }
     /// Every query word in one message, ranked by BM25; no vectors.
@@ -247,7 +271,7 @@ impl Store {
         identity: &Scope,
         input: &protocol::Search,
         active: &BTreeSet<String>,
-        limit: usize,
+        budget: WordBudget,
     ) -> Result<protocol::Candidates, AppError> {
         let active = active
             .iter()
@@ -259,7 +283,7 @@ impl Store {
         }
         let filter = search_filter(input, &active)?;
         let lexical = self
-            .lexical(identity, input, &active, &filter, None, limit)
+            .lexical(identity, input, &active, &filter, None, budget)
             .await?;
         Ok(candidates(lexical, Vec::new()))
     }
@@ -278,7 +302,7 @@ impl Store {
         crate::search_query::validate_words(&input.query)?;
         tokio::time::timeout(
             crate::views::retrieval::EXACT_SEARCH_TIMEOUT,
-            self.search_words(identity, input, active, TYPING_CANDIDATES),
+            self.search_words(identity, input, active, WordBudget::TYPING),
         )
         .await
         .map_err(|_| AppError::usage(crate::views::retrieval::EXACT_SEARCH_BUDGET_ERROR))?
@@ -299,8 +323,8 @@ impl Store {
                 if crate::views::exact::literal(&input.query) {
                     self.search_exact(identity, input, active).await
                 } else {
-                    let limit = input.unit.candidate_limit();
-                    self.search_words(identity, &input, active, limit).await
+                    let budget = WordBudget::full(input.unit);
+                    self.search_words(identity, &input, active, budget).await
                 }
             };
             return tokio::time::timeout(crate::views::retrieval::EXACT_SEARCH_TIMEOUT, search)
@@ -344,7 +368,7 @@ impl Store {
             &active,
             &filter,
             Some(&self.build),
-            input.unit.candidate_limit(),
+            WordBudget::full(input.unit),
         );
         let (lexical, semantic) = tokio::try_join!(
             lexical_query,

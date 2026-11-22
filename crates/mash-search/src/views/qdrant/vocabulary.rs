@@ -29,7 +29,13 @@ const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024;
 /// and removed words are offered but match nothing, until it is read again.
 /// A watcher certifies a new revision every minute or two, so a new revision
 /// alone does not reread it; this bounds how long any change goes unseen.
-const MAX_AGE: Duration = Duration::from_secs(300);
+pub(super) const MAX_AGE: Duration = Duration::from_secs(300);
+/// How old a kept vocabulary a search may use while the reader is still
+/// typing. Reading the words again takes about a second, which a keystroke
+/// cannot afford, and an older list costs little: words indexed since it was
+/// read get no prefix or typo alternatives while typing, though the words as
+/// typed still match, and the next submitted search reads it again.
+pub(super) const TYPING_MAX_AGE: Duration = Duration::from_hours(24);
 
 /// The file a local index keeps its matching vocabulary in.
 pub fn file_beside(database: &Path) -> PathBuf {
@@ -71,9 +77,9 @@ struct Entry {
 }
 
 impl Entry {
-    fn fresh(&self, now: u64) -> bool {
+    fn fresh(&self, now: u64, max_age: Duration) -> bool {
         now.checked_sub(self.loaded)
-            .is_some_and(|age| u128::from(age) < MAX_AGE.as_millis())
+            .is_some_and(|age| u128::from(age) < max_age.as_millis())
     }
 }
 
@@ -123,11 +129,17 @@ impl Vocabulary {
         })))
     }
 
-    fn get(&self, scope: &str, nodes: &[Built], now: u64) -> Option<Arc<Vec<String>>> {
+    fn get(
+        &self,
+        scope: &str,
+        nodes: &[Built],
+        now: u64,
+        max_age: Duration,
+    ) -> Option<Arc<Vec<String>>> {
         let kept = self.0.lock().ok()?;
         kept.entries
             .iter()
-            .find(|entry| entry.scope == scope && entry.nodes == nodes && entry.fresh(now))
+            .find(|entry| entry.scope == scope && entry.nodes == nodes && entry.fresh(now, max_age))
             .map(|entry| Arc::clone(&entry.terms))
     }
 
@@ -177,14 +189,14 @@ impl Vocabulary {
         kept.entries.drain(..excess);
     }
 
-    /// The newest fresh entries, for writing to the file.
+    /// The newest entries any search may still use, for writing to the file.
     fn snapshot(&self, now: u64) -> Option<(PathBuf, Vec<Entry>)> {
         let kept = self.0.lock().ok()?;
         let file = kept.file.clone()?;
         let fresh = kept
             .entries
             .iter()
-            .filter(|entry| entry.fresh(now))
+            .filter(|entry| entry.fresh(now, TYPING_MAX_AGE))
             .cloned()
             .collect::<Vec<_>>();
         let skip = fresh.len().saturating_sub(FILE_ENTRIES);
@@ -287,12 +299,14 @@ impl Store {
         self
     }
 
-    /// Every distinct indexed word the filter admits, or a recent list of them.
+    /// Every distinct indexed word the filter admits, or a list of them read
+    /// less than `max_age` ago (`MAX_AGE`, or `TYPING_MAX_AGE` while typing).
     pub(super) async fn vocabulary(
         &self,
         identity: &Scope,
         active: &BTreeSet<String>,
         filter: &api::Filter,
+        max_age: Duration,
     ) -> Result<Arc<Vec<String>>, AppError> {
         // A kept list is dated from before its read began, never after.
         let started = now();
@@ -311,7 +325,7 @@ impl Store {
             }
             return Ok(Arc::new(self.api.terms(&name, filter).await?));
         };
-        if let Some(terms) = self.vocabulary.get(&scope, &nodes, started) {
+        if let Some(terms) = self.vocabulary.get(&scope, &nodes, started, max_age) {
             return Ok(terms);
         }
         let terms = Arc::new(self.api.terms(&name, filter).await?);
@@ -452,7 +466,78 @@ mod tests {
             dimensions: 4,
         };
         let active = active.iter().map(|node| (*node).to_owned()).collect();
-        store.vocabulary(&identity, &active, filter).await.unwrap()
+        store
+            .vocabulary(&identity, &active, filter, MAX_AGE)
+            .await
+            .unwrap()
+    }
+
+    async fn read_typing(store: &Store, filter: &api::Filter) -> Arc<Vec<String>> {
+        let identity = Scope {
+            group_id: "test".into(),
+            node_id: "node".into(),
+            generation: "unused".into(),
+            dimensions: 4,
+        };
+        let active = BTreeSet::from(["node".to_owned()]);
+        store
+            .vocabulary(&identity, &active, filter, TYPING_MAX_AGE)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn a_typing_search_uses_an_older_list_that_a_full_search_rereads() {
+        let backend = Arc::new(Backend::default());
+        backend.revision.store(7, Ordering::SeqCst);
+        let url = serve(&backend).await;
+        let directory = tempfile::tempdir().unwrap();
+        let file = file_beside(&directory.path().join("mash.sqlite3"));
+        let all = api::Filter::default();
+        read(&open(&url, Some(&file)), &["node"], &all).await;
+        assert_eq!(backend.reads(), 1);
+
+        // Ten minutes on, a keystroke in a new process still uses the file.
+        let mut stored: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
+        stored["entries"][0]["loaded"] = serde_json::json!(now() - 600_000);
+        std::fs::write(&file, serde_json::to_vec(&stored).unwrap()).unwrap();
+        assert_eq!(*read_typing(&open(&url, Some(&file)), &all).await, ["bun"]);
+        assert_eq!(backend.reads(), 1);
+
+        // A submitted search reads the words again, and a later keystroke
+        // uses that newer list.
+        read(&open(&url, Some(&file)), &["node"], &all).await;
+        assert_eq!(backend.reads(), 2);
+        read_typing(&open(&url, Some(&file)), &all).await;
+        assert_eq!(backend.reads(), 2);
+
+        // Saving keeps an older list for typing: here a search with another
+        // filter writes the file, and the aged unfiltered list survives it.
+        let store = open(&url, Some(&file));
+        read(&store, &["node"], &all).await;
+        for entry in &mut store.vocabulary.0.lock().unwrap().entries {
+            entry.loaded -= 600_000;
+        }
+        let mut narrowed = all.clone();
+        narrowed
+            .must
+            .push(api::matches("tokens", vec!["bun".into()]));
+        read(&store, &["node"], &narrowed).await;
+        let reads = backend.reads();
+        read_typing(&open(&url, Some(&file)), &all).await;
+        assert_eq!(backend.reads(), reads);
+
+        // A list past the typing bound is never used.
+        let mut stored: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
+        let day = u64::try_from(TYPING_MAX_AGE.as_millis()).unwrap();
+        for entry in stored["entries"].as_array_mut().unwrap() {
+            entry["loaded"] = serde_json::json!(now() - day - 1_000);
+        }
+        std::fs::write(&file, serde_json::to_vec(&stored).unwrap()).unwrap();
+        read_typing(&open(&url, Some(&file)), &all).await;
+        assert_eq!(backend.reads(), reads + 1);
     }
 
     /// Make every kept vocabulary as old as the reuse bound.

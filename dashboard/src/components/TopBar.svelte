@@ -87,7 +87,7 @@ const suggestions = $derived.by(() => {
 let typed = $state("");
 $effect(() => {
   const value = needle;
-  const timer = setTimeout(() => (typed = value), 150);
+  const timer = setTimeout(() => (typed = value), 60);
   return () => clearTimeout(timer);
 });
 const live = createQuery(() => ({

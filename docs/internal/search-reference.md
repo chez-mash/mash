@@ -53,7 +53,14 @@ the search repeats. The full search a reader submits is unchanged. Measured on
 77 to 106 ms per keystroke including process start (about 15 ms of it), against
 up to 3 s, or the candidate cap, for the same single words through the literal
 path. Of the rest, the views manifest (174 KB, read at open and after the
-search) and the certificate reads are about 25 ms. A vocabulary cache older than 5 minutes adds about a second to the next
+search) and the certificate reads are about 25 ms. Live search also accepts a
+kept matching vocabulary up to 24 hours old (`TYPING_MAX_AGE`) where the full
+search rereads it after 5 minutes, so the first keystroke after a pause never
+waits for the reread (0.2 to 1 s); words indexed since then get no prefix or
+typo alternatives while typing, but still match as typed. The vocabulary file
+keeps lists for that long, so a full search that saves it does not drop the
+list a keystroke would use. The dashboard's search box searches 60 ms after
+the last keystroke. A vocabulary cache older than 5 minutes adds about a second to the next
 search, live or not. Prefix alternatives are still the first eight in
 alphabetical order, not the most frequent; that limits what a very short
 prefix finds.
