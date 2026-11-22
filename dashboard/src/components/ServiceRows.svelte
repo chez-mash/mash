@@ -1,12 +1,25 @@
-<script lang="ts">
+<script module lang="ts">
 import Database from "@lucide/svelte/icons/database";
 import Eye from "@lucide/svelte/icons/eye";
-import Laptop from "@lucide/svelte/icons/laptop";
 import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
 import Plug from "@lucide/svelte/icons/plug";
 import Search from "@lucide/svelte/icons/search";
 import Server from "@lucide/svelte/icons/server";
-import { type Service, servicesHref } from "../lib/services.svelte";
+import type { Service } from "../lib/services.svelte";
+
+/** The icon for each kind of service, shared with a service's own page. */
+export const kindIcon = {
+  sqlite: Database,
+  qdrant: Search,
+  server: Server,
+  watcher: Eye,
+  mcp: Plug,
+  dashboard: LayoutDashboard,
+} as const;
+</script>
+
+<script lang="ts">
+import { servicesHref } from "../lib/services.svelte";
 import ServiceStatus from "./ServiceStatus.svelte";
 
 // Services as one list of rows, each opening that service's page. With
@@ -18,14 +31,6 @@ let {
   machines: readonly { readonly id: string; readonly services: readonly Service[] }[];
   showMachine?: boolean;
 } = $props();
-const kindIcon = {
-  sqlite: Database,
-  qdrant: Search,
-  server: Server,
-  watcher: Eye,
-  mcp: Plug,
-  dashboard: LayoutDashboard,
-} as const;
 </script>
 
 <div class="rws" class:solo={!showMachine}>
@@ -35,8 +40,8 @@ const kindIcon = {
       {@const Icon = kindIcon[entry.kind]}
       <a class="rw" href={servicesHref(machine.id, entry.id)}>
         <span class="rw-n"><Icon size={17} aria-hidden="true" /><strong>{entry.name}</strong></span>
-        {#if showMachine}<span><span class="mt"><Laptop size={12} aria-hidden="true" />{machine.id}</span></span>{/if}
-        <span><span class="mt">{entry.kind}</span></span>
+        {#if showMachine}<span>{machine.id}</span>{/if}
+        <span class="rw-kind">{entry.kind}</span>
         <ServiceStatus state={entry.state} label={entry.summary} />
       </a>
     {/each}

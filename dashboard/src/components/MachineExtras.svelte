@@ -21,26 +21,26 @@ const issues = $derived(problems(machine ? [machine] : []));
 </script>
 
 {#if machine?.reachable}
-  <section>
+  <section class="sec">
     <h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>
-    <div class="rws setup solo">
+    <div class="rws agentset solo">
       <div class="rw head" aria-hidden="true"><span>agent</span><span>parts</span><span>status</span></div>
       <MachineSetup {machineId} {enabled} showMachine={false} />
     </div>
-    <p class="meta" style:margin-top="10px">Mash reads settings and files for this; it does not start the agents.</p>
+    <p class="meta">Mash reads settings and files for this; it does not start the agents.</p>
   </section>
 {/if}
-<section>
+<section class="sec">
   <h2 class="h2"><Server size={15} aria-hidden="true" />services</h2>
   {#if fleet.isPending && enabled}<p class="meta" role="status">Checking services…</p>{/if}
   {#if fleet.error}<p class="meta" role="alert">{fleet.error.message}</p>{/if}
-  {#if fleet.data && !machine}<p class="meta">This machine is not in the dashboard's services configuration, so its services and agent setup are not reported.</p>{/if}
-  {#if machine && !machine.reachable}<p><span class="warn">Could not be reached.</span> {issues[0]?.fix}</p>{/if}
+  {#if fleet.data && !machine}<p class="card tight cream meta">This machine is not in the dashboard's services configuration, so its services and agent setup are not reported.</p>{/if}
+  {#if machine && !machine.reachable}<p class="card tight warn"><strong>Could not be reached.</strong> {issues[0]?.fix}</p>{/if}
   {#if machine?.reachable}
     <ServiceRows machines={[machine]} showMachine={false} />
     {#each issues.filter((issue) => issue.service) as issue (issue.service?.id)}
-      <p class="meta" style:margin-top="8px"><strong style:font-weight="600">{issue.service?.name}:</strong> {issue.fix}{issue.actions.length ? " Open it to do that." : ""}</p>
+      <p class="meta"><strong style:font-weight="600">{issue.service?.name}:</strong> {issue.fix}{issue.actions.length ? " Open it to do that." : ""}</p>
     {/each}
-    {#each machine.warnings as warning (warning)}<p class="meta" style:margin-top="8px">{warning}</p>{/each}
+    {#each machine.warnings as warning (warning)}<p class="meta">{warning}</p>{/each}
   {/if}
 </section>

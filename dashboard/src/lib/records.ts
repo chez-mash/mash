@@ -1,4 +1,5 @@
 import { read } from "./api";
+import { stableRead } from "./queries";
 import type { Answer, Wire } from "./routes";
 
 export const kinds = ["decision", "preference", "fact"] as const;
@@ -224,4 +225,47 @@ export function standing(revision: { review: string; details: Details }): string
   return revision.details.kind === "decision" && revision.details.decidedBy === "agent"
     ? "agent decided"
     : "established";
+}
+
+/** The fill of the pill that names a kind of memory (see .pill): a decision
+ * is butter, a fact mint, a preference plain paper. */
+export function kindPill(kind: Kind): "decision" | "ok" | "" {
+  return kind === "decision" ? "decision" : kind === "fact" ? "ok" : "";
+}
+/** The fill of a pill for a lifecycle state: in force is mint, replaced or
+ * taken back is red, proposed is plain. */
+export function statePill(state: Lifecycle): "ok" | "bad" | "" {
+  if (state === "accepted" || state === "active" || state === "current") return "ok";
+  if (state === "proposed") return "";
+  return "bad";
+}
+/** The fill of a pill for how settled a memory is: unconfirmed needs attention. */
+export function standingPill(value: string): "warn" | "" {
+  return value === "unconfirmed" ? "warn" : "";
+}
+
+/** One page of saved decisions, newest first; shared with the memory page's
+ * own list of decisions, so the two are read once. */
+export const decisionOptions = {
+  ...stableRead,
+  queryKey: ["records", "kind=decision"] as const,
+  queryFn: ({ signal }: { signal: AbortSignal }) => recordPage("kind=decision", signal),
+};
+/**
+ * How many decisions each chat produced, by chat id: a decision counts for
+ * every chat its current evidence quotes, once per chat. Withdrawn decisions
+ * no longer count. Only the records given are counted, so a count is a lower
+ * bound when the page was not the last.
+ */
+export function decisionsByChat(records: readonly NativeRecord[]): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const record of records) {
+    const current = record.revisions.find(
+      (revision) => revision.revision === record.currentRevision,
+    );
+    if (current?.details.kind !== "decision" || current.details.state === "withdrawn") continue;
+    for (const chat of new Set(current.evidence.map((source) => source.chatId)))
+      counts.set(chat, (counts.get(chat) ?? 0) + 1);
+  }
+  return counts;
 }

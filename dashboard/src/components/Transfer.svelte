@@ -24,6 +24,7 @@ import { navigate } from "../lib/navigation";
 import { catalogOptions } from "../lib/queries";
 import { type Applied, appliedHref, dateRanges, filtersOf, parseApplied } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
+import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import MetaChips from "./MetaChips.svelte";
 import QueryError from "./QueryError.svelte";
@@ -187,6 +188,8 @@ async function start(kind: BulkFormat): Promise<void> {
   }
 }
 
+/** The one agent chosen, whose mark stands in for the chip's icon. */
+const onlyAgent = $derived(applied.agents.length === 1 ? applied.agents[0] : undefined);
 const backup = "mash export ~/mash-backup";
 let copied = $state(false);
 async function copy(): Promise<void> {
@@ -200,17 +203,15 @@ async function copy(): Promise<void> {
 }
 </script>
 
-<div class="hd">
-  <div><h1 class="h1">Export chats</h1><p class="meta">Copy many chats out of Mash at once.</p></div>
-</div>
+<div><h1 class="h1">Export chats</h1><p class="meta" style:margin-top="6px">Copy many chats out of Mash at once.</p></div>
 
 <QueryError title="Couldn’t load chats" query={catalogue} />
-{#if catalogue.isPending}<Skeleton rows={5} />{/if}
+{#if catalogue.isPending}<div class="card pad0"><Skeleton rows={5} /></div>{/if}
 {#if catalogue.data}
   <div class="chips" role="group" aria-label="Filters">
     <FilterMenu label={chipLabel("agents", "agent")} active={applied.agents.length > 0} multiple options={options.agents} selected={applied.agents} choose={(value) => toggleFilter("agents", value)}>
-      {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={18} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={chipLabel("machines", "machine")} active={applied.machines.length > 0} multiple options={options.machines} selected={applied.machines} choose={(value) => toggleFilter("machines", value)}>
       {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
@@ -227,11 +228,13 @@ async function copy(): Promise<void> {
     >
       {#snippet icon()}<Clock size={15} aria-hidden="true" />{/snippet}
     </FilterMenu>
-    {#if filtered}<a class="a" href={base} style:font-size="13.5px" style:padding="0 6px">Clear filters</a>{/if}
+    {#if filtered}<a class="a" href={base} style:font-size="13px" style:padding="0 4px">Clear filters</a>{/if}
   </div>
 
-  <p class="meta" role="status" style:font-size="13.5px">
-    <b style:color="var(--text-strong)">{count(chosen.length, "chat")}</b> will be exported{#if !filtered}, which is every chat this dashboard lists{/if}.
+  <div class="cols xcols">
+  <div class="c-main">
+  <p role="status" style:font-size="14px" style:margin-bottom="12px">
+    <b>{count(chosen.length, "chat")}</b> will be exported{#if !filtered}, which is every chat this dashboard lists{/if}.
     {#if leftOut > 0}
       {count(leftOut, "chat")} left out by hand:
       <button class="a" type="button" onclick={() => { onlyLeftOut = !onlyLeftOut; go(applied); }}>{onlyLeftOut ? "show all" : "show them"}</button>
@@ -241,70 +244,78 @@ async function copy(): Promise<void> {
   </p>
 
   {#if !matching.length}
-    <div class="state-c"><p>No chat matches these filters.</p></div>
+    <EmptyState card>No chat matches these filters.</EmptyState>
   {:else}
     <section aria-label="Chats to export">
-      {#each shown as chat (chatKey(chat))}
-        {@const key = chatKey(chat)}
-        {@const included = !excluded.has(key)}
-        <div class="xrow" class:off={!included}>
-          <span style:min-width="0" style:flex="1">
-            <span class="row-t"><AgentMark agent={chat.agent} /><span>{plainTitle(chat.title)}</span></span>
-            <span class="elb" style:margin-top="2px"><MetaChips {chat} extra={included ? "" : "left out"} /></span>
-          </span>
-          <button class="a" type="button" aria-label="{included ? 'Leave out' : 'Include'} {plainTitle(chat.title)}" onclick={() => setIncluded(key, !included)}>{included ? "Leave out" : "Include"}</button>
-        </div>
-      {/each}
+      <div class="card pad0 list">
+        {#each shown as chat (chatKey(chat))}
+          {@const key = chatKey(chat)}
+          {@const included = !excluded.has(key)}
+          <div class="chatrow xrow" class:off={!included}>
+            <span class="chatrow-t">
+              <AgentMark agent={chat.agent} size="sm" /><b>{plainTitle(chat.title)}</b>
+              {#if !included}<span class="pill">left out</span>{/if}
+              <button class="a sp" type="button" aria-label="{included ? 'Leave out' : 'Include'} {plainTitle(chat.title)}" onclick={() => setIncluded(key, !included)}>{included ? "Leave out" : "Include"}</button>
+            </span>
+            <MetaChips {chat} />
+          </div>
+        {/each}
+      </div>
       {#if listed.length > pageSize}
         <nav class="hd" aria-label="Pages" style:margin-top="14px">
           <span class="meta">{(first + 1).toLocaleString()}–{(first + shown.length).toLocaleString()} of {count(listed.length, "chat")} · {shownChosen.toLocaleString()} of the {shown.length} on this page included</span>
           <span class="acts">
-            {#if first > 0}<a class="btn" rel="prev" href={appliedHref({ ...applied, offset: Math.max(0, first - pageSize) }, base)}><ChevronLeft size={15} aria-hidden="true" />Previous</a>{:else}<button class="btn" type="button" disabled><ChevronLeft size={15} aria-hidden="true" />Previous</button>{/if}
-            {#if first + pageSize < listed.length}<a class="btn" rel="next" href={appliedHref({ ...applied, offset: first + pageSize }, base)}>Next<ChevronRight size={15} aria-hidden="true" /></a>{:else}<button class="btn" type="button" disabled>Next<ChevronRight size={15} aria-hidden="true" /></button>{/if}
+            {#if first > 0}<a class="btn sm" rel="prev" href={appliedHref({ ...applied, offset: Math.max(0, first - pageSize) }, base)}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
+            {#if first + pageSize < listed.length}<a class="btn sm" rel="next" href={appliedHref({ ...applied, offset: first + pageSize }, base)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
           </span>
         </nav>
       {/if}
     </section>
   {/if}
+  </div>
 
-  <div class="grid-tiles" role="radiogroup" aria-label="What to make">
+  <section class="c-side" aria-labelledby="format-h">
+  <h2 class="h2" id="format-h"><FileText size={15} aria-hidden="true" />format</h2>
+  <div class="picks" role="radiogroup" aria-label="What to make">
     {#each formats as option (option.value)}
-      <label class="tile pick" class:on={format === option.value}>
-        <span class="tile-h"><option.icon size={22} color={option.tint} aria-hidden="true" /><b style:flex="1">{option.name}</b><input type="radio" name="format" value={option.value} bind:group={format} /></span>
-        <span class="meta" style:font-size="13.5px">{option.about}</span>
+      <label class="card pick" class:butter={format === option.value}>
+        <input class="radio" type="radio" name="format" value={option.value} bind:group={format} />
+        <span class="ico"><option.icon size={17} color={option.tint} aria-hidden="true" /></span>
+        <span style:min-width="0"><b>{option.name}</b><span class="pick-a">{option.about}</span></span>
       </label>
     {/each}
   </div>
 
   {#if format === "archive"}
-    <div class="tile">
+    <div class="card xcard">
       <b>Make a full backup on the machine itself</b>
-      <p class="meta" style:font-size="13.5px">A Mash archive always holds one machine’s whole history, so it ignores the filters above. Run this there, with a folder that does not exist yet:</p>
+      <p style:font-size="13px">A Mash archive always holds one machine’s whole history, so it ignores the filters above. Run this there, with a folder that does not exist yet:</p>
       <div class="cmdline"><code>{backup}</code><button type="button" aria-label={copied ? "Copied" : "Copy the command"} title={copied ? "Copied" : "Copy"} onclick={copy}>{#if copied}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
-      <p class="meta" style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
+      <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}
-    <div class="tile">
-      <p class="warn" style:display="flex" style:gap="8px" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them.</span></p>
-      <div class="hd">
-        <span class="acts">
-          <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Upload size={15} aria-hidden="true" />Export {count(chosen.length, "chat")}</button>
-          {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Square size={14} aria-hidden="true" />Stop</button>{/if}
-        </span>
-        <span class="meta" style:font-size="13px">Saved by your browser as one .zip file. Attachments are not included.</span>
-      </div>
+    <div class="card xcard">
+      <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them.</span></p>
+      <span class="acts">
+        <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Upload size={15} aria-hidden="true" />Export {count(chosen.length, "chat")}</button>
+        {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Square size={14} aria-hidden="true" />Stop</button>{/if}
+      </span>
       {#if job.state === "running"}
-        <div role="status">
-          <p class="meta" style:font-size="13.5px">Reading chat {Math.min(job.chats + 1, job.total).toLocaleString()} of {job.total.toLocaleString()} · {count(job.messages, "message")} so far. Keep this page open.</p>
+        <div role="status" style:display="flex" style:flex-direction="column" style:gap="8px">
           <span class="bar" role="progressbar" aria-label="Export progress" aria-valuemin={0} aria-valuemax={job.total} aria-valuenow={job.chats}><i style:width="{Math.round((job.chats / job.total) * 100)}%"></i></span>
+          <p style:font-size="13px">Reading chat {Math.min(job.chats + 1, job.total).toLocaleString()} of {job.total.toLocaleString()} · {count(job.messages, "message")} so far. Keep this page open.</p>
         </div>
-      {:else if job.state === "done"}
-        <p class="ok" role="status" style:font-size="13.5px">Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
       {:else if job.state === "stopped"}
-        <p class="meta" role="status" style:font-size="13.5px">Export stopped. Nothing was saved.</p>
+        <p class="meta" role="status">Export stopped. Nothing was saved.</p>
       {:else if job.state === "failed"}
-        <p class="warn" role="alert" style:font-size="13.5px">{job.reason}</p>
+        <p class="card tight bad" role="alert">{job.reason}</p>
       {/if}
+      <p class="meta" style:font-size="12.5px">Saved by your browser as one .zip file. Attachments are not included.</p>
     </div>
+    {#if job.state === "done"}
+      <p class="card tight ok" role="status" style:display="flex" style:gap="10px" style:align-items="center"><Check size={16} aria-hidden="true" style="flex:none" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
+    {/if}
   {/if}
+  </section>
+  </div>
 {/if}

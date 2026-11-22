@@ -3,6 +3,7 @@ import "./theme/fonts";
 import "./theme/tokens.css";
 import "./app.css";
 import "./terminal.css";
+import "./kit.css";
 
 import App from "./App.svelte";
 import { installNavigationBoundary } from "./lib/navigation";

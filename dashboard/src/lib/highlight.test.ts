@@ -8,12 +8,27 @@ test("a match at the start of the text is the part that is marked", () => {
   ]);
 });
 
-test("adjacent and trailing matches keep their marks", () => {
+test("a match marks the whole word it falls in, and trailing matches keep their marks", () => {
   expect(highlightParts("foofoo x bar", "foo bar")).toEqual([
-    { text: "foo", hit: true },
-    { text: "foo", hit: true },
+    { text: "foofoo", hit: true },
     { text: " x ", hit: false },
     { text: "bar", hit: true },
+  ]);
+  expect(highlightParts("the queues ran", "queue")).toEqual([
+    { text: "the ", hit: false },
+    { text: "queues", hit: true },
+    { text: " ran", hit: false },
+  ]);
+});
+
+test("words matched next to each other are one mark", () => {
+  expect(highlightParts("so invoice exports run, invoice. exports", "invoice exports")).toEqual([
+    { text: "so ", hit: false },
+    { text: "invoice exports", hit: true },
+    { text: " run, ", hit: false },
+    { text: "invoice", hit: true },
+    { text: ". ", hit: false },
+    { text: "exports", hit: true },
   ]);
 });
 

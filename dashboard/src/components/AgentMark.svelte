@@ -2,10 +2,9 @@
 import { agents } from "../lib/agents";
 import type { Agent } from "../lib/types";
 
-// Provider marks are single-colour drawings, drawn inside a small tile in the
-// agent's colour (see .mark.tint), so agents can be told apart at a glance.
-let { agent, size = 19 }: { agent: Agent; size?: number } = $props();
-const info = $derived(agents[agent]);
+// An agent's logo in its brand colour on a small ivory tile (see .mark in
+// terminal.css). The logo is inline SVG; lib/agents.ts says why.
+let { agent, size = "md" }: { agent: Agent; size?: "sm" | "md" | "lg" } = $props();
 </script>
 
-<span class="mark tint" aria-hidden="true" style:width="{size}px" style:height="{size}px" style:--mark-colour={info.tint} style:--mark-logo="url({info.logo})"></span>
+<span class="mark" class:sm={size === "sm"} class:lg={size === "lg"} aria-hidden="true" style:color={agents[agent].tint}>{@html agents[agent].logo}</span>

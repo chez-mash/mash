@@ -413,6 +413,7 @@ export function parseFleetCatalog(row: Answer<"/api/services/fleet">) {
   // `services` are targets that are a shared server on a machine; every other target is a machine.
   return { enabled: row.enabled, revision, actions: row.actions, services: row.services };
 }
+export type FleetJob = ReturnType<typeof parseFleetJob>;
 export function parseFleetJob(row: Wire["Job"]) {
   return {
     request: row.request satisfies FleetRequest,

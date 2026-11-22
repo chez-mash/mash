@@ -27,6 +27,13 @@ export function whenLabel(ms: number | undefined, now: number): string {
   });
 }
 
+/** How long ago in a sentence: `3h ago`, `just now`, or the date. */
+export function agoLabel(ms: number | undefined, now: number): string {
+  const when = whenLabel(ms, now);
+  if (when === "now") return "just now";
+  return /^\d+[mhd]$/.test(when) ? `${when} ago` : when;
+}
+
 /** Chats that share one value of a field, with what else is true of them. */
 export interface Group {
   readonly key: string;

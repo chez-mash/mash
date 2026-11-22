@@ -1,6 +1,6 @@
 <script lang="ts">
 import BadgeCheck from "@lucide/svelte/icons/badge-check";
-import Brain from "@lucide/svelte/icons/brain";
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
 import CircleDashed from "@lucide/svelte/icons/circle-dashed";
@@ -9,24 +9,30 @@ import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import Network from "@lucide/svelte/icons/network";
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+import SearchIcon from "@lucide/svelte/icons/search";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
 import { untrack } from "svelte";
+import { agentNamed } from "../lib/agents";
+import { asset } from "../lib/asset";
 import { whenLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
 import { catalogOptions, stableRead } from "../lib/queries";
 import { kindIcons, scopeIcons } from "../lib/recordIcons";
 import {
+  kindPill,
   kinds,
   label,
   recordPage,
   scopeLabel,
   scopeName,
   standing,
+  statePill,
   states,
   timingLabel,
 } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
+import AgentMark from "./AgentMark.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -119,16 +125,15 @@ const dirty = $derived(
 </script>
 
 <div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and facts, with the conversations behind them.</p></div>
-<nav class="chips" aria-label="Memory kind">
-  <a class="chip big-c" class:on={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Brain size={15} color="var(--hue-memory)" aria-hidden="true" />all</a>
+<nav class="chips" aria-label="Memory kind" style:gap="10px">
+  <a class="btn" class:sel={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Bookmark size={15} aria-hidden="true" />all</a>
   {#each kinds as value (value)}
     {@const Icon = kindIcons[value]}
-    <a class="chip big-c" class:on={kind === value} href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><Icon size={15} color="var(--hue-memory)" aria-hidden="true" />{label(value).toLowerCase()}s</a>
+    <a class="btn" class:sel={kind === value} href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><Icon size={15} aria-hidden="true" />{label(value).toLowerCase()}s</a>
   {/each}
 </nav>
-<form onsubmit={submit} class="chips" aria-label="Memory filters">
-  <label class="sr-only" for="memory-q">Search statements</label>
-  <input id="memory-q" class="field" type="search" bind:value={query} placeholder="find a statement" style:flex="1 1 220px" style:max-width="360px" />
+<form onsubmit={submit} class="chips" aria-label="Memory filters" style:gap="10px">
+  <label class="find"><SearchIcon size={15} aria-hidden="true" /><span class="sr-only">Search statements</span><input id="memory-q" type="search" bind:value={query} placeholder="find a statement" /></label>
   <FilterMenu label={lifecycle ? label(lifecycle).toLowerCase() : "any status"} active={!!lifecycle} draft={lifecycle !== (initial.get("state") ?? "")} options={[{ value: "", label: "any status" }, ...states.map((value) => ({ value, label: label(value).toLowerCase() }))]} selected={[lifecycle]} choose={(value) => (lifecycle = value)}>
     {#snippet icon()}<ListChecks size={15} aria-hidden="true" />{/snippet}
   </FilterMenu>
@@ -140,47 +145,51 @@ const dirty = $derived(
     {#snippet icon()}<Database size={15} aria-hidden="true" />{/snippet}
     {#snippet optionIcon(value: string)}{#if value === ""}<Laptop size={15} aria-hidden="true" />{:else if value === "shared"}<Network size={15} aria-hidden="true" />{:else}<Server size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
-  {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px">Apply filters</button>{/if}
-  <button class="a meta ic" type="button" disabled={page.isFetching} onclick={() => page.refetch()} style:min-height="30px" style:margin-left="auto"><RefreshCw size={14} aria-hidden="true" />{page.isFetching ? "checking…" : "check for updates"}</button>
+  {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
+  <button class="btn ghost sm" type="button" disabled={page.isFetching} onclick={() => page.refetch()} style:margin-left="auto"><RefreshCw size={14} aria-hidden="true" />{page.isFetching ? "checking…" : "check for updates"}</button>
 </form>
-{#if chat}<p class="meta">Memory citing chat <span style:overflow-wrap="anywhere">{chat}</span>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
+{#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load memory" query={page} />
 {#if page.data && !page.error}
   {#if !page.data.records.length}
-    <div class="state-c"><p>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions, preferences and facts as you state them."}</p></div>
+    <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions, preferences and facts as you state them."}</span></p>
+  {:else}
+    <section class="card pad0 list" aria-label="Memory">
+      {#each page.data.records as record (JSON.stringify([record.node, record.owner, record.id]))}
+        {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
+        {#if revision}
+          {@const Icon = kindIcons[revision.details.kind]}
+          {@const ScopeIcon = scopeIcons[record.scope.kind]}
+          {@const settled = standing(revision)}
+          {@const recorder = agentNamed(revision.recordedBy)}
+          <article class="chatrow mrow">
+            <span class="pills">
+              <span class="pill {kindPill(revision.details.kind)}"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span>
+              <span class="pill {statePill(revision.details.state)}">{label(revision.details.state).toLowerCase()}</span>
+              {#if settled !== "established"}<span class="pill warn">{settled}</span>{/if}
+              {#if !revision.evidenceCurrent}<span class="pill bad">stale evidence</span>{/if}
+              {#if record.conflicted}<span class="pill bad">conflicting records</span>{/if}
+              {#if timingLabel(revision, now)}<span class="pill warn">{timingLabel(revision, now)?.toLowerCase()}</span>{/if}
+            </span>
+            <a href={recordHref(record.id, record.node, recordsHref(new URLSearchParams(params)))}>{revision.statement}</a>
+            <span class="mts">
+              <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span>
+              <span class="mt"><Laptop size={12} aria-hidden="true" />{record.node || catalogue.data?.localNode || "this machine"}</span>
+              {#if revision.recordedBy}<span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}{revision.recordedBy}</span>{/if}
+              <span class="mtx">{whenLabel(revision.recordedAt, now)}</span>
+            </span>
+          </article>
+        {/if}
+      {/each}
+    </section>
   {/if}
-  <section>
-    {#each page.data.records as record (JSON.stringify([record.node, record.owner, record.id]))}
-      {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
-      {#if revision}
-        {@const Icon = kindIcons[revision.details.kind]}
-        {@const ScopeIcon = scopeIcons[record.scope.kind]}
-        <article style:padding="14px 0" style:border-bottom="var(--border-divider)">
-          <p class="mts">
-            <span class="mt kind"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span>
-            <span class="mt">{label(revision.details.state).toLowerCase()}</span>
-            {#if standing(revision) !== "established"}<span class="mt">{standing(revision)}</span>{/if}
-            {#if !revision.evidenceCurrent}<span class="mt caution">stale evidence</span>{/if}
-            {#if record.conflicted}<span class="mt caution">conflicting records</span>{/if}
-            {#if timingLabel(revision, now)}<span class="mt caution">{timingLabel(revision, now)?.toLowerCase()}</span>{/if}
-          </p>
-          <a href={recordHref(record.id, record.node, recordsHref(new URLSearchParams(params)))} style:display="block" style:margin-top="6px" style:font-size="15px" style:overflow-wrap="anywhere" style:white-space="pre-wrap">{revision.statement}</a>
-          <p class="mts" style:margin-top="7px">
-            <span class="mt" style:overflow-wrap="anywhere" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span>
-            <span class="mt"><Laptop size={12} aria-hidden="true" />{record.node || catalogue.data?.localNode || "this machine"}</span>
-            <span class="mtx">{whenLabel(revision.recordedAt, now)}</span>
-          </p>
-        </article>
-      {/if}
-    {/each}
-  </section>
   {#if initial.has("offset") || initial.has("cursor_node") || hasNext}
     <nav aria-label="Record pages" class="hd">
       <span class="meta">{page.data.records.length} on this page</span>
       <span class="acts">
-        <button class="btn" type="button" disabled={!(initial.has("offset") || initial.has("cursor_node"))} onclick={firstPage}><ChevronsLeft size={15} aria-hidden="true" />First page</button>
-        <button class="btn" type="button" disabled={!hasNext} onclick={nextPage}>Next page<ChevronRight size={15} aria-hidden="true" /></button>
+        <button class="btn sm" type="button" disabled={!(initial.has("offset") || initial.has("cursor_node"))} onclick={firstPage}><ChevronsLeft size={14} aria-hidden="true" />First page</button>
+        <button class="btn sm" type="button" disabled={!hasNext} onclick={nextPage}>Next page<ChevronRight size={14} aria-hidden="true" /></button>
       </span>
     </nav>
   {/if}

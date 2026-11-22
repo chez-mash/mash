@@ -1,4 +1,5 @@
 <script lang="ts">
+import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Terminal from "@lucide/svelte/icons/terminal";
 import { durationLabel, type ToolCall } from "../lib/toolcalls";
 import JsonView from "./JsonView.svelte";
@@ -26,10 +27,11 @@ const shown = $derived(
     <Terminal size={15} aria-hidden="true" />
     <span class="tc-n">{call.name}</span>
     <span class="tc-s">{call.summary}</span>
-    {#if call.status}<span class="mt" class:ok={!call.status.failed} class:bad={call.status.failed}><i class="dot" class:bad={call.status.failed}></i>{call.status.label}</span>{/if}
-    {#if call.durationMs !== undefined}<span class="mt">{durationLabel(call.durationMs)}</span>{/if}
-    {#if call.server}<span class="mt">{call.server}</span>{/if}
+    {#if call.status}<span class="pill" class:ok={!call.status.failed} class:bad={call.status.failed}><i class="dot" class:bad={call.status.failed}></i>{call.status.label}</span>{/if}
+    {#if call.durationMs !== undefined}<span class="pill">{durationLabel(call.durationMs)}</span>{/if}
+    {#if call.server}<span class="pill">{call.server}</span>{/if}
     <span class="mtx">{call.at}</span>
+    <span class="cv"><ChevronRight size={15} aria-hidden="true" /></span>
   </summary>
   <div class="tc-b">
     {#each call.args as argument (argument.key)}

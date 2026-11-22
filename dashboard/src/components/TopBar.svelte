@@ -144,10 +144,11 @@ function submit(event: SubmitEvent): void {
     }}
   >
     <form class="box" class:open={showDrop} onsubmit={submit}>
+      <Search size={15} aria-hidden="true" />
       {#each tags as tag (tag.label + tag.href)}<a class="tag" href={tag.href} aria-label="Remove filter {tag.label}" style:display="inline-flex" style:align-items="center" style:gap="4px">{tag.label}<X size={13} aria-hidden="true" /></a>{/each}
       <label for="q" class="sr-only">Search your history</label>
       <input id="q" autocomplete="off" placeholder="Search your history" bind:value={text} onkeydown={(event) => { if (event.key === "Escape") focused = false; }} />
-      <button class="go" type="submit" aria-label="Search"><Search size={16} /></button>
+      <button class="go" type="submit" aria-label="Search"><Search size={14} /></button>
     </form>
     {#if showDrop && suggestions}
       <div class="drop">
@@ -160,20 +161,19 @@ function submit(event: SubmitEvent): void {
         {#if said.length}
           <h4>chats that mention it</h4>
           {#each said as hit (hit.chat.machine + hit.chat.id)}
-            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size={18} /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
+            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size="sm" /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
           {/each}
         {:else if suggestions.chats.length}
           <h4>chats</h4>
           {#each suggestions.chats as chat (chat.machine + chat.id)}
-            <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size={18} /><span class="t"><span>{chat.title}</span></span></a>
+            <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size="sm" /><span class="t"><span>{chat.title}</span></span></a>
           {/each}
         {/if}
       </div>
     {/if}
   </div>
   <button id="theme" type="button" role="switch" aria-checked={theme.current === "dark"} aria-label="Dark mode" title={theme.current === "dark" ? "Switch to light mode" : "Switch to dark mode"} onclick={toggleTheme}>
-    <span class="knob" aria-hidden="true"></span>
-    <span class="ic" class:on={theme.current === "light"}><Sun size={15} aria-hidden="true" /></span>
-    <span class="ic" class:on={theme.current === "dark"}><Moon size={15} aria-hidden="true" /></span>
+    <span class="ic" class:on={theme.current === "light"}><Sun size={14} aria-hidden="true" /></span>
+    <span class="ic" class:on={theme.current === "dark"}><Moon size={14} aria-hidden="true" /></span>
   </button>
 </header>

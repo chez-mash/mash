@@ -1,13 +1,15 @@
 <script lang="ts">
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
-import Brain from "@lucide/svelte/icons/brain";
 import Clock from "@lucide/svelte/icons/clock";
 import Laptop from "@lucide/svelte/icons/laptop";
+import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
+import { asset } from "../lib/asset";
 import { groupChats } from "../lib/browse";
 import { catalogOptions, stableRead } from "../lib/queries";
-import { recordPage } from "../lib/records";
+import { decisionOptions, decisionsByChat, recordPage } from "../lib/records";
 import { agentHref, machineHref } from "../lib/route.svelte";
 import { statusOptions } from "../lib/status";
 import AgentMark from "./AgentMark.svelte";
@@ -26,46 +28,70 @@ const memories = createQuery(() => ({
 // Both lists follow the index by themselves (see lib/live.ts).
 const chats = $derived(catalogue.data?.chats ?? []);
 const recent = $derived(chats.slice(0, 8));
+// Chats that produced decisions say how many; the memory page reads the same list.
+const decisions = createQuery(() => decisionOptions);
+const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
 const machines = $derived(groupChats(chats, (chat) => chat.machine));
 const providers = $derived(groupChats(chats, (chat) => chat.agent));
 </script>
 
 <h1 class="sr-only">Overview</h1>
-{#if status.data && !status.data.configuration.loaded}<p class="meta warn" style:margin-bottom="12px">Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</p>{/if}
+{#if status.data && !status.data.configuration.loaded}<p class="card tight warn" style:display="flex" style:gap="10px" style:align-items="flex-start"><TriangleAlert size={17} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</span></p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <div class="cols">
   <section class="c-main">
-    <div class="hd">
+    <div class="hd" style:margin-bottom="14px">
       <h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2>
-      <span class="acts">
-        {#if chats.length}<a class="meta" href="#/search" style:display="inline-flex" style:align-items="center" style:min-height="44px">1–{recent.length} of {chats.length.toLocaleString()}</a>{/if}
-      </span>
+      {#if chats.length}<a class="a" href="#/search" style:font-size="12.5px">1–{recent.length} of {chats.length.toLocaleString()}</a>{/if}
     </div>
-    {#if catalogue.isPending}<Skeleton rows={8} />{/if}
-    {#each recent as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
-    {#if catalogue.data && !chats.length}<p class="meta">No indexed chats yet. <a class="a" href="https://getmash.io/synchronization/#refresh-now">Update your chat history</a>.</p>{/if}
-    {#each catalogue.data?.warnings ?? [] as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
+    {#if catalogue.isPending}<div class="card pad0"><Skeleton rows={8} /></div>{/if}
+    {#if recent.length}
+      <div class="card pad0 list">
+        {#each recent as chat (chat.machine + chat.id)}<ChatRow {chat} icons={false} decisions={decided.get(chat.id) ?? 0} />{/each}
+      </div>
+    {/if}
+    {#if catalogue.data && !chats.length}
+      <div class="card empty">
+        <img src={asset("mashy.png")} alt="" />
+        <p>No indexed chats yet. <a class="a" href="https://getmash.io/synchronization/#refresh-now">Update your chat history</a>.</p>
+      </div>
+    {/if}
+    {#each catalogue.data?.warnings ?? [] as warning (warning)}<p class="meta" role="status" style:margin-top="10px">{warning}</p>{/each}
   </section>
   <div class="c-side">
     <section>
-      <h2 class="h2"><a href="#/records?"><Brain size={15} aria-hidden="true" />recent memories</a></h2>
-      {#if memories.isPending}<Skeleton rows={3} />{/if}
-      {#each (memories.data?.records ?? []).slice(0, 4) as record (record.node + record.id)}<MemoryRow {record} />{/each}
-      {#if memories.data && !memories.data.records.length}<p class="meta">Nothing saved yet. Agents save decisions and preferences as you state them.</p>{/if}
+      <h2 class="h2" style:margin-bottom="14px"><a href="#/records?"><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
+      {#if memories.isPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
+      {#if memories.data?.records.length}
+        <div class="card pad0 list">
+          {#each memories.data.records.slice(0, 4) as record (record.node + record.id)}<MemoryRow {record} />{/each}
+        </div>
+      {/if}
+      {#if memories.data && !memories.data.records.length}<p class="card tight cream">Nothing saved yet. Agents save decisions and preferences as you state them.</p>{/if}
       <QueryError title="Couldn’t load memory" query={memories} />
     </section>
-    <section>
-      <h2 class="h2"><a href="#/machines"><Laptop size={15} aria-hidden="true" />machines</a></h2>
-      {#each machines as machine (machine.key)}
-        <a class="li" href={machineHref(machine.key)}><i class="dot"></i><Laptop size={16} aria-hidden="true" /><span class="g">{machine.key}</span><span class="n">{machine.chats.length.toLocaleString()}</span></a>
-      {/each}
-    </section>
-    <section>
-      <h2 class="h2"><a href="#/agents"><Bot size={15} aria-hidden="true" />agents</a></h2>
-      {#each providers as provider (provider.key)}
-        {@const agent = provider.chats[0]?.agent}
-        {#if agent}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={18} /><span class="g">{agentInfo[agent].name}</span><span class="n">{provider.chats.length.toLocaleString()}</span></a>{/if}
-      {/each}
-    </section>
+    <div class="g2">
+      <section>
+        <h2 class="h2" style:margin-bottom="14px"><a href="#/machines"><Laptop size={15} aria-hidden="true" />machines</a></h2>
+        {#if machines.length}
+          <div class="card tight tally">
+            {#each machines as machine (machine.key)}
+              <a class="li" href={machineHref(machine.key)}><i class="dot"></i><b class="g">{machine.key}</b><span class="num">{machine.chats.length.toLocaleString()}</span></a>
+            {/each}
+          </div>
+        {/if}
+      </section>
+      <section>
+        <h2 class="h2" style:margin-bottom="14px"><a href="#/agents"><Bot size={15} aria-hidden="true" />agents</a></h2>
+        {#if providers.length}
+          <div class="card tight tally">
+            {#each providers as provider (provider.key)}
+              {@const agent = provider.chats[0]?.agent}
+              {#if agent}<a class="li" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b class="g">{agentInfo[agent].name}</b><span class="num">{provider.chats.length.toLocaleString()}</span></a>{/if}
+            {/each}
+          </div>
+        {/if}
+      </section>
+    </div>
   </div>
 </div>

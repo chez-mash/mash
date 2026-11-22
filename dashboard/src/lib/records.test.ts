@@ -72,3 +72,38 @@ describe("record API boundary", () => {
     ).toEqual({ records: [], nextOffset: null, nextCursor: { node: "remote", offset: 20 } });
   });
 });
+
+describe("decisions by chat", () => {
+  const decision = (id: string, chats: string[], state = "accepted") => {
+    const fixture = recordFixture(id, "decision");
+    const [revision] = fixture.revisions;
+    if (!revision) throw new Error("fixture without a revision");
+    return parseRecord({
+      ...fixture,
+      revisions: [
+        {
+          ...revision,
+          body: { ...revision.body, details: { ...revision.body.details, state } },
+          evidence: chats.map((chat, index) => ({
+            ...revision.evidence[0],
+            chat_id: chat,
+            message_id: `message-${index}`,
+          })),
+        },
+      ],
+    });
+  };
+
+  it("counts each decision once for every chat its evidence quotes", () => {
+    const counts = wire.decisionsByChat([
+      decision("a", ["chat-1", "chat-1"]),
+      decision("b", ["chat-1", "chat-2"]),
+      parseRecord(recordFixture("c", "fact")),
+    ]);
+    expect(Object.fromEntries(counts)).toEqual({ "chat-1": 2, "chat-2": 1 });
+  });
+
+  it("leaves out withdrawn decisions", () => {
+    expect(wire.decisionsByChat([decision("a", ["chat-1"], "withdrawn")]).size).toBe(0);
+  });
+});

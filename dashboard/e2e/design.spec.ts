@@ -73,17 +73,20 @@ for (const width of [1440, 390]) {
     await expect(page).toHaveURL(/#\/machine\/local$/);
     await expect(page.getByRole("heading", { name: "local", exact: true })).toBeVisible();
     await page.goBack();
-    // The agent's mark is its logo used as a mask over the agent's colour,
-    // drawn inside the mark's tile: the logo must load and the colour must not
-    // be transparent.
-    const mark = await recentChat.locator(".mark").evaluate(async (element) => {
-      const style = getComputedStyle(element, "::before");
-      const source = /url\("?([^")]+)"?\)/.exec(style.maskImage || style.webkitMaskImage)?.[1];
-      const logo = source ? await fetch(source) : null;
-      return { loaded: logo?.ok === true, colour: style.backgroundColor };
+    // The agent's mark is its logo, inline SVG in the brand colour, on an
+    // ivory tile: the logo must have a size and a colour, and the tile must
+    // not be transparent.
+    const logo = recentChat.locator(".mark svg");
+    const drawn = await logo.evaluate((svg) => {
+      const box = svg.getBoundingClientRect();
+      return { width: box.width, colour: getComputedStyle(svg).color };
     });
-    expect(mark.loaded).toBe(true);
-    expect(mark.colour).not.toBe("rgba(0, 0, 0, 0)");
+    expect(drawn.width).toBeGreaterThan(0);
+    expect(drawn.colour).not.toBe("rgba(0, 0, 0, 0)");
+    const tile = await recentChat
+      .locator(".mark")
+      .evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(tile).not.toBe("rgba(0, 0, 0, 0)");
     const open = page.getByRole("button", { name: "Open navigation" });
     if (width < 800) {
       // The rail is a drawer on a narrow screen: hidden until asked for.

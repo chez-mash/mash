@@ -41,7 +41,7 @@ let root: HTMLDivElement;
 />
 <div class="fwrap" bind:this={root}>
   <button class="chip" class:on={active} class:draft type="button" aria-haspopup="true" aria-expanded={open} onclick={() => (open = !open)}>
-    {@render icon()}{label}<ChevronDown size={12} color="var(--text-muted)" aria-hidden="true" />
+    {@render icon()}{label}<ChevronDown size={13} aria-hidden="true" />
   </button>
   {#if open}
     <div class="fmenu" role="group" aria-label={label}>
@@ -56,7 +56,7 @@ let root: HTMLDivElement;
             if (!multiple) open = false;
           }}
         >
-          <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Check size={14} color="var(--selected-mark)" aria-hidden="true" />{/if}</span>
+          <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Check size={14} aria-hidden="true" />{/if}</span>
           <span class="oi">{#if optionIcon}{@render optionIcon(option.value)}{:else}{@render icon()}{/if}</span>
           <span class="g">{option.label}</span>
           {#if option.count !== undefined}<span class="n">{option.count.toLocaleString()}</span>{/if}

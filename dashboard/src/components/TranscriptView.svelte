@@ -1,5 +1,5 @@
 <script lang="ts">
-import Brain from "@lucide/svelte/icons/brain";
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -471,6 +471,18 @@ const prompts = $derived(
     }
   }}
 />
+<!-- The same controls above and below the messages. Around a search match
+     there are no pages to step through, only the two ends. -->
+{#snippet pager(name: string, place: string)}
+  <nav aria-label={name} class="pager {place}">
+    <button class="btn sm icon" type="button" disabled={!anchor && offset === 0} onclick={() => page(0)} aria-label="First message" title="First message"><ChevronsLeft size={14} aria-hidden="true" /></button>
+    {#if !anchor}
+      <button class="btn sm icon" type="button" disabled={offset === 0} onclick={() => page(Math.max(0, offset - PAGE_SIZE))} aria-label="Previous messages" title="Previous messages"><ChevronLeft size={14} aria-hidden="true" /></button>
+      <button class="btn sm icon" type="button" disabled={(loaded?.messages.length ?? 0) < PAGE_SIZE} onclick={() => page(offset + PAGE_SIZE)} aria-label="Next messages" title="Next messages"><ChevronRight size={14} aria-hidden="true" /></button>
+    {/if}
+    {#if lastOffset !== undefined}<button class="btn sm icon" type="button" disabled={!anchor && offset === lastOffset} onclick={latest} aria-label="Latest message" title="Latest message"><ChevronsRight size={14} aria-hidden="true" /></button>{/if}
+  </nav>
+{/snippet}
 <div class="chat" class:nosess={!showSessions} class:sessopen={sessionsOpen}>
   <nav class="sess" aria-label="Prompts and sessions">
     {#if phone && sessionsOpen}<button class="btn sessclose" type="button" onclick={() => closeSessions(true)}><X size={15} aria-hidden="true" />Back to chat</button>{/if}
@@ -485,32 +497,31 @@ const prompts = $derived(
       </div>
     {/if}
     {#if chat?.project}<h2 class="h2"><a href={projectHref(chat.project)}><Folder size={15} aria-hidden="true" />{projectLabel(chat.project)} sessions</a></h2>{/if}
-    {#each projectSessions as session (session.machine + session.id)}
-      {@const current = session.id === id && session.machine === displayMachine}
-      <a class="ses" class:on={current} href={chatHref(session.id, session.machine)} aria-current={current ? "page" : undefined}><AgentMark agent={session.agent} /><span><span class="clamp">{session.title}</span><small>{whenLabel(session.updatedMs, now)}</small></span></a>
-    {/each}
-    <h2 class="h2" style:margin-top="10px"><a href={recordsHref(memoryParams)}><Brain size={15} aria-hidden="true" />memory from this chat</a></h2>
+    {#if projectSessions.length}
+      <div class="card pad0 list sess-l">
+        {#each projectSessions as session (session.machine + session.id)}
+          {@const current = session.id === id && session.machine === displayMachine}
+          <a class="chatrow ses" class:on={current} href={chatHref(session.id, session.machine)} aria-current={current ? "page" : undefined}><AgentMark agent={session.agent} size="sm" /><span><span class="clamp">{session.title}</span><small>{whenLabel(session.updatedMs, now)}</small></span></a>
+        {/each}
+      </div>
+    {/if}
+    <h2 class="h2"><a href={recordsHref(memoryParams)}><Bookmark size={15} aria-hidden="true" />memory from this chat</a></h2>
     {#if memories.error}<p class="meta" role="alert">{memories.error.message}</p>{/if}
     {#each memories.data?.records ?? [] as record (record.id)}
       {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
-      {#if revision}<a class="ses" href={recordHref(record.id, record.node, recordsHref(memoryParams))}><span><span class="clamp">{revision.statement}</span><small>{label(revision.details.kind).toLowerCase()} / {label(revision.details.state).toLowerCase()}</small></span></a>{/if}
+      {#if revision}<a class="card tight butter saved" href={recordHref(record.id, record.node, recordsHref(memoryParams))}><b class="clamp">{revision.statement}</b><small>{label(revision.details.kind).toLowerCase()} / {label(revision.details.state).toLowerCase()}</small></a>{/if}
     {/each}
-    {#if memories.data && !memories.data.records.length}<p class="meta" style:padding="0 10px">Nothing saved from this chat.</p>{/if}
+    {#if memories.data && !memories.data.records.length}<p class="card tight cream" style:font-size="13px">Nothing saved from this chat.</p>{/if}
   </nav>
   <article class="log" bind:this={transcriptPane}>
-    <header class="hd" style:align-items="flex-start">
-      <div style:min-width="0">
-        <h1 class="h1">{chat ? plainTitle(chat.title) : `Chat ${id.slice(-8)}`}</h1>
-        <p class="meta" style:margin-top="8px">
-          {#if chat}<MetaChips {chat} />{:else}{displayMachine}{/if}
-          <span class="mtx">{anchor ? "around the selected message" : total ? `messages ${(offset + 1).toLocaleString()}–${Math.min(offset + PAGE_SIZE, total).toLocaleString()} of ${total.toLocaleString()}` : `messages ${(offset + 1).toLocaleString()}–${(offset + PAGE_SIZE).toLocaleString()}`}</span>
-        </p>
-      </div>
-      <span class="acts" style:position="relative">
-        <button class="btn" type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={toggleSessions} style:padding="0 11px"><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
+    <header class="chat-h">
+      <h1 class="h1">{chat ? plainTitle(chat.title) : `Chat ${id.slice(-8)}`}</h1>
+      <div class="acts">
+        <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={toggleSessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
         <button class="btn" type="button" aria-expanded={findOpen} onclick={openFind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
         <button class="btn" type="button" onclick={copySession}><Copy size={15} aria-hidden="true" />Copy session ID</button>
-        <button class="btn" type="button" aria-expanded={exportOpen} onclick={() => (exportOpen = !exportOpen)}><Download size={15} aria-hidden="true" />Export</button>
+        <span style:position="relative">
+        <button class="btn" type="button" aria-expanded={exportOpen} onclick={() => (exportOpen = !exportOpen)}><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</button>
         {#if exportOpen}
           <div class="menu">
             <button type="button" disabled={exporting || !loaded} onclick={() => { exportOpen = false; void exportChat("pdf"); }}><Printer size={15} aria-hidden="true" />Export to PDF</button>
@@ -518,8 +529,14 @@ const prompts = $derived(
             <button type="button" disabled={exporting || !loaded} onclick={() => { exportOpen = false; void exportChat("markdown"); }}><FileText size={15} aria-hidden="true" />Export to Markdown</button>
           </div>
         {/if}
-        <button class="btn" type="button" aria-label="Check for updates" title="Check for updates" disabled={live.isFetching} onclick={() => live.refetch()} style:padding="0 11px"><RefreshCw size={15} /></button>
-      </span>
+        </span>
+        <button class="btn icon" type="button" aria-label="Check for updates" title="Check for updates" disabled={live.isFetching} onclick={() => live.refetch()}><RefreshCw size={15} /></button>
+      </div>
+      <div class="mts chat-m">
+        {#if chat}<MetaChips {chat} agentMark />{:else}<span class="mtx">{displayMachine}</span>{/if}
+        <span class="mtx">{anchor ? "around the selected message" : total ? `messages ${(offset + 1).toLocaleString()}–${Math.min(offset + PAGE_SIZE, total).toLocaleString()} of ${total.toLocaleString()}` : `messages ${(offset + 1).toLocaleString()}–${(offset + PAGE_SIZE).toLocaleString()}`}</span>
+        {#if loaded}{@render pager("Message pages", "start")}{/if}
+      </div>
     </header>
     {#if findOpen}
       <div class="findbar" role="search">
@@ -541,19 +558,18 @@ const prompts = $derived(
           }}
         />
         <span class="findn" role="status">{findStatus}</span>
-        <button class="btn" type="button" aria-label="Previous match" title="Previous match" disabled={!matches.length} onclick={() => go(-1)}><ChevronUp size={16} /></button>
-        <button class="btn" type="button" aria-label="Next match" title="Next match" disabled={!matches.length} onclick={() => go(1)}><ChevronDown size={16} /></button>
-        <button class="btn" type="button" aria-label="Close find" title="Close find" onclick={closeFind}><X size={16} /></button>
+        <button class="btn sm icon" type="button" aria-label="Previous match" title="Previous match" disabled={!matches.length} onclick={() => go(-1)}><ChevronUp size={15} /></button>
+        <button class="btn sm icon" type="button" aria-label="Next match" title="Next match" disabled={!matches.length} onclick={() => go(1)}><ChevronDown size={15} /></button>
+        <button class="btn sm icon ghost" type="button" aria-label="Close find" title="Close find" onclick={closeFind}><X size={15} /></button>
       </div>
     {/if}
-    {#if exporting}<p class="meta"><button class="a" type="button" onclick={() => exportController?.abort()}>Cancel export</button></p>{/if}
-    {#if anchor}<p class="meta">Showing messages around the selected message.</p>{/if}
+    {#if exporting}<p class="card tight cream" style:display="flex" style:font-size="12.5px"><button class="a sp" type="button" onclick={() => exportController?.abort()}>Cancel export</button></p>{/if}
     <QueryError title="Couldn’t load the chat list" query={catalogue} retryLabel="Retry catalogue" />
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p role="status" class="meta">{warning}</p>{/each}
     {#if live.isPending}
-      <div class="state-c" role="status">
-        <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--accent)" aria-hidden="true" />Loading messages…</p>
-        <div class="skel" style:width="82%"></div><div class="skel" style:width="64%"></div><div class="skel" style:width="74%"></div>
+      <div class="card" role="status">
+        <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />Loading messages…</p>
+        <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
       </div>
     {/if}
     <QueryError title="Couldn’t load this conversation" query={live} />
@@ -561,25 +577,12 @@ const prompts = $derived(
     {#if notice}<p role="status" class="meta">{notice}</p>{/if}
     <div class="newpill" aria-live="polite">{#if added && !sessionsOpen}<button type="button" class="btn p" onclick={showNew}><ChevronsDown size={15} aria-hidden="true" />{added.toLocaleString()} new message{added === 1 ? "" : "s"}</button>{/if}</div>
     {#if loaded}
-      <!-- The same controls above and below the messages. Around a search
-           match there are no pages to step through, only the two ends. -->
-      {#snippet pager(name: string, place: string)}
-        <nav aria-label={name} class="pager {place}">
-          <button class="btn" type="button" disabled={!anchor && offset === 0} onclick={() => page(0)} aria-label="First message" title="First message"><ChevronsLeft size={15} aria-hidden="true" /></button>
-          {#if !anchor}
-            <button class="btn" type="button" disabled={offset === 0} onclick={() => page(Math.max(0, offset - PAGE_SIZE))} aria-label="Previous messages" title="Previous messages"><ChevronLeft size={15} aria-hidden="true" /></button>
-            <button class="btn" type="button" disabled={loaded.messages.length < PAGE_SIZE} onclick={() => page(offset + PAGE_SIZE)} aria-label="Next messages" title="Next messages"><ChevronRight size={15} aria-hidden="true" /></button>
-          {/if}
-          {#if lastOffset !== undefined}<button class="btn" type="button" disabled={!anchor && offset === lastOffset} onclick={latest} aria-label="Latest message" title="Latest message"><ChevronsRight size={15} aria-hidden="true" /></button>{/if}
-        </nav>
-      {/snippet}
-      {@render pager("Message pages", "start")}
-      {#if !loaded.messages.length}<div class="state-c"><p>No messages at this position. The chat may have been removed, or this is the end.</p></div>{/if}
+      {#if !loaded.messages.length}<p class="card tight cream" style:font-size="13.5px">No messages at this position. The chat may have been removed, or this is the end.</p>{/if}
       {#snippet saved(message: Message)}
         {#each memories.data?.records ?? [] as record (record.id)}
           {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
           {#if revision?.evidence.some((source) => source.messageId === message.id)}
-            <a class="meta a" href={recordHref(record.id, record.node, recordsHref(memoryParams))} style:align-self={message.role === "user" ? "flex-end" : "flex-start"} style:margin-top="12px">Saved as {label(revision.details.kind).toLowerCase()}: {revision.statement}</a>
+            <a class="a saved-as" href={recordHref(record.id, record.node, recordsHref(memoryParams))} style:align-self={message.role === "user" ? "flex-end" : "flex-start"}>Saved as {label(revision.details.kind).toLowerCase()}: {revision.statement}</a>
           {/if}
         {/each}
       {/snippet}
@@ -587,7 +590,7 @@ const prompts = $derived(
       {#snippet note(message: Message)}
         {@const context = message.presentation === "context"}
         <details class="fold" class:hit={message.id === messageId} id="message-{message.id}" data-message={message.id} open={message.id === messageId} style:scroll-margin-top="80px">
-          <summary>{#if context}<FileText size={15} aria-hidden="true" />{:else}<Lightbulb size={15} aria-hidden="true" />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span></summary>
+          <summary>{#if context}<FileText size={15} aria-hidden="true" />{:else}<Lightbulb size={15} aria-hidden="true" />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary>
           <div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div>
         </details>
         {@render saved(message)}
@@ -602,7 +605,7 @@ const prompts = $derived(
             {@render note(only)}
           {:else}
             <details class="fold" open={item.messages.some((message) => message.id === messageId)}>
-              <summary><Terminal size={16} aria-hidden="true" />{stepsSummary(item)}</summary>
+              <summary><Terminal size={15} aria-hidden="true" />{stepsSummary(item)}<span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary>
               <div>
                 {#each stepParts(item) as part (part.kind === "call" ? part.call.id : part.message.id)}
                   {#if part.kind === "call"}
@@ -622,7 +625,7 @@ const prompts = $derived(
             {#if selected}<span class="hitlabel">Linked message</span>{/if}
             {#if message.role === "user"}
               <div class="you"><MessageBody text={saidText(message)} own />{@render actions(message)}</div>
-              {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
+              {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
                 {#each message.blocks as block, i (i)}
@@ -630,7 +633,7 @@ const prompts = $derived(
                 {/each}
                 {@render actions(message)}
               </div>
-              {#if message.activity}<details class="fold"><summary><Terminal size={16} aria-hidden="true" />Recorded tool activity</summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}
+              {#if message.activity}<details class="fold"><summary><Terminal size={15} aria-hidden="true" />Recorded tool activity<span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}
             {/if}
             {@render saved(message)}
           </div>

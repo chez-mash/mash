@@ -1,6 +1,6 @@
 <script lang="ts">
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
-import Brain from "@lucide/svelte/icons/brain";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Clock from "@lucide/svelte/icons/clock";
 import Download from "@lucide/svelte/icons/download";
@@ -20,9 +20,9 @@ import { untrack } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
-import { catalogOptions } from "../lib/queries";
+import { catalogOptions, stableRead } from "../lib/queries";
 import { kindIcons } from "../lib/recordIcons";
-import { label as kindLabel, kinds } from "../lib/records";
+import { getRecord, label as kindLabel, kinds } from "../lib/records";
 import { agentHref, machineHref, projectHref, recordsHref, router } from "../lib/route.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
 import AgentMark from "./AgentMark.svelte";
@@ -65,7 +65,7 @@ const sections = [
     icon: Folder,
     tile: "var(--tile-projects)",
   },
-  { id: "memory", label: "memory", href: "#/records?", icon: Brain, tile: "var(--tile-memory)" },
+  { id: "memory", label: "memory", href: "#/records?", icon: Bookmark, tile: "var(--tile-memory)" },
   {
     id: "services",
     label: "services",
@@ -142,6 +142,25 @@ const area = $derived.by((): Section | "" => {
       return "";
   }
 });
+// A memory's own page lights its kind once the memory is read; the query is
+// the page's own, so this reads the same answer rather than asking again.
+const opened = createQuery(() => {
+  const id = route.page === "record" ? route.id : "";
+  const node = route.page === "record" ? route.node : "";
+  return {
+    ...stableRead,
+    queryKey: ["record", id, node, null, 0],
+    enabled: route.page === "record",
+    queryFn: ({ signal }: { signal: AbortSignal }) => getRecord(id, node, null, 0, signal),
+  };
+});
+const openedKind = $derived.by(() => {
+  const record = opened.data;
+  const current = record?.revisions.find(
+    (revision) => revision.revision === record.currentRevision,
+  );
+  return current?.details.kind ?? "";
+});
 // A row is the current page only while none of its children is.
 const child = $derived.by((): string => {
   if (route.page === "search") return "recent";
@@ -151,6 +170,7 @@ const child = $derived.by((): string => {
   if (route.page === "machine") return route.id;
   if (route.page === "project") return route.name;
   if (route.page === "records") return new URLSearchParams(route.params).get("kind") ?? "";
+  if (route.page === "record") return openedKind;
   return "";
 });
 let expanded = $state<readonly Section[]>([]);
@@ -165,7 +185,7 @@ $effect(() => {
 });
 
 // The reader can drag the edge to set the width, which this browser keeps.
-const widths = { least: 180, usual: 216, most: 440 } as const;
+const widths = { least: 180, usual: 252, most: 440 } as const;
 function stored(): number {
   try {
     const width = Number(localStorage.getItem("mash.rail.width"));
@@ -215,6 +235,7 @@ function toggle(id: Section): void {
 </script>
 
 <aside id="rail" class:open style:--rail-width="{width}px">
+  <div class="rail-in">
   <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i aria-hidden="true">_</i></span></a>
   <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
   <nav class="nav" aria-label="Main">
@@ -222,20 +243,21 @@ function toggle(id: Section): void {
       {@const on = section.id === area && !child}
       {@const isOpen = expanded.includes(section.id)}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico" style:background={section.tile}><section.icon size={16} aria-hidden="true" /></span>{section.label}</a>
+        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span>{section.label}</a>
         {#if expandable.includes(section.id)}
-          <button class="chev" type="button" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={15} /></button>
+          <button class="chev" type="button" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={14} /></button>
         {/if}
       </div>
       {#if isOpen}
+        <div class="subs">
         {#if section.id === "chats"}
-          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={16} color="var(--hue-chats)" aria-hidden="true" /><span>recent chats</span></a>
-          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={16} color="var(--hue-chats)" aria-hidden="true" /><span>viewing history</span></a>
-          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={16} color="var(--hue-chats)" aria-hidden="true" /><span>export chats</span></a>
+          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>recent chats</span></a>
+          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>viewing history</span></a>
+          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={14} aria-hidden="true" /><span>export chats</span></a>
         {:else if section.id === "agents"}
           {#each providers as provider (provider.key)}
             {@const agent = provider.chats[0]?.agent}
-            {#if agent}<a class="sub" class:on={child === agent} href={agentHref(agent)} onclick={close}><AgentMark {agent} size={18} /><span>{agentInfo[agent].name}</span></a>{/if}
+            {#if agent}<a class="sub" class:on={child === agent} href={agentHref(agent)} onclick={close}><AgentMark {agent} size="sm" /><span>{agentInfo[agent].name}</span></a>{/if}
           {/each}
         {:else if section.id === "machines"}
           {#each machines as machine (machine.key)}
@@ -243,14 +265,15 @@ function toggle(id: Section): void {
           {/each}
         {:else if section.id === "projects"}
           {#each projects as project (project.key)}
-            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={15} color="var(--hue-projects)" aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
+            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={14} aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
           {/each}
         {:else if section.id === "memory"}
           {#each kinds as kind (kind)}
             {@const KindIcon = kindIcons[kind]}
-            <a class="sub" class:on={child === kind} href={recordsHref(new URLSearchParams({ kind }))} onclick={close}><KindIcon size={16} color="var(--hue-memory)" aria-hidden="true" /><span>{kindLabel(kind).toLowerCase()}s</span></a>
+            <a class="sub" class:on={child === kind} href={recordsHref(new URLSearchParams({ kind }))} onclick={close}><KindIcon size={14} aria-hidden="true" /><span>{kindLabel(kind).toLowerCase()}s</span></a>
           {/each}
         {/if}
+        </div>
       {/if}
     {/each}
     <div class="status" style:margin-top="auto" style:padding-top="14px">
@@ -258,6 +281,7 @@ function toggle(id: Section): void {
       <button class="a" type="button" disabled={catalogue.isFetching} onclick={() => catalogue.refetch()} style:display="flex" style:align-items="center" style:gap="6px" style:min-height="32px"><RefreshCw size={14} aria-hidden="true" />{catalogue.isFetching ? "reloading…" : "reload chat list"}</button>
     </div>
   </nav>
+  </div>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <div id="rail-grip" class:on={dragging} role="separator" aria-orientation="vertical" aria-label="Resize navigation" aria-valuemin={widths.least} aria-valuemax={widths.most} aria-valuenow={width} tabindex="0" onpointerdown={grip} onkeydown={nudge} ondblclick={() => resize(widths.usual)}></div>
 </aside>

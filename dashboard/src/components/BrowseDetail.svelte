@@ -51,45 +51,51 @@ const now = Date.now();
 </script>
 
 {#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label}</a>{/if}
-<div class="hd">
-  <div style:display="flex" style:align-items="center" style:gap="14px">
-    {@render icon()}
-    <div style:min-width="0"><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chats</p></div>
-  </div>
+<div class="dh">
+  {@render icon()}
+  <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}</p></div>
 </div>
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
 {#if catalogue.data && !group}<div class="state-c"><p>No indexed chats here.</p></div>{/if}
 {#if group}
-  <nav class="stat" aria-label="Summary">
-    <a href={searchHref({ [field]: value })}><span class="k"><MessagesSquare size={14} aria-hidden="true" />chats</span><span class="v">{chats.length.toLocaleString()}</span></a>
-    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="k"><Bot size={14} aria-hidden="true" />agents</span><span class="v">{group.agents.length}</span></a>{/if}
-    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="k"><Folder size={14} aria-hidden="true" />projects</span><span class="v">{named.length}</span></a>{/if}
-    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="k"><Laptop size={14} aria-hidden="true" />machines</span><span class="v">{group.machines.length}</span></a>{/if}
-    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="k"><Clock size={14} aria-hidden="true" />last active</span><span class="v">{whenLabel(group.latestMs, now)}</span></a>{/if}
+  <nav class="stats" aria-label="Summary">
+    <a href={searchHref({ [field]: value })}><span class="eyebrow"><MessagesSquare size={12} aria-hidden="true" />chats</span><b>{chats.length.toLocaleString()}</b></a>
+    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="eyebrow"><Bot size={12} aria-hidden="true" />agents</span><b>{group.agents.length}</b></a>{/if}
+    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="eyebrow"><Folder size={12} aria-hidden="true" />projects</span><b>{named.length}</b></a>{/if}
+    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="eyebrow"><Laptop size={12} aria-hidden="true" />machines</span><b>{group.machines.length}</b></a>{/if}
+    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="eyebrow"><Clock size={12} aria-hidden="true" />last active</span><b>{whenLabel(group.latestMs, now)}</b></a>{/if}
   </nav>
-  <div class="cols">
+  <div class="cols c32">
     <div class="c-main stack">
       {#if extra}{@render extra()}{/if}
-      <section>
-        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2><a class="meta" href={searchHref({ [field]: value })} style:display="inline-flex" style:align-items="center" style:min-height="44px">all {chats.length.toLocaleString()}</a></div>
-        {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
+      <section class="sec">
+        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">all {chats.length.toLocaleString()}</a></div>
+        <div class="card pad0 list">
+          {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
+        </div>
       </section>
     </div>
     <div class="c-side">
       {#if field !== "agent"}
-        <section><h2 class="h2"><Bot size={15} aria-hidden="true" />agents</h2>
-          {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={18} /><span class="g">{agentInfo[agent].name}</span><span class="n">{count.toLocaleString()}</span></a>{/each}
+        <section class="sec"><h2 class="h2"><Bot size={15} aria-hidden="true" />agents</h2>
+          <div class="card tight tally">
+            {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b class="g">{agentInfo[agent].name}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+          </div>
         </section>
       {/if}
       {#if field !== "machine"}
-        <section><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2>
-          {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><Laptop size={16} aria-hidden="true" /><span class="g">{machine}</span><span class="n">{count.toLocaleString()}</span></a>{/each}
+        <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2>
+          <div class="card tight tally">
+            {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><Laptop size={15} aria-hidden="true" /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+          </div>
         </section>
       {/if}
-      {#if field !== "project"}
-        <section><h2 class="h2"><Folder size={15} aria-hidden="true" />projects</h2>
-          {#each group.projects.filter(([name]) => name).slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={16} aria-hidden="true" /><span class="g">{projectLabel(project)}</span><span class="n">{count.toLocaleString()}</span></a>{/each}
+      {#if field !== "project" && named.length}
+        <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />projects</h2>
+          <div class="card tight tally">
+            {#each named.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+          </div>
         </section>
       {/if}
     </div>

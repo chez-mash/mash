@@ -1,0 +1,1064 @@
+/*
+ * The Sticker kit: the building blocks every screen is made of. Lists live
+ * in outlined cards, rows are divided by rules, and a colour fill always
+ * carries ink. terminal.css styles the shell and the older, screen-specific
+ * pieces; new screens should reach for these first.
+ *
+ *   .card            an outlined paper box; .tight is smaller, .pad0 holds a list
+ *   .card.cream      a quieter box; .butter selected or saved, .bad failed,
+ *                    .warn needs attention, .ok done
+ *   .list > .chatrow rows in a card, divided by rules; .on is the current one
+ *   .chatrow-t       a row's title line: an agent mark, bold words, a pill
+ *   .snip            a line of a chat's text under its title
+ *   .g2              two equal columns
+ *   .num             a right-aligned monospaced count
+ *   .empty           a centred empty or not-found state with Mashy
+ *   .ico             a cream icon tile, as on a choice card
+ *   .radio           a round choice mark; .on is chosen
+ *   .check           a tick box: .on mint, .warn mustard
+ *   .eyebrow         a small upper-case label
+ *   .stats           numbers in one outlined strip, cells split by ink rules
+ *   .mchip           a machine, agent or project on an outlined paper chip
+ *   .marks           agent marks in a row, then "+N"
+ *   .dash            a quiet dashed rule
+ *   .sums > .card.sum  summary cards: tile and name, .big count, .bar, chips
+ *   .ico.lg          the 44px icon tile of a detail page's header (.dh)
+ *   .find            a field with a search icon
+ *   .cols.c32        main and side columns, 3:2; .g3 three equal columns
+ *   .sec             a section: its label, then what it holds
+ *   .lrow            a plain row in a card list, its note at the end
+ *   .kvs             names in a fixed column, values beside them
+ *   .card.note       a short note from Mashy
+ *   .card.quote      a quoted message on butter, with who said it (.me)
+ *   .rev             one revision in a memory's history card
+ *   .card.opc        a fleet action; .card.tick a choice with a tick box
+ *   .disclose        a fold whose control is a text link
+ *   #main.narrow     a detail page at a reading measure (976px)
+ *
+ * Tables (.rws > .rw with a .rw.head header, the services .matrix), the
+ * switch (.sw), the tool explorer (.mop) and settings rows (.set-a, .set-r)
+ * stay in terminal.css beside the older rules they replaced.
+ *
+ * Pills (.pill), buttons (.btn), filter chips (.chip), agent marks (.mark),
+ * section labels (.h2), page titles (.h1) and text links (.a) are defined in
+ * terminal.css, where the older rules already named them.
+ */
+.card {
+  min-width: 0;
+  padding: 16px 18px;
+  border: var(--border-strong);
+  border-radius: var(--radius-7);
+  background: var(--surface-raised);
+  color: var(--text-body);
+}
+.card.tight {
+  padding: 12px 14px;
+}
+.card.pad0 {
+  padding: 0;
+  overflow: hidden;
+}
+.card.cream {
+  background: var(--surface-muted);
+}
+/* A colour fill carries ink in both themes, and so does anything on it. */
+.card:is(.butter, .bad, .warn, .ok) > * {
+  --line-ink: var(--line-on-accent);
+}
+.card:is(.butter, .bad, .warn, .ok) {
+  --text-strong: var(--text-on-accent);
+  --text-body: var(--text-on-accent);
+  --text-muted: var(--text-on-accent);
+  --surface-raised: var(--agent-tile-bg);
+  border-color: var(--line-ink);
+  color: var(--text-on-accent);
+}
+.card.butter {
+  background: var(--selected-bg);
+}
+.card.bad {
+  background: var(--status-bad-bg);
+}
+.card.warn {
+  background: var(--status-warn-bg);
+}
+.card.ok {
+  background: var(--status-ok-bg);
+}
+a.card:hover {
+  color: var(--text-strong);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+/* One row of a list in a card: a title line, then quieter lines under it. */
+.chatrow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 16px;
+  border-top: var(--border-divider);
+  color: var(--text-strong);
+  font-size: 14px;
+}
+.chatrow:first-child {
+  border-top: 0;
+}
+a.chatrow:hover {
+  color: var(--text-strong);
+  background: var(--surface-hover);
+}
+.chatrow.on {
+  background: var(--surface-muted);
+}
+.chatrow-t {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.chatrow-t > b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+.chatrow-t > .pill {
+  margin-left: auto;
+}
+.snip {
+  font-size: 12.5px;
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+.sp {
+  margin-left: auto;
+}
+
+.g2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+@container (max-width: 560px) {
+  .g2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.num {
+  margin-left: auto;
+  text-align: right;
+  font: 12.5px var(--type-mono);
+  color: var(--text-strong);
+}
+
+/* Nothing here yet, or nowhere to go: Mashy, a heading, one sentence and
+   the one thing to do next. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+}
+.empty > img {
+  width: 96px;
+  height: 87px;
+}
+.empty > .empty-h,
+.empty > h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-strong);
+}
+.empty > p {
+  max-width: 46ch;
+  color: var(--text-body);
+}
+
+.ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: var(--border-strong);
+  border-radius: var(--radius-box);
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+.radio {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: var(--border-strong);
+  border-radius: var(--radius-round);
+  background: var(--surface-raised);
+}
+/* As a native radio button it keeps its own semantics and draws the same. */
+input.radio {
+  appearance: none;
+  margin: 0;
+}
+input.radio:checked {
+  background: var(--text-strong);
+  box-shadow: inset 0 0 0 3px var(--surface-raised);
+}
+.radio.on::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: var(--text-strong);
+}
+
+/* A short tally in a small card: a mark or dot, a bold name, a count. */
+.tally {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tally > .li {
+  min-height: 0;
+  gap: 10px;
+  color: var(--text-strong);
+}
+.tally > .li > b {
+  font-weight: 700;
+}
+@media (pointer: coarse) {
+  .tally {
+    gap: 0;
+  }
+  .tally > .li {
+    min-height: 40px;
+  }
+}
+
+/* Search results: each match a card of its own. */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.results > .card:hover {
+  background: var(--surface-hover);
+}
+.results .chatrow {
+  padding: 14px 18px;
+  gap: 7px;
+}
+.results .snip {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Something could not be read: a red card with what failed, why, and a retry. */
+.loaderr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 24px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.loaderr > strong {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.loaderr > p {
+  max-width: 52ch;
+}
+.loaderr .ico {
+  background: var(--surface-raised);
+}
+/* A plain box on a colour fill stays light, like a sticker on coloured paper. */
+.card:is(.butter, .bad, .warn, .ok) :is(.btn:not(.p), .ico) {
+  background: var(--agent-tile-bg);
+  border-color: var(--line-on-accent);
+  color: var(--text-on-accent);
+}
+.card:is(.butter, .bad, .warn, .ok) .btn[disabled] {
+  opacity: 0.6;
+}
+
+/* Placeholder rows inside a card list take the rows' own spacing. */
+.card .skrow {
+  padding: 14px 16px;
+  border-bottom: 0;
+  border-top: var(--border-divider);
+}
+.card .skrow:first-child {
+  border-top: 0;
+}
+.card > .skel:first-of-type {
+  margin-top: 16px;
+}
+
+/* Export: the chats on the left, the format and the export on the right. */
+@container (min-width: 760px) {
+  .cols.xcols {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+.xcols > .c-side {
+  gap: 14px;
+}
+/* A choice drawn as a card: the radio, an icon tile, a name over a line. */
+.picks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card.pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+}
+.card.pick:hover:not(.butter) {
+  background: var(--surface-hover);
+}
+.card.pick:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.card.pick input:focus-visible {
+  outline: 0;
+}
+.card.pick .radio {
+  margin-top: 2px;
+}
+.card.pick b {
+  display: block;
+  font-size: 14px;
+  color: var(--text-strong);
+}
+.pick-a {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.xcard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* A button with no outline until it is pointed at, for quiet row actions. */
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+.btn.ghost:hover {
+  border-color: var(--line-strong);
+}
+/* The agent named on an outlined chip, as in a chat's header. */
+.mt.agent {
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px 0 3px;
+  border: var(--border-fill);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+/* A chat: the title on its own line, then its buttons, then a meta line
+   that ends in the page buttons, over a rule. */
+.chat-h {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: var(--border-strong);
+}
+.chat-m {
+  min-height: 28px;
+}
+.saved-as {
+  font-size: 12.5px;
+  text-align: end;
+}
+/* What was saved from a chat, beside it: a butter card per memory. */
+.card.saved {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.card.saved small {
+  font-size: 11.5px;
+}
+
+.clamp3 {
+  -webkit-line-clamp: 3;
+}
+/* Pills in a row, with a quiet word after them. */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tally {
+  font-size: 14px;
+}
+.chatrow.ses {
+  flex-direction: row;
+  font-size: 12.5px;
+}
+.chatrow.ses.on > span {
+  font-weight: 700;
+}
+
+/* ---- Phase two: pages about agents, machines, projects, memory, services,
+   the fleet, the tool explorer, settings and setup. ---- */
+
+/* A small upper-case label over a value or a column. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+/* Numbers side by side in one outlined strip, the cells divided by ink rules:
+   an eyebrow over a bold value, sometimes a quiet line under it. */
+.stats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border: var(--border-strong);
+  border-radius: var(--radius-7);
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+.stats > * {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 16px;
+  color: var(--text-body);
+}
+.stats > * + * {
+  border-left: var(--border-strong);
+}
+a.stats > *:hover,
+.stats > a:hover {
+  color: var(--text-body);
+  background: var(--surface-hover);
+}
+.stats b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-strong);
+}
+.stats small {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+@container (max-width: 560px) {
+  .stats {
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stats > * + * {
+    border-left: 0;
+    border-top: var(--border-strong);
+  }
+}
+
+/* A tick box: ink outline, mint when on, mustard when it needs attention. */
+.check {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: var(--border-strong);
+  border-color: var(--line-ink);
+  border-radius: var(--radius-3);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+}
+.check.on {
+  background: var(--status-ok-bg);
+  color: var(--text-on-accent);
+}
+.check.warn {
+  background: var(--status-warn-bg);
+  color: var(--text-on-accent);
+}
+.check > svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+/* A machine, agent or project named on an outlined paper chip. */
+.mchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border: var(--border-fill);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.mchip:has(> .mark) {
+  padding-left: 3px;
+}
+/* Agent marks in a row, then how many more there are. */
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.marks > small {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+/* A quiet dashed rule, as between a card's body and its footer. */
+.dash {
+  margin: 0;
+  border: 0;
+  border-top: var(--stroke-divider) dashed var(--line-strong);
+  opacity: 0.28;
+}
+
+/* A summary card for one agent, machine or project: a tile and a name, a
+   big count, a bar, then chips and a time. */
+.sums {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
+  gap: 16px;
+}
+.sums.g2 {
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
+}
+.card.sum {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+a.card.sum:hover {
+  color: var(--text-body);
+  background: var(--surface-hover);
+}
+.sum-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.sum-t {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sum-h b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+.sum-h code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 12px var(--type-mono);
+  color: var(--text-muted);
+}
+.sum-h > .pill {
+  margin-left: auto;
+}
+.sum-f {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.sum-f > .sp {
+  padding-left: 6px;
+}
+.ico.lg {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-6);
+}
+/* A detail page's header: the icon tile, the title over a quiet line. */
+.dh {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.dh > div {
+  min-width: 0;
+}
+
+/* A field with a search icon at its start. */
+.find {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 300px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 11px;
+  border: var(--border-strong);
+  border-radius: var(--radius-5);
+  background: var(--surface-field);
+  color: var(--text-muted);
+}
+.find:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.find input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-strong);
+}
+/* A count inside a tab or button, quieter than its label. */
+.btn > .c {
+  font: 12.5px var(--type-mono);
+  color: var(--text-muted);
+}
+.btn.sel > .c {
+  color: var(--selected-text);
+}
+
+/* Two columns, the main one wider; one column on a narrow page. */
+@container (min-width: 760px) {
+  .cols.c32 {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+.g3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@container (max-width: 760px) {
+  .g3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .g3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* A section in a column: its label, then what it holds. */
+.sec {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.sec > .hd {
+  min-height: 24px;
+}
+/* A plain row in a card list: a name, then what is said about it at the end. */
+.lrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  padding: 11px 16px;
+  border-top: var(--border-divider);
+  color: var(--text-body);
+  font-size: 13.5px;
+}
+.lrow:first-child {
+  border-top: 0;
+}
+a.lrow:hover {
+  color: var(--text-body);
+  background: var(--surface-hover);
+}
+.lrow > b {
+  min-width: 0;
+  font-weight: 700;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+.lrow > .sp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.lrow > p {
+  flex-basis: 100%;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+/* A labelled list: names in a fixed column, values beside them. */
+.kvs {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 7px 14px;
+  font-size: 13.5px;
+}
+.kvs dt {
+  color: var(--text-muted);
+}
+.kvs dd {
+  min-width: 0;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+.kvs.wide {
+  grid-template-columns: 134px minmax(0, 1fr);
+}
+/* A short note from Mashy: Mashy, then a sentence or two. */
+.card.note {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: 520px;
+  padding: 10px 14px 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.card.note > img {
+  flex: none;
+  width: 46px;
+  height: 42px;
+}
+.card.note b {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.card.note code {
+  font: 12px var(--type-mono);
+}
+/* A detail page (a memory, a service, a fleet action) at a reading measure. */
+#main.narrow > * {
+  max-width: 976px;
+}
+/* A status pill in a table cell: a hollow ring, then words that may be cut short. */
+.svc-pill {
+  max-width: 100%;
+}
+.svc-pill > .dot {
+  background: transparent;
+  border-color: currentColor;
+}
+.svc-pill > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A card whose parts stand apart from one another. */
+.card.stack-s {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mono {
+  font-family: var(--type-mono);
+  font-size: 0.9em;
+}
+/* One memory in a card list: its pills, the statement in bold, where it came from. */
+.chatrow.mrow {
+  gap: 8px;
+  padding: 14px 18px;
+}
+.chatrow.mrow {
+  position: relative;
+}
+/* The statement is the row's link; it covers the whole row. */
+.chatrow.mrow > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.chatrow.mrow:has(> a:hover) {
+  background: var(--surface-hover);
+}
+.chatrow.mrow > a:focus-visible {
+  outline: 0;
+}
+.chatrow.mrow:has(> a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+}
+.chatrow.mrow > a {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.mts > .mt > .mark {
+  margin-right: 1px;
+}
+.pill > svg {
+  flex: none;
+}
+
+/* A memory's page: pills over the statement, where it came from, warnings. */
+.rec-h {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rec-h > .h1 {
+  max-width: 860px;
+  text-wrap: pretty;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rec-h > .mts {
+  gap: 6px 14px;
+}
+.rec-w > .card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.rec-w svg {
+  flex: none;
+  margin-top: 2px;
+}
+.rec-why {
+  font-size: 15.5px;
+  color: var(--text-strong);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* A quoted message on butter: the words in bold, then who said them. */
+.card.quote {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card.quote blockquote {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.card.quote figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 12.5px;
+}
+.card.quote .who {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.card.quote .a {
+  min-height: 24px;
+}
+/* The reader's own initial on a small ink tile. */
+.me {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-tile-sm);
+  background: var(--text-on-accent);
+  color: var(--agent-tile-bg);
+  font-size: 9px;
+  font-weight: 700;
+}
+/* One revision in the history card: a bold line, the date at the end, then
+   its details in eyebrow columns. */
+.rev {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: var(--border-divider);
+  font-size: 13px;
+}
+.rev:first-child {
+  border-top: 0;
+}
+.rev-t {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.rev-t > b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.rev-t > .meta {
+  margin-left: auto;
+  font-size: 12.5px;
+}
+.rev-s {
+  color: var(--text-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rev-d > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rev-d ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+/* A fleet action as a card: an icon tile, its name, what it does. */
+.card.opc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 160px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.card.opc > b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+a.card.opc:hover {
+  color: var(--text-body);
+  background: var(--surface-hover);
+}
+.card.opc.off {
+  border-color: var(--line-divider);
+  color: var(--text-muted);
+}
+.card.opc.off > :is(b, .ico) {
+  color: var(--text-muted);
+  border-color: var(--line-divider);
+}
+/* A choice with a tick box, drawn as a card; butter once chosen. */
+.card.tick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 70px;
+  padding: 12px 16px;
+  text-align: left;
+}
+.card.tick:hover:not(.butter, [disabled]) {
+  background: var(--surface-hover);
+}
+.card.tick[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+.card.tick .g {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.card.tick b {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.card.tick small {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.card.butter .check {
+  border-color: var(--line-on-accent);
+}
+.btn.lg {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: var(--radius-6);
+  font-size: 16px;
+}
+.card.armed {
+  max-width: 640px;
+}
+/* A fold whose control is a text link, as "Show history folders". */
+.disclose > summary {
+  display: inline;
+  list-style: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+.disclose > summary::-webkit-details-marker {
+  display: none;
+}
+.disclose[open] > summary {
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.kvs.flip {
+  grid-template-columns: minmax(0, 1fr) auto;
+}

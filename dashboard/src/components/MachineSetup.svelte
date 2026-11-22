@@ -2,7 +2,6 @@
 import Check from "@lucide/svelte/icons/check";
 import CircleHelp from "@lucide/svelte/icons/circle-help";
 import Copy from "@lucide/svelte/icons/copy";
-import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
@@ -29,6 +28,7 @@ async function copy(agent: string, command: string): Promise<void> {
     copied = "";
   }
 }
+const pill = { ok: "ok", warn: "warn", none: "" } as const;
 const partWord = { ok: "ok", attention: "needs attention", unverified: "not verifiable" } as const;
 </script>
 
@@ -42,16 +42,16 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
   {#if agent.expected}
     <details class="rw-d" open={!!fix}>
       <summary class="rw">
-        <span class="rw-n"><AgentMark agent={agent.agent} size={18} /><strong>{agents[agent.agent].name}</strong></span>
-        {#if showMachine}<span><span class="mt"><Laptop size={12} aria-hidden="true" />{machineId}</span></span>{/if}
+        <span class="rw-n"><AgentMark agent={agent.agent} size="sm" /><strong>{agents[agent.agent].name}</strong></span>
+        {#if showMachine}<span>{machineId}</span>{/if}
         <span class="rw-parts">
           {#each chain as part (part.label)}
-            <span class={part.state === "ok" ? "ok" : part.state === "attention" ? "warn" : "none"} title="{part.label}: {partWord[part.state]}">
-              {#if part.state === "ok"}<Check size={15} aria-label="{part.label}: ok" />{:else if part.state === "attention"}<TriangleAlert size={15} aria-label="{part.label}: needs attention" />{:else}<CircleHelp size={15} aria-label="{part.label}: not verifiable" />{/if}
+            <span class="check" class:on={part.state === "ok"} class:warn={part.state === "attention"} title="{part.label}: {partWord[part.state]}">
+              {#if part.state === "ok"}<Check aria-label="{part.label}: ok" />{:else if part.state === "attention"}<TriangleAlert aria-label="{part.label}: needs attention" />{:else}<CircleHelp aria-label="{part.label}: not verifiable" />{/if}
             </span>
           {/each}
         </span>
-        <span class="svc-st {tone}">{headline.label}</span>
+        <span><span class="pill svc-pill {pill[tone]}" title={headline.label}><span>{headline.label}</span></span></span>
       </summary>
       <div class="rw-b">
         <div class="set">
@@ -101,10 +101,10 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
     </details>
   {:else}
     <div class="rw">
-      <span class="rw-n"><AgentMark agent={agent.agent} size={18} /><strong>{agents[agent.agent].name}</strong></span>
-      {#if showMachine}<span><span class="mt"><Laptop size={12} aria-hidden="true" />{machineId}</span></span>{/if}
+      <span class="rw-n"><AgentMark agent={agent.agent} size="sm" /><strong>{agents[agent.agent].name}</strong></span>
+      {#if showMachine}<span>{machineId}</span>{/if}
       <span></span>
-      <span class="svc-st {tone}">{headline.label}</span>
+      <span><span class="pill svc-pill {pill[tone]}" title={headline.label}><span>{headline.label}</span></span></span>
     </div>
   {/if}
 {/each}

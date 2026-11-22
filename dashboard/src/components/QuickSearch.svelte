@@ -124,7 +124,7 @@ function keydown(event: KeyboardEvent): void {
         {#each rows as row, index (row.chat.machine + row.chat.id)}
           <li role="option" aria-selected={index === selected}>
             <a class="q-row" class:q-sel={index === selected} href={rowTarget(row, desktop)} onmouseenter={() => (selected = index)}>
-              <span class="qmark" aria-hidden="true" style:--mark-logo="url({agents[row.chat.agent].logo})" style:--mark-colour={inkLogo(row.chat.agent) ? undefined : agents[row.chat.agent].tint}></span>
+              <span class="qmark" aria-hidden="true" style:color={index === selected || inkLogo(row.chat.agent) ? undefined : agents[row.chat.agent].tint}>{@html agents[row.chat.agent].logo}</span>
               <span class="q-t">
                 <span class="q-title">{plainTitle(row.chat.title)}</span>
                 {#if row.passage}<span class="q-passage">{row.passage}</span>{/if}
@@ -250,12 +250,11 @@ function keydown(event: KeyboardEvent): void {
     flex: none;
     width: 16px;
     height: 16px;
-    background: var(--mark-colour, currentColor);
-    mask: var(--mark-logo) center / contain no-repeat;
-    -webkit-mask: var(--mark-logo) center / contain no-repeat;
   }
-  .q-row.q-sel .qmark {
-    background: currentColor;
+  .qmark :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
   .q-t {
     flex: 1;

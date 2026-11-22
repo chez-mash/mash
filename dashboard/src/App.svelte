@@ -104,6 +104,12 @@ $effect(() => {
   if (route.page === "quick") document.documentElement.dataset.surface = "native";
   else delete document.documentElement.dataset.surface;
 });
+// A detail page reads best at a narrower measure than a list or a table.
+const narrow = $derived(
+  route.page === "record" ||
+    (route.page === "fleet" && !!route.action) ||
+    (route.page === "services" && new URLSearchParams(route.params).has("service")),
+);
 let railOpen = $state(false);
 $effect(() => {
   void route;
@@ -133,7 +139,7 @@ $effect(() => {
   <Rail open={railOpen} close={() => (railOpen = false)} />
   <div id="col">
     <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
-    <main id="main">
+    <main id="main" class:narrow={narrow} class:mid={route.page === "settings"}>
       {#if searchParams !== null}
         <div class="stack" hidden={route.page !== "search"}>
           {#key searchParams}<Search params={searchParams} />{/key}
@@ -152,7 +158,7 @@ $effect(() => {
       {:else if route.page === "project"}
         {#key route.name}
           <BrowseDetail field="project" value={route.name} title={projectLabel(route.name)} back={{ href: "#/projects", label: "projects" }}>
-            {#snippet icon()}<Folder size={28} color="var(--hue-projects)" aria-hidden="true" />{/snippet}
+            {#snippet icon()}<span class="ico lg"><Folder size={20} aria-hidden="true" /></span>{/snippet}
           </BrowseDetail>
         {/key}
       {:else if route.page === "agents"}
@@ -162,7 +168,7 @@ $effect(() => {
         {#if isAgent(agent)}
           {#key agent}
             <BrowseDetail field="agent" value={agent} title={agents[agent].name} back={{ href: "#/agents", label: "agents" }}>
-              {#snippet icon()}<AgentMark {agent} size={28} />{/snippet}
+              {#snippet icon()}<AgentMark {agent} size="lg" />{/snippet}
             </BrowseDetail>
           {/key}
         {:else}
@@ -174,7 +180,7 @@ $effect(() => {
         {@const id = route.id}
         {#key id}
           <BrowseDetail field="machine" value={id} title={id} back={{ href: "#/machines", label: "machines" }}>
-            {#snippet icon()}<Laptop size={28} color="var(--hue-machines)" aria-hidden="true" />{/snippet}
+            {#snippet icon()}<span class="ico lg"><Laptop size={20} aria-hidden="true" /></span>{/snippet}
             {#snippet extra()}<MachineExtras machineId={id} />{/snippet}
           </BrowseDetail>
         {/key}

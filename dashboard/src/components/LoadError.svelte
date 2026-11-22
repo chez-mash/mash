@@ -1,6 +1,6 @@
 <script lang="ts">
-import CircleAlert from "@lucide/svelte/icons/circle-alert";
 import RotateCw from "@lucide/svelte/icons/rotate-cw";
+import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 
 let {
   title,
@@ -24,9 +24,10 @@ const detail = $derived(
 );
 </script>
 
-<div class="state-c" role="alert" aria-busy={busy} style:display="flex" style:flex-wrap="wrap" style:align-items="flex-start" style:gap="12px">
-  <CircleAlert size={18} color="var(--status-warn)" aria-hidden="true" style="flex:none;margin-top:2px" />
-  <div style:flex="1 1 200px" style:min-width="0" style:overflow-wrap="anywhere"><strong style:font-weight="500">{title}</strong><p class="meta" style:margin-top="4px" style:font-size="13.5px">{detail}</p></div>
+<div class="card bad loaderr" role="alert" aria-busy={busy}>
+  <span class="ico"><TriangleAlert size={17} aria-hidden="true" /></span>
+  <strong>{title}</strong>
+  <p>{detail}</p>
   <button type="button" class="btn" onclick={retry} disabled={busy}>
     <RotateCw size={14} aria-hidden="true" />{busy ? "Trying again…" : retryLabel}
   </button>

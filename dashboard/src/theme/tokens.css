@@ -41,10 +41,14 @@
   --line-outline: #e9e0c6;
   --line-strong: #e9e0c6;
   --line-divider: rgba(233, 224, 198, 0.2);
-  --line-ink: #16150f;
+  /* The outline of a control or a colour fill on the page. It is the light
+     line on the dark page, so a butter, peach or mint fill keeps a visible
+     edge; anything drawn on top of a fill uses --line-on-accent instead. */
+  --line-ink: #e9e0c6;
+  --line-on-accent: #16150f;
   --stroke-outline: 2px;
   --stroke-strong: 2px;
-  --stroke-divider: 1px;
+  --stroke-divider: 2px;
   --stroke-fill: 1.5px;
   --border-outline: var(--stroke-outline) solid var(--line-outline);
   --border-strong: var(--stroke-strong) solid var(--line-strong);
@@ -62,6 +66,10 @@
   --radius-8: 14px;
   --radius-9: 18px;
   --radius-10: 22px;
+  --radius-tile-sm: 6px;
+  --radius-tile: 8px;
+  --radius-box: 10px;
+  --radius-field: 11px;
   --radius-pill: 999px;
   --radius-round: 50%;
   /* Shadows: none; outlines separate things instead. The scrim dims the page behind the drawer. */
@@ -78,29 +86,27 @@
   /* The main action on a screen. */
   --action-bg: #e2966f;
   --action-hover-bg: #eaa682;
-  --action-line: #16150f;
-  /* Selected and current. Text on the selected fill is ink; a selected mark on a plain surface is butter. */
+  --action-line: #e9e0c6;
+  /* Text links: ink words over a peach rule. */
+  --link-line: #e2966f;
+  /* Selected and current. Text on the selected fill is ink. */
   --selected-surface: #ecc244;
   --selected-text: #16150f;
-  --selected-mark: #ecc244;
   --selected-line: #ecc244;
   --selected-bg: #ecc244;
   --selected-soft-bg: #ecc244;
   --selected-soft-text: #16150f;
   --toggle-on: #93cfb2;
-  --toggle-off: #3a3726;
   --toggle-knob: #16150f;
   /* Signals: progress, the linked message, find in chat, unread and unsaved. */
   --progress: #ecc244;
   --linked-line: #ecc244;
-  --linked-text: #ecc244;
   --find-bg: #ecc244;
   --find-text: #16150f;
   --find-soft-bg: rgba(236, 194, 68, 0.38);
   --find-current-bg: #e2966f;
   --find-current-line: #16150f;
   --notify: #e2966f;
-  --changed: #cf9a2a;
   /* Status. Text colours read on the page; fills carry ink text. */
   --status-ok: #93cfb2;
   --status-warn: #e3b04a;
@@ -111,8 +117,6 @@
   --status-warn-text: #16150f;
   --status-bad-bg: #da6a58;
   --status-bad-text: #16150f;
-  --status-running-bg: #ecc244;
-  --status-running-text: #16150f;
   --status-ok-dot: #93cfb2;
   --status-warn-dot: #cf9a2a;
   --status-bad-dot: #da6a58;
@@ -128,7 +132,6 @@
   --you-text: #f3ead2;
   --you-inset: #3a3622;
   --you-rule: #57513a;
-  --you-tail: transparent;
   --border-you: var(--stroke-outline) solid var(--line-outline);
   /* The demo banner at the top of getmash.io/demo. */
   --banner-bg: #ecc244;
@@ -141,12 +144,9 @@
   --hue-memory: var(--text-strong);
   --hue-services: var(--text-strong);
   --hue-tools: var(--text-strong);
-  --hue-time: var(--text-strong);
   --hue-links: var(--text-strong);
   --hue-files: var(--text-strong);
   --hue-thinking: var(--text-strong);
-  --hue-history: var(--text-strong);
-  --hue-operation: var(--text-strong);
   --hue-export-markdown: var(--text-strong);
   --hue-export-json: var(--text-strong);
   --hue-export-archive: var(--text-strong);
@@ -162,10 +162,10 @@
   --tile-tools: #d6d2c8;
   --tile-settings: #cdd0d6;
   --tile-icon: #16150f;
-  /* Agents: each logo in its own brand colour, on an ivory tile in both themes. */
+  /* Agents: an ink logo on an ivory tile in both themes. The brand colours
+     are for the desktop quick panel, which draws marks its own way. */
   --agent-tile-bg: #fbf7ef;
   --agent-tile-border: var(--border-fill);
-  --agent-logo-inset: 18%;
   --agent-claude-code: #d97757;
   --agent-codex: #16150f;
   --agent-opencode: #16150f;
@@ -180,11 +180,6 @@
   --code-literal: #e3b04a;
   --code-type: #93cfb2;
   --quote-line: #57513a;
-  /* Badges in the tool explorer: reading is neutral, writing needs attention. */
-  --badge-read-bg: #fbf7ef;
-  --badge-read-text: #16150f;
-  --badge-write-bg: #cf9a2a;
-  --badge-write-text: #16150f;
   /* The brand. */
   --brand-name: #f3ead2;
   --brand-cursor: #e2966f;
@@ -228,6 +223,7 @@
   --line-outline: #16150f;
   --line-strong: #16150f;
   --line-divider: rgba(22, 21, 15, 0.2);
+  --line-ink: #16150f;
   --scrim: rgba(22, 21, 15, 0.45);
   /* Accent. */
   --accent: #a8461f;
@@ -236,23 +232,21 @@
   /* The main action. */
   --action-bg: #f4a583;
   --action-hover-bg: #f09a74;
+  --action-line: #16150f;
+  --link-line: #f4a583;
   /* Selected and current. */
   --selected-surface: #ffd34e;
-  --selected-mark: #16150f;
   --selected-line: #16150f;
   --selected-bg: #ffd34e;
   --selected-soft-bg: #ffd34e;
   --toggle-on: #a8e6c9;
-  --toggle-off: #ddd0b4;
   /* Signals. */
   --progress: #e3a92f;
   --linked-line: #e3a92f;
-  --linked-text: #16150f;
   --find-bg: #ffd34e;
   --find-soft-bg: rgba(255, 211, 78, 0.5);
   --find-current-bg: #f4a583;
   --notify: #f4a583;
-  --changed: #e3a92f;
   /* Status. */
   --status-ok: #1d6b45;
   --status-warn: #7c5200;
@@ -260,7 +254,6 @@
   --status-ok-bg: #a8e6c9;
   --status-warn-bg: #e3a92f;
   --status-bad-bg: #ec7563;
-  --status-running-bg: #ffd34e;
   --status-ok-dot: #4cbb88;
   --status-warn-dot: #e3a92f;
   --status-bad-dot: #ec7563;
@@ -286,8 +279,6 @@
   --code-literal: #7c5200;
   --code-type: #1d6b6b;
   --quote-line: #cdbf9f;
-  /* Badges. */
-  --badge-write-bg: #e3a92f;
   /* The brand. */
   --brand-name: #16150f;
   --brand-cursor: #f4a583;

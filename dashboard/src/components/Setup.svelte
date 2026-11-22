@@ -149,8 +149,8 @@ function toggleConnect(agent: Integration): void {
   <div class="cmdline" style:margin-top="6px"><code>{text}</code><button type="button" aria-label={copied === text ? "Copied" : "Copy the command"} title={copied === text ? "Copied" : "Copy"} onclick={() => copy(text)}>{#if copied === text}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
 {/snippet}
 {#snippet searchServiceProblem(service: FirstRun["qdrant"])}
-  <div>
-    <p class="warn" style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-size="13.5px"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
+  <div class="card warn">
+    <p style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-weight="700"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
     {#if service.state === "rejected"}
       {#if service.message}<p class="meta" style:overflow-wrap="anywhere">{service.message}</p>{/if}
       <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>
@@ -166,7 +166,7 @@ function toggleConnect(agent: Integration): void {
 {/snippet}
 {#snippet connectAgent(entry: FirstRun["integrations"][number], on: boolean, editable: boolean)}
   <div class="setup-row" class:off={!entry.installed}>
-    <AgentMark agent={entry.agent} size={18} />
+    <AgentMark agent={entry.agent} size="lg" />
     <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small>{entry.installed ? (entry.connected ? "already connected" : "its command-line tool is installed") : "its command-line tool was not found here"}</small></span>
     {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !editable || running)}
   </div>
@@ -196,13 +196,13 @@ function toggleConnect(agent: Integration): void {
     {/if}
 
     {#if setup.isPending}<Skeleton rows={4} />{/if}
-    {#if setup.error}<p class="meta warn" role="alert">{file ? "Could not refresh setup" : "Setup can't be shown right now"}: {setup.error.message}</p>{/if}
+    {#if setup.error}<p class="card tight warn" role="alert">{file ? "Could not refresh setup" : "Setup can't be shown right now"}: {setup.error.message}</p>{/if}
 
     {#if file && answers && !outcome}
       <h1 class="setup-q" tabindex="-1" bind:this={heading}>{titles[step]}</h1>
       <p class="meta setup-help">{helps[step]}</p>
       {#if !file.editable}
-        <p class="meta warn setup-help">This dashboard can be reached from other machines and was not started with a services configuration, so it does not run setup. Open the dashboard on the machine itself, or run <code class="i">mash init</code> there.</p>
+        <p class="card tight warn setup-help">This dashboard can be reached from other machines and was not started with a services configuration, so it does not run setup. Open the dashboard on the machine itself, or run <code class="i">mash init</code> there.</p>
       {:else if file.configured && step === "review"}
         <p class="meta setup-help">This machine is already set up. Saving replaces the configuration with these choices and keeps the previous file beside it.</p>
       {/if}
@@ -212,7 +212,7 @@ function toggleConnect(agent: Integration): void {
           {#each file.histories as entry (entry.agent)}
             {@const on = answers.agents[entry.agent] ?? entry.indexed}
             <div class="setup-row" class:off={!on}>
-              <AgentMark agent={entry.agent} size={18} />
+              <AgentMark agent={entry.agent} />
               <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small title={entry.roots.join("\n")}>{entry.roots.map((root) => shortPath(root)).join(", ")}</small></span>
               {@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (answers) answers.agents[entry.agent] = !on; }, !file.editable)}
             </div>
@@ -237,17 +237,15 @@ function toggleConnect(agent: Integration): void {
             {@render connectAgent(entry, answers.connect.includes(entry.agent), file.editable)}
           {/each}
         {:else}
-          <dl>
-            {#each review as line (line.label)}
-              <div class="kv" style:align-items="center" style:min-height="44px" style:border-bottom="var(--border-divider)" style:padding="0"><dt>{line.label}</dt><dd style:overflow-wrap="anywhere">{line.value}</dd></div>
-            {/each}
+          <dl class="kvs">
+            {#each review as line (line.label)}<dt>{line.label}</dt><dd>{line.value}</dd>{/each}
           </dl>
           {#if answers.sinceDays !== null}
             <p class="meta">{helps.range}</p>
           {/if}
           {#if histories.length}
-            <details class="fold" style:margin-bottom="8px">
-              <summary>Show history folders</summary>
+            <details class="disclose">
+              <summary class="a">Show history folders</summary>
               <ul class="meta" style:overflow-wrap="anywhere" style:padding-left="18px">
                 {#each histories as entry (entry.agent)}
                   {#each entry.roots as root (root)}<li><code>{root}</code></li>{/each}
@@ -277,10 +275,10 @@ function toggleConnect(agent: Integration): void {
           <p class="meta">Mash uses each selected agent's own commands to add Mash tools and try to install the plugin.</p>
         {/if}
         {#if file.shared}
-          <p class="meta warn">This machine is already set to send indexed chats to your shared server.</p>
+          <p class="card tight warn">This machine is already set to send indexed chats to your shared server.</p>
         {/if}
         {#if !file.configured && file.editable}
-          <p class="meta">Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</p>
+          <p class="card tight mashy-card note"><img src={asset("mashy.png")} alt="" /><span>Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</span></p>
         {/if}
         {#if searchServiceReady}
           <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service is ready.</p>
@@ -289,7 +287,7 @@ function toggleConnect(agent: Integration): void {
         {/if}
       {/if}
 
-      {#if blocked && step !== "agents"}<p class="meta warn" role="alert">{blocked}</p>{/if}
+      {#if blocked && step !== "agents"}<p class="card tight warn" role="alert">{blocked}</p>{/if}
       {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
       <div class="setup-acts">
         {#if at !== null}
@@ -368,7 +366,7 @@ function toggleConnect(agent: Integration): void {
             {@const mcp = stepWord(agent.mcp)}
             {@const plugin = stepWord(agent.plugin)}
             <div class="setup-row">
-              <AgentMark agent={agent.agent} size={18} />
+              <AgentMark agent={agent.agent} size="sm" />
               <span class="setup-who"><strong>{agentInfo[agent.agent].name}</strong><small><span class={mcp.ok ? "ok" : "warn"}>search tools: {mcp.word}</span> · <span class={plugin.ok ? "ok" : "warn"}>plugin: {plugin.word}</span></small></span>
             </div>
             {#each [agent.mcp, agent.plugin] as part, index (index)}

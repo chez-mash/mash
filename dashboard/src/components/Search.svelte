@@ -7,6 +7,7 @@ import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
+import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import SearchIcon from "@lucide/svelte/icons/search";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import Sparkles from "@lucide/svelte/icons/sparkles";
@@ -15,9 +16,11 @@ import { createQuery } from "@tanstack/svelte-query";
 import { untrack } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent, search } from "../lib/api";
+import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
 import { catalogOptions, searchQueryKey, stableRead } from "../lib/queries";
+import { decisionOptions, decisionsByChat } from "../lib/records";
 import { chatHref } from "../lib/route.svelte";
 import {
   type Applied,
@@ -33,6 +36,7 @@ import {
   sorts,
 } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
+import ChatRow from "./ChatRow.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import Highlight from "./Highlight.svelte";
 import MetaChips from "./MetaChips.svelte";
@@ -112,6 +116,11 @@ const result = createQuery(() => ({
   },
 }));
 const hits = $derived(result.data?.hits ?? []);
+// Chats that produced decisions say how many; the memory page reads the same list.
+const decisions = createQuery(() => decisionOptions);
+const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
+/** The one agent chosen, whose mark stands in for the chip's icon. */
+const onlyAgent = $derived(draft.agents.length === 1 ? draft.agents[0] : undefined);
 const draftIntentLabel = $derived(
   searchIntents.find((intent) => intent.value === draft.intent)?.label,
 );
@@ -163,11 +172,11 @@ const rangeLabel = $derived.by(() => {
 </script>
 
 <h1 class="sr-only">{applied.query ? "Search results" : "Chats"}</h1>
-<div class="hd">
-<div class="chips" role="group" aria-label="Filters">
+<div class="hd" style:align-items="flex-start">
+<div class="chips" role="group" aria-label="Filters" style:flex="1 1 480px">
   <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
-    {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
-    {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={18} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+    {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+    {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
   <FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
     {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
@@ -218,71 +227,87 @@ const rangeLabel = $derived.by(() => {
       {#snippet optionIcon(value: string)}{#if value === "recent"}<ClockArrowDown size={15} aria-hidden="true" />{:else}<Sparkles size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
   {/if}
-  {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 6px" style:margin-left="6px" style:font-size="13.5px">Apply filters</button>{/if}
+  {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
 {#if applied.query}
-  <button class="btn" type="button" disabled={!result.data || result.isFetching} onclick={() => result.refetch({ cancelRefetch: false })}>
-    {result.data && result.isFetching ? "Searching…" : "Search again"}
+  <button class="btn sm" type="button" disabled={!result.data || result.isFetching} onclick={() => result.refetch({ cancelRefetch: false })} style:margin-top="3px">
+    <RefreshCw size={13} aria-hidden="true" />{result.data && result.isFetching ? "Searching…" : "Search again"}
   </button>
+{:else if result.data && hits.length}
+  <p class="meta" role="status" style:margin-top="8px">{rangeLabel}</p>
 {/if}
 </div>
 
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <QueryError title="Couldn’t load results" query={result} />
 {#if (result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
-  <div class="state-c" role="status">
-    <p style:display="flex" style:align-items="center" style:gap="10px"><Terminal size={18} color="var(--accent)" aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
-    <div class="skel" style:width="82%"></div><div class="skel" style:width="64%"></div><div class="skel" style:width="74%"></div>
+  <div class="card" role="status">
+    <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
+    <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
   </div>
 {/if}
 {#if result.data}
   {#each result.data.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
   {#if !hits.length}
-    <div class="state-c">
-      <h2 style:font-size="15px" style:display="flex" style:align-items="center" style:gap="8px">
-        <SearchIcon size={17} aria-hidden="true" />
+    <div class="card empty">
+      <img src={asset("mashy.png")} alt="" />
+      <h2>
         {#if result.data.first > 0}No results on this page
         {:else if applied.query || filtered}No results
         {:else}No chats to show{/if}
       </h2>
       {#if applied.query && result.data.first === 0}
-        <p class="meta" style:margin-top="4px" style:font-size="13.5px">
+        <p>
           {#if filtered}Nothing matched “{applied.query}” with the selected filters.
           {:else if result.data.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
-        <p class="meta"><a class="a" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer">Find a missing chat</a></p>
       {/if}
-      <div class="acts" style:margin-top="12px">
+      <div class="acts" style:justify-content="center">
         {#if result.data.first > 0}
-          <a class="btn" href={page(0)}>First page</a>
+          <a class="btn p" href={page(0)}>First page</a>
         {/if}
         {#if filtered}
-          <a class="btn" href={clearFiltersHref}>Clear filters</a>
+          <a class="btn p" href={clearFiltersHref}>Clear filters</a>
         {:else if result.data.first === 0 && !applied.query}
-          <a class="btn" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
+          <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
         {/if}
         {#if applied.query && result.data.first === 0}
           <a class="btn" href={browseChatsHref}>Browse chats</a>
         {/if}
       </div>
+      {#if applied.query && result.data.first === 0}<a class="a" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer" style:font-size="12.5px">Find a missing chat</a>{/if}
     </div>
   {:else}
     <section id="reslist">
-      <p class="meta" style:font-size="13.5px" role="status">{rangeLabel}</p>
-      {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
-        <a class="res" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}>
-          <span class="res-t"><AgentMark agent={hit.chat.agent} /><span style:min-width="0"><Highlight text={hit.chat.title} query={applied.query} /></span></span>
-          {#if hit.before}<span class="res-s"><Highlight text={hit.before} query={applied.query} /></span>{/if}
-          <span class="elb" style:margin-top="5px"><MetaChips chat={hit.chat} /></span>
-        </a>
-      {/each}
+      {#if applied.query}
+        <!-- Each match is a card of its own: the title and the passage that
+             matched, with the searched words marked. -->
+        <p class="meta" role="status" style:margin-bottom="14px">{rangeLabel}</p>
+        <div class="results">
+          {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
+            <a class="card pad0" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}>
+              <span class="chatrow">
+                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b>{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
+                {#if hit.before}<span class="snip res-s"><Highlight text={hit.before} query={applied.query} /></span>{/if}
+                <MetaChips chat={hit.chat} />
+              </span>
+            </a>
+          {/each}
+        </div>
+      {:else}
+        <div class="card pad0 list">
+          {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
+            <ChatRow chat={hit.chat} decisions={decided.get(hit.chat.id) ?? 0} to={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} />
+          {/each}
+        </div>
+      {/if}
       {#if result.data.first > 0 || result.data.nextOffset !== null}
         <nav class="hd" aria-label="Pages" style:margin-top="14px">
           <span class="meta">{rangeLabel}</span>
           <span class="acts">
-            {#if result.data.first > 0}<a class="btn" rel="prev" href={page(Math.max(0, result.data.first - pageSize))}><ChevronLeft size={15} aria-hidden="true" />Previous</a>{:else}<button class="btn" type="button" disabled><ChevronLeft size={15} aria-hidden="true" />Previous</button>{/if}
-            {#if result.data.nextOffset !== null}<a class="btn" rel="next" href={page(result.data.nextOffset)}>Next<ChevronRight size={15} aria-hidden="true" /></a>{:else}<button class="btn" type="button" disabled>Next<ChevronRight size={15} aria-hidden="true" /></button>{/if}
+            {#if result.data.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, result.data.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
+            {#if result.data.nextOffset !== null}<a class="btn sm" rel="next" href={page(result.data.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
           </span>
         </nav>
       {/if}

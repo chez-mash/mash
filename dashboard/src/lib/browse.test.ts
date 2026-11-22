@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrangeProjects, groupChats, projectLabel, whenLabel } from "./browse";
+import { agoLabel, arrangeProjects, groupChats, projectLabel, whenLabel } from "./browse";
 import type { ChatSummary } from "./types";
 
 const chat = (id: string, change: Partial<ChatSummary>): ChatSummary => ({
@@ -44,6 +44,14 @@ describe("catalogue grouping", () => {
     expect(whenLabel(now - 30 * 86_400_000, now)).toBe("30d");
     expect(whenLabel(now - 45 * 86_400_000, now)).not.toMatch(/^\d+d$/);
     expect(whenLabel(new Date(2025, 2, 4).getTime(), now)).toContain("2025");
+  });
+  it("says how long ago in a sentence", () => {
+    const now = new Date(2026, 10, 10, 18, 0).getTime();
+    expect(agoLabel(now - 3 * 3_600_000, now)).toBe("3h ago");
+    expect(agoLabel(now - 2 * 86_400_000, now)).toBe("2d ago");
+    expect(agoLabel(now - 20_000, now)).toBe("just now");
+    expect(agoLabel(undefined, now)).toBe("time unknown");
+    expect(agoLabel(new Date(2025, 2, 4).getTime(), now)).toContain("2025");
   });
 });
 
