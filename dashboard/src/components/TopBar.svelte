@@ -160,12 +160,12 @@ function submit(event: SubmitEvent): void {
         {#if said.length}
           <h4>chats that mention it</h4>
           {#each said as hit (hit.chat.machine + hit.chat.id)}
-            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size={14} /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
+            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size={18} /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
           {/each}
         {:else if suggestions.chats.length}
           <h4>chats</h4>
           {#each suggestions.chats as chat (chat.machine + chat.id)}
-            <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size={14} /><span class="t"><span>{chat.title}</span></span></a>
+            <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size={18} /><span class="t"><span>{chat.title}</span></span></a>
           {/each}
         {/if}
       </div>

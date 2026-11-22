@@ -64,7 +64,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
       <h2 class="h2"><a href="#/agents"><Bot size={15} aria-hidden="true" />agents</a></h2>
       {#each providers as provider (provider.key)}
         {@const agent = provider.chats[0]?.agent}
-        {#if agent}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={14} /><span class="g">{agentInfo[agent].name}</span><span class="n">{provider.chats.length.toLocaleString()}</span></a>{/if}
+        {#if agent}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={18} /><span class="g">{agentInfo[agent].name}</span><span class="n">{provider.chats.length.toLocaleString()}</span></a>{/if}
       {/each}
     </section>
   </div>

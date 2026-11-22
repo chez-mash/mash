@@ -74,7 +74,7 @@ const now = Date.now();
     </FilterMenu>
     <FilterMenu label={chosenAgent ? agentInfo[chosenAgent].name : "any agent"} active={!!view.agent} options={[{ value: "", label: "any agent" }, ...agentChoices.map((agent) => ({ value: agent, label: agentInfo[agent].name }))]} selected={[view.agent]} choose={(value) => (view.agent = value)}>
       {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={15} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={18} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={view.machine || "any machine"} active={!!view.machine} options={[{ value: "", label: "any machine" }, ...machineChoices.map((machine) => ({ value: machine, label: machine }))]} selected={[view.machine]} choose={(value) => (view.machine = value)}>
       {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}

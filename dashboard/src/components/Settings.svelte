@@ -144,7 +144,7 @@ async function save(): Promise<void> {
       {#each file.agents as entry (entry.agent)}
         {@const on = draft.agents[entry.agent] ?? entry.indexed}
         <div class="set-a" class:off={!on} class:changed={touched.has(`agent:${entry.agent}`)}>
-          <AgentMark agent={entry.agent} size={17} />
+          <AgentMark agent={entry.agent} size={18} />
           <span class="set-n">{agentInfo[entry.agent].name}</span>
           <span class="meta set-p">{entry.roots.join(", ")}</span>
           {#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{:else}<span class="meta">{on ? "indexed" : "not indexed"}</span>{/if}
@@ -157,7 +157,7 @@ async function save(): Promise<void> {
       {/if}
     {:else}
       {#each config.providers as provider (provider.agent)}
-        <div class="set-a"><AgentMark agent={provider.agent} size={17} /><span class="set-n">{agentInfo[provider.agent].name}</span><span class="meta set-p">{provider.roots.join(", ")}</span></div>
+        <div class="set-a"><AgentMark agent={provider.agent} size={18} /><span class="set-n">{agentInfo[provider.agent].name}</span><span class="meta set-p">{provider.roots.join(", ")}</span></div>
       {/each}
     {/if}
   </section>

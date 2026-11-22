@@ -34,7 +34,7 @@ const now = Date.now();
       </span>
       <span class="big"><b>{group.chats.length.toLocaleString()}</b><span>chats</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((group.chats.length / Math.max(1, chats.length)) * 100))}%"></i></span>
-      {#if field === "machine"}<span class="tile-m">{#each group.agents.slice(0, 4) as [name] (name)}<AgentMark agent={name} size={14} />{/each}</span>{/if}
+      {#if field === "machine"}<span class="tile-m">{#each group.agents.slice(0, 4) as [name] (name)}<AgentMark agent={name} size={18} />{/each}</span>{/if}
       {#if field === "agent"}
         <!-- As on a project's tile: the machines as chips, then the time. -->
         <span class="mts">

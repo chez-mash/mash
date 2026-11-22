@@ -42,7 +42,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
   {#if agent.expected}
     <details class="rw-d" open={!!fix}>
       <summary class="rw">
-        <span class="rw-n"><AgentMark agent={agent.agent} size={17} /><strong>{agents[agent.agent].name}</strong></span>
+        <span class="rw-n"><AgentMark agent={agent.agent} size={18} /><strong>{agents[agent.agent].name}</strong></span>
         {#if showMachine}<span><span class="mt"><Laptop size={12} aria-hidden="true" />{machineId}</span></span>{/if}
         <span class="rw-parts">
           {#each chain as part (part.label)}
@@ -101,7 +101,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
     </details>
   {:else}
     <div class="rw">
-      <span class="rw-n"><AgentMark agent={agent.agent} size={17} /><strong>{agents[agent.agent].name}</strong></span>
+      <span class="rw-n"><AgentMark agent={agent.agent} size={18} /><strong>{agents[agent.agent].name}</strong></span>
       {#if showMachine}<span><span class="mt"><Laptop size={12} aria-hidden="true" />{machineId}</span></span>{/if}
       <span></span>
       <span class="svc-st {tone}">{headline.label}</span>

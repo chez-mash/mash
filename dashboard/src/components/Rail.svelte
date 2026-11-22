@@ -235,7 +235,7 @@ function toggle(id: Section): void {
         {:else if section.id === "agents"}
           {#each providers as provider (provider.key)}
             {@const agent = provider.chats[0]?.agent}
-            {#if agent}<a class="sub" class:on={child === agent} href={agentHref(agent)} onclick={close}><AgentMark {agent} size={14} /><span>{agentInfo[agent].name}</span></a>{/if}
+            {#if agent}<a class="sub" class:on={child === agent} href={agentHref(agent)} onclick={close}><AgentMark {agent} size={18} /><span>{agentInfo[agent].name}</span></a>{/if}
           {/each}
         {:else if section.id === "machines"}
           {#each machines as machine (machine.key)}

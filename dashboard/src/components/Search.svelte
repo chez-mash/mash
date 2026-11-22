@@ -167,7 +167,7 @@ const rangeLabel = $derived.by(() => {
 <div class="chips" role="group" aria-label="Filters">
   <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
     {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
-    {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={15} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+    {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size={18} />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
   <FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
     {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}

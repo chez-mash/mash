@@ -79,7 +79,7 @@ const now = Date.now();
     <div class="c-side">
       {#if field !== "agent"}
         <section><h2 class="h2"><Bot size={15} aria-hidden="true" />agents</h2>
-          {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={14} /><span class="g">{agentInfo[agent].name}</span><span class="n">{count.toLocaleString()}</span></a>{/each}
+          {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size={18} /><span class="g">{agentInfo[agent].name}</span><span class="n">{count.toLocaleString()}</span></a>{/each}
         </section>
       {/if}
       {#if field !== "machine"}
