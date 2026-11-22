@@ -1,0 +1,4 @@
+# Raycast's build tool bundles with esbuild, whose install step fetches its
+# native binary.
+allowBuilds:
+  esbuild: true

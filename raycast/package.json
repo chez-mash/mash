@@ -1,0 +1,52 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "mash",
+  "title": "Mash",
+  "description": "Search the history of your coding agents as you type, and open a chat in Mash.",
+  "icon": "mash.png",
+  "author": "mashium",
+  "categories": ["Developer Tools", "Productivity"],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search",
+      "title": "Search Mash",
+      "subtitle": "Mash",
+      "description": "Find past chats with your coding agents on this machine, as you type.",
+      "mode": "view",
+      "keywords": ["history", "chats", "agents", "claude", "codex"]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "mashPath",
+      "title": "Mash Executable",
+      "description": "Where the mash program is. Leave empty to look in the usual install locations.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "/opt/homebrew/bin/mash"
+    }
+  ],
+  "packageManager": "pnpm@11.28.5",
+  "dependencies": {
+    "@raycast/api": "2.11.1",
+    "@raycast/utils": "2.3.3"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "2.2.0",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "eslint": "10.14.0",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix",
+    "test": "vitest run",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}

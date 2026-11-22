@@ -18,6 +18,8 @@ would. Keep it that thin. Never give it pages, API routes or behaviour of its
 own; change the dashboard instead. It adds only engine start and stop,
 `mash://` links (the dashboard's route behind the scheme), one window, and
 sending other addresses to the browser. See `docs/internal/desktop-app.md`.
+The Raycast extension (`raycast/`) runs `mash search --live` and `mash view`
+and opens chats with `mash://` links; it reads only.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple
