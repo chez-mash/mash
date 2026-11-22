@@ -1,4 +1,23 @@
-/* The loading page uses the dashboard's roles only; tokens.css defines them. */
+/* The loading page uses the dashboard's roles only; tokens.css defines them.
+   The font files are the dashboard's, copied in by the app's build. */
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 400;
+  font-display: swap;
+  src: url("sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 700;
+  font-display: swap;
+  src: url("sans-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-weight: 400;
+  font-display: swap;
+  src: url("mono-400.woff2") format("woff2");
+}
 html,
 body {
   height: 100%;

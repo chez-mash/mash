@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 use tauri::webview::{DownloadEvent, NewWindowResponse};
-use tauri::{AppHandle, Manager, RunEvent, Url, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, RunEvent, Theme, Url, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_opener::OpenerExt;
 
@@ -84,9 +84,9 @@ fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
         .title("Mash")
         .inner_size(1280.0, 820.0)
         .min_inner_size(420.0, 480.0)
-        // The dashboard reads this to share mash:// links instead of its
-        // private address, which changes when the app picks another port.
-        .initialization_script("window.__MASH_DESKTOP__ = true;")
+        // The dashboard is dark until it says otherwise (see window.js).
+        .theme(Some(Theme::Dark))
+        .initialization_script(include_str!("window.js"))
         .on_navigation(move |url| {
             let dashboard = lock(&navigation).dashboard.clone();
             if stays_in_app(url, dashboard.as_ref()) {

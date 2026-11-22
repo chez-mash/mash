@@ -6,3 +6,4 @@ src-tauri/binaries/
 # Copied from the dashboard by src-tauri/build.rs.
 ui/tokens.css
 ui/mash-mark.svg
+ui/*.woff2

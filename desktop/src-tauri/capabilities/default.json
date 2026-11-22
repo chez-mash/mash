@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The app's own loading page. The dashboard runs as an ordinary web page and is given no app permissions.",
+  "description": "The app's own loading page. The dashboard's single permission is in dashboard.json.",
   "windows": ["main"],
   "permissions": ["core:default"]
 }

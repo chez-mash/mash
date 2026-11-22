@@ -12,8 +12,8 @@ dashboard into its window from that address, exactly as a browser would. Every
 page, theme, route and API is the dashboard's; a change to the dashboard
 reaches the app with no change here. The only page the app serves itself is
 `ui/index.html`, shown while the engine starts and when it fails, and it draws
-with the dashboard's own theme tokens and mark, which `src-tauri/build.rs`
-copies in at build time.
+with the dashboard's own theme tokens, mark and typefaces, which
+`src-tauri/build.rs` copies in at build time.
 
 The engine runs as the signed-in user with the user's normal `~/.mash`, so the
 app and the CLI share one configuration and one index. The app starts the
@@ -22,9 +22,11 @@ is taken. The fixed port matters because the dashboard keeps its theme, rail
 width and Mashy's position in browser storage, which belongs to one origin.
 
 The dashboard knows it is inside the app only by `window.__MASH_DESKTOP__`,
-set by an initialization script. It uses that for one thing: copied links are
-`mash://` links rather than the private loopback address
-(`dashboard/src/lib/shareLink.ts`).
+set by the app's initialization script (`src-tauri/src/window.js`). It uses
+that for one thing: copied links are `mash://` links rather than the private
+loopback address (`dashboard/src/lib/shareLink.ts`). The same script makes the
+title bar follow the dashboard's light or dark theme by watching the root
+element's `data-theme`; no dashboard code changes for it.
 
 ## mash:// links
 
@@ -47,8 +49,9 @@ The window loads only the app's page and the dashboard's own origin. Any
 other address a page tries to open, by link or by a new window, goes to the
 reader's browser through `tauri-plugin-opener`. The one exception is the empty
 window the dashboard writes a chat into for printing to PDF. The dashboard is
-given no Tauri permissions (`capabilities/default.json` grants only
-`core:default`, and `withGlobalTauri` is off). Downloads go to the reader's
+given one Tauri permission, setting the window's theme
+(`capabilities/dashboard.json`, scoped to `http://127.0.0.1:*`);
+`withGlobalTauri` is off, and the app's own page has `core:default`. Downloads go to the reader's
 Downloads folder, numbered so nothing is replaced.
 
 ## Building
@@ -68,5 +71,4 @@ out while releases are pre-releases.
   on install scripts, Homebrew, apt, Scoop and winget, and the app becomes a
   separate download (and later a cask and a winget package) that carries its
   own engine.
-- The loading page uses the system font rather than the dashboard's.
 - Whether the app should keep running in the tray when its window closes.
