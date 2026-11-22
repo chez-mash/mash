@@ -1,4 +1,4 @@
-use super::search::{SearchParams, search_operation};
+use super::search::{LiveParams, SearchParams, live_operation, search_operation};
 use super::{Operation, allowed_hosts, content_type};
 
 fn record_fixture() -> (tempfile::TempDir, crate::core::Paths, String) {
@@ -532,6 +532,40 @@ async fn dashboard_http_guards_host_methods_and_serves_real_catalogue() {
         reqwest::StatusCode::METHOD_NOT_ALLOWED
     );
     server.abort();
+}
+
+#[test]
+fn live_search_reads_this_machine_with_the_box_filters() {
+    let params = || LiveParams {
+        q: "chec".into(),
+        provider: "codex".into(),
+        project: "/p".into(),
+        days: Some(7),
+        limit: Some(5),
+    };
+    let Operation::LiveSearch {
+        query,
+        limit,
+        filters,
+    } = live_operation(params(), false).unwrap()
+    else {
+        panic!("expected a live search")
+    };
+    assert_eq!((query.as_str(), limit), ("chec", Some(5)));
+    assert_eq!(filters.project, ["/p"]);
+    assert_eq!(filters.days, Some(7));
+    // A dashboard that serves only the shared index has no index of its own.
+    assert!(live_operation(params(), true).is_err());
+    assert!(
+        live_operation(
+            LiveParams {
+                provider: "nope".into(),
+                ..params()
+            },
+            false
+        )
+        .is_err()
+    );
 }
 
 #[test]

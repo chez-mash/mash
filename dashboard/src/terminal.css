@@ -381,6 +381,13 @@ summary::-webkit-details-marker {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* A chat that mentions what is typed: its title over the matching passage. */
+.opt.said {
+  align-items: flex-start;
+}
+.opt.said small {
+  font-size: 12px;
+}
 #main {
   container-type: inline-size;
   flex: 1;

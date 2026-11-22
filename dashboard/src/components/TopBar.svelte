@@ -8,6 +8,7 @@ import Sun from "@lucide/svelte/icons/sun";
 import X from "@lucide/svelte/icons/x";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
+import { liveSearch } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
@@ -79,8 +80,31 @@ const suggestions = $derived.by(() => {
   ].slice(0, 5);
   return { filters, chats: chats.filter((chat) => has(chat.title)).slice(0, 4) };
 });
+// While the reader types, the box also searches what chats said: this
+// machine only, by words, once typing pauses. Where that is unavailable (the
+// demo, or a dashboard serving only the shared index) the box falls back to
+// matching chat titles above.
+let typed = $state("");
+$effect(() => {
+  const value = needle;
+  const timer = setTimeout(() => (typed = value), 150);
+  return () => clearTimeout(timer);
+});
+const live = createQuery(() => ({
+  queryKey: ["live-search", typed],
+  queryFn: ({ signal }) => liveSearch(typed, catalogue.data?.localNode ?? "", signal),
+  enabled: focused && typed.length >= 2 && catalogue.data !== undefined,
+  networkMode: "always" as const,
+  staleTime: 30_000,
+  retry: false,
+  // Keep the last answer on screen while the next keystroke's is on its way.
+  placeholderData: (previous: Awaited<ReturnType<typeof liveSearch>> | undefined) => previous,
+}));
+const said = $derived(needle.length >= 2 && !live.isError ? (live.data ?? []) : []);
 const showDrop = $derived(
-  focused && suggestions !== null && suggestions.filters.length + suggestions.chats.length > 0,
+  focused &&
+    suggestions !== null &&
+    suggestions.filters.length + suggestions.chats.length + said.length > 0,
 );
 function submit(event: SubmitEvent): void {
   event.preventDefault();
@@ -133,7 +157,12 @@ function submit(event: SubmitEvent): void {
             <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Bot size={14} aria-hidden="true" />{:else if filter.kind === "machine"}<Laptop size={14} aria-hidden="true" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
           {/each}
         {/if}
-        {#if suggestions.chats.length}
+        {#if said.length}
+          <h4>chats that mention it</h4>
+          {#each said as hit (hit.chat.machine + hit.chat.id)}
+            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size={14} /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
+          {/each}
+        {:else if suggestions.chats.length}
           <h4>chats</h4>
           {#each suggestions.chats as chat (chat.machine + chat.id)}
             <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size={14} /><span class="t"><span>{chat.title}</span></span></a>

@@ -21,6 +21,43 @@ async function mockCatalogue(page: Page, history = chats): Promise<void> {
   await page.route("**/api/chat?**", (route) => route.fulfill({ json: { messages: [] } }));
 }
 
+test("the search box shows chats that mention what is typed, and falls back to titles", async ({
+  page,
+}) => {
+  await mockCatalogue(page);
+  const typed: URLSearchParams[] = [];
+  let answering = true;
+  await page.route("**/api/search/live?**", (route) => {
+    typed.push(new URL(route.request().url()).searchParams);
+    if (!answering) return route.fulfill({ status: 503, json: { error: { kind: "unavailable" } } });
+    return route.fulfill({
+      json: {
+        results: [
+          {
+            ...chats[7],
+            title: "Fix the deploy script's retry loop",
+            matches: [{ message_id: "m-3", snippet: "the deploy step retries forever" }],
+          },
+        ],
+        next_offset: null,
+      },
+    });
+  });
+  await page.goto("/#/");
+  await searchBox(page).fill("deplo");
+  const said = page.getByRole("link", { name: /Fix the deploy script's retry loop/ });
+  await expect(said).toBeVisible();
+  await expect(said).toContainText("the deploy step retries forever");
+  await expect(said).toHaveAttribute("href", /#\/chat\/chat-7\?node=local&message=m-3/);
+  // It waits for a pause, so a burst of typing asks once, and never pages.
+  expect(typed.map((params) => Object.fromEntries(params))).toEqual([{ q: "deplo", limit: "5" }]);
+  // Where live search is unavailable, the box still matches chat titles.
+  answering = false;
+  await searchBox(page).fill("Conversation 11");
+  await expect(page.getByRole("link", { name: "Conversation 11", exact: true })).toBeVisible();
+  await expect(said).toBeHidden();
+});
+
 test("the chat list pages through the catalogue and Back keeps the page", async ({ page }) => {
   await mockCatalogue(page);
   const main = page.getByRole("main");

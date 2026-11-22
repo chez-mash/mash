@@ -3017,6 +3017,44 @@
         ],
         "type": "object"
       },
+      "LiveParams": {
+        "properties": {
+          "days": {
+            "default": null,
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "limit": {
+            "default": null,
+            "description": "At most 20; 8 when omitted.",
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "project": {
+            "default": "",
+            "description": "Comma-separated recorded working directories.",
+            "type": "string"
+          },
+          "provider": {
+            "default": "",
+            "description": "Comma-separated provider names, such as `claude-code,codex`.",
+            "type": "string"
+          },
+          "q": {
+            "default": "",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "Log": {
         "properties": {
           "checked_at": {
@@ -6933,6 +6971,91 @@
           }
         },
         "summary": "Chats that match a question."
+      }
+    },
+    "/api/search/live": {
+      "get": {
+        "operationId": "getApiSearchLive",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "default": null,
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "At most 20; 8 when omitted.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": null,
+              "description": "At most 20; 8 when omitted.",
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Comma-separated recorded working directories.",
+            "in": "query",
+            "name": "project",
+            "schema": {
+              "default": "",
+              "description": "Comma-separated recorded working directories.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Comma-separated provider names, such as `claude-code,codex`.",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "default": "",
+              "description": "Comma-separated provider names, such as `claude-code,codex`.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": ""
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "A few chats on this machine whose words match what the reader is typing."
       }
     },
     "/api/services": {

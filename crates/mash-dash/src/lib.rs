@@ -164,7 +164,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
 fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use aide::axum::routing::get_with;
     use contract::{changes, reads};
-    router
+    search::routes(router)
         .api_route(
             "/api/health",
             get_with(
@@ -204,13 +204,6 @@ fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRo
                     "/api/chats",
                     "Every chat's metadata, newest first.",
                 ),
-            ),
-        )
-        .api_route(
-            "/api/search",
-            get_with(
-                search::search,
-                reads::<core::SearchResponse>("/api/search", "Chats that match a question."),
             ),
         )
         .api_route(

@@ -390,8 +390,7 @@ type Read<P extends ReadPath> = (params: URLSearchParams, now: number) => Answer
 // demo answers it or declines to.
 const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/health": () => ({ build: tools.build_revision }),
-  // The demo has no model to ask.
-  "/api/assistant": () => ({ enabled: false, model: null }),
+  "/api/assistant": () => ({ enabled: false, model: null }), // the demo has no model to ask
   "/api/assistant/models": () => refuse(404, "No assistant is configured in the demo."),
   "/api/chats": (_, now) => ({
     local_node: localMachine,
@@ -400,6 +399,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
     chats: chats.map((chat) => row(chat, now)),
   }),
   "/api/search": search,
+  "/api/search/live": search, // the demo's search is already instant
   "/api/chat": transcript,
   "/api/view": view,
   "/api/records": recordList,

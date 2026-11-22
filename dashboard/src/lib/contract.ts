@@ -192,6 +192,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/search/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A few chats on this machine whose words match what the reader is typing. */
+        get: operations["getApiSearchLive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/services": {
         parameters: {
             query?: never;
@@ -1310,6 +1327,31 @@ export interface components {
             relation: components["schemas"]["Relation"];
             source_id: string;
             target_id: string;
+        };
+        LiveParams: {
+            /**
+             * Format: uint32
+             * @default null
+             */
+            days: number | null;
+            /**
+             * Format: uint
+             * @description At most 20; 8 when omitted.
+             * @default null
+             */
+            limit: number | null;
+            /**
+             * @description Comma-separated recorded working directories.
+             * @default
+             */
+            project: string;
+            /**
+             * @description Comma-separated provider names, such as `claude-code,codex`.
+             * @default
+             */
+            provider: string;
+            /** @default  */
+            q: string;
         };
         Log: {
             /** Format: uint64 */
@@ -2709,6 +2751,43 @@ export interface operations {
                 q?: string;
                 /** @description relevance (default) or recent: newest first within each page of matching chats. */
                 sort?: components["schemas"]["Sort"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiSearchLive: {
+        parameters: {
+            query?: {
+                days?: number;
+                /** @description At most 20; 8 when omitted. */
+                limit?: number;
+                /** @description Comma-separated recorded working directories. */
+                project?: string;
+                /** @description Comma-separated provider names, such as `claude-code,codex`. */
+                provider?: string;
+                q?: string;
             };
             header?: never;
             path?: never;

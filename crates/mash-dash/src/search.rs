@@ -1,6 +1,8 @@
-//! Read-only history search and its query parameters.
+//! Read-only history search and its query parameters: the full search, and
+//! the live one the search box runs while the reader types.
 use std::sync::Arc;
 
+use aide::axum::ApiRouter;
 use axum::{extract::State, response::Response};
 
 use super::{Dash, Operation, Request, core, json_result};
@@ -85,7 +87,7 @@ pub(super) fn search_operation(
     })
 }
 
-pub(super) async fn search(
+async fn search(
     State(state): State<Arc<Dash>>,
     axum::extract::Query(params): axum::extract::Query<SearchParams>,
 ) -> Response {
@@ -102,4 +104,79 @@ pub(super) async fn search(
         ),
         Err(error) => json_result(Err(error)),
     }
+}
+
+/// The search routes.
+pub(super) fn routes(router: ApiRouter<Arc<Dash>>) -> ApiRouter<Arc<Dash>> {
+    use super::contract::reads;
+    use aide::axum::routing::get_with;
+    router
+        .api_route(
+            "/api/search",
+            get_with(
+                search,
+                reads::<core::SearchResponse>("/api/search", "Chats that match a question."),
+            ),
+        )
+        .api_route(
+            "/api/search/live",
+            get_with(
+                live,
+                reads::<core::SearchResponse>(
+                    "/api/search/live",
+                    "A few chats on this machine whose words match what the reader is typing.",
+                ),
+            ),
+        )
+}
+
+#[derive(serde::Deserialize, Default, schemars::JsonSchema)]
+#[serde(default)]
+pub(super) struct LiveParams {
+    pub(super) q: String,
+    /// Comma-separated provider names, such as `claude-code,codex`.
+    pub(super) provider: String,
+    /// Comma-separated recorded working directories.
+    pub(super) project: String,
+    pub(super) days: Option<u32>,
+    /// At most 20; 8 when omitted.
+    pub(super) limit: Option<usize>,
+}
+
+/// Live search reads this machine's own index, so a dashboard that serves
+/// only the shared index has none to read; it runs the full search instead.
+pub(super) fn live_operation(params: LiveParams, shared_only: bool) -> Result<Operation, AppError> {
+    if shared_only {
+        return Err(AppError::usage(
+            "live search reads this machine's index, which this dashboard does not serve",
+        ));
+    }
+    let filters = crate::search_filter::Selection {
+        provider: providers(&params.provider)?,
+        project: split(&params.project),
+        days: params.days,
+        ..Default::default()
+    };
+    Ok(Operation::LiveSearch {
+        query: params.q,
+        limit: params.limit,
+        filters: Box::new(filters),
+    })
+}
+
+async fn live(
+    State(state): State<Arc<Dash>>,
+    axum::extract::Query(params): axum::extract::Query<LiveParams>,
+) -> Response {
+    let operation = live_operation(params, state.shared_only);
+    json_result(match operation {
+        Ok(operation) => {
+            core::execute(Request {
+                paths: state.paths.clone(),
+                operation,
+            })
+            .await
+        }
+        Err(error) => Err(error),
+    })
 }

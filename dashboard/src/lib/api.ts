@@ -128,7 +128,25 @@ export async function search(
   return parseSearch(await read("/api/search", params, signal), localNode);
 }
 
-export function parseSearch(body: Answer<"/api/search">, localNode: string): SearchPage {
+/**
+ * Chats on this machine whose words match a query the reader is still typing:
+ * a few, fast, by words only. Submitting the box runs the full `search`.
+ */
+export async function liveSearch(
+  query: string,
+  localNode: string,
+  signal: AbortSignal,
+): Promise<readonly SearchHit[]> {
+  const limit = 5;
+  const params = new URLSearchParams({ q: query, limit: String(limit) });
+  const page = parseSearch(await read("/api/search/live", params, signal), localNode);
+  return page.hits.slice(0, limit);
+}
+
+export function parseSearch(
+  body: Answer<"/api/search"> | Answer<"/api/search/live">,
+  localNode: string,
+): SearchPage {
   return {
     ...(body.intent === "exact-mention" || body.intent === "related-discussion"
       ? { intent: body.intent }
