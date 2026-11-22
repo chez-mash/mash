@@ -1,6 +1,7 @@
 # Mash desktop app
 
-The Mash dashboard in its own window, with `mash://` links. The app bundles
+The Mash dashboard in its own window, with `mash://` links, and Mash in the
+menu bar: click the icon (or press ⌥⇧Space) to search as you type. The app bundles
 the `mash` binary and runs `mash dash` on loopback; it has no front end of its
 own beyond a loading page. Design notes: `docs/internal/desktop-app.md`.
 
@@ -26,7 +27,8 @@ names a `mash` binary to use instead of the bundled one. Run the unit tests
 with `cargo test` in `src-tauri/`.
 
 The app icons in `src-tauri/icons/` are generated from `icons/mash-app.svg`:
-render it to `icons/mash-app.png` at 1024 pixels, then run `pnpm icons`.
+render it to `icons/mash-app.png` at 1024 pixels, then run `pnpm icons`. The
+menu bar icon is `icons/tray.svg`, rendered with `pnpm tray-icon`.
 
 ## Try a link
 

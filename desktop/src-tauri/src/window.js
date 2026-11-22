@@ -9,7 +9,9 @@ window.__MASH_DESKTOP__ = true;
 // app command the dashboard may call (capabilities/dashboard.json).
 (() => {
   const invoke = window.__TAURI_INTERNALS__?.invoke;
-  if (!invoke) return;
+  // The search panel follows the system's light or dark mode, not the
+  // dashboard's (dashboard/src/components/QuickSearch.svelte).
+  if (!invoke || location.hash.startsWith("#/quick")) return;
   let shown = null;
   const follow = () => {
     const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";

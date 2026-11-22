@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "quick",
+  "description": "The quick search panel (the dashboard's #/quick page in the panel window) may hide its own window and nothing else; rows it opens reach the app as mash:// links.",
+  "windows": [
+    "quick"
+  ],
+  "remote": {
+    "urls": [
+      "http://127.0.0.1:*"
+    ]
+  },
+  "permissions": [
+    "core:window:allow-hide"
+  ]
+}

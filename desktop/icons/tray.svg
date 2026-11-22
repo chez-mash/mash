@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The menu bar icon: the Mash mark in one colour. macOS draws it as a
+       template image, in the menu bar's own colour. -->
+  <path d="M9 47a23 23 0 0 1 46 0z" fill="#000"/>
+  <rect x="26" y="15.5" width="13" height="10" rx="2.2" fill="#000" transform="rotate(-12 32.5 20.5)"/>
+  <path d="M8 53.5h48" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+</svg>

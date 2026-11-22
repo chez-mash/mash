@@ -4,11 +4,13 @@
 //! The window loads the dashboard over loopback exactly as a browser would, so
 //! every page, theme and behaviour comes from the dashboard itself. The app
 //! adds only what a browser tab cannot: it starts and stops the engine, opens
-//! mash:// links, keeps a single window, and sends any address that is not
-//! the dashboard to the reader's browser.
+//! mash:// links, keeps a single window, lives in the menu bar with a quick
+//! search panel (menubar.rs), and sends any address that is not the dashboard
+//! to the reader's browser.
 
 mod engine;
 mod links;
+mod menubar;
 
 use engine::Engine;
 use std::path::{Path, PathBuf};
@@ -40,20 +42,29 @@ fn lock(state: &State) -> std::sync::MutexGuard<'_, Shared> {
 pub fn run() {
     let state = State::default();
     let builder = tauri::Builder::default();
-    // A second launch, such as a mash:// link opened elsewhere, hands its link
-    // to the running app and quits; the deep-link plugin delivers the link.
+    // A second launch hands over to the running app and quits. One that
+    // carries a mash:// link leaves the window to the link, which the
+    // deep-link plugin delivers (mash://quick shows only the search panel);
+    // a plain relaunch brings the main window forward.
     #[cfg(any(target_os = "linux", target_os = "macos", windows))]
     let builder = builder.plugin(tauri_plugin_single_instance::init(
-        |app, _arguments, _directory| {
-            show(app);
+        |app, arguments, _directory| {
+            if !arguments
+                .iter()
+                .any(|argument| links::route(argument).is_some())
+            {
+                show(app);
+            }
         },
     ));
     let app = builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(menubar::shortcut_plugin())
         .manage(state.clone())
         .setup(move |app| {
-            open_window(app.handle(), state.clone())?;
+            open_window(app.handle())?;
+            menubar::install(app.handle())?;
             listen_for_links(app.handle());
             start_engine(app.handle().clone(), state.clone());
             Ok(())
@@ -66,20 +77,26 @@ pub fn run() {
             std::process::exit(1);
         }
     };
-    app.run(|app, event| {
-        if let RunEvent::Exit = event {
+    app.run(|app, event| match event {
+        RunEvent::Exit => {
             let state = app.state::<State>();
             if let Some(mut engine) = lock(&state).engine.take() {
                 engine.stop();
             }
         }
+        // Clicking the Dock icon brings back a window closed into the menu bar.
+        #[cfg(target_os = "macos")]
+        RunEvent::Reopen {
+            has_visible_windows: false,
+            ..
+        } => show(app),
+        _ => {}
     });
 }
 
 /// The window, first showing the app's loading page.
-fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
-    let navigation = state.clone();
-    let opener = app.clone();
+fn open_window(app: &AppHandle) -> tauri::Result<()> {
+    let navigation = app.clone();
     let popups = app.clone();
     let downloads = app.clone();
     let (width, height) = window_size(app);
@@ -91,14 +108,7 @@ fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
         // The dashboard is dark until it says otherwise (see window.js).
         .theme(Some(Theme::Dark))
         .initialization_script(include_str!("window.js"))
-        .on_navigation(move |url| {
-            let dashboard = lock(&navigation).dashboard.clone();
-            if stays_in_app(url, dashboard.as_ref()) {
-                return true;
-            }
-            open_outside(&opener, url);
-            false
-        })
+        .on_navigation(move |url| navigate(&navigation, url, false))
         .on_new_window(move |url, _features| {
             // An empty window is the one the dashboard writes a chat into for
             // printing to PDF; it holds no address of its own.
@@ -117,6 +127,22 @@ fn open_window(app: &AppHandle, state: State) -> tauri::Result<()> {
             true
         })
         .build()?;
+    // Closing the window leaves Mash in the menu bar, as a menu bar app does;
+    // Quit in its menu ends it. Linux desktops do not all show a tray icon,
+    // so there closing the window quits.
+    #[cfg(any(target_os = "macos", windows))]
+    {
+        let window = app
+            .get_webview_window(WINDOW)
+            .ok_or(tauri::Error::WindowNotFound)?;
+        let hidden = window.clone();
+        window.on_window_event(move |event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = hidden.hide();
+            }
+        });
+    }
     Ok(())
 }
 
@@ -150,13 +176,49 @@ fn fit(width: f64, height: f64) -> (f64, f64) {
     )
 }
 
-/// Whether the window may load an address itself: the app's own page, or a
-/// page of the dashboard. Everything else belongs in the reader's browser.
-fn stays_in_app(url: &Url, dashboard: Option<&Url>) -> bool {
+/// What a window does with an address it is asked to load.
+#[derive(Debug, PartialEq, Eq)]
+enum Navigation {
+    /// Load it: the app's own page, or a page of the dashboard.
+    Load,
+    /// A mash:// link, which the app follows in its main window.
+    Follow,
+    /// Anything else, which belongs in the reader's browser.
+    Outside,
+}
+
+fn navigation(url: &Url, dashboard: Option<&Url>) -> Navigation {
     let local_page = url.scheme() == "tauri" || url.host_str() == Some("tauri.localhost");
     let same_origin = dashboard.is_some_and(|dashboard| dashboard.origin() == url.origin());
     let in_page = matches!(url.scheme(), "about" | "blob");
-    local_page || same_origin || in_page
+    if local_page || same_origin || in_page {
+        Navigation::Load
+    } else if url.scheme() == "mash" {
+        Navigation::Follow
+    } else {
+        Navigation::Outside
+    }
+}
+
+/// Whether a window (the panel, when `from_panel`) may load `url` itself.
+/// A mash:// link is how the dashboard asks for a page of the main window, so
+/// the panel opens its rows and menu that way and then gets out of the way.
+pub(crate) fn navigate(app: &AppHandle, url: &Url, from_panel: bool) -> bool {
+    let dashboard = lock(&app.state::<State>()).dashboard.clone();
+    match navigation(url, dashboard.as_ref()) {
+        Navigation::Load => true,
+        Navigation::Follow => {
+            if from_panel {
+                menubar::hide(app);
+            }
+            follow(app, url.as_str());
+            false
+        }
+        Navigation::Outside => {
+            open_outside(app, url);
+            false
+        }
+    }
 }
 
 /// Open a web or mail address in the program the reader uses for it.
@@ -211,10 +273,22 @@ fn listen_for_links(app: &AppHandle) {
 }
 
 /// Show the page a mash:// link names, or keep it until the engine is ready.
+/// mash://quick shows the search panel instead, for launchers and shortcuts.
 fn follow(app: &AppHandle, link: &str) {
     let Some(route) = links::route(link) else {
         return;
     };
+    if route == "#/quick" {
+        menubar::toggle(app, menubar::Placement::Centre);
+        return;
+    }
+    open_route(app, &route);
+}
+
+/// Show a dashboard route in the main window, or keep it until the engine is
+/// ready.
+pub(crate) fn open_route(app: &AppHandle, route: &str) {
+    let route = route.to_owned();
     let state = app.state::<State>();
     let mut shared = lock(&state);
     match shared.dashboard.clone() {
@@ -228,7 +302,7 @@ fn follow(app: &AppHandle, link: &str) {
 }
 
 /// The dashboard page for a route such as `#/chat/abc?node=laptop`.
-fn page(dashboard: &Url, route: &str) -> Url {
+pub(crate) fn page(dashboard: &Url, route: &str) -> Url {
     let mut page = dashboard.clone();
     page.set_fragment(Some(route.trim_start_matches('#')));
     page
@@ -241,7 +315,7 @@ fn show_route(app: &AppHandle, dashboard: &Url, route: &str) {
 }
 
 /// Bring the window forward.
-fn show(app: &AppHandle) {
+pub(crate) fn show(app: &AppHandle) {
     if let Some(window) = app.get_webview_window(WINDOW) {
         let _ = window.unminimize();
         let _ = window.show();
@@ -262,6 +336,9 @@ fn start_engine(app: AppHandle, state: State) {
                 shared.waiting.take()
             };
             show_route(&app, &dashboard, route.as_deref().unwrap_or("#/"));
+            if let Err(error) = menubar::create(&app, &dashboard) {
+                eprintln!("Mash couldn’t prepare its search panel: {error}");
+            }
             watch_engine(&app, &state);
         }
         Err(error) => show_error(&app, &error),
@@ -295,7 +372,7 @@ fn show_error(app: &AppHandle, message: &str) {
         return;
     };
     // The loading page's address; the window may be showing the dashboard.
-    if !stays_in_app(&local, None) {
+    if navigation(&local, None) != Navigation::Load {
         local = local_page();
     }
     local.set_path("/index.html");
@@ -319,7 +396,7 @@ fn local_page() -> Url {
 
 #[cfg(test)]
 mod tests {
-    use super::{fit, page, stays_in_app, unused_path};
+    use super::{Navigation, fit, navigation, page, unused_path};
     use tauri::Url;
 
     fn url(text: &str) -> Url {
@@ -329,6 +406,8 @@ mod tests {
     #[test]
     fn only_the_dashboard_and_the_app_page_load_in_the_window() {
         let dashboard = url("http://127.0.0.1:47290/");
+        let stays_in_app =
+            |url: &Url, dashboard: Option<&Url>| navigation(url, dashboard) == Navigation::Load;
         for inside in [
             "http://127.0.0.1:47290/#/chat/abc",
             "http://127.0.0.1:47290/api/export",
@@ -350,6 +429,22 @@ mod tests {
         assert!(
             !stays_in_app(&dashboard, None),
             "before the engine is ready"
+        );
+        // A mash:// link from the dashboard opens a page of the main window.
+        for link in [
+            "mash://chat/abc?message=m",
+            "mash://settings",
+            "mash://quick",
+        ] {
+            assert_eq!(
+                navigation(&url(link), Some(&dashboard)),
+                Navigation::Follow,
+                "{link}"
+            );
+        }
+        assert_eq!(
+            navigation(&url("https://getmash.io/"), Some(&dashboard)),
+            Navigation::Outside
         );
     }
 

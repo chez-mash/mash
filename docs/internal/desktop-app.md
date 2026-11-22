@@ -43,6 +43,29 @@ arrive before the engine is ready wait for it. Installers register the scheme;
 the app also registers it at start on Windows and Linux so an AppImage or a
 development build works.
 
+## The menu bar and the search panel
+
+The app lives in the menu bar (`src-tauri/src/menubar.rs`). Clicking its icon
+drops a search panel down under it; right-clicking opens a native menu
+(Search Mash…, Open Mash, Settings…, Quit Mash); ⌥⇧Space (Alt+Shift+Space)
+shows the same panel in the upper middle of the screen, and so does
+`mash://quick`. ⌥Space is left to launchers such as Raycast and Alfred, and
+the shortcut is registered after start so an app that already holds it costs
+only the shortcut. On macOS and Windows, closing the main window leaves Mash
+in the menu bar; on Linux, where not every desktop shows tray icons, it quits.
+
+The panel is the dashboard's `#/quick` page in a second, borderless window,
+so its live search, recent chats, agent logos and links are the dashboard's
+own (`dashboard/src/components/QuickSearch.svelte`, `dashboard/src/lib/quick.ts`).
+It looks like the operating system, not the Sticker theme: the theme's
+`--native-*` roles are system colours (Canvas, GrayText, AccentColor) and the
+system font, and the window's title-bar theme sync skips it. Its rows and menu
+open mash:// links, which the app follows in the main window before hiding
+the panel; the only Tauri permission the panel has is hiding its own window
+(`capabilities/quick.json`). It hides whenever it loses focus. The window is
+transparent, for its rounded edge, on macOS and Windows only: Linux desktops
+without a compositor paint a transparent window black.
+
 ## The window's boundary
 
 The window loads only the app's page and the dashboard's own origin. Any
@@ -71,4 +94,3 @@ out while releases are pre-releases.
   on install scripts, Homebrew, apt, Scoop and winget, and the app becomes a
   separate download (and later a cask and a winget package) that carries its
   own engine.
-- Whether the app should keep running in the tray when its window closes.
