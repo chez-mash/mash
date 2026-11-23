@@ -16,38 +16,65 @@ export const placeIcon: Record<PlaceId, typeof Database> = {
   mcp: Plug,
   dashboard: LayoutDashboard,
   server: Server,
+  serverSearch: Search,
 };
 </script>
 
 <script lang="ts">
 import Laptop from "@lucide/svelte/icons/laptop";
-import { type Machine, machineState, type ServiceState, stateLabel } from "../lib/services.svelte";
+import {
+  bandCards,
+  bandWords,
+  type Card,
+  cardHealth,
+  cardTone,
+  publishes,
+  publishVerb,
+  tone,
+} from "../lib/mapBand";
+import { publishWords, reported, type ServerReport, staleWords } from "../lib/serverStatus";
+import type { Machine } from "../lib/services.svelte";
 import { type Edge, type MachineMap, type Place, placeHref, placeLabel } from "../lib/topology";
 
 // Every machine's services as one picture: the chosen machine's pipeline in
 // full, the shared server above it, and the other machines as small cards
-// that open their own map. Each place is a link to its details.
+// that open their own map. Each place is a link to its details. The shared
+// server's own report adds its address, its machines and when each published;
+// a machine only the server knows of has a card but no map to open.
 let {
   map,
   others,
   selected,
-}: { map: MachineMap; others: readonly Machine[]; selected: string } = $props();
+  report = { kind: "none" },
+}: {
+  map: MachineMap;
+  others: readonly Machine[];
+  selected: string;
+  report?: ServerReport;
+} = $props();
 
 const id = $derived(map.machine.id);
 const places = $derived(map.places);
 const server = $derived(places.get("server"));
 const readers = $derived((["mcp", "dashboard"] as const).filter((reader) => places.has(reader)));
+const serverSearch = $derived(places.get("serverSearch"));
+const now = $derived(report.kind === "reported" ? report.now : Math.floor(Date.now() / 1000));
+
+const cards = $derived(bandCards(others, report, id));
+const shared = $derived(bandWords(report));
+const ownPublish = $derived(reported(report, id));
 
 // The desktop map is laid out on a fixed grid, in pixels of a 660-wide
 // canvas; the phone flow below needs no coordinates.
-const H = 76;
+const H = 84;
 const band = $derived(
-  server || others.length ? Math.max(server ? 40 + H : 0, 40 + others.length * (H + 14)) + 40 : 0,
+  server || cards.length ? Math.max(server ? 40 + H : 0, 40 + cards.length * (H + 14)) + 40 : 0,
 );
 const top = $derived(band ? band + 20 : 0);
 const at = $derived.by(() => {
   const spots: Partial<Record<PlaceId, { x: number; y: number; w: number }>> = {
-    server: { x: 240, y: 40, w: 200 },
+    server: { x: 230, y: 40, w: 200 },
+    serverSearch: { x: 470, y: 40, w: 190 },
     histories: { x: 0, y: top + 40, w: 170 },
     indexing: { x: 215, y: top + 40, w: 190 },
     sqlite: { x: 450, y: top + 40, w: 210 },
@@ -101,14 +128,11 @@ const verbLabels = $derived(
   // A shared line carries its verb once.
   routes.filter((path, index) => routes.findIndex((other) => other.edge.verb === path.edge.verb && other.edge.to === path.edge.to) === index),
 );
-function tone(state: ServiceState | null): string {
-  if (state === null) return "neutral";
-  if (state === "healthy") return "ok";
-  if (state === "failed") return "bad";
-  if (state === "unknown") return "unknown";
-  return "warn";
-}
 function statusText(place: Place): string {
+  if (place.id === "server" && report.kind === "reported") {
+    const count = report.machines.filter((machine) => !machine.removed).length;
+    return `${report.group} · ${count} machine${count === 1 ? "" : "s"}`;
+  }
   if (place.affectedBy)
     return `${place.summary} · ${placeLabel[place.affectedBy].toLowerCase()} is down`;
   return place.summary;
@@ -118,10 +142,8 @@ function edgeWords(edge: Edge): string {
     edge.state === "broken" ? "broken" : edge.state === "unconfirmed" ? "not confirmed" : "working";
   return `${placeLabel[edge.from]} ${edge.verb} ${placeLabel[edge.to]}: ${state}`;
 }
-const machineTone = (machine: Machine) =>
-  machine.reachable ? tone(machineState(machine)) : "unknown";
-const machineText = (machine: Machine) =>
-  machine.reachable ? stateLabel[machineState(machine)] : "Did not answer";
+const verbText = (edge: Edge) =>
+  edge.to === "server" ? publishVerb(edge.verb, ownPublish, now) : edge.verb;
 </script>
 
 {#snippet node(place: Place, flow = false)}
@@ -138,20 +160,32 @@ const machineText = (machine: Machine) =>
     <span class="nt"><strong>{place.label}</strong><small title={statusText(place)}>{#if place.state !== null}<i class="dot {tone(place.state)}" aria-hidden="true"></i>{/if}<span>{statusText(place)}</span></small></span>
   </a>
 {/snippet}
-{#snippet machineCard(machine: Machine, flow = false)}
-  <a class="node small {machineTone(machine)}" class:flow href={placeHref(machine.id)}>
-    <Laptop size={16} aria-hidden="true" />
-    <span class="nt"><strong>{machine.id}</strong><small><i class="dot {machineTone(machine)}" aria-hidden="true"></i><span>{machineText(machine)}</span></small></span>
-  </a>
+{#snippet cardBody(card: Card)}
+  <Laptop size={16} aria-hidden="true" />
+  <span class="nt">
+    <strong>{card.id}</strong>
+    {#if card.fleet}<small><i class="dot {cardTone(card)}" aria-hidden="true"></i><span>{cardHealth(card)}</span></small>{/if}
+    {#if card.reported}
+      {@const stale = staleWords(card.reported, now)}
+      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}>{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
+    {:else if !card.fleet}<small>Not reported</small>{/if}
+  </span>
+{/snippet}
+{#snippet machineCard(card: Card, flow = false)}
+  {#if card.fleet}
+    <a class="node small {cardTone(card)}" class:flow href={placeHref(card.id)}>{@render cardBody(card)}</a>
+  {:else}
+    <div class="node small neutral" class:flow>{@render cardBody(card)}</div>
+  {/if}
 {/snippet}
 
 <section class="card pad0 smap" aria-label="How your services connect">
-  <header class="smap-h"><strong>How your services connect</strong><span class="meta">{id}{others.length ? ` · ${others.length + 1} machines` : ""}</span></header>
+  <header class="smap-h"><strong>How your services connect</strong><span class="meta">{id}{cards.length ? ` · ${cards.length + 1} machines` : ""}</span></header>
   <!-- Desktop: the map. -->
   <div class="canvas-wrap">
     <div class="canvas" style:height="{height}px">
       {#if band}
-        <div class="band" style:top="0px" style:height="{band}px"><span class="band-l">{server ? "Shared server" : "Other machines"}{#if server}<span class="meta">&nbsp;· address not reported</span>{/if}</span></div>
+        <div class="band" style:top="0px" style:height="{band}px"><span class="band-l">{server ? "Shared server" : "Other machines"}{#if server}<span class="meta">&nbsp;· {shared}</span>{/if}</span></div>
       {/if}
       <div class="band" style:top="{top}px" style:height="{height - top - 8}px"><span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span></div>
       <svg class="edges" width="660" height={height} aria-hidden="true">
@@ -161,19 +195,19 @@ const machineText = (machine: Machine) =>
         {#each routes as path (`${path.edge.from}>${path.edge.to}`)}
           <polyline class="edge {path.edge.state}" points={path.points.map((point) => point.join(",")).join(" ")} marker-end="url(#arrow)" />
         {/each}
-        {#each others as machine, index (machine.id)}
-          {#if server && machine.reachable && machine.services.some((entry) => entry.kind === "server")}
+        {#each cards as entry, index (entry.id)}
+          {#if server && publishes(entry)}
             {@const card = other(index)}
-            <polyline class="edge ok" points="{card.w},{card.y + H / 2} {card.w + 40},{card.y + H / 2} {card.w + 40},{40 + H / 2} 240,{40 + H / 2}" marker-end="url(#arrow)" />
+            <polyline class="edge ok" points="{card.w},{card.y + H / 2} {card.w + 30},{card.y + H / 2} {card.w + 30},{40 + H / 2} 230,{40 + H / 2}" marker-end="url(#arrow)" />
           {/if}
         {/each}
         {#each verbLabels as path (`${path.edge.from}>${path.edge.to}`)}
-          <text class="edge-l {path.edge.state}" x={path.label[0]} y={path.label[1]} text-anchor={path.middle ? "middle" : "start"}>{path.edge.verb}</text>
+          <text class="edge-l {path.edge.state}" x={path.label[0]} y={path.label[1]} text-anchor={path.middle ? "middle" : "start"}>{verbText(path.edge)}</text>
         {/each}
       </svg>
-      {#each others as machine, index (machine.id)}
+      {#each cards as entry, index (entry.id)}
         {@const card = other(index)}
-        <div class="spot" style:left="{card.x}px" style:top="{card.y}px" style:width="{card.w}px">{@render machineCard(machine)}</div>
+        <div class="spot" style:left="{card.x}px" style:top="{card.y}px" style:width="{card.w}px">{@render machineCard(entry)}</div>
       {/each}
       {#each [...places.values()] as place (place.id)}
         {@const spot = at[place.id]}
@@ -183,13 +217,17 @@ const machineText = (machine: Machine) =>
   </div>
   <!-- Phone: the same places as one flow, top to bottom. -->
   <ol class="flow-list">
-    {#if server || others.length}
+    {#if server || cards.length}
       <li class="flow-group">
-        <span class="band-l">{server ? "Shared server" : "Other machines"}</span>
+        <span class="band-l">{server ? "Shared server" : "Other machines"}{#if server}<span class="meta">&nbsp;· {shared}</span>{/if}</span>
         {#if server}{@render node(server, true)}{/if}
-        {#if others.length}<div class="flow-pair">{#each others as machine (machine.id)}{@render machineCard(machine, true)}{/each}</div>{/if}
+        {#if serverSearch}
+          <span class="link {map.edges.find((edge) => edge.to === 'serverSearch')?.state ?? 'ok'}">builds</span>
+          {@render node(serverSearch, true)}
+        {/if}
+        {#if cards.length}<p class="also">Also publishing here</p><div class="flow-pair">{#each cards as entry (entry.id)}{@render machineCard(entry, true)}{/each}</div>{/if}
       </li>
-      {#if server}<li class="link {map.edges.find((edge) => edge.to === 'server')?.state ?? 'ok'}">{id} publishes ↑</li>{/if}
+      {#if server}{@const publish = map.edges.find((edge) => edge.to === "server")}<li class="link {publish?.state ?? 'ok'}">{id} {publish ? verbText(publish) : "publishes"} ↑</li>{/if}
     {/if}
     <li class="flow-group">
       <span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span>
@@ -281,16 +319,21 @@ const machineText = (machine: Machine) =>
   .spot {
     position: absolute;
   }
-  /* On the map every box has the height the connectors are drawn for. */
+  /* On the map every box has the height the connectors are drawn for. A long
+     name wraps to a second line rather than being cut. */
   .spot .node {
-    height: 76px;
+    height: 84px;
     overflow: hidden;
+    padding: 8px 12px;
   }
   .spot .nt strong {
-    font-size: 14px;
+    display: -webkit-box;
     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    font-size: 14px;
+    line-height: 1.2;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
   .spot .nt small > span {
     display: -webkit-box;
@@ -380,6 +423,31 @@ const machineText = (machine: Machine) =>
     padding: 4px 10px 12px;
     border-radius: var(--radius-7);
     background: var(--surface-muted);
+  }
+  .spot .small .nt small,
+  .spot .small .nt strong {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .spot .small .nt small > span {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .pub {
+    color: var(--text-muted);
+  }
+  .stale {
+    align-self: flex-start;
+    height: 18px;
+    margin-top: 2px;
+    font-size: 11px;
+  }
+  .also {
+    margin: 12px 0 6px;
+    color: var(--text-muted);
+    font: 700 11px var(--type-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .flow-pair {
     display: grid;

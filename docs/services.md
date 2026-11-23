@@ -20,9 +20,12 @@ machine's box to see its map.
 - A line is solid when the connection works, red and dashed when a fault at the
   end it depends on breaks it, and grey and dashed when that end's state is
   unknown.
-- The map shows only what the machine reports. The shared server's address, its
-  other machines and when each machine last published aren't reported yet, and
-  the map says so instead of guessing.
+- The map shows only what is reported. When this machine shares, the shared
+  server's own status gives its address, its group, every machine in the group
+  and when each last published; a copy older than two days is marked with its
+  age. A machine only the server knows of has a card but no map to open. The
+  server doesn't report its search index's state yet, so that box says so
+  instead of guessing.
 - Agent sessions on an older build show as **reconnect to update**, and an
   unsupervised watcher has no verdict. Neither counts against the machine.
 - **Needs attention** lists every machine's faults and what to do, with a

@@ -14,6 +14,7 @@ import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agoLabel } from "../lib/browse";
 import { stableRead } from "../lib/queries";
+import { reported, serverReport, serverViewOptions } from "../lib/serverStatus";
 import {
   checkedTime,
   type Machine,
@@ -56,8 +57,17 @@ const healthy = $derived(
   (fleet.data ?? []).filter((machine) => machineState(machine) === "healthy").length,
 );
 const service = $derived(machine?.services.find((service) => service.id === serviceId));
+// The shared server as it reports this machine's group: its address, its
+// machines and when each published. It speaks for the machine it was read
+// from and for the machines it lists, not for a machine of another group.
+const serverView = createQuery(() => ({ ...serverViewOptions, enabled }));
+const report = $derived.by(() => {
+  const whole = serverReport(serverView.data);
+  const local = selectedId === access.data?.localNode;
+  return local || reported(whole, selectedId) ? whole : serverReport(undefined);
+});
 // The map of the chosen machine, and the place on it whose details are open.
-const map = $derived(machine ? machineMap(machine) : null);
+const map = $derived(machine ? machineMap(machine, report.kind !== "none") : null);
 const placeId = $derived((selection.get("place") ?? "") as PlaceId | "");
 const place = $derived(placeId ? map?.places.get(placeId) : undefined);
 const others = $derived((fleet.data ?? []).filter((candidate) => candidate.id !== selectedId));
@@ -293,7 +303,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
           </section>
         {/if}
       {/each}
-      {#if map}<ServicesMap {map} {others} selected={placeId} />{/if}
+      {#if map}<ServicesMap {map} {others} selected={placeId} {report} />{/if}
       {#each shown as machine (machine.id)}
         {#if machine.reachable}{#each machine.warnings as warning (warning)}<p class="meta">{machine.id}: {warning}</p>{/each}{/if}
       {/each}
@@ -309,7 +319,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       {/if}
     </div>
     <div class="c-side">
-      {#if map && place}<MapPanel {map} {place} controls={serviceControls} />{/if}
+      {#if map && place}<MapPanel {map} {place} {report} controls={serviceControls} />{/if}
       {#if selectedId}{@render activity()}{/if}
     </div>
   </div>

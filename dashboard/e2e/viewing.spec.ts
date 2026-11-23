@@ -21,6 +21,40 @@ const shared = [
 ];
 const xeniaOwn = [chat("live-one", "xenia", "codex", 1), chat("live-two", "xenia", "cursor", 2)];
 
+const serverNow = Math.floor(now / 1000);
+const published = (node: string, secondsAgo: number) => ({
+  group_id: "harbor",
+  node_id: node,
+  state: "joined",
+  delete_waiting: false,
+  published: {
+    chats: 2,
+    messages: 20,
+    instance: "i",
+    last_synced_at: new Date((serverNow - secondsAgo) * 1000).toISOString(),
+  },
+});
+/** The shared server's report: workstation published recently, build-box days ago. */
+const serverView = {
+  admin_key: false,
+  may_change: false,
+  server: "https://mash.harbor.example",
+  group_id: "harbor",
+  node_id: "laptop",
+  status: {
+    build: "fedcba98",
+    group_id: "harbor",
+    now: serverNow,
+    restart_needed: false,
+    started_at: serverNow - 100,
+    machines: [
+      published("laptop", 60),
+      published("workstation", 28 * 60),
+      published("build-box", 5 * 86_400),
+    ],
+  },
+};
+
 interface Setup {
   readonly joined?: boolean;
   readonly sharedOnly?: boolean;
@@ -28,6 +62,8 @@ interface Setup {
   readonly live?: readonly string[];
   /** Whether xenia's dashboard answers. */
   readonly xeniaAnswers?: boolean;
+  /** Whether the shared server reports when each machine published. */
+  readonly report?: boolean;
 }
 
 /** A dashboard on laptop, reading a shared index unless told otherwise. */
@@ -39,6 +75,10 @@ async function mock(page: Page, setup: Setup = {}): Promise<URL[]> {
     asked.push(url);
     const path = url.pathname;
     if (path === "/api/viewing") return route.fulfill({ json: { machines: setup.live ?? [] } });
+    if (path === "/api/shared/server")
+      return route.fulfill({
+        json: setup.report ? serverView : { admin_key: false, may_change: false },
+      });
     if (path.startsWith("/api/peer/xenia/")) {
       if (!setup.xeniaAnswers)
         return route.fulfill({
@@ -255,3 +295,26 @@ test("a shared-only dashboard has no this-machine choice", async ({ page }) => {
   await openSwitcher(page);
   await expect(option(page, /^\s*This machine/)).toHaveCount(0);
 });
+
+for (const width of [1440, 390]) {
+  test(`the switcher says when each machine published and warns of a stale copy at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: width > 500 ? 1000 : 844 });
+    await mock(page, { report: true });
+    await page.goto("/#/");
+    await openSwitcher(page);
+    await expect(option(page, /workstation/)).toContainText("Published 28m ago");
+    await expect(option(page, /build-box/)).toContainText("Published 5 days ago");
+    await expect(option(page, /build-box/)).toContainText("5 days old");
+    await expect(option(page, /workstation/)).not.toContainText("days old");
+    await shoot(page, "menu-published");
+    await option(page, /build-box/).click();
+    if (width > 500) {
+      // The button names the machine in full, with what it shows in a pill.
+      const button = page.locator("#rail .vw-b");
+      await expect(button).toContainText("build-box");
+      await expect(button.locator(".vw-p")).toHaveText("published");
+    }
+  });
+}

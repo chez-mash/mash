@@ -64,10 +64,48 @@ function publisher(id: string, reachable = true) {
   };
 }
 
-async function mock(page: Page, problem: boolean): Promise<{ actions: () => number }> {
+const NOW = 1794140000;
+const iso = (secondsAgo: number) => new Date((NOW - secondsAgo) * 1000).toISOString();
+const publishedAgo = (node: string, secondsAgo: number) => ({
+  group_id: "harbor",
+  node_id: node,
+  state: "joined",
+  delete_waiting: false,
+  published: { chats: 40, messages: 900, instance: "i", last_synced_at: iso(secondsAgo) },
+});
+/** The shared server's own report of laptop's group. `studio` joined but
+ * never published, and this dashboard has no services entry for it. */
+const serverView = {
+  admin_key: false,
+  may_change: false,
+  server: "https://mash.harbor.example",
+  group_id: "harbor",
+  node_id: "laptop",
+  status: {
+    build: "fedcba9876543210",
+    group_id: "harbor",
+    now: NOW,
+    restart_needed: false,
+    started_at: NOW - 86_400,
+    machines: [
+      publishedAgo("laptop", 12 * 60),
+      publishedAgo("workstation", 28 * 60),
+      publishedAgo("build-box", 5 * 86_400),
+      { group_id: "harbor", node_id: "studio", state: "joined", delete_waiting: false },
+    ],
+  },
+};
+
+async function mock(
+  page: Page,
+  problem: boolean,
+  report = false,
+): Promise<{ actions: () => number }> {
   let actions = 0;
   await page.route("**/api/**", (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === "/api/shared/server")
+      return route.fulfill({ json: report ? serverView : { admin_key: false, may_change: false } });
     if (url.pathname === "/api/services/access")
       return route.fulfill({ json: { authentication_required: false, local_node: "laptop" } });
     if (url.pathname === "/api/services")
@@ -171,6 +209,66 @@ test.describe("at 1440px", () => {
     await shoot(page, "problem");
     await confirm.getByRole("button", { name: "Cancel" }).click();
     expect(fixture.actions()).toBe(0);
+  });
+});
+
+test.describe("with the shared server's report", () => {
+  for (const width of [1440, 390]) {
+    test(`the shared band shows the server, its machines and when each published at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: width > 500 ? 1000 : 844 });
+      await mock(page, false, true);
+      await page.goto("/#/services");
+      const map = page.getByRole("region", { name: "How your services connect" });
+      await expect(
+        map.getByText("https://mash.harbor.example").filter({ visible: true }).first(),
+      ).toBeVisible();
+      await expect(
+        map.getByRole("link", { name: /Shared server.*harbor · 4 machines/ }),
+      ).toBeVisible();
+      // The server's search index is its own box, but nothing reports its state.
+      await expect(
+        map.getByRole("link", { name: /Search on server.*State not reported/ }),
+      ).toBeVisible();
+      await expect(map.getByRole("list", { name: "Connections" })).toContainText(
+        "Shared server builds Search on server: not confirmed",
+      );
+      await expect(
+        map.getByRole("link", { name: /workstation.*Healthy.*published 28m ago/ }),
+      ).toHaveAttribute("href", "#/services?machine=workstation");
+      await expect(map.getByRole("link", { name: /build-box.*5 days old/ })).toBeVisible();
+      // A machine only the server knows of has a card but no map to open.
+      await expect(
+        map.getByText("nothing published yet").filter({ visible: true }).first(),
+      ).toBeVisible();
+      await expect(map.getByRole("link", { name: /studio/ })).toHaveCount(0);
+      await expect(
+        map
+          .getByText(/publishes · 12m ago/)
+          .filter({ visible: true })
+          .first(),
+      ).toBeVisible();
+      await shoot(page, "shared-band");
+      await map.getByRole("link", { name: /Shared server/ }).click();
+      const panel = page.getByRole("complementary", { name: "Shared server details" });
+      await expect(panel).toContainText("harbor");
+      const machines = panel.getByRole("region", { name: "Machines publishing here" });
+      await expect(machines).toContainText("workstation");
+      await expect(machines).toContainText("published 28m ago");
+      await expect(machines).toContainText("5 days old");
+      await expect(machines).toContainText("nothing published yet");
+      expect(await fitsViewport(page)).toBe(true);
+    });
+  }
+
+  test("without a report the band says what is not reported", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await mock(page, false);
+    await page.goto("/#/services");
+    const map = page.getByRole("region", { name: "How your services connect" });
+    await expect(map.getByText("address not reported").filter({ visible: true })).toBeVisible();
+    await expect(map.getByRole("link", { name: /Search on server/ })).toHaveCount(0);
   });
 });
 

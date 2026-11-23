@@ -122,9 +122,12 @@ is the pill beside the search box.
   it live, including work it has not published, and labels it **live**.
   Otherwise you see what it published, labelled **published copy**. When a
   machine's dashboard does not answer, its published copy is shown instead,
-  and the page says so.
+  and the page says so. The switcher lists when each machine last published,
+  as the shared server reports it, and marks a copy older than two days with
+  its age.
 
-Each page names the choice under its title. Services and Machines always
+Each page names the choice under its title. The desktop app's menu-bar panel
+follows the same choice. Services and Machines always
 show every machine. The choice is remembered in this browser and added to the
 page's address, so a link you share opens the same view.
 

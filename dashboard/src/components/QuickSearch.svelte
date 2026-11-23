@@ -7,7 +7,6 @@ import { agents } from "../lib/agents";
 import { liveSearch } from "../lib/api";
 import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
-import { catalogOptions } from "../lib/queries";
 import {
   browserPlatform,
   fullSearchTarget,
@@ -24,6 +23,8 @@ import {
   rowTarget,
   searching,
 } from "../lib/quick";
+import { inScope, scopeText } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import { inDesktopApp, shareLink } from "../lib/shareLink";
 import { type Status, statusOptions } from "../lib/status";
 
@@ -37,7 +38,9 @@ const desktop = inDesktopApp();
 const material =
   (globalThis as { __MASH_PANEL_MATERIAL__?: unknown }).__MASH_PANEL_MATERIAL__ === true;
 const keys = quickKeys(browserPlatform());
-const catalogue = createQuery(() => catalogOptions);
+// The panel follows the viewing scope chosen in the dashboard, as the top bar's
+// suggestions do: the same browser storage holds the choice for both.
+const catalogue = createScoped();
 let text = $state("");
 let typed = $state("");
 $effect(() => {
@@ -46,8 +49,17 @@ $effect(() => {
   return () => clearTimeout(timer);
 });
 const live = createQuery(() => ({
-  queryKey: ["live-search", typed, catalogue.data?.localNode ?? ""],
-  queryFn: ({ signal }) => liveSearch(typed, catalogue.data?.localNode ?? "", signal),
+  queryKey: ["live-search", typed, catalogue.data ? scopeText(catalogue.data.scope) : ""],
+  // A machine read live is asked itself; otherwise this machine's word search
+  // stands in, kept to what the scope covers. Without the chat list it still
+  // searches this machine, so a failure shows where the reader can see it.
+  queryFn: async ({ signal }) => {
+    const data = catalogue.data;
+    if (!data) return liveSearch(typed, "", signal);
+    const peer = data.live && data.scope.kind === "node" ? data.scope.node : undefined;
+    const hits = await liveSearch(typed, data.reach.localNode, signal, peer);
+    return peer ? hits : hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode));
+  },
   // It waits for the chat list, which names this machine, but searches anyway
   // when the list failed, so a typed search fails where the reader can see it.
   enabled: searching(typed) && (catalogue.data !== undefined || catalogue.isError),

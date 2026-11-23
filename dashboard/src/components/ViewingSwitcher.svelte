@@ -13,6 +13,13 @@ import { groupChats } from "../lib/browse";
 import { catalogOptions, liveOptions, reachOf } from "../lib/queries";
 import { type Scope, sameScope, scope, scopeName } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
+import {
+  publishWords,
+  reported,
+  serverReport,
+  serverViewOptions,
+  staleWords,
+} from "../lib/serverStatus";
 
 let { variant = "rail" }: { variant?: "rail" | "top" } = $props();
 const whole = createQuery(() => catalogOptions);
@@ -29,6 +36,23 @@ function toBody(node: HTMLElement) {
 }
 
 const reach = $derived(whole.data ? reachOf(whole.data, liveList.data ?? []) : undefined);
+// When each machine last published, as the shared server reports it.
+const serverView = createQuery(() => ({
+  ...serverViewOptions,
+  enabled: reach?.joined === true && !reach.sharedOnly,
+}));
+const report = $derived(serverReport(serverView.data));
+const serverNow = $derived(report.kind === "reported" ? report.now : 0);
+/** "Published 12m ago" and, for a stale copy, "5 days old". */
+function publishing(machine: string): { words: string; stale: string } {
+  const entry = reported(report, machine);
+  if (!entry) return { words: "What it published", stale: "" };
+  const words = publishWords(entry, serverNow);
+  return {
+    words: words.charAt(0).toUpperCase() + words.slice(1),
+    stale: staleWords(entry, serverNow),
+  };
+}
 const counts = $derived(
   new Map(
     groupChats(whole.data?.chats ?? [], (chat) => chat.machine).map((g) => [g.key, g.chats.length]),
@@ -52,6 +76,15 @@ const name = $derived(
       )
     : "loading…",
 );
+/** The button names the machine in full; whether it is this machine, read
+ * live or a published copy goes in a small pill beside it. */
+const label = $derived.by((): { text: string; pill: string } => {
+  if (!current || !scoped.data) return { text: name, pill: "" };
+  if (current.kind === "local") return { text: scoped.data.reach.localNode, pill: "this machine" };
+  if (current.kind === "node")
+    return { text: current.node, pill: scoped.data.live ? "live" : "published" };
+  return { text: name, pill: "" };
+});
 /** A phone's top bar has room for "All · 3". */
 const short = $derived(
   !current
@@ -59,7 +92,7 @@ const short = $derived(
     : current.kind === "all"
       ? `All · ${machineCount}`
       : current.kind === "local"
-        ? "This machine"
+        ? (scoped.data?.reach.localNode ?? "This machine")
         : current.node,
 );
 const total = $derived(whole.data?.chats.length ?? 0);
@@ -86,7 +119,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   {#if variant === "rail"}<span class="vw-l" id="viewing-label">viewing</span>{/if}
   <button class="vw-b" type="button" aria-haspopup="true" aria-expanded={open} aria-label={variant === "top" ? `Viewing: ${name}` : undefined} aria-describedby={variant === "rail" ? "viewing-label" : undefined} onclick={() => (open = !open)}>
     {#if current?.kind === "all"}<Globe size={15} aria-hidden="true" />{:else if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
-    <span class="vw-n">{variant === "top" ? short : name}</span>
+    {#if variant === "top"}<span class="vw-n" title={name}>{short}</span>{:else}<span class="vw-n" title={name}>{label.text}</span>{#if label.pill}<span class="pill vw-p">{label.pill}</span>{/if}{/if}
     <ChevronDown size={14} aria-hidden="true" class="vw-c" />
   </button>
   {#if open && reach}
@@ -113,9 +146,10 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
         {#each others as machine (machine)}
           {@const live = reach.live.includes(machine)}
           {@const candidate = { kind: "node", node: machine } as const}
+          {@const published = publishing(machine)}
           <button type="button" role="menuitemradio" aria-checked={on(candidate)} onclick={() => choose(candidate)}>
             <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else if live}<Radio size={14} aria-hidden="true" />{:else}<Laptop size={14} aria-hidden="true" />{/if}</span>
-            <span class="vw-t"><b>{machine}</b><small>{live ? "Live from its own dashboard" : "What it published"}</small></span>
+            <span class="vw-t"><b>{machine}</b><small>{live ? "Live from its own dashboard" : published.words}</small>{#if published.stale}<span class="pill warn vw-st">{published.stale}</span>{/if}</span>
             {#if counts.has(machine)}<span class="vw-k">{(counts.get(machine) ?? 0).toLocaleString()}</span>{/if}
           </button>
         {/each}
@@ -167,6 +201,18 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .vw-p {
+    flex: none;
+    height: 20px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+  .vw-st {
+    align-self: flex-start;
+    height: 18px;
+    margin-top: 3px;
+    font-size: 11px;
   }
   .vw-b[aria-expanded="true"] :global(.vw-c) {
     transform: rotate(180deg);

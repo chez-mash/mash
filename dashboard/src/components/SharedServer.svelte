@@ -2,7 +2,7 @@
 import KeyRound from "@lucide/svelte/icons/key-round";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
-import { read } from "../lib/api";
+import { serverViewOptions } from "../lib/serverStatus";
 import { settingsOptions } from "../lib/settings";
 import { lastPublish, machineState, setAdminKey } from "../lib/shared";
 import JoinShared from "./JoinShared.svelte";
@@ -16,11 +16,7 @@ import ShareReview from "./ShareReview.svelte";
 let { joinable = false }: { joinable?: boolean } = $props();
 
 const client = useQueryClient();
-const view = createQuery(() => ({
-  queryKey: ["shared-server"],
-  queryFn: ({ signal }: { signal: AbortSignal }) =>
-    read("/api/shared/server", new URLSearchParams(), signal),
-}));
+const view = createQuery(() => serverViewOptions);
 const now = $derived(view.data?.status?.now ?? Math.floor(Date.now() / 1000));
 // A joined machine whose index is still local has not chosen what to share.
 const settings = createQuery(() => settingsOptions);

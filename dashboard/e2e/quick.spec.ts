@@ -287,3 +287,41 @@ test("the quick panel follows the system's dark appearance while the dashboard s
     "light",
   );
 });
+
+test("the panel follows the viewing scope chosen in the dashboard", async ({ page }) => {
+  const elsewhere = {
+    chat_id: "w1",
+    node_id: "workstation",
+    provider: "codex",
+    title: "Deploy the workstation build",
+    project: "/work/infra",
+    updated_at: now - 3_600_000,
+  };
+  await page.route(statusPath, (route) => route.fulfill({ json: ready }));
+  await page.route("**/api/viewing**", (route) => route.fulfill({ json: { machines: [] } }));
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({
+      json: { local_node: "laptop", truncated: false, joined: true, chats: [...chats, elsewhere] },
+    }),
+  );
+  await page.route("**/api/search/live?**", (route) =>
+    route.fulfill({
+      json: {
+        results: [
+          { ...elsewhere, matches: [{ message_id: "m-1", snippet: "deploy on workstation" }] },
+          { ...chats[0], matches: [{ message_id: "m-3", snippet: "the deploy step retries" }] },
+        ],
+        next_offset: null,
+      },
+    }),
+  );
+  // The dashboard chose "This machine"; the panel reads the same browser storage.
+  await page.addInitScript(() => localStorage.setItem("mash.scope", "local"));
+  await page.goto("/#/quick");
+  const options = page.getByRole("option");
+  await expect(options).toHaveCount(3);
+  await expect(page.getByText("Deploy the workstation build")).toHaveCount(0);
+  await page.getByRole("textbox", { name: "Search Mash" }).fill("deploy");
+  await expect(options).toHaveCount(1);
+  await expect(options.first()).toContainText("the deploy step retries");
+});

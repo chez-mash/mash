@@ -5,11 +5,12 @@
 // shape of Mash itself, the same on every machine: agents' history files are
 // read by indexing, which writes the SQLite index, from which local search is
 // built, which the dashboard and agents (over MCP) search; indexing also
-// publishes to the shared server when the machine shares. So the map draws an
-// edge only between two places that are both present on the machine, and never
-// guesses at anything else (an embedding model, another machine's internals,
-// when a machine last published): what the API does not report is shown as
-// not reported.
+// publishes to the shared server when the machine shares, and the server builds
+// its own search index. So the map draws an edge only between two places that
+// are both present, and never guesses at anything else (an embedding model,
+// another machine's internals): what nothing reports is shown as not reported.
+// The shared server's own report (lib/serverStatus.ts) supplies its address,
+// its machines and when each last published.
 import { incidental, type Machine, type Service, type ServiceState } from "./services.svelte";
 
 export type PlaceId =
@@ -19,7 +20,8 @@ export type PlaceId =
   | "search"
   | "mcp"
   | "dashboard"
-  | "server";
+  | "server"
+  | "serverSearch";
 
 /** One place on the map and the services the machine reported for it. */
 export interface Place {
@@ -34,6 +36,8 @@ export interface Place {
   readonly summary: string;
   /** Set when a place this one needs is down: what it needs and why. */
   readonly affectedBy: PlaceId | null;
+  /** Nothing reports this place's state, so connections into it are not confirmed. */
+  readonly unreported?: boolean;
 }
 
 /** How a connection looks: working, broken by a fault at the end it needs,
@@ -70,6 +74,7 @@ export const placeLabel: Record<PlaceId, string> = {
   mcp: "Mash MCP",
   dashboard: "Dashboard",
   server: "Shared server",
+  serverSearch: "Search on server",
 };
 
 /**
@@ -85,6 +90,7 @@ const pipeline: readonly { from: PlaceId; to: PlaceId; verb: string; needs: Plac
   { from: "mcp", to: "search", verb: "searches", needs: "search" },
   { from: "dashboard", to: "search", verb: "searches", needs: "search" },
   { from: "indexing", to: "server", verb: "publishes", needs: "server" },
+  { from: "server", to: "serverSearch", verb: "builds", needs: "serverSearch" },
 ];
 
 const severity: readonly ServiceState[] = ["failed", "unknown", "degraded", "stopped", "healthy"];
@@ -110,14 +116,16 @@ function summary(id: PlaceId, services: readonly Service[]): string {
 }
 
 function edgeState(target: Place | undefined): EdgeState {
+  if (target?.unreported) return "unconfirmed";
   const state = target?.state;
   if (state === "stopped" || state === "failed") return "broken";
   if (state === "unknown" || state === "degraded") return "unconfirmed";
   return "ok";
 }
 
-/** The map of one machine from its latest service check. */
-export function machineMap(machine: Machine): MachineMap {
+/** The map of one machine from its latest service check. `serverSearch` adds
+ * the shared server's search index, whose state the server does not report. */
+export function machineMap(machine: Machine, serverSearch = false): MachineMap {
   const grouped = new Map<PlaceId, Service[]>();
   for (const service of machine.services) {
     const id = kindPlace[service.kind];
@@ -143,6 +151,16 @@ export function machineMap(machine: Machine): MachineMap {
       state: worst(services),
       summary: summary(id, services),
       affectedBy: null,
+    });
+  if (serverSearch && places.has("server"))
+    places.set("serverSearch", {
+      id: "serverSearch",
+      label: placeLabel.serverSearch,
+      services: [],
+      state: null,
+      summary: "State not reported",
+      affectedBy: null,
+      unreported: true,
     });
   const edges: Edge[] = [];
   for (const link of pipeline) {

@@ -104,3 +104,22 @@ describe("the services map", () => {
     expect(placeHref("")).toBe("#/services?");
   });
 });
+
+describe("the shared server's search index on the map", () => {
+  it("is drawn only beside a shared server, with no state, and its connection is not confirmed", () => {
+    const withServer = [...pipeline, service("shared-server", "server")];
+    const map = machineMap(machine(withServer), true);
+    const search = map.places.get("serverSearch");
+    expect(search?.state).toBeNull();
+    expect(search?.summary).toBe("State not reported");
+    expect(map.edges.find((edge) => edge.to === "serverSearch")).toMatchObject({
+      from: "server",
+      verb: "builds",
+      state: "unconfirmed",
+    });
+    // Asked for without a shared server on the machine, it is not drawn.
+    expect(machineMap(machine(pipeline), true).places.has("serverSearch")).toBe(false);
+    // And not drawn when the server reported nothing.
+    expect(machineMap(machine(withServer)).places.has("serverSearch")).toBe(false);
+  });
+});
