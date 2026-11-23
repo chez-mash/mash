@@ -17,7 +17,8 @@ import { router } from "../lib/route.svelte";
 import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
 import MessageBody from "./MessageBody.svelte";
 
-// There is no Mashy unless this dashboard was given a model to ask.
+// Mashy is always shown, so people know it exists; without a model to ask,
+// a question is answered with how to set one up.
 const status = createQuery(() => assistantOptions);
 const catalogue = createQuery(() => catalogOptions);
 const route = $derived(router.current);
@@ -201,7 +202,8 @@ async function submit(text: string): Promise<void> {
   if (!text.trim() || mashy.busy) return;
   draft = "";
   following = true;
-  void mashy.ask(text, openChat);
+  if (status.data?.enabled) void mashy.ask(text, openChat);
+  else mashy.unavailable(text);
   await tick();
   resize();
   input?.focus();
@@ -379,102 +381,101 @@ function followed(event: MouseEvent): void {
     if (!focused || focused === document.body || focused.closest("#mashy, #mashy-fab")) void close();
   }}
 />
-{#if status.data?.enabled}
-  {#if mashy.open}
-    <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-    <section id="mashy" class:fresh={empty} aria-label="Mashy" bind:this={panel} style:translate="{moved.x}px {moved.y}px" onclick={followed}>
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <header title="Drag to move" onpointerdown={grab} onpointermove={drag} onpointerup={drop} onpointercancel={drop} ondblclick={(event) => { if (!(event.target instanceof Element) || !event.target.closest("button")) place(0, 0); }}>
-        <img src={asset("mashy.png")} alt="" />
-        <div><strong>Mashy</strong></div>
-        {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/if}
-        <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><X size={18} /></button>
-      </header>
-      <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
-        {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
-        {#if mashy.passage}
-          <div class="mashy-passage">
-            <span>About this passage</span>
-            <p>“{mashy.passage.length > 160 ? `${mashy.passage.slice(0, 160)}…` : mashy.passage}”</p>
-            <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
+{#if mashy.open}
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+  <section id="mashy" class:fresh={empty} aria-label="Mashy" bind:this={panel} style:translate="{moved.x}px {moved.y}px" onclick={followed}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <header title="Drag to move" onpointerdown={grab} onpointermove={drag} onpointerup={drop} onpointercancel={drop} ondblclick={(event) => { if (!(event.target instanceof Element) || !event.target.closest("button")) place(0, 0); }}>
+      <img src={asset("mashy.png")} alt="" />
+      <div><strong>Mashy</strong></div>
+      {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/if}
+      <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><X size={18} /></button>
+    </header>
+    <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
+      {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
+      {#if mashy.passage}
+        <div class="mashy-passage">
+          <span>About this passage</span>
+          <p>“{mashy.passage.length > 160 ? `${mashy.passage.slice(0, 160)}…` : mashy.passage}”</p>
+          <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
+        </div>
+      {/if}
+      {#if empty}
+        <div class="mashy-hello">
+          <img src={asset("mashy.png")} alt="" />
+          <p>Hi, I’m Mashy. Ask me about anything in your past chats{openChat ? ", or about the chat you have open" : ""}.</p>
+          <div class="mashy-sugg">
+            {#each suggestions as suggestion (suggestion)}<button type="button" onclick={() => void submit(suggestion)}>{suggestion}</button>{/each}
           </div>
-        {/if}
-        {#if empty}
-          <div class="mashy-hello">
-            <img src={asset("mashy.png")} alt="" />
-            <p>Hi, I’m Mashy. Ask me about anything in your past chats{openChat ? ", or about the chat you have open" : ""}.</p>
-            <div class="mashy-sugg">
-              {#each suggestions as suggestion (suggestion)}<button type="button" onclick={() => void submit(suggestion)}>{suggestion}</button>{/each}
-            </div>
-          </div>
-        {/if}
-        {#each mashy.turns as turn, index (index)}
-          {#if turn.role === "user"}
-            <div class="mashy-q">{turn.content}</div>
-          {:else}
-            {@const said = answer(turn.content)}
-            <div class="mashy-a" use:chips><MessageBody inApp text={linkify(said.body)} /></div>
-            <!-- An answer that offers nothing to ask next, a greeting say, is
-                 followed by the questions the chat started with. -->
-            {@const next = said.next.length ? said.next : suggestions}
-            {#if index === mashy.turns.length - 1 && !mashy.busy && !mashy.note}
-              <div class="mashy-sugg next">
-                {#each next as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
-              </div>
-            {/if}
-          {/if}
-        {/each}
-        {#if mashy.answer}<div class="mashy-a" use:chips><MessageBody inApp text={linkify(answer(mashy.answer).body)} /></div>{/if}
-        {#if mashy.phase === "searching"}
-          <p class="mashy-wait">
-            <span class="sr-only" role="status">Searching your history…</span>
-            <span class="mashy-ring" aria-hidden="true"></span>
-            {#key waited}<span class="mashy-phrase" aria-hidden="true">{waitingPhrase(waited)}</span>{/key}
-          </p>
-        {/if}
-        {#if mashy.note}
-          <div class="mashy-note" class:bad={mashy.note.kind === "error"} role={mashy.note.kind === "error" ? "alert" : "status"}>
-            <strong>{mashy.note.title}</strong>
-            {#if mashy.note.text}<span>{mashy.note.text}</span>{/if}
-            {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><RotateCw size={14} aria-hidden="true" />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
-          </div>
-        {/if}
-      </div>
-      <form onsubmit={(event) => { event.preventDefault(); void submit(draft); }}>
-        <label class="sr-only" for="mashy-question">Ask Mashy about your past chats</label>
-        <textarea
-          id="mashy-question"
-          rows="1"
-          enterkeyhint="send"
-          autocomplete="off"
-          spellcheck="false"
-          {...uncorrected}
-          placeholder={mashy.busy ? "Mashy is answering…" : "Ask Mashy about your past chats"}
-          bind:this={input}
-          bind:value={draft}
-          oninput={resize}
-          onkeydown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-              event.preventDefault();
-              void submit(draft);
-            }
-          }}
-        ></textarea>
-        {#if mashy.busy}
-          <button class="go" type="button" aria-label="Stop" title="Stop" onclick={() => mashy.stop()}><Square size={15} /></button>
+        </div>
+      {/if}
+      {#each mashy.turns as turn, index (index)}
+        {#if turn.role === "user"}
+          <div class="mashy-q">{turn.content}</div>
         {:else}
-          <button class="go" type="submit" aria-label="Send" title="Send" disabled={!draft.trim()}><ArrowUp size={17} /></button>
+          {@const said = answer(turn.content)}
+          <div class="mashy-a" use:chips><MessageBody inApp text={linkify(said.body)} /></div>
+          <!-- An answer that offers nothing to ask next, a greeting say, is
+               followed by the questions the chat started with. -->
+          {@const next = said.next.length ? said.next : suggestions}
+          {#if index === mashy.turns.length - 1 && !mashy.busy && !mashy.note}
+            <div class="mashy-sugg next">
+              {#each next as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
+            </div>
+          {/if}
         {/if}
-      </form>
-    </section>
-  {/if}
-  {#if picked}
-    <button id="mashy-pick" type="button" style:left="{picked.left}px" style:top="{picked.top}px" onpointerdown={(event) => event.preventDefault()} onclick={() => void askAbout()}>
-      <img src={asset("mashy.png")} alt="" />Ask Mashy
-    </button>
-  {/if}
-  <button id="mashy-fab" bind:this={circle} type="button" aria-label={mashy.open ? "Close Mashy" : "Open Mashy"} aria-expanded={mashy.open} onclick={() => void (mashy.open ? close() : open())}>
-    <img src={asset("mashy.png")} alt="" />
-    {#if mashy.unread}<span class="dot"></span><span class="sr-only">New answer</span>{/if}
+      {/each}
+      {#if mashy.answer}<div class="mashy-a" use:chips><MessageBody inApp text={linkify(answer(mashy.answer).body)} /></div>{/if}
+      {#if mashy.phase === "searching"}
+        <p class="mashy-wait">
+          <span class="sr-only" role="status">Searching your history…</span>
+          <span class="mashy-ring" aria-hidden="true"></span>
+          {#key waited}<span class="mashy-phrase" aria-hidden="true">{waitingPhrase(waited)}</span>{/key}
+        </p>
+      {/if}
+      {#if mashy.note}
+        <div class="mashy-note" class:bad={mashy.note.kind === "error"} role={mashy.note.kind === "error" ? "alert" : "status"}>
+          <strong>{mashy.note.title}</strong>
+          {#if mashy.note.text}<span>{mashy.note.text}</span>{/if}
+          {#if mashy.note.link}<a class="btn" href={mashy.note.link.href} onclick={() => void close()}>{mashy.note.link.label}</a>{/if}
+          {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><RotateCw size={14} aria-hidden="true" />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
+        </div>
+      {/if}
+    </div>
+    <form onsubmit={(event) => { event.preventDefault(); void submit(draft); }}>
+      <label class="sr-only" for="mashy-question">Ask Mashy about your past chats</label>
+      <textarea
+        id="mashy-question"
+        rows="1"
+        enterkeyhint="send"
+        autocomplete="off"
+        spellcheck="false"
+        {...uncorrected}
+        placeholder={mashy.busy ? "Mashy is answering…" : "Ask Mashy about your past chats"}
+        bind:this={input}
+        bind:value={draft}
+        oninput={resize}
+        onkeydown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+            event.preventDefault();
+            void submit(draft);
+          }
+        }}
+      ></textarea>
+      {#if mashy.busy}
+        <button class="go" type="button" aria-label="Stop" title="Stop" onclick={() => mashy.stop()}><Square size={15} /></button>
+      {:else}
+        <button class="go" type="submit" aria-label="Send" title="Send" disabled={!draft.trim()}><ArrowUp size={17} /></button>
+      {/if}
+    </form>
+  </section>
+{/if}
+{#if picked}
+  <button id="mashy-pick" type="button" style:left="{picked.left}px" style:top="{picked.top}px" onpointerdown={(event) => event.preventDefault()} onclick={() => void askAbout()}>
+    <img src={asset("mashy.png")} alt="" />Ask Mashy
   </button>
 {/if}
+<button id="mashy-fab" bind:this={circle} type="button" aria-label={mashy.open ? "Close Mashy" : "Open Mashy"} aria-expanded={mashy.open} onclick={() => void (mashy.open ? close() : open())}>
+  <img src={asset("mashy.png")} alt="" />
+  {#if mashy.unread}<span class="dot"></span><span class="sr-only">New answer</span>{/if}
+</button>

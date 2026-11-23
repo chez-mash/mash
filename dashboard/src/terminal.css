@@ -1802,12 +1802,13 @@ h1:focus {
 .newpill .btn {
   box-shadow: var(--shadow-float);
 }
-/* Jumps to either end of a chat, floating at the screen's corner. */
+/* Jumps to either end of a chat, floating in the screen's corner above
+   Mashy's button (60px across, 24px in from the corner). */
 .ends {
   position: fixed;
   z-index: 20;
-  right: max(20px, env(safe-area-inset-right, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  right: calc(max(24px, env(safe-area-inset-right, 0px)) + 12px);
+  bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 72px);
   display: flex;
   flex-direction: column;
   gap: 6px;

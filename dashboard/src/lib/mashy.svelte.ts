@@ -8,6 +8,8 @@ export interface Note {
   readonly text: string;
   /** Whether asking again could help. */
   readonly retry: boolean;
+  /** Where to go to fix what went wrong. */
+  readonly link?: { readonly href: string; readonly label: string };
 }
 
 const titles: Record<string, string> = {
@@ -49,6 +51,23 @@ class Conversation {
     this.turns = [...kept, { role: "user", content: text }];
     this.context = openChat;
     await this.answerLast();
+  }
+
+  /**
+   * Answers a question on a dashboard without a model: Mashy is shown
+   * everywhere so people know it exists, and says how to set it up.
+   */
+  unavailable(question: string): void {
+    const text = question.trim();
+    if (!text || this.busy) return;
+    this.turns = [...this.turns, { role: "user", content: text }];
+    this.note = {
+      kind: "error",
+      title: "Mashy isn’t set up yet",
+      text: "Mashy answers from your history using a model service you choose, with your own API key. Add one in Settings.",
+      retry: false,
+      link: { href: "#/settings", label: "Open Settings" },
+    };
   }
 
   /** Asks the last question again after a failure. */

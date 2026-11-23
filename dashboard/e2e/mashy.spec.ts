@@ -35,13 +35,21 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test("there is no Mashy on a dashboard without a model", async ({ page }) => {
-  await page.route("**/api/assistant**", (route) =>
-    route.fulfill({ json: { enabled: false, model: null } }),
-  );
+test("Mashy is shown without a model and says how to set one up", async ({ page }) => {
+  let asked = 0;
+  await page.route("**/api/assistant**", (route) => {
+    if (route.request().method() === "POST") asked++;
+    return route.fulfill({ json: { enabled: false, model: null } });
+  });
   await page.goto("/");
   await expect(page.getByRole("link", { name: /Port decision/ }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open Mashy" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Open Mashy" }).click();
+  await page.getByLabel("Ask Mashy about your past chats").fill("Which port did we pick?");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByRole("alert")).toContainText("Mashy isn’t set up yet");
+  expect(asked).toBe(0);
+  await page.getByRole("link", { name: "Open Settings" }).click();
+  await expect(page).toHaveURL(/#\/settings$/);
 });
 
 test("Mashy answers about the open chat, links its sources and reports failures", async ({
