@@ -1,50 +1,27 @@
 use super::*;
 
-fn count(provider: &str, sources: u64, outside_range: u64) -> SourceCount {
+fn count(provider: &str, sources: u64) -> SourceCount {
     SourceCount {
         provider: provider.into(),
         sources,
-        outside_range,
     }
 }
 
-fn configuration(since_days: Option<u32>) -> ResolvedConfig {
-    let mut configuration = crate::config::load(None).unwrap();
-    configuration.since_days = since_days;
-    configuration
-}
-
-/// Found on a machine after `mash index --reread`: 80 Claude and 3 Copilot
-/// sources older than the 90-day range waited to be read, an ordinary pass
-/// never reached them, and status said only "index".
+/// Found on a machine after an upgrade: Codex sources older than the 90-day
+/// range waited to be read. An ordinary pass now reads them, so the repair
+/// is the ordinary one, whatever their age.
 #[test]
-fn sources_stranded_outside_the_history_range_get_the_command_that_reaches_them() {
+fn sources_awaiting_reading_need_only_an_ordinary_pass() {
     let sources = SourceStates {
-        awaiting: vec![count("claude-code", 80, 80), count("copilot", 3, 3)],
+        awaiting: vec![count("claude-code", 80), count("copilot", 3)],
         rejected: Vec::new(),
     };
-    let finding = unread(&configuration(Some(90)), &sources);
+    let finding = unread(&sources);
     assert_eq!(finding.state, State::Problem);
     assert!(finding.summary.contains("83 sources"));
     assert!(finding.summary.contains("claude-code 80, copilot 3"));
-    assert!(finding.cause.unwrap().contains("90-day history range"));
-    assert_eq!(
-        finding.repair.as_deref(),
-        Some(
-            "mash index --provider claude-code --all-history && mash index --provider copilot --all-history"
-        )
-    );
-}
-
-#[test]
-fn sources_inside_the_range_need_only_an_ordinary_pass() {
-    let sources = SourceStates {
-        awaiting: vec![count("codex", 12, 0)],
-        rejected: Vec::new(),
-    };
-    let finding = unread(&configuration(Some(90)), &sources);
     assert_eq!(finding.repair.as_deref(), Some("mash index"));
-    let nothing_waiting = unread(&configuration(None), &SourceStates::default());
+    let nothing_waiting = unread(&SourceStates::default());
     assert_eq!(nothing_waiting.state, State::Problem);
     assert_eq!(nothing_waiting.repair.as_deref(), Some("mash index"));
 }

@@ -157,9 +157,9 @@ pub(super) async fn examine(
     let shared = shared_target(configuration).is_some_and(|shared| shared.token().is_some());
     match inspection::status(configuration, database, models, shared, None).await {
         Ok(status) => {
-            let sources = source_states(configuration, database, &status).await;
+            let sources = source_states(database, &status).await;
             findings.push(index(database, &status));
-            findings.extend(history(configuration, &status, &sources));
+            findings.extend(history(&status, &sources));
             findings.push(search_service(&status));
             findings.push(search(&status));
             findings.extend(models_installed(configuration, &status));
@@ -280,11 +280,7 @@ struct SourceStates {
     rejected: Vec<SourceCount>,
 }
 
-async fn source_states(
-    configuration: &ResolvedConfig,
-    database: &Path,
-    status: &StatusResponse,
-) -> SourceStates {
+async fn source_states(database: &Path, status: &StatusResponse) -> SourceStates {
     if status
         .silver
         .as_ref()
@@ -293,13 +289,10 @@ async fn source_states(
         return SourceStates::default();
     }
     let database = database.to_path_buf();
-    let since_days = configuration.since_days;
     crate::blocking(move || {
-        let cutoff =
-            mash_silver::discovery::cutoff_modified_ns(std::time::SystemTime::now(), since_days)?;
         let storage = Storage::open_silver(&database)?;
         Ok(SourceStates {
-            awaiting: storage.sources_awaiting_reading(cutoff)?,
+            awaiting: storage.sources_awaiting_reading()?,
             rejected: storage.rejected_sources()?,
         })
     })
@@ -318,11 +311,7 @@ fn listed(counts: &[SourceCount]) -> String {
     text
 }
 
-fn history(
-    configuration: &ResolvedConfig,
-    status: &StatusResponse,
-    sources: &SourceStates,
-) -> Option<Finding> {
+fn history(status: &StatusResponse, sources: &SourceStates) -> Option<Finding> {
     let certificate = status.silver.as_ref()?;
     Some(match certificate.completeness {
         Completeness::Complete => Finding::ok(
@@ -352,13 +341,13 @@ fn history(
             ),
             None => "mash index".to_owned(),
         }),
-        Completeness::Unverified => unread(configuration, sources),
+        Completeness::Unverified => unread(sources),
     })
 }
 
 /// Sources an earlier reader wrote and nothing has read since. Search is not
 /// served from history this release cannot vouch for, so this stops search.
-fn unread(configuration: &ResolvedConfig, sources: &SourceStates) -> Finding {
+fn unread(sources: &SourceStates) -> Finding {
     let waiting: u64 = sources.awaiting.iter().map(|count| count.sources).sum();
     if waiting == 0 {
         return Finding::found(
@@ -369,39 +358,16 @@ fn unread(configuration: &ResolvedConfig, sources: &SourceStates) -> Finding {
         .cause("A provider's scan has not been repeated since the upgrade.")
         .repair("mash index");
     }
-    let stranded: Vec<&SourceCount> = sources
-        .awaiting
-        .iter()
-        .filter(|count| count.outside_range > 0)
-        .collect();
-    let finding = Finding::found(
+    Finding::found(
         Check::History,
         State::Problem,
         format!(
             "{waiting} sources were last read by an earlier reader and not since ({}).",
             listed(&sources.awaiting)
         ),
-    );
-    if stranded.is_empty() {
-        return finding
-            .cause("An upgrade or `mash index --reread` marked them, and the pass that reads them has not finished.")
-            .repair("mash index");
-    }
-    let outside: u64 = stranded.iter().map(|count| count.outside_range).sum();
-    let range = configuration.since_days.map_or_else(
-        || "the history range".to_owned(),
-        |days| format!("the {days}-day history range"),
-    );
-    let commands = stranded
-        .iter()
-        .map(|count| format!("mash index --provider {} --all-history", count.provider))
-        .collect::<Vec<_>>()
-        .join(" && ");
-    finding
-        .cause(format!(
-            "{outside} of them are older than {range}, so an ordinary pass never reaches them."
-        ))
-        .repair(commands)
+    )
+    .cause("An upgrade or `mash index --reread` marked them, and the pass that reads them has not finished.")
+    .repair("mash index")
 }
 
 fn search_service(status: &StatusResponse) -> Finding {

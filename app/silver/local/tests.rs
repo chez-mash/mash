@@ -148,3 +148,41 @@ fn a_reread_leaves_sources_outside_the_history_range_certified() {
     assert_eq!(everything.summary.checkpoint_skipped_sources, 0);
     assert!(everything.is_complete());
 }
+
+#[test]
+fn a_migration_mark_outside_the_history_range_is_read_again_and_certified() {
+    let directory = tempfile::tempdir().unwrap();
+    let database = directory.path().join("history.sqlite3");
+    let root = directory.path().join("codex");
+    fs::create_dir(&root).unwrap();
+    let old = root.join("old.jsonl");
+    write_codex(&old);
+    let mut recent = options(Provider::Codex, &root);
+    let mut storage = Storage::open_writer(&database).unwrap();
+    assert!(ingest(&mut storage, &recent).unwrap().is_complete());
+    storage.commit_writer().unwrap();
+    drop(storage);
+    fs::File::options()
+        .write(true)
+        .open(&old)
+        .unwrap()
+        .set_times(FileTimes::new().set_modified(SystemTime::now() - Duration::from_hours(72)))
+        .unwrap();
+    // An upgrade's migration marks every checkpoint, the aged one included,
+    // as read by an older release.
+    let connection = rusqlite::Connection::open(&database).unwrap();
+    connection
+        .execute("UPDATE source_checkpoints SET interpretation_version=0", [])
+        .unwrap();
+    drop(connection);
+    let mut storage = Storage::open_writer(&database).unwrap();
+    recent.since_days = Some(1);
+    let repaired = ingest(&mut storage, &recent).unwrap();
+    assert_eq!(repaired.summary.scanned_files, 1);
+    assert_eq!(repaired.summary.checkpoint_skipped_sources, 0);
+    assert_eq!(repaired.certificate.completeness, Completeness::Complete);
+    // Once current, the aged source is out of range again.
+    let next = ingest(&mut storage, &recent).unwrap();
+    assert_eq!(next.summary.scanned_files, 0);
+    assert_eq!(next.certificate.completeness, Completeness::Complete);
+}

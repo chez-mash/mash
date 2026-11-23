@@ -462,9 +462,14 @@ fn prepare_sources(
                 error
             }
         })?;
-        if cutoff_modified_ns
-            .is_some_and(|cutoff| stamp.activity_ns.unwrap_or(stamp.modified_ns) < cutoff)
-        {
+        // The history range decides which sources a pass admits, not which
+        // retained chats may stay stale. A source already in silver that an
+        // older release read (an upgrade's migration marks these) is read
+        // again even when it is out of range, or its stale checkpoint would
+        // hold the certificate at unverified with nothing left to clear it.
+        let outside_range = cutoff_modified_ns
+            .is_some_and(|cutoff| stamp.activity_ns.unwrap_or(stamp.modified_ns) < cutoff);
+        if outside_range && !storage.source_awaits_reinterpretation(provider, &identity)? {
             continue;
         }
         summary.scanned_files += 1;

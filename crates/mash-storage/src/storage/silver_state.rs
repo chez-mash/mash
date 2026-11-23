@@ -4,7 +4,7 @@ use crate::AppError;
 use crate::provider::Provider;
 use crate::silver::certificate::{Certificate, Completeness, INTERPRETATION_VERSION};
 use crate::silver::{SourceIdentity, SourceStamp};
-use rusqlite::params;
+use rusqlite::{OptionalExtension, params};
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
@@ -21,8 +21,6 @@ enum ScanState {
 pub struct SourceCount {
     pub provider: String,
     pub sources: u64,
-    /// Of those, the ones last active before the history range began.
-    pub outside_range: u64,
 }
 
 impl Storage {
@@ -59,25 +57,45 @@ impl Storage {
         })
     }
 
-    /// Per provider, the sources whose checkpoint an earlier reader wrote,
-    /// and how many of them were last active before `cutoff_modified_ns`:
-    /// those an ordinary pass will not admit. For diagnosis only.
-    pub fn sources_awaiting_reading(
+    /// Whether this source was read before, by a release that interpreted it
+    /// differently: its retained chats are stale until it is read again.
+    pub fn source_awaits_reinterpretation(
         &self,
-        cutoff_modified_ns: Option<i64>,
-    ) -> Result<Vec<SourceCount>, AppError> {
+        provider: Provider,
+        source: &crate::silver::SourceIdentity,
+    ) -> Result<bool, AppError> {
+        Ok(self
+            .connection
+            .query_row(
+                "SELECT 1 FROM source_checkpoints
+                  WHERE provider = ?1 AND source_key = ?2 AND interpretation_version <> ?3",
+                params![
+                    provider,
+                    source.key(),
+                    crate::silver::certificate::INTERPRETATION_VERSION
+                ],
+                |_| Ok(()),
+            )
+            .optional()
+            .map_err(AppError::database)?
+            .is_some())
+    }
+
+    /// Per provider, the sources whose checkpoint an earlier reader wrote.
+    /// The next pass reads them, in or out of the history range. For
+    /// diagnosis only.
+    pub fn sources_awaiting_reading(&self) -> Result<Vec<SourceCount>, AppError> {
         self.source_counts(
-            "SELECT provider, count(*), coalesce(sum(?2 IS NOT NULL AND modified_ns < ?2), 0)
-               FROM source_checkpoints WHERE interpretation_version <> ?1
+            "SELECT provider, count(*) FROM source_checkpoints WHERE interpretation_version <> ?1
               GROUP BY provider ORDER BY provider",
-            params![INTERPRETATION_VERSION, cutoff_modified_ns],
+            params![INTERPRETATION_VERSION],
         )
     }
 
     /// Per provider, the sources the last pass could not read.
     pub fn rejected_sources(&self) -> Result<Vec<SourceCount>, AppError> {
         self.source_counts(
-            "SELECT provider, count(*), 0 FROM silver_rejections
+            "SELECT provider, count(*) FROM silver_rejections
               GROUP BY provider ORDER BY provider",
             [],
         )
@@ -96,7 +114,6 @@ impl Storage {
                 Ok(SourceCount {
                     provider: row.get(0)?,
                     sources: count(row.get(1)?),
-                    outside_range: count(row.get(2)?),
                 })
             })
             .map_err(AppError::database)?
