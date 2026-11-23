@@ -103,6 +103,13 @@ cargo clippy --all-targets -- -D warnings
 cargo test --doc
 ```
 
+Run unit tests with nextest, not `cargo test`. Nextest gives each test its own
+process. Tracing caches, per process, whether anything listens to each trace
+point, so tests that capture traces (such as `mash-server`'s correlation and
+admission tests) lose events when another test in the same process has
+switched those trace points off. Under `cargo test` they fail at random; under
+nextest they pass.
+
 The workspace is the executables' crate `mash` (`cli/`), the application
 library `mash-app` (`app/`) and the crates under `crates/`. These default commands cover all of them.
 
