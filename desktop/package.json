@@ -7,7 +7,7 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "tray-icon": "rsvg-convert -w 44 -h 44 icons/tray.svg -o src-tauri/icons/tray.png",
+    "tray-icon": "node icons/render-tray.mjs",
     "icons": "tauri icon icons/mash-app.png --output src-tauri/icons && rm -rf src-tauri/icons/android src-tauri/icons/ios src-tauri/icons/Square*Logo.png src-tauri/icons/StoreLogo.png"
   },
   "devDependencies": {
