@@ -237,3 +237,68 @@ async fn qdrant_search_remains_available_during_other_node_publication() {
     );
     fixture.cleanup().await;
 }
+
+/// The test above races its searches against the other node's first
+/// publication, which leaves that node's views uncertified until it finishes.
+/// Pin that state: an interrupted publication never certifies them.
+#[tokio::test]
+async fn qdrant_search_of_one_node_ignores_another_node_with_uncertified_views() {
+    use crate::search_filter::Filter;
+    let fixture = Fixture::new(VectorIndex::default()).await;
+    let mut other = fixture.identity.clone();
+    other.node_id = "other-node".into();
+    fixture.store.select_views(&other, false).await.unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let silver = SilverStore::open(
+        &directory.path().join("silver"),
+        [&fixture.identity, &other],
+    )
+    .unwrap();
+    let server = Server::new(silver.clone(), fixture.store.clone(), 64 * 1024 * 1024);
+    server
+        .index(&fixture.identity, fixture.file(1, "retained"))
+        .await
+        .unwrap();
+    // Silver commits and documents are written; certification never runs.
+    Server::new(silver, fixture.store.clone(), 64 * 1024 * 1024)
+        .with_views_partial_interruption()
+        .index(&other, fixture.file(1, "unfinished"))
+        .await
+        .unwrap_err();
+    let search = |filter| {
+        let mut query = fixture.query();
+        query.filter = filter;
+        server.search(&fixture.identity, query)
+    };
+    for filter in [
+        Filter::Node(vec![fixture.identity.node_id.clone()]),
+        Filter::Not(Box::new(Filter::Node(vec![other.node_id.clone()]))),
+    ] {
+        let results = search(Some(filter)).await.unwrap();
+        assert_eq!(results.semantic.len(), 2);
+        assert!(
+            results
+                .lexical
+                .iter()
+                .chain(&results.semantic)
+                .all(|hit| hit.content.contains("retained"))
+        );
+    }
+    // A search that could read the unfinished node still fails closed.
+    for filter in [
+        None,
+        Some(Filter::Any(vec![
+            Filter::Node(vec![fixture.identity.node_id.clone()]),
+            Filter::Project(vec!["project".into()]),
+        ])),
+    ] {
+        let error = search(filter).await.unwrap_err();
+        assert!(
+            error
+                .error
+                .message
+                .contains("stale, incomplete or incompatible")
+        );
+    }
+    fixture.cleanup().await;
+}

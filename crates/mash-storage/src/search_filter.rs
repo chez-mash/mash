@@ -260,6 +260,46 @@ impl Filter {
         Ok(())
     }
 
+    /// Whether some message from `node` could match. Only node predicates
+    /// are decided here; any other predicate might hold for some message, so
+    /// `false` means the filter rules the node out whatever its messages say.
+    pub fn admits_node(&self, node: &str) -> bool {
+        self.on_node(node) != Some(false)
+    }
+
+    /// The filter's value for every message of `node`, when node predicates
+    /// alone settle it. Empty lists and an empty `any` match nothing, as in
+    /// the compiled SQL and Qdrant conditions.
+    fn on_node(&self, node: &str) -> Option<bool> {
+        match self {
+            Self::All(children) => {
+                let values: Vec<_> = children.iter().map(|child| child.on_node(node)).collect();
+                if values.contains(&Some(false)) {
+                    Some(false)
+                } else {
+                    values
+                        .iter()
+                        .all(|value| *value == Some(true))
+                        .then_some(true)
+                }
+            }
+            Self::Any(children) => {
+                let values: Vec<_> = children.iter().map(|child| child.on_node(node)).collect();
+                if values.contains(&Some(true)) {
+                    Some(true)
+                } else {
+                    values
+                        .iter()
+                        .all(|value| *value == Some(false))
+                        .then_some(false)
+                }
+            }
+            Self::Not(child) => child.on_node(node).map(|value| !value),
+            Self::Node(nodes) => Some(nodes.iter().any(|candidate| candidate == node)),
+            _ => None,
+        }
+    }
+
     fn values(&self) -> Vec<&str> {
         match self {
             Self::Node(v) | Self::Chat(v) | Self::Project(v) | Self::Repository(v) => {
@@ -425,6 +465,32 @@ mod tests {
         }
         assert!(deep.validate().is_err());
         assert!(serde_json::from_str::<Filter>(r#"{"project":["x"],"role":["user"]}"#).is_err());
+    }
+
+    #[test]
+    fn only_node_predicates_rule_a_node_out() {
+        let filter = |json: &str| serde_json::from_str::<Filter>(json).unwrap();
+        let only_a = filter(r#"{"node":["a"]}"#);
+        assert!(only_a.admits_node("a"));
+        assert!(!only_a.admits_node("b"));
+        assert!(!filter(r#"{"node":[]}"#).admits_node("a"));
+        assert!(!filter(r#"{"not":{"node":["a"]}}"#).admits_node("a"));
+        assert!(filter(r#"{"not":{"node":["a"]}}"#).admits_node("b"));
+        // Another predicate might hold for some of b's messages.
+        let either = filter(r#"{"any":[{"node":["a"]},{"project":["p"]}]}"#);
+        assert!(either.admits_node("b"));
+        assert!(!filter(r#"{"all":[{"node":["a"]},{"project":["p"]}]}"#).admits_node("b"));
+        assert!(filter(r#"{"not":{"all":[{"node":["a"]},{"role":["user"]}]}}"#).admits_node("a"));
+        assert!(!filter(r#"{"any":[]}"#).admits_node("a"));
+        assert!(filter(r#"{"all":[]}"#).admits_node("a"));
+        assert!(filter(r#"{"provider":["codex"]}"#).admits_node("a"));
+        let resolved = Selection {
+            node: vec!["a".into()],
+            ..Selection::default()
+        }
+        .resolve("caller")
+        .unwrap();
+        assert!(!resolved.filter.admits_node("b"));
     }
 
     #[test]
