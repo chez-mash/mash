@@ -190,6 +190,26 @@ export async function recordPage(params: string, signal: AbortSignal): Promise<R
   }
   return page;
 }
+/**
+ * The first page of memories for a view that chose no source: this machine's,
+ * or, when it has saved none, the ones other machines published. A machine
+ * whose agents run elsewhere (over SSH, say) saves no memories of its own, and
+ * an empty page would wrongly read as "nothing saved anywhere". `shared` says
+ * which one was read.
+ */
+export async function ownOrSharedPage(
+  signal: AbortSignal,
+): Promise<{ page: RecordPage; shared: boolean }> {
+  const own = await recordPage("", signal);
+  if (own.records.length) return { page: own, shared: false };
+  try {
+    const shared = await recordPage("shared=true", signal);
+    return shared.records.length ? { page: shared, shared: true } : { page: own, shared: false };
+  } catch {
+    // Without a shared index, this machine's empty list is the answer.
+    return { page: own, shared: false };
+  }
+}
 export async function getRecord(
   id: string,
   node: string,

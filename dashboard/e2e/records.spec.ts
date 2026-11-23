@@ -374,3 +374,57 @@ test("the overview shows memories from other machines when this one has none", a
     "#/records?shared=true",
   );
 });
+
+test("the memory page shows other machines' memories when this one has none", async ({ page }) => {
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
+  );
+  const asked: URLSearchParams[] = [];
+  await page.route("**/api/records?**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    asked.push(params);
+    if (params.get("shared") !== "true")
+      return route.fulfill({ json: { records: [], next_offset: null } });
+    if (!params.has("cursor_node"))
+      return route.fulfill({
+        json: { records: [], next_offset: null, next_cursor: { node_id: "xenia", offset: 0 } },
+      });
+    if (params.get("cursor_offset") === "0")
+      return route.fulfill({
+        json: {
+          records: [{ ...recordFixture(), node_id: "xenia" }],
+          next_offset: null,
+          next_cursor: { node_id: "xenia", offset: 20 },
+        },
+      });
+    return route.fulfill({ json: { records: [], next_offset: null } });
+  });
+  await page.goto("/#/records?");
+  await expect(
+    page.getByText("From your other machines; none are saved on this one yet."),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "all shared", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Memory" }).locator("a").first()).toBeVisible();
+  // The next page keeps reading the shared memories.
+  await page.getByRole("button", { name: /next/i }).click();
+  await expect(page).toHaveURL(/shared=true/);
+  await expect(page).toHaveURL(/cursor_offset=20/);
+});
+
+test("a chosen source never falls back to another one", async ({ page }) => {
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
+  );
+  await page.route("**/api/records?**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    if (params.get("shared") === "true")
+      return route.fulfill({
+        json: { records: [{ ...recordFixture(), node_id: "xenia" }], next_offset: null },
+      });
+    return route.fulfill({ json: { records: [], next_offset: null } });
+  });
+  // A search names what it wants; an empty answer stays empty.
+  await page.goto("/#/records?q=nothing");
+  await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
+  await expect(page.getByText("From your other machines")).toHaveCount(0);
+});

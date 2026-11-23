@@ -24,6 +24,7 @@ import {
   label,
   memorySourceLabel,
   memorySources,
+  ownOrSharedPage,
   recordPage,
   scopeLabel,
   scopeName,
@@ -65,12 +66,24 @@ const nodes = $derived([
 const localNode = $derived(catalogue.data?.localNode ?? "");
 const sharedOnly = $derived(catalogue.data?.sharedOnly ?? false);
 const sources = $derived(memorySources(localNode, sharedOnly, nodes, source));
-const sourceLabel = $derived(memorySourceLabel(source, sharedOnly));
-const page = createQuery(() => ({
+// A view with no source, filter or page chosen falls back to other machines'
+// memories when this one has none; any choice reads exactly what it names.
+const result = createQuery(() => ({
   ...stableRead,
-  queryKey: ["records", params],
-  queryFn: ({ signal }) => recordPage(params, signal),
+  // Its own key: the decisions list caches plain pages under ["records", …].
+  queryKey: ["records", "view", params],
+  queryFn: async ({ signal }: { signal: AbortSignal }) =>
+    params === ""
+      ? ownOrSharedPage(signal)
+      : { page: await recordPage(params, signal), shared: false },
 }));
+const page = $derived({
+  data: result.data?.page,
+  error: result.error,
+  isPending: result.isPending,
+});
+const fellBack = $derived(result.data?.shared ?? false);
+const sourceLabel = $derived(memorySourceLabel(fellBack ? "shared" : source, sharedOnly));
 const hasNext = $derived(
   page.data && (page.data.nextCursor !== null || page.data.nextOffset !== null),
 );
@@ -91,6 +104,7 @@ function submit(event: SubmitEvent): void {
 function nextPage(): void {
   if (!page.data) return;
   const next = new URLSearchParams(params);
+  if (fellBack) next.set("shared", "true");
   next.delete("offset");
   next.delete("cursor_node");
   next.delete("cursor_offset");
@@ -155,8 +169,9 @@ const dirty = $derived(
 </form>
 {#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}
-<QueryError title="Couldn’t load memory" query={page} />
+<QueryError title="Couldn’t load memory" query={result} />
 {#if page.data && !page.error}
+  {#if fellBack}<p class="meta" role="status">From your other machines; none are saved on this one yet.</p>{/if}
   {#if !page.data.records.length}
     <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions, preferences and facts as you state them."}</span></p>
   {:else}

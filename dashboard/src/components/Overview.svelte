@@ -10,7 +10,7 @@ import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats } from "../lib/browse";
 import { catalogOptions, stableRead } from "../lib/queries";
-import { decisionOptions, decisionsByChat, recordPage } from "../lib/records";
+import { decisionOptions, decisionsByChat, ownOrSharedPage } from "../lib/records";
 import { agentHref, machineHref } from "../lib/route.svelte";
 import { statusOptions } from "../lib/status";
 import { foldedNote } from "../lib/subagents";
@@ -25,19 +25,7 @@ const status = createQuery(() => statusOptions);
 const memories = createQuery(() => ({
   ...stableRead,
   queryKey: ["records", "overview"],
-  // A machine whose agents run elsewhere (over SSH, say) saves no memories of
-  // its own; then the memories other machines published are the recent ones.
-  queryFn: async ({ signal }: { signal: AbortSignal }) => {
-    const own = await recordPage("", signal);
-    if (own.records.length) return { page: own, shared: false };
-    try {
-      const shared = await recordPage("shared=true", signal);
-      return shared.records.length ? { page: shared, shared: true } : { page: own, shared: false };
-    } catch {
-      // Without a shared index, this machine's empty list is the answer.
-      return { page: own, shared: false };
-    }
-  },
+  queryFn: ({ signal }: { signal: AbortSignal }) => ownOrSharedPage(signal),
 }));
 // Both lists follow the index by themselves (see lib/live.ts).
 const chats = $derived(catalogue.data?.chats ?? []);
