@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { renderMarkdown } from "./markdown.ts";
 
 const strings = {
-  tipBefore: "Not sure where to look? Press",
-  tipAfter: "and search the docs.",
+  tip: "Not sure where to look?",
+  tipSearch: "Search the docs",
   copy: "Copy",
   copied: "Copied",
   copyPrompt: "Copy the prompt for your agent",
@@ -39,7 +39,9 @@ describe("website page layouts", () => {
     expect(result.match(/<section class="mash-guide/g)).toHaveLength(3);
     expect(result).toContain('<section class="mash-guide wide">');
     expect(result).toContain('<div class="mash-guide-group">');
-    expect(result).toContain("<kbd>Ctrl K</kbd>");
+    expect(result).toContain(
+      '<button type="button" class="mash-search-tip" data-mash-search>Search the docs<kbd>Ctrl K</kbd></button>',
+    );
   });
 
   it("turns a quoted prompt into a card whose button copies it", () => {

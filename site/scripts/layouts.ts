@@ -11,8 +11,10 @@ import { toString as text } from "mdast-util-to-string";
 
 /** Words the layouts add, in the page's language. */
 export interface LayoutStrings {
-  readonly tipBefore: string;
-  readonly tipAfter: string;
+  /** The question beside Mashy in the guides directory. */
+  readonly tip: string;
+  /** The button under it that opens search. */
+  readonly tipSearch: string;
   readonly copy: string;
   readonly copied: string;
   readonly copyPrompt: string;
@@ -49,6 +51,10 @@ const icons = {
     "M20 20v-4h-4",
   ]),
 };
+
+/** The copy button's icon, drawn as Expressive Code draws its own. */
+const copyIcon =
+  '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg>';
 
 /** A Mashy sticker, decorative beside the words it sits with. */
 const mashy = '<img class="mash-mashy-face" src="/mashy.png" alt="" width="64" height="58">';
@@ -176,7 +182,9 @@ function guideCards(tree: Root, strings: LayoutStrings): void {
   );
   out.push(
     html(
-      `<aside class="mash-mashy butter">${mashy}<p>${escapeHtml(strings.tipBefore)} <kbd>Ctrl K</kbd> ${escapeHtml(strings.tipAfter)}</p></aside>`,
+      // The button opens the header's search; Search.astro shows the shortcut
+      // for the platform (⌘ K on a Mac, none on a touch screen).
+      `<aside class="mash-mashy butter">${mashy}<div><p>${escapeHtml(strings.tip)}</p><button type="button" class="mash-search-tip" data-mash-search>${escapeHtml(strings.tipSearch)}<kbd>Ctrl K</kbd></button></div></aside>`,
     ),
     html("</div>"),
     html('<div class="mash-guides">'),
@@ -320,7 +328,7 @@ function quickStart(tree: Root, strings: LayoutStrings): void {
       quote,
       1,
       html(
-        `<div class="mash-ask"><p>${escapeHtml(words)}</p><button type="button" data-copy="${escapeHtml(words)}" data-copied="${escapeHtml(strings.copied)}" aria-label="${escapeHtml(strings.copyPrompt)}">${escapeHtml(strings.copy)}</button></div>`,
+        `<div class="mash-ask"><p>${escapeHtml(words)}</p><button type="button" data-copy="${escapeHtml(words)}" data-copied="${escapeHtml(strings.copied)}" aria-label="${escapeHtml(strings.copyPrompt)}">${copyIcon}<span data-label>${escapeHtml(strings.copy)}</span></button></div>`,
       ),
     );
   }

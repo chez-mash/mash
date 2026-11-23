@@ -1,9 +1,9 @@
 {
   "mash.nav.docs": "Documentación",
-  "mash.nav.demo": "Prueba Mash",
+  "mash.nav.demo": "Prueba la demo",
   "mash.crumbs": "Ruta de navegación",
-  "mash.guides.tipBefore": "¿No sabes dónde buscar? Pulsa",
-  "mash.guides.tipAfter": "y busca en la documentación.",
+  "mash.guides.tip": "¿No sabes dónde buscar?",
+  "mash.guides.tipSearch": "Busca en la documentación",
   "mash.menu": "Menú",
   "mash.copy": "Copiar",
   "mash.copied": "Copiado",

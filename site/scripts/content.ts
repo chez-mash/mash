@@ -41,8 +41,8 @@ async function layoutStrings(locale: string | undefined) {
   const strings = { ...(await read("en")), ...(locale ? await read(lang) : {}) };
   const word = (key: string): string => strings[key] ?? "";
   return {
-    tipBefore: word("mash.guides.tipBefore"),
-    tipAfter: word("mash.guides.tipAfter"),
+    tip: word("mash.guides.tip"),
+    tipSearch: word("mash.guides.tipSearch"),
     copy: word("mash.copy"),
     copied: word("mash.copied"),
     copyPrompt: word("mash.copyPrompt"),

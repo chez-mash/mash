@@ -17,4 +17,25 @@ import DefaultSearch from "@astrojs/starlight/components/Search.astro";
     // from constructing and registering another global keyboard listener.
     if (document.querySelector(selector)) newDocument.querySelector(selector)?.replaceChildren();
   });
+
+  // A button elsewhere on the page, such as the tip in the guides directory,
+  // opens this search. One listener serves every page change.
+  document.addEventListener("click", (event) => {
+    const tip = event.target instanceof Element ? event.target.closest("[data-mash-search]") : null;
+    if (!tip) return;
+    // Search closes on a click outside its dialog, and this click would reach
+    // that window listener next, so it stops here.
+    event.stopPropagation();
+    document.querySelector<HTMLButtonElement>("site-search button[data-open-modal]")?.click();
+  });
+
+  // Such a button names the shortcut as the header's search does: ⌘ K on a
+  // Mac and Ctrl K elsewhere. CSS hides it on a touch screen, which has none.
+  const mac = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
+  const nameShortcuts = () => {
+    if (!mac) return;
+    for (const key of document.querySelectorAll("[data-mash-search] kbd")) key.textContent = "⌘ K";
+  };
+  document.addEventListener("astro:page-load", nameShortcuts);
+  nameShortcuts();
 </script>
