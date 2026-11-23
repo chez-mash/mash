@@ -104,7 +104,9 @@ pub(crate) async fn recover(app: &App) -> Result<usize, AppError> {
     let mut resumed = 0usize;
     for row in pending {
         let Some(identity) = app
-            .identities
+            .nodes
+            .current()
+            .tokens
             .values()
             .find(|identity| identity.group_id == row.group_id && identity.node_id == row.node_id)
             .cloned()

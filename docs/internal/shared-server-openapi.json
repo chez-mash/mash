@@ -1,6 +1,43 @@
 {
   "components": {
     "schemas": {
+      "Action": {
+        "additionalProperties": false,
+        "description": "One admin action, kept so the operator can see who changed what.",
+        "properties": {
+          "action": {
+            "description": "`add`, `replace`, `remove` or `delete`.",
+            "type": "string"
+          },
+          "at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "from": {
+            "description": "The machine the request said it came from; told by the caller, so it\nnames, it does not prove.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key": {
+            "description": "The admin key's name.",
+            "type": "string"
+          },
+          "target": {
+            "description": "`GROUP/NODE`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "key",
+          "action",
+          "target"
+        ],
+        "type": "object"
+      },
       "Active": {
         "properties": {
           "completed": {
@@ -762,6 +799,58 @@
         },
         "type": "object"
       },
+      "CheckAnswer": {
+        "description": "What the server says about a join secret, before anything is saved. The\ngroup's machines and the name's history are told only for a string that\ncan still be redeemed.",
+        "properties": {
+          "expires_in_seconds": {
+            "description": "Seconds until the string expires, by the server's own clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "machines": {
+            "default": [],
+            "description": "The other machines of the group, by name.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Published"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the server already holds under this machine's name, if anything."
+          },
+          "status": {
+            "$ref": "#/components/schemas/JoinStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "CheckRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret"
+        ],
+        "type": "object"
+      },
       "CollectionSettings": {
         "additionalProperties": false,
         "properties": {
@@ -1000,6 +1089,17 @@
           "node_id",
           "id",
           "projection"
+        ],
+        "type": "object"
+      },
+      "Done": {
+        "properties": {
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "done"
         ],
         "type": "object"
       },
@@ -1359,6 +1459,47 @@
         ],
         "type": "string"
       },
+      "GroupStatus": {
+        "properties": {
+          "build": {
+            "description": "The server's build revision.",
+            "type": "string"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/MachineStatus"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "restart_needed": {
+            "description": "This server needs a restart before it accepts machines of this group.",
+            "type": "boolean"
+          },
+          "started_at": {
+            "description": "When the server started, in seconds since 1970 by its clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "group_id",
+          "restart_needed",
+          "machines"
+        ],
+        "type": "object"
+      },
       "IdentityState": {
         "additionalProperties": false,
         "properties": {
@@ -1396,6 +1537,76 @@
             "type": "string"
           }
         ]
+      },
+      "JoinAnswer": {
+        "properties": {
+          "expires_in_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "join": {
+            "description": "Shown once; it holds the machine's one-time secret.",
+            "type": "string"
+          },
+          "restart_needed": {
+            "description": "The server must restart before it accepts machines in this group.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "join",
+          "expires_in_seconds",
+          "restart_needed"
+        ],
+        "type": "object"
+      },
+      "JoinStatus": {
+        "description": "What a join secret is worth right now.",
+        "oneOf": [
+          {
+            "const": "ready",
+            "description": "It can be redeemed.",
+            "type": "string"
+          },
+          {
+            "const": "expired",
+            "description": "More than a day old and never redeemed.",
+            "type": "string"
+          },
+          {
+            "const": "used",
+            "description": "Already redeemed, by another machine or an earlier attempt.",
+            "type": "string"
+          },
+          {
+            "const": "revoked",
+            "description": "The operator removed the machine or replaced its credential.",
+            "type": "string"
+          },
+          {
+            "const": "unknown",
+            "description": "This server never made it.",
+            "type": "string"
+          }
+        ]
+      },
+      "KeyName": {
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "created_at"
+        ],
+        "type": "object"
       },
       "Kind": {
         "enum": [
@@ -1567,6 +1778,168 @@
         "required": [
           "view",
           "list_attachments"
+        ],
+        "type": "object"
+      },
+      "MachineRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm": {
+            "default": null,
+            "description": "For a deletion: the machine's name typed again.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "default": null,
+            "description": "Defaults to the server's only group.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "node_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id"
+        ],
+        "type": "object"
+      },
+      "MachineStatus": {
+        "description": "How a machine stands with the server.",
+        "oneOf": [
+          {
+            "description": "Listed in the operator's own configuration file.",
+            "properties": {
+              "state": {
+                "const": "configured",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string can still be redeemed until `expires_at`.",
+            "properties": {
+              "expires_at": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "state": {
+                "const": "waiting",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "expires_at"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string was never redeemed and no longer can be.",
+            "properties": {
+              "state": {
+                "const": "expired",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "state": {
+                "const": "joined",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its credential was removed; what it published stays until deleted.",
+            "properties": {
+              "delete_requested": {
+                "type": "boolean"
+              },
+              "state": {
+                "const": "removed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "delete_requested"
+            ],
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "credential_created_at": {
+            "description": "When its current credential was made, by the server's clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "delete_waiting": {
+            "description": "Its history is being deleted once its open connections close.",
+            "type": "boolean"
+          },
+          "fingerprint": {
+            "description": "The last four characters of the stored hash of its credential: enough\nto tell two credentials apart, nothing to sign in with.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Published2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receiving": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Receiving"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A first publish still arriving."
+          }
+        },
+        "required": [
+          "group_id",
+          "node_id",
+          "delete_waiting"
         ],
         "type": "object"
       },
@@ -1944,6 +2317,52 @@
           }
         ]
       },
+      "Overview": {
+        "description": "Every machine in every group, the actions recorded, and the admin keys.",
+        "properties": {
+          "actions": {
+            "description": "Newest first.",
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "type": "array"
+          },
+          "build": {
+            "type": "string"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/KeyName"
+            },
+            "type": "array"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/MachineStatus"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "machines",
+          "actions",
+          "keys"
+        ],
+        "type": "object"
+      },
       "Page": {
         "properties": {
           "next_cursor": {
@@ -2011,6 +2430,55 @@
           "antigravity"
         ],
         "type": "string"
+      },
+      "Published": {
+        "description": "History the server already holds under a name.",
+        "properties": {
+          "chats": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "instance": {
+            "description": "The local index that published it; only that index may publish more.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instance",
+          "chats"
+        ],
+        "type": "object"
+      },
+      "Published2": {
+        "description": "What one machine has published to this server.",
+        "properties": {
+          "chats": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "last_synced_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "messages": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "instance",
+          "chats",
+          "messages"
+        ],
+        "type": "object"
       },
       "QueryFilter": {
         "additionalProperties": false,
@@ -2141,6 +2609,25 @@
           "disabled"
         ],
         "type": "string"
+      },
+      "Receiving": {
+        "properties": {
+          "covered": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "covered",
+          "total"
+        ],
+        "type": "object"
       },
       "Record": {
         "properties": {
@@ -2293,6 +2780,39 @@
           "evidence_current",
           "confirmations",
           "confirmation_history"
+        ],
+        "type": "object"
+      },
+      "RedeemAnswer": {
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JoinStatus"
+              }
+            ],
+            "description": "`ready` when the machine joined; otherwise why it could not."
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "RedeemRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "secret": {
+            "type": "string"
+          },
+          "token_hash": {
+            "description": "BLAKE3 of the token the joining machine made for itself.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret",
+          "token_hash"
         ],
         "type": "object"
       },
@@ -2958,6 +3478,246 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/v1/admin/add": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinAnswer"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
+    "/v1/admin/delete": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
+    "/v1/admin/machines": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            },
+            "description": "Every machine in every group, the actions recorded, and the admin keys."
+          }
+        }
+      }
+    },
+    "/v1/admin/remove": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
+    "/v1/admin/replace": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinAnswer"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
     "/v1/attachment": {
       "post": {
         "requestBody": {
@@ -3286,6 +4046,118 @@
         }
       }
     },
+    "/v1/join": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedeemAnswer"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
+    "/v1/join/check": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAnswer"
+                }
+              }
+            },
+            "description": "What the server says about a join secret, before anything is saved. The\ngroup's machines and the name's history are told only for a string that\ncan still be redeemed."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
     "/v1/query": {
       "post": {
         "requestBody": {
@@ -3504,6 +4376,22 @@
               }
             },
             "description": "Failed to deserialize the JSON body into the target type"
+          }
+        }
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupStatus"
+                }
+              }
+            },
+            "description": ""
           }
         }
       }

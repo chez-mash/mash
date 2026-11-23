@@ -151,6 +151,7 @@ async fn reinstall_here(
         index: false,
         marketplace: core::MARKETPLACE.to_owned(),
         plan: None,
+        join: None,
         selected_agents: None,
         backfill_memory: None,
         agent_path,

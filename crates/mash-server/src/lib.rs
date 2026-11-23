@@ -12,10 +12,19 @@ use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{Json, Router};
 
+mod admin;
 mod admission;
 mod attachments;
 mod contexts;
 mod events;
+mod group_status;
+mod join;
+mod machines;
+mod roster;
+mod routes;
+use routes::api;
+#[cfg(test)]
+use routes::document;
 pub mod setup;
 mod sync;
 
@@ -45,7 +54,11 @@ struct App {
     attachments_dir: Option<std::path::PathBuf>,
     catalog: sync::CatalogHandle,
     store: Store,
-    identities: Arc<HashMap<blake3::Hash, Identity>>,
+    /// The tokens accepted now; reread while the server runs.
+    nodes: roster::Nodes,
+    /// The added-machines file this server follows, when it has one.
+    live: Option<Arc<roster::Live>>,
+    joins: Arc<tokio::sync::Semaphore>,
     uploads: Arc<tokio::sync::Semaphore>,
     waiters: Arc<tokio::sync::Semaphore>,
 }
@@ -108,13 +121,39 @@ async fn authorize(State(app): State<App>, request: Request, next: Next) -> Resp
 }
 
 async fn authorize_inner(app: App, mut request: Request, next: Next) -> Response {
+    // A join string's secret is the credential of the two join routes.
+    if matches!(request.uri().path(), "/v1/join" | "/v1/join/check") {
+        return tokio::time::timeout(Duration::from_secs(30), next.run(request))
+            .await
+            .unwrap_or_else(|_| {
+                ApiError(
+                    StatusCode::REQUEST_TIMEOUT,
+                    AppError::shared("request timed out"),
+                )
+                .into_response()
+            });
+    }
+    // Management takes an admin key, never a machine's token.
+    if request.uri().path().starts_with("/v1/admin/") {
+        return admin::gate(app, request, next).await;
+    }
     let token = request
         .headers()
         .get("authorization")
         .and_then(|h| h.to_str().ok())
         .and_then(|h| h.strip_prefix("Bearer "));
-    let identity = token.and_then(|t| app.identities.get(&blake3::hash(t.as_bytes())));
+    let roster = app.nodes.current();
+    let hash = token.map(|t| blake3::hash(t.as_bytes()));
+    let identity = hash.and_then(|hash| roster.tokens.get(&hash));
     let Some(identity) = identity else {
+        // A credential the operator removed or replaced is told so, so the
+        // machine can say why rather than report a broken token.
+        if hash.is_some_and(|hash| roster.revoked.contains(&hash)) {
+            let error = AppError::credential_revoked(
+                "this server no longer accepts this machine's credential",
+            );
+            return ApiError(StatusCode::UNAUTHORIZED, error).into_response();
+        }
         let mut error = AppError::shared("invalid node authorization");
         error.error.retryable = false;
         return ApiError(StatusCode::UNAUTHORIZED, error).into_response();
@@ -150,61 +189,6 @@ async fn authorize_inner(app: App, mut request: Request, next: Next) -> Response
             .into_response()
         })
 }
-/// Every route, and the `OpenAPI` document `aide` derives from the handlers'
-/// own request and answer types. The synchronization route upgrades to a
-/// WebSocket; its frames are outside what the document describes.
-fn api() -> (Router<App>, aide::openapi::OpenApi) {
-    use aide::axum::routing::{get, post};
-    let mut document = aide::openapi::OpenApi {
-        info: aide::openapi::Info {
-            title: "mash-server".into(),
-            description: Some(
-                "The shared index's API. Every request carries a node's bearer token. Generated from the server's routes; do not edit."
-                    .into(),
-            ),
-            version: "1".into(),
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    let router = aide::axum::ApiRouter::new()
-        .api_route("/v1/freshness", get(freshness))
-        .api_route("/v1/search", post(search))
-        .api_route("/v1/chats", post(list_chats))
-        .api_route("/v1/records", post(list_records))
-        .api_route("/v1/record", post(get_record))
-        .api_route("/v1/catalog", get(catalog))
-        .api_route("/v1/chat", post(chat_page))
-        .api_route("/v1/view", post(view))
-        .api_route("/v1/contexts", post(contexts::read))
-        .api_route("/v1/query", post(query))
-        .api_route("/v1/fingerprints", get(fingerprints))
-        .api_route("/v1/attachments", post(attachments::list))
-        .api_route("/v1/attachment", post(attachments::get))
-        .api_route("/v1/sync", get(sync::upgrade))
-        .api_route("/v1/events", get(events::listen))
-        .finish_api(&mut document);
-    (router, document)
-}
-
-/// The contract as JSON, with each schema under a name of its own.
-#[cfg(test)]
-fn document() -> serde_json::Value {
-    let mut document = serde_json::to_value(api().1).unwrap_or_default();
-    crate::openapi::settle(
-        &mut document,
-        "Request",
-        &[
-            ("direction", "ChatListRequest"),
-            ("group_by", "QueryRequest"),
-            ("attachment_id", "AttachmentRequest"),
-        ],
-    );
-    crate::openapi::settle(&mut document, "Filter", &[("chat", "QueryFilter")]);
-    crate::openapi::settle(&mut document, "Scope", &[("after", "CoverageScope")]);
-    crate::openapi::sorted(document)
-}
-
 fn router(app: App) -> Router {
     let router = api().0;
     router
@@ -257,7 +241,9 @@ async fn query(
     let target = match node {
         None => id,
         Some(node) => app
-            .identities
+            .nodes
+            .current()
+            .tokens
             .values()
             .find(|candidate| candidate.group_id == id.group_id && candidate.node_id == node)
             .cloned()
@@ -285,8 +271,11 @@ async fn freshness(
         app.mutation_capacity,
         app.uploads.available_permits(),
     ));
-    freshness.unpublished_nodes =
-        Some(unpublished_nodes(&app.identities, &id.group_id, &freshness));
+    freshness.unpublished_nodes = Some(unpublished_nodes(
+        &app.nodes.current().tokens,
+        &id.group_id,
+        &freshness,
+    ));
     let group = id.group_id.clone();
     let node = id.node_id.clone();
     // The server's one catalog connection: a second one opened per request
@@ -457,93 +446,8 @@ pub struct Activation {
     pub memory: bool,
 }
 
-/// Delete everything one configured node published, then exit without
-/// serving. The node's machine can publish afresh afterwards, from any local
-/// index, as if it had never published. `node` is `GROUP/NODE`.
-///
-/// The service must be stopped first: this takes the same exclusive hold on
-/// the history directory that a running server has.
-pub async fn retire(path: &Path, node: &str) -> Result<(), AppError> {
-    let config = configuration::load(path).await?;
-    let identities = configuration::identities(&config)?;
-    let identity = identities
-        .values()
-        .find(|identity| format!("{}/{}", identity.group_id, identity.node_id) == node)
-        .ok_or_else(|| {
-            AppError::usage("--retire-node names no configured node; use GROUP/NODE from [[nodes]]")
-        })?;
-    let store = store::initialize(&config, &identities, false, false, false).await?;
-    let retired = store.retire(identity).await?;
-    // Receipts and attachments go with the history they describe: a receipt
-    // left behind could acknowledge an upload that no longer exists.
-    let transfers = config.silver_dir()?.join("sync");
-    let (group, name) = (identity.group_id.clone(), identity.node_id.clone());
-    crate::blocking(move || sync::open_catalog(&transfers)?.retire(&group, &name)).await?;
-    if let Some(root) = &config.attachments_dir {
-        let directory = attachments::node_directory(root, &identity.group_id, &identity.node_id);
-        match tokio::fs::remove_dir_all(&directory).await {
-            Ok(()) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => return Err(AppError::io(error)),
-        }
-    }
-    crate::write_json(&mut std::io::stdout(), &retired)
-}
-
-/// Add a node to this server and print the join string for its machine. The
-/// server keeps only a hash of the new token, in a file beside its
-/// configuration; a running server accepts the node after a restart.
-/// `node` is `GROUP/NODE`, and `api_url` is the address that machine will use.
-pub async fn add_node(path: &Path, node: &str, api_url: &str) -> Result<(), AppError> {
-    let join = mint(path, node, api_url).await?;
-    crate::write_json(
-        &mut std::io::stdout(),
-        &serde_json::json!({
-            "node": node,
-            "join": join,
-            "next": "Restart mash-server so it accepts this node. Then, on that machine, run `mash init --join` with the join value. It contains the node's token: pass it privately.",
-        }),
-    )
-}
-
-/// `GROUP/NODE` as its two validated names.
-fn node_name(node: &str) -> Result<(&str, &str), AppError> {
-    let (group_id, node_id) = node
-        .split_once('/')
-        .ok_or_else(|| AppError::usage("--add-node takes GROUP/NODE, such as personal/laptop"))?;
-    crate::config::validate_identifier(group_id, "group_id")?;
-    crate::config::validate_identifier(node_id, "node_id")?;
-    Ok((group_id, node_id))
-}
-
-/// Record a new node by the hash of a fresh token and return its join string.
-async fn mint(path: &Path, node: &str, api_url: &str) -> Result<String, AppError> {
-    let config = configuration::load(path).await?;
-    let (group_id, node_id) = node_name(node)?;
-    if configuration::has_node(&config, group_id, node_id) {
-        return Err(AppError::usage(
-            "that node already exists; choose another name, or retire it first with --retire-node",
-        ));
-    }
-    let mut random = [0_u8; 32];
-    getrandom::fill(&mut random).map_err(|_| AppError::internal("create node token"))?;
-    let token = random.iter().fold(String::new(), |mut hex, byte| {
-        use std::fmt::Write;
-        let _ = write!(hex, "{byte:02x}");
-        hex
-    });
-    // Validate the whole string before anything is written.
-    let join = crate::shared::join::Join::new(api_url, group_id, node_id, &token).encode()?;
-    crate::shared::join::Join::decode(&join).map_err(|_| {
-        AppError::usage(
-            "--api-url must be the http or https address other machines use for this server",
-        )
-    })?;
-    let file = path.to_path_buf();
-    let (group, name) = (group_id.to_owned(), node_id.to_owned());
-    crate::blocking(move || configuration::append_node(&file, &group, &name, &token)).await?;
-    Ok(join)
-}
+pub use machines::{add_admin, add_node, retire, revoke_admin};
+pub(crate) use machines::{node_name, retire_node};
 
 /// `models` is used to replay views from silver before serving.
 pub async fn run(
@@ -554,9 +458,10 @@ pub async fn run(
 ) -> Result<(), AppError> {
     let config = configuration::load(path).await?;
     let identities = configuration::identities(&config)?;
+    let members = configuration::members(&config);
     let store = store::initialize(
         &config,
-        &identities,
+        &members,
         activation.views,
         activation.query,
         activation.memory,
@@ -564,9 +469,7 @@ pub async fn run(
     .await?
     .with_response_redaction(crate::redaction::Policy::new(config.redaction.responses));
     if replay {
-        let mut nodes = identities.values().collect::<Vec<_>>();
-        nodes.sort_by(|a, b| (&a.group_id, &a.node_id).cmp(&(&b.group_id, &b.node_id)));
-        for identity in nodes {
+        for identity in &members {
             let replayed = store.replay(identity, models).await?;
             crate::write_json(&mut std::io::stderr(), &replayed)?;
         }
@@ -580,16 +483,25 @@ pub async fn run(
     crate::write_json(&mut std::io::stderr(), &Listening { listening: address })?;
     let transfer_dir = config.silver_dir()?.join("sync");
     let catalog = std::sync::Arc::new(std::sync::Mutex::new(sync::open_catalog(&transfer_dir)?));
+    let live = roster::Live::new(path.to_path_buf(), address.to_string());
     let app = App {
         activity: shared::activity::Registry::default(),
         mutation_capacity: config.max_concurrent_uploads,
         attachments_dir: config.attachments_dir,
         catalog,
         store,
-        identities: Arc::new(identities),
+        nodes: roster::Nodes::fixed(identities),
+        live: Some(live.clone()),
+        joins: Arc::new(tokio::sync::Semaphore::new(join::CONCURRENT)),
         uploads: Arc::new(tokio::sync::Semaphore::new(config.max_concurrent_uploads)),
         waiters: Arc::new(tokio::sync::Semaphore::new(admission::MAX_WAITERS)),
     };
+    // The first status says the server runs; a file that does not apply
+    // keeps the tokens it started with.
+    if let Err(error) = roster::refresh(&app, &live, true).await {
+        tracing::warn!(message = %error.error.message, "could not apply the added-machines file");
+    }
+    let watch = roster::spawn_watch(app.clone(), live);
     // Resume durable transfers before accepting requests. A failure is logged
     // rather than fatal: the endpoint still serves and a client can resume.
     match sync::recover(&app).await {
@@ -624,6 +536,7 @@ pub async fn run(
         .map_err(|_| AppError::internal("HTTP server failed"));
     expiry.abort();
     apply_retry.abort();
+    watch.abort();
     served
 }
 

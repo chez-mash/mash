@@ -249,6 +249,7 @@ async fn run(state: &Dash, choice: Choice) -> Result<Done, AppError> {
         index: false,
         marketplace: core::MARKETPLACE.to_owned(),
         plan: Some(InitPlan { choices, previous }),
+        join: None,
         selected_agents: connect.then_some(choice.connect),
         backfill_memory: None,
         agent_path: None,

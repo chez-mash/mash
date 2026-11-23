@@ -44,6 +44,11 @@ pub enum ErrorKind {
     SearchTimeout,
     NotFound,
     QdrantInstall,
+    /// The shared server no longer accepts this machine's credential: its
+    /// operator removed the machine or replaced the credential.
+    CredentialRevoked,
+    /// A management request without a valid admin key for the shared server.
+    NotAdmin,
 }
 
 impl ErrorKind {
@@ -91,6 +96,17 @@ impl AppError {
 
     pub fn configuration(message: impl Into<String>) -> Self {
         Self::new(9, ErrorKind::Configuration, message, false)
+    }
+
+    /// The request conflicts with what is already there; retrying the same
+    /// request will not help.
+    pub fn conflict(message: impl Into<String>) -> Self {
+        Self::new(12, ErrorKind::Conflict, message, false)
+    }
+
+    /// The shared server refused a credential it once accepted.
+    pub fn credential_revoked(message: impl Into<String>) -> Self {
+        Self::new(11, ErrorKind::CredentialRevoked, message, false)
     }
 
     pub fn usage(message: impl Into<String>) -> Self {

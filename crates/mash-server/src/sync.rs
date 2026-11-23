@@ -9,24 +9,25 @@ use crate::shared::sync::catalog::{self, Begin, BeginOutcome, Catalog, Kind, Sto
 use crate::shared::sync::wire::{
     self, Accepted, AttachmentStored, BackfillComplete, Cancelled, Checkpoint, Chunk, CommitState,
     Credit, Failed, FinishBackfill, FinishUpload, Hello, Outcome, OutcomeState, Progress,
-    Published, Resume, ServerFrame, SilverCommitted, TooLateToCancel, Welcome, client_frame,
-    server_frame,
+    Published, Resume, SilverCommitted, TooLateToCancel, Welcome, client_frame, server_frame,
 };
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Extension, State};
 use axum::response::Response;
-use futures_util::{SinkExt, StreamExt};
+use futures_util::StreamExt;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 mod attachment;
 mod backfill;
+mod frames;
 mod recovery;
 use attachment::{apply_attachment, finish_attachment, handle_begin_attachment};
 use backfill::{
     BackfillPreparation, apply_manifest, finish_manifest, handle_begin_backfill,
     handle_finish_backfill, prepare_backfill,
 };
+use frames::send;
 pub(super) use recovery::{recover, spawn_apply_recovery, spawn_periodic_expiry};
 #[cfg(test)]
 pub(super) use recovery::{spawn_apply_retry, spawn_expiry};
@@ -62,6 +63,8 @@ pub(super) async fn upgrade(
 }
 
 async fn connection(app: App, identity: Identity, socket: WebSocket) {
+    // A deletion of this machine's history waits while this stays open.
+    let _session = app.live.as_ref().map(|live| live.open(&identity));
     if let Err(error) = run(app, identity, socket).await {
         tracing::warn!(
             kind = ?error.error.kind,
@@ -140,6 +143,12 @@ async fn run(app: App, identity: Identity, socket: WebSocket) -> Result<(), AppE
         let Some(body) = frame.body else {
             continue;
         };
+        // A machine removed or given a new credential while connected stops
+        // here, before its next step changes anything.
+        if !app.nodes.authorized(&identity) {
+            frames::refuse_revoked(&mut sink, &operation_id).await?;
+            return Ok(());
+        }
         match body {
             client_frame::Body::Hello(hello) => {
                 handle_hello(&mut sink, &app, &identity, hello).await?;
@@ -244,21 +253,6 @@ pub(super) async fn catalog<T: Send + 'static>(
         work(&catalog)
     })
     .await
-}
-
-async fn send(
-    sink: &mut Sink,
-    operation_id: &str,
-    body: server_frame::Body,
-) -> Result<(), AppError> {
-    let frame = ServerFrame {
-        operation_id: operation_id.to_owned(),
-        body: Some(body),
-    };
-    let bytes = wire::encode_server(&frame)?;
-    sink.send(Message::Binary(bytes.into()))
-        .await
-        .map_err(|_| AppError::shared("synchronization connection failed"))
 }
 
 async fn handle_hello(

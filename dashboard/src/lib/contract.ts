@@ -1099,8 +1099,7 @@ export interface components {
             recommended_action?: components["schemas"]["RecommendedAction"] | null;
             retryable: boolean;
         };
-        /** @enum {string} */
-        ErrorKind: "shared-index" | "qdrant-unavailable" | "qdrant-failure" | "configuration" | "usage" | "database-missing" | "index-busy" | "model-busy" | "database" | "io" | "internal" | "model" | "search-not-ready" | "schema-incompatible" | "remote-inference" | "conflict" | "source-changed" | "search-timeout" | "not-found" | "qdrant-install";
+        ErrorKind: ("shared-index" | "qdrant-unavailable" | "qdrant-failure" | "configuration" | "usage" | "database-missing" | "index-busy" | "model-busy" | "database" | "io" | "internal" | "model" | "search-not-ready" | "schema-incompatible" | "remote-inference" | "conflict" | "source-changed" | "search-timeout" | "not-found" | "qdrant-install") | "credential-revoked";
         /** @description One step of an answer, as the browser reads it. */
         Event: {
             /** @constant */

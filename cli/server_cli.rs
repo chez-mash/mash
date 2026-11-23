@@ -85,6 +85,22 @@ struct Arguments {
     /// join string: an HTTPS name or a private-network address.
     #[arg(long, value_name = "URL", requires = "add_node")]
     api_url: Option<String>,
+    /// Make an admin key named NAME and print it once, then exit without
+    /// serving. A dashboard on any machine that holds it can add, remove and
+    /// replace machines. Making one with an existing name replaces that key.
+    #[arg(
+        long,
+        value_name = "NAME",
+        conflicts_with_all = ["add_node", "retire_node", "revoke_admin", "replay_views", "activate_views", "activate_query", "activate_memory"]
+    )]
+    add_admin: Option<String>,
+    /// Stop accepting the admin key named NAME, then exit without serving.
+    #[arg(
+        long,
+        value_name = "NAME",
+        conflicts_with_all = ["add_node", "retire_node", "replay_views", "activate_views", "activate_query", "activate_memory"]
+    )]
+    revoke_admin: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -162,6 +178,14 @@ where
         .ok_or_else(|| AppError::usage("--server-config is required"))?;
     if let Some(node) = &args.retire_node {
         runtime.block_on(server::retire(&server_config, node))?;
+        return Ok(None);
+    }
+    if let Some(name) = &args.add_admin {
+        server::add_admin(&server_config, name)?;
+        return Ok(None);
+    }
+    if let Some(name) = &args.revoke_admin {
+        server::revoke_admin(&server_config, name)?;
         return Ok(None);
     }
     if let Some(node) = &args.add_node {

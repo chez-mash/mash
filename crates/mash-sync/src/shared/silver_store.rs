@@ -68,7 +68,9 @@ pub fn receipt_digest(manifest: &str, revision: i64) -> String {
 #[derive(Clone)]
 pub struct SilverStore {
     root: PathBuf,
-    groups: BTreeMap<String, Vec<String>>,
+    /// Members by group. A running server admits machines added after it
+    /// started, so this is shared by every clone of the store.
+    groups: std::sync::Arc<std::sync::RwLock<BTreeMap<String, Vec<String>>>>,
     /// None only for `unavailable`, whose every connection fails.
     owner: Option<std::sync::Arc<FileLock>>,
 }
@@ -144,22 +146,13 @@ impl SilverStore {
                 "silver_dir must be an absolute path",
             ));
         }
-        let mut store = Self {
+        let store = Self {
             root: root.to_path_buf(),
-            groups: BTreeMap::new(),
+            groups: std::sync::Arc::default(),
             owner: Some(std::sync::Arc::new(own(root)?)),
         };
         for identity in identities {
-            store
-                .groups
-                .entry(identity.group_id.clone())
-                .or_default()
-                .push(identity.node_id.clone());
-            drop(store.connect(identity)?);
-        }
-        for nodes in store.groups.values_mut() {
-            nodes.sort();
-            nodes.dedup();
+            store.admit(identity)?;
         }
         Ok(store)
     }
@@ -169,7 +162,7 @@ impl SilverStore {
     pub fn unavailable() -> Self {
         Self {
             root: PathBuf::from("/proc/mash-unavailable/silver"),
-            groups: BTreeMap::new(),
+            groups: std::sync::Arc::default(),
             owner: None,
         }
     }
@@ -204,8 +197,38 @@ impl SilverStore {
     }
 
     /// Configured nodes of one group, in identity order.
-    pub fn nodes(&self, group: &str) -> &[String] {
-        self.groups.get(group).map_or(&[], Vec::as_slice)
+    pub fn nodes(&self, group: &str) -> Vec<String> {
+        self.groups
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get(group)
+            .cloned()
+            .unwrap_or_default()
+    }
+
+    /// Whether the store serves this group, so a new member can be admitted
+    /// without a restart. A new group also needs its search collections set
+    /// up, which happens only when the server starts.
+    pub fn serves(&self, group: &str) -> bool {
+        self.groups
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .contains_key(group)
+    }
+
+    /// Make a node a member: create its history database if it has none, and
+    /// list it among its group's nodes.
+    pub fn admit(&self, identity: &Identity) -> Result<(), AppError> {
+        drop(self.connect(identity)?);
+        let mut groups = self
+            .groups
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let nodes = groups.entry(identity.group_id.clone()).or_default();
+        if let Err(at) = nodes.binary_search(&identity.node_id) {
+            nodes.insert(at, identity.node_id.clone());
+        }
+        Ok(())
     }
 
     pub fn connect(&self, identity: &Identity) -> Result<Connection, AppError> {
@@ -247,8 +270,8 @@ impl SilverStore {
     pub fn heads(&self, group: &str) -> Result<BTreeMap<String, Head>, AppError> {
         let mut heads = BTreeMap::new();
         for node in self.nodes(group) {
-            if let Some(head) = head(&self.connect(&node_identity(group, node))?)? {
-                heads.insert(node.clone(), head);
+            if let Some(head) = head(&self.connect(&node_identity(group, &node))?)? {
+                heads.insert(node, head);
             }
         }
         Ok(heads)

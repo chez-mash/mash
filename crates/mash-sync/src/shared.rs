@@ -10,6 +10,7 @@ const BULK_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(30);
 use crate::views::retrieval::EXACT_SEARCH_BUDGET_ERROR;
 
 pub mod activity;
+pub mod admin_key;
 pub mod attachments;
 pub mod client;
 pub mod exact;

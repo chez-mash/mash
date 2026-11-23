@@ -36,7 +36,7 @@ fn traced_router(dispatcher: tracing::Dispatch) -> Router {
             .unwrap(),
         )),
         store: Store::unavailable(),
-        identities: Arc::new(HashMap::from([(
+        nodes: crate::roster::Nodes::fixed(HashMap::from([(
             blake3::hash(FIRST.as_bytes()),
             Identity {
                 group_id: "group-canary".into(),
@@ -45,6 +45,8 @@ fn traced_router(dispatcher: tracing::Dispatch) -> Router {
                 dimensions: 2,
             },
         )])),
+        live: None,
+        joins: Arc::new(tokio::sync::Semaphore::new(crate::join::CONCURRENT)),
         uploads: Arc::new(tokio::sync::Semaphore::new(1)),
         waiters: Arc::new(tokio::sync::Semaphore::new(
             super::super::admission::MAX_WAITERS,

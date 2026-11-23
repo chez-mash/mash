@@ -21,53 +21,62 @@ struct AuthorizedNode {
     token_hash: Option<String>,
 }
 
-/// Nodes added with `--add-node`, kept beside the configuration so the
-/// operator's own file is never rewritten.
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct AddedNodes {
-    #[serde(default)]
-    nodes: Vec<AuthorizedNode>,
-}
-
-/// The file `--add-node` appends to: the configuration's path plus `.nodes`.
-pub(super) fn added_nodes_path(configuration: &Path) -> std::path::PathBuf {
-    let mut name = configuration.as_os_str().to_owned();
-    name.push(".nodes");
-    name.into()
-}
-
-/// Whether `group_id/node_id` is already a node of this server.
+/// Whether `group_id/node_id` is already a node of this server, in its
+/// configuration or added with a join string in any state.
 pub fn has_node(config: &Configuration, group_id: &str, node_id: &str) -> bool {
+    configured(config)
+        .iter()
+        .any(|(group, node)| group == group_id && node == node_id)
+        || config
+            .added
+            .nodes
+            .iter()
+            .any(|node| node.group_id == group_id && node.node_id == node_id)
+}
+
+/// The machines named in the operator's own configuration file.
+pub fn configured(config: &Configuration) -> Vec<(String, String)> {
     config
         .nodes
         .iter()
-        .any(|node| node.group_id == group_id && node.node_id == node_id)
+        .map(|node| (node.group_id.clone(), node.node_id.clone()))
+        .collect()
 }
 
-/// Record a new node by the hash of its token. The caller has validated the
-/// identifiers, which are therefore safe to write as TOML strings.
-pub fn append_node(
-    configuration: &Path,
-    group_id: &str,
-    node_id: &str,
-    token: &str,
-) -> Result<(), AppError> {
-    use std::io::Write;
-    let path = added_nodes_path(configuration);
-    let mut options = std::fs::OpenOptions::new();
-    options.create(true).append(true);
-    crate::platform::private_file(&mut options);
-    let mut file = options
-        .open(&path)
-        .map_err(|_| AppError::configuration("could not write the added-nodes file"))?;
-    write!(
-        file,
-        "\n[[nodes]]\ngroup_id = \"{group_id}\"\nnode_id = \"{node_id}\"\ntoken_hash = \"{}\"\n",
-        blake3::hash(token.as_bytes()).to_hex()
-    )
-    .and_then(|()| file.sync_all())
-    .map_err(|_| AppError::configuration("could not write the added-nodes file"))
+/// The machines added with join strings, as the server last read them.
+pub fn added(config: &Configuration) -> &super::enrollment::Added {
+    &config.added
+}
+
+/// The identity of a member of this server.
+pub fn member(group_id: &str, node_id: &str) -> Identity {
+    Identity {
+        group_id: group_id.to_owned(),
+        node_id: node_id.to_owned(),
+        generation: crate::semantic::SHARED_EMBEDDING_GENERATION.to_owned(),
+        dimensions: 384,
+    }
+}
+
+/// Every member of every group: configured machines and added ones in any
+/// state. A machine waiting to join or removed still has its own history
+/// database, and a removed machine's chats stay searchable until deleted.
+pub fn members(config: &Configuration) -> Vec<Identity> {
+    let mut members = config
+        .nodes
+        .iter()
+        .map(|node| member(&node.group_id, &node.node_id))
+        .chain(
+            config
+                .added
+                .nodes
+                .iter()
+                .map(|node| member(&node.group_id, &node.node_id)),
+        )
+        .collect::<Vec<_>>();
+    members.sort_by(|a, b| (&a.group_id, &a.node_id).cmp(&(&b.group_id, &b.node_id)));
+    members.dedup_by(|a, b| a.group_id == b.group_id && a.node_id == b.node_id);
+    members
 }
 
 #[derive(Deserialize)]
@@ -96,6 +105,9 @@ pub struct Configuration {
     #[serde(default)]
     pub redaction: Redaction,
     nodes: Vec<AuthorizedNode>,
+    /// Machines added with join strings, read from the file beside this one.
+    #[serde(skip)]
+    added: super::enrollment::Added,
 }
 /// Where the server masks recognizable credentials; each defaults on.
 #[derive(Deserialize)]
@@ -166,6 +178,29 @@ pub(super) fn env_name(name: &str) -> Result<(), AppError> {
     Ok(())
 }
 pub fn identities(config: &Configuration) -> Result<HashMap<blake3::Hash, Identity>, AppError> {
+    validate_settings(config)?;
+    let mut result = HashMap::new();
+    let mut unique = HashSet::new();
+    for node in &config.nodes {
+        crate::config::validate_identifier(&node.group_id, "group_id")?;
+        crate::config::validate_identifier(&node.node_id, "node_id")?;
+        let hash = configured_hash(node)?;
+        if !unique.insert((&node.group_id, &node.node_id))
+            || result
+                .insert(hash, member(&node.group_id, &node.node_id))
+                .is_some()
+        {
+            return Err(AppError::configuration(
+                "each node identity and API token must be unique",
+            ));
+        }
+    }
+    added_identities(config, &mut unique, &mut result)?;
+    Ok(result)
+}
+
+/// The server-wide settings `identities` checks before reading any node.
+fn validate_settings(config: &Configuration) -> Result<(), AppError> {
     config.views.query.vector_search.validate()?;
     config.embeddings.validate()?;
     config.silver_dir()?;
@@ -197,60 +232,75 @@ pub fn identities(config: &Configuration) -> Result<HashMap<blake3::Hash, Identi
             "max_concurrent_uploads must be between 1 and 16",
         ));
     }
-    if config.version != 1 || config.nodes.is_empty() {
+    if config.version != 1 || (config.nodes.is_empty() && config.added.nodes.is_empty()) {
         return Err(AppError::configuration(
             "server requires version 1 and configured nodes",
         ));
     }
-    let mut result = HashMap::new();
-    let mut unique = HashSet::new();
-    for node in &config.nodes {
-        crate::config::validate_identifier(&node.group_id, "group_id")?;
-        crate::config::validate_identifier(&node.node_id, "node_id")?;
-        let hash = match (&node.token_env, &node.token_hash) {
-            (Some(name), None) => {
-                env_name(name)?;
-                let token = std::env::var(name).map_err(|_| {
-                    AppError::configuration(format!("set {name} to the node's API token"))
-                })?;
-                if token.len() < 32
-                    || token.len() > 4096
-                    || !token.bytes().all(|b| b.is_ascii_graphic())
-                {
-                    return Err(AppError::configuration(
-                        "API tokens require 32..4096 printable ASCII bytes",
-                    ));
-                }
-                blake3::hash(token.as_bytes())
-            }
-            (None, Some(hex)) => blake3::Hash::from_hex(hex).map_err(|_| {
-                AppError::configuration("token_hash must be 64 hexadecimal characters")
-            })?,
-            _ => {
+    Ok(())
+}
+
+/// The token hash of a node in the operator's own configuration: from the
+/// variable it names, or written as a hash.
+fn configured_hash(node: &AuthorizedNode) -> Result<blake3::Hash, AppError> {
+    Ok(match (&node.token_env, &node.token_hash) {
+        (Some(name), None) => {
+            env_name(name)?;
+            let token = std::env::var(name).map_err(|_| {
+                AppError::configuration(format!("set {name} to the node's API token"))
+            })?;
+            if token.len() < 32
+                || token.len() > 4096
+                || !token.bytes().all(|b| b.is_ascii_graphic())
+            {
                 return Err(AppError::configuration(
-                    "each node needs exactly one of token_env and token_hash",
+                    "API tokens require 32..4096 printable ASCII bytes",
                 ));
             }
+            blake3::hash(token.as_bytes())
+        }
+        (None, Some(hex)) => blake3::Hash::from_hex(hex)
+            .map_err(|_| AppError::configuration("token_hash must be 64 hexadecimal characters"))?,
+        _ => {
+            return Err(AppError::configuration(
+                "each node needs exactly one of token_env and token_hash",
+            ));
+        }
+    })
+}
+
+/// Machines added with join strings: each name is unique with the configured
+/// ones, and only a joined machine that was not removed holds a working token.
+fn added_identities<'a>(
+    config: &'a Configuration,
+    unique: &mut HashSet<(&'a String, &'a String)>,
+    result: &mut HashMap<blake3::Hash, Identity>,
+) -> Result<(), AppError> {
+    for node in &config.added.nodes {
+        if !unique.insert((&node.group_id, &node.node_id)) {
+            return Err(AppError::configuration(
+                "each node identity and API token must be unique",
+            ));
+        }
+        let Some(hex) = node
+            .token_hash
+            .as_ref()
+            .filter(|_| node.removed_at.is_none())
+        else {
+            continue;
         };
-        if !unique.insert((&node.group_id, &node.node_id))
-            || result
-                .insert(
-                    hash,
-                    Identity {
-                        group_id: node.group_id.clone(),
-                        node_id: node.node_id.clone(),
-                        generation: crate::semantic::SHARED_EMBEDDING_GENERATION.to_owned(),
-                        dimensions: 384,
-                    },
-                )
-                .is_some()
+        let hash = blake3::Hash::from_hex(hex)
+            .map_err(|_| AppError::configuration("token_hash must be 64 hexadecimal characters"))?;
+        if result
+            .insert(hash, member(&node.group_id, &node.node_id))
+            .is_some()
         {
             return Err(AppError::configuration(
                 "each node identity and API token must be unique",
             ));
         }
     }
-    Ok(result)
+    Ok(())
 }
 pub async fn load(path: &Path) -> Result<Configuration, AppError> {
     let path = path.to_path_buf();
@@ -279,30 +329,8 @@ pub async fn load(path: &Path) -> Result<Configuration, AppError> {
             .map_err(|_| AppError::configuration("server configuration must be UTF-8 TOML"))?;
         let mut config: Configuration = toml::from_str(contents)
             .map_err(|_| AppError::configuration("invalid server configuration"))?;
-        // Nodes added with --add-node; they carry token hashes only.
-        match std::fs::read_to_string(added_nodes_path(&path)) {
-            Ok(text) if text.len() <= 65536 => {
-                let added: AddedNodes = toml::from_str(&text)
-                    .map_err(|_| AppError::configuration("invalid added-nodes file"))?;
-                if added.nodes.iter().any(|node| node.token_env.is_some()) {
-                    return Err(AppError::configuration(
-                        "the added-nodes file holds token hashes only",
-                    ));
-                }
-                config.nodes.extend(added.nodes);
-            }
-            Ok(_) => {
-                return Err(AppError::configuration(
-                    "the added-nodes file exceeds 65536 bytes",
-                ));
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(_) => {
-                return Err(AppError::configuration(
-                    "could not read the added-nodes file",
-                ));
-            }
-        }
+        // Machines added with join strings; the file holds hashes only.
+        config.added = super::enrollment::read(&path)?;
         Ok(config)
     })
     .await
@@ -436,41 +464,37 @@ mod tests {
 
     #[tokio::test]
     async fn added_nodes_are_known_by_the_hash_of_their_token_only() {
+        use super::super::enrollment;
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("server.toml");
         std::fs::write(&path, "version=1\nnodes=[]\n").unwrap();
         // Nothing added yet: the configuration alone names no node.
         assert!(identities(&load(&path).await.unwrap()).is_err());
         let token = "0123456789abcdef0123456789abcdef";
-        append_node(&path, "team", "laptop", token).unwrap();
-        append_node(&path, "team", "desktop", "ffffffffffffffffffffffffffffffff").unwrap();
-        let added = std::fs::read_to_string(added_nodes_path(&path)).unwrap();
-        assert!(
-            !added.contains(token),
-            "the server keeps no copy of the token"
-        );
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mode = std::fs::metadata(added_nodes_path(&path))
-                .unwrap()
-                .permissions()
-                .mode();
-            assert_eq!(mode & 0o777, 0o600);
-        }
+        let hash = blake3::hash(token.as_bytes()).to_hex().to_string();
+        let now = enrollment::now();
+        enrollment::update(&path, |added| {
+            let secret = enrollment::add(added, &[], "team", "laptop", now)?;
+            enrollment::redeem(added, &secret, &hash, now).unwrap();
+            enrollment::add(added, &[], "team", "desktop", now)
+        })
+        .unwrap();
         let config = load(&path).await.unwrap();
         assert!(has_node(&config, "team", "laptop") && has_node(&config, "team", "desktop"));
         assert!(!has_node(&config, "team", "phone"));
+        // The waiting machine is a member with no working token yet.
         let known = identities(&config).unwrap();
-        assert_eq!(known.len(), 2);
+        assert_eq!(known.len(), 1);
         assert_eq!(known[&blake3::hash(token.as_bytes())].node_id, "laptop");
-        // The file holds hashes only, and a node names exactly one credential.
-        std::fs::write(
-            added_nodes_path(&path),
-            "[[nodes]]\ngroup_id='team'\nnode_id='x'\ntoken_env='MASH_X'\n",
-        )
+        assert_eq!(members(&config).len(), 2);
+        // A removed machine stays a member but its token stops working.
+        enrollment::update(&path, |added| {
+            enrollment::remove(added, "team", "laptop", now)
+        })
         .unwrap();
-        assert!(load(&path).await.is_err());
+        let config = load(&path).await.unwrap();
+        assert!(identities(&config).unwrap().is_empty());
+        assert_eq!(members(&config).len(), 2);
         for node in [
             "{group_id='team',node_id='x'}",
             "{group_id='team',node_id='x',token_env='MASH_X',token_hash='00'}",

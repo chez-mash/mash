@@ -2050,29 +2050,43 @@
         "type": "object"
       },
       "ErrorKind": {
-        "enum": [
-          "shared-index",
-          "qdrant-unavailable",
-          "qdrant-failure",
-          "configuration",
-          "usage",
-          "database-missing",
-          "index-busy",
-          "model-busy",
-          "database",
-          "io",
-          "internal",
-          "model",
-          "search-not-ready",
-          "schema-incompatible",
-          "remote-inference",
-          "conflict",
-          "source-changed",
-          "search-timeout",
-          "not-found",
-          "qdrant-install"
-        ],
-        "type": "string"
+        "oneOf": [
+          {
+            "enum": [
+              "shared-index",
+              "qdrant-unavailable",
+              "qdrant-failure",
+              "configuration",
+              "usage",
+              "database-missing",
+              "index-busy",
+              "model-busy",
+              "database",
+              "io",
+              "internal",
+              "model",
+              "search-not-ready",
+              "schema-incompatible",
+              "remote-inference",
+              "conflict",
+              "source-changed",
+              "search-timeout",
+              "not-found",
+              "qdrant-install"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "credential-revoked",
+            "description": "The shared server no longer accepts this machine's credential: its\noperator removed the machine or replaced the credential.",
+            "type": "string"
+          },
+          {
+            "const": "not-admin",
+            "description": "A management request without a valid admin key for the shared server.",
+            "type": "string"
+          }
+        ]
       },
       "Event": {
         "description": "One step of an answer, as the browser reads it.",

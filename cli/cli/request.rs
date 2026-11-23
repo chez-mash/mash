@@ -65,21 +65,25 @@ impl Cli {
                 marketplace,
                 join,
                 yes: _,
-            } => Operation::Init(crate::core::InitRequest {
-                force,
-                agents: !no_agents,
-                index: !no_index,
-                marketplace,
-                plan: join
-                    .map(|text| {
-                        let join = crate::shared::join::Join::decode(&text)?;
-                        crate::core::join_plan(&paths, &join)
-                    })
-                    .transpose()?,
-                selected_agents: None,
-                backfill_memory,
-                agent_path: None,
-            }),
+            } => {
+                let join = join
+                    .map(|text| crate::shared::join::Join::decode(&text))
+                    .transpose()?;
+                Operation::Init(crate::core::InitRequest {
+                    force,
+                    agents: !no_agents,
+                    index: !no_index,
+                    marketplace,
+                    plan: join
+                        .as_ref()
+                        .map(|join| crate::core::join_plan(&paths, join))
+                        .transpose()?,
+                    join,
+                    selected_agents: None,
+                    backfill_memory,
+                    agent_path: None,
+                })
+            }
             Command::ListChats {
                 input,
                 local,

@@ -2,6 +2,7 @@ use super::*;
 use serde_json::{Value, json};
 use std::collections::HashSet;
 
+mod admin;
 mod admission;
 mod antigravity;
 mod attachments;
@@ -609,7 +610,9 @@ impl Service {
                 super::sync::open_catalog(&directory.path().join("sync")).unwrap(),
             )),
             store: store.clone(),
-            identities: identities.clone(),
+            nodes: super::roster::Nodes::fixed((*identities).clone()),
+            live: None,
+            joins: Arc::new(tokio::sync::Semaphore::new(super::join::CONCURRENT)),
             uploads: uploads.clone(),
             waiters: waiters.clone(),
         };
@@ -648,7 +651,9 @@ impl Service {
                 super::sync::open_catalog(&self.silver_dir.path().join("sync")).unwrap(),
             )),
             store: self.store.clone(),
-            identities: self.identities.clone(),
+            nodes: super::roster::Nodes::fixed((*self.identities).clone()),
+            live: None,
+            joins: Arc::new(tokio::sync::Semaphore::new(super::join::CONCURRENT)),
             uploads: self.uploads.clone(),
             waiters: self.waiters.clone(),
         }

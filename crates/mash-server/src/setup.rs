@@ -53,7 +53,7 @@ fn first_configuration(port: u16, silver: &Path) -> Result<String, AppError> {
         })?;
     Ok(format!(
         "# Written by `mash-server --setup`. Nodes added with --add-node are kept in\n\
-         # server.toml.nodes beside this file.\n\
+         # server.toml.nodes beside this file, which the running server rereads.\n\
          version = 1\n\
          nodes = []\n\
          listen = \"127.0.0.1:{port}\"\n\
@@ -197,8 +197,9 @@ pub async fn run(node: &str, port: u16) -> Result<(), AppError> {
     let join = if configuration::has_node(&existing, group_id, node_id) {
         None
     } else {
-        Some(super::mint(&home.configuration, node, &api_url).await?)
+        Some(super::machines::mint(&home.configuration, node, &api_url).await?)
     };
+    let admin_key = admin_key_here(&home.configuration)?;
     let exe = std::env::current_exe().map_err(AppError::io)?;
     let arguments = [
         exe.as_path(),
@@ -243,13 +244,31 @@ pub async fn run(node: &str, port: u16) -> Result<(), AppError> {
             "configuration": home.configuration,
             "node": node,
             "join": join,
+            "admin_key_saved_here": admin_key,
             "next": if join.is_some() {
-                "On that machine, run `mash init --join` with the join value; it contains the node's token, so pass it privately. Add more machines with `mash-server --setup --add-node GROUP/NODE`."
+                "On that machine, paste the join value into Join a shared index in Mash, or run `mash init --join` with it. It works once, for 24 hours, and contains the machine's credential: pass it privately. Add more machines from Machines in the dashboard on this machine, or with `mash-server --setup --add-node GROUP/NODE`."
             } else {
-                "That node was already added, so no new join string was made. The service was repaired and restarted."
+                "That node was already added, so no new join string was made. The service was repaired and restarted. To make a new join string for it, replace its credential from Machines in the dashboard on this machine."
             },
         }),
     )
+}
+
+/// The first setup also makes an admin key and saves it for this machine's
+/// own dashboard, so machines can be managed here at once. Whether it did.
+fn admin_key_here(configuration: &Path) -> Result<bool, AppError> {
+    if mash_app::shared::admin_key::load().is_some() {
+        return Ok(false);
+    }
+    let key = mash_app::shared::server::enrollment::update(configuration, |added| {
+        mash_app::shared::server::admin::create(
+            added,
+            "server-machine",
+            mash_app::shared::server::enrollment::now(),
+        )
+    })?;
+    mash_app::shared::admin_key::save(&key)?;
+    Ok(true)
 }
 
 #[cfg(test)]

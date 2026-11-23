@@ -16,7 +16,9 @@ mod records;
 mod retire;
 mod search;
 #[cfg(any(test, feature = "test-support"))]
-pub use retire::RetireFault;
+pub use retire::{RetireFault, Retired};
+mod membership;
+pub use membership::Published;
 mod sync;
 
 /// Serializes publications per node while other nodes proceed.
@@ -62,14 +64,16 @@ pub struct Store {
     views_partial_interruption: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
-pub async fn initialize<S: std::hash::BuildHasher>(
+/// Open the store for every member of every group: machines with a working
+/// token, and added machines that are waiting to join or were removed.
+pub async fn initialize(
     config: &Configuration,
-    identities: &HashMap<blake3::Hash, Identity, S>,
+    members: &[Identity],
     activate_views: bool,
     activate_query: bool,
     activate_memory: bool,
 ) -> Result<Store, AppError> {
-    let groups: HashSet<_> = identities.values().map(|id| id.group_id.clone()).collect();
+    let groups: HashSet<_> = members.iter().map(|id| id.group_id.clone()).collect();
     let groups = groups.into_iter().collect::<Vec<_>>();
     let name = config
         .qdrant_url_env
@@ -95,7 +99,7 @@ pub async fn initialize<S: std::hash::BuildHasher>(
         })
         .transpose()?;
     let root = config.silver_dir()?;
-    let configured = identities.values().cloned().collect::<Vec<_>>();
+    let configured = members.to_vec();
     let silver = crate::blocking(move || SilverStore::open(&root, &configured)).await?;
     let views = qdrant_index::Store::connect(
         (&url, &grpc_url),
@@ -112,7 +116,7 @@ pub async fn initialize<S: std::hash::BuildHasher>(
     .await?
     .with_build(config.views.build.clone());
     let mut selected = HashSet::new();
-    for identity in identities.values() {
+    for identity in members {
         if selected.insert(&identity.group_id) {
             let group_store = views.clone().with_query(
                 config
@@ -326,11 +330,6 @@ impl Store {
             .filter(|views| views.compatible(&self.views, identity)))
     }
 
-    /// Configured nodes of one group, in identity order.
-    pub fn nodes(&self, group: &str) -> &[String] {
-        self.silver.nodes(group)
-    }
-
     /// Fingerprint and message count per chat, for duplicate accounting.
     async fn fingerprinted_chats(
         &self,
@@ -372,7 +371,7 @@ impl Store {
         group: &str,
         dimensions: usize,
     ) -> Result<crate::shared::FingerprintReport, AppError> {
-        let nodes = self.nodes(group).to_vec();
+        let nodes = self.nodes(group);
         let mut copies: std::collections::HashMap<(String, String), (u64, u64)> =
             std::collections::HashMap::new();
         let mut per_node = Vec::new();

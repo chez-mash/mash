@@ -7,7 +7,9 @@ use tokio::sync::{Semaphore, SemaphorePermit};
 mod body;
 mod contexts;
 mod query_error;
+mod revocation;
 pub(super) use contexts::read as context_batch;
+pub use revocation::{freshness_with_token, revoked_credential};
 #[cfg(test)]
 mod retry_tests;
 
@@ -328,6 +330,9 @@ async fn response_inner<T: serde::de::DeserializeOwned + Send + 'static>(
         }
         if !response.status().is_success() {
             let status = response.status();
+            if status == reqwest::StatusCode::UNAUTHORIZED {
+                return Err(revocation::unauthorized(response).await);
+            }
             let query = matches!(endpoint, Endpoint::Query);
             if (search || query)
                 && status == reqwest::StatusCode::BAD_REQUEST

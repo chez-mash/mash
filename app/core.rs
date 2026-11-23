@@ -105,7 +105,7 @@ async fn execute_inner(
     if let Some(agent) = agent {
         setup::backfill::supported(agent)?;
     }
-    setup::preflight(&paths, init).await?;
+    setup::preflight_with_join(&paths, init).await?;
     let mut response = setup::init(paths.clone(), init.clone()).await?;
     if index {
         // Setup is already applied, so a failed first index is reported with

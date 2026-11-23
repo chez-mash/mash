@@ -10,10 +10,13 @@ use super::models::{IndexMode, IndexRequest, Operation, Paths, Response};
 use crate::AppError;
 mod agents;
 pub(super) mod backfill;
+mod join;
 mod terminal;
 pub(super) use agents::run;
 pub use agents::which;
 use agents::{display, step};
+pub use join::join_plan;
+pub(super) use join::preflight_with_join;
 
 /// The plugin marketplace that `init` adds to agents unless told otherwise.
 pub const MARKETPLACE: &str = "mashium/mash";
@@ -27,6 +30,9 @@ pub struct InitRequest {
     pub marketplace: String,
     /// Explicit wizard selections; absent for unattended setup.
     pub plan: Option<InitPlan>,
+    /// A join string to redeem once the checks pass. Its plan is in `plan`;
+    /// the token it yields is saved only after the server accepts it.
+    pub join: Option<crate::shared::join::Join>,
     pub selected_agents: Option<Vec<super::installation::Agent>>,
     pub backfill_memory: Option<super::installation::Agent>,
     /// Look for agent CLIs only on this PATH, not where a shell would (tests).
@@ -38,47 +44,6 @@ pub struct InitPlan {
     pub choices: crate::config::init::Choices,
     /// Compare before writing so a config edited while prompting is not replaced.
     pub previous: Option<String>,
-}
-
-/// The plan that connects this machine to a shared index from a join string:
-/// the histories already configured or found here, publishing to the server
-/// the string names. The node's token is saved under Mash's own directory,
-/// readable only by the user, so no shell profile needs editing.
-pub fn join_plan(paths: &Paths, join: &crate::shared::join::Join) -> Result<InitPlan, AppError> {
-    let current = crate::config::load(paths.config.as_deref())?;
-    let previous = if current.loaded {
-        Some(std::fs::read_to_string(&current.path).map_err(AppError::io)?)
-    } else {
-        None
-    };
-    // Keep the variable name an existing configuration already uses.
-    let token_env = current
-        .shared
-        .as_ref()
-        .map_or("MASH_NODE_TOKEN", |shared| shared.token_env.as_str())
-        .to_owned();
-    let tokens = crate::config::saved_tokens()
-        .ok_or_else(|| AppError::configuration("cannot find the home directory"))?;
-    crate::config::save_token(&tokens, &token_env, &join.token)?;
-    Ok(InitPlan {
-        choices: crate::config::init::Choices {
-            records: current.records.clone(),
-            providers: if current.loaded {
-                current.providers.clone()
-            } else {
-                crate::config::init::detect()?
-            },
-            since_days: current.since_days,
-            shared: Some(crate::config::SharedConfig {
-                group_id: join.group_id.clone(),
-                node_id: join.node_id.clone(),
-                api_url: join.api_url.clone(),
-                token_env,
-                publication_redaction: crate::redaction::Policy::default(),
-            }),
-        },
-        previous,
-    })
 }
 
 #[derive(Debug, Serialize)]

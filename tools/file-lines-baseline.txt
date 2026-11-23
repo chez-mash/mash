@@ -9,7 +9,7 @@
 605 app/core/output/text.rs
 701 app/core/qdrant.rs
 648 app/core/search.rs
-604 app/core/setup.rs
+569 app/core/setup.rs
 572 app/core/uninstall.rs
 784 app/remote.rs
 715 cli/cli.rs
@@ -22,8 +22,8 @@
 501 crates/mash-search/src/views/materialize.rs
 1183 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
-650 crates/mash-server/src/lib.rs
-1540 crates/mash-server/src/sync.rs
+563 crates/mash-server/src/lib.rs
+1534 crates/mash-server/src/sync.rs
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
 574 crates/mash-storage/src/records.rs
@@ -32,7 +32,7 @@
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
 761 crates/mash-sync/src/shared/publication.rs
-653 crates/mash-sync/src/shared/server/store.rs
+652 crates/mash-sync/src/shared/server/store.rs
 519 crates/mash-sync/src/shared/server/store/sync.rs
 793 crates/mash-sync/src/shared/silver_store/apply.rs
 899 crates/mash-sync/src/shared/sync/catalog.rs
