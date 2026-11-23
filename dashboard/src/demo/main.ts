@@ -9,8 +9,12 @@ import { transport } from "./backend";
 install(transport);
 // Made-up history never changes, so there is nothing to listen for.
 installEvents(undefined);
-const bar = document.createElement("div");
-document.body.prepend(bar);
-mount(Banner, { target: bar });
+// The quick panel stands in for a native menu bar panel, so it shows without
+// the demo's banner.
+if (!location.hash.startsWith("#/quick")) {
+  const bar = document.createElement("div");
+  document.body.prepend(bar);
+  mount(Banner, { target: bar });
+}
 
 await import("../main");
