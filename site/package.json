@@ -7,7 +7,7 @@
     "prepare-content": "node scripts/content.ts",
     "translate-docs": "node scripts/translate-docs.ts",
     "dev": "pnpm prepare-content && astro dev",
-    "build": "pnpm prepare-content && astro build",
+    "build": "pnpm prepare-content && astro build --force && node scripts/stylesheets.ts",
     "add-demo": "node scripts/demo.ts",
     "screenshots": "node scripts/screenshots.ts",
     "check": "pnpm prepare-content && astro sync && tsc --noEmit",
