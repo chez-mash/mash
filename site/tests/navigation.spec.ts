@@ -29,7 +29,7 @@ test("visitors can check which histories Mash reads and which agents it connects
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Supported agents");
   const support = page.getByRole("table").first();
   const copilot = support.getByRole("row", { name: /GitHub Copilot CLI/ });
-  await expect(copilot).toContainText("Development builds");
+  await expect(copilot).toContainText("Mash 0.2.0 and later");
   await expect(support.getByRole("row", { name: /GitHub Copilot Chat in VS Code/ })).toContainText(
     "Chats saved by VS Code on your computer",
   );
