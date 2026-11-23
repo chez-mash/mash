@@ -165,10 +165,28 @@ unsigned installers on Linux (deb, AppImage), macOS (app, dmg) and Windows
 (NSIS). RPM and MSI refuse a version such as `0.1.1-alpha`, so they are left
 out while releases are pre-releases.
 
+## Releases and signing
+
+`.github/workflows/release.yml` builds each installer from the engine the
+release built for the same platform, and attaches it under a fixed name
+(`mash-desktop-<system>-<arch>…`) so the website can link to the latest one.
+Signing turns on by itself when the repository has the secrets, and is skipped
+otherwise:
+
+- macOS: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_API_KEY_P8`,
+  `APPLE_API_KEY_ID` and `APPLE_API_ISSUER` (uploaded with
+  `tools/apple-signing-secrets`). `.github/scripts/macos-signing-setup` imports
+  the certificate; Tauri signs with the hardened runtime and notarizes, and the
+  disk image is notarized after it.
+- Windows: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`,
+  `AZURE_SIGNING_ENDPOINT`, `AZURE_SIGNING_ACCOUNT` and `AZURE_SIGNING_PROFILE`
+  for Azure Trusted Signing. `.github/scripts/windows-sign.ps1` signs `mash.exe`
+  and `mash-server.exe`, and Tauri calls it as its sign command for the app and
+  the installer. It checks every signature it makes.
+
 ## Not done yet
 
-- Signing and notarization, and a download channel for the installers.
-  Distribution follows the Docker CLI and Docker Desktop split: the CLI stays
-  on install scripts, Homebrew, apt, Scoop and winget, and the app becomes a
-  separate download (and later a cask and a winget package) that carries its
-  own engine.
+- A Homebrew cask and a winget package for the app. Distribution follows the
+  Docker CLI and Docker Desktop split: the CLI stays on install scripts,
+  Homebrew, apt, Scoop and winget, and the app is a separate download that
+  carries its own engine.

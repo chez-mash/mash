@@ -139,6 +139,19 @@ jobs:
             codesign --verify --strict "$binary"
             .github/scripts/macos-notarize "$binary"
           done
+      # With the Azure secrets set, the Windows programs are signed with Azure
+      # Trusted Signing, so Windows names their publisher.
+      - name: Sign the Windows binaries
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
+        run: .github/scripts/windows-sign.ps1 target/release/mash.exe target/release/mash-server.exe
       - name: Package
         run: |
           archive="mash-${{ matrix.target }}.${{ matrix.archive }}"
@@ -246,9 +259,22 @@ jobs:
         working-directory: desktop
         env:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
         run: |
           pnpm install --frozen-lockfile
-          pnpm exec tauri build --ci --bundles ${{ matrix.bundle }}
+          sign=()
+          # Tauri signs the app, its engine and the installer with this
+          # command; without the Azure secrets the installer stays unsigned.
+          if [ "${{ runner.os }}" = Windows ] && [ -n "$AZURE_CLIENT_SECRET" ]; then
+            script="${GITHUB_WORKSPACE//\\//}/.github/scripts/windows-sign.ps1"
+            sign=(--config "{\"bundle\":{\"windows\":{\"signCommand\":{\"cmd\":\"pwsh\",\"args\":[\"-NoProfile\",\"-File\",\"$script\",\"%1\"]}}}}")
+          fi
+          pnpm exec tauri build --ci --bundles ${{ matrix.bundle }} "${sign[@]}"
       - name: Name the installer
         run: |
           built=( ${{ matrix.built }} )
