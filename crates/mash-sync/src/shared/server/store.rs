@@ -9,15 +9,13 @@ use crate::views::qdrant::{self as qdrant_index, NodeViews};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
-mod replay;
-#[cfg(any(test, feature = "test-support"))]
-pub use replay::ReplayFault;
 mod records;
+mod replay;
 mod retire;
 mod search;
-#[cfg(any(test, feature = "test-support"))]
-pub use retire::RetireFault;
 pub use retire::Retired;
+#[cfg(any(test, feature = "test-support"))]
+pub use {replay::ReplayFault, retire::RetireFault};
 mod membership;
 pub use membership::Published;
 mod sync;
