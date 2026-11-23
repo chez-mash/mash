@@ -1,4 +1,5 @@
-import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { docsLocales } from "./locales.ts";
 import { readmeQuickStart, renderMarkdown, spaceFrenchPunctuation } from "./markdown.ts";
@@ -58,9 +59,10 @@ const screenshots = (await readdir(new URL("assets/screenshots/", repo))).filter
 );
 for (const file of screenshots)
   markdownRoutes.set(`assets/screenshots/${file}`, `/screenshots/${file}`);
-await rm(output, { recursive: true, force: true });
-await mkdir(output, { recursive: true });
-for (const { name: locale } of localeFolders) await mkdir(new URL(`${locale}/`, output));
+// Every page is rendered first and then synced into place, never by emptying
+// the folder: a running `astro dev` watches it, and a folder caught half empty
+// makes Starlight fail on a sidebar page it can no longer find.
+const pages = new Map<string, string>();
 for (const [source, route] of routes) {
   if (source === "docs/home.mdx") continue;
   let body = await readFile(new URL(source, repo), "utf8");
@@ -88,27 +90,52 @@ for (const [source, route] of routes) {
     page: page ?? "",
     strings: await layoutStrings(locales.has(locale ?? "") ? locale : undefined),
   };
-  await writeFile(
-    new URL(`${filename}.md`, output),
-    frontmatter + renderMarkdown(body, source, markdownRoutes, layout),
-  );
+  pages.set(`${filename}.md`, frontmatter + renderMarkdown(body, source, markdownRoutes, layout));
 }
-await copyFile(new URL("docs/home.mdx", repo), new URL("index.mdx", output));
+pages.set("index.mdx", await readFile(new URL("docs/home.mdx", repo), "utf8"));
+await syncFolder(fileURLToPath(output), pages);
 for (const diagram of diagrams) {
-  await copyFile(
-    new URL(`assets/${diagram}`, repo),
-    new URL(`../public/${diagram}`, import.meta.url),
+  await writeIfChanged(
+    fileURLToPath(new URL(`../public/${diagram}`, import.meta.url)),
+    await readFile(new URL(`assets/${diagram}`, repo)),
   );
 }
 await cp(new URL("assets/screenshots/", repo), new URL("../public/screenshots/", import.meta.url), {
   recursive: true,
 });
 // The landing page shows the dashboard's own agent marks and its mascot.
-await copyFile(
-  new URL("dashboard/public/mashy.png", repo),
-  new URL("../public/mashy.png", import.meta.url),
+await writeIfChanged(
+  fileURLToPath(new URL("../public/mashy.png", import.meta.url)),
+  await readFile(new URL("dashboard/public/mashy.png", repo)),
 );
 await cp(new URL("dashboard/public/agents/", repo), new URL("../public/agents/", import.meta.url), {
   recursive: true,
 });
 console.log(`Prepared documentation in ${fileURLToPath(output)}`);
+
+/** Writes `contents` only when it differs, through a temporary file renamed
+ * into place, so a reader never sees a half-written file and an unchanged
+ * page is not touched (and does not trigger a reload). */
+async function writeIfChanged(path: string, contents: string | Buffer): Promise<boolean> {
+  const next = typeof contents === "string" ? Buffer.from(contents) : contents;
+  const current = await readFile(path).catch(() => undefined);
+  if (current?.equals(next)) return false;
+  await mkdir(dirname(path), { recursive: true });
+  const temporary = `${path}.${process.pid}.tmp`;
+  await writeFile(temporary, next);
+  await rename(temporary, path);
+  return true;
+}
+
+/** Makes `folder` hold exactly `files` (relative path to contents): changed
+ * files are replaced, new ones added, and only then are pages that no longer
+ * exist removed. */
+async function syncFolder(folder: string, files: ReadonlyMap<string, string>): Promise<void> {
+  for (const [name, contents] of files) await writeIfChanged(join(folder, name), contents);
+  const existing = await readdir(folder, { recursive: true, withFileTypes: true }).catch(() => []);
+  for (const entry of existing) {
+    if (!entry.isFile()) continue;
+    const name = relative(folder, join(entry.parentPath, entry.name));
+    if (!files.has(name)) await rm(join(folder, name), { force: true });
+  }
+}
