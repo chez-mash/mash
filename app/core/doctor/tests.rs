@@ -72,3 +72,29 @@ fn a_report_is_unhealthy_only_when_it_holds_a_problem() {
     assert!(text.starts_with("Mash doctor: 1 problems, 0 warnings.\n"));
     assert!(text.contains("[problem] search-service: down"));
 }
+
+/// Found on xenia: the watcher had no token and was refused for five hours,
+/// while `mash doctor` said only that it could not check the shared copy.
+#[test]
+fn a_refused_watcher_is_a_problem_even_without_the_token_here() {
+    let mut publication = crate::shared::Publication::pending();
+    let record = crate::shared::publication::failure::Recorded {
+        error: "set MASH_NODE_TOKEN to this node's API token".into(),
+        since_ms: 0,
+        last_ms: 0,
+    };
+    publication.error = Some(record.describe(5 * 3_600_000));
+    let finding = refused(Some(&publication), "MASH_NODE_TOKEN").unwrap();
+    assert_eq!(finding.state, State::Problem);
+    assert!(finding.summary.contains("for 5 hours: set MASH_NODE_TOKEN"));
+    assert!(finding.repair.unwrap().contains("credentials"));
+    // A pending publication with no recorded refusal is not one.
+    assert!(
+        refused(
+            Some(&crate::shared::Publication::pending()),
+            "MASH_NODE_TOKEN"
+        )
+        .is_none()
+    );
+    assert!(refused(None, "MASH_NODE_TOKEN").is_none());
+}

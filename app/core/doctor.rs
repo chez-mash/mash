@@ -13,6 +13,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
+mod shared_copy;
+#[cfg(test)]
+use shared_copy::refused;
+use shared_copy::shared_copy;
 #[cfg(test)]
 mod tests;
 
@@ -536,71 +540,6 @@ fn processes(inventory: &runtime::Inventory) -> Finding {
         Check::Processes,
         "Every running Mash process is this build.",
     )
-}
-
-fn shared_copy(configuration: &ResolvedConfig, status: &StatusResponse) -> Finding {
-    let Some(shared) = shared_target(configuration) else {
-        return Finding::ok(
-            Check::SharedCopy,
-            "This machine does not publish to a shared index.",
-        );
-    };
-    if shared.token().is_none() {
-        // The machine may be publishing fine; this process cannot tell.
-        return Finding::found(
-            Check::SharedCopy,
-            State::Warning,
-            "The shared copy was not checked: its token is not available to this process.",
-        )
-        .cause(format!(
-            "`{}` is not set here. A watcher started by its launcher has it; a plain shell may not.",
-            shared.token_env
-        ))
-        .repair(format!("Export `{}` in this environment, then run `mash doctor` again.", shared.token_env));
-    }
-    if let Some(error) = &status.shared_error {
-        return Finding::found(
-            Check::SharedCopy,
-            State::Problem,
-            format!("The shared index at {} did not answer.", shared.api_url),
-        )
-        .cause(error.clone());
-    }
-    let published = status.shared_index.as_ref().and_then(|index| {
-        index
-            .nodes
-            .iter()
-            .find(|node| node.node_id == shared.node_id)
-    });
-    let Some(published) = published else {
-        return Finding::found(
-            Check::SharedCopy,
-            State::Warning,
-            "This machine has published nothing to the shared index yet.",
-        )
-        .repair("mash index");
-    };
-    let current = published
-        .source_silver
-        .as_ref()
-        .map(|silver| silver.revision)
-        == status.silver.as_ref().map(|silver| silver.revision);
-    if current {
-        return Finding::ok(
-            Check::SharedCopy,
-            format!("The shared copy is current ({} chats).", published.chats),
-        );
-    }
-    let finding = Finding::found(
-        Check::SharedCopy,
-        State::Warning,
-        "The shared copy is behind this machine's index.",
-    )
-    .repair("mash index (publishes now and reports why if the server refuses)");
-    match status.shared.as_ref().and_then(|shared| shared.error.as_deref()) {
-        Some(error) => finding.cause(error.to_owned()),
-        None => finding.cause("A publication is pending. The watcher publishes after each pass, and writes a `shared-publication-failed` line to its log when one is refused."),
-    }
 }
 
 fn integrations(status: &StatusResponse) -> Finding {

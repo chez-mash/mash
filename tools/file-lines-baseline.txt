@@ -2,7 +2,7 @@
 # length then. Each may shrink but not grow; lower its entry as it shrinks
 # (python3 tools/check_file_lines.py --update). Do not add files.
 627 app/core.rs
-665 app/core/doctor.rs
+604 app/core/doctor.rs
 689 app/core/installation.rs
 711 app/core/installation/clients.rs
 506 app/core/installation/plugin.rs
@@ -31,7 +31,7 @@
 635 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
-756 crates/mash-sync/src/shared/publication.rs
+733 crates/mash-sync/src/shared/publication.rs
 580 crates/mash-sync/src/shared/server/store.rs
 519 crates/mash-sync/src/shared/server/store/sync.rs
 660 crates/mash-sync/src/shared/silver_store/apply.rs

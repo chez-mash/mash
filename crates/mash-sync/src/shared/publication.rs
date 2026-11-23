@@ -9,6 +9,7 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
+pub mod failure;
 mod snapshot;
 
 #[derive(Clone, Copy)]
@@ -113,8 +114,8 @@ fn publisher() -> &'static tokio::sync::mpsc::UnboundedSender<Job> {
                         local: local.as_ref(),
                     };
                     let published = publish(&database, &config, Some(inference)).await;
+                    failure::note(&database, &published);
                     if published.is_pending() {
-                        report_background_failure(&published);
                         tracing::warn!(
                             message = published.error.as_deref().unwrap_or("publication pending"),
                             "background publication is still pending"
@@ -137,35 +138,6 @@ fn publisher() -> &'static tokio::sync::mpsc::UnboundedSender<Job> {
 }
 
 /// A background publication that failed, as one line on standard error.
-#[derive(serde::Serialize)]
-struct BackgroundFailure<'a> {
-    event: &'static str,
-    #[serde(flatten)]
-    publication: super::output::PublicationSummary<'a>,
-}
-
-/// The watcher has no caller to hand a failed publication to, and tracing is
-/// off unless asked for. Without this line a refused publication is retried
-/// on every pass with nothing in the log saying why. Another process holding
-/// the publication is not a failure and stays quiet.
-fn report_background_failure(published: &Publication) {
-    if published
-        .error
-        .as_deref()
-        .is_none_or(|error| error.contains(SHARED_PENDING))
-    {
-        return;
-    }
-    let line = BackgroundFailure {
-        event: "shared-publication-failed",
-        publication: published.summary(),
-    };
-    let mut stderr = std::io::stderr().lock();
-    if serde_json::to_writer(&mut stderr, &line).is_ok() {
-        let _ = std::io::Write::write_all(&mut stderr, b"\n");
-    }
-}
-
 /// Queue a publication for the process-wide publisher task. The caller returns
 /// immediately; the local indexing task never waits for the network.
 pub fn enqueue(
@@ -190,8 +162,13 @@ pub fn status(path: &Path, config: Option<&SharedConfig>) -> Result<Option<Publi
     let Some(config) = config else {
         return Ok(None);
     };
+    // A pending publication the watcher keeps failing says why; see `failure`.
+    let refused = || failure::recorded(path).map(|refusal| refusal.describe(failure::now_ms()));
     let Some(_) = config.token() else {
-        return Ok(Some(Publication::pending()));
+        return Ok(Some(Publication {
+            error: refused(),
+            ..Publication::pending()
+        }));
     };
     let pending = !path.is_file() || Storage::publication_is_pending(path, &target(config))?;
     Ok(Some(Publication {
@@ -201,7 +178,7 @@ pub fn status(path: &Path, config: Option<&SharedConfig>) -> Result<Option<Publi
         } else {
             PublicationState::Published
         },
-        error: None,
+        error: if pending { refused() } else { None },
     }))
 }
 
