@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- The app icon: the Mash mark as a sticker on a butter tile, outlined in ink. -->
-  <rect x="64" y="64" width="896" height="896" rx="200" fill="#ffd34e" stroke="#16150f" stroke-width="28" />
-  <g transform="translate(192 177) scale(10)">
-    <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#16150f" stroke-width="3" stroke-linejoin="round" />
-    <rect x="26" y="13.5" width="13" height="10" rx="2.2" fill="#f4a583" stroke="#16150f" stroke-width="3" transform="rotate(-12 32.5 18.5)" />
-    <path d="M6 54h52" fill="none" stroke="#16150f" stroke-width="4" stroke-linecap="round" />
+  <!-- The app icon: the Mash mark as a sticker on a butter tile, outlined in ink.
+       The tile follows the macOS icon grid (824 px on a 1024 px canvas), and the
+       mark fills most of it so the dome stays legible at Dock and Finder sizes. -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#ffd34e" stroke="#16150f" stroke-width="26" />
+  <g transform="translate(144 124) scale(11.5)">
+    <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#16150f" stroke-width="3.4" stroke-linejoin="round" />
+    <rect x="26" y="13.5" width="13" height="10" rx="2.2" fill="#f4a583" stroke="#16150f" stroke-width="3.4" stroke-linejoin="round" transform="rotate(-12 32.5 18.5)" />
+    <path d="M6 54h52" fill="none" stroke="#16150f" stroke-width="4.4" stroke-linecap="round" />
   </g>
 </svg>
