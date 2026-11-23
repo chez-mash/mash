@@ -166,6 +166,8 @@ pub enum Operation {
     QdrantUninstall {
         delete_storage: bool,
     },
+    /// List Mash's views groups in Qdrant that no index uses; remove them on request.
+    QdrantPrune(super::qdrant_prune::Request),
     /// Remove what Mash created on this machine, or report that plan.
     Uninstall(super::uninstall::Request),
     ExportSilver {
@@ -212,6 +214,7 @@ pub enum Response {
     ModelsInstall(ModelsInstallResponse),
     QdrantInstall(super::qdrant::InstallResponse),
     QdrantUninstall(super::qdrant::UninstallResponse),
+    QdrantPrune(super::qdrant_prune::Response),
     Uninstall(super::uninstall::Response),
     ExportSilver(crate::export::Exported),
     ImportSilver(crate::export::Imported),

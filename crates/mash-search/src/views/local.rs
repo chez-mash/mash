@@ -48,7 +48,8 @@ pub struct Local {
     pub certificate: crate::silver::certificate::Certificate,
 }
 
-fn key(configuration: &ResolvedConfig) -> Result<Option<String>, AppError> {
+/// The Qdrant API key the configuration names, if any.
+pub fn key(configuration: &ResolvedConfig) -> Result<Option<String>, AppError> {
     configuration
         .qdrant
         .api_key_env
@@ -61,14 +62,25 @@ fn key(configuration: &ResolvedConfig) -> Result<Option<String>, AppError> {
         .transpose()
 }
 
-fn scope(instance: &str, configuration: &ResolvedConfig) -> Scope {
-    let node = configuration
+/// The views group of a database with this gold identity, kept under `node`.
+/// `mash qdrant prune` uses it to recognise an index's collections.
+pub fn group_id(instance: &str, node: &str) -> String {
+    let node_key = blake3::hash(node.as_bytes()).to_hex();
+    format!("local-{instance}-{}", &node_key[..16])
+}
+
+/// The node a configuration indexes as: its shared node, or "local".
+pub fn node(configuration: &ResolvedConfig) -> &str {
+    configuration
         .shared
         .as_ref()
-        .map_or("local", |shared| shared.node_id.as_str());
-    let node_key = blake3::hash(node.as_bytes()).to_hex();
+        .map_or("local", |shared| shared.node_id.as_str())
+}
+
+fn scope(instance: &str, configuration: &ResolvedConfig) -> Scope {
+    let node = node(configuration);
     Scope {
-        group_id: format!("local-{instance}-{}", &node_key[..16]),
+        group_id: group_id(instance, node),
         node_id: node.into(),
         generation: semantic::SHARED_EMBEDDING_GENERATION.to_owned(),
         dimensions: 384,
@@ -310,6 +322,12 @@ pub async fn build(
     .with_build(configuration.views.build.clone());
     let version = store.select_views(&scope, true).await?;
     store.select_query(&scope, true).await?;
+    // Name this database as the group's owner before anything is built, so
+    // `mash qdrant prune` never takes a half-built index for a leftover.
+    let owner = std::fs::canonicalize(database).map_err(AppError::io)?;
+    let owner =
+        super::qdrant::ownership::Owner::local(&owner, super::qdrant::ownership::host_name());
+    store.record_owner(&scope.group_id, &owner).await?;
     let bulk = BulkViews::begin(&store, &scope, BulkPolicy::local()).await?;
     let previous = store
         .node_views(&scope)

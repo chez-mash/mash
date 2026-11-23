@@ -6,6 +6,7 @@ pub mod configuration;
 mod document_tests;
 pub mod evidence;
 pub mod exact;
+pub mod ownership;
 pub mod read;
 pub mod service;
 pub mod views;

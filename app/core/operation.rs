@@ -29,6 +29,7 @@ impl Operation {
             Self::ModelsInstall => "models_install",
             Self::QdrantInstall => "qdrant_install",
             Self::QdrantUninstall { .. } => "qdrant_uninstall",
+            Self::QdrantPrune(_) => "qdrant_prune",
             Self::Uninstall(_) => "uninstall",
             Self::ExportSilver { .. } => "export_silver",
             Self::ImportSilver { .. } => "import_silver",
@@ -66,7 +67,9 @@ impl Operation {
             | Self::ImportSilver { .. }
             | Self::Init(_)
             | Self::Uninstall(_) => true,
-            Self::Records(_)
+            // It deletes Qdrant collections but never writes the index.
+            Self::QdrantPrune(_)
+            | Self::Records(_)
             | Self::Record(_)
             | Self::RecallRecords(_)
             | Self::RecordCapture(_)

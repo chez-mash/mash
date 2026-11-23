@@ -1,6 +1,6 @@
 //! Shared service storage: SQLite silver is the system of record; Qdrant views are derived.
 use super::Identity;
-use super::configuration::{Configuration, env_name};
+use super::configuration::{Configuration, env_name, required_endpoint};
 use crate::AppError;
 use crate::shared::silver_store::{self, Head, SilverStore};
 use crate::shared::{Freshness, NodeFreshness, protocol};
@@ -18,6 +18,7 @@ pub use retire::Retired;
 #[cfg(any(test, feature = "test-support"))]
 pub use {replay::ReplayFault, retire::RetireFault};
 mod membership;
+mod ownership;
 pub use membership::Published;
 mod sync;
 
@@ -75,20 +76,9 @@ pub async fn initialize(
 ) -> Result<Store, AppError> {
     let groups: HashSet<_> = members.iter().map(|id| id.group_id.clone()).collect();
     let groups = groups.into_iter().collect::<Vec<_>>();
-    let name = config
-        .qdrant_url_env
-        .as_ref()
-        .ok_or_else(|| AppError::configuration("Qdrant requires qdrant_url_env"))?;
-    env_name(name)?;
-    let url = std::env::var(name)
-        .map_err(|_| AppError::configuration(format!("set {name} to the Qdrant HTTP endpoint")))?;
-    let name = config
-        .qdrant_grpc_url_env
-        .as_ref()
-        .ok_or_else(|| AppError::configuration("Qdrant requires qdrant_grpc_url_env"))?;
-    env_name(name)?;
-    let grpc_url = std::env::var(name)
-        .map_err(|_| AppError::configuration(format!("set {name} to the Qdrant gRPC endpoint")))?;
+    let url = required_endpoint(config.qdrant_url_env.as_ref(), "qdrant_url_env", "HTTP")?;
+    let grpc = config.qdrant_grpc_url_env.as_ref();
+    let grpc_url = required_endpoint(grpc, "qdrant_grpc_url_env", "gRPC")?;
     let key = config
         .qdrant_api_key_env
         .as_ref()
@@ -115,6 +105,7 @@ pub async fn initialize(
     )
     .await?
     .with_build(config.views.build.clone());
+    ownership::mark(&views, &groups, activate_views).await?;
     let mut selected = HashSet::new();
     for identity in members {
         if selected.insert(&identity.group_id) {

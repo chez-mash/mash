@@ -15,6 +15,7 @@ mod models;
 mod operation;
 pub mod output;
 pub(crate) mod qdrant;
+pub mod qdrant_prune;
 pub mod search;
 pub mod setup;
 pub mod uninstall;
@@ -578,18 +579,17 @@ async fn dispatch(
         Operation::ModelsInstall => maintenance::install_models(models, configuration)
             .await
             .map(Response::ModelsInstall),
-        Operation::QdrantInstall => qdrant::install(
-            &qdrant::Host::system()?,
-            &configuration.qdrant,
-            configuration.loaded,
-        )
-        .await
-        .map(Response::QdrantInstall),
-        Operation::QdrantUninstall { delete_storage } => {
-            qdrant::uninstall(&qdrant::Host::system()?, delete_storage)
-                .await
-                .map(Response::QdrantUninstall)
+        Operation::QdrantInstall => {
+            let host = qdrant::Host::system()?;
+            let installed = qdrant::install(&host, &configuration.qdrant, configuration.loaded);
+            installed.await.map(Response::QdrantInstall)
         }
+        Operation::QdrantUninstall { delete_storage } => {
+            let host = qdrant::Host::system()?;
+            let removed = qdrant::uninstall(&host, delete_storage).await;
+            removed.map(Response::QdrantUninstall)
+        }
+        Operation::QdrantPrune(r) => qdrant_prune::respond(r, database, configuration).await,
         Operation::Init(_) => Err(AppError::internal("init runs before configuration loads")),
         Operation::Uninstall(_) => Err(AppError::internal(
             "uninstall runs before configuration loads",

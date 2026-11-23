@@ -219,3 +219,25 @@ artifacts, completed retrieval sources, fallback, result count and core time.
 It does not run indexing or change search results.
 See [silver enrichment and views configuration](https://github.com/mashium/mash/blob/a49210157b990b23c5ef9f90d5d1d13fd3ce9f11/docs/silver-gold-configuration.md)
 for the layer contract and current configuration scope.
+
+## Qdrant views groups and their owners
+
+Every views group is two collections, `mash_views_<blake3(group)>_messages`
+and `mash_views_<blake3(group)>_state`. A shared server's group is its group
+ID (for example `personal`). A local index's group is
+`local-<identity>-<blake3(node)[..16]>`, where `node` is the configured shared
+node or `local`, and `identity` is `blake3(instance ‖ 0x00 ‖ canonical database
+path)` (`storage::gold_input::gold_identity`). Because the path is part of the
+identity, a copied or moved database gets new collections and the old ones
+stay behind.
+
+Since November 2026 each owner writes a marker point (`ownership::owner_id()`)
+in its `_state` collection: a local build records its canonical database path
+before it builds anything, and a shared server records its group when it opens
+the group for writing. `mash qdrant prune` (`app/core/qdrant_prune.rs`) decides
+from these markers alone: groups of the indexes it is given and of markers
+whose database exists are in use; a server marker is never removed; a marker
+whose database is missing from a readable folder is a leftover; a marker in an
+unreadable folder and every group without a marker are kept unless named.
+Deletion re-reads the marker and removes `_messages` before `_state`, so an
+interrupted run can be finished by running it again.

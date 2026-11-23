@@ -39,6 +39,23 @@ Qdrant fail. Its program, configuration, and log file stay under
 `local_qdrant.installed`. The `mash qdrant install` result shows the path as
 `service.storage`. [Find the rest of Mash's files](privacy.md#where-mash-stores-data)
 
+### Remove search data no index uses
+
+Each index keeps its search data in Qdrant. When you delete or move an index,
+or reinstall, its data stays behind. To see what is left over:
+
+```sh
+mash qdrant prune
+```
+
+It lists Mash's search data in Qdrant and what each part belongs to. Nothing
+is deleted until you add `--yes`, and even then only data whose index no
+longer exists. Data a shared server keeps, data whose index is on a disk that
+isn't connected, and data from older Mash versions that recorded no owner are
+always kept. If another index on this computer uses the same Qdrant, name it
+with `--index PATH` so its data counts as in use. To remove data from older
+Mash anyway, name it with `--include-unknown` and the group shown in the list.
+
 ### Check or restart the service
 
 For a startup error, look up the [log command or file for your platform](#where-qdrant-stores-data).

@@ -257,6 +257,18 @@ impl Cli {
             Command::Qdrant {
                 command: QdrantCommand::Uninstall { delete_storage },
             } => Operation::QdrantUninstall { delete_storage },
+            Command::Qdrant {
+                command:
+                    QdrantCommand::Prune {
+                        indexes,
+                        unknown,
+                        yes,
+                    },
+            } => Operation::QdrantPrune(crate::core::qdrant_prune::Request {
+                apply: yes,
+                databases: indexes,
+                unknown,
+            }),
             Command::Uninstall { yes, keep_history } => {
                 Operation::Uninstall(crate::core::uninstall::Request {
                     apply: yes,

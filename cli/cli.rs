@@ -15,6 +15,8 @@ use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
 mod help;
 use help::help_paths;
+mod qdrant;
+use qdrant::QdrantCommand;
 mod request;
 use request::SearchArguments;
 mod stream;
@@ -425,30 +427,6 @@ enum ModelsCommand {
         "Word-exact search does not need these models.",
     ))]
     Install,
-}
-
-#[derive(Debug, Clone, Subcommand)]
-enum QdrantCommand {
-    /// Download, verify and start the local Qdrant search service.
-    #[command(long_about = concat!(
-        "Download, verify and start the local Qdrant search service.\n\n",
-        "Downloads Qdrant 1.20.0 for this platform (about 30 MB) from ",
-        "https://github.com/qdrant/qdrant/releases, checks it against the SHA-256 built into Mash, ",
-        "and installs it in ~/.mash/qdrant. ",
-        "It runs as your user, only on 127.0.0.1 at the ports in Mash's [qdrant] settings ",
-        "(6333 and 6334 by default), and starts again at login: a systemd user service on Linux, ",
-        "a LaunchAgent on macOS, a logon task on Windows. ",
-        "Rerun it to repair or upgrade; Qdrant's data is kept. ",
-        "If a compatible Qdrant already answers on those ports, nothing is installed. ",
-        "Nothing else in Mash downloads or starts Qdrant.",
-    ))]
-    Install,
-    /// Stop and remove the Qdrant service that `mash qdrant install` set up.
-    Uninstall {
-        /// Also delete Qdrant's data (Mash's search views; `mash index` rebuilds them from the index).
-        #[arg(long)]
-        delete_storage: bool,
-    },
 }
 
 #[derive(Debug, Serialize)]

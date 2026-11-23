@@ -164,6 +164,20 @@ impl Configuration {
     }
 }
 
+/// The Qdrant endpoint a required setting names: the setting must be present,
+/// name a valid variable, and that variable must be set.
+pub(super) fn required_endpoint(
+    name: Option<&String>,
+    setting: &str,
+    protocol: &str,
+) -> Result<String, AppError> {
+    let name = name.ok_or_else(|| AppError::configuration(format!("Qdrant requires {setting}")))?;
+    env_name(name)?;
+    std::env::var(name).map_err(|_| {
+        AppError::configuration(format!("set {name} to the Qdrant {protocol} endpoint"))
+    })
+}
+
 pub(super) fn env_name(name: &str) -> Result<(), AppError> {
     if name.is_empty()
         || !name

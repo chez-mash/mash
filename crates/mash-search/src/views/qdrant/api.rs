@@ -7,13 +7,13 @@ use std::collections::BTreeMap;
 use std::time::Duration;
 use tracing::Instrument;
 mod grpc;
+mod inventory;
 mod optimization;
 mod planner;
 #[cfg(test)]
 mod schema_tests;
 mod staging;
 pub(super) use staging::StagingBatch;
-
 pub fn endpoint(url: &str) -> Result<reqwest::Url, AppError> {
     let mut url = reqwest::Url::parse(url)
         .map_err(|_| AppError::configuration("invalid Qdrant HTTP endpoint"))?;

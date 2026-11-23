@@ -424,13 +424,8 @@ pub fn render(
                 &mut out,
                 &format!("Mash models — installed: {}", value.installed),
             );
-            line(
-                &mut out,
-                &format!(
-                    "Directory: {}",
-                    safe(&value.model_directory.display().to_string())
-                ),
-            );
+            let directory = safe(&value.model_directory.display().to_string());
+            line(&mut out, &format!("Directory: {directory}"));
             line(
                 &mut out,
                 &format!(
@@ -445,6 +440,7 @@ pub fn render(
         }
         Response::QdrantInstall(value) => json(&mut out, "Qdrant install", value)?,
         Response::QdrantUninstall(value) => json(&mut out, "Qdrant uninstall", value)?,
+        Response::QdrantPrune(value) => json(&mut out, "Qdrant prune", value)?,
         Response::Uninstall(value) => json(&mut out, "Uninstall", value)?,
         Response::ExportSilver(value) => operations::exported(&mut out, value)?,
         Response::ImportSilver(value) => operations::imported(&mut out, value)?,

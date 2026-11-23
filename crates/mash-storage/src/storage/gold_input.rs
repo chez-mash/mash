@@ -163,12 +163,18 @@ impl Storage {
             )
             .map_err(AppError::database)?;
         let canonical = std::fs::canonicalize(path).map_err(AppError::io)?;
-        let mut hash = blake3::Hasher::new();
-        hash.update(instance.as_bytes());
-        hash.update(&[0]);
-        hash.update(canonical.as_os_str().as_encoded_bytes());
-        Ok(hash.finalize().to_hex().to_string())
+        Ok(gold_identity(&instance, &canonical))
     }
+}
+
+/// A database's gold identity: its instance, bound to where it lives. Copies
+/// at another path get another identity, and so other Qdrant views.
+pub fn gold_identity(instance: &str, canonical: &Path) -> String {
+    let mut hash = blake3::Hasher::new();
+    hash.update(instance.as_bytes());
+    hash.update(&[0]);
+    hash.update(canonical.as_os_str().as_encoded_bytes());
+    hash.finalize().to_hex().to_string()
 }
 
 #[cfg(test)]

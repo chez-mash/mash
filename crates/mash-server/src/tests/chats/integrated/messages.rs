@@ -171,6 +171,14 @@ async fn contract(service: Service) {
     let gold = crate::views::local::Local::open(paths.db.as_deref().unwrap(), &resolved)
         .await
         .unwrap();
+    // The build names this database as its views' owner, for `mash qdrant prune`.
+    let state = crate::views::qdrant::collection(&gold.scope.group_id, true);
+    let owner = crate::views::qdrant::ownership::read_owner(&gold.store.api, &state)
+        .await
+        .unwrap()
+        .unwrap();
+    let database = std::fs::canonicalize(paths.db.as_deref().unwrap()).unwrap();
+    assert_eq!(owner.database.as_deref(), database.to_str());
     let config = crate::config::load(paths.config.as_deref())
         .unwrap()
         .shared
