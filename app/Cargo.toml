@@ -17,7 +17,6 @@ test-support = ["mash-sync/test-support"]
 
 [dependencies]
 mash-query = { path = "../crates/mash-query" }
-mash-fleet = { path = "../crates/mash-fleet" }
 mash-model = { path = "../crates/mash-model" }
 mash-silver = { path = "../crates/mash-silver" }
 mash-search = { path = "../crates/mash-search" }
