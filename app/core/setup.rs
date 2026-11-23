@@ -585,6 +585,7 @@ mod tests {
                 providers,
                 since_days: Some(14),
                 shared: None,
+                hold_publication: false,
             },
             previous: Some(original.clone()),
         };

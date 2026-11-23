@@ -9,6 +9,7 @@ fn publication_target(fixture: &crate::views::local::test_support::Fixture) -> T
         instance: None,
         publication_revision: 0,
         redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     }
 }
 
@@ -144,6 +145,7 @@ fn incremental_capture_includes_only_changed_complete_threads_and_explicit_remov
         instance: Some(instance),
         publication_revision: base,
         redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let source = capture(&database, &target, Selection::Delta { journal_base: base }).unwrap();
     assert_eq!(source.chats.keys().collect::<Vec<_>>(), vec!["a"]);
@@ -217,6 +219,7 @@ fn delta_events(build: crate::views::config::Build, edit: &str) -> Vec<Event> {
         instance: Some(instance),
         publication_revision: base,
         redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let source = capture(&database, &target, Selection::Delta { journal_base: base }).unwrap();
     std::fs::read_to_string(source.file.path())
@@ -325,6 +328,7 @@ fn snapshots_upload_redacted_records_and_keep_canonical_silver() {
         instance: None,
         publication_revision: 0,
         redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let source = capture(&database, &target, Selection::Replace).unwrap();
     let stream = std::fs::read_to_string(source.file.path()).unwrap();
@@ -394,6 +398,7 @@ async fn parent_units_resolve_from_consistent_sqlite_snapshot_across_batches_and
         instance: None,
         publication_revision: 0,
         redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let source = capture(&database, &target, Selection::Replace).unwrap();
     let mut reader =

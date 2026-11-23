@@ -124,6 +124,7 @@ impl Node {
                 api_url: service.url.clone(),
                 token_env: TOKEN_ENV.into(),
                 publication_redaction: crate::redaction::Policy::ON,
+                unshared: Vec::new(),
             },
             service,
         }

@@ -1,9 +1,10 @@
+use super::Storage;
 use crate::provider::Provider;
 use crate::shared::batches::{Amendment, Batch, BatchKind, ChatRecord, MessageRecord, Tombstone};
 use rusqlite::{Connection, OpenFlags};
-
-use super::Storage;
+mod unshared;
 use crate::AppError;
+pub use unshared::Unshared;
 
 pub struct Snapshot<'a> {
     pub source_silver: crate::silver::certificate::Certificate,

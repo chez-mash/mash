@@ -68,6 +68,7 @@ async fn qdrant_http_attachments_require_current_membership_and_group_authorizat
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     // Another node cannot store bytes for a message it does not own.
     assert!(

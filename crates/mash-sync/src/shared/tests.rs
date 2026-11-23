@@ -95,6 +95,7 @@ async fn context_deadline_preserves_completed_evidence_without_waiting_for_every
         api_url: format!("http://{}", listener.local_addr().unwrap()),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let dropped = Arc::new(AtomicBool::new(false));
     let server_dropped = Arc::clone(&dropped);
@@ -169,6 +170,7 @@ async fn interactive_request_timeout_does_not_inherit_the_upload_budget() {
         api_url: format!("http://{}", listener.local_addr().unwrap()),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let server = tokio::spawn(async move {
         axum::serve(
@@ -363,6 +365,7 @@ async fn another_process_owning_the_publisher_reports_shared_pending() {
         api_url: "http://127.0.0.1:1".into(),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let key = target(&config);
     let lock = super::publication::publish_lock_path(&path, &key);
@@ -439,6 +442,7 @@ async fn deferred_publication_queues_without_blocking_the_indexing_task() {
         api_url: address,
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let key = target(&config);
 
@@ -486,6 +490,7 @@ async fn websocket_publication_streams_a_complete_snapshot_before_acknowledging(
         api_url: address,
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let publication = publish(&path, &config, None).await;
     assert_eq!(
@@ -615,6 +620,7 @@ async fn merged_search_requests_shared_candidates_while_local_sqlite_is_blocked(
         api_url: format!("http://{address}"),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let filters = crate::search_filter::Selection::default()
         .resolve(&config.node_id)
@@ -692,6 +698,14 @@ async fn capture_search_request(
     })
 }
 
+/// One request the pooled-connection test's server received.
+#[derive(Clone)]
+struct PoolRequest {
+    peer: std::net::SocketAddr,
+    method: axum::http::Method,
+    headers: axum::http::HeaderMap,
+}
+
 #[tokio::test]
 async fn http_pool_reuses_connections_without_caching_node_credentials() {
     use axum::extract::{ConnectInfo, State};
@@ -700,20 +714,14 @@ async fn http_pool_reuses_connections_without_caching_node_credentials() {
     use std::net::SocketAddr;
     use std::sync::{Arc, Mutex};
 
-    #[derive(Clone)]
-    struct Received {
-        peer: SocketAddr,
-        method: Method,
-        headers: HeaderMap,
-    }
     async fn capture(
-        State(received): State<Arc<Mutex<Vec<Received>>>>,
+        State(received): State<Arc<Mutex<Vec<PoolRequest>>>>,
         ConnectInfo(peer): ConnectInfo<SocketAddr>,
         method: Method,
         headers: HeaderMap,
         _body: axum::body::Bytes,
     ) -> Json<serde_json::Value> {
-        received.lock().unwrap().push(Received {
+        received.lock().unwrap().push(PoolRequest {
             peer,
             method,
             headers,
@@ -724,7 +732,7 @@ async fn http_pool_reuses_connections_without_caching_node_credentials() {
             "revision": 1, "removed_messages": 0, "purged_chats": 0
         }))
     }
-    let received = Arc::new(Mutex::new(Vec::<Received>::new()));
+    let received = Arc::new(Mutex::new(Vec::<PoolRequest>::new()));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
     let router = Router::new().fallback(capture).with_state(received.clone());
@@ -743,6 +751,7 @@ async fn http_pool_reuses_connections_without_caching_node_credentials() {
         api_url: format!("http://{address}/"),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let first_token = std::env::var(&config.token_env).unwrap();
     assert_eq!(
@@ -907,6 +916,7 @@ async fn publication_state_survives_failed_delivery_and_forget() {
         api_url: "http://127.0.0.1:9".to_owned(),
         token_env: "MASH_TEST_UNCONFIGURED_TOKEN_71B9".to_owned(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let delivery = publish(&path, &unavailable, None).await;
     assert_eq!(delivery.state, PublicationState::Pending);
@@ -974,6 +984,7 @@ fn turning_publication_masking_off_changes_the_publication_target() {
         api_url: "https://mash.example".into(),
         token_env: "T".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     };
     let masked = super::publication::target(&config);
     config.publication_redaction = crate::redaction::Policy::new(false);

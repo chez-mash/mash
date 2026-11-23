@@ -39,7 +39,9 @@ pub fn join_plan(paths: &Paths, join: &crate::shared::join::Join) -> Result<Init
                 api_url: join.api_url.clone(),
                 token_env,
                 publication_redaction: crate::redaction::Policy::default(),
+                unshared: Vec::new(),
             }),
+            hold_publication: false,
         },
         previous,
     })

@@ -24,6 +24,8 @@ export interface Settings {
   readonly destination: Destination;
   /** Whether a shared server is configured for history to go to. */
   readonly shared: boolean;
+  /** Agents this machine keeps off the shared server. */
+  readonly unshared: readonly Agent[];
   readonly memoryCapture: boolean;
   readonly hideInResults: boolean;
   readonly hideWhenPublishing: boolean;
@@ -43,6 +45,8 @@ export interface Draft {
   hideInResults: boolean;
   hideWhenPublishing: boolean;
   assistant: { enabled: boolean; model: string } | null;
+  /** Agents to keep off the shared server; left out, the list is kept. */
+  unshared?: readonly Agent[];
 }
 
 export function parseSettings(body: Answer<"/api/services/settings">): Settings {
@@ -56,6 +60,8 @@ export function parseSettings(body: Answer<"/api/services/settings">): Settings 
     sinceDays: body.since_days ?? null,
     destination: body.destination,
     shared: body.shared,
+    // An engine from before this setting sends no list.
+    unshared: (body.unshared ?? []).filter(isAgent),
     memoryCapture: body.memory_capture,
     hideInResults: body.hide_credentials.output,
     hideWhenPublishing: body.hide_credentials.publication,
@@ -214,6 +220,7 @@ export async function saveSettings(settings: Settings, draft: Draft): Promise<Se
       destination: draft.destination,
       memory_capture: draft.memoryCapture,
       hide_credentials: { output: draft.hideInResults, publication: draft.hideWhenPublishing },
+      unshared: draft.unshared ? [...draft.unshared] : null,
       assistant: draft.assistant
         ? { enabled: draft.assistant.enabled, model: draft.assistant.model.trim() }
         : null,

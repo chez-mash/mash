@@ -796,6 +796,17 @@
               "integer",
               "null"
             ]
+          },
+          "unshared": {
+            "default": null,
+            "description": "Agents kept off the shared server. Left out, the list stays as it is;\na change makes the next publication replace everything sent before.",
+            "items": {
+              "$ref": "#/components/schemas/Provider"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
           }
         },
         "required": [
@@ -5939,6 +5950,13 @@
               "integer",
               "null"
             ]
+          },
+          "unshared": {
+            "description": "Agents this machine keeps off the shared server.",
+            "items": {
+              "$ref": "#/components/schemas/Provider"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -5947,6 +5965,7 @@
           "agents",
           "destination",
           "shared",
+          "unshared",
           "memory_capture",
           "hide_credentials",
           "editable"
@@ -6009,6 +6028,13 @@
           },
           "token_env": {
             "type": "string"
+          },
+          "unshared": {
+            "description": "Agents whose chats this machine keeps to itself. It still indexes and\nsearches them; publication leaves them, and the memories that cite\nthem, out entirely. Changing the list republishes everything.",
+            "items": {
+              "$ref": "#/components/schemas/Provider"
+            },
+            "type": "array"
           }
         },
         "required": [

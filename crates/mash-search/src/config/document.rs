@@ -97,7 +97,7 @@ pub(super) fn configure(text: &str, choices: &super::init::Choices) -> Result<St
         .collect();
     document.index.since_days = choices.since_days;
     document.index.all_history = choices.since_days.is_none();
-    document.index.destination = Some(if choices.shared.is_some() {
+    document.index.destination = Some(if choices.shared.is_some() && !choices.hold_publication {
         IndexDestination::Both
     } else {
         IndexDestination::Local
@@ -117,6 +117,8 @@ pub(super) struct Edit<'a> {
     pub(super) destination: IndexDestination,
     pub(super) memory_capture: bool,
     pub(super) redaction: crate::redaction::Settings,
+    /// The agents kept off the shared server, when the request says.
+    pub(super) unshared: Option<&'a [crate::provider::Provider]>,
     /// Whether the assistant is on and which model it uses, when the request
     /// says. Its service and key are never set here.
     pub(super) assistant: Option<(bool, &'a str)>,
@@ -145,6 +147,15 @@ pub(super) fn edit(text: &str, edit: &Edit) -> Result<String, AppError> {
     document.index.destination = Some(edit.destination);
     document.records.enabled = edit.memory_capture;
     document.redaction = edit.redaction;
+    if let Some(unshared) = edit.unshared {
+        let shared = document.shared.as_mut().ok_or_else(|| {
+            AppError::configuration("join a shared index before choosing what it receives")
+        })?;
+        let mut unshared = unshared.to_vec();
+        unshared.sort_unstable();
+        unshared.dedup();
+        shared.unshared = unshared;
+    }
     if let Some((enabled, model)) = edit.assistant {
         let assistant = document.assistant.as_mut().ok_or_else(|| {
             AppError::configuration(

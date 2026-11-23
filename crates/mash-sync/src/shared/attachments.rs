@@ -40,11 +40,22 @@ pub async fn get(
 
 pub async fn publish(database: &Path, config: &SharedConfig) -> Result<(), AppError> {
     let db = database.to_path_buf();
+    let unshared = config.unshared.clone();
     // Only IDs are materialized; each file is loaded and uploaded individually.
-    let candidates =
-        crate::blocking(move || crate::storage::Storage::open_silver(&db)?.attachment_candidates())
-            .await?;
+    let (candidates, kept) = crate::blocking(move || {
+        let storage = crate::storage::Storage::open_silver(&db)?;
+        Ok((
+            storage.attachment_candidates()?,
+            storage.unshared_messages(&unshared)?,
+        ))
+    })
+    .await?;
+    // The server only asks for attachments of messages it holds, and unshared
+    // chats never reach it; this keeps that true even if it asked anyway.
     for (message_id, attachment_id) in candidates {
+        if kept.contains(&message_id) {
+            continue;
+        }
         let remote = list(config, &config.node_id, &message_id).await?;
         if !remote.attachments.iter().any(|m| {
             m.id == attachment_id && m.availability == crate::attachments::Availability::NotUploaded

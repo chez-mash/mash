@@ -16,6 +16,9 @@ pub struct Choices {
     pub since_days: Option<u32>,
     pub shared: Option<super::SharedConfig>,
     pub records: crate::records::capture::Policy,
+    /// Save the shared settings but publish nothing yet: the index stays
+    /// local until the person reviews what will be shared.
+    pub hold_publication: bool,
 }
 
 pub fn configure(text: &str, choices: &Choices) -> Result<String, AppError> {
@@ -290,7 +293,9 @@ mod tests {
                 api_url: "https://example.com".into(),
                 token_env: "TOKEN".into(),
                 publication_redaction: crate::redaction::Policy::default(),
+                unshared: Vec::new(),
             }),
+            hold_publication: false,
         };
         let updated = configure(&original, &choices).unwrap();
         let parsed = parse_document(updated.as_bytes()).unwrap();
@@ -306,6 +311,14 @@ mod tests {
         );
         assert_eq!(parsed.since_days, None);
         assert_eq!(parsed.destination, super::super::IndexDestination::Both);
+        // A held join saves the server but keeps the index local until review.
+        let held = Choices {
+            hold_publication: true,
+            ..choices.clone()
+        };
+        let held = parse_document(configure(&original, &held).unwrap().as_bytes()).unwrap();
+        assert!(held.shared.is_some());
+        assert_eq!(held.destination, super::super::IndexDestination::Local);
         assert_eq!(parsed.qdrant.url, "http://localhost:7777");
         assert!(!parsed.redaction.output);
         assert!(!parsed.redaction.publication);
@@ -338,6 +351,7 @@ mod tests {
             providers,
             since_days: Some(0),
             shared: None,
+            hold_publication: false,
         };
         assert!(configure(&original, &choices).is_err());
         choices.since_days = Some(90);

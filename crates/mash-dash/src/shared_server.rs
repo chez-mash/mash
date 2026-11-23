@@ -379,13 +379,16 @@ async fn join_shared(
 }
 
 /// Join as `mash init --join … --no-index --no-agents` does: save the shared
-/// settings and the token, and leave indexing, publishing and agents alone.
+/// settings and the token, and leave indexing and agents alone. Publishing is
+/// held in the same write (the index stays local), so a running watcher that
+/// sees the new file sends nothing until the person reviews what to share.
 async fn apply(state: &Dash, parsed: Join) -> Result<(), AppError> {
     let paths = state.paths.clone();
     let for_plan = parsed.clone();
-    let plan = tokio::task::spawn_blocking(move || core::join_plan(&paths, &for_plan))
+    let mut plan = tokio::task::spawn_blocking(move || core::join_plan(&paths, &for_plan))
         .await
         .map_err(|_| AppError::internal("plan the join"))??;
+    plan.choices.hold_publication = true;
     let request = InitRequest {
         force: false,
         agents: false,

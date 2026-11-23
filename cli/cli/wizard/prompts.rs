@@ -119,6 +119,7 @@ fn collect_inner(paths: &Paths, mut init: InitRequest, customize: bool) -> Resul
         } else {
             None
         },
+        hold_publication: false,
     };
     let quick = !customize
         && !current.loaded
@@ -341,6 +342,8 @@ fn sharing(
         node_id,
         token_env,
         publication_redaction: crate::redaction::Policy::default(),
+        // Re-entering the server keeps which agents stay on this machine.
+        unshared: existing.map(|s| s.unshared.clone()).unwrap_or_default(),
     }))
 }
 

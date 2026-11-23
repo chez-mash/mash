@@ -118,6 +118,7 @@ pub async fn check(join: &Join) -> Result<CheckAnswer, AppError> {
                 api_url: join.api_url.clone(),
                 token_env: String::new(),
                 publication_redaction: crate::redaction::Policy::default(),
+                unshared: Vec::new(),
             };
             let freshness = crate::shared::client::freshness_with_token(&config, token).await;
             match freshness {

@@ -15,6 +15,8 @@ pub(super) struct Target {
     pub(super) publication_revision: i64,
     /// The node's publication masking, applied as uploads are written.
     pub(super) redaction: crate::redaction::Policy,
+    /// Agents whose chats, and the memories citing them, are never uploaded.
+    pub(super) unshared: Vec<crate::provider::Provider>,
 }
 
 impl Target {
@@ -38,6 +40,7 @@ impl Target {
             instance: node.map(|node| node.instance.clone()),
             publication_revision: node.map_or(0, |node| node.revision),
             redaction: config.publication_redaction,
+            unshared: config.unshared.clone(),
         })
     }
 }

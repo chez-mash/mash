@@ -414,6 +414,7 @@ impl Api {
             api_url: self.url.clone(),
             token_env: "unused-in-test".into(),
             publication_redaction: crate::redaction::Policy::new(false),
+            unshared: Vec::new(),
         };
         let file = tempfile::NamedTempFile::new().unwrap();
         {

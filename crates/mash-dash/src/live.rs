@@ -703,6 +703,7 @@ mod tests {
             // Any variable that is always set; the stand-in server takes any token.
             token_env: "PATH".into(),
             publication_redaction: crate::redaction::Policy::ON,
+            unshared: Vec::new(),
         };
         let live = Live::new(None, Some(super::Upstream { config, own: false }));
         let (address, server) = serve(live, None).await;
@@ -735,6 +736,7 @@ mod tests {
             api_url: String::new(),
             token_env: String::new(),
             publication_redaction: crate::redaction::Policy::ON,
+            unshared: Vec::new(),
         };
         let line = br#"data: {"node":"here","revision":3,"chats":["mine"],"all":false}"#;
         let own = super::Upstream {

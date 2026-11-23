@@ -54,6 +54,7 @@ fn configuration(address: std::net::SocketAddr) -> SharedConfig {
         api_url: format!("http://{address}"),
         token_env: "HOME".into(),
         publication_redaction: crate::redaction::Policy::ON,
+        unshared: Vec::new(),
     }
 }
 
@@ -98,6 +99,7 @@ async fn lost_ack_recovers_only_with_stable_source_and_current_artifacts() {
             instance: None,
             publication_revision: 0,
             redaction: crate::redaction::Policy::ON,
+            unshared: Vec::new(),
         };
         storage
             .with_publication_snapshot(|snapshot| {

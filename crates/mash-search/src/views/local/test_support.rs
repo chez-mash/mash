@@ -80,6 +80,7 @@ impl Fixture {
             api_url: "http://127.0.0.1:9".into(),
             token_env: "HOME".into(),
             publication_redaction: crate::redaction::Policy::ON,
+            unshared: Vec::new(),
         });
         let model = crate::semantic::test_embeddings::Fixture::at(&root.join("no-models"), 384);
         let mut writer = Storage::open_writer(database).unwrap();

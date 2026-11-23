@@ -31,7 +31,7 @@
 635 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
-761 crates/mash-sync/src/shared/publication.rs
+756 crates/mash-sync/src/shared/publication.rs
 652 crates/mash-sync/src/shared/server/store.rs
 519 crates/mash-sync/src/shared/server/store/sync.rs
 793 crates/mash-sync/src/shared/silver_store/apply.rs

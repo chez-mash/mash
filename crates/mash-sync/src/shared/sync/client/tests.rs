@@ -367,6 +367,7 @@ fn session_config(api_url: String) -> SharedConfig {
         api_url,
         token_env: "unused".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     }
 }
 

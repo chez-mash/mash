@@ -51,6 +51,7 @@ async fn shared_typed_queries_are_group_scoped_and_reject_sql() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     let request = serde_json::from_value(json!({
         "target": "messages",

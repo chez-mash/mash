@@ -20,6 +20,7 @@ fn config_for(service: &Service) -> crate::config::SharedConfig {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     }
 }
 
@@ -420,6 +421,7 @@ async fn qdrant_native_publisher_spools_and_uploads_over_websocket() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     let indexed = crate::shared::sync::client::upload_with_token(&config, &file, FIRST.to_owned())
         .await
@@ -848,6 +850,7 @@ async fn qdrant_attachment_upload_uses_the_websocket_transport() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     crate::shared::sync::client::upload_attachment_with_token(
         &config,
@@ -1095,6 +1098,7 @@ async fn qdrant_publish_latency_and_bandwidth_http_versus_websocket() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     crate::shared::sync::client::upload_encoded_with_token(
         &publisher,
@@ -1598,6 +1602,7 @@ async fn qdrant_client_backfill_sender_completes_a_baseline_end_to_end() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     let plan = crate::shared::sync::client::plan_backfill_file(
         &file,
@@ -1987,6 +1992,7 @@ async fn qdrant_backfill_commits_each_batch_progressively() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     let (progress, mut observed) = tokio::sync::mpsc::unbounded_channel();
     let completed = std::collections::BTreeSet::new();
@@ -2273,6 +2279,7 @@ async fn qdrant_backfill_lanes_assign_ordered_revisions() {
         api_url: service.url.clone(),
         token_env: "unused-in-test".into(),
         publication_redaction: crate::redaction::Policy::new(false),
+        unshared: Vec::new(),
     };
     let completed = std::collections::BTreeSet::new();
     let revision = upload_backfill_plan(

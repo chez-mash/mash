@@ -842,6 +842,12 @@ export interface components {
             revision: string;
             /** Format: uint32 */
             since_days?: number | null;
+            /**
+             * @description Agents kept off the shared server. Left out, the list stays as it is;
+             *     a change makes the next publication replace everything sent before.
+             * @default null
+             */
+            unshared: components["schemas"]["Provider"][] | null;
         };
         ChangeAnswer: {
             /** @description A new join string, for an addition or a replaced credential. */
@@ -2390,6 +2396,8 @@ export interface components {
             shared: boolean;
             /** Format: uint32 */
             since_days?: number | null;
+            /** @description Agents this machine keeps off the shared server. */
+            unshared: components["schemas"]["Provider"][];
         };
         /**
          * @description One machine's agent integrations for a dashboard, step by step. A peer
@@ -2409,6 +2417,12 @@ export interface components {
             group_id: string;
             node_id: string;
             token_env: string;
+            /**
+             * @description Agents whose chats this machine keeps to itself. It still indexes and
+             *     searches them; publication leaves them, and the memories that cite
+             *     them, out entirely. Changing the list republishes everything.
+             */
+            unshared?: components["schemas"]["Provider"][];
         };
         /** @description A group as any of its machines may read it. */
         SharedGroupStatus: {

@@ -34,12 +34,7 @@ pub fn target(config: &SharedConfig) -> String {
             config.group_id,
             config.node_id,
             config.api_url.trim_end_matches('/'),
-            // Changing the masking replaces everything previously published.
-            if config.publication_redaction.enabled() {
-                ""
-            } else {
-                "\0unmasked"
-            }
+            snapshot::unshared::target_choices(config),
         )
         .as_bytes(),
     )

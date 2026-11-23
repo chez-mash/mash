@@ -259,6 +259,7 @@ function settings(): Answer<"/api/services/settings"> {
     since_days: 90,
     destination: "both",
     shared: true,
+    unshared: [],
     memory_capture: true,
     hide_credentials: { output: true, publication: true },
   };

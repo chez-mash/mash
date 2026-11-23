@@ -18,6 +18,9 @@ use std::{
 
 #[cfg(test)]
 mod tests;
+pub(super) mod unshared;
+#[cfg(test)]
+mod unshared_tests;
 
 pub(super) fn validate_owner(
     snapshot: &crate::storage::publication::Snapshot<'_>,
@@ -50,6 +53,30 @@ pub(super) enum Selection {
     Backfill,
 }
 
+/// The upload's opening event: a complete snapshot unless this is a delta or
+/// a backfill batch, which says which accepted revision it builds on.
+fn start(
+    snapshot: &crate::storage::publication::Snapshot<'_>,
+    target: &Target,
+    selection: Selection,
+    incremental: bool,
+) -> Start {
+    let backfill = matches!(selection, Selection::Backfill);
+    Start {
+        views_build: Some(target.build.clone()),
+        source_silver: Some(snapshot.source_silver.clone()),
+        instance: snapshot.instance.clone(),
+        revision: Some(snapshot.revision),
+        base_revision: if backfill {
+            Some(snapshot.revision.saturating_sub(1))
+        } else {
+            incremental.then_some(target.publication_revision)
+        },
+        snapshot: !incremental && !backfill,
+        forgets: Vec::new(),
+    }
+}
+
 fn capture(path: &Path, target: &Target, selection: Selection) -> Result<Source, AppError> {
     crate::progress::during(crate::progress::Phase::SharedSnapshot, || {
         let mut file = tempfile::NamedTempFile::new().map_err(AppError::io)?;
@@ -58,45 +85,34 @@ fn capture(path: &Path, target: &Target, selection: Selection) -> Result<Source,
         let mut visible = 0;
         let revision = Storage::open_silver(path)?.with_publication_snapshot(|snapshot| {
             validate_owner(snapshot, target)?;
+            // Read inside the same snapshot, so the sets match what is written.
+            let unshared = snapshot.unshared(&target.unshared)?;
             let base = match selection {
                 Selection::Delta { journal_base } => snapshot
                     .delta_base(target.instance.as_deref(), journal_base)?
                     .filter(|_| snapshot.revision > target.publication_revision),
                 Selection::Replace | Selection::Backfill => None,
             };
-            let incremental = base.is_some();
             // Amending keeps a chat's other documents, so only a recipe whose
             // dense input is the message alone may amend.
             let delta = base.map(|after| Delta {
                 after,
                 amend: target.build.message_local(),
             });
-            write_event(
-                &mut writer,
-                &Event::Start(Start {
-                    views_build: Some(target.build.clone()),
-                    source_silver: Some(snapshot.source_silver.clone()),
-                    instance: snapshot.instance.clone(),
-                    revision: Some(snapshot.revision),
-                    base_revision: if matches!(selection, Selection::Backfill) {
-                        Some(snapshot.revision.saturating_sub(1))
-                    } else {
-                        base.map(|_| target.publication_revision)
-                    },
-                    snapshot: !incremental && !matches!(selection, Selection::Backfill),
-                    forgets: Vec::new(),
-                }),
-                target.redaction,
-            )?;
+            let start = start(snapshot, target, selection, base.is_some());
+            write_event(&mut writer, &Event::Start(start), target.redaction)?;
             if let Some(base) = base {
                 for id in snapshot.removed_chats(base)? {
                     write_event(&mut writer, &Event::Remove { id }, target.redaction)?;
                 }
             }
             snapshot.visit_selected(BatchKind::Tombstones, false, delta, |batch| {
-                write_event(&mut writer, &Event::Batch(batch), target.redaction)
+                unshared::write_kept(&mut writer, &unshared, batch, target.redaction)
             })?;
-            snapshot.visit_selected(BatchKind::Chats, false, delta, |mut batch| {
+            snapshot.visit_selected(BatchKind::Chats, false, delta, |batch| {
+                let Some(mut batch) = unshared::keep(&unshared, batch) else {
+                    return Ok(());
+                };
                 batch.redact(target.redaction);
                 if let Batch::Chats { records } = &batch {
                     for chat in records {
@@ -108,6 +124,9 @@ fn capture(path: &Path, target: &Target, selection: Selection) -> Result<Source,
             let amended = delta.filter(|delta| delta.amend).map(|delta| delta.after);
             if let Some(after) = amended {
                 snapshot.visit_amendments(after, |mut amendment| {
+                    if !unshared::keeps_chat(&unshared, &amendment.chat.id) {
+                        return Ok(());
+                    }
                     amendment.chat.redact(target.redaction);
                     chats.insert(amendment.chat.id.clone(), amendment.chat.clone());
                     write_event(
@@ -117,7 +136,10 @@ fn capture(path: &Path, target: &Target, selection: Selection) -> Result<Source,
                     )
                 })?;
             }
-            let mut messages = |mut batch: Batch| {
+            let mut messages = |batch: Batch| {
+                let Some(mut batch) = unshared::keep(&unshared, batch) else {
+                    return Ok(());
+                };
                 batch.redact(target.redaction);
                 if let Batch::Messages { records } = &mut batch {
                     for message in records {
@@ -139,7 +161,7 @@ fn capture(path: &Path, target: &Target, selection: Selection) -> Result<Source,
                 snapshot.visit_amended_messages(after, &mut messages)?;
             }
             snapshot.visit_records(base, target.redaction, |batch| {
-                write_event(&mut writer, &Event::Batch(batch), target.redaction)
+                unshared::write_kept(&mut writer, &unshared, batch, target.redaction)
             })?;
             write_event(&mut writer, &Event::Finish, target.redaction)
         })?;

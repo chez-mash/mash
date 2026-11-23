@@ -164,6 +164,7 @@ fn choose(
             .then(|| current.shared.clone())
             .flatten(),
         records: current.records.clone(),
+        hold_publication: false,
     };
     // Validate now, as the terminal wizard does before it confirms.
     let base = match text {

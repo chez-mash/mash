@@ -70,6 +70,11 @@ pub struct SharedConfig {
     /// Whether uploads mask credentials; set from `[redaction]`, not this table.
     #[serde(skip)]
     pub publication_redaction: crate::redaction::Policy,
+    /// Agents whose chats this machine keeps to itself. It still indexes and
+    /// searches them; publication leaves them, and the memories that cite
+    /// them, out entirely. Changing the list republishes everything.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unshared: Vec<crate::provider::Provider>,
 }
 
 impl SharedConfig {
