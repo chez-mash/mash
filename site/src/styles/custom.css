@@ -135,8 +135,12 @@ site-search button > kbd kbd {
 .social-icons::after {
   display: none;
 }
-/* The language picker: an outlined box with its icon, name and caret. */
+/* The language picker: an outlined box with its icon, name and caret, wide
+   enough for the longest language name ("Français" in WebKit). Starlight
+   sets a 7em width inline on the label, which only !important can widen. */
 starlight-lang-select label {
+  /* biome-ignore lint/complexity/noImportantStyles: only !important outranks Starlight's inline width. */
+  --sl-select-width: 8.25em !important;
   height: 2.125rem;
   padding-inline: 0.625rem;
   border: var(--border-outline);
