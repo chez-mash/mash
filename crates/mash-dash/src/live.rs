@@ -329,18 +329,13 @@ async fn relay_shared(shared: Upstream, changes: &broadcast::Sender<Change>) {
                 let _ = changes.send(everything());
             }
             heard = true;
-            let mut body = response.bytes_stream();
-            let mut pending = Vec::new();
-            while let Some(Ok(bytes)) = body.next().await {
-                pending.extend_from_slice(&bytes);
-                while let Some(end) = pending.iter().position(|byte| *byte == b'\n') {
-                    let line: Vec<u8> = pending.drain(..=end).collect();
-                    if let Some(change) = shared_change(&line, &shared) {
-                        let _ = changes.send(change);
-                    }
-                }
-                if pending.len() > MAX_LINE {
-                    break;
+            // A failed body, an over-long line or a cut-off last line ends
+            // this connection; the loop reopens it.
+            let mut lines =
+                std::pin::pin!(mash_model::lines::lines(response.bytes_stream(), MAX_LINE));
+            while let Some(Ok(line)) = lines.next().await {
+                if let Some(change) = shared_change(&line, &shared) {
+                    let _ = changes.send(change);
                 }
             }
         }

@@ -19,6 +19,7 @@ use axum::http::StatusCode;
 use axum::response::sse::{KeepAlive, Sse};
 use axum::response::{IntoResponse, Response};
 use futures_util::StreamExt;
+use mash_model::lines::LineError;
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -34,6 +35,8 @@ const MAX_TURN: usize = 8_000;
 const MAX_REPLY_TOKENS: u32 = 8_000;
 /// How long the model may take over one reply.
 const DEADLINE: Duration = Duration::from_secs(90);
+/// The longest single line of the model service's event stream.
+const MAX_MODEL_LINE: usize = 1024 * 1024;
 /// Questions answered at once, across every browser.
 pub(super) const MAX_QUESTIONS: usize = 2;
 
@@ -424,61 +427,6 @@ struct Completion<'a> {
     max_tokens: u32,
 }
 
-#[derive(serde::Deserialize)]
-struct Chunk {
-    #[serde(default)]
-    choices: Vec<Choice>,
-    /// Some services report a failure inside the stream.
-    #[serde(default)]
-    error: Option<serde::de::IgnoredAny>,
-    #[serde(default)]
-    usage: Option<Usage>,
-}
-
-/// What the service says a reply cost, when it says.
-#[derive(Clone, Copy, Default, serde::Deserialize)]
-struct Usage {
-    #[serde(default)]
-    prompt_tokens: u64,
-    #[serde(default)]
-    completion_tokens: u64,
-}
-
-#[derive(serde::Deserialize)]
-struct Choice {
-    #[serde(default)]
-    delta: Delta,
-    /// Why the reply ended: `stop`, `tool_calls`, `length` and others.
-    #[serde(default)]
-    finish_reason: Option<String>,
-}
-
-#[derive(Default, serde::Deserialize)]
-struct Delta {
-    #[serde(default)]
-    content: Option<String>,
-    #[serde(default)]
-    tool_calls: Vec<CallDelta>,
-}
-
-#[derive(serde::Deserialize)]
-struct CallDelta {
-    #[serde(default)]
-    index: usize,
-    #[serde(default)]
-    id: Option<String>,
-    #[serde(default)]
-    function: Option<FunctionDelta>,
-}
-
-#[derive(serde::Deserialize)]
-struct FunctionDelta {
-    #[serde(default)]
-    name: Option<String>,
-    #[serde(default)]
-    arguments: Option<String>,
-}
-
 fn instructions(
     reader: &Reader,
     open: Option<&OpenChat>,
@@ -822,17 +770,24 @@ async fn complete(
     let mut finish = None;
     let mut usage = Usage::default();
     let mut links = Links::default();
-    let mut body = response.bytes_stream();
-    let mut pending = Vec::new();
+    let mut frames = std::pin::pin!(mash_model::lines::lines(
+        response.bytes_stream(),
+        MAX_MODEL_LINE
+    ));
     loop {
-        let bytes = tokio::select! {
-            bytes = body.next() => bytes,
+        let line = tokio::select! {
+            line = frames.next() => line,
             () = events.closed() => return Err(Stop::Gone),
         };
-        let Some(bytes) = bytes else { break };
-        pending.extend_from_slice(&bytes.map_err(|_| unreachable())?);
-        while let Some(end) = pending.iter().position(|byte| *byte == b'\n') {
-            let line: Vec<u8> = pending.drain(..=end).collect();
+        let line = match line {
+            None | Some(Err(LineError::Unterminated(_))) => break,
+            Some(Ok(line)) => line,
+            Some(Err(LineError::Source(_))) => return Err(unreachable()),
+            Some(Err(LineError::TooLong)) => {
+                return Err(failed(Reason::Failed, "The model’s reply was too long."));
+            }
+        };
+        {
             let Some(chunk) = chunk(&line) else { continue };
             if let Some(reported) = chunk.usage {
                 usage = reported;
@@ -870,7 +825,7 @@ async fn complete(
                 }
             }
         }
-        if pending.len() > 1024 * 1024 || text.len() > 64 * 1024 {
+        if text.len() > 64 * 1024 {
             return Err(failed(Reason::Failed, "The model’s reply was too long."));
         }
     }
@@ -918,46 +873,13 @@ fn turned_down(status: u16) -> Option<Stop> {
     })
 }
 
-/// One line of the model's stream, when it carries data.
-fn chunk(line: &[u8]) -> Option<Chunk> {
-    let data = std::str::from_utf8(line)
-        .ok()?
-        .strip_prefix("data:")?
-        .trim();
-    serde_json::from_str(data).ok()
-}
-
-/// Adds one fragment of a requested lookup to the ones gathered so far.
-fn gather(calls: &mut Vec<Call>, delta: CallDelta) {
-    // More calls than lookups allowed are never run, so they are not kept.
-    if delta.index > MAX_LOOKUPS {
-        return;
-    }
-    while calls.len() <= delta.index {
-        calls.push(Call {
-            r#type: "function",
-            ..Call::default()
-        });
-    }
-    let call = &mut calls[delta.index];
-    if let Some(id) = delta.id {
-        call.id = id;
-    }
-    if let Some(function) = delta.function {
-        if let Some(name) = function.name {
-            call.function.name.push_str(&name);
-        }
-        if let Some(arguments) = function.arguments
-            && call.function.arguments.len() < MAX_TURN
-        {
-            call.function.arguments.push_str(&arguments);
-        }
-    }
-}
-
 mod docs;
 mod lookups;
+mod reply;
 use lookups::{Reader, clip, ends};
+use reply::{Usage, chunk, gather};
+#[cfg(test)]
+use reply::{CallDelta, FunctionDelta};
 
 #[cfg(test)]
 mod tests;

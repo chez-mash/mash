@@ -13,7 +13,7 @@
 572 app/core/uninstall.rs
 784 app/remote.rs
 674 cli/cli.rs
-961 crates/mash-dash/src/assistant.rs
+883 crates/mash-dash/src/assistant.rs
 1307 crates/mash-dash/src/assistant/lookups.rs
 815 crates/mash-dash/src/lib.rs
 538 crates/mash-fleet/src/inventory.rs

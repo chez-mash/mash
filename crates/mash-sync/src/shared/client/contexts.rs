@@ -1,6 +1,7 @@
 //! Bounded typed NDJSON context reads retain evidence received before timeout.
 use super::{ADMISSION, Endpoint, protocol, request};
 use crate::{AppError, config::SharedConfig, storage::Message};
+use futures_util::StreamExt;
 use std::collections::BTreeSet;
 use tracing::Instrument;
 
@@ -51,36 +52,31 @@ pub(in crate::shared) async fn read(
                     })
                     .collect(),
             };
-            let mut response = request.json(&input).send().await.map_err(|_| {
+            let response = request.json(&input).send().await.map_err(|_| {
                 AppError::shared("shared context HTTP request failed; check API and network")
             })?;
             span.record("status", response.status().as_u16());
             if !response.status().is_success() {
                 return Err(AppError::shared("shared context request was rejected"));
             }
-            let mut decoder = Decoder::default();
             let mut seen = BTreeSet::new();
-            while let Some(bytes) = response.chunk().await.map_err(|_| invalid())? {
-                let (next_decoder, items) = crate::blocking(move || {
-                    let items = decoder.push(&bytes)?;
-                    Ok((decoder, items))
-                })
-                .await?;
-                decoder = next_decoder;
-                for item in items {
-                    let index = item.index();
-                    let key = anchors.get(index).ok_or_else(invalid)?;
-                    if !seen.insert(index) {
-                        return Err(invalid());
-                    }
-                    let result = match item {
-                        protocol::ContextResult::Complete { messages, .. } => Ok(messages),
-                        protocol::ContextResult::Failed { error, .. } => Err(error),
-                    };
-                    completed.push((key.clone(), result));
+            let mut lines = std::pin::pin!(frames(response.bytes_stream()));
+            while let Some(line) = lines.next().await {
+                let line = line?;
+                // A frame can be megabytes of JSON; parse it off the runtime.
+                let item = crate::blocking(move || parse(&line)).await?;
+                let index = item.index();
+                let key = anchors.get(index).ok_or_else(invalid)?;
+                if !seen.insert(index) {
+                    return Err(invalid());
                 }
+                let result = match item {
+                    protocol::ContextResult::Complete { messages, .. } => Ok(messages),
+                    protocol::ContextResult::Failed { error, .. } => Err(error),
+                };
+                completed.push((key.clone(), result));
             }
-            if !decoder.pending.is_empty() || seen.len() != anchors.len() {
+            if seen.len() != anchors.len() {
                 return Err(invalid());
             }
             Ok(())
@@ -111,69 +107,94 @@ fn invalid() -> AppError {
     AppError::shared("invalid shared context HTTP response")
 }
 
-#[derive(Default)]
-struct Decoder {
-    pending: Vec<u8>,
-    bytes: usize,
+/// The body's NDJSON frames, through the shared line decoder. The whole body
+/// is capped at `MAX_BODY` and each frame at `MAX_LINE`; a body cut off partway
+/// through a frame is invalid, since every frame must arrive complete.
+fn frames<S, B, E>(bytes: S) -> impl futures_util::Stream<Item = Result<Vec<u8>, AppError>>
+where
+    S: futures_util::Stream<Item = Result<B, E>>,
+    B: AsRef<[u8]>,
+{
+    capped_frames(bytes, MAX_BODY)
 }
 
-impl Decoder {
-    fn push(&mut self, bytes: &[u8]) -> Result<Vec<protocol::ContextResult>, AppError> {
-        self.bytes = self.bytes.checked_add(bytes.len()).ok_or_else(invalid)?;
-        if self.bytes > MAX_BODY {
+fn capped_frames<S, B, E>(
+    bytes: S,
+    max_body: usize,
+) -> impl futures_util::Stream<Item = Result<Vec<u8>, AppError>>
+where
+    S: futures_util::Stream<Item = Result<B, E>>,
+    B: AsRef<[u8]>,
+{
+    let mut total = 0_usize;
+    let counted = bytes.map(move |chunk| {
+        let chunk = chunk.map_err(|_| invalid())?;
+        total = total.saturating_add(chunk.as_ref().len());
+        if total > max_body {
             return Err(invalid());
         }
-        let mut items = Vec::new();
-        for piece in bytes.split_inclusive(|b| *b == b'\n') {
-            if self.pending.len().saturating_add(piece.len()) > MAX_LINE {
-                return Err(invalid());
-            }
-            self.pending.extend_from_slice(piece);
-            if piece.last() == Some(&b'\n') {
-                items.push(serde_json::from_slice(&self.pending).map_err(|_| invalid())?);
-                self.pending.clear();
-            }
-        }
-        Ok(items)
-    }
+        Ok(chunk)
+    });
+    mash_model::lines::lines(counted, MAX_LINE).map(|line| {
+        line.map_err(|error| match error {
+            mash_model::lines::LineError::Source(error) => error,
+            mash_model::lines::LineError::TooLong
+            | mash_model::lines::LineError::Unterminated(_) => invalid(),
+        })
+    })
+}
+
+fn parse(line: &[u8]) -> Result<protocol::ContextResult, AppError> {
+    serde_json::from_slice(line).map_err(|_| invalid())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn frames_survive_every_byte_boundary_and_out_of_order_indices() {
-        let bytes = b"{\"status\":\"complete\",\"index\":1,\"messages\":[]}\n{\"status\":\"complete\",\"index\":0,\"messages\":[]}\n";
-        for split in 0..=bytes.len() {
-            let mut decoder = Decoder::default();
-            let mut items = decoder.push(&bytes[..split]).unwrap();
-            items.extend(decoder.push(&bytes[split..]).unwrap());
-            assert_eq!(
-                items
-                    .iter()
-                    .map(protocol::ContextResult::index)
-                    .collect::<Vec<_>>(),
-                [1, 0]
-            );
-            assert_eq!(decoder.pending, [] as [u8; 0]);
-        }
+    async fn decode(chunks: Vec<&[u8]>) -> Result<Vec<protocol::ContextResult>, AppError> {
+        let source = futures_util::stream::iter(chunks.into_iter().map(Ok::<_, AppError>));
+        let lines: Vec<Result<Vec<u8>, AppError>> = frames(source).collect().await;
+        lines.into_iter().map(|line| parse(&line?)).collect()
     }
 
-    #[test]
-    fn malformed_unknown_and_oversized_frames_fail_closed() {
+    // Split points themselves are the shared decoder's tests; this checks the
+    // reader's own framing on top of it.
+    #[tokio::test]
+    async fn frames_parse_in_any_index_order_across_chunks() {
+        let bytes = b"{\"status\":\"complete\",\"index\":1,\"messages\":[]}\n{\"status\":\"complete\",\"index\":0,\"messages\":[]}\n";
+        let (first, second) = bytes.split_at(30);
+        let items = decode(vec![first, second]).await.unwrap();
+        assert_eq!(
+            items
+                .iter()
+                .map(protocol::ContextResult::index)
+                .collect::<Vec<_>>(),
+            [1, 0]
+        );
+    }
+
+    #[tokio::test]
+    async fn malformed_unknown_cut_off_and_oversized_frames_fail_closed() {
         for bytes in [
             b"{}\n".as_slice(),
             b"{\"status\":\"complete\",\"index\":0,\"messages\":[],\"extra\":true}\n",
             b"\n",
+            // Cut off before its newline.
+            b"{\"status\":\"complete\",\"index\":0,\"messages\":[]}",
         ] {
-            assert!(Decoder::default().push(bytes).is_err());
+            assert!(
+                decode(vec![bytes]).await.is_err(),
+                "{:?}",
+                String::from_utf8_lossy(bytes)
+            );
         }
-        assert!(Decoder::default().push(&vec![b'x'; MAX_LINE + 1]).is_err());
-        let mut decoder = Decoder {
-            bytes: MAX_BODY,
-            ..Decoder::default()
-        };
-        assert!(decoder.push(b"x").is_err());
+        assert!(decode(vec![&vec![b'x'; MAX_LINE + 1]]).await.is_err());
+        // The whole body is capped too, across chunks.
+        let frame = b"{\"status\":\"complete\",\"index\":0,\"messages\":[]}\n";
+        let source = futures_util::stream::iter([Ok::<_, AppError>(&frame[..]), Ok(&frame[..])]);
+        let lines: Vec<_> = capped_frames(source, frame.len() + 1).collect().await;
+        assert!(lines[0].is_ok());
+        assert!(lines[1].is_err(), "the second frame passes the body cap");
     }
 }
