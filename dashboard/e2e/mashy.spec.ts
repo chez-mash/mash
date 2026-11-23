@@ -40,9 +40,31 @@ for (const editable of [true, false])
     page,
   }) => {
     let asked = 0;
+    let enabled = false;
+    const setups: Record<string, unknown>[] = [];
     await page.route("**/api/assistant**", (route) => {
       if (route.request().method() === "POST") asked++;
-      return route.fulfill({ json: { enabled: false, model: null } });
+      return route.fulfill({
+        json: { enabled, model: enabled ? "anthropic/claude-haiku-5.5" : null },
+      });
+    });
+    await page.route("**/api/services/assistant", (route) => {
+      setups.push(route.request().postDataJSON());
+      enabled = true;
+      return route.fulfill({
+        json: {
+          path: "/fixture/config.toml",
+          revision: "r2",
+          editable,
+          agents: {},
+          since_days: null,
+          destination: "local",
+          shared: false,
+          memory_capture: true,
+          hide_credentials: { output: true, publication: true },
+          assistant: { enabled: true, model: "anthropic/claude-haiku-5.5" },
+        },
+      });
     });
     await page.route("**/api/services/settings", (route) =>
       route.fulfill({
@@ -68,11 +90,26 @@ for (const editable of [true, false])
     await expect(mashy.locator(".mashy-sugg")).toHaveCount(0);
     await expect(mashy.getByLabel("Ask Mashy about your past chats")).toBeDisabled();
     if (editable) {
-      await mashy.getByRole("link", { name: "Set up Mashy in Settings" }).click();
-      await expect(page).toHaveURL(/#\/settings\?section=assistant$/);
+      // The key is asked for right here, and Mashy is ready once it is saved.
+      await expect(mashy.getByLabel("model service")).toHaveValue("openrouter");
+      await mashy.getByLabel("API key").fill("sk-or-test");
+      await mashy.getByRole("button", { name: "Turn on Mashy" }).click();
+      await expect
+        .poll(() => setups)
+        .toEqual([
+          {
+            revision: "r1",
+            key: "sk-or-test",
+            base_url: "https://openrouter.ai/api/v1",
+            model: "anthropic/claude-haiku-5.5",
+          },
+        ]);
+      await expect(mashy.getByText("Mashy isn’t set up yet")).toHaveCount(0);
+      await expect(mashy.getByLabel("Ask Mashy about your past chats")).toBeEnabled();
+      await expect(mashy.getByText("sk-or-test")).toHaveCount(0);
     } else {
       await expect(mashy).toContainText("doesn’t change settings");
-      await expect(mashy.getByRole("link", { name: "Set up Mashy in Settings" })).toHaveCount(0);
+      await expect(mashy.getByLabel("API key")).toHaveCount(0);
       await expect(mashy.getByRole("link", { name: "How to set up Mashy" })).toHaveAttribute(
         "target",
         "_blank",

@@ -323,7 +323,7 @@ test("another service needs its address and model before Mashy can be turned on"
   const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
   await expect(turnOn).toBeDisabled();
   await page.getByLabel("API address").fill("https://api.example.com/v1");
-  await page.locator("#mashy-model").fill("example-model");
+  await page.locator("#settings-mashy-model").fill("example-model");
   await expect(turnOn).toBeEnabled();
 });
 
