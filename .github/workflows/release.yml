@@ -71,6 +71,9 @@ jobs:
           - target: x86_64-pc-windows-msvc
             runner: windows-latest
             archive: zip
+          - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
+            archive: zip
     runs-on: ${{ matrix.runner }}
     container: ${{ matrix.container }}
     timeout-minutes: 60
@@ -182,6 +185,12 @@ jobs:
             archive: zip
             built: desktop/src-tauri/target/release/bundle/nsis/*.exe
             name: mash-desktop-windows-x64-setup.exe
+          - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
+            bundle: nsis
+            archive: zip
+            built: desktop/src-tauri/target/release/bundle/nsis/*.exe
+            name: mash-desktop-windows-arm64-setup.exe
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 75
     defaults:

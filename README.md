@@ -83,7 +83,7 @@ Linux and WSL require a [systemd user session](docs/local-search.md#linux-withou
 curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
 ```
 
-**Windows x64 (PowerShell)**
+**Windows x64 or ARM64 (PowerShell)**
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard

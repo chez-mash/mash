@@ -105,7 +105,7 @@ ports 6333 and 6334, then populate the new one with
 
 ### Native Windows without Docker
 
-On Windows x64, download [Qdrant 1.20.0 for Windows](https://github.com/qdrant/qdrant/releases/download/v1.20.0/qdrant-x86_64-pc-windows-msvc.zip)
+On Windows (x64, or ARM64 under emulation), download [Qdrant 1.20.0 for Windows](https://github.com/qdrant/qdrant/releases/download/v1.20.0/qdrant-x86_64-pc-windows-msvc.zip)
 and extract it into `C:\mash-qdrant` (or another short, writable folder).
 Longer paths under your user profile can make Qdrant's payload indexes fail
 even when its startup health check succeeds. In PowerShell, run:

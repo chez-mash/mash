@@ -337,6 +337,12 @@ fn each_platform_selects_its_pinned_release_archive() {
             "qdrant-x86_64-pc-windows-msvc.zip",
             Format::Zip,
         ),
+        // Windows on ARM runs the x64 build under emulation.
+        (
+            ("windows", "aarch64"),
+            "qdrant-x86_64-pc-windows-msvc.zip",
+            Format::Zip,
+        ),
     ];
     for ((os, arch), name, format) in expected {
         let platform = Platform::from_target(os, arch).unwrap();
@@ -364,7 +370,6 @@ fn each_platform_selects_its_pinned_release_archive() {
     assert_eq!(Platform::WindowsX86_64.executable(), "qdrant.exe");
     for (os, arch) in [
         ("linux", "x86"),
-        ("windows", "aarch64"),
         ("freebsd", "x86_64"),
         ("linux", "riscv64"),
     ] {

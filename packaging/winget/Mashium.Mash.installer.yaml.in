@@ -13,13 +13,19 @@ NestedInstallerFiles:
 Commands:
   - mash
   - mash-server
-# The programs are built against the Visual C++ runtime.
-Dependencies:
-  PackageDependencies:
-    - PackageIdentifier: Microsoft.VCRedist.2015+.x64
+# The programs are built against the Visual C++ runtime for their architecture.
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/mashium/mash/releases/download/v@VERSION@/mash-x86_64-pc-windows-msvc.zip
     InstallerSha256: @SHA256_UPPER:mash-x86_64-pc-windows-msvc.zip@
+    Dependencies:
+      PackageDependencies:
+        - PackageIdentifier: Microsoft.VCRedist.2015+.x64
+  - Architecture: arm64
+    InstallerUrl: https://github.com/mashium/mash/releases/download/v@VERSION@/mash-aarch64-pc-windows-msvc.zip
+    InstallerSha256: @SHA256_UPPER:mash-aarch64-pc-windows-msvc.zip@
+    Dependencies:
+      PackageDependencies:
+        - PackageIdentifier: Microsoft.VCRedist.2015+.arm64
 ManifestType: installer
 ManifestVersion: 1.10.0

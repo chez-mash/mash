@@ -41,16 +41,20 @@ function Install-Mash {
     if ($Setup -and ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected -or [Console]::IsErrorRedirected)) {
         throw '-Setup needs an interactive terminal. Run without -Setup to install the binaries only.'
     }
-    if ($env:OS -ne 'Windows_NT') { throw 'This installer supports Windows x64. Use install.sh on macOS or Linux.' }
+    if ($env:OS -ne 'Windows_NT') { throw 'This installer supports Windows x64 and ARM64. Use install.sh on macOS or Linux.' }
     $architecture = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
-    if ($architecture -ne 'AMD64') { throw "No prebuilt Mash binary for Windows $architecture; build from source." }
+    $target = switch ($architecture) {
+        'AMD64' { 'x86_64-pc-windows-msvc' }
+        'ARM64' { 'aarch64-pc-windows-msvc' }
+        default { throw "No prebuilt Mash binary for Windows $architecture; build from source." }
+    }
     if ($Version -and $Version -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$') {
         throw 'MASH_VERSION must be a release tag such as v0.8.0.'
     }
 
     $base = 'https://github.com/mashium/mash/releases/latest/download'
     if ($Version) { $base = "https://github.com/mashium/mash/releases/download/$Version" }
-    $archive = 'mash-x86_64-pc-windows-msvc.zip'
+    $archive = "mash-$target.zip"
     $scratch = Join-Path ([IO.Path]::GetTempPath()) ('mash-install-' + [Guid]::NewGuid().ToString('N'))
     $incoming = $null
     $securityProtocol = [Net.ServicePointManager]::SecurityProtocol

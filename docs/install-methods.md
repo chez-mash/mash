@@ -45,7 +45,7 @@ be installed together, and apt offers to remove the other one.
 
 ### Scoop, Windows
 
-On Windows x64 with Scoop installed, open PowerShell, add Mashium's bucket
+On Windows x64 or ARM64 with Scoop installed, open PowerShell, add Mashium's bucket
 and install its [Mash package](https://github.com/mashium/mash/blob/main/bucket/mash.json).
 The manifest lists the Windows archive and its SHA-256 hash.
 

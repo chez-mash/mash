@@ -14,6 +14,7 @@ bar, and includes everything the archives below do.
 | --- | --- |
 | Mac with Apple silicon | [`mash-desktop-macos-arm64.dmg`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-macos-arm64.dmg) |
 | Windows x64 | [`mash-desktop-windows-x64-setup.exe`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-windows-x64-setup.exe) |
+| Windows ARM64 | [`mash-desktop-windows-arm64-setup.exe`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-windows-arm64-setup.exe) |
 | Linux x86-64 | [`mash-desktop-linux-x86_64.AppImage`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-linux-x86_64.AppImage) |
 
 The Linux app needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36 and later) and WebKitGTK 4.1.
@@ -35,6 +36,7 @@ the app. Each archive contains the terminal program and browser dashboard.
 | Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
 | Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
 | Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
+| Windows ARM64 | [`mash-aarch64-pc-windows-msvc.zip`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-pc-windows-msvc.zip) |
 
 See the [release notes and checksum file on GitHub](https://github.com/mashium/mash/releases/latest).
 Use the archive and `SHA256SUMS` from the same release page when checking a file.
@@ -44,7 +46,7 @@ For a platform such as an Intel Mac, see [build from source](install-methods.md#
 ## Verify the checksum
 
 From the folder containing the download, run the command for your system.
-On Linux ARM64, substitute your archive's filename.
+On Linux ARM64 or Windows ARM64, substitute your archive's filename.
 
 **Linux**
 

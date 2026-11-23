@@ -153,9 +153,15 @@ printf 'ran %s\n' "$*"
 
     Assert-Fails { Install-Mash -Directory $destination -Version '../invalid' } 'release tag'
     $env:PROCESSOR_ARCHITECTURE = 'ARM64'
+    $script:requests = @()
+    # The fixture checksums name only the x64 archive, so the ARM64 install
+    # stops at verification, after asking for its own archive.
+    Assert-Fails { Install-Mash -Directory $destination } 'exactly one entry'
+    Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/latest/download/mash-aarch64-pc-windows-msvc.zip' 'ARM64 archive URL'
+    $env:PROCESSOR_ARCHITECTURE = 'x86'
     Assert-Fails { Install-Mash -Directory $destination } 'No prebuilt Mash binary'
     $env:OS = 'Unix'
-    Assert-Fails { Install-Mash -Directory $destination } 'supports Windows x64'
+    Assert-Fails { Install-Mash -Directory $destination } 'supports Windows x64 and ARM64'
     Write-Host 'PowerShell installer checks passed.'
 } finally {
     $env:OS = $originalOs

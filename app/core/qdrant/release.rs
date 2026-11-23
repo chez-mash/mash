@@ -59,7 +59,10 @@ impl Platform {
             ("linux", "aarch64") => Some(Self::LinuxAarch64),
             ("macos", "x86_64") => Some(Self::MacosX86_64),
             ("macos", "aarch64") => Some(Self::MacosAarch64),
-            ("windows", "x86_64") => Some(Self::WindowsX86_64),
+            // Qdrant publishes no Windows ARM build. Windows 11 on ARM runs
+            // the x64 build under its emulator; the Windows workflow's ARM
+            // job checks that it starts and answers there.
+            ("windows", "x86_64" | "aarch64") => Some(Self::WindowsX86_64),
             _ => None,
         }
     }

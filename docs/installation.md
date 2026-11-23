@@ -132,7 +132,7 @@ Then [start the local search service](#start-the-local-search-service).
 ### Install only the Mash binaries
 
 Prebuilt releases cover Linux x86-64 and ARM64, macOS Apple silicon, and
-Windows x64. The Linux binaries need glibc 2.34 or newer, available in
+Windows x64 and ARM64. The Linux binaries need glibc 2.34 or newer, available in
 Ubuntu 22.04, Debian 12, RHEL 9 and later. Alpine and other musl systems
 aren’t supported.
 
@@ -144,7 +144,7 @@ curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
 
 WSL uses this command too.
 
-#### Windows x64
+#### Windows
 
 ```powershell
 irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
