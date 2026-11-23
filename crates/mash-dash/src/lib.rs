@@ -153,25 +153,18 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
         },
         ..Default::default()
     };
-    let router = history_routes(setup::routes(assistant::routes(live::routes(
-        services::routes(aide::axum::ApiRouter::new()),
+    let router = settings_routes(history_routes(setup::routes(assistant::routes(
+        live::routes(services::routes(aide::axum::ApiRouter::new())),
     ))))
     .finish_api(&mut document);
     (router, document)
 }
 
-/// The routes that read history, status and settings.
-fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
+/// The configuration file's settings, and setting Mashy up.
+fn settings_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use aide::axum::routing::{get_with, post_with};
     use contract::{changes, reads};
-    search::routes(router)
-        .api_route(
-            "/api/health",
-            get_with(
-                health,
-                reads::<Health>("/api/health", "The build this dashboard is running."),
-            ),
-        )
+    router
         .api_route(
             "/api/services/settings",
             get_with(
@@ -194,6 +187,20 @@ fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRo
                     "/api/services/assistant",
                     "Point Mashy at a model service and save its API key on this machine.",
                 ),
+            ),
+        )
+}
+
+/// The routes that read history and status.
+fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
+    use aide::axum::routing::get_with;
+    use contract::reads;
+    search::routes(router)
+        .api_route(
+            "/api/health",
+            get_with(
+                health,
+                reads::<Health>("/api/health", "The build this dashboard is running."),
             ),
         )
         .api_route(

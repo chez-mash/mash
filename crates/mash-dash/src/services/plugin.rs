@@ -179,15 +179,14 @@ async fn finished(mut child: tokio::process::Child) -> (Outcome, String) {
         (success, output, errors)
     })
     .await;
-    match run {
-        Ok((success, output, errors)) => judge(success, &output, &errors),
-        Err(_) => {
-            let _ = child.kill().await;
-            (
-                Outcome::Unknown,
-                "`mash init` did not finish within 10 minutes and was stopped. Check the agent setup again before retrying.".into(),
-            )
-        }
+    if let Ok((success, output, errors)) = run {
+        judge(success, &output, &errors)
+    } else {
+        let _ = child.kill().await;
+        (
+            Outcome::Unknown,
+            "`mash init` did not finish within 10 minutes and was stopped. Check the agent setup again before retrying.".into(),
+        )
     }
 }
 
@@ -223,7 +222,7 @@ fn judge(success: bool, output: &str, errors: &str) -> (Outcome, String) {
         let cause = plugin["message"].as_str().unwrap_or("no reason given");
         return (
             Outcome::Failed,
-            clip(format!(
+            clip(&format!(
                 "The plugin was not reinstalled for {agent}: {cause}"
             )),
         );
@@ -231,7 +230,9 @@ fn judge(success: bool, output: &str, errors: &str) -> (Outcome, String) {
     if !success {
         return (
             Outcome::Failed,
-            clip(error.unwrap_or_else(|| "`mash init` reported a problem on this machine.".into())),
+            clip(
+                &error.unwrap_or_else(|| "`mash init` reported a problem on this machine.".into()),
+            ),
         );
     }
     let names: Vec<&str> = agents.iter().map(|(name, _)| name.as_str()).collect();
@@ -258,7 +259,7 @@ fn last_error(errors: &str) -> Option<String> {
     })
 }
 
-fn clip(message: String) -> String {
+fn clip(message: &str) -> String {
     message.chars().take(DETAIL).collect()
 }
 
