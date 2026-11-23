@@ -14,7 +14,10 @@ export default defineConfig({
       // Safari, iOS home screens and older browsers ignore SVG icons, so the
       // same logo also ships as PNG and ICO (rendered from favicon.svg).
       head: [
-        { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" } },
+        {
+          tag: "link",
+          attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+        },
         { tag: "link", attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" } },
       ],
       description: "The Multi-Agent Search History Tool",
@@ -183,6 +186,46 @@ export default defineConfig({
               ],
             },
             {
+              label: "Use the dashboard",
+              translations: {
+                es: "Usar el panel",
+                fr: "Utiliser le tableau de bord",
+                "zh-CN": "使用网页面板",
+                ja: "ダッシュボードを使う",
+              },
+              slug: "dashboard",
+            },
+            {
+              label: "Search from the terminal",
+              translations: {
+                es: "Búsqueda desde el terminal",
+                fr: "Recherche dans le terminal",
+                "zh-CN": "终端搜索",
+                ja: "ターミナルから検索する",
+              },
+              slug: "search",
+            },
+            {
+              label: "Use Mash with your agent",
+              translations: {
+                es: "Conectar un agente",
+                fr: "Connecter un agent",
+                "zh-CN": "连接代理",
+                ja: "エージェントを接続する",
+              },
+              slug: "agents",
+            },
+            {
+              label: "Pick up past work",
+              translations: {
+                es: "Retomar un trabajo",
+                fr: "Reprendre un travail",
+                "zh-CN": "继续之前的工作",
+                ja: "以前の作業を再開する",
+              },
+              slug: "pick-up-work",
+            },
+            {
               label: "Why Mash",
               translations: {
                 es: "Por qué Mash",
@@ -212,22 +255,7 @@ export default defineConfig({
             "zh-CN": "网页面板",
             ja: "ダッシュボード",
           },
-          items: [
-            {
-              label: "Use the dashboard",
-              translations: {
-                es: "Usar el panel",
-                fr: "Utiliser le tableau de bord",
-                "zh-CN": "使用网页面板",
-                ja: "ダッシュボードを使う",
-              },
-              slug: "dashboard",
-            },
-            "dashboard-settings",
-            "mashy",
-            "dashboard-access",
-            "services",
-          ],
+          items: ["dashboard-settings", "mashy", "dashboard-access", "services"],
         },
         {
           label: "Search",
@@ -238,16 +266,6 @@ export default defineConfig({
             ja: "検索",
           },
           items: [
-            {
-              label: "Search from the terminal",
-              translations: {
-                es: "Búsqueda desde el terminal",
-                fr: "Recherche dans le terminal",
-                "zh-CN": "终端搜索",
-                ja: "ターミナルから検索する",
-              },
-              slug: "search",
-            },
             "find-missing-chat",
             {
               label: "Search in other languages",
@@ -319,16 +337,6 @@ export default defineConfig({
               slug: "supported-agents",
             },
             {
-              label: "Use Mash with your agent",
-              translations: {
-                es: "Conectar un agente",
-                fr: "Connecter un agent",
-                "zh-CN": "连接代理",
-                ja: "エージェントを接続する",
-              },
-              slug: "agents",
-            },
-            {
               label: "Mash plugin",
               translations: {
                 es: "Complemento de Mash",
@@ -336,16 +344,6 @@ export default defineConfig({
                 "zh-CN": "Mash 插件",
               },
               slug: "plugin",
-            },
-            {
-              label: "Pick up past work",
-              translations: {
-                es: "Retomar un trabajo",
-                fr: "Reprendre un travail",
-                "zh-CN": "继续之前的工作",
-                ja: "以前の作業を再開する",
-              },
-              slug: "pick-up-work",
             },
             {
               label: "Use Mash memory",
