@@ -157,6 +157,45 @@ Then run `pnpm test:browser` (install Chromium with
 On Xenia, run builds and tests through `agent-test`. The static output goes to
 `site/dist/`; Starlight builds the Pagefind search index during the build.
 
+## Review with Agentation
+
+`make site-review` starts the dev server with the
+[Agentation](https://agentation.com) toolbar, so a reviewer can click an
+element, leave a note, and submit a batch of notes to an agent. It runs
+`agentation-review` (configured in `site/agentation-review.config.mjs`),
+which starts three things:
+
+- the Astro dev server at `http://127.0.0.1:4331`;
+- the Agentation sync server on port 4757, which stores the notes (reused
+  when it is already running);
+- the review supervisor on port 4858, which receives a submitted batch and
+  runs a Claude Code or Codex worker on it in the repository. Pick the worker
+  in the toolbar. Workers do not commit.
+
+The toolbar exists only in `astro dev`: `site/src/agentation.ts` adds it and
+the proxy to the two services for the dev command alone, so `pnpm build` and
+the published site carry none of it. The ports differ from the Agentation
+defaults (4747 and 4848) so the gohawk site's review can run alongside.
+Starting the review first stops any background Astro dev server of this site.
+
+On Xenia the review is also served on the tailnet, for a phone or laptop,
+at `https://xenia.taild75e12.ts.net:8449/`, by this one-time setting:
+
+```sh
+tailscale serve --bg --https=8449 http://127.0.0.1:4331
+```
+
+An agent can also read the notes through the Agentation MCP server. On Xenia
+the sync server runs permanently as the user service `agentation-mash`
+(`~/.config/systemd/user/agentation-mash.service`), and Claude Code in this
+repository has an `agentation-mash` MCP server that reads it:
+
+```sh
+claude mcp add --scope local agentation-mash -- node \
+  "$PWD/site/node_modules/agentation-mcp/dist/cli.js" \
+  server --mcp-only --http-url http://127.0.0.1:4757
+```
+
 ## Publishing
 
 The Documentation workflow validates pull requests and publishes changes on

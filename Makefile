@@ -106,3 +106,9 @@ coverage:
 	cargo llvm-cov clean --workspace
 	cargo llvm-cov nextest --no-report --run-ignored all -j 2 -E 'not test(benchmark)' $(CARGO_ARGS)
 	cargo llvm-cov report --json --ignore-filename-regex '/generated/|/(tests|benchmarks)(/|\.rs$$)|/test_support\.rs$$|/semantic/evaluation(/|\.rs$$)|/semantic/embeddings/cpu/sensitivity\.rs$$|/storage/indexing/memory\.rs$$' --output-path "$(COVERAGE_OUTPUT)"
+
+# The documentation site with the Agentation review toolbar: annotate a page in
+# the browser and submit it to an agent. See docs/internal/documentation-site.md.
+.PHONY: site-review
+site-review:
+	pnpm --dir site dev:review

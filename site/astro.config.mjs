@@ -1,10 +1,13 @@
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import { docsLocales } from "./scripts/locales.ts";
+import { agentationReview } from "./src/agentation.ts";
 
 export default defineConfig({
   site: "https://getmash.io",
   integrations: [
+    // Adds the review toolbar in `astro dev` only (`make site-review`).
+    agentationReview(),
     starlight({
       title: "mash",
       favicon: "/favicon.svg",

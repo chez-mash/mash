@@ -9,7 +9,8 @@
       "!src/content/docs",
       "!pnpm-lock.yaml",
       "!test-results",
-      "!playwright-report"
+      "!playwright-report",
+      "!.agentation-runtime"
     ]
   },
   "formatter": { "indentStyle": "space", "lineWidth": 100 },
