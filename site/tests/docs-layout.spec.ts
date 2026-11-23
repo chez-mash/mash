@@ -27,7 +27,7 @@ test("the quick start draws its callout, Mashy's tip and a prompt that copies", 
   // Each install command is titled in its window and wraps rather than scrolls.
   await expect(guide.locator(".expressive-code .title")).toHaveText([
     "macOS (Apple silicon) or Linux (x86-64 or ARM64)",
-    "Windows x64 (PowerShell)",
+    "Windows x64 or ARM64 (PowerShell)",
   ]);
   // Both things to say to an agent copy: remembering a decision, and setup.
   const prompts = guide.getByRole("button", { name: "Copy the prompt for your agent" });
