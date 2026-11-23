@@ -189,5 +189,20 @@ computer, matches by words (each also as the start of a longer word) and
 returns at most 20 chats. Run the search without it to match an identifier as
 written, include other machines or page through more results.
 
+`--stream` asks every source at once and prints one line of JSON each time one
+answers: this computer by words, this computer by meaning (when it is set up),
+and your other machines. Each line holds the results so far as one list, best
+first, and says which sources are still searching, done, skipped or failed.
+A chat found by several sources appears once, with `matched_by` naming them.
+Choose whose history with `--scope local`, `--scope all` (the default) or
+`--scope node:<machine>`, and add `--live` for quick answers while typing:
+
+```sh
+mash search "invoice exports" --live --stream
+```
+
+A source that takes too long is reported as not answering, and the others are
+not held back.
+
 If results are missing or stale, start with [troubleshooting](troubleshooting.md).
 For other commands, see [useful commands](cli.md).

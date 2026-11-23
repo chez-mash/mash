@@ -22,6 +22,7 @@ mod real_models;
 mod redaction;
 mod retrieval;
 mod shared_server;
+mod streaming;
 mod tools;
 mod uninstall;
 mod vector_overrides;

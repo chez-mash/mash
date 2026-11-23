@@ -5548,6 +5548,26 @@
         ],
         "type": "object"
       },
+      "SearchSource": {
+        "description": "One kind of source. The order here is the order sources are folded in.",
+        "oneOf": [
+          {
+            "const": "words",
+            "description": "This machine's index, by words.",
+            "type": "string"
+          },
+          {
+            "const": "meaning",
+            "description": "This machine's index, by meaning (dense retrieval and reranking).",
+            "type": "string"
+          },
+          {
+            "const": "machines",
+            "description": "The shared index: other machines' published chats.",
+            "type": "string"
+          }
+        ]
+      },
       "SearchUnit": {
         "enum": [
           "chats",
@@ -6385,6 +6405,105 @@
         ],
         "type": "string"
       },
+      "SourceStatus": {
+        "description": "Where one source has got to.",
+        "oneOf": [
+          {
+            "properties": {
+              "state": {
+                "const": "searching",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "count": {
+                "format": "uint",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "elapsed_ms": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "state": {
+                "const": "done",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "count",
+              "elapsed_ms"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Failed or did not answer in time; `timed_out` tells the two apart.",
+            "properties": {
+              "elapsed_ms": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              },
+              "state": {
+                "const": "failed",
+                "type": "string"
+              },
+              "timed_out": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "state",
+              "message",
+              "elapsed_ms",
+              "timed_out"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Not asked: out of scope, or not set up on this machine.",
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "state": {
+                "const": "skipped",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "label": {
+            "description": "Who the source is, in words: \"laptop\", \"by meaning\", \"your other machines\", \"xenia\".",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SearchSource"
+          }
+        },
+        "required": [
+          "source",
+          "label"
+        ],
+        "type": "object"
+      },
       "Speaker": {
         "enum": [
           "user",
@@ -6637,6 +6756,59 @@
           "state",
           "message"
         ],
+        "type": "object"
+      },
+      "StreamParams": {
+        "properties": {
+          "days": {
+            "default": null,
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "limit": {
+            "default": null,
+            "description": "At most 20 while typing (`live`), 100 otherwise; 10 when omitted.",
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "live": {
+            "default": false,
+            "description": "Searching while the reader types: fast word search and short time limits.",
+            "type": "boolean"
+          },
+          "project": {
+            "default": "",
+            "description": "Comma-separated recorded working directories.",
+            "type": "string"
+          },
+          "provider": {
+            "default": "",
+            "description": "Comma-separated provider names, such as `claude-code,codex`.",
+            "type": "string"
+          },
+          "q": {
+            "default": "",
+            "type": "string"
+          },
+          "scope": {
+            "default": "",
+            "description": "Whose history: `local` (this machine), `all` (the default) or `node:<machine>`.",
+            "type": "string"
+          },
+          "words_only": {
+            "default": false,
+            "description": "Skip search by meaning, as a reader still typing a short query does.",
+            "type": "boolean"
+          }
+        },
         "type": "object"
       },
       "Summary": {
@@ -7028,6 +7200,41 @@
           "chats"
         ],
         "type": "string"
+      },
+      "Update": {
+        "description": "The merged ranking so far, and every source's state.",
+        "properties": {
+          "done": {
+            "description": "No source is still searching.",
+            "type": "boolean"
+          },
+          "local_node": {
+            "description": "This machine's ID: a row without `node_id` is this machine's.",
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "results": {
+            "description": "Chat rows in merged order, as `mash search` returns them, each with\n`matched_by`: the sources that found it.",
+            "items": true,
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceStatus"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "query",
+          "local_node",
+          "results",
+          "sources",
+          "done"
+        ],
+        "type": "object"
       },
       "View": {
         "additionalProperties": false,
@@ -8024,6 +8231,124 @@
           }
         },
         "summary": "A few chats on this machine whose words match what the reader is typing."
+      }
+    },
+    "/api/search/stream": {
+      "get": {
+        "operationId": "getApiSearchStream",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "default": null,
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "At most 20 while typing (`live`), 100 otherwise; 10 when omitted.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": null,
+              "description": "At most 20 while typing (`live`), 100 otherwise; 10 when omitted.",
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Searching while the reader types: fast word search and short time limits.",
+            "in": "query",
+            "name": "live",
+            "schema": {
+              "default": false,
+              "description": "Searching while the reader types: fast word search and short time limits.",
+              "type": "boolean"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Comma-separated recorded working directories.",
+            "in": "query",
+            "name": "project",
+            "schema": {
+              "default": "",
+              "description": "Comma-separated recorded working directories.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Comma-separated provider names, such as `claude-code,codex`.",
+            "in": "query",
+            "name": "provider",
+            "schema": {
+              "default": "",
+              "description": "Comma-separated provider names, such as `claude-code,codex`.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Whose history: `local` (this machine), `all` (the default) or `node:<machine>`.",
+            "in": "query",
+            "name": "scope",
+            "schema": {
+              "default": "",
+              "description": "Whose history: `local` (this machine), `all` (the default) or `node:<machine>`.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Skip search by meaning, as a reader still typing a short query does.",
+            "in": "query",
+            "name": "words_only",
+            "schema": {
+              "default": false,
+              "description": "Skip search by meaning, as a reader still typing a short query does.",
+              "type": "boolean"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/Update"
+                }
+              }
+            },
+            "description": "The merged ranking so far, and every source's state."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "A search of every source in the viewing scope, as lines of JSON: the merged ranking so far and each source's state, after each source answers."
       }
     },
     "/api/services": {

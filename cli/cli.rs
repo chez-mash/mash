@@ -7,15 +7,17 @@ use std::ffi::OsString;
 use std::io::Write;
 use std::path::PathBuf;
 
-use clap::CommandFactory;
 use clap::{Parser, Subcommand};
 use serde::Serialize;
 
 use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
+mod help;
+use help::help_paths;
 mod request;
 use request::SearchArguments;
+mod stream;
 mod watch;
 mod wizard;
 
@@ -211,6 +213,13 @@ enum Command {
             ]
         )]
         live: bool,
+        /// Ask every source in --scope at once and print one line of JSON per
+        /// update: the merged ranking so far and each source's state.
+        #[arg(long, conflicts_with_all = ["shared", "local", "offset", "diagnostics"])]
+        stream: bool,
+        /// With --stream: local (this machine), all, or node:<machine>.
+        #[arg(long, requires = "stream", default_value = "all")]
+        scope: String,
     },
     /// Return a message, by message ID, and adjacent context.
     View {
@@ -654,37 +663,6 @@ where
     }
 }
 
-// Parse global paths with Clap even when help short-circuits the normal parser.
-// Values containing `--help` remain values; no token stripping or hand parsing.
-fn help_paths(arguments: &[OsString]) -> Paths {
-    fn passive(command: clap::Command) -> clap::Command {
-        command
-            .disable_help_flag(true)
-            .disable_help_subcommand(true)
-            .arg_required_else_help(false)
-            .subcommand_required(false)
-            .mut_subcommands(passive)
-    }
-    let command = passive(Cli::command())
-        .arg(
-            clap::Arg::new("diagnostic-help")
-                .long("help")
-                .short('h')
-                .global(true)
-                .action(clap::ArgAction::SetTrue),
-        )
-        .subcommand(clap::Command::new("help").arg(clap::Arg::new("topic").num_args(0..)))
-        .ignore_errors(true);
-    command.try_get_matches_from(arguments).map_or_else(
-        |_| Paths::default(),
-        |matches| Paths {
-            config: matches.get_one::<PathBuf>("config").cloned(),
-            db: matches.get_one::<PathBuf>("db").cloned(),
-            models_dir: matches.get_one::<PathBuf>("models_dir").cloned(),
-        },
-    )
-}
-
 async fn run_parsed(mut cli: Cli) -> Result<Response, AppError> {
     if let Command::Init { yes, join, .. } = &cli.command {
         use std::io::IsTerminal;
@@ -706,6 +684,9 @@ async fn run_parsed(mut cli: Cli) -> Result<Response, AppError> {
         let debounce = *debounce_ms;
         return watch::run(cli, debounce).await;
     }
+    if matches!(cli.command, Command::Search { stream: true, .. }) {
+        return stream::run(cli).await;
+    }
     core::execute(cli.into_request()?)
         .await
         .map(Box::new)
@@ -718,6 +699,7 @@ mod skill_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::CommandFactory;
 
     /// The setup page agents follow (getmash.io/setup.md) names only commands
     /// this binary accepts.

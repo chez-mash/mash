@@ -6,6 +6,8 @@ use aide::axum::ApiRouter;
 use axum::{extract::State, response::Response};
 
 use super::{Dash, Operation, Request, core, json_result};
+
+mod stream;
 use mash_model::AppError;
 
 #[derive(serde::Deserialize, Default, schemars::JsonSchema)]
@@ -116,6 +118,16 @@ pub(super) fn routes(router: ApiRouter<Arc<Dash>>) -> ApiRouter<Arc<Dash>> {
             get_with(
                 search,
                 reads::<core::SearchResponse>("/api/search", "Chats that match a question."),
+            ),
+        )
+        .api_route(
+            "/api/search/stream",
+            get_with(
+                stream::stream,
+                reads::<core::search::federated::Update>(
+                    "/api/search/stream",
+                    "A search of every source in the viewing scope, as lines of JSON: the merged ranking so far and each source's state, after each source answers.",
+                ),
             ),
         )
         .api_route(

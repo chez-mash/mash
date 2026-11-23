@@ -8,7 +8,7 @@ use std::path::Path;
 
 /// Exact-mention for several unquoted words: each required, ranked by BM25
 /// and recency.
-pub(super) async fn lexical(
+pub(in crate::core) async fn lexical(
     (configuration, database, use_shared, use_local): (&ResolvedConfig, &Path, bool, bool),
     query: String,
     (options, page): (crate::views::config::Options, crate::search_results::Page),

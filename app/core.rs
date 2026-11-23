@@ -15,7 +15,7 @@ mod models;
 mod operation;
 pub mod output;
 pub(crate) mod qdrant;
-mod search;
+pub mod search;
 pub mod setup;
 pub mod uninstall;
 

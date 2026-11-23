@@ -226,6 +226,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/search/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A search of every source in the viewing scope, as lines of JSON: the merged ranking so far and each source's state, after each source answers. */
+        get: operations["getApiSearchStream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/services": {
         parameters: {
             query?: never;
@@ -2282,6 +2299,8 @@ export interface components {
             shared_error?: string | null;
             unit: components["schemas"]["SearchUnit"];
         };
+        /** @description One kind of source. The order here is the order sources are folded in. */
+        SearchSource: "words" | "meaning" | "machines";
         /** @enum {string} */
         SearchUnit: "chats" | "messages";
         Selection: {
@@ -2531,6 +2550,33 @@ export interface components {
         Source: "local" | "shared";
         /** @enum {string} */
         SourceField: "cwd" | "session.title" | "threads.title" | "session.directory" | "project.worktree";
+        /** @description Where one source has got to. */
+        SourceStatus: {
+            /** @description Who the source is, in words: "laptop", "by meaning", "your other machines", "xenia". */
+            label: string;
+            source: components["schemas"]["SearchSource"];
+        } & ({
+            /** @constant */
+            state: "searching";
+        } | {
+            /** Format: uint */
+            count: number;
+            /** Format: uint64 */
+            elapsed_ms: number;
+            /** @constant */
+            state: "done";
+        } | {
+            /** Format: uint64 */
+            elapsed_ms: number;
+            message: string;
+            /** @constant */
+            state: "failed";
+            timed_out: boolean;
+        } | {
+            reason: string;
+            /** @constant */
+            state: "skipped";
+        });
         /** @enum {string} */
         Speaker: "user" | "assistant";
         /** @enum {string} */
@@ -2585,6 +2631,46 @@ export interface components {
             message: string;
             remediation?: string | null;
             state: components["schemas"]["SetupState"];
+        };
+        StreamParams: {
+            /**
+             * Format: uint32
+             * @default null
+             */
+            days: number | null;
+            /**
+             * Format: uint
+             * @description At most 20 while typing (`live`), 100 otherwise; 10 when omitted.
+             * @default null
+             */
+            limit: number | null;
+            /**
+             * @description Searching while the reader types: fast word search and short time limits.
+             * @default false
+             */
+            live: boolean;
+            /**
+             * @description Comma-separated recorded working directories.
+             * @default
+             */
+            project: string;
+            /**
+             * @description Comma-separated provider names, such as `claude-code,codex`.
+             * @default
+             */
+            provider: string;
+            /** @default  */
+            q: string;
+            /**
+             * @description Whose history: `local` (this machine), `all` (the default) or `node:<machine>`.
+             * @default
+             */
+            scope: string;
+            /**
+             * @description Skip search by meaning, as a reader still typing a short query does.
+             * @default false
+             */
+            words_only: boolean;
         };
         Summary: {
             /** Format: uint */
@@ -2733,6 +2819,20 @@ export interface components {
         };
         /** @enum {string} */
         Unit: "bytes" | "records" | "chats";
+        /** @description The merged ranking so far, and every source's state. */
+        Update: {
+            /** @description No source is still searching. */
+            done: boolean;
+            /** @description This machine's ID: a row without `node_id` is this machine's. */
+            local_node: string;
+            query: string;
+            /**
+             * @description Chat rows in merged order, as `mash search` returns them, each with
+             *     `matched_by`: the sources that found it.
+             */
+            results: unknown[];
+            sources: components["schemas"]["SourceStatus"][];
+        };
         View: {
             id: string;
             shared?: string | null;
@@ -3302,6 +3402,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiSearchStream: {
+        parameters: {
+            query?: {
+                days?: number;
+                /** @description At most 20 while typing (`live`), 100 otherwise; 10 when omitted. */
+                limit?: number;
+                /** @description Searching while the reader types: fast word search and short time limits. */
+                live?: boolean;
+                /** @description Comma-separated recorded working directories. */
+                project?: string;
+                /** @description Comma-separated provider names, such as `claude-code,codex`. */
+                provider?: string;
+                q?: string;
+                /** @description Whose history: `local` (this machine), `all` (the default) or `node:<machine>`. */
+                scope?: string;
+                /** @description Skip search by meaning, as a reader still typing a short query does. */
+                words_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The merged ranking so far, and every source's state. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/x-ndjson": components["schemas"]["Update"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

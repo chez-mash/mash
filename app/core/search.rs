@@ -1,9 +1,9 @@
 //! Local and combined retrieval; validation precedes inference and HTTP.
+pub mod federated;
 mod freshness;
 mod words;
 
-use words::lexical;
-pub(super) use words::live;
+pub(super) use words::{lexical, live};
 
 use super::{SearchMode, SearchResponse, required_shared};
 use crate::AppError;
