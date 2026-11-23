@@ -471,6 +471,28 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* A card left alone on the last row of cards, before the wide one, takes the
+   whole row and lays its links out in columns as the wide card does, so the
+   row is not one card beside empty space. The column count changes with the
+   width, so each grid has its own rule. */
+@media (width >= 60rem) {
+  .sl-markdown-content .mash-guide:not(.wide):nth-child(3n + 1 of .mash-guide):is(:last-child, :has(+ .wide)) {
+    grid-column: 1 / -1;
+  }
+  .sl-markdown-content .mash-guide:not(.wide):nth-child(3n + 1 of .mash-guide):is(:last-child, :has(+ .wide)) ul {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.5rem 1.5rem;
+  }
+}
+@media (36rem <= width < 60rem) {
+  .sl-markdown-content .mash-guide:not(.wide):nth-child(2n + 1 of .mash-guide):is(:last-child, :has(+ .wide)) {
+    grid-column: 1 / -1;
+  }
+  .sl-markdown-content .mash-guide:not(.wide):nth-child(2n + 1 of .mash-guide):is(:last-child, :has(+ .wide)) ul {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.5rem 1.5rem;
+  }
+}
 .sl-markdown-content .mash-guide {
   display: flex;
   flex-direction: column;
