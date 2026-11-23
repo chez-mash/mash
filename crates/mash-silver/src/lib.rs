@@ -222,8 +222,15 @@ pub fn parse_stable_source(
     {
         // A Claude subagent's metadata file is read beside the captured
         // transcript. Its stamp was taken before the read, so a change made
-        // while reading only makes the next pass read the source again.
-        let (file, proof) = prefix::capture(&source.identity.path, stamp)?;
+        // while reading only makes the next pass read the source again. The
+        // capture covers the transcript alone, whose size the stamp's total
+        // (transcript and metadata) would overstate.
+        let transcript = if source.dependencies.is_empty() {
+            stamp.clone()
+        } else {
+            source_stamp_for(&source.identity)?
+        };
+        let (file, proof) = prefix::capture(&source.identity.path, &transcript)?;
         stamp.prefix = Some(proof);
         parsers::parse_captured(&source.identity.path, provider, file)
     } else {

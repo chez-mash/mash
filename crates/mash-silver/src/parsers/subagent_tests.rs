@@ -20,11 +20,10 @@ fn claude_line(agent: Option<&str>, sidechain: Option<bool>, uuid: &str, text: &
 fn claude_sidechain_transcripts_are_subagents_of_their_session() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("agent-a1.jsonl");
-    fs::write(
-        &path,
-        claude_line(Some("a1"), Some(true), "m1", "Work ONLY in /tmp"),
-    )
-    .unwrap();
+    // Claude Code's request bookkeeping names the agent without the mark.
+    let bookkeeping = r#"{"type":"api-request","agentId":"a1","sessionId":"session"}"#;
+    let text = claude_line(Some("a1"), Some(true), "m1", "Work ONLY in /tmp") + bookkeeping;
+    fs::write(&path, text + "\n").unwrap();
     fs::write(
         directory.path().join("agent-a1.meta.json"),
         r#"{"agentType":"general-purpose","description":"Fix the tests","toolUseId":"toolu_1","spawnDepth":1}"#,
@@ -215,4 +214,40 @@ fn claude_copies_of_ssh_sessions_are_marked_with_their_subagents_beside_them() {
     let local = project.join("session.jsonl");
     fs::write(&local, claude_line(None, None, "m1", "deploy it")).unwrap();
     assert!(!parse_claude(&local).unwrap().chat.unwrap().origin.ssh_copy);
+}
+
+#[test]
+fn discovered_subagent_transcripts_are_captured_whole_beside_their_metadata() {
+    use crate::provider::Provider;
+    let directory = tempfile::tempdir().unwrap();
+    let folder = directory.path().join("project/session/subagents");
+    fs::create_dir_all(&folder).unwrap();
+    let transcript = folder.join("agent-a1.jsonl");
+    fs::write(
+        &transcript,
+        claude_line(Some("a1"), Some(true), "m1", "one")
+            + &claude_line(Some("a1"), Some(true), "m2", "two"),
+    )
+    .unwrap();
+    // Metadata larger than the transcript must not stretch the capture.
+    let meta = format!(
+        r#"{{"description":"Check","padding":"{}"}}"#,
+        "x".repeat(4096)
+    );
+    fs::write(folder.join("agent-a1.meta.json"), meta).unwrap();
+    let sources =
+        crate::discovered_sources(Provider::ClaudeCode, &[directory.path().to_path_buf()]);
+    let source = sources
+        .iter()
+        .find(|s| s.identity.path == transcript)
+        .unwrap();
+    assert_eq!(source.dependencies.len(), 1);
+    let chat = crate::parse_test_source(Provider::ClaudeCode, source)
+        .chat
+        .unwrap();
+    assert_eq!(chat.messages.len(), 2);
+    assert_eq!(
+        chat.origin.subagent.unwrap().label.as_deref(),
+        Some("Check")
+    );
 }

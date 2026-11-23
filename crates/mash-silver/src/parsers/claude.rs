@@ -19,7 +19,7 @@ pub struct Identity {
     keys: Keys,
     agent: Option<String>,
     conflicting_agents: bool,
-    /// A record named the agent without marking itself as its sidechain.
+    /// A dialogue record named the agent without marking itself as its sidechain.
     unmarked_agent_record: bool,
     session: Option<String>,
     sessions: BTreeSet<String>,
@@ -60,7 +60,10 @@ impl Identity {
                 self.conflicting_agents = true;
             }
             self.agent.get_or_insert_with(|| agent.clone());
-            self.unmarked_agent_record |= record.is_sidechain != Some(true);
+            // Claude Code's own bookkeeping records (`api-request` and the
+            // like) name the agent without the mark; only dialogue must carry it.
+            let dialogue = matches!(record.kind, super::Kind::User | super::Kind::Assistant);
+            self.unmarked_agent_record |= dialogue && record.is_sidechain != Some(true);
         }
         self.replay.observe(record, &mut self.parents)?;
         Ok(())
