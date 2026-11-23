@@ -95,7 +95,7 @@ fn snapshot(
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: crate::subagent::Origin::default(),
             title: session
                 .custom_title
                 .or(session.computed_title)

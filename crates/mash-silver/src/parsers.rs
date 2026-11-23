@@ -195,6 +195,10 @@ fn parse_jsonl(
     let id = session_id
         .unwrap_or_else(|| stable_id("session", &[provider.as_str(), &path.to_string_lossy()]));
     let id = claude_identity.thread_id(&id);
+    let ssh_copy = provider == Provider::ClaudeCode
+        && claude_identity
+            .session()
+            .is_some_and(|session| crate::mirror::is_ssh_copy(path, session));
     let subagent = match provider {
         Provider::ClaudeCode => claude_identity
             .sidechain()
@@ -221,7 +225,7 @@ fn parse_jsonl(
             id,
             provider,
             claude_lineage,
-            subagent,
+            origin: crate::subagent::Origin { subagent, ssh_copy },
             title_origin: None,
             timestamp_origins: None,
             source: super::SourceIdentity::file(path),

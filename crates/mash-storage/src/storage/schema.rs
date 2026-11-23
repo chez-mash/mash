@@ -19,12 +19,13 @@ const RECORD_EXTRACTIONS: &str = include_str!("record_extractions.sql");
 const RECORD_KINDS: &str = include_str!("record_kinds.sql");
 const PUBLICATION_MESSAGES: &str = include_str!("publication_messages.sql");
 const CHAT_SUBAGENTS: &str = include_str!("chat_subagents.sql");
-/// Codex rollouts already read carry subagent markers silver did not keep;
-/// reading them again fills the new table. Claude Code subagent transcripts
+/// Codex rollouts and Claude Code sessions copied over SSH, already read, carry
+/// markers silver did not keep; reading them again fills the new tables. Claude Code subagent transcripts
 /// are read again anyway: their metadata file joins their source stamp.
 const CHAT_SUBAGENTS_UPGRADE: &str = concat!(
     include_str!("chat_subagents.sql"),
-    "UPDATE source_checkpoints SET interpretation_version = 0 WHERE provider = 'codex';"
+    "UPDATE source_checkpoints SET interpretation_version = 0 WHERE provider = 'codex'
+       OR (provider = 'claude-code' AND (source_path LIKE '%/ssh-%' OR source_path LIKE '%\\ssh-%'));"
 );
 /// Writers run in WAL mode with NORMAL sync: commits are atomic and survive a
 /// process crash without an fsync each; only an OS crash or power loss can

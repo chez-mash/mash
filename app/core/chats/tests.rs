@@ -139,7 +139,7 @@ fn database(directory: &Path) -> std::path::PathBuf {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: crate::silver::subagent::Origin::default(),
             source: crate::silver::SourceIdentity::file("local"),
             title: Some("local".into()),
             project: None,

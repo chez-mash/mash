@@ -15,6 +15,25 @@ const MAX_LABEL_CHARS: usize = 200;
 /// Claude Code's `.meta.json` files are a few hundred bytes.
 const MAX_META_BYTES: u64 = 64 * 1024;
 
+/// Where a chat came from, as its history records it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Origin {
+    /// Set only when the agent marked this chat as one it started.
+    pub subagent: Option<Subagent>,
+    /// Read from the Claude desktop app's copy of a session it ran over SSH on
+    /// another machine, which may index the original under the same chat ID.
+    pub ssh_copy: bool,
+}
+
+impl Origin {
+    pub fn of(subagent: Option<Subagent>) -> Self {
+        Self {
+            subagent,
+            ssh_copy: false,
+        }
+    }
+}
+
 /// What the agent recorded about a chat it started.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Subagent {

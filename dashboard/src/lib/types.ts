@@ -15,6 +15,8 @@ export interface ChatSummary {
   readonly subagent?: Subagent;
   /** Subagent chats folded into this one in lists. */
   readonly subagents?: number;
+  /** Read from the Claude desktop app's copy of a session it ran over SSH. */
+  readonly sshCopy?: true;
 }
 
 /** What the agent recorded about a subagent chat. */

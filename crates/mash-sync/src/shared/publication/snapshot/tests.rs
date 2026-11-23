@@ -348,7 +348,7 @@ fn seed(directory: &Path) -> std::path::PathBuf {
                 title_origin: None,
                 timestamp_origins: None,
                 claude_lineage: None,
-                subagent: None,
+                origin: mash_silver::subagent::Origin::default(),
                 source: SourceIdentity::file(format!("/nonexistent/mash-{thread}.jsonl")),
                 project: None,
                 repository: None,

@@ -566,7 +566,7 @@ fn events(path: &Path, unreadable: &mut Unreadable) -> Result<ParsedFile, AppErr
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: crate::subagent::Origin::default(),
             source: SourceIdentity::file(path),
             project,
             repository,

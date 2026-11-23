@@ -173,7 +173,7 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: crate::subagent::Origin::default(),
             source: source.clone(),
             project,
             repository,

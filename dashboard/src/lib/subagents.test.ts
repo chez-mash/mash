@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { browse, type Catalog } from "./api";
+import { withoutCopies } from "./sshCopies";
 import {
   childrenOf,
   detailLabel,
@@ -93,5 +94,22 @@ describe("subagent folding", () => {
     const shown = browse(catalog, filters, 0, "shown");
     expect(shown.hits.map((hit) => hit.chat.id)).toEqual(["session", "a1", "a2", "c1", "d1", "e1"]);
     expect(shown.folded).toBe(0);
+  });
+});
+
+describe("sessions copied over SSH", () => {
+  const copy = chat("s1", { machine: "macbook", sshCopy: true });
+  const original = chat("s1", { machine: "xenia" });
+  it("lists the original once another machine shares it", () => {
+    expect(withoutCopies([copy, original])).toEqual([original]);
+    expect(withoutCopies([{ chat: copy }], [original])).toEqual([]);
+  });
+  it("keeps a copy whose original is not here, or is another agent's chat", () => {
+    expect(withoutCopies([copy])).toEqual([copy]);
+    const codex = chat("s1", { machine: "xenia", agent: "codex" });
+    expect(withoutCopies([copy, codex])).toEqual([copy, codex]);
+    // Two copies are not each other's original.
+    const second = chat("s1", { machine: "laptop", sshCopy: true });
+    expect(withoutCopies([copy, second])).toEqual([copy, second]);
   });
 });

@@ -1,6 +1,7 @@
 import type { Answer, ReadPath, Wire } from "./routes";
 import type { Applied } from "./search";
 import { check } from "./session.svelte";
+import { withoutCopies } from "./sshCopies";
 import { fold } from "./subagents";
 import { callsBefore, resultsAfter, unpaired } from "./toolcalls";
 import { send } from "./transport";
@@ -70,6 +71,7 @@ function chat(row: Wire["Chat"] | Wire["ChatHit"], localNode: string): ChatSumma
     ...(updatedMs === undefined ? {} : { updatedMs }),
     ...(createdMs === undefined ? {} : { createdMs }),
     ...(marker ? { subagent: marker } : {}),
+    ...(row.ssh_copy ? { sshCopy: true as const } : {}),
   };
 }
 export async function read<P extends ReadPath>(
@@ -106,7 +108,7 @@ export async function read<P extends ReadPath>(
   return (await response.json()) as Answer<P>;
 }
 export function parseCatalog(body: Answer<"/api/chats">): Catalog {
-  const all = body.chats.map((row) => chat(row, body.local_node));
+  const all = withoutCopies(body.chats.map((row) => chat(row, body.local_node)));
   return {
     localNode: body.local_node,
     sharedOnly: body.shared_only,

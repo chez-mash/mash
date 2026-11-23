@@ -93,6 +93,11 @@ impl Identity {
         )
     }
 
+    /// The native session the transcript belongs to, once a message names it.
+    pub fn session(&self) -> Option<&str> {
+        self.session.as_deref()
+    }
+
     /// The session and agent of a subagent transcript: one agent, and every
     /// record that names it marked as that agent's sidechain.
     pub fn sidechain(&self) -> Option<(&str, &str)> {

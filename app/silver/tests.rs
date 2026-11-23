@@ -28,7 +28,7 @@ fn test_chat(id: &str, provider: Provider, source_path: PathBuf, content: &str) 
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
-        subagent: None,
+        origin: crate::silver::subagent::Origin::default(),
         source: SourceIdentity::file(source_path),
         project: None,
         repository: None,

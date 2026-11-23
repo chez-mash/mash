@@ -13,3 +13,9 @@ CREATE TABLE IF NOT EXISTS chat_subagents (
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS chat_subagents_parent ON chat_subagents(parent_chat_id)
     WHERE parent_chat_id IS NOT NULL;
+-- Claude Code chats read from the desktop app's copy of a session it ran over
+-- SSH (`projects/ssh-<sessionId>/`). The original lives on the remote machine
+-- under the same chat ID; readers prefer it when another machine shares it.
+CREATE TABLE IF NOT EXISTS chat_ssh_copies (
+    chat_id TEXT PRIMARY KEY NOT NULL REFERENCES chats(id) ON DELETE CASCADE
+) WITHOUT ROWID;

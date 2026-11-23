@@ -34,6 +34,7 @@ pub struct ListChatsRow {
     pub is_subagent: i64,
     pub parent_title: Option<String>,
     pub subagent_count: i64,
+    pub ssh_copy: i64,
 }
 impl ListChatsRow {
     pub fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Self> {
@@ -56,6 +57,7 @@ impl ListChatsRow {
             is_subagent: row.get(15)?,
             parent_title: row.get(16)?,
             subagent_count: row.get(17)?,
+            ssh_copy: row.get(18)?,
         })
     }
 }
@@ -85,7 +87,8 @@ SELECT c.id,c.provider AS provider,c.title,c.project,c.repository,c.created_at,c
     a.finished AS subagent_finished,a.spawn_call_id AS subagent_spawn_call_id,
     CAST(a.chat_id IS NOT NULL AS INTEGER) AS is_subagent,
     p.title AS parent_title,
-    CAST((SELECT count(*) FROM chat_subagents k WHERE k.parent_chat_id=c.id) AS INTEGER) AS subagent_count
+    CAST((SELECT count(*) FROM chat_subagents k WHERE k.parent_chat_id=c.id) AS INTEGER) AS subagent_count,
+    CAST(EXISTS(SELECT 1 FROM chat_ssh_copies h WHERE h.chat_id=c.id) AS INTEGER) AS ssh_copy
 FROM chats c CROSS JOIN scope s LEFT JOIN chat_enrichment e ON e.chat_id=c.id
 LEFT JOIN chat_subagents a ON a.chat_id=c.id
 LEFT JOIN chats p ON p.id=a.parent_chat_id AND p.provider=c.provider

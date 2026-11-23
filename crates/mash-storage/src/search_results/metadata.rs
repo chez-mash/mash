@@ -14,6 +14,10 @@ pub struct ChatMetadata {
     /// Set only when the agent marked this chat as a subagent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subagent: Option<crate::subagents::Subagent>,
+    /// Read from the Claude desktop app's copy of a session it ran over SSH on
+    /// another machine; that machine may share the original under the same ID.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub ssh_copy: bool,
 }
 
 impl ChatMetadata {

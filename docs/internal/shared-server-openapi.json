@@ -412,6 +412,10 @@
               "null"
             ]
           },
+          "ssh_copy": {
+            "description": "Read from the Claude desktop app's copy of a session it ran over SSH on\nanother machine; that machine may share the original under the same ID.",
+            "type": "boolean"
+          },
           "subagent": {
             "anyOf": [
               {
@@ -642,6 +646,10 @@
               "string",
               "null"
             ]
+          },
+          "ssh_copy": {
+            "description": "Read from the Claude desktop app's copy of a session it ran over SSH on\nanother machine; that machine may share the original under the same ID.",
+            "type": "boolean"
           },
           "subagent": {
             "anyOf": [

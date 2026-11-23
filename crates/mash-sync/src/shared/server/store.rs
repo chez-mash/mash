@@ -586,7 +586,7 @@ impl Store {
                     repository: row.repository,
                     created_at: row.created_at,
                     updated_at: row.updated_at,
-                    subagent: None,
+                    ..Default::default()
                 },
                 first_message_id: thread.first_message_id,
                 subagents: 0,

@@ -72,6 +72,7 @@ impl Storage {
                         created_at: row.created_at,
                         updated_at: row.updated_at,
                         subagent,
+                        ssh_copy: row.ssh_copy != 0,
                     },
                     first_message_id: row.first_message_id,
                     subagents: u32::try_from(row.subagent_count).unwrap_or(u32::MAX),

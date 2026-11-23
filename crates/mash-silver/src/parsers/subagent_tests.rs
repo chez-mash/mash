@@ -32,7 +32,7 @@ fn claude_sidechain_transcripts_are_subagents_of_their_session() {
     .unwrap();
     let chat = parse_claude(&path).unwrap().chat.unwrap();
     assert_eq!(chat.id, stable_id("claude-agent", &["session", "a1"]));
-    let subagent = chat.subagent.unwrap();
+    let subagent = chat.origin.subagent.unwrap();
     assert_eq!(subagent.parent_chat_id.as_deref(), Some("session"));
     assert_eq!(subagent.label.as_deref(), Some("Fix the tests"));
     assert_eq!(subagent.spawn_call_id.as_deref(), Some("toolu_1"));
@@ -53,6 +53,7 @@ fn claude_sessions_and_unmarked_agent_records_are_not_subagents() {
             .unwrap()
             .chat
             .unwrap()
+            .origin
             .subagent
             .is_none()
     );
@@ -73,6 +74,7 @@ fn claude_sessions_and_unmarked_agent_records_are_not_subagents() {
             .unwrap()
             .chat
             .unwrap()
+            .origin
             .subagent
             .is_none()
     );
@@ -89,6 +91,7 @@ fn claude_sessions_and_unmarked_agent_records_are_not_subagents() {
             .unwrap()
             .chat
             .unwrap()
+            .origin
             .subagent
             .is_none()
     );
@@ -132,7 +135,7 @@ fn codex_spawned_rollouts_are_subagents_and_ignore_the_copied_parent_meta() {
     .unwrap();
     let chat = parse_codex(&path).unwrap().chat.unwrap();
     assert_eq!(chat.id, "child");
-    let subagent = chat.subagent.unwrap();
+    let subagent = chat.origin.subagent.unwrap();
     assert_eq!(subagent.parent_chat_id.as_deref(), Some("parent"));
     assert_eq!(subagent.label.as_deref(), Some("Locke"));
     assert_eq!(subagent.role.as_deref(), Some("worker"));
@@ -162,6 +165,54 @@ fn codex_forks_and_parent_links_without_a_subagent_source_are_not_subagents() {
         )
         .unwrap();
         let chat = parse_codex(&path).unwrap().chat.unwrap();
-        assert!(chat.subagent.is_none(), "{name}");
+        assert!(chat.origin.subagent.is_none(), "{name}");
     }
+}
+
+#[test]
+fn claude_copies_of_ssh_sessions_are_marked_with_their_subagents_beside_them() {
+    let directory = tempfile::tempdir().unwrap();
+    // The desktop app's flat layout: the session and its subagents side by side.
+    let folder = directory.path().join("ssh-session");
+    fs::create_dir(&folder).unwrap();
+    let session = folder.join("session.jsonl");
+    fs::write(&session, claude_line(None, None, "m1", "deploy it")).unwrap();
+    let agent = folder.join("agent-a1.jsonl");
+    fs::write(
+        &agent,
+        claude_line(Some("a1"), Some(true), "m2", "check the logs"),
+    )
+    .unwrap();
+    fs::write(
+        folder.join("agent-a1.meta.json"),
+        r#"{"description":"Check the logs"}"#,
+    )
+    .unwrap();
+    let parent = parse_claude(&session).unwrap().chat.unwrap();
+    assert!(parent.origin.ssh_copy);
+    assert!(parent.origin.subagent.is_none());
+    let child = parse_claude(&agent).unwrap().chat.unwrap();
+    assert!(child.origin.ssh_copy);
+    let subagent = child.origin.subagent.unwrap();
+    assert_eq!(subagent.parent_chat_id.as_deref(), Some(parent.id.as_str()));
+    assert_eq!(subagent.label.as_deref(), Some("Check the logs"));
+
+    // A folder named for another session, or an ordinary project, is not a copy.
+    let other = directory.path().join("ssh-other");
+    fs::create_dir(&other).unwrap();
+    let elsewhere = other.join("session.jsonl");
+    fs::write(&elsewhere, claude_line(None, None, "m1", "deploy it")).unwrap();
+    assert!(
+        !parse_claude(&elsewhere)
+            .unwrap()
+            .chat
+            .unwrap()
+            .origin
+            .ssh_copy
+    );
+    let project = directory.path().join("-home-me-ssh-session");
+    fs::create_dir(&project).unwrap();
+    let local = project.join("session.jsonl");
+    fs::write(&local, claude_line(None, None, "m1", "deploy it")).unwrap();
+    assert!(!parse_claude(&local).unwrap().chat.unwrap().origin.ssh_copy);
 }

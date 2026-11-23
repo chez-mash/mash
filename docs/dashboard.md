@@ -170,6 +170,13 @@ titled with its task and links back to the chat that started it; one whose
 parent is not indexed here says it is a subagent of a chat not on this machine.
 Search keeps subagent matches and labels them with their parent.
 
+### Sessions run over SSH
+
+The Claude desktop app keeps a copy of each session it runs over SSH on the
+computer you run the app on. When the remote machine shares its history too,
+the dashboard lists the session once, from the machine it ran on. A copy whose
+original is not in the index stays listed, marked **ran over SSH**.
+
 ### Choose a search mode
 
 After submitting a search, look for **search: default** beside the filters.

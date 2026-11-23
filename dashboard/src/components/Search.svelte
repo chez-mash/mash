@@ -38,6 +38,7 @@ import {
   sorts,
   subagentViews,
 } from "../lib/search";
+import { withoutCopies } from "../lib/sshCopies";
 import { foldedNote, parentOf } from "../lib/subagents";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
@@ -116,7 +117,9 @@ const result = createQuery(() => ({
     if (!data) throw new Error("The chat list is not loaded yet.");
     if (applied.query) {
       const page = await search(applied, data.localNode, signal);
-      return { ...page, total: null, first: applied.offset, folded: 0 };
+      // A session copied over SSH is shown once, from the machine it ran on.
+      const hits = withoutCopies(page.hits, data.all);
+      return { ...page, hits, total: null, first: applied.offset, folded: 0 };
     }
     const all = browse(data, filtersOf(applied), Date.now(), applied.subagents);
     const ordered = applied.sort === "old" ? [...all.hits].reverse() : all.hits;

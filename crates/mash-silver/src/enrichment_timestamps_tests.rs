@@ -41,7 +41,7 @@ fn selected_message_boundaries_are_traceable_and_legacy_evidence_is_not_invented
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
-        subagent: None,
+        origin: crate::subagent::Origin::default(),
         title: None,
         project: None,
         repository: None,

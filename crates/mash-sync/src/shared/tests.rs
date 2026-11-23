@@ -841,7 +841,7 @@ async fn local_rich_filters_apply_before_lexical_and_semantic_candidate_limits()
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
-        subagent: None,
+        origin: mash_silver::subagent::Origin::default(),
         source: crate::silver::SourceIdentity::file("/tmp/filters.jsonl"),
         project: Some("/work/o'reilly".into()),
         repository: Some("repo://alpha".into()),

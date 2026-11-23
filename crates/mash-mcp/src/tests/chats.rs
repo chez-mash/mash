@@ -129,7 +129,7 @@ async fn sdk_lists_metadata_without_model_or_mutation_permits() {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: mash_silver::subagent::Origin::default(),
             source: crate::silver::SourceIdentity::file("history"),
             title: Some("cBioPortal migration".into()),
             project: Some("/work/cbioportal".into()),

@@ -295,10 +295,12 @@ fn parse_agent(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: metadata
-                .subagent_info
-                .as_ref()
-                .map(|child| cursor_subagent(&source.path, child, &metadata.name)),
+            origin: super::subagent::Origin::of(
+                metadata
+                    .subagent_info
+                    .as_ref()
+                    .map(|child| cursor_subagent(&source.path, child, &metadata.name)),
+            ),
             source: source.clone(),
             project,
             repository,

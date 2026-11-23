@@ -734,6 +734,11 @@ export interface components {
             project?: string | null;
             provider: components["schemas"]["Provider"];
             repository?: string | null;
+            /**
+             * @description Read from the Claude desktop app's copy of a session it ran over SSH on
+             *     another machine; that machine may share the original under the same ID.
+             */
+            ssh_copy?: boolean;
             /** @description Set only when the agent marked this chat as a subagent. */
             subagent?: components["schemas"]["ChatSubagent"] | null;
             /**
@@ -766,6 +771,11 @@ export interface components {
             repository?: string | null;
             /** Format: float */
             score: number;
+            /**
+             * @description Read from the Claude desktop app's copy of a session it ran over SSH on
+             *     another machine; that machine may share the original under the same ID.
+             */
+            ssh_copy?: boolean;
             /** @description Set only when the agent marked this chat as a subagent. */
             subagent?: components["schemas"]["ChatSubagent"] | null;
             title?: string | null;
@@ -797,6 +807,11 @@ export interface components {
             enrichment?: components["schemas"]["ChatEvidence"] | null;
             project?: string | null;
             repository?: string | null;
+            /**
+             * @description Read from the Claude desktop app's copy of a session it ran over SSH on
+             *     another machine; that machine may share the original under the same ID.
+             */
+            ssh_copy?: boolean;
             /** @description Set only when the agent marked this chat as a subagent. */
             subagent?: components["schemas"]["ChatSubagent"] | null;
             title?: string | null;

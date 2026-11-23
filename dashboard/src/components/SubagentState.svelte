@@ -8,6 +8,7 @@ const state = $derived(stateLabel(chat.subagent));
 const kind = $derived(["subagent", chat.subagent?.role].filter(Boolean).join(" · "));
 </script>
 
+{#if chat.sshCopy}<span class="pill">ran over SSH on another machine</span>{/if}
 {#if chat.subagent}
   <span class="pill fork">{kind}</span>
   {#if state}<span class="pill" class:ok={state === "done"} class:busy={state === "running"}>{state}</span>{/if}

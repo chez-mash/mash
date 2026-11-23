@@ -28,6 +28,7 @@ pub mod enrichment;
 pub mod identities;
 pub mod json;
 pub mod messages;
+pub mod mirror;
 pub mod native;
 pub mod opencode;
 pub mod parsers;
@@ -90,8 +91,8 @@ pub struct Chat {
     pub provider: Provider,
     pub source: SourceIdentity,
     pub claude_lineage: Option<claude::Lineage>,
-    /// Set only when the agent marked this chat as one it started.
-    pub subagent: Option<subagent::Subagent>,
+    /// What the agent recorded about where the chat came from.
+    pub origin: subagent::Origin,
     /// Adapter-selected title provenance before native/fallback choices flatten.
     pub title_origin: Option<enrichment::Origin>,
     /// Adapter-selected timestamp provenance before fallback choices flatten.

@@ -375,6 +375,21 @@ of indexed children; search hits and catalogue rows carry `subagent` with the
 parent's title when it is indexed. Memory evidence keeps pointing at the
 subagent chat that holds it.
 
+### Sessions copied over SSH
+
+The Claude desktop app keeps a local copy of each session it runs over SSH in
+`projects/ssh-<sessionId>/`: `<sessionId>.jsonl` and its subagents'
+`agent-<agentId>.jsonl` with their meta files, side by side. A Claude Code chat
+is marked as such a copy (`chat_ssh_copies`, local only) only when the
+transcript's parent folder is named `ssh-` followed by its own session ID; the
+working folder (often the remote `/home/...` path) is never evidence. The copy
+keeps the original's chat ID, so the dashboard drops a copy when a chat with the
+same agent and ID from another machine that is not a copy is in the catalogue
+or beside it in search results, and otherwise labels it "ran over SSH". Copies
+published by another machine arrive unmarked, so a dashboard reading only the
+shared index can still list such a session twice. Schema 68 rereads Claude
+Code sources under an `ssh-` folder so existing copies gain the marker.
+
 Claude message UUIDs are scoped to their native session and agent, independent
 of the transcript's physical path. SQLite retains each physical source's
 contribution and derives one logical chat from their union. Event-only workflow

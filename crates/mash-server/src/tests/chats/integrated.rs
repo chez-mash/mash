@@ -34,7 +34,7 @@ fn local_copy(path: &Path) {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: mash_silver::subagent::Origin::default(),
             source: crate::silver::SourceIdentity::file("local"),
             title: Some("Local Alpha".into()),
             project: None,

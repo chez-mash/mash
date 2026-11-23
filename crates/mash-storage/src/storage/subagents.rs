@@ -1,4 +1,5 @@
-//! Writing and reading what agents recorded about the subagents they started.
+//! Writing and reading what agents recorded about the subagents they started,
+//! and which chats were read from a copy of a session that ran over SSH.
 //!
 //! A row is kept beside its chat in silver and goes with it; it is never
 //! published. Claude Code chats are assembled from several session files, and
@@ -21,12 +22,28 @@ impl Storage {
         };
         if !change.tombstoned {
             self.store_subagent(chat)?;
+            self.store_ssh_copy(chat)?;
         }
         Ok(change)
     }
 
+    /// The latest contribution decides; a chat is not read from a copy and
+    /// from its own transcript on one machine.
+    fn store_ssh_copy(&self, chat: &Chat) -> Result<(), AppError> {
+        let sql = if chat.origin.ssh_copy {
+            "INSERT OR IGNORE INTO chat_ssh_copies(chat_id)
+             SELECT ?1 WHERE EXISTS(SELECT 1 FROM chats WHERE id = ?1)"
+        } else {
+            "DELETE FROM chat_ssh_copies WHERE chat_id = ?1"
+        };
+        self.connection
+            .execute(sql, [&chat.id])
+            .map_err(AppError::database)?;
+        Ok(())
+    }
+
     fn store_subagent(&self, chat: &Chat) -> Result<(), AppError> {
-        let Some(subagent) = &chat.subagent else {
+        let Some(subagent) = &chat.origin.subagent else {
             if chat.provider != Provider::ClaudeCode {
                 self.connection
                     .execute("DELETE FROM chat_subagents WHERE chat_id = ?1", [&chat.id])
@@ -57,6 +74,15 @@ impl Storage {
             .map_err(AppError::database)?;
         Ok(())
     }
+}
+
+/// Whether a chat was read from a copy of a session that ran over SSH.
+pub fn ssh_copy(connection: &Connection, chat_id: &str) -> Result<bool, AppError> {
+    connection
+        .prepare_cached("SELECT EXISTS(SELECT 1 FROM chat_ssh_copies WHERE chat_id = ?1)")
+        .map_err(AppError::database)?
+        .query_row([chat_id], |row| row.get(0))
+        .map_err(AppError::database)
 }
 
 /// The subagent row of one chat, with its parent's title when indexed.

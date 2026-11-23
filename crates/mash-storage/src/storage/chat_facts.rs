@@ -13,6 +13,7 @@ pub struct Facts {
     updated_at: Option<i64>,
     enrichment: Option<crate::silver::enrichment::Evidence>,
     subagent: Option<crate::subagents::Subagent>,
+    ssh_copy: bool,
 }
 
 /// Read a chat's facts while checking its canonical provider. A document can
@@ -57,6 +58,7 @@ pub fn read(
             .map(|json| super::enrichment::decode(&json))
             .transpose()?,
         subagent: super::subagents::read(connection, chat_id)?,
+        ssh_copy: super::subagents::ssh_copy(connection, chat_id)?,
     }))
 }
 
@@ -67,6 +69,7 @@ impl Facts {
         hit.metadata.updated_at = self.updated_at;
         hit.metadata.enrichment = self.enrichment;
         hit.metadata.subagent = self.subagent;
+        hit.metadata.ssh_copy = self.ssh_copy;
     }
 }
 

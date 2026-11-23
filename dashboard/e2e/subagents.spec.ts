@@ -229,3 +229,36 @@ for (const width of [1440, 390]) {
     });
   });
 }
+
+test("a session copied over SSH is listed once, from the machine it ran on", async ({ page }) => {
+  const original = {
+    chat_id: "remote-session",
+    node_id: "xenia",
+    provider: "claude-code",
+    title: "Deploy from the server",
+    project: "/home/james/app",
+    updated_at: now - 60_000,
+  };
+  const copy = { ...original, node_id: "laptop", ssh_copy: true };
+  const lone = { ...copy, chat_id: "lone-copy", title: "Only the copy is here" };
+  await page.route("**/api/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname === "/api/records")
+      return route.fulfill({ json: { records: [], next_offset: null } });
+    if (url.pathname === "/api/chats")
+      return route.fulfill({
+        json: { local_node: "laptop", truncated: false, chats: [copy, original, lone] },
+      });
+    return route.fulfill({ json: [] });
+  });
+  await page.goto("/#/search");
+  const list = page.locator("#reslist");
+  const rows = list.locator(".chatrow").filter({ hasText: original.title });
+  await expect(rows).toHaveCount(1);
+  await expect(rows).toContainText("xenia");
+  await expect(rows).not.toContainText("ran over SSH");
+  await expect(list.locator(".chatrow").filter({ hasText: lone.title })).toContainText(
+    "ran over SSH",
+  );
+  await expect(page.getByText("2 chats", { exact: true })).toBeVisible();
+});

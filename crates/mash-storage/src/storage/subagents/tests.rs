@@ -14,7 +14,7 @@ fn codex_chat(id: &str, text: &str, subagent: Option<Subagent>) -> crate::silver
         ..value.messages.inline()[0].clone()
     }]
     .into();
-    value.subagent = subagent;
+    value.origin.subagent = subagent;
     value
 }
 
@@ -100,7 +100,7 @@ fn a_claude_contribution_without_the_marker_keeps_the_subagent_row() {
     let mut child = codex_chat("agent", "work", Some(spawned("session")));
     child.provider = crate::provider::Provider::ClaudeCode;
     storage.replace_chat(&child).unwrap();
-    child.subagent = None;
+    child.origin.subagent = None;
     child.messages = vec![crate::silver::NormalizedMessage {
         content: "more".into(),
         ..child.messages.inline()[0].clone()
@@ -135,9 +135,10 @@ fn upgrading_creates_the_table_and_rereads_only_codex_sources() {
     let connection = Connection::open(&path).unwrap();
     connection
         .execute_batch(
-            "DROP TABLE chat_subagents; PRAGMA user_version=67;
+            "DROP TABLE chat_subagents; DROP TABLE chat_ssh_copies; PRAGMA user_version=67;
              INSERT INTO source_checkpoints VALUES
-               ('codex','file:/a','/a',1,1,'f',3),('claude-code','file:/b','/b',1,1,'f',3);",
+               ('codex','file:/a','/a',1,1,'f',3),('claude-code','file:/b','/b',1,1,'f',3),
+               ('claude-code','file:/p/ssh-s/s.jsonl','/p/ssh-s/s.jsonl',1,1,'f',3);",
         )
         .unwrap();
     drop(connection);
@@ -152,11 +153,35 @@ fn upgrading_creates_the_table_and_rereads_only_codex_sources() {
         .unwrap()
         .collect::<Result<_, _>>()
         .unwrap();
-    assert_eq!(versions, [("claude-code".into(), 3), ("codex".into(), 0)]);
+    // Sessions copied over SSH are read again; other Claude Code sources are not.
+    assert_eq!(
+        versions,
+        [
+            ("claude-code".into(), 3),
+            ("claude-code".into(), 0),
+            ("codex".into(), 0)
+        ]
+    );
     assert_eq!(catalogue(&storage).len(), 1);
     let user_version: i64 = storage
         .connection
         .query_row("PRAGMA user_version", [], |row| row.get(0))
         .unwrap();
     assert_eq!(user_version, crate::storage::schema::SCHEMA_VERSION);
+}
+
+#[test]
+fn ssh_copies_are_marked_in_lists_and_search_until_read_from_elsewhere() {
+    let directory = tempfile::tempdir().unwrap();
+    let mut storage = Storage::open_writer(&directory.path().join("index.sqlite3")).unwrap();
+    let mut copy = codex_chat("session", "deploy", None);
+    copy.provider = crate::provider::Provider::ClaudeCode;
+    copy.origin.ssh_copy = true;
+    storage.replace_chat(&copy).unwrap();
+    assert!(catalogue(&storage)[0].metadata.ssh_copy);
+    assert!(super::ssh_copy(&storage.connection, "session").unwrap());
+    copy.origin.ssh_copy = false;
+    storage.replace_chat(&copy).unwrap();
+    assert!(!catalogue(&storage)[0].metadata.ssh_copy);
+    assert!(!super::ssh_copy(&storage.connection, "session").unwrap());
 }

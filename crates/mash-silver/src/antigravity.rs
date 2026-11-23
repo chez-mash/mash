@@ -111,7 +111,7 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
-            subagent: None,
+            origin: crate::subagent::Origin::default(),
             source: source.clone(),
             // The deprecated workspace records and their replacement URI list
             // name the same folders; either may be present.

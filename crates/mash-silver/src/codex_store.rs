@@ -351,9 +351,11 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             provider: Provider::Codex,
             source: source.clone(),
             claude_lineage: None,
-            subagent: super::subagent::CodexSource::from_column(&meta.source).and_then(|source| {
-                source.subagent(session, &super::subagent::CodexNames::default())
-            }),
+            origin: super::subagent::Origin::of(
+                super::subagent::CodexSource::from_column(&meta.source).and_then(|source| {
+                    source.subagent(session, &super::subagent::CodexNames::default())
+                }),
+            ),
             title_origin: (!meta.title.is_empty()).then_some(
                 super::enrichment::Origin::SourceMetadata {
                     field: super::enrichment::SourceField::ThreadTitle,
