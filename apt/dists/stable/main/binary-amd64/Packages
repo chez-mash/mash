@@ -19,3 +19,27 @@ Description: Search your coding agents' past conversations
  Also installs mash-server, the optional service for sharing an index between
  machines. Run "mash qdrant install", then "mash init", after installing.
 
+Package: mash-cli
+Architecture: amd64
+Version: 0.2.0
+Priority: optional
+Section: utils
+Maintainer: Mashium <mash-release@users.noreply.github.com>
+Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
+Conflicts: mash
+Replaces: mash
+Filename: pool/main/m/mash-cli/mash-cli_0.2.0_amd64.deb
+Size: 34643248
+MD5sum: b87b7f4d7869820bae9e40b9301dfaf3
+SHA1: 5161037aa8e82c59e295272ce0766ed788a265ea
+SHA256: edacb418b2f4414ac4270a4279d061b8dfd5e0c86f832fde22ad965f39c7ed0c
+SHA512: c7e9eb58a343ab5ef2635e652375b030de2fb5119bc01e72e9f2946f3e94a2f917d793a4d554e8fac79bd35db3b80cc27338b87449c936c9e3d48e3e6478023e
+Homepage: https://github.com/mashium/mash
+Description: Search your coding agents' past conversations
+ Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
+ chat histories locally. Search them from the browser dashboard, the
+ terminal, or a connected agent.
+ Also installs mash-server, the optional service for sharing an index between
+ machines. Run "mash qdrant install", then "mash init", after installing.
+ Run "mash dash" and open the address it prints to use the dashboard.
+
