@@ -1,16 +1,16 @@
 {
-    "version": "0.1.1-alpha",
-    "description": "Search your coding agents' past conversations from a CLI and MCP server",
+    "version": "0.2.0",
+    "description": "Search past coding-agent chats from your browser, terminal, or agents",
     "homepage": "https://github.com/mashium/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/mashium/mash/releases/download/v0.1.1-alpha/mash-x86_64-pc-windows-msvc.zip",
-            "hash": "a1289aaddf0dd3706f444537f417508e057ce12d4da9336ab40955ae6ccd3210"
+            "url": "https://github.com/mashium/mash/releases/download/v0.2.0/mash-x86_64-pc-windows-msvc.zip",
+            "hash": "fe9edf9f39bc5da771062ef9dc694b5ab6ea73d13d88ac44ab3f305e92dd0986"
         }
     },
     "bin": ["mash.exe", "mash-server.exe"],
-    "notes": "Start the local search service, then set Mash up for the agent histories on this machine: mash qdrant install, then mash init",
+    "notes": "Run mash qdrant install, then mash init to choose which histories to read. Run mash dash and open the address it prints to search in your browser. For setup details, visit https://getmash.io/installation/.",
     "checkver": "github",
     "autoupdate": {
         "architecture": {
