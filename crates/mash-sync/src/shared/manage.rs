@@ -72,9 +72,7 @@ fn unreachable(config: &SharedConfig) -> AppError {
 
 /// This machine's group as the server sees it, read with this machine's token.
 pub async fn status(config: &SharedConfig) -> Result<GroupStatus, AppError> {
-    let token = config.token().ok_or_else(|| {
-        AppError::shared(format!("set {} to this node's API token", config.token_env))
-    })?;
+    let token = config.required_token()?;
     let response = client()?
         .get(format!(
             "{}/v1/status",

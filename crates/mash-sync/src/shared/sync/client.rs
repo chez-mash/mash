@@ -38,9 +38,9 @@ fn endpoint(api_url: &str) -> Result<String, AppError> {
 }
 
 fn token(config: &SharedConfig) -> Result<String, AppError> {
-    let token = config.token().ok_or_else(|| {
-        AppError::configuration(format!("set {} to the node's API token", config.token_env))
-    })?;
+    let token = config
+        .required_token()
+        .map_err(|missing| AppError::configuration(missing.error.message))?;
     // Header safety only: the server remains authoritative for token length and
     // compares the credential against its configured node tokens.
     if token.is_empty() || token.len() > 4096 || !token.bytes().all(|b| b.is_ascii_graphic()) {

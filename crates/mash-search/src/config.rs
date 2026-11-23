@@ -84,6 +84,21 @@ impl SharedConfig {
         secret(&self.token_env)
     }
 
+    /// This node's token, or an error naming both places Mash reads it from.
+    /// A shell can set the variable, but an app such as Raycast or the
+    /// desktop app, or a service, starts without the shell's environment and
+    /// finds only the saved copy, so the message names that too.
+    pub fn required_token(&self) -> Result<String, AppError> {
+        self.token().ok_or_else(|| {
+            let saved = saved_tokens()
+                .map_or_else(|| "~/.mash/node.env".to_owned(), |path| path.display().to_string());
+            AppError::shared(format!(
+                "this node's API token is not available: set {name}, or save it as {name}=<token> in {saved}, where apps and services also find it (`mash init --join` saves it there)",
+                name = self.token_env
+            ))
+        })
+    }
+
     /// Whether this node has a credential saved by `mash init --join`.
     pub fn has_saved_token(&self) -> bool {
         saved_tokens().is_some_and(|path| saved_token(&path, &self.token_env).is_some())

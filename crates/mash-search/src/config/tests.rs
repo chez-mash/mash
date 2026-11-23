@@ -742,3 +742,27 @@ fn a_saved_node_token_is_private_and_replaced_by_name() {
         assert_eq!(mode & 0o777, 0o600);
     }
 }
+
+/// Found on xenia: Raycast, the desktop app and services start without the
+/// shell's environment, so "set `MASH_NODE_TOKEN`" alone was no help there.
+#[test]
+fn a_missing_node_token_names_the_saved_copy_apps_and_services_read() {
+    let config = super::SharedConfig {
+        group_id: "g".into(),
+        node_id: "n".into(),
+        api_url: "https://example.com".into(),
+        token_env: "MASH_TEST_TOKEN_THAT_IS_NEVER_SET".into(),
+        publication_redaction: crate::redaction::Policy::default(),
+        unshared: Vec::new(),
+    };
+    let message = config.required_token().unwrap_err().error.message;
+    assert!(
+        message.contains("set MASH_TEST_TOKEN_THAT_IS_NEVER_SET"),
+        "{message}"
+    );
+    assert!(
+        message.contains("MASH_TEST_TOKEN_THAT_IS_NEVER_SET=<token>"),
+        "{message}"
+    );
+    assert!(message.contains("node.env"), "{message}");
+}

@@ -141,9 +141,7 @@ pub(super) fn request(
     method: reqwest::Method,
     endpoint: Endpoint,
 ) -> Result<reqwest::RequestBuilder, AppError> {
-    let token = config.token().ok_or_else(|| {
-        AppError::shared(format!("set {} to this node's API token", config.token_env))
-    })?;
+    let token = config.required_token()?;
     request_with_token(config, method, endpoint, &token)
 }
 
@@ -474,9 +472,7 @@ pub async fn query(
     node: Option<&str>,
     request: &crate::silver_query::Request,
 ) -> Result<serde_json::Value, AppError> {
-    let token = config.token().ok_or_else(|| {
-        AppError::shared(format!("set {} to this node's API token", config.token_env))
-    })?;
+    let token = config.required_token()?;
     query_with_token(config, &token, node, request).await
 }
 
