@@ -9,7 +9,7 @@ import {
   getPreferenceValues,
   openExtensionPreferences,
 } from "@raycast/api";
-import { useExec, usePromise } from "@raycast/utils";
+import { useCachedState, useExec, usePromise } from "@raycast/utils";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
@@ -37,10 +37,13 @@ import {
   parseChats,
   parseView,
   recentChatsArguments,
+  rows,
+  type Show,
   rendered,
   searchCommand,
   searchLink,
-  type StreamScope,
+  type ViewChoice,
+  viewChoice,
   stillComing,
   viewArguments,
 } from "./mash";
@@ -102,8 +105,11 @@ export default function Command() {
   const query = typed.trim();
   const searching = mash !== undefined && query.length >= 2;
   // Every source at once (this machine by words and by meaning, and your
-  // other machines), as one list that fills in as each answers.
-  const [scope, setScope] = useState<StreamScope>("all");
+  // other machines), as one list that fills in as each answers. The choice
+  // of chats or messages, and whose history, is kept between launches.
+  const [view, setView] = useCachedState<ViewChoice>("view", "chats:all");
+  const { show, scope } = viewChoice(view);
+  const showing = (next: Show) => setView(`${next}:${scope}` as ViewChoice);
   const live = useStreamSearch(mash, query, scope, searching, subagentMatches);
   // Before anything is typed, the latest chats on this machine, as the
   // desktop panel shows. Listing reads metadata only, so it is quick. A
@@ -134,7 +140,8 @@ export default function Command() {
 
   // Mash leaves subagent chats out of both unless the reader asks, in the
   // extension's preferences, for search to include them.
-  const hits = (searching ? live.hits : recent.data) ?? [];
+  const hits = searching ? rows(live.hits, show) : (recent.data ?? []);
+  const byMessage = searching && show === "messages";
   const isLoading = searching ? !live.done : recent.isLoading;
   const shownError = searching ? live.error : recent.error;
   const coming = searching ? stillComing(live.sources) : "";
@@ -157,9 +164,25 @@ export default function Command() {
       throttle
       onSelectionChange={() => live.interact()}
       searchBarAccessory={
-        <List.Dropdown tooltip="Whose history" value={scope} onChange={(value) => setScope(value as StreamScope)}>
-          <List.Dropdown.Item title="All machines" value="all" />
-          <List.Dropdown.Item title="This machine" value="local" />
+        <List.Dropdown
+          tooltip="What to list, and whose history"
+          value={view}
+          onChange={(value) => setView(value as ViewChoice)}
+        >
+          {(["all", "local"] as const).map((where) => (
+            <List.Dropdown.Section key={where} title={where === "all" ? "All Machines" : "This Machine"}>
+              <List.Dropdown.Item
+                title={`Chats · ${where === "all" ? "All machines" : "This machine"}`}
+                value={`chats:${where}`}
+                icon={Icon.Bubble}
+              />
+              <List.Dropdown.Item
+                title={`Messages · ${where === "all" ? "All machines" : "This machine"}`}
+                value={`messages:${where}`}
+                icon={Icon.Text}
+              />
+            </List.Dropdown.Section>
+          ))}
         </List.Dropdown>
       }
       searchBarPlaceholder="Search your coding-agent history"
@@ -200,12 +223,15 @@ export default function Command() {
           }
         />
       )}
-      <List.Section title={searching ? "Chats" : "Recent Chats"} subtitle={coming || undefined}>
+      <List.Section
+        title={searching ? (byMessage ? "Messages" : "Chats") : "Recent Chats"}
+        subtitle={coming || undefined}
+      >
         {hits.map((hit) => (
           <List.Item
-            key={`${hit.machine ?? ""}/${hit.chatId}`}
+            key={`${hit.machine ?? ""}/${hit.chatId}${byMessage ? `/${hit.messageId}` : ""}`}
             icon={agentIcon(hit.agent)}
-            title={hit.title}
+            title={byMessage ? hit.passage.replace(/\s+/g, " ") || hit.title : hit.title}
             subtitle={searching ? undefined : projectName(hit.project)}
             accessories={[
               ...(hit.byMeaning ? [{ tag: "by meaning" }] : []),
@@ -213,7 +239,11 @@ export default function Command() {
               ...(hit.updatedAt ? [{ date: hit.updatedAt }] : []),
             ]}
             detail={<HitDetail hit={hit} />}
-            actions={<HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} links={links} />}
+            actions={
+              <HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} links={links}>
+                {searching ? <ShowActions show={show} choose={showing} /> : null}
+              </HitActions>
+            }
           />
         ))}
         {failed ? (
@@ -288,18 +318,43 @@ function HitDetail({ hit }: { hit: Hit }) {
   );
 }
 
+/** ⌘1 and ⌘2 switch between listing chats and messages without the dropdown. */
+function ShowActions({ show, choose }: { show: Show; choose: (show: Show) => void }) {
+  return (
+    <ActionPanel.Section>
+      {show === "messages" ? (
+        <Action
+          title="List Chats"
+          icon={Icon.Bubble}
+          shortcut={{ modifiers: ["cmd"], key: "1" }}
+          onAction={() => choose("chats")}
+        />
+      ) : (
+        <Action
+          title="List Messages"
+          icon={Icon.Text}
+          shortcut={{ modifiers: ["cmd"], key: "2" }}
+          onAction={() => choose("messages")}
+        />
+      )}
+    </ActionPanel.Section>
+  );
+}
+
 function HitActions({
   hit,
   mash,
   query,
   hasApp,
   links,
+  children,
 }: {
   hit: Hit;
   mash: string;
   query: string;
   hasApp: boolean;
   links: AgentLinks;
+  children?: React.ReactNode;
 }) {
   const inAgent = openInAgent(hit, links);
   const read = (
@@ -318,6 +373,7 @@ function HitActions({
       <CopyActions hit={hit} hasApp={hasApp} />
       {query ? fullSearch(query, hasApp) : null}
       {hasApp ? openApp : null}
+      {children}
     </ActionPanel>
   );
 }

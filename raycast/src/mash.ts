@@ -27,6 +27,44 @@ export interface Hit {
   readonly byMeaning?: boolean;
   /** A chat an agent started for its own subtask (a subagent or fork), not one of the reader's. */
   readonly subagent?: boolean;
+  /** Every matching message Mash returned for the chat, best first; the first is `messageId`. */
+  readonly matches?: readonly Match[];
+}
+
+/** One matching message in a chat result. */
+export interface Match {
+  readonly messageId: string;
+  readonly passage: string;
+}
+
+/** What a search lists: one row per chat, or one per matching message. */
+export type Show = "chats" | "messages";
+
+/** The dropdown's choice: what to list, and whose history. */
+export type ViewChoice = `${Show}:${StreamScope}`;
+
+export function viewChoice(value: string): { show: Show; scope: StreamScope } {
+  const [show, scope] = value.split(":");
+  return {
+    show: show === "messages" ? "messages" : "chats",
+    scope: scope === "local" ? "local" : "all",
+  };
+}
+
+/**
+ * The rows to list. A chat result carries up to three of its matching
+ * messages; listing messages gives each its own row, in the chats' order, so
+ * the merged ranking and the rows already shown stay where they are.
+ */
+export function rows(hits: readonly Hit[], show: Show): Hit[] {
+  if (show === "chats") return [...hits];
+  return hits.flatMap((hit) =>
+    (hit.matches?.length ? hit.matches : [{ messageId: hit.messageId, passage: hit.passage }]).map((match) => ({
+      ...hit,
+      messageId: match.messageId,
+      passage: match.passage,
+    })),
+  );
 }
 
 /** One message around a hit, as `mash view` returns it. */
@@ -143,7 +181,11 @@ export function parseSearch(stdout: string): Hit[] {
 
 /** One search result row as a list item, or nothing when it names no message. */
 function hitFromRow(row: Record<string, unknown>): Hit[] {
-  const match = Array.isArray(row.matches) ? (row.matches[0] as Record<string, unknown>) : undefined;
+  const all = Array.isArray(row.matches) ? (row.matches as Record<string, unknown>[]) : [];
+  const matches = all
+    .map((entry) => ({ messageId: text(entry.message_id), passage: text(entry.snippet).trim() }))
+    .filter((entry) => entry.messageId);
+  const match = all[0];
   const chatId = text(row.chat_id);
   const messageId = text(match?.message_id);
   if (!chatId || !messageId) return [];
@@ -162,6 +204,7 @@ function hitFromRow(row: Record<string, unknown>): Hit[] {
         ? { byMeaning: true }
         : {}),
       ...subagentMark(row),
+      matches,
     },
   ];
 }

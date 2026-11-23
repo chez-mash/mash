@@ -13,6 +13,8 @@ import {
   parseChats,
   parseSearch,
   parseStreamLine,
+  rows,
+  viewChoice,
   parseView,
   recentChatsArguments,
   rendered,
@@ -74,6 +76,7 @@ describe("reading Mash's answers", () => {
         project: "/work/infra",
         updatedAt: new Date(1_794_690_968_860),
         passage: "the deploy step retries forever",
+        matches: [{ messageId: "m3", passage: "the deploy step retries forever" }],
       },
     ]);
   });
@@ -270,5 +273,40 @@ describe("federated search", () => {
         { label: "laptop", state: "done" },
       ]),
     ).toBe("build-box didn’t answer · xenia: offline");
+  });
+});
+
+describe("chats or messages", () => {
+  const result = {
+    chat_id: "c1",
+    provider: "codex",
+    title: "Rotate the logs",
+    matches: [
+      { message_id: "m1", snippet: "rotate daily" },
+      { message_id: "m2", snippet: "keep a week" },
+    ],
+  };
+  const other = { chat_id: "c2", provider: "codex", title: "Other", matches: [{ message_id: "m3", snippet: "logs" }] };
+
+  it("keeps every match a chat result carries, the best first", () => {
+    const [hit] = parseSearch(JSON.stringify({ results: [result] }));
+    expect(hit?.messageId).toBe("m1");
+    expect(hit?.matches?.map((match) => match.messageId)).toEqual(["m1", "m2"]);
+  });
+
+  it("lists one row per chat, or one per matching message in the chats' order", () => {
+    const hits = parseSearch(JSON.stringify({ results: [result, other] }));
+    expect(rows(hits, "chats").map((hit) => hit.chatId)).toEqual(["c1", "c2"]);
+    expect(rows(hits, "messages").map((hit) => [hit.chatId, hit.messageId, hit.passage])).toEqual([
+      ["c1", "m1", "rotate daily"],
+      ["c1", "m2", "keep a week"],
+      ["c2", "m3", "logs"],
+    ]);
+  });
+
+  it("reads the dropdown's choice, falling back to chats on every machine", () => {
+    expect(viewChoice("messages:local")).toEqual({ show: "messages", scope: "local" });
+    expect(viewChoice("chats:all")).toEqual({ show: "chats", scope: "all" });
+    expect(viewChoice("sideways")).toEqual({ show: "chats", scope: "all" });
   });
 });
