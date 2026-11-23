@@ -433,11 +433,8 @@ async fn dashboard_reports_status_read_only_and_compresses_responses() {
         .unwrap();
     assert_eq!(compressed.headers()["content-encoding"], "gzip");
     assert_eq!(compressed.headers()["cache-control"], "no-store");
-    // The page is rechecked on every visit; a logo may be kept for a day.
-    for (path, policy) in [
-        ("/", "no-cache"),
-        ("/mash-mark.svg", "public, max-age=86400"),
-    ] {
+    // The page and the logo, whose name never changes, are rechecked on every visit.
+    for (path, policy) in [("/", "no-cache"), ("/mash-mark.svg", "no-cache")] {
         let response = client
             .get(format!("http://{address}{path}"))
             .send()

@@ -414,13 +414,15 @@ impl Cache {
 fn harden(mut response: Response, cache: Cache) -> Response {
     let headers = response.headers_mut();
     // Built assets carry a content hash in their name, so a browser may keep
-    // them for good. Logos change rarely. The page itself is always rechecked.
+    // them for good. Logos and other images keep the same name across
+    // releases, so they are rechecked like the page: a long cache kept the old
+    // logo in the desktop app's window for a day after an upgrade.
     headers.insert(
         header::CACHE_CONTROL,
         HeaderValue::from_static(match cache {
             Cache::Api => "no-store",
             Cache::Hashed => "public, max-age=31536000, immutable",
-            Cache::Image => "public, max-age=86400",
+            Cache::Image => "no-cache",
             Cache::Page => "no-cache",
         }),
     );
