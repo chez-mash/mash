@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   argumentHighlight,
+  codexPatch,
   commandFile,
   fenceLanguage,
   isDiff,
@@ -182,5 +183,54 @@ describe("tool arguments", () => {
     expect(argumentHighlight(short, short.args[0] as ToolArgument)).toBeUndefined();
     const unknown = call("Write", { file_path: "notes.txt", content: "hello\nthere" });
     expect(argumentHighlight(unknown, unknown.args[1] as ToolArgument)).toBeUndefined();
+  });
+});
+
+// The shape Codex's `exec` tool records, minimised from real sessions.
+const PATCH =
+  "*** Begin Patch\n*** Update File: /work/app/limits.py\n@@\n-LIMIT = 10\n+LIMIT = 20\n*** End Patch";
+const quoted = (patch: string) => JSON.stringify(patch);
+
+describe("Codex patches", () => {
+  it("reads a raw patch as it is", () => {
+    expect(codexPatch(PATCH)).toBe(PATCH);
+  });
+  it("decodes an exec call that only applies a patch", () => {
+    expect(codexPatch(`text(await tools.apply_patch(${quoted(PATCH)}))`)).toBe(PATCH);
+    expect(codexPatch(`await tools.apply_patch(${quoted(PATCH)});`)).toBe(PATCH);
+    expect(codexPatch(`text(await tools.apply_patch(\`${PATCH}\`));`)).toBe(PATCH);
+    expect(codexPatch(`text(await tools.apply_patch('${PATCH.replaceAll("\n", "\\n")}'));`)).toBe(
+      PATCH,
+    );
+  });
+  it("keeps every other line of the code exactly as written", () => {
+    const code = `text(await tools.apply_patch(${quoted(PATCH)}));\ntext(await tools.exec_command({cmd:"pytest -q"}));`;
+    expect(codexPatch(code)).toBe(`${PATCH}\ntext(await tools.exec_command({cmd:"pytest -q"}));`);
+  });
+  it("leaves code it can't read exactly as written", () => {
+    // A template with a substitution isn't one fixed text.
+    expect(
+      codexPatch("text(await tools.apply_patch(`*** Begin Patch\n${body}\n*** End Patch`));"),
+    ).toBeUndefined();
+    // A patch applied inside other code isn't a line of its own.
+    expect(
+      codexPatch(`const r=await Promise.allSettled([tools.apply_patch(${quoted(PATCH)})]);`),
+    ).toBeUndefined();
+    // A literal that isn't a whole patch, and prose that mentions one.
+    expect(codexPatch(`text(await tools.apply_patch("*** Begin Patch"));`)).toBeUndefined();
+    expect(codexPatch("Use *** Begin Patch and *** End Patch around the hunks.")).toBeUndefined();
+    // An unknown escape could mean anything.
+    expect(
+      codexPatch(`text(await tools.apply_patch("*** Begin Patch\\q\\n*** End Patch"));`),
+    ).toBeUndefined();
+  });
+  it("colours the decoded patch as a diff in place of the code", () => {
+    const code = `text(await tools.apply_patch(${quoted(PATCH)}))`;
+    const exec = call("exec", { input: code });
+    expect(argumentHighlight(exec, arg("input", code))).toEqual({ language: "diff", text: PATCH });
+    expect(argumentHighlight(exec, arg("input", PATCH))).toEqual({ language: "diff" });
+    expect(
+      argumentHighlight(exec, arg("input", 'text(await tools.exec_command({cmd:"ls"}))\n')),
+    ).toBeUndefined();
   });
 });

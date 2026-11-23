@@ -280,10 +280,92 @@ function commandOf(call: ToolCall): string | undefined {
   }
 }
 
+/** A Codex patch: `*** Begin Patch`, file headers, hunks, `*** End Patch`. */
+function isPatch(text: string): boolean {
+  const trimmed = text.trim();
+  return trimmed.startsWith("*** Begin Patch\n") && trimmed.endsWith("\n*** End Patch");
+}
+
+/**
+ * The text of one JavaScript string literal starting at `text[at]`, and where
+ * it ends: a quoted string, a template without `${…}`, or `String.raw`. Null
+ * for anything it can't read exactly, so a doubtful literal stays as written.
+ */
+function literal(text: string, at: number): { value: string; end: number } | null {
+  const raw = text.startsWith("String.raw`", at);
+  const start = raw ? at + "String.raw".length : at;
+  const quote = text[start];
+  if (quote !== '"' && quote !== "'" && quote !== "`") return null;
+  const escapes: Readonly<Record<string, string>> = { n: "\n", t: "\t", r: "\r", "0": "\0" };
+  let value = "";
+  for (let index = start + 1; index < text.length; index++) {
+    const char = text[index] as string;
+    if (char === quote) return { value, end: index + 1 };
+    if (quote === "`" && char === "$" && text[index + 1] === "{") return null;
+    if (quote !== "`" && char === "\n") return null;
+    if (char !== "\\") {
+      value += char;
+      continue;
+    }
+    const next = text[index + 1];
+    if (next === undefined) return null;
+    if (raw) {
+      value += char + next;
+    } else if (next === "u") {
+      const hex = text.slice(index + 2, index + 6);
+      if (!/^[0-9a-fA-F]{4}$/.test(hex)) return null;
+      value += String.fromCharCode(Number.parseInt(hex, 16));
+      index += 4;
+    } else if (escapes[next] !== undefined) {
+      value += escapes[next];
+    } else if ("\\'\"`$\n".includes(next)) {
+      // An escaped newline continues the literal on the next line.
+      if (next !== "\n") value += next;
+    } else {
+      return null;
+    }
+    index++;
+  }
+  return null;
+}
+
+/** One line of Codex `exec` code that applies one patch and does nothing else:
+ * `text(await tools.apply_patch(…));` or `await tools.apply_patch(…)`. */
+const APPLY_PATCH_LINE = /^[ \t]*(text\(\s*)?await\s+tools\.apply_patch\(\s*/gm;
+
+/**
+ * What a Codex call's argument shows when it applies patches: the raw patch,
+ * or the `exec` code with each line that only applies a patch replaced by
+ * that patch. Every other line is kept exactly as written. Undefined when the
+ * argument applies no patch this can read exactly.
+ */
+export function codexPatch(text: string): string | undefined {
+  if (isPatch(text)) return text;
+  let shown = "";
+  let from = 0;
+  let replaced = 0;
+  for (const match of text.matchAll(APPLY_PATCH_LINE)) {
+    const opened = match.index + match[0].length;
+    const read = literal(text, opened);
+    if (!read || !isPatch(read.value)) continue;
+    const closing = text
+      .slice(read.end)
+      .match(match[1] ? /^\s*\)\s*\)[ \t]*;?[ \t]*(?=\n|$)/ : /^\s*\)[ \t]*;?[ \t]*(?=\n|$)/);
+    if (!closing) continue;
+    shown += text.slice(from, match.index) + read.value.trim();
+    from = read.end + closing[0].length;
+    replaced++;
+  }
+  return replaced ? shown + text.slice(from) : undefined;
+}
+
 /** How one argument of a call is coloured, and whether an edit took it out or put it in. */
 export interface ArgumentHighlight {
   readonly language: Highlight;
   readonly tone?: "removed" | "added";
+  /** What to show instead of the argument's text: a patch decoded from the
+   * code that applied it. */
+  readonly text?: string;
 }
 export function argumentHighlight(
   call: ToolCall,
@@ -297,7 +379,9 @@ export function argumentHighlight(
     if (language) return tone ? { language, tone } : { language };
   }
   if (arg.key === "patch" || arg.key === "diff")
-    return isDiff(arg.text) ? { language: "diff" } : undefined;
+    return isDiff(arg.text) || isPatch(arg.text) ? { language: "diff" } : undefined;
+  const patch = codexPatch(arg.text);
+  if (patch) return patch === arg.text ? { language: "diff" } : { language: "diff", text: patch };
   return isJson(arg.text) && /^[[{]/.test(arg.text.trim()) ? { language: "json" } : undefined;
 }
 

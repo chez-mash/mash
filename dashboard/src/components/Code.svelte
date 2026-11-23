@@ -84,7 +84,7 @@ const diffLines = $derived(
   language === "diff"
     ? text.split("\n").map((line) => ({
         line,
-        kind: /^(\+\+\+|---|diff --git|index )/.test(line)
+        kind: /^(\+\+\+|---|diff --git|index |\*\*\* )/.test(line)
           ? "head"
           : line.startsWith("@@")
             ? "hunk"

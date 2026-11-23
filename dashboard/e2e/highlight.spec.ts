@@ -44,6 +44,16 @@ const messages = [
   result("json", 6, '{"name": "mash"}\n{"name": "mash-dash"}'),
   call("log", 7, "Bash", { command: "cargo test -p mash-dash" }),
   result("log", 8, "running 3 tests\ntest live::a ... ok\ntest result: ok. 3 passed"),
+  // Codex's exec tool applies a patch from JavaScript, then runs a command.
+  call(
+    "patch",
+    9,
+    "exec",
+    `text(await tools.apply_patch(${JSON.stringify(
+      "*** Begin Patch\n*** Update File: /work/app/limits.py\n@@\n-LIMIT = 10\n+LIMIT = 20\n*** End Patch",
+    )}));\ntext(await tools.exec_command({cmd:"pytest -q"}));`,
+  ),
+  result("patch", 10, "Success. Updated the following files:\nM /work/app/limits.py"),
 ];
 
 async function open(page: Page): Promise<void> {
@@ -99,6 +109,13 @@ for (const width of [1440, 390]) {
     await expect(
       page.locator('pre[data-highlight="json"]', { hasText: "mash-dash" }),
     ).toBeVisible();
+    // A Codex patch shows as the patch it applies, coloured as a diff; the
+    // command that ran after it stays as written.
+    const patch = page.locator('pre[data-highlight="diff"]', { hasText: "LIMIT = 20" });
+    await expect(patch.locator(".hl-line.head").first()).toHaveText("*** Begin Patch");
+    await expect(patch.locator(".hl-line.removed")).toHaveText("-LIMIT = 10");
+    await expect(patch.locator(".hl-line.added")).toHaveText("+LIMIT = 20");
+    await expect(patch).toContainText('text(await tools.exec_command({cmd:"pytest -q"}));');
     // A build log names no language: it stays exactly as it was.
     const log = page.locator("pre", { hasText: "running 3 tests" });
     await expect(log).toHaveAttribute("data-highlight", "plain");

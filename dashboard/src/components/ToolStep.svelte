@@ -41,7 +41,7 @@ const shown = $derived(
     {#each call.args as argument (argument.key)}
       <div class="tc-r">
         <span class="tc-k">{argument.key}</span>
-        {#if argument.block}{@const coloured = argumentHighlight(call, argument)}<Code class="tc-pre" wrap={!argument.text.includes("\n")} text={argument.text} language={coloured?.language} tone={coloured?.tone} />{:else}<span class="tc-v">{argument.text}</span>{/if}
+        {#if argument.block}{@const coloured = argumentHighlight(call, argument)}<Code class="tc-pre" wrap={!(coloured?.text ?? argument.text).includes("\n")} text={coloured?.text ?? argument.text} language={coloured?.language} tone={coloured?.tone} />{:else}<span class="tc-v">{argument.text}</span>{/if}
       </div>
     {/each}
     {#if call.output}
