@@ -41,6 +41,13 @@ slow-timeout = { period = "60s", terminate-after = 10 }
 filter = 'test(=real_models::real_models_index_and_run_hybrid_search)'
 slow-timeout = { period = "60s", terminate-after = 3 }
 
+[[profile.default.overrides]]
+# The watcher rests 30 s between indexing passes (watch.rs REST), and these
+# tests need three or four passes, so they take 60 to 95 s by design. Killed
+# at 60 s they looked hung locally; CI's longer limits always let them pass.
+filter = 'test(/^watch_flow::qdrant_watcher_/)'
+slow-timeout = { period = "60s", terminate-after = 3 }
+
 [profile.ci]
 fail-fast = false
 test-threads = "num-cpus"
