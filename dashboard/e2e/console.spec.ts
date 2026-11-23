@@ -124,3 +124,67 @@ for (const width of [390, 1280]) {
     expect(await fitsViewport(page)).toBe(true);
   });
 }
+
+test("tools start folded, fold long option lists and style every field alike", async ({ page }) => {
+  const optional = Object.fromEntries(
+    ["after", "before", "days", "local", "unit"].map((name) => [
+      name,
+      name === "local"
+        ? { type: "boolean", description: "Search only the local index." }
+        : name === "unit"
+          ? { type: "string", enum: ["chats", "messages"], description: "Chats or messages." }
+          : { type: "integer", description: "A bound." },
+    ]),
+  );
+  const listing = {
+    ...tools,
+    tools: [
+      {
+        name: "search",
+        description:
+          "Find past chats. Drill down with unit=messages and copy lookup.view into `view`.",
+        annotations: { readOnlyHint: true },
+        inputSchema: {
+          type: "object",
+          required: ["query"],
+          properties: { query: { type: "string", description: "Words." }, ...optional },
+        },
+      },
+    ],
+  };
+  await page.route("**/api/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/api/console/tools") return route.fulfill({ json: listing });
+    return route.fulfill({ json: { local_node: "xenia", chats: [], truncated: false } });
+  });
+  await page.goto("/#/console");
+  const button = page.getByRole("button", { name: /search/ });
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+  await button.click();
+  const search = page.locator("#tool-search");
+  // The notes for agents are kept but folded, with names in code type.
+  const notes = search.getByText("How agents use it (1 note)");
+  await expect(search.getByText("unit=messages")).toBeHidden();
+  await notes.click();
+  await expect(search.locator(".op-d code")).toHaveText(["unit=messages", "lookup.view", "view"]);
+  // The required field shows; the five optional ones wait behind a link.
+  await expect(search.getByRole("textbox")).toHaveCount(1);
+  await search.getByText("5 more options").click();
+  await expect(search.getByRole("textbox")).toHaveCount(4);
+  const choice = search.getByRole("combobox").first();
+  await expect(choice).toHaveClass(/unset/);
+  const look = (selector: string) =>
+    search
+      .locator(selector)
+      .first()
+      .evaluate((node) => {
+        const style = getComputedStyle(node);
+        return { weight: style.fontWeight, appearance: style.appearance, color: style.color };
+      });
+  const field = await look("input.prm-i[placeholder='not set']");
+  const select = await look("select.prm-i");
+  expect(select.weight).toBe(field.weight);
+  expect(select.appearance).toBe("none");
+  await choice.selectOption("true");
+  await expect(choice).not.toHaveClass(/unset/);
+});

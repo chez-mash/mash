@@ -139,7 +139,7 @@ $effect(() => {
   <Rail open={railOpen} close={() => (railOpen = false)} />
   <div id="col">
     <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
-    <main id="main" class:narrow={narrow} class:mid={route.page === "settings"}>
+    <main id="main" class:narrow={narrow}>
       {#if searchParams !== null}
         <div class="stack" hidden={route.page !== "search"}>
           {#key searchParams}<Search params={searchParams} />{/key}

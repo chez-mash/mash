@@ -2258,6 +2258,45 @@ a.mx-r:hover {
   color: inherit;
   background: var(--surface-hover);
 }
+/* Each cell names its column only where the header is hidden. */
+.cell-l {
+  display: none;
+}
+/* On a phone the six service columns do not fit beside the machine, so each
+   machine becomes a block: its name, then the services three to a line,
+   each named. */
+@container (max-width: 520px) {
+  .mx {
+    min-width: 0;
+  }
+  .mx-r {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+    padding: 12px 12px 14px;
+  }
+  .mx-r.head {
+    display: none;
+  }
+  .mx-n {
+    grid-column: 1 / -1;
+    padding-left: 0;
+  }
+  .mx-r .cell,
+  .mx-r .cell.none {
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 30px;
+    padding: 0 8px;
+    border: var(--border-divider);
+    border-radius: var(--radius-5);
+    font-size: 13px;
+  }
+  .cell-l {
+    display: inline;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+}
 .matrix {
   overflow-x: auto;
 }
@@ -2592,10 +2631,45 @@ button:disabled {
 .prm-i.short {
   width: 120px;
 }
+/* A choice looks like the text fields beside it: the same outline and type,
+   a drawn chevron instead of the system's, and "not set" as faint as a
+   placeholder until something is chosen. */
+.prm-sel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.prm-sel > svg {
+  position: absolute;
+  right: 10px;
+  margin-top: 4px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
 select.prm-i {
   width: auto;
   min-width: 140px;
-  font-weight: 600;
+  padding-right: 34px;
+  appearance: none;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+select.prm-i.unset,
+.prm-i::placeholder {
+  color: var(--text-muted);
+}
+select.prm-i option {
+  color: var(--text-strong);
+}
+.prm-a code,
+.op-d code {
+  font: 12px var(--type-mono);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+.op-notes .op-d {
+  padding-left: 18px;
+  list-style: disc;
 }
 .prm.bad .prm-i {
   border-color: var(--status-bad);
@@ -2829,10 +2903,10 @@ select.prm-i {
   --rw: minmax(0, 1.5fr) 104px minmax(0, 1.7fr);
 }
 .rws.agentset {
-  --rw: minmax(0, 1.2fr) minmax(0, 0.8fr) 132px minmax(0, 1.5fr);
+  --rw: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 2fr) minmax(0, 1.3fr);
 }
 .rws.agentset.solo {
-  --rw: minmax(0, 1.2fr) 132px minmax(0, 1.5fr);
+  --rw: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.3fr);
 }
 .rw {
   display: grid;
@@ -2905,8 +2979,17 @@ summary.rw::-webkit-details-marker {
   align-items: center;
   gap: 6px;
 }
-.rw-parts > span {
-  display: flex;
+.rw-parts {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+/* A part of an agent's setup: its tick, then its name. */
+.rw-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 .rw-b {
   padding: 4px 16px 14px;
@@ -3219,8 +3302,11 @@ summary.rw::-webkit-details-marker {
   width: 46px;
   height: 42px;
 }
-#main.mid > * {
-  max-width: 1016px;
+/* A note naming the configuration file, with a button to copy its path. */
+.set-path .btn.sm {
+  min-height: 24px;
+  margin: 0 4px;
+  vertical-align: middle;
 }
 /* Setting Mashy up: a service, its address and model when it is another
    service, and the API key, one under another. */

@@ -214,3 +214,29 @@ export function summarize(answer: Answer): Summary {
     : Object.values(reply).find((value) => Array.isArray(value));
   return { state: "ok", heading: "", items: Array.isArray(first) ? first.length : null };
 }
+
+/** A run of description text, marked when it is something typed exactly. */
+export interface Span {
+  readonly text: string;
+  readonly code: boolean;
+}
+// Written for agents, descriptions name parameters, values and fields inline:
+// `list_chats`, unit=messages, chat=[returned chat IDs], lookup.view. Those
+// are set in code type so the sentence around them reads as prose.
+const typed =
+  /`([^`]+)`|\b\w+=\[[^\]]*\]|\b[A-Za-z_]\w*=\w[\w-]*(?:\.\w+)*|\b[A-Za-z_]\w+(?:\.[A-Za-z_]\w+)+|\b[a-z]+(?:_[a-z]+)+\b/g;
+/** A description split into prose and the exact names inside it. */
+export function spans(text: string): Span[] {
+  const result: Span[] = [];
+  let last = 0;
+  for (const match of text.matchAll(typed)) {
+    const start = match.index ?? 0;
+    if (start > last) result.push({ text: text.slice(last, start), code: false });
+    result.push({ text: match[1] ?? match[0], code: true });
+    last = start + match[0].length;
+  }
+  if (last < text.length) result.push({ text: text.slice(last), code: false });
+  return result;
+}
+/** Optional parameters are folded away when there are more of them than this. */
+export const foldAfter = 4;

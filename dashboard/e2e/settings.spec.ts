@@ -315,3 +315,36 @@ test("another service needs its address and model before Mashy can be turned on"
   await page.locator("#mashy-model").fill("example-model");
   await expect(turnOn).toBeEnabled();
 });
+
+test("a read-only dashboard names the file to edit, with a copy button and guides", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await mock(page, { ...settings, editable: false }, []);
+  await page.goto("/#/settings");
+  const note = page.getByText(/does not change settings/);
+  await expect(note.getByRole("link", { name: "Why settings are read-only" })).toHaveAttribute(
+    "href",
+    "https://getmash.io/dashboard-settings/#if-settings-are-read-only",
+  );
+  const footer = page.getByText(/To change the search engine or storage settings/);
+  await expect(footer.getByRole("link", { name: "Configuration guide" })).toBeVisible();
+  await footer.getByRole("button", { name: "Copy path" }).click();
+  await expect(footer.getByRole("button", { name: "Copied" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("/fixture/config.toml");
+  // A path wraps between its parts, never inside a name.
+  await expect(page.getByRole("definition").filter({ hasText: "/fixture/mash.db" })).toContainText(
+    "/fixture/mash.db",
+  );
+  expect(
+    await page
+      .getByRole("definition")
+      .filter({ hasText: "/fixture/mash.db" })
+      .evaluate((node) => node.querySelectorAll("wbr").length),
+  ).toBeGreaterThan(0);
+  // Settings use the same width as the other list pages.
+  const main = await page.locator("#main").boundingBox();
+  const section = await page.locator("#main > .sec").first().boundingBox();
+  expect(Math.round(section?.width ?? 0)).toBeGreaterThan(Math.round((main?.width ?? 0) * 0.9));
+});

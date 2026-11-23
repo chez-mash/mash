@@ -70,6 +70,8 @@ const blurb: Record<FleetAction, string> = {
   "watch-stop": "Stops the watcher. New chats stop appearing until it is started again.",
   "watch-logs": "Saves recent watcher logs privately on the controller.",
 };
+// The guide that explains the inventory's `allow_actions` list.
+const fleetDocs = "https://getmash.io/services/#run-fleet-operations";
 const icons = {
   status: Laptop,
   preflight: ListChecks,
@@ -226,6 +228,11 @@ function percent(target: FleetJob["targets"][number]): number | null {
   {/if}
 {/snippet}
 
+{#snippet turnOn(name: string)}
+  <p>Fleet operations are turned on in the fleet inventory, the private file this dashboard was started with. To turn this one on, add <code class="i">"{name}"</code> to <code class="i">allow_actions</code> in its <code class="i">[controller]</code> section, then reload this page. {#if name === "deploy"}Deploying also needs build, install and preflight commands in the inventory.{:else if name === "replay-views"}It also needs a shared server whose <code class="i">deployment</code> lists <code class="i">replay_views</code> commands.{/if}</p>
+  <p><a class="a" href={fleetDocs} target="_blank" rel="noreferrer">Read how to run fleet operations</a></p>
+{/snippet}
+
 {#if action}<a class="back" href="#/fleet" aria-label="Back to fleet manager"><ChevronLeft size={15} aria-hidden="true" />fleet manager</a>{/if}
 <QueryError title="Couldn’t connect to services" query={access} />
 <QueryError title="Couldn’t load fleet controls" query={catalog} />
@@ -249,19 +256,24 @@ function percent(target: FleetJob["targets"][number]): number | null {
               {#if allowed.some((entry) => entry.action === item)}
                 <a class="card opc" href={fleetHref(item)} aria-label={fleetActionLabel[item]} aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span></a>
               {:else}
-                <div class="card opc off"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span>{blurb[item]}</span><span class="pill">Not available</span></div>
+                <a class="card opc off" href={fleetHref(item)} aria-label="{fleetActionLabel[item]}: turned off" aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span><span class="pill">Turned off</span><span class="a">How to turn it on</span></a>
               {/if}
             {/each}
           </div>
         </section>
       {/each}
-      {#if !allowed.length}<p class="meta">The inventory allows no actions from this dashboard.</p>{/if}
+      {#if !allowed.length}<p class="meta">Every operation is turned off for this dashboard. Operations are turned on in the fleet inventory. <a class="a" href={fleetDocs} target="_blank" rel="noreferrer">How to turn them on</a></p>{/if}
     </div>
     <div class="sec">{@render activity()}</div>
   </div>
 {:else if catalog.data && action}
   {#if !current}
-    <div class="card cream"><h1 class="h2">Not available</h1><p class="meta" style:margin-top="6px">This dashboard's inventory does not allow that action.</p></div>
+    {@const Off = icons[action as FleetAction] ?? ListChecks}
+    <div class="dh"><span class="ico lg fleet"><Off size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[action as FleetAction] ?? action}</h1><p class="meta">turned off</p></div></div>
+    <div class="card cream stack-s">
+      <p><strong>This operation is turned off for this dashboard.</strong></p>
+      {@render turnOn(action)}
+    </div>
   {:else}
     {@const Icon = icons[current.action]}
     <div class="dh"><span class="ico lg fleet"><Icon size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>

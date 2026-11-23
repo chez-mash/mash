@@ -10,6 +10,7 @@ import {
 } from "../lib/services.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 import ServiceRows from "./ServiceRows.svelte";
+import SetupLink from "./SetupLink.svelte";
 
 // What a machine's own dashboard reports: its agents' setup and its services.
 let { machineId }: { machineId: string } = $props();
@@ -22,7 +23,7 @@ const issues = $derived(problems(machine ? [machine] : []));
 
 {#if machine?.reachable}
   <section class="sec">
-    <h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>
+    <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2><SetupLink {machineId} /></div>
     <div class="rws agentset solo">
       <div class="rw head" aria-hidden="true"><span>agent</span><span>parts</span><span>status</span></div>
       <MachineSetup {machineId} {enabled} showMachine={false} />

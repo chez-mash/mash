@@ -143,3 +143,34 @@ for (const width of [390, 1280]) {
     expect(await fitsViewport(page)).toBe(true);
   });
 }
+
+test("an operation that is turned off says why and how to turn it on", async ({ page }) => {
+  await page.route("**/api/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/api/services/access")
+      return route.fulfill({ json: { authentication_required: false, local_node: "xenia" } });
+    if (path === "/api/services") return route.fulfill({ json: { machines: [] } });
+    if (path === "/api/services/fleet")
+      return route.fulfill({
+        json: {
+          enabled: true,
+          revision: "revision-one",
+          actions: [{ action: "status", targets: ["xenia"] }],
+          services: [],
+        },
+      });
+    if (path === "/api/services/fleet/jobs") return route.fulfill({ json: [] });
+    return route.fulfill({ json: [] });
+  });
+  await page.goto("/#/fleet");
+  const off = page.getByRole("link", { name: "Rebuild shared search: turned off" });
+  await expect(off).toContainText("Turned off");
+  await off.click();
+  await expect(page).toHaveURL(/#\/fleet\/replay-views$/);
+  await expect(page.getByRole("heading", { name: "Rebuild shared search" })).toBeVisible();
+  await expect(page.getByText(/add "replay-views" to allow_actions/)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Read how to run fleet operations" }),
+  ).toHaveAttribute("href", "https://getmash.io/services/#run-fleet-operations");
+  await expect(page.getByText("does not allow that action")).toHaveCount(0);
+});

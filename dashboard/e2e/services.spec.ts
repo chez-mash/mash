@@ -240,3 +240,111 @@ for (const width of [390, 1440]) {
     expect(errors).toEqual([]);
   });
 }
+
+for (const width of [390, 1440]) {
+  test(`one machine's services read on a phone and name every part at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const present = (component: string) => ({
+      component,
+      state: "present",
+      message: `${component} found`,
+      remediation: null,
+    });
+    await page.route("**/api/**", (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path === "/api/services/access")
+        return route.fulfill({ json: { authentication_required: false, local_node: "xenia" } });
+      if (path === "/api/services/settings")
+        return route.fulfill({
+          json: {
+            path: "/fixture/config.toml",
+            revision: "r1",
+            editable: true,
+            agents: {},
+            since_days: null,
+            destination: "local",
+            shared: false,
+            memory_capture: false,
+            hide_credentials: { output: true, publication: true },
+          },
+        });
+      if (path === "/api/services")
+        return route.fulfill({
+          json: {
+            machines: [
+              {
+                id: "xenia",
+                platform: "linux",
+                checked_at: 1794140000,
+                reachable: true,
+                warnings: [],
+                services: [
+                  {
+                    id: "sqlite",
+                    name: "SQLite index",
+                    kind: "sqlite",
+                    state: "healthy",
+                    summary: "Readable · compatible",
+                    actions: [],
+                    control_revision: "r",
+                    checked_at: 1794140000,
+                    pid: null,
+                    diagnostics: [],
+                    logs_available: false,
+                    compatibility: null,
+                    control_note: "SQLite is a file, not a process.",
+                  },
+                ],
+              },
+            ],
+          },
+        });
+      if (path === "/api/services/installation")
+        return route.fulfill({
+          json: {
+            build: "0123456789abcdef",
+            agents: [
+              {
+                agent: "claude-code",
+                expected: true,
+                connected: true,
+                steps: ["mcp", "plugin", "skill"].map(present),
+              },
+            ],
+          },
+        });
+      return route.fulfill({ json: [] });
+    });
+    await page.goto("/#/services?machine=xenia");
+    const row = page.getByRole("link", { name: "xenia: all services healthy" });
+    // Every column stays readable at phone width: on a phone each cell names
+    // its service, because the header row is hidden.
+    for (const label of ["index", "search", "API", "watcher", "MCP", "dash"])
+      if (width === 390) await expect(row.getByText(label, { exact: true })).toBeVisible();
+      else await expect(row.getByText(label, { exact: true })).toBeHidden();
+    expect(await fitsViewport(page)).toBe(true);
+    expect(
+      await page.locator(".matrix").evaluate((node) => node.scrollWidth <= node.clientWidth),
+    ).toBe(true);
+    // With one machine there is nothing wider to go back to.
+    await expect(page.getByRole("link", { name: "Show every machine" })).toHaveCount(0);
+    const setup = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: "agent setup", exact: true }) });
+    for (const part of ["Connection", "Plugin", "Skill"])
+      await expect(setup.locator("summary").getByText(part, { exact: true })).toBeVisible();
+    await expect(setup.getByRole("link", { name: "Connect an agent" })).toHaveAttribute(
+      "href",
+      "#/setup",
+    );
+    // A service with nothing to control says so instead of an empty panel.
+    await page.getByRole("link", { name: /SQLite index/ }).click();
+    await expect(page.getByText("No actions are available for this service here.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "How to turn on service controls" })).toHaveCount(
+      0,
+    );
+    await expect(page.getByRole("heading", { name: "diagnostics", exact: true })).toBeVisible();
+  });
+}

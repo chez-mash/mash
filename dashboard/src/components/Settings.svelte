@@ -1,6 +1,7 @@
 <script lang="ts">
 import Bot from "@lucide/svelte/icons/bot";
 import Check from "@lucide/svelte/icons/check";
+import Copy from "@lucide/svelte/icons/copy";
 import Database from "@lucide/svelte/icons/database";
 import Eye from "@lucide/svelte/icons/eye";
 import Lock from "@lucide/svelte/icons/lock";
@@ -29,6 +30,7 @@ import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
+import Wrapped from "./Wrapped.svelte";
 
 // Settings a person has a reason to change are controls; the rest of the
 // configuration is shown as it is. Nothing is written until the reader
@@ -40,6 +42,17 @@ const assistant = createQuery(() => assistantOptions);
 const settings = createQuery(() => settingsOptions);
 const config = $derived(status.data?.configuration);
 const file = $derived(settings.data);
+// The file to edit for anything the page does not change, with a way to copy it.
+const path = $derived(file?.path ?? config?.path ?? "");
+let copied = $state(false);
+async function copyConfigPath(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(path);
+    copied = true;
+  } catch {
+    copied = false;
+  }
+}
 const modelLabels = {
   "not-required": "not needed for word search",
   available: "available",
@@ -125,7 +138,10 @@ async function save(): Promise<void> {
 </script>
 
 {#snippet row(name: string, value: string)}
-  <dt>{name}</dt><dd>{value}</dd>
+  <dt>{name}</dt><dd><Wrapped {value} /></dd>
+{/snippet}
+{#snippet copyPath()}
+  {#if path}<button class="btn sm" type="button" onclick={copyConfigPath}>{#if copied}<Check size={13} aria-hidden="true" />Copied{:else}<Copy size={13} aria-hidden="true" />Copy path{/if}</button>{/if}
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>
@@ -161,7 +177,7 @@ async function save(): Promise<void> {
 <div class="hd" style:align-items="flex-start">
   <div>
     <h1 class="h1">Settings</h1>
-    <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere"><span class="mono">{file?.path ?? config?.path ?? "Mash configuration"}</span> · <a class="a" href="https://getmash.io/dashboard-settings/" target="_blank" rel="noreferrer">Settings guide</a></p>
+    <p class="meta set-path" style:margin-top="6px"><span class="mono"><Wrapped value={path || "Mash configuration"} /></span> {@render copyPath()} <a class="a" href="https://getmash.io/dashboard-settings/" target="_blank" rel="noreferrer">Settings guide</a></p>
   </div>
   {#if status.data}
     <span class="pill" class:ok={status.data.ready} class:warn={!status.data.ready}>
@@ -170,7 +186,7 @@ async function save(): Promise<void> {
   {/if}
 </div>
 {#if file && !file.editable}
-  <p class="card tight">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file.</p>
+  <p class="card tight set-path">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file. {@render copyPath()} <a class="a" href="https://getmash.io/dashboard-settings/#if-settings-are-read-only" target="_blank" rel="noreferrer">Why settings are read-only</a></p>
 {:else if file}
   <p>These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
 {/if}
@@ -204,7 +220,7 @@ async function save(): Promise<void> {
             <div class="set-a" class:off={!on} class:changed={touched.has(`agent:${entry.agent}`)}>
               <AgentMark agent={entry.agent} />
               <span class="set-n">{agentInfo[entry.agent].name}</span>
-              <span class="set-p">{entry.roots.join(", ")}</span>
+              <span class="set-p"><Wrapped value={entry.roots.join(", ")} /></span>
               <span class="set-t">{@render changedPill(`agent:${entry.agent}`)}{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{:else}<span class="meta">{on ? "indexed" : "not indexed"}</span>{/if}</span>
             </div>
           {/each}
@@ -387,7 +403,7 @@ async function save(): Promise<void> {
       {/if}
     </section>
   </div>
-  <p class="meta">To change the search engine or storage settings, edit the configuration file.</p>
+  <p class="meta set-path">To change the search engine or storage settings, edit the configuration file. {@render copyPath()} <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>
 {/if}
 
 {#if file?.editable && (changed.length || saved || failure)}

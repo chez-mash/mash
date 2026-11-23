@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as wire from "./console";
-import { argumentsFor, headline, locked, sentences, summarize } from "./console";
+import { argumentsFor, headline, locked, sentences, spans, summarize } from "./console";
 import { trimmed } from "./trimmed";
 
 const parseAnswer = (body: unknown) => wire.parseAnswer(trimmed(body));
@@ -124,5 +124,40 @@ describe("console answers", () => {
     expect(
       summarize(parseAnswer({ failed: true, reply: null, text: "plain refusal\nmore" })).heading,
     ).toBe("plain refusal");
+  });
+});
+
+describe("spans", () => {
+  const coded = (text: string) =>
+    spans(text)
+      .filter((span) => span.code)
+      .map((span) => span.text);
+
+  it("sets names, assignments and dotted fields in code type", () => {
+    expect(
+      coded(
+        "Results default to chats; drill down with unit=messages and chat=[returned chat IDs]. Copy lookup.view into view.",
+      ),
+    ).toEqual(["unit=messages", "chat=[returned chat IDs]", "lookup.view"]);
+    expect(
+      coded(
+        "Repeat with offset=next_offset; null next_offset is the last page. Sort with sort=recent.",
+      ),
+    ).toEqual(["offset=next_offset", "next_offset", "sort=recent"]);
+  });
+
+  it("drops the backticks around a quoted name", () => {
+    expect(spans("Use `list_chats` first.")).toEqual([
+      { text: "Use ", code: false },
+      { text: "list_chats", code: true },
+      { text: " first.", code: false },
+    ]);
+  });
+
+  it("leaves ordinary prose alone", () => {
+    expect(coded("Use related-discussion for semantic questions, e.g. design history.")).toEqual(
+      [],
+    );
+    expect(spans("Find past chats.")).toEqual([{ text: "Find past chats.", code: false }]);
   });
 });

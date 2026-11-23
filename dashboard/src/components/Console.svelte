@@ -11,12 +11,15 @@ import { read } from "../lib/api";
 import {
   type Answer,
   argumentsFor,
+  foldAfter,
   groupOrder,
   headline,
   locked,
+  type Param,
   parseAnswer,
   parseConsole,
   sentences,
+  spans,
   summarize,
   type Tool,
 } from "../lib/console";
@@ -35,8 +38,10 @@ const listing = createQuery(() => ({
     parseConsole(await read("/api/console/tools", new URLSearchParams(), signal)),
 }));
 let filter = $state("");
-// The first reader opens by default, so the page shows what running a tool looks like.
-let open = $state("search");
+// Every tool starts folded, so the page first reads as a list of what exists.
+let open = $state("");
+// Whether a tool's optional parameters are unfolded, by tool name.
+let more = $state<Record<string, boolean>>({});
 let values = $state<Record<string, string>>({});
 type Outcome =
   | { readonly state: "idle" }
@@ -108,11 +113,40 @@ async function copy(text: string, what: string): Promise<void> {
     notice = "Copy failed. Select the text to copy it.";
   }
 }
+/** The parameters shown at once, and the optional ones folded away when
+ * there are too many to scan: a required parameter is never folded. */
+function fields(tool: Tool): { always: readonly Param[]; extra: readonly Param[] } {
+  const optional = tool.params.filter((param) => !param.required);
+  return optional.length > foldAfter
+    ? { always: tool.params.filter((param) => param.required), extra: optional }
+    : { always: tool.params, extra: [] };
+}
 function size(bytes: number): string {
   return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(bytes < 10_240 ? 1 : 0)} KB`;
 }
 $effect(() => () => controller?.abort());
 </script>
+
+{#snippet prose(text: string)}{#each spans(text) as span, index (index)}{#if span.code}<code>{span.text}</code>{:else}{span.text}{/if}{/each}{/snippet}
+{#snippet field(entry: Tool, param: Param)}
+{@const key = `${entry.name}.${param.name}`}
+<label class="prm" class:bad={request && !request.ok && request.param === param.name && outcome.state !== "idle"}>
+  <span class="prm-n"><code>{param.name}</code><small>{param.type}</small>{#if param.required}<b class="pill">required</b>{/if}</span>
+  <span class="prm-a">{@render prose(param.about)}{#if param.fallback}{" "}<small>Default {param.fallback}.</small>{/if}</span>
+  {#if !entry.readOnly}<span hidden></span>
+  {:else if param.kind === "enum" || param.kind === "boolean"}
+    <span class="prm-sel">
+      <select class="prm-i" class:unset={!values[key]} bind:value={values[key]}>
+        <option value="">{param.required ? "choose…" : "not set"}</option>
+        {#each param.kind === "boolean" ? ["true", "false"] : param.choices as choice (choice)}<option value={choice}>{choice}</option>{/each}
+      </select>
+      <ChevronDown size={15} aria-hidden="true" />
+    </span>
+  {:else}
+    <input class="prm-i" class:short={param.kind === "integer"} autocomplete="off" autocapitalize="off" spellcheck="false" inputmode={param.kind === "integer" ? "numeric" : undefined} placeholder={param.kind === "json" ? "JSON" : param.required ? "" : "not set"} bind:value={values[key]} />
+  {/if}
+</label>
+{/snippet}
 
 <div class="hd" style:align-items="flex-start">
   <div style:min-width="0">
@@ -148,31 +182,25 @@ $effect(() => () => controller?.abort());
           {#if expanded}
             <form class="op-b" onsubmit={run}>
               {#if sentences(entry.about).length > 1}
-                <ul class="op-d">{#each sentences(entry.about).slice(1) as point, index (index)}<li>{point}</li>{/each}</ul>
+                {@const notes = sentences(entry.about).slice(1)}
+                <details class="disclose op-notes">
+                  <summary class="a">How agents use it ({notes.length} note{notes.length === 1 ? "" : "s"})</summary>
+                  <ul class="op-d">{#each notes as point, index (index)}<li>{@render prose(point)}</li>{/each}</ul>
+                </details>
               {/if}
               {#if !entry.readOnly}<p class="meta">This tool changes data, so it can be run by an agent or from the command line, not from the dashboard. Its parameters are listed for reference.</p>{/if}
               <div class="op-cols" class:solo={!entry.readOnly}>
               <div class="op-in">
                 <h3 class="eyebrow">Parameters</h3>
                 {#if !entry.params.length}<p class="meta">This tool takes no parameters.</p>{/if}
-                <div class="prms">
-                  {#each entry.params as param (param.name)}
-                    {@const key = `${entry.name}.${param.name}`}
-                    <label class="prm" class:bad={request && !request.ok && request.param === param.name && outcome.state !== "idle"}>
-                      <span class="prm-n"><code>{param.name}</code><small>{param.type}</small>{#if param.required}<b class="pill">required</b>{/if}</span>
-                      <span class="prm-a">{param.about}{#if param.fallback} <small>Default {param.fallback}.</small>{/if}</span>
-                      {#if !entry.readOnly}<span hidden></span>
-                      {:else if param.kind === "enum" || param.kind === "boolean"}
-                        <select class="prm-i" bind:value={values[key]}>
-                          <option value="">{param.required ? "choose…" : "not set"}</option>
-                          {#each param.kind === "boolean" ? ["true", "false"] : param.choices as choice (choice)}<option value={choice}>{choice}</option>{/each}
-                        </select>
-                      {:else}
-                        <input class="prm-i" class:short={param.kind === "integer"} autocomplete="off" autocapitalize="off" spellcheck="false" inputmode={param.kind === "integer" ? "numeric" : undefined} placeholder={param.kind === "json" ? "JSON" : param.required ? "" : "not set"} bind:value={values[key]} />
-                      {/if}
-                    </label>
-                  {/each}
-                </div>
+                {#if fields(entry).always.length}<div class="prms">{#each fields(entry).always as param (param.name)}{@render field(entry, param)}{/each}</div>{/if}
+                {#if fields(entry).extra.length}
+                  {@const { always, extra } = fields(entry)}
+                  <details class="disclose" bind:open={more[entry.name]}>
+                    <summary class="a">{more[entry.name] ? "Fewer options" : `${extra.length} ${always.length ? "more " : ""}options`}</summary>
+                    <div class="prms">{#each extra as param (param.name)}{@render field(entry, param)}{/each}</div>
+                  </details>
+                {/if}
                 {#if entry.readOnly}
                   <div class="op-r">
                     <button class="btn p" type="submit" disabled={outcome.state === "running" || !request?.ok}><Play size={15} aria-hidden="true" />{outcome.state === "running" ? "Running…" : "Run"}</button>

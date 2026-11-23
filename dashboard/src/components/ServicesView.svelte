@@ -37,6 +37,7 @@ import MachineSetup from "./MachineSetup.svelte";
 import QueryError from "./QueryError.svelte";
 import ServiceRows, { kindIcon } from "./ServiceRows.svelte";
 import ServiceStatus from "./ServiceStatus.svelte";
+import SetupLink from "./SetupLink.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 let { params }: { params: string } = $props();
@@ -149,6 +150,9 @@ const actionLabel: Record<ServiceAction | "reinstall_plugin", string> = {
   reinstall_plugin: "Reinstall plugin",
 };
 const actionIcon = { start: Play, stop: Square, restart: RotateCw } as const;
+// Kinds a supervisor runs: the services page can control them once the
+// services configuration allows it. A file or the page's own process cannot be.
+const supervised: readonly Service["kind"][] = ["watcher", "qdrant", "server"];
 function consequences({ service, action }: Target): string {
   if (action === "start") return "";
   return service.kind === "watcher"
@@ -225,11 +229,14 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
     {#if compatibility && (compatibility.blocked || compatibility.next_step)}
       <section class="card butter" aria-label="Schema compatibility"><h2 class="h2">Schema compatibility</h2><p style:margin-top="6px">{compatibility.blocked}</p><p style:margin-top="6px"><strong>Next step.</strong> <span>{compatibility.next_step}</span></p></section>
     {/if}
+    {@const controllable = service.actions.length > 0 || service.logs_available}
     <section class="sec">
       <h2 class="h2"><Server size={15} aria-hidden="true" />manage</h2>
-      <div class="card stack-s">
+      <div class="card stack-s" class:cream={!controllable}>
+        {#if !controllable}<p><strong>No actions are available for this service here.</strong></p>{/if}
         {#if issue}<p><span class="warn">Needs attention.</span> {issue.fix}</p>{/if}
         <p>{service.control_note}</p>
+        {#if !controllable && supervised.includes(service.kind)}<p><a class="a" href="https://getmash.io/services/#enable-service-access" target="_blank" rel="noreferrer">How to turn on service controls</a></p>{/if}
         {#if service.actions.length || service.logs_available}
           <div class="chips" style:gap="8px">
             {#each service.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={issue?.actions.includes(action)} type="button" disabled={blocked || !machine.reachable} onclick={() => (confirm = { machine, service, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
@@ -245,7 +252,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       </div>
     </section>
     <section class="sec">
-      <h2 class="h2"><Info size={15} aria-hidden="true" />Diagnostics</h2>
+      <h2 class="h2"><Info size={15} aria-hidden="true" />diagnostics</h2>
       <div class="card">
         {#if service.diagnostics.length}
           <dl class="kvs wide">{#each service.diagnostics as item (item.label)}<dt>{item.label}</dt><dd>{item.value}</dd>{/each}</dl>
@@ -264,16 +271,16 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
           <span class="mx-n"><i class="dot" class:warn={state !== "healthy"}></i><span>{item.id}</span></span>
           {#each columns as column (column.kind)}
             {@const status = item.reachable ? cell(item.services, column.kind) : "unknown"}
-            {#if status === null}<span class="cell none">–</span>
-            {:else if status === "healthy"}<span class="cell"><span class="check on"><Check aria-label="healthy" /></span></span>
-            {:else if status === "reconnect" || status === "off"}<span class="cell none">{status}</span>
-            {:else}<span class="cell" title={status}><span class="check warn"><TriangleAlert aria-label={status} /></span></span>{/if}
+            {#if status === null}<span class="cell none"><span class="cell-l">{column.label}</span>–</span>
+            {:else if status === "healthy"}<span class="cell"><span class="cell-l">{column.label}</span><span class="check on"><Check aria-label="healthy" /></span></span>
+            {:else if status === "reconnect" || status === "off"}<span class="cell none"><span class="cell-l">{column.label}</span>{status}</span>
+            {:else}<span class="cell" title={status}><span class="cell-l">{column.label}</span><span class="check warn"><TriangleAlert aria-label={status} /></span></span>{/if}
           {/each}
         </a>
       {/each}
     </div>
   </div>
-  {#if machineId && machine}<p class="meta"><a class="a" href={servicesHref()}>Show every machine</a></p>{/if}
+  {#if machineId && machine && fleet.data.length > 1}<p class="meta"><a class="a" href={servicesHref()}>Show every machine</a></p>{/if}
   <div class="cols c32">
     <div class="c-main stack">
       {#each shown as machine (machine.id)}
@@ -312,7 +319,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       </section>
       {#if shown.some((machine) => machine.reachable)}
         <section class="sec">
-          <h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>
+          <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
           <div class="rws agentset" class:solo={shown.length < 2}>
             <div class="rw head" aria-hidden="true"><span>agent</span>{#if shown.length > 1}<span>machine</span>{/if}<span>parts</span><span>status</span></div>
             {#each shown.filter((machine) => machine.reachable) as machine (machine.id)}<MachineSetup machineId={machine.id} {enabled} showMachine={shown.length > 1} />{/each}
