@@ -251,6 +251,7 @@ async fn run(state: &Dash, choice: Choice) -> Result<Done, AppError> {
         plan: Some(InitPlan { choices, previous }),
         selected_agents: connect.then_some(choice.connect),
         backfill_memory: None,
+        agent_path: None,
     };
     let response = core::execute(Request {
         paths: state.paths.clone(),

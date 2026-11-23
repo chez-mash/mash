@@ -11,7 +11,9 @@ const present = (component: string) => ({
   message: `${component} found`,
   remediation: null,
 });
-function installation(fixed: boolean) {
+const oldBuild = "0123456789abcdef";
+const newBuild = "fedcba9876543210";
+function installation(fixed: boolean, build: string) {
   const plugin = fixed
     ? present("plugin")
     : {
@@ -22,7 +24,7 @@ function installation(fixed: boolean) {
         remediation: "Update the Mash plugin through your agent, then restart it.",
       };
   return {
-    build: "0123456789abcdef",
+    build,
     agents: [
       {
         agent: "claude-code",
@@ -36,9 +38,11 @@ function installation(fixed: boolean) {
 
 interface Mock {
   fleet: boolean;
+  /** Whether a deploy restarts the machine's dashboard on the new build. */
+  restarts?: boolean;
   reinstall: "succeeded" | "refused";
 }
-async function mock(page: Page, { fleet, reinstall }: Mock) {
+async function mock(page: Page, { fleet, restarts = false, reinstall }: Mock) {
   const seen = { deploys: [] as unknown[], reinstalls: [] as unknown[] };
   let fixed = false;
   let deployed = false;
@@ -66,7 +70,9 @@ async function mock(page: Page, { fleet, reinstall }: Mock) {
         });
       case "/api/services/installation":
         expect(url.searchParams.get("machine")).toBe("macbook");
-        return route.fulfill({ json: installation(fixed) });
+        return route.fulfill({
+          json: installation(fixed, deployed && restarts ? newBuild : oldBuild),
+        });
       case "/api/services/fleet":
         return route.fulfill({
           json: fleet
@@ -75,8 +81,15 @@ async function mock(page: Page, { fleet, reinstall }: Mock) {
                 revision: "rev-1",
                 actions: [{ action: "deploy", targets: ["macbook"] }],
                 services: [],
+                dashboard_restarts: restarts ? ["macbook"] : [],
               }
-            : { enabled: false, revision: null, actions: [], services: [] },
+            : {
+                enabled: false,
+                revision: null,
+                actions: [],
+                services: [],
+                dashboard_restarts: [],
+              },
         });
       case "/api/services/fleet/jobs": {
         if (request.method() === "POST") {
@@ -126,7 +139,7 @@ async function mock(page: Page, { fleet, reinstall }: Mock) {
             requested_at: 2,
             completed_at: null,
             outcome: "pending",
-            message: "Reinstalling the plugin with `mash init --yes --no-index`.",
+            message: "Reinstalling the plugin, as `mash init --yes --no-index` does.",
           },
         });
       }
@@ -158,7 +171,7 @@ for (const width of [390, 1280]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    const seen = await mock(page, { fleet: true, reinstall: "succeeded" });
+    const seen = await mock(page, { fleet: true, restarts: true, reinstall: "succeeded" });
     await page.goto("/#/services?machine=macbook");
     const fix = page.getByRole("group", { name: "Fix the plugin on macbook" });
     await expect(fix).toBeVisible();
@@ -171,6 +184,7 @@ for (const width of [390, 1280]) {
     // Deploying is heavy, so it is confirmed first.
     const confirm = fix.getByRole("group", { name: "Confirm plugin fix" });
     await expect(confirm).toContainText("Deploy Mash to macbook, then reinstall the plugin there?");
+    await expect(confirm).toContainText("Its dashboard restarts on the new release.");
     expect(seen.deploys).toHaveLength(0);
     await confirm.getByRole("button", { name: "Update and reinstall" }).click();
     await expect(fix.getByText("Plugin reinstalled on macbook.")).toBeVisible({ timeout: 15_000 });
@@ -183,7 +197,8 @@ for (const width of [390, 1280]) {
         machine: "macbook",
         service: "agent-plugins",
         action: "reinstall_plugin",
-        control_revision: "0123456789abcdef",
+        // Confirmed against the build the restarted dashboard runs.
+        control_revision: newBuild,
       }),
     ]);
     await page.screenshot({ path: `test-results/plugin-repair-done-${width}.png`, fullPage: true });
@@ -211,4 +226,21 @@ test("without fleet access the button only reinstalls, and a refusal opens the m
   expect(seen.deploys).toHaveLength(0);
   expect(seen.reinstalls).toHaveLength(1);
   await expect(page.getByRole("button", { name: "Copy the command" })).toBeVisible();
+});
+
+test("a deploy that leaves the dashboard running says to restart it when the reinstall is refused", async ({
+  page,
+}) => {
+  const seen = await mock(page, { fleet: true, reinstall: "refused" });
+  await page.goto("/#/services?machine=macbook");
+  const fix = page.getByRole("group", { name: "Fix the plugin on macbook" });
+  await fix.getByRole("button", { name: "Update Mash and the plugin" }).click();
+  const confirm = fix.getByRole("group", { name: "Confirm plugin fix" });
+  await expect(confirm).not.toContainText("Its dashboard restarts");
+  await confirm.getByRole("button", { name: "Update and reinstall" }).click();
+  await expect(fix.getByRole("alert")).toContainText("still runs the release from before", {
+    timeout: 15_000,
+  });
+  await expect(fix.getByRole("alert")).not.toContainText("instead");
+  expect(seen.reinstalls).toEqual([expect.objectContaining({ control_revision: oldBuild })]);
 });

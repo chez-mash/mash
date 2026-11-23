@@ -335,8 +335,34 @@ pub(crate) async fn output(
     args: &[impl AsRef<std::ffi::OsStr>],
     limit: std::time::Duration,
 ) -> Result<std::process::Output, Failure> {
-    let program = program.as_ref();
-    let running = tokio::process::Command::new(program)
+    finish(
+        tokio::process::Command::new(program.as_ref()),
+        program.as_ref(),
+        args,
+        limit,
+    )
+    .await
+}
+
+/// [`output`], with `path` as the helper's PATH.
+pub(crate) async fn output_with_path(
+    program: impl AsRef<std::ffi::OsStr>,
+    args: &[impl AsRef<std::ffi::OsStr>],
+    limit: std::time::Duration,
+    path: &std::ffi::OsStr,
+) -> Result<std::process::Output, Failure> {
+    let mut command = tokio::process::Command::new(program.as_ref());
+    command.env("PATH", path);
+    finish(command, program.as_ref(), args, limit).await
+}
+
+async fn finish(
+    mut command: tokio::process::Command,
+    program: &std::ffi::OsStr,
+    args: &[impl AsRef<std::ffi::OsStr>],
+    limit: std::time::Duration,
+) -> Result<std::process::Output, Failure> {
+    let running = command
         .args(args)
         .stdin(std::process::Stdio::null())
         .kill_on_drop(true)

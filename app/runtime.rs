@@ -86,6 +86,33 @@ fn executable() -> Result<(PathBuf, Identity), AppError> {
     Ok((path, running_identity))
 }
 
+/// The executable a long-lived process started from, kept so it can tell
+/// later whether a deploy replaced the file at that path. A process running a
+/// replaced executable still runs the old release, so work that must speak
+/// for the installed release (registering it with an agent, judging its
+/// plugin) is refused until the process restarts.
+pub struct StartedExecutable(Option<(PathBuf, Identity)>);
+
+impl StartedExecutable {
+    #[must_use]
+    pub fn now() -> Self {
+        Self(
+            std::env::current_exe()
+                .ok()
+                .and_then(|path| identity(&path).ok().map(|found| (path, found))),
+        )
+    }
+
+    /// Whether the file this process started from is gone or another one.
+    /// A start that could not be identified is not reported as replaced.
+    #[must_use]
+    pub fn replaced(&self) -> bool {
+        self.0
+            .as_ref()
+            .is_some_and(|(path, started)| identity(path).ok().as_ref() != Some(started))
+    }
+}
+
 fn directory(paths: &Paths) -> Result<PathBuf, AppError> {
     let database = paths
         .db

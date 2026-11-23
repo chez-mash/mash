@@ -46,12 +46,15 @@ async fn dashboard_catalog_preserves_copies_and_partial_failure() {
     assert_eq!(response.chats[1].node_id, "laptop");
     assert!(!response.truncated);
     assert!(response.shared_error.is_none());
+    assert!(!response.shared_only);
     // A machine without history of its own lists the shared index alone and
     // never opens a local database.
     let missing = directory.path().join("no-such-database.sqlite3");
     let shared = dashboard(&config, &missing, true).await.unwrap();
     assert_eq!(shared.chats.len(), 1);
     assert_eq!(shared.chats[0].node_id, "peer");
+    // It says so, so the dashboard names no machine as "this machine".
+    assert!(shared.shared_only);
     assert!(!missing.exists());
     server.abort();
     let _ = server.await;

@@ -308,9 +308,11 @@ fn fleet_projection_shares_watcher_identity_and_limits_peer_credentials() {
         peer.token_env.as_deref(),
         Some("MASH_MACBOOK_SERVICES_TOKEN")
     );
-    assert_eq!(peer.services[0].unit, "dev.mash.index-watch");
+    // Its declared dashboard comes first, then the fleet-owned watcher.
+    assert_eq!(peer.services[0].unit, "dev.mash.dash");
+    assert_eq!(peer.services[1].unit, "dev.mash.index-watch");
     assert_eq!(
-        peer.services[0].plist.as_deref(),
+        peer.services[1].plist.as_deref(),
         Some(Path::new(&host(
             "/Users/operator/Library/LaunchAgents/dev.mash.index-watch.plist"
         )))

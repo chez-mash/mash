@@ -1,4 +1,5 @@
 //! Project the private fleet inventory into Ansible's existing host variables.
+use crate::dashboard::{Restart, restarted_by_deploy};
 use crate::inventory::{Commands, Inventory, Machine, Platform, ServerDeployment, Transport};
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -57,6 +58,9 @@ struct Host<'a> {
     mash_watch_launcher: Option<&'a Path>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mash_watch_home: Option<&'a Path>,
+    /// The dashboard a deploy restarts after installing; see [`crate::dashboard`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mash_dashboard_restart: Option<Restart<'a>>,
 }
 
 impl<'a> From<&'a Machine> for Host<'a> {
@@ -103,6 +107,7 @@ impl<'a> From<&'a Machine> for Host<'a> {
                 .watcher
                 .as_ref()
                 .map(|watcher| watcher.home.as_path()),
+            mash_dashboard_restart: None,
         }
     }
 }
@@ -123,6 +128,7 @@ impl<'a> Host<'a> {
             mash_watch_enabled: false,
             mash_watch_launcher: None,
             mash_watch_home: None,
+            mash_dashboard_restart: None,
             ..Self::from(machine)
         }
     }
@@ -143,9 +149,14 @@ pub fn encode<'a>(inventory: &'a Inventory) -> Result<Vec<u8>, String> {
         children.entry(group).or_default().hosts.insert(id, host);
     };
     for machine in inventory.machines.iter().filter(|machine| machine.history) {
-        add("mash_history", &machine.id, Host::from(machine));
+        // A machine in two groups carries the same variables in both.
+        let history = || Host {
+            mash_dashboard_restart: restarted_by_deploy(inventory, machine),
+            ..Host::from(machine)
+        };
+        add("mash_history", &machine.id, history());
         if machine.platform == Platform::Darwin {
-            add("mash_darwin", &machine.id, Host::from(machine));
+            add("mash_darwin", &machine.id, history());
         }
     }
     for (machine, service, deployment) in inventory.servers() {

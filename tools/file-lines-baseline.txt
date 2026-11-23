@@ -9,7 +9,7 @@
 605 app/core/output/text.rs
 706 app/core/qdrant.rs
 648 app/core/search.rs
-641 app/core/setup.rs
+604 app/core/setup.rs
 572 app/core/uninstall.rs
 784 app/remote.rs
 715 cli/cli.rs

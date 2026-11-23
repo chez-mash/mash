@@ -1,0 +1,66 @@
+# Start the machine's running dashboard again on the release just installed.
+# Replacing the binary leaves a running dashboard on its old build, which
+# cannot answer for the new release until it restarts. Only a dashboard the
+# inventory declares controllable gets here (see mash-fleet's dashboard
+# module), and only one that is running: a stopped dashboard stays stopped.
+# A failure leaves the verified installation in place; the dashboard then
+# still reports its old build, which is what the person is shown.
+- name: Restart the dashboard through systemd
+  when: mash_dashboard_restart.manager in ['systemd_user', 'systemd_system']
+  vars:
+    mash_systemctl: "{{ ['systemctl'] + (['--user'] if mash_dashboard_restart.manager == 'systemd_user' else []) }}"
+  block:
+    - name: Read whether the dashboard is running
+      ansible.builtin.command:
+        argv: "{{ mash_systemctl + ['is-active', mash_dashboard_restart.unit] }}"
+      register: mash_dashboard_before
+      changed_when: false
+      failed_when: false
+    - name: Restart the running dashboard
+      ansible.builtin.command:
+        argv: "{{ mash_systemctl + ['restart', mash_dashboard_restart.unit] }}"
+      when: mash_dashboard_before.stdout | trim == 'active'
+      register: mash_dashboard_restarted
+      failed_when: false
+    - name: Wait for the dashboard to run again
+      ansible.builtin.command:
+        argv: "{{ mash_systemctl + ['is-active', mash_dashboard_restart.unit] }}"
+      when: mash_dashboard_restarted.rc | default(1) == 0
+      register: mash_dashboard_after
+      changed_when: false
+      failed_when: false
+      until: mash_dashboard_after.stdout | trim == 'active'
+      retries: 10
+      delay: 2
+
+- name: Restart the dashboard through launchd
+  when: mash_dashboard_restart.manager == 'launchd'
+  block:
+    - name: Read the account's user ID
+      ansible.builtin.command:
+        argv: [id, -u]
+      register: mash_dashboard_uid
+      changed_when: false
+    - name: Read whether the dashboard is running
+      ansible.builtin.command:
+        argv: [launchctl, print, "gui/{{ mash_dashboard_uid.stdout | trim }}/{{ mash_dashboard_restart.unit }}"]
+      register: mash_dashboard_before
+      changed_when: false
+      failed_when: false
+    # kickstart -k is the restart the services page uses for a launchd target.
+    - name: Restart the running dashboard
+      ansible.builtin.command:
+        argv: [launchctl, kickstart, -k, "gui/{{ mash_dashboard_uid.stdout | trim }}/{{ mash_dashboard_restart.unit }}"]
+      when: "'state = running' in mash_dashboard_before.stdout"
+      register: mash_dashboard_restarted
+      failed_when: false
+    - name: Wait for the dashboard to run again
+      ansible.builtin.command:
+        argv: [launchctl, print, "gui/{{ mash_dashboard_uid.stdout | trim }}/{{ mash_dashboard_restart.unit }}"]
+      when: mash_dashboard_restarted.rc | default(1) == 0
+      register: mash_dashboard_after
+      changed_when: false
+      failed_when: false
+      until: "'state = running' in mash_dashboard_after.stdout"
+      retries: 10
+      delay: 2

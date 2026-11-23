@@ -264,6 +264,11 @@ export function setupOptions(machine: string, enabled: boolean) {
   });
 }
 
+/** The build a machine's dashboard runs, read fresh from its setup check. */
+export async function setupBuild(machine: string, signal: AbortSignal): Promise<string> {
+  return parseSetup(await get("/api/services/installation", signal, { machine })).build;
+}
+
 export const serviceAccessOptions = queryOptions({
   ...stableRead,
   queryKey: ["service-access"],
@@ -436,7 +441,14 @@ export function parseFleetCatalog(row: Answer<"/api/services/fleet">) {
   const revision = row.revision ?? null;
   if (row.enabled && !revision) throw new Error("Fleet configuration revision is missing.");
   // `services` are targets that are a shared server on a machine; every other target is a machine.
-  return { enabled: row.enabled, revision, actions: row.actions, services: row.services };
+  return {
+    enabled: row.enabled,
+    revision,
+    actions: row.actions,
+    services: row.services,
+    // Machines whose dashboard a deploy restarts on the release it installs.
+    dashboardRestarts: row.dashboard_restarts,
+  };
 }
 export type FleetJob = ReturnType<typeof parseFleetJob>;
 export function parseFleetJob(row: Wire["Job"]) {

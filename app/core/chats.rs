@@ -74,6 +74,9 @@ pub struct DashboardCatalog {
     pub(crate) local_node: String,
     pub(crate) truncated: bool,
     pub(crate) shared_error: Option<String>,
+    /// This dashboard has no index of its own and reads only the shared one,
+    /// so nothing in it is "this machine's" except what the machine published.
+    pub(crate) shared_only: bool,
 }
 
 pub(super) async fn dashboard(
@@ -129,7 +132,13 @@ pub(super) async fn dashboard(
         Err(error) => Some(error.error.message),
     };
     let output = config.redaction.output();
-    crate::blocking(move || Ok(finish_dashboard(chats, local_node, shared_error, output))).await
+    let catalog =
+        crate::blocking(move || Ok(finish_dashboard(chats, local_node, shared_error, output)))
+            .await?;
+    Ok(DashboardCatalog {
+        shared_only,
+        ..catalog
+    })
 }
 
 fn finish_dashboard(
@@ -193,6 +202,7 @@ fn finish_dashboard(
         local_node,
         truncated,
         shared_error,
+        shared_only: false,
     }
 }
 

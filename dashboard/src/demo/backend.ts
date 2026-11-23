@@ -305,6 +305,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
     local_node: localMachine,
     truncated: false,
     shared_error: null,
+    shared_only: false,
     chats: chats.map((chat) => row(chat, now)),
   }),
   "/api/search": search,
@@ -367,6 +368,7 @@ function fleet(): Answer<"/api/services/fleet"> {
     revision: fleetRevision,
     actions: fleetActions.map((action) => ({ action, targets: fleetMachines })),
     services: [],
+    dashboard_restarts: [],
   };
 }
 function fleetJobs(_: URLSearchParams, now: number): Answer<"/api/services/fleet/jobs"> {

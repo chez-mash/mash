@@ -12,6 +12,7 @@ import {
   reinstallPlugin,
   serviceHistory,
   serviceRequestId,
+  setupBuild,
   submitFleetJob,
 } from "../lib/services.svelte";
 
@@ -42,6 +43,7 @@ const deployRevision = $derived(
     ? catalog.data.revision
     : null,
 );
+const restartsDashboard = $derived(!!catalog.data?.dashboardRestarts.includes(machineId));
 let confirming = $state(false);
 let stage = $state<RepairStage | null>(null);
 const controller = new AbortController();
@@ -60,12 +62,13 @@ async function run(): Promise<void> {
   confirming = false;
   onresult(undefined);
   const outcome = await repairPlugin(
-    { machine: machineId, deployRevision, build },
+    { machine: machineId, deployRevision, build, restartsDashboard },
     {
       submitFleetJob,
       fleetHistory,
       reinstall: reinstallPlugin,
       serviceHistory,
+      setupBuild,
       requestId: serviceRequestId,
       sleep,
     },
@@ -136,7 +139,7 @@ const busy = $derived(stage !== null);
         {#if stage?.stage === "updating" && stage.detail}<span class="meta rp-detail">{stage.detail}</span>{/if}
       </li>
     {/if}
-    <li><span>Reinstall the plugin there with <code>mash init --yes --no-index</code>. {@render mark(reinstallMark)}</span></li>
+    <li><span>Reinstall the plugin there, as <code>mash init --yes --no-index</code> does. {@render mark(reinstallMark)}</span></li>
     <li>
       <span class:rp-left={result?.ok}>Restart {agentName} on {machineId}. {#if result?.ok}<strong>This one is yours:</strong> {agentName} loads its plugins when it starts, so Mash cannot do it for you.{:else}You do this one: Mash cannot restart it.{/if}</span>
     </li>
@@ -148,11 +151,11 @@ const busy = $derived(stage !== null);
     <p class="ok rp-out" role="status"><Check size={16} aria-hidden="true" /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
     <div class="rp-acts"><button class="btn ghost sm" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check the plugin again"}</button></div>
   {:else if result}
-    <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} Use the steps by hand below instead.</span></p>
+    <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} You can also do it by hand: see the steps below.</span></p>
     <div class="rp-acts"><button class="btn sm" type="button" onclick={start}>Try again</button></div>
   {:else if confirming}
     <div class="card tight confirm rp-confirm" role="group" aria-label="Confirm plugin fix">
-      <span>Deploy Mash to {machineId}, then reinstall the plugin there? Deploying builds and installs Mash, and services there can be interrupted while it runs.</span>
+      <span>Deploy Mash to {machineId}, then reinstall the plugin there? Deploying builds and installs Mash, and services there can be interrupted while it runs.{#if restartsDashboard} Its dashboard restarts on the new release.{/if}</span>
       <button class="btn p" type="button" onclick={run}>Update and reinstall</button>
       <button class="btn" type="button" onclick={() => (confirming = false)}>Cancel</button>
     </div>

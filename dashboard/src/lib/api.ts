@@ -8,6 +8,8 @@ import type { Agent, ChatSummary, Message, SearchFilters, SearchHit } from "./ty
 export interface Catalog {
   readonly chats: readonly ChatSummary[];
   readonly localNode: string;
+  /** The dashboard reads only the shared index: no machine's history is local. */
+  readonly sharedOnly: boolean;
   readonly warnings: readonly string[];
 }
 export interface SearchPage {
@@ -83,6 +85,7 @@ export async function read<P extends ReadPath>(
 export function parseCatalog(body: Answer<"/api/chats">): Catalog {
   return {
     localNode: body.local_node,
+    sharedOnly: body.shared_only,
     chats: body.chats.map((row) => chat(row, body.local_node)),
     warnings: [
       ...(body.shared_error ? [`Shared history is unavailable: ${body.shared_error}`] : []),

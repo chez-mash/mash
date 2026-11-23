@@ -22,6 +22,8 @@ import {
   kindPill,
   kinds,
   label,
+  memorySourceLabel,
+  memorySources,
   recordPage,
   scopeLabel,
   scopeName,
@@ -59,25 +61,11 @@ const nodes = $derived([
     ...(initial.get("node") ? [initial.get("node") ?? ""] : []),
   ]),
 ]);
-// Where records are read from. This machine's own records are one choice,
-// named for the machine; the shared server's copies are the others. This
-// machine's published copy is left out of the list (unless a link chose it),
-// since it repeats this machine's records under a second name.
+// Where records are read from; see `memorySources` for who is "this machine".
 const localNode = $derived(catalogue.data?.localNode ?? "");
-const sources = $derived([
-  { value: "", label: localNode ? `this machine (${localNode})` : "this machine" },
-  { value: "shared", label: "all shared machines" },
-  ...nodes
-    .filter((node) => node !== localNode || source === `node:${node}`)
-    .map((node) => ({ value: `node:${node}`, label: `${node} (shared)` })),
-]);
-const sourceLabel = $derived(
-  source === ""
-    ? "this machine"
-    : source === "shared"
-      ? "all shared"
-      : `${source.slice(5)} (shared)`,
-);
+const sharedOnly = $derived(catalogue.data?.sharedOnly ?? false);
+const sources = $derived(memorySources(localNode, sharedOnly, nodes, source));
+const sourceLabel = $derived(memorySourceLabel(source, sharedOnly));
 const page = createQuery(() => ({
   ...stableRead,
   queryKey: ["records", params],

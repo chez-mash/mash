@@ -2,19 +2,21 @@
 //! register Mash with installed agents through their own CLIs, then index.
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use serde::Serialize;
 
 use super::installation::{Agent, Registration};
 use super::models::{IndexMode, IndexRequest, Operation, Paths, Response};
 use crate::AppError;
+mod agents;
 pub(super) mod backfill;
 mod terminal;
+pub(super) use agents::run;
+pub use agents::which;
+use agents::{display, step};
 
 /// The plugin marketplace that `init` adds to agents unless told otherwise.
 pub const MARKETPLACE: &str = "mashium/mash";
-const AGENT_TIMEOUT: Duration = Duration::from_secs(120);
 
 #[derive(Debug, Clone)]
 pub struct InitRequest {
@@ -27,6 +29,8 @@ pub struct InitRequest {
     pub plan: Option<InitPlan>,
     pub selected_agents: Option<Vec<super::installation::Agent>>,
     pub backfill_memory: Option<super::installation::Agent>,
+    /// Look for agent CLIs only on this PATH, not where a shell would (tests).
+    pub agent_path: Option<OsString>,
 }
 
 #[derive(Debug, Clone)]
@@ -343,17 +347,19 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
             }
         }
         command.push("mcp".into());
+        let selected = request.selected_agents.as_deref();
         register(
             &command,
             &request.marketplace,
-            request.selected_agents.as_deref(),
+            selected,
+            request.agent_path.as_deref(),
         )
         .await
     } else {
         Vec::new()
     };
     if agents.is_empty() && request.agents {
-        next.push("No Claude Code, Codex or GitHub Copilot CLI was found on PATH. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
+        next.push("No Claude Code, Codex or GitHub Copilot CLI was found on this machine. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
     }
     record_agents(&mut config, &agents, &mut next).await;
     if !request.index {
@@ -494,12 +500,13 @@ pub(super) fn first_index() -> Operation {
     })
 }
 
-/// Register the MCP server and plugin with each agent CLI found on PATH. A
+/// Register the MCP server and plugin with each agent CLI found here. A
 /// failure is reported per step; it never stops the others.
 async fn register(
     command: &[OsString],
     marketplace: &str,
     selected: Option<&[Agent]>,
+    only: Option<&std::ffi::OsStr>,
 ) -> Vec<AgentOutcome> {
     let mut outcomes = Vec::new();
     for (kind, install) in [
@@ -510,7 +517,7 @@ async fn register(
         if selected.is_some_and(|agents| !agents.contains(&kind)) {
             continue;
         }
-        let Some(program) = which(kind.program()) else {
+        let Some(program) = agents::find(kind.program(), only).await else {
             continue;
         };
         let program = program.as_path();
@@ -593,50 +600,6 @@ async fn replace(program: &Path, agent: Agent, stale: String, add: &[OsString]) 
         Step::Done { command } => Step::Replaced { stale, command },
         failed => failed,
     }
-}
-
-fn display(program: &Path, arguments: &[OsString]) -> String {
-    std::iter::once(program.display().to_string())
-        .chain(arguments.iter().map(|a| a.to_string_lossy().into_owned()))
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-async fn step(program: &Path, arguments: &[OsString]) -> Step {
-    let command = display(program, arguments);
-    match run(program, arguments).await {
-        Ok(()) => Step::Done { command },
-        Err(message) => Step::Failed { command, message },
-    }
-}
-
-pub(super) async fn run(
-    program: &Path,
-    arguments: &[impl AsRef<std::ffi::OsStr>],
-) -> Result<(), String> {
-    use crate::service::Failure;
-    match crate::service::output(program, arguments, AGENT_TIMEOUT).await {
-        Err(Failure::TimedOut { after, .. }) => {
-            Err(format!("timed out after {} seconds", after.as_secs()))
-        }
-        Err(Failure::Unavailable { reason, .. }) => Err(reason),
-        Err(other) => Err(other.describe()),
-        Ok(output) if output.status.success() => Ok(()),
-        Ok(output) => {
-            let text = String::from_utf8_lossy(&output.stderr);
-            let text = if text.trim().is_empty() {
-                String::from_utf8_lossy(&output.stdout)
-            } else {
-                text
-            };
-            Err(text.trim().chars().take(500).collect())
-        }
-    }
-}
-
-pub fn which(program: &str) -> Option<PathBuf> {
-    let path = std::env::var_os("PATH")?;
-    crate::platform::find_program(program, &path, &std::env::current_dir().ok()?)
 }
 
 #[cfg(test)]

@@ -208,3 +208,19 @@ fn a_restart_waits_for_the_replacement_to_settle() {
         std::time::Duration::from_secs(5)
     ));
 }
+
+#[test]
+fn started_executable_sees_its_file_replaced() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("mash");
+    std::fs::write(&path, "old").unwrap();
+    let started = StartedExecutable(Some((path.clone(), identity(&path).unwrap())));
+    assert!(!started.replaced());
+    let incoming = directory.path().join("mash.incoming");
+    std::fs::write(&incoming, "new release").unwrap();
+    std::fs::rename(&incoming, &path).unwrap();
+    assert!(started.replaced());
+    std::fs::remove_file(&path).unwrap();
+    assert!(started.replaced());
+    assert!(!StartedExecutable(None).replaced());
+}

@@ -556,6 +556,13 @@
             },
             "type": "array"
           },
+          "dashboard_restarts": {
+            "description": "Machines whose running dashboard a deploy restarts on the release it\ninstalled, so it answers for that release once the job is done.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "enabled": {
             "type": "boolean"
           },
@@ -576,7 +583,8 @@
         "required": [
           "enabled",
           "actions",
-          "services"
+          "services",
+          "dashboard_restarts"
         ],
         "type": "object"
       },
@@ -1493,6 +1501,10 @@
               "null"
             ]
           },
+          "shared_only": {
+            "description": "This dashboard has no index of its own and reads only the shared one,\nso nothing in it is \"this machine's\" except what the machine published.",
+            "type": "boolean"
+          },
           "truncated": {
             "type": "boolean"
           }
@@ -1500,7 +1512,8 @@
         "required": [
           "chats",
           "local_node",
-          "truncated"
+          "truncated",
+          "shared_only"
         ],
         "type": "object"
       },

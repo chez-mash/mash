@@ -78,6 +78,7 @@ impl Cli {
                     .transpose()?,
                 selected_agents: None,
                 backfill_memory,
+                agent_path: None,
             }),
             Command::ListChats {
                 input,

@@ -28,6 +28,9 @@ pub(super) struct Catalog {
     actions: Vec<AvailableAction>,
     /// Targets not listed here are machines.
     services: Vec<ServerTarget>,
+    /// Machines whose running dashboard a deploy restarts on the release it
+    /// installed, so it answers for that release once the job is done.
+    dashboard_restarts: Vec<String>,
 }
 
 async fn inventory(state: &super::super::Dash) -> Result<Option<Inventory>, String> {
@@ -74,6 +77,7 @@ pub(crate) async fn catalog(State(state): State<Arc<super::super::Dash>>) -> Res
                 revision: Some(revision),
                 actions,
                 services,
+                dashboard_restarts: mash_fleet::dashboard::restarted_machines(&inventory),
             })
             .into_response()
         }
@@ -82,6 +86,7 @@ pub(crate) async fn catalog(State(state): State<Arc<super::super::Dash>>) -> Res
             revision: None,
             actions: vec![],
             services: vec![],
+            dashboard_restarts: vec![],
         })
         .into_response(),
         Err(message) => super::error(StatusCode::INTERNAL_SERVER_ERROR, &message),

@@ -94,3 +94,6 @@
       ansible.builtin.include_tasks: tasks/probe.yml
       vars:
         mash_probe_mode: check
+    - name: Restart the machine's dashboard on the installed release
+      ansible.builtin.include_tasks: tasks/dashboard-restart.yml
+      when: mash_dashboard_restart is defined

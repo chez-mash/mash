@@ -69,3 +69,15 @@ mcp = ["ssh", "operator@100.64.0.12", "/Users/operator/bin/mash", "mcp"]
 home = "/Users/operator"
 launcher = "/Users/operator/bin/mash-watch"
 allow_control = true
+
+# Listing a peer's dashboard as a controllable service lets a deploy restart
+# it on the release it installed, so the dashboard's plugin fix can run
+# there straight after. The controller's own dashboard is never restarted.
+[[machines.services]]
+id = "dashboard"
+name = "Mash dashboard"
+kind = "dashboard"
+manager = "launchd"
+unit = "dev.mash.dash"
+plist = "/Users/operator/Library/LaunchAgents/dev.mash.dash.plist"
+allow_control = true

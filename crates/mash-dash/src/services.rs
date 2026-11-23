@@ -26,9 +26,9 @@ pub(super) struct Services {
     client: reqwest::Client,
     fleet_path: Option<PathBuf>,
     plugin_runs: plugin::Runs,
-    /// The program a plugin reinstall runs; the executable this dashboard
-    /// started from unless a test supplies a stand-in.
-    init_program: Option<PathBuf>,
+    /// Where a plugin reinstall looks for agent CLIs instead of where a
+    /// shell would; only tests set it, to stand in for real agents.
+    agent_path: Option<std::ffi::OsString>,
 }
 
 #[derive(Clone)]
@@ -106,7 +106,7 @@ impl Services {
             client,
             fleet_path: None,
             plugin_runs: plugin::Runs::default(),
-            init_program: None,
+            agent_path: None,
         })
     }
 

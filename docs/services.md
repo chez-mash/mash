@@ -42,6 +42,18 @@ files, so a part can read as present without having run, and an approved Codex
 hook reads as recorded because only Codex can confirm it matches the current
 hooks. A machine running an older Mash cannot report its setup: update it first.
 
+When the plugin does not match the installed Mash, **Reinstall the plugin**
+does what `mash init --yes --no-index` does, inside that machine's dashboard:
+it finds each agent's CLI where your shell would, including the usual install
+folders, and reinstalls the plugin through it. With fleet manager, **Update
+Mash and the plugin** deploys Mash to the machine first. The dashboard there
+has to run the release it is fixing the plugin for, so the button waits for
+it to restart on the new release when the fleet inventory lists that
+dashboard as a controllable service (see
+[Run fleet operations](#run-fleet-operations)); otherwise it asks you to
+restart that dashboard. Restarting the agent is always left to you. The steps
+by hand stay folded underneath and open when the button cannot finish.
+
 ## Interpret status and schema warnings
 
 A running process is not necessarily ready. Supervisor reports, Qdrant
@@ -211,6 +223,10 @@ select machines, and review the named targets before confirming.
 - Deployment also needs configured build, install and preflight commands.
   Adding `deploy` to the allowlist does not provide an installer.
 - Each target shows one line on what the operation found or why it failed.
+- A deploy restarts a running peer dashboard on the release it installed
+  when that machine lists it as a service with `kind = "dashboard"` and
+  `allow_control = true` (systemd or launchd). It never restarts the
+  controller's own dashboard or one on Windows.
 - Jobs continue when you leave the page.
 - An **unknown** outcome means the controller could not confirm completion.
   Check the affected machines before starting another operation.

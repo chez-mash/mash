@@ -196,3 +196,4 @@ jq -se 'length == 2 and all(.[]; .target != "api")' "$scratch/all-sync.jsonl" > 
 echo 'Ansible build reuse, ordering, skips, failure blocking, target selection and explicit refresh checks passed.'
 bash "$repository/tools/test-fleet-systemd.sh"
 bash "$repository/tools/test-fleet-launchd.sh"
+bash "$repository/tools/test-fleet-dashboard.sh"

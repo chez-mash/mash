@@ -55,10 +55,8 @@ async fn app_named(
             peers,
             directory: Some(root.to_path_buf()),
             plugin_runs: plugin::Runs::default(),
-            init_program: root
-                .join("fake-init.sh")
-                .exists()
-                .then(|| root.join("fake-init.sh")),
+            // Never the real agents: a test puts stand-ins here.
+            agent_path: Some(root.join("agents").into_os_string()),
             client: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 // A refused loopback connection, as to the unreachable Qdrant
@@ -245,6 +243,45 @@ async fn fleet_http_rejects_jobs_on_peer_dashboard() {
             .status(),
         StatusCode::FORBIDDEN
     );
+    server.abort();
+}
+
+// The plugin fix waits for a peer's dashboard to come back on the deployed
+// build only where a deploy restarts it: a peer that declares its dashboard
+// controllable, never the controller running the job.
+#[tokio::test]
+async fn fleet_catalog_names_the_peers_whose_dashboard_a_deploy_restarts() {
+    let root = tempfile::tempdir().unwrap();
+    let dashboard = serde_json::json!({
+        "id": "dashboard", "name": "Dashboard", "kind": "dashboard",
+        "manager": "systemd_user", "unit": "mash-dash.service", "allow_control": true
+    });
+    let inventory: mash_fleet::inventory::Inventory = serde_json::from_value(serde_json::json!({
+        "version": 1,
+        "controller": { "node": "test-node", "repository": root.path(), "binary": std::env::current_exe().unwrap(), "jobs": root.path().join("jobs"), "allow_actions": ["deploy"] },
+        "machines": [
+            { "id": "test-node", "platform": "linux", "transport": {"kind": "local"}, "services": [dashboard] },
+            { "id": "peer", "platform": "linux", "transport": {"kind": "ssh", "host": "peer"}, "services": [dashboard] },
+            { "id": "laptop", "platform": "linux", "transport": {"kind": "ssh", "host": "laptop"} }
+        ]
+    })).unwrap();
+    std::fs::write(
+        root.path().join("fleet.toml"),
+        toml::to_string(&inventory).unwrap(),
+    )
+    .unwrap();
+    let (url, server) = app(root.path(), vec![]).await;
+    let catalog: serde_json::Value = reqwest::Client::new()
+        .get(format!("{url}/api/services/fleet"))
+        .bearer_auth(TOKEN)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(catalog["enabled"], true, "{catalog}");
+    assert_eq!(catalog["dashboard_restarts"], serde_json::json!(["peer"]));
     server.abort();
 }
 
@@ -582,13 +619,16 @@ async fn services_real_systemd_start_stop_restart_and_receipt_replay() {
 
 #[cfg(unix)]
 #[tokio::test]
-async fn services_reinstall_plugin_runs_init_once_on_the_named_machine() {
+async fn services_reinstall_plugin_runs_setup_once_on_the_named_machine() {
     use std::os::unix::fs::PermissionsExt;
     let remote_root = tempfile::tempdir().unwrap();
-    let fake = remote_root.path().join("fake-init.sh");
+    // A stand-in Claude Code CLI that answers every setup call and logs it.
+    let agents = remote_root.path().join("agents");
+    std::fs::create_dir(&agents).unwrap();
+    let fake = agents.join("claude");
     std::fs::write(
         &fake,
-        "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$(dirname \"$0\")/init-calls\"\nprintf '%s' '{\"agents\":[{\"agent\":\"claude-code\",\"mcp\":{\"state\":\"already-present\"},\"plugin\":{\"state\":\"done\",\"command\":\"claude plugin install mash@mash\"}}]}'\n",
+        "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$(dirname \"$0\")/calls\"\n",
     )
     .unwrap();
     std::fs::set_permissions(&fake, std::fs::Permissions::from_mode(0o755)).unwrap();
@@ -655,13 +695,11 @@ async fn services_reinstall_plugin_runs_init_once_on_the_named_machine() {
     // A replayed request reads its record; it does not run init again.
     let replay: operations::Operation = post(&request).await.unwrap().json().await.unwrap();
     assert_eq!(replay.outcome, operations::Outcome::Succeeded);
-    let calls = std::fs::read_to_string(remote_root.path().join("init-calls")).unwrap();
-    assert_eq!(calls.lines().count(), 1, "{calls}");
-    assert!(calls.contains("--config"), "{calls}");
-    assert!(
-        calls.trim_end().ends_with("init --yes --no-index"),
-        "{calls}"
-    );
+    // Setup ran in the dashboard and reached the agent through its own CLI,
+    // once: no `mash init` process was started.
+    let calls = std::fs::read_to_string(agents.join("calls")).unwrap();
+    assert_eq!(calls.matches("mcp get mash").count(), 1, "{calls}");
+    assert!(!calls.contains("init"), "{calls}");
     // A setup checked by another build, or a target other than the agent
     // plugins, is refused before anything runs, here or on the peer.
     for (machine, service, revision) in [
@@ -682,8 +720,62 @@ async fn services_reinstall_plugin_runs_init_once_on_the_named_machine() {
             "{machine} {service}"
         );
     }
-    let calls = std::fs::read_to_string(remote_root.path().join("init-calls")).unwrap();
-    assert_eq!(calls.lines().count(), 1, "{calls}");
+    let calls = std::fs::read_to_string(agents.join("calls")).unwrap();
+    assert_eq!(calls.matches("mcp get mash").count(), 1, "{calls}");
     server.abort();
     remote.abort();
+}
+
+// A machine where no agent CLI can be found says where it looked; the person
+// then has only the manual steps, because the plugins come through the CLIs.
+#[tokio::test]
+async fn services_reinstall_plugin_without_an_agent_says_where_it_looked() {
+    let root = tempfile::tempdir().unwrap();
+    let (url, server) = app(root.path(), vec![]).await;
+    let client = reqwest::Client::new();
+    let request = operations::ActionRequest {
+        machine: "test-node".into(),
+        service: plugin::TARGET.into(),
+        action: model::Action::ReinstallPlugin,
+        request_id: "00000000-0000-4000-8000-0000000000b1".into(),
+        control_revision: crate::BUILD_REVISION.into(),
+    };
+    let response = client
+        .post(format!("{url}/api/services/action"))
+        .bearer_auth(TOKEN)
+        .json(&request)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let finished = async {
+        loop {
+            let history: Vec<operations::Operation> = client
+                .get(format!("{url}/api/services/operations?machine=test-node"))
+                .bearer_auth(TOKEN)
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+            if let Some(run) = history
+                .into_iter()
+                .find(|run| run.request == request && run.outcome != operations::Outcome::Pending)
+            {
+                return run;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        }
+    };
+    let run = tokio::time::timeout(std::time::Duration::from_secs(20), finished)
+        .await
+        .unwrap();
+    assert_eq!(run.outcome, operations::Outcome::Failed);
+    assert!(
+        run.message.contains("login shell's PATH"),
+        "{}",
+        run.message
+    );
+    server.abort();
 }

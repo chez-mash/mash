@@ -636,6 +636,11 @@ export interface components {
         };
         Catalog: {
             actions: components["schemas"]["AvailableAction"][];
+            /**
+             * @description Machines whose running dashboard a deploy restarts on the release it
+             *     installed, so it answers for that release once the job is done.
+             */
+            dashboard_restarts: string[];
             enabled: boolean;
             revision?: string | null;
             /** @description Targets not listed here are machines. */
@@ -889,6 +894,11 @@ export interface components {
             chats: components["schemas"]["Chat"][];
             local_node: string;
             shared_error?: string | null;
+            /**
+             * @description This dashboard has no index of its own and reads only the shared one,
+             *     so nothing in it is "this machine's" except what the machine published.
+             */
+            shared_only: boolean;
             truncated: boolean;
         };
         DatabaseDetails: {

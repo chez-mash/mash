@@ -269,3 +269,39 @@ export function decisionsByChat(records: readonly NativeRecord[]): ReadonlyMap<s
   }
   return counts;
 }
+
+/** One choice in the memory page's source menu, by its URL form. */
+export interface MemorySource {
+  readonly value: string;
+  readonly label: string;
+}
+/**
+ * Where memories can be read from. With an index of its own, this machine's
+ * records are one choice, named for the machine, and the shared server's
+ * copies are the others; this machine's published copy is left out (unless a
+ * link chose it), since it repeats its records under a second name. A
+ * shared-only dashboard has no records of its own: everything it reads is a
+ * shared copy, so there is no "this machine" choice and every machine is
+ * named, its own published copy included.
+ */
+export function memorySources(
+  localNode: string,
+  sharedOnly: boolean,
+  nodes: readonly string[],
+  source: string,
+): MemorySource[] {
+  const machines = nodes
+    .filter((node) => sharedOnly || node !== localNode || source === `node:${node}`)
+    .map((node) => ({ value: `node:${node}`, label: `${node} (shared)` }));
+  if (sharedOnly) return [{ value: "", label: "all shared machines" }, ...machines];
+  return [
+    { value: "", label: localNode ? `this machine (${localNode})` : "this machine" },
+    { value: "shared", label: "all shared machines" },
+    ...machines,
+  ];
+}
+/** The source menu's short label for its current choice. */
+export function memorySourceLabel(source: string, sharedOnly: boolean): string {
+  if (source === "") return sharedOnly ? "all shared" : "this machine";
+  return source === "shared" ? "all shared" : `${source.slice(5)} (shared)`;
+}

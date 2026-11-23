@@ -323,3 +323,34 @@ test("the memory list can be refreshed on request without reloading", async ({ p
   await expect(records(page).getByRole("link", { name: "Second statement" })).toBeVisible();
   expect(documents).toBe(1);
 });
+
+test("a shared-only dashboard names the shared machines and never calls one this machine", async ({
+  page,
+}) => {
+  const chat = (node: string) => ({
+    chat_id: `chat-${node}`,
+    node_id: node,
+    provider: "codex",
+    title: `On ${node}`,
+  });
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({
+      json: {
+        local_node: "phone",
+        shared_only: true,
+        truncated: false,
+        chats: [chat("phone"), chat("desk")],
+      },
+    }),
+  );
+  await page.route("**/api/records?**", (route) =>
+    route.fulfill({ json: { records: [], next_offset: null } }),
+  );
+  await page.goto("/#/records?");
+  const menu = page.getByRole("button", { name: "all shared", exact: true });
+  await expect(menu).toBeVisible();
+  await menu.click();
+  const options = page.getByRole("group", { name: "all shared" }).getByRole("menuitemradio");
+  await expect(options).toHaveText(["all shared machines", "phone (shared)", "desk (shared)"]);
+  await expect(page.getByText("this machine")).toHaveCount(0);
+});
