@@ -154,6 +154,7 @@ test("the release check bookmark leads to the right archives and checksum steps"
       "mash-desktop-windows-x64-setup.exe",
       "mash-desktop-windows-arm64-setup.exe",
       "mash-desktop-linux-x86_64.AppImage",
+      "mash-desktop-linux-arm64.AppImage",
       "mash-aarch64-apple-darwin.tar.gz",
       "mash-x86_64-unknown-linux-gnu.tar.gz",
       "mash-aarch64-unknown-linux-gnu.tar.gz",

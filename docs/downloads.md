@@ -16,6 +16,7 @@ bar, and includes everything the archives below do.
 | Windows x64 | [`mash-desktop-windows-x64-setup.exe`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-windows-x64-setup.exe) |
 | Windows ARM64 | [`mash-desktop-windows-arm64-setup.exe`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-windows-arm64-setup.exe) |
 | Linux x86-64 | [`mash-desktop-linux-x86_64.AppImage`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-linux-x86_64.AppImage) |
+| Linux ARM64 | [`mash-desktop-linux-arm64.AppImage`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-linux-arm64.AppImage) |
 
 The Linux app needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36 and later) and WebKitGTK 4.1.
 
