@@ -180,7 +180,8 @@ fn readable_empty_search_does_not_claim_absence() {
     );
     let structured = serialize(&response, Detail::Compact).unwrap();
     let readable = text::render(&response, Detail::Compact, &structured).unwrap();
-    assert!(readable.contains("does not prove complete history"));
+    // An empty page points to coverage rather than claiming the chat does not exist.
+    assert!(readable.contains("No matches. Check coverage if you expected a chat."));
     eprintln!(
         "empty-search presentation bytes: text={}, JSON={}",
         readable.len(),

@@ -803,6 +803,13 @@ mod tests {
         let steps = next(&response, apply, false, 2);
         assert!(steps[0].contains("failed"), "{steps:?}");
         assert!(steps.iter().any(|step| step.contains("2 Mash process")));
-        assert!(steps.last().unwrap().contains("still installed"));
+        // A failed run asks for the retry before removing the program.
+        assert!(
+            steps
+                .last()
+                .unwrap()
+                .starts_with("After retrying the failed steps, remove the Mash program"),
+            "{steps:?}"
+        );
     }
 }
