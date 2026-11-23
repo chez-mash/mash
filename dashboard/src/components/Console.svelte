@@ -1,11 +1,15 @@
 <script lang="ts">
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Copy from "@lucide/svelte/icons/copy";
 import Eraser from "@lucide/svelte/icons/eraser";
+import History from "@lucide/svelte/icons/history";
 import Lock from "@lucide/svelte/icons/lock";
 import Play from "@lucide/svelte/icons/play";
 import SearchIcon from "@lucide/svelte/icons/search";
+import Server from "@lucide/svelte/icons/server";
+import Wrench from "@lucide/svelte/icons/wrench";
 import { createQuery } from "@tanstack/svelte-query";
 import { read } from "../lib/api";
 import {
@@ -52,6 +56,14 @@ let outcome = $state<Outcome>({ state: "idle" });
 let controller: AbortController | undefined;
 let notice = $state("");
 
+// Section headings carry an icon and lower-case words, like every other
+// section heading on the dashboard.
+const sectionIcons: Record<string, typeof Wrench> = {
+  History,
+  Memory: Bookmark,
+  Service: Server,
+  [locked]: Lock,
+};
 const tools = $derived(listing.data?.tools ?? []);
 const matching = $derived.by(() => {
   const words = filter.trim().toLowerCase();
@@ -166,9 +178,11 @@ $effect(() => () => controller?.abort());
   </div>
   {#if !sections.length}<p class="card tight cream">No tool matches “{filter}”.</p>{/if}
   {#each sections as section (section.name)}
+    {@const SectionIcon = sectionIcons[section.name] ?? Wrench}
     <section class="ops" aria-label={section.name}>
-      <h2 class="eyebrow">{section.name === locked ? "Changes data · locked" : section.name}</h2>
-      <div class="opl" class:g2={section.name !== locked && section.name.toLowerCase() !== "history"} class:g3={section.name === locked}>
+      <h2 class="h2"><SectionIcon size={15} aria-hidden="true" />{section.name === locked ? "changes data · locked" : section.name.toLowerCase()}</h2>
+      <!-- History's descriptions are long, so its tools take whole rows. -->
+      <div class="opl" class:g2={section.name.toLowerCase() !== "history"}>
       {#each section.tools as entry (entry.name)}
         {@const expanded = open === entry.name}
         <div class="mop" class:open={expanded} class:locked={!entry.readOnly} id="tool-{entry.name}">

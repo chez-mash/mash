@@ -31,6 +31,7 @@ import { label, recordPage } from "../lib/records";
 import { chatHref, recordHref, recordsHref } from "../lib/route.svelte";
 import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/steps";
 import type { Message } from "../lib/types";
+import { updates } from "../lib/updates.svelte";
 import ChatSidebar from "./ChatSidebar.svelte";
 import FindBar from "./FindBar.svelte";
 import MessageActions from "./MessageActions.svelte";
@@ -139,6 +140,12 @@ const reader = new ChatReading(
   untrack(() => (messageId ? { at: "message", message: messageId } : { at: "end" })),
   { pane: () => transcriptPane, covered: () => sessionsOpen },
 );
+// The rail's Check for updates rereads the chat in place, so the reader keeps
+// their spot and new messages arrive the way the stream brings them.
+updates.offer({
+  check: () => reader.checkForUpdates(true),
+  owns: ([kind]) => kind === "transcript",
+});
 const readPage: ReadPage = (id, node, offset, signal, limit) =>
   transcript(id, node, offset, signal, shared, limit);
 
@@ -370,7 +377,6 @@ const prompts = $derived(
           </div>
         {/if}
         </span>
-        <button class="btn icon" type="button" aria-label="Check for updates" title="Check for updates" disabled={reader.checking} onclick={() => reader.checkForUpdates(true)}><RefreshCw size={15} /></button>
       </div>
       <div class="mts chat-m">
         {#if chat}<MetaChips {chat} agentMark />{:else}<span class="mtx">{displayMachine}</span>{/if}

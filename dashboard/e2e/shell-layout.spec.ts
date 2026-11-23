@@ -19,12 +19,14 @@ test("the rail keeps only the current section open, so its last rows stay in vie
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/");
-  for (const section of ["chats", "agents", "machines", "projects", "memory"])
+  for (const section of ["chats", "agents", "machines", "memory", "projects"])
     await rail(page).getByRole("link", { name: section, exact: true }).click();
   const expanded = (section: string) =>
     rail(page).getByRole("button", { name: new RegExp(`^(Expand|Collapse) ${section}$`) });
-  await expect(expanded("memory")).toHaveAttribute("aria-expanded", "true");
-  for (const section of ["chats", "agents", "machines", "projects"])
+  await expect(expanded("projects")).toHaveAttribute("aria-expanded", "true");
+  // Memory's kinds are tabs on its page, so it has no rows to open here.
+  await expect(expanded("memory")).toHaveCount(0);
+  for (const section of ["chats", "agents", "machines"])
     await expect(expanded(section)).toHaveAttribute("aria-expanded", "false");
   for (const bottom of ["services", "tool explorer", "settings"])
     await expect(rail(page).getByRole("link", { name: bottom, exact: true })).toBeInViewport({

@@ -39,21 +39,86 @@ async function mockDashboard(page: Page, record = recordFixture()): Promise<URL[
   return recordRequests;
 }
 
-test("every page that can re-read its data offers the same Check for updates button", async ({
+test("every screen has exactly one Check for updates, at the foot of the rail", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const recordRequests = await mockDashboard(page);
+  const visible = () =>
+    page
+      .getByRole("button", { name: "Check for updates", exact: true })
+      .evaluateAll((buttons) => buttons.filter((button) => button.checkVisibility()).length);
+  for (const address of ["/#/", "/#/search", "/#/records?", "/#/record/fact-1", "/#/console"]) {
+    await page.goto(address);
+    await expect(
+      page.locator("#rail").getByRole("button", { name: "Check for updates" }),
+    ).toBeVisible();
+    expect(await visible(), address).toBe(1);
+  }
+  for (const old of [/reload chat list/i, /search again/i, /check jobs/i])
+    await expect(page.getByRole("button", { name: old })).toHaveCount(0);
+  // The rail's button reads the page's own data again, not only the chat list.
+  await page.goto("/#/records?");
+  await expect(page.getByRole("main").getByRole("article").first()).toBeVisible();
+  const before = recordRequests.length;
+  await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
+  await expect.poll(() => recordRequests.length).toBeGreaterThan(before);
+});
+
+test("memory has no rows of its own in the rail; its kinds are the page's tabs", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockDashboard(page);
+  await page.goto("/#/records?kind=decision");
+  const rail = page.locator("#rail");
+  await expect(rail.getByRole("button", { name: "Expand memory" })).toHaveCount(0);
+  await expect(rail.getByRole("link", { name: "decisions", exact: true })).toHaveCount(0);
+  await expect(rail.getByRole("link", { name: "memory", exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(
+    page
+      .getByRole("navigation", { name: "Memory kind" })
+      .getByRole("link", { name: "decisions", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  // Chats keep their rows: they are pages of their own, not filters.
+  await rail.getByRole("button", { name: "Expand chats" }).click();
+  await expect(rail.getByRole("link", { name: "viewing history", exact: true })).toBeVisible();
+});
+
+test("the overview links to every chat in words, with the count in its title line", async ({
+  page,
+}) => {
+  await mockDashboard(page);
+  await page.goto("/");
+  const all = page.getByRole("main").getByRole("link", { name: "All chats", exact: true });
+  await expect(all).toHaveAttribute("href", "#/search");
+  await expect(page.getByRole("main").getByText(/^\d+–\d+ of \d+$/)).toHaveCount(0);
+  await expect(page.getByText("2 chats from 2 machines")).toBeVisible();
+});
+
+test("on a phone the search filters fold behind one Filters button that counts them", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockDashboard(page);
+  await page.goto("/#/search?agent=codex&days=7");
   const main = page.getByRole("main");
-  const check = (scope: ReturnType<Page["locator"]>) =>
-    scope.getByRole("button", { name: "Check for updates", exact: true });
-  await page.goto("/#/records?");
-  await expect(check(page.locator("#rail"))).toBeVisible();
-  await expect(check(main)).toBeVisible();
-  await page.goto("/#/record/fact-1");
-  await expect(check(main)).toBeVisible();
-  for (const old of [/reload chat list/i, /search again/i, /check jobs/i])
-    await expect(page.getByRole("button", { name: old })).toHaveCount(0);
+  const toggle = main.getByRole("button", { name: /^Filters/ });
+  await expect(toggle).toHaveText("Filters2");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  const filters = main.getByRole("group", { name: "Filters" });
+  await expect(filters).toBeHidden();
+  const first = await main.getByRole("link", { name: /Tune the export queue/ }).boundingBox();
+  expect(first?.y ?? 1000).toBeLessThan(400);
+  await toggle.click();
+  await expect(filters.getByRole("button", { name: "any machine", exact: true })).toBeVisible();
+  // Wide screens show the chips themselves and no button.
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await expect(toggle).toBeHidden();
+  await expect(filters).toBeVisible();
 });
 
 test("filter chips name what they leave open the same way on every page", async ({ page }) => {

@@ -76,7 +76,6 @@ for (const width of [390, 1280]) {
       ["viewing history", "chats", "#/history", "Viewing history"],
       ["recent chats", "chats", "#/search", "Chats"],
       ["memory", "", "#/records?", "Memory"],
-      ["decisions", "memory", "#/records?kind=decision", "Memory"],
       ["fleet manager", "", "#/fleet", "Fleet manager"],
       ["tool explorer", "", "#/console", "Tool explorer"],
       ["settings", "", "#/settings", "Settings"],

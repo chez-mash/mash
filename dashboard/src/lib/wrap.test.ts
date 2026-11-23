@@ -2,23 +2,22 @@ import { describe, expect, it } from "vitest";
 import { wrapPoints } from "./wrap";
 
 describe("wrapPoints", () => {
-  it("breaks a path after each slash and before a file's extension", () => {
+  it("breaks a path only after each slash, keeping a file name whole", () => {
     expect(wrapPoints("/home/sam/.mash/mash.sqlite")).toEqual([
       "/",
       "home/",
       "sam/",
       ".mash/",
-      "mash",
-      ".sqlite",
+      "mash.sqlite",
     ]);
   });
 
-  it("keeps a whole host name piece together and breaks before its dots", () => {
-    expect(wrapPoints("https://mash.harbor.example")).toEqual([
+  it("keeps a whole host name together, never breaking before a dot", () => {
+    expect(wrapPoints("https://mash.harbor.example")).toEqual(["https://", "mash.harbor.example"]);
+    expect(wrapPoints("https://mash.harbor.example/v1?x=1")).toEqual([
       "https://",
-      "mash",
-      ".harbor",
-      ".example",
+      "mash.harbor.example/",
+      "v1?x=1",
     ]);
   });
 
@@ -27,8 +26,7 @@ describe("wrapPoints", () => {
       "C:\\",
       "Users\\",
       "sam\\",
-      "mash",
-      ".toml",
+      "mash.toml",
     ]);
   });
 

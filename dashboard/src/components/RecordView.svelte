@@ -27,8 +27,8 @@ import {
   timingLabel,
 } from "../lib/records";
 import { chatHref, recordHref } from "../lib/route.svelte";
+import { updates } from "../lib/updates.svelte";
 import AgentMark from "./AgentMark.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
 import LoadError from "./LoadError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -58,6 +58,11 @@ async function refresh(): Promise<void> {
   linkOffset = 0;
   await latest.refetch();
 }
+// The rail's Check for updates returns the history to its first page.
+updates.offer({
+  check: refresh,
+  owns: ([kind, recordId]) => (kind === "record" || kind === "record-history") && recordId === id,
+});
 function date(value: number | null): string {
   return value === null ? "Unknown" : new Date(value).toLocaleString();
 }
@@ -129,7 +134,7 @@ function date(value: number | null): string {
     {@render sources(current.evidence, record.node, record.owner)}
   </section>
   <section class="sec">
-    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />revision history</h2><CheckUpdates checking={latest.isFetching} check={refresh} /></div>
+    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />revision history</h2></div>
     {#if page.isFetching}<p class="meta" role="status">Loading history…</p>{/if}
     {#if page.data}
       {#if !page.data.revisions.length}<p class="meta">No revisions on this page.</p>{/if}

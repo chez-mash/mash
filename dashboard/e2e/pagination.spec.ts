@@ -212,8 +212,10 @@ test("Check for updates looks for newly indexed matches with the applied query a
   indexed = true;
   await searchBox(page).fill("unsubmitted draft");
   expect(requests).toHaveLength(1);
+  // On a phone the one Check for updates is in the navigation drawer.
+  await page.getByRole("button", { name: "Open navigation" }).click();
   await page
-    .getByRole("main")
+    .locator("#rail")
     .getByRole("button", { name: "Check for updates", exact: true })
     .click();
   await expect(page.getByRole("link", { name: /Recently indexed chat/ })).toBeVisible();

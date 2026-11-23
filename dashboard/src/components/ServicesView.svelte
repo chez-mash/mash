@@ -32,7 +32,7 @@ import {
   serviceOptions,
   servicesHref,
 } from "../lib/services.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
+import { updates } from "../lib/updates.svelte";
 import LoadError from "./LoadError.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 import QueryError from "./QueryError.svelte";
@@ -121,6 +121,15 @@ async function refresh(): Promise<void> {
   if (selectedId) await history.refetch();
   if (showLog && serviceId) await log.refetch();
 }
+// The rail's Check for updates also clears a stale action error and rereads
+// every machine's setup, not only the ones on screen.
+const serviceKeys: readonly unknown[] = [
+  "services",
+  "service-history",
+  "service-log",
+  "service-setup",
+];
+updates.offer({ check: refresh, owns: ([kind]) => serviceKeys.includes(kind) });
 async function act(): Promise<void> {
   const revision = confirm?.service.control_revision;
   if (!confirm || !revision || pending) return;
@@ -196,14 +205,12 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><ChevronLeft size={15} aria-hidden="true" />services</a>
   <div class="hd">
     <div class="dh"><span class="ico lg services"><KindIcon size={20} aria-hidden="true" /></span><div><h1 class="h1">{service?.name ?? serviceId}</h1><p class="meta">{selectedId}{service ? ` / ${service.kind}` : ""}</p></div></div>
-    <span class="acts"><CheckUpdates checking={fleet.isFetching} disabled={!enabled || fleet.isFetching || pending} check={refresh} /></span>
   </div>
 {:else}
   <div class="hd">
     <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check. This page does not refresh on its own.</p></div>
     <span class="acts">
       <span role="status">{#if fleet.data}<span class="pill" class:ok={allHealthy} class:warn={!allHealthy}>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
-      <CheckUpdates checking={fleet.isFetching} disabled={!enabled || fleet.isFetching || pending} check={refresh} />
     </span>
   </div>
 {/if}

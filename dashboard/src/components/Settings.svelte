@@ -147,7 +147,7 @@ async function save(): Promise<void> {
   {/if}
 </div>
 {#if file && !file.editable}
-  <p class="card tight set-path">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file. {@render copyPath()} <a class="a" href="https://getmash.io/dashboard-settings/#if-settings-are-read-only" target="_blank" rel="noreferrer">Why settings are read-only</a></p>
+  <p class="card tight">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file named above. <a class="a" href="https://getmash.io/dashboard-settings/#if-settings-are-read-only" target="_blank" rel="noreferrer">Why settings are read-only</a></p>
 {:else if file}
   <p>These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
 {/if}
@@ -252,83 +252,81 @@ async function save(): Promise<void> {
       {/if}
     </section>
 
-    <div class="stack">
-      <section class="sec">
-        <h2 class="h2"><Lock size={15} aria-hidden="true" />privacy</h2>
-        <div class="card set-card">
-          {#if file && draft && file.editable}
-            <div class="set-r inline" class:changed={touched.has("results")}>
-              <span class="set-l">hide credentials in results</span>
-              <span class="set-c">{@render changedPill("results")}{@render toggle("Hide credentials in results", draft.hideInResults, () => { if (draft) draft.hideInResults = !draft.hideInResults; })}</span>
-            </div>
-            <div class="set-r inline" class:changed={touched.has("publishing")}>
-              <span class="set-l">hide credentials when publishing</span>
-              <span class="set-c">
-                {@render changedPill("publishing")}
-                {@render toggle("Hide credentials when publishing", draft.hideWhenPublishing, () => { if (draft) draft.hideWhenPublishing = !draft.hideWhenPublishing; })}
-                {#if draft.hideWhenPublishing !== file.hideWhenPublishing}
-                  <span class="set-h">
-                    The next publication replaces this machine's shared copy of its history.
-                    {#if !draft.hideWhenPublishing}That copy can include credentials found in chats.{/if}
-                  </span>
-                {/if}
-              </span>
-            </div>
-          {:else}
-            <dl class="kvs flip">
-              {@render row("hide credentials in results", config.redactOutput ? "on" : "off")}
-              {@render row("hide credentials when publishing", config.redactPublication ? "on" : "off")}
-            </dl>
-          {/if}
-          <p class="meta">Credentials are never shown here. The configuration names the environment variables that hold them.</p>
-        </div>
-      </section>
-
-      <section class="sec" id="assistant" bind:this={assistantSection}>
-        <div class="hd">
-          <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
-          <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer" style:font-size="12.5px">Set up Mashy</a>
-        </div>
-        <div class="card mashy-card set-card">
-          {#if file?.assistant && draft?.assistant && file.editable}
-            <div class="set-r inline" class:changed={touched.has("mashy")}>
-              <span class="set-l mashy-l"><img src={asset("mashy.png")} alt="" /><span>Mashy<small>answers questions from your history, and sends the model the chat text it reads</small></span></span>
-              <span class="set-c">{@render changedPill("mashy")}{@render toggle("Mashy", draft.assistant.enabled, () => { if (draft?.assistant) draft.assistant.enabled = !draft.assistant.enabled; })}</span>
-            </div>
-            <div class="set-r" class:changed={touched.has("model")}>
-              <span class="set-l">model<small>{models.data?.length ? `${models.data.length.toLocaleString()} offered by the configured service` : models.error ? "the service did not list its models; type a name" : "as the configured service names it"}</small></span>
-              <span class="set-c">
-                <input class="field" list="assistant-models" aria-label="Mashy's model" autocomplete="off" autocapitalize="off" spellcheck="false" style:width="min(100%, 340px)" value={draft.assistant.model} oninput={(event) => { saved = 0; if (draft?.assistant) draft.assistant.model = event.currentTarget.value; }} />
-                {@render changedPill("model")}
-                <datalist id="assistant-models">{#each models.data ?? [] as model (model)}<option value={model}></option>{/each}</datalist>
-              </span>
-            </div>
-            {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
-              <p class="meta warn">Mashy has no API key on this computer yet.</p>
-              {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" />{/if}
-            {:else if replacingKey}
-              {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" oncancel={() => (replacingKey = false)} onsaved={() => (replacingKey = false)} />{/if}
-            {:else}
-              <p class="meta">Mashy uses your model service and API key on the computer running the dashboard. <button class="a" type="button" onclick={() => (replacingKey = true)}>Replace the API key</button></p>
-            {/if}
-          {:else}
-            <div class="mashy-l"><img src={asset("mashy.png")} alt="" /><dl class="kvs">
-              {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
-              {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
-            </dl></div>
-            {#if !file?.assistant && !assistant.data?.enabled}
-              {#if file?.editable}
-                <p class="meta">Mashy answers questions about your history. Choose a model service and paste its API key to turn it on.</p>
-                {#if file}<AssistantKeyForm settings={file} withService={true} id="settings-mashy" />{/if}
-              {:else}
-                <p class="meta">Mashy is optional. To use it, set it up from the dashboard on the computer that runs it.</p>
+    <section class="sec">
+      <h2 class="h2"><Lock size={15} aria-hidden="true" />privacy</h2>
+      <div class="card set-card">
+        {#if file && draft && file.editable}
+          <div class="set-r inline" class:changed={touched.has("results")}>
+            <span class="set-l">hide credentials in results</span>
+            <span class="set-c">{@render changedPill("results")}{@render toggle("Hide credentials in results", draft.hideInResults, () => { if (draft) draft.hideInResults = !draft.hideInResults; })}</span>
+          </div>
+          <div class="set-r inline" class:changed={touched.has("publishing")}>
+            <span class="set-l">hide credentials when publishing</span>
+            <span class="set-c">
+              {@render changedPill("publishing")}
+              {@render toggle("Hide credentials when publishing", draft.hideWhenPublishing, () => { if (draft) draft.hideWhenPublishing = !draft.hideWhenPublishing; })}
+              {#if draft.hideWhenPublishing !== file.hideWhenPublishing}
+                <span class="set-h">
+                  The next publication replaces this machine's shared copy of its history.
+                  {#if !draft.hideWhenPublishing}That copy can include credentials found in chats.{/if}
+                </span>
               {/if}
-            {/if}
-          {/if}
-        </div>
-      </section>
-    </div>
+            </span>
+          </div>
+        {:else}
+          <dl class="kvs flip">
+            {@render row("hide credentials in results", config.redactOutput ? "on" : "off")}
+            {@render row("hide credentials when publishing", config.redactPublication ? "on" : "off")}
+          </dl>
+        {/if}
+        <p class="meta">Credentials are never shown here. The configuration names the environment variables that hold them.</p>
+      </div>
+    </section>
   </div>
+
+  <section class="sec" id="assistant" bind:this={assistantSection}>
+    <div class="hd">
+      <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
+      <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer" style:font-size="12.5px">Set up Mashy</a>
+    </div>
+    <div class="card mashy-card set-card">
+      {#if file?.assistant && draft?.assistant && file.editable}
+        <div class="set-r inline" class:changed={touched.has("mashy")}>
+          <span class="set-l mashy-l"><img src={asset("mashy.png")} alt="" /><span>Mashy<small>answers questions from your history, and sends the model the chat text it reads</small></span></span>
+          <span class="set-c">{@render changedPill("mashy")}{@render toggle("Mashy", draft.assistant.enabled, () => { if (draft?.assistant) draft.assistant.enabled = !draft.assistant.enabled; })}</span>
+        </div>
+        <div class="set-r" class:changed={touched.has("model")}>
+          <span class="set-l">model<small>{models.data?.length ? `${models.data.length.toLocaleString()} offered by the configured service` : models.error ? "the service did not list its models; type a name" : "as the configured service names it"}</small></span>
+          <span class="set-c">
+            <input class="field" list="assistant-models" aria-label="Mashy's model" autocomplete="off" autocapitalize="off" spellcheck="false" style:width="min(100%, 340px)" value={draft.assistant.model} oninput={(event) => { saved = 0; if (draft?.assistant) draft.assistant.model = event.currentTarget.value; }} />
+            {@render changedPill("model")}
+            <datalist id="assistant-models">{#each models.data ?? [] as model (model)}<option value={model}></option>{/each}</datalist>
+          </span>
+        </div>
+        {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
+          <p class="meta warn">Mashy has no API key on this computer yet.</p>
+          {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" />{/if}
+        {:else if replacingKey}
+          {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" oncancel={() => (replacingKey = false)} onsaved={() => (replacingKey = false)} />{/if}
+        {:else}
+          <p class="meta">Mashy uses your model service and API key on the computer running the dashboard. <button class="a" type="button" onclick={() => (replacingKey = true)}>Replace the API key</button></p>
+        {/if}
+      {:else}
+        <div class="mashy-l"><img src={asset("mashy.png")} alt="" /><dl class="kvs flip">
+          {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
+          {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
+        </dl></div>
+        {#if !file?.assistant && !assistant.data?.enabled}
+          {#if file?.editable}
+            <p class="meta">Mashy answers questions about your history. Choose a model service and paste its API key to turn it on.</p>
+            {#if file}<AssistantKeyForm settings={file} withService={true} id="settings-mashy" />{/if}
+          {:else}
+            <p class="meta">Mashy is optional. To use it, set it up from the dashboard on the computer that runs it.</p>
+          {/if}
+        {/if}
+      {/if}
+    </div>
+  </section>
 
   <div class="g3 set-g">
     <section class="sec">
@@ -364,7 +362,7 @@ async function save(): Promise<void> {
       {/if}
     </section>
   </div>
-  <p class="meta set-path">To change the search engine or storage settings, edit the configuration file. {@render copyPath()} <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>
+  <p class="meta">To change the search engine or storage settings, edit the configuration file. <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>
 {/if}
 
 {#if file?.editable && (changed.length || saved || failure)}

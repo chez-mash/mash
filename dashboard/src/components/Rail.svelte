@@ -14,19 +14,19 @@ import Settings from "@lucide/svelte/icons/settings";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import Wrench from "@lucide/svelte/icons/wrench";
 import X from "@lucide/svelte/icons/x";
-import { createQuery } from "@tanstack/svelte-query";
+import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
-import { catalogOptions, stableRead } from "../lib/queries";
-import { kindIcons } from "../lib/recordIcons";
-import { getRecord, label as kindLabel, kinds } from "../lib/records";
-import { agentHref, machineHref, projectHref, recordsHref, router } from "../lib/route.svelte";
+import { catalogOptions } from "../lib/queries";
+import { agentHref, machineHref, projectHref, router } from "../lib/route.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
+import { updates } from "../lib/updates.svelte";
 import AgentMark from "./AgentMark.svelte";
 import CheckUpdates from "./CheckUpdates.svelte";
 
 let { open, close }: { open: boolean; close: () => void } = $props();
+const client = useQueryClient();
 const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(catalogue.data?.chats ?? []);
 const projects = $derived(
@@ -95,7 +95,8 @@ const sections = [
   },
 ] as const;
 type Section = (typeof sections)[number]["id"];
-const expandable: readonly Section[] = ["chats", "agents", "machines", "projects", "memory"];
+// Memory has no rows of its own: its page already offers the kinds as tabs.
+const expandable: readonly Section[] = ["chats", "agents", "machines", "projects"];
 
 const route = $derived(router.current);
 // The fleet manager is offered only where fleet control is set up. Its page
@@ -141,25 +142,6 @@ const area = $derived.by((): Section | "" => {
       return "";
   }
 });
-// A memory's own page lights its kind once the memory is read; the query is
-// the page's own, so this reads the same answer rather than asking again.
-const opened = createQuery(() => {
-  const id = route.page === "record" ? route.id : "";
-  const node = route.page === "record" ? route.node : "";
-  return {
-    ...stableRead,
-    queryKey: ["record", id, node, null, 0],
-    enabled: route.page === "record",
-    queryFn: ({ signal }: { signal: AbortSignal }) => getRecord(id, node, null, 0, signal),
-  };
-});
-const openedKind = $derived.by(() => {
-  const record = opened.data;
-  const current = record?.revisions.find(
-    (revision) => revision.revision === record.currentRevision,
-  );
-  return current?.details.kind ?? "";
-});
 // A row is the current page only while none of its children is.
 const child = $derived.by((): string => {
   // Search results are not the recent chats: with a query, the chats row is
@@ -170,8 +152,6 @@ const child = $derived.by((): string => {
   if (route.page === "agent") return route.agent;
   if (route.page === "machine") return route.id;
   if (route.page === "project") return route.name;
-  if (route.page === "records") return new URLSearchParams(route.params).get("kind") ?? "";
-  if (route.page === "record") return openedKind;
   return "";
 });
 let expanded = $state<readonly Section[]>([]);
@@ -323,18 +303,13 @@ function arrows(event: KeyboardEvent, id: Section): void {
           {#each projects as project (project.key)}
             <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={14} aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
           {/each}
-        {:else if section.id === "memory"}
-          {#each kinds as kind (kind)}
-            {@const KindIcon = kindIcons[kind]}
-            <a class="sub" class:on={child === kind} href={recordsHref(new URLSearchParams({ kind }))} onclick={close}><KindIcon size={14} aria-hidden="true" /><span>{kindLabel(kind).toLowerCase()}s</span></a>
-          {/each}
         {/if}
         </div>
       {/if}
     {/each}
     <div class="status" style:margin-top="auto" style:padding-top="14px">
       {#if catalogue.data}{catalogue.data.localNode} / {chats.length.toLocaleString()} chats{:else if catalogue.error}history unavailable{:else}loading…{/if}
-      <span style:display="flex" style:margin-top="6px"><CheckUpdates checking={catalogue.isFetching} check={() => catalogue.refetch()} /></span>
+      <span style:display="flex" style:margin-top="6px"><CheckUpdates checking={updates.checking} check={() => updates.check(client)} /></span>
     </div>
   </nav>
   </div>

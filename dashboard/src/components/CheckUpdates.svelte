@@ -1,9 +1,10 @@
 <script lang="ts">
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 
-// The one way a page offers to read its data again: a small quiet button
-// with the same words everywhere. Actions that do something else, such as
-// retrying a failed load, keep their own words.
+// The dashboard's one way to read what is on screen again, shown at the foot
+// of the rail (see lib/updates.svelte.ts). Pages do not add their own copy;
+// actions that do something else, such as retrying a failed load, keep their
+// own words.
 let {
   checking,
   disabled,

@@ -237,6 +237,16 @@ input.radio:checked {
   font-weight: 700;
 }
 @media (pointer: coarse) {
+  /* Small buttons and text actions stay large enough to tap. */
+  .btn.sm {
+    min-height: 40px;
+  }
+  .a.sp {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 6px;
+  }
   .tally {
     gap: 0;
   }
@@ -312,16 +322,37 @@ input.radio:checked {
   .cols.xcols {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas: "main side" "main act";
+    grid-template-rows: auto 1fr;
+  }
+  .xcols > .c-main {
+    grid-area: main;
+  }
+  .xcols > .c-side {
+    grid-area: side;
+  }
+  .xcols > .xact {
+    grid-area: act;
+    align-self: start;
   }
 }
 .xcols > .c-side {
   gap: 14px;
 }
-/* In one column the format and the export button come first, so a phone
- * reaches them without scrolling past every chat. */
+/* In one column the format comes first and the export is a bar held at the
+ * bottom of the screen, so a phone reaches both from anywhere in the list. */
 @container (max-width: 759px) {
   .xcols > .c-side {
     order: -1;
+  }
+  .xcols > .xact {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    flex: 1 1 100%;
+    padding: 12px 16px;
+    border-radius: var(--radius-6) var(--radius-6) 0 0;
+    box-shadow: var(--shadow-float);
   }
 }
 /* A choice drawn as a card: the radio, an icon tile, a name over a line. */

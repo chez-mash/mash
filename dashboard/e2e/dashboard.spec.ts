@@ -251,7 +251,7 @@ test("real API shapes, explicit search, source identity, safe content and stable
   expect(await page.evaluate(() => "pwned" in window)).toBe(false);
   await expect(reply.locator("strong")).toHaveText("reply");
   content = "Updated reply";
-  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
+  await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("button", { name: /This chat has changed/ })).toBeVisible();
   await expect(page.getByText("Updated reply", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: /This chat has changed/ }).click();
@@ -347,7 +347,7 @@ test("chat navigation retains the sidebar and refresh requires an explicit reque
   expect(requests).toBe(beforeIdle);
   expect(documents).toBe(1);
   await expect(page.getByRole("button", { name: /This chat has changed/ })).toHaveCount(0);
-  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
+  await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("button", { name: /This chat has changed/ })).toBeVisible();
   await expect(page.getByText("Original answer", { exact: true })).toBeVisible();
   await expect(page.getByText("Background replacement", { exact: true })).toHaveCount(0);

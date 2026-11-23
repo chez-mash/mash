@@ -146,7 +146,11 @@ for (const width of [1440, 390]) {
     await followRail(page, "viewing history", "chats");
     await expect(page.getByRole("heading", { name: "Viewing history", exact: true })).toBeVisible();
     await expect(recentChat).toBeVisible();
-    await followRail(page, "facts", "memory");
+    await followRail(page, "memory");
+    await page
+      .getByRole("navigation", { name: "Memory kind" })
+      .getByRole("link", { name: "facts", exact: true })
+      .click();
     await expect(
       page
         .getByRole("navigation", { name: "Memory kind" })

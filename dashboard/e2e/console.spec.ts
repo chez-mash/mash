@@ -188,3 +188,25 @@ test("tools start folded, fold long option lists and style every field alike", a
   await choice.selectOption("true");
   await expect(choice).not.toHaveClass(/unset/);
 });
+
+test("tool groups use the dashboard's section headings and locked tools keep room to read", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.route("**/api/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname === "/api/console/tools") return route.fulfill({ json: tools });
+    return route.fulfill({ json: { local_node: "xenia", chats: [], truncated: false } });
+  });
+  await page.goto("/#/console");
+  const heading = page.getByRole("heading", { level: 2, name: "changes data · locked" });
+  await expect(heading).toBeVisible();
+  expect(await heading.evaluate((node) => getComputedStyle(node).textTransform)).toBe("none");
+  expect(await heading.evaluate((node) => node.classList.contains("h2"))).toBe(true);
+  // Locked tools sit two to a row, like the read-only ones, not three.
+  const grid = page.locator(".opl").last();
+  const columns = await grid.evaluate(
+    (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length,
+  );
+  expect(columns).toBe(2);
+});

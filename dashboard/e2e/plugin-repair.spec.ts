@@ -188,7 +188,7 @@ for (const width of [390, 1280]) {
     ]);
     await page.screenshot({ path: `test-results/plugin-repair-done-${width}.png`, fullPage: true });
     // A fresh check finds the plugin current; the restart reminder stays.
-    await fix.getByRole("button", { name: "Check for updates" }).click();
+    await fix.getByRole("button", { name: "Check the plugin again" }).click();
     await expect(page.getByText("does not match the Mash installed on this machine")).toHaveCount(
       0,
     );

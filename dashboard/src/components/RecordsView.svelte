@@ -32,7 +32,6 @@ import {
 } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -165,7 +164,6 @@ const dirty = $derived(
     {#snippet optionIcon(value: string)}{#if value === ""}<Laptop size={15} aria-hidden="true" />{:else if value === "shared"}<Network size={15} aria-hidden="true" />{:else}<Server size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
   {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
-  <span style:margin-left="auto"><CheckUpdates checking={page.isFetching} check={() => page.refetch()} /></span>
 </form>
 {#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}

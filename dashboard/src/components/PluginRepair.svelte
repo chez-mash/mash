@@ -1,5 +1,6 @@
 <script lang="ts">
 import Check from "@lucide/svelte/icons/check";
+import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import Wrench from "@lucide/svelte/icons/wrench";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
@@ -13,7 +14,6 @@ import {
   serviceRequestId,
   submitFleetJob,
 } from "../lib/services.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
 
 // The button that does the plugin fix on the machine: update Mash there when
 // Fleet manager may, reinstall the plugin, then say the one step left, which
@@ -146,7 +146,7 @@ const busy = $derived(stage !== null);
   {/if}
   {#if result?.ok}
     <p class="ok rp-out" role="status"><Check size={16} aria-hidden="true" /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
-    <div class="rp-acts"><CheckUpdates {checking} check={checkAgain} /></div>
+    <div class="rp-acts"><button class="btn ghost sm" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check the plugin again"}</button></div>
   {:else if result}
     <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} Use the steps by hand below instead.</span></p>
     <div class="rp-acts"><button class="btn sm" type="button" onclick={start}>Try again</button></div>

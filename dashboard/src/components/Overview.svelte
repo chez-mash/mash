@@ -1,4 +1,5 @@
 <script lang="ts">
+import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
 import Clock from "@lucide/svelte/icons/clock";
@@ -42,7 +43,8 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
   <section class="c-main">
     <div class="hd" style:margin-bottom="14px">
       <h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2>
-      {#if chats.length}<a class="a" href="#/search" style:font-size="12.5px">1–{recent.length} of {chats.length.toLocaleString()}</a>{/if}
+      <!-- The count is in the title line above; this is a way to the list, not a page counter. -->
+      {#if chats.length}<a class="a ic" href="#/search" style:font-size="12.5px">All chats<ArrowRight size={13} aria-hidden="true" /></a>{/if}
     </div>
     {#if catalogue.isPending}<div class="card pad0"><Skeleton rows={8} /></div>{/if}
     {#if recent.length}

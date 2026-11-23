@@ -208,6 +208,9 @@ async function copy(): Promise<void> {
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<div class="card pad0"><Skeleton rows={5} /></div>{/if}
 {#if catalogue.data}
+  <!-- A Mash archive is made from the whole machine, so while it is chosen the
+       filters and the list are put away rather than shown as if they applied. -->
+  {#if format !== "archive"}
   <div class="chips" role="group" aria-label="Filters">
     <FilterMenu label={chipLabel("agents", "agent")} active={applied.agents.length > 0} multiple options={options.agents} selected={applied.agents} choose={(value) => toggleFilter("agents", value)}>
       {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
@@ -230,9 +233,13 @@ async function copy(): Promise<void> {
     </FilterMenu>
     {#if filtered}<a class="a" href={base} style:font-size="13px" style:padding="0 4px">Clear filters</a>{/if}
   </div>
+  {/if}
 
   <div class="cols xcols">
   <div class="c-main">
+  {#if format === "archive"}
+    <p class="card tight cream" role="status">A Mash archive is not made from this list: it holds every chat on the machine where you make it. To choose chats here, pick Markdown or JSON.</p>
+  {:else}
   <p role="status" style:font-size="14px" style:margin-bottom="12px">
     <b>{count(chosen.length, "chat")}</b> will be exported{#if !filtered}, which is every chat this dashboard lists{/if}.
     {#if leftOut > 0}
@@ -272,6 +279,7 @@ async function copy(): Promise<void> {
       {/if}
     </section>
   {/if}
+  {/if}
   </div>
 
   <section class="c-side" aria-labelledby="format-h">
@@ -289,13 +297,19 @@ async function copy(): Promise<void> {
   {#if format === "archive"}
     <div class="card xcard">
       <b>Make a full backup on the machine itself</b>
-      <p style:font-size="13px">A Mash archive always holds one machine’s whole history, so it ignores the filters above. Run this there, with a folder that does not exist yet:</p>
+      <p style:font-size="13px">A Mash archive always holds one machine’s whole history. Run this there, with a folder that does not exist yet:</p>
       <div class="cmdline"><code>{backup}</code><button type="button" aria-label={copied ? "Copied" : "Copy the command"} title={copied ? "Copied" : "Copy"} onclick={copy}>{#if copied}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
       <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}
-    <div class="card xcard">
-      <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them.</span></p>
+    <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them. Your browser saves it as one .zip file; attachments are not included.</span></p>
+  {/if}
+  </section>
+
+  {#if format !== "archive"}
+    <!-- On a phone this bar stays at the bottom of the screen, so chats left
+         out far down the list can be exported without scrolling back up. -->
+    <div class="card xcard xact" role="region" aria-label="Export">
       <span class="acts">
         <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Upload size={15} aria-hidden="true" />Export {count(chosen.length, "chat")}</button>
         {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Square size={14} aria-hidden="true" />Stop</button>{/if}
@@ -310,12 +324,10 @@ async function copy(): Promise<void> {
       {:else if job.state === "failed"}
         <p class="card tight bad" role="alert">{job.reason}</p>
       {/if}
-      <p class="meta" style:font-size="12.5px">Saved by your browser as one .zip file. Attachments are not included.</p>
+      {#if job.state === "done"}
+        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="center"><Check size={16} aria-hidden="true" style="flex:none" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
+      {/if}
     </div>
-    {#if job.state === "done"}
-      <p class="card tight ok" role="status" style:display="flex" style:gap="10px" style:align-items="center"><Check size={16} aria-hidden="true" style="flex:none" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
-    {/if}
   {/if}
-  </section>
   </div>
 {/if}

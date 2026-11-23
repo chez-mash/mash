@@ -38,7 +38,6 @@ import {
 } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import Highlight from "./Highlight.svelte";
 import MetaChips from "./MetaChips.svelte";
@@ -56,6 +55,18 @@ const filtered = $derived(
     applied.projects.length > 0 ||
     applied.days !== null,
 );
+// How many filters narrow the results, for the button that folds them away
+// on a phone. The sort order is not a filter.
+const activeFilters = $derived(
+  [
+    applied.agents.length > 0,
+    applied.machines.length > 0,
+    applied.projects.length > 0,
+    applied.days !== null,
+    !!applied.query && applied.intent !== "default",
+  ].filter(Boolean).length,
+);
+let filtersOpen = $state(false);
 const clearFiltersHref = $derived(
   appliedHref({ ...applied, agents: [], machines: [], projects: [], days: null, offset: 0 }),
 );
@@ -175,7 +186,9 @@ const rangeLabel = $derived.by(() => {
 
 {#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents and machines.</p></div>{/if}
 <div class="hd" style:align-items="flex-start">
-<div class="chips" role="group" aria-label="Filters" style:flex="1 1 480px">
+<!-- On a phone the filters fold behind one button, so results start near the top. -->
+<button class="btn sm fold-t" type="button" aria-expanded={filtersOpen || dirty} aria-controls="search-filters" onclick={() => (filtersOpen = !filtersOpen)}><SlidersHorizontal size={14} aria-hidden="true" />Filters{#if activeFilters}<span class="pill">{activeFilters}</span>{/if}</button>
+<div class="chips" class:folded={!filtersOpen && !dirty} id="search-filters" role="group" aria-label="Filters" style:flex="1 1 480px">
   <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
     {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
     {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
@@ -231,9 +244,7 @@ const rangeLabel = $derived.by(() => {
   {/if}
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
-{#if applied.query}
-  <CheckUpdates checking={!!result.data && result.isFetching} disabled={!result.data || result.isFetching} check={() => result.refetch({ cancelRefetch: false })} />
-{:else if result.data && hits.length}
+{#if !applied.query && result.data && hits.length}
   <p class="meta" role="status" style:margin-top="8px">{rangeLabel}</p>
 {/if}
 </div>

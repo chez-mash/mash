@@ -119,3 +119,53 @@ test("a chat that cannot be read fails the export and saves nothing", async ({ p
   await expect(main.getByRole("alert")).toContainText("Nothing was saved");
   expect(downloads).toBe(0);
 });
+
+test("choosing a Mash archive puts the filters and the chat list away", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockHistory(page);
+  await page.goto("/#/export?agent=codex");
+  const main = page.getByRole("main");
+  await expect(main.getByRole("group", { name: "Filters" })).toBeVisible();
+  await main.getByRole("radio", { name: /Mash archive/ }).check();
+  await expect(main.getByRole("group", { name: "Filters" })).toHaveCount(0);
+  await expect(main.getByRole("region", { name: "Chats to export" })).toHaveCount(0);
+  await expect(main.getByRole("button", { name: /^Leave out/ })).toHaveCount(0);
+  await expect(main.getByText(/will be exported/)).toHaveCount(0);
+  await expect(main.getByText(/not made from this list/)).toBeVisible();
+  await main.getByRole("radio", { name: /Markdown/ }).check();
+  await expect(main.getByRole("group", { name: "Filters" })).toBeVisible();
+});
+
+test("on a phone the export stays in reach at the bottom and its controls are large enough to tap", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await mockHistory(page);
+  await page.goto("/#/export");
+  const main = page.getByRole("main");
+  // The format comes before the list.
+  const format = await main.getByRole("radiogroup", { name: "What to make" }).boundingBox();
+  const list = await main.getByRole("region", { name: "Chats to export" }).boundingBox();
+  expect(format?.y ?? 0).toBeLessThan(list?.y ?? 0);
+  // Leaving out a chat down the list, the export is held at the screen's foot.
+  const chat = main.getByRole("button", { name: /^Leave out Conversation 5$/ });
+  await chat.scrollIntoViewIfNeeded();
+  await chat.click();
+  const bar = main.getByRole("region", { name: "Export", exact: true });
+  await expect(bar.getByRole("button", { name: "Export 59 chats" })).toBeInViewport();
+  const box = await bar.boundingBox();
+  expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(844);
+  for (const target of [
+    main.getByRole("button", { name: /^Leave out Conversation 8$/ }),
+    main.getByRole("link", { name: "Next" }),
+  ]) {
+    await target.scrollIntoViewIfNeeded();
+    expect((await target.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(40);
+  }
+  await context.close();
+});

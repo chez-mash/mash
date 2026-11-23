@@ -341,8 +341,12 @@ test("a read-only dashboard names the file to edit, with a copy button and guide
   );
   const footer = page.getByText(/To change the search engine or storage settings/);
   await expect(footer.getByRole("link", { name: "Configuration guide" })).toBeVisible();
-  await footer.getByRole("button", { name: "Copy path" }).click();
-  await expect(footer.getByRole("button", { name: "Copied" })).toBeVisible();
+  // One Copy path, beside the path it copies.
+  await expect(page.getByRole("main").getByRole("button", { name: "Copy path" })).toHaveCount(1);
+  const header = page.locator(".set-path").first();
+  await expect(header).toContainText("/fixture/config.toml");
+  await header.getByRole("button", { name: "Copy path" }).click();
+  await expect(header.getByRole("button", { name: "Copied" })).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("/fixture/config.toml");
   // A path wraps between its parts, never inside a name.
   await expect(page.getByRole("definition").filter({ hasText: "/fixture/mash.db" })).toContainText(
@@ -366,4 +370,41 @@ test("a read-only dashboard names the file to edit, with a copy button and guide
   });
   const section = await page.locator("#main > .sec").first().boundingBox();
   expect(Math.round(section?.width ?? 0)).toBeGreaterThan(Math.round(main * 0.9));
+});
+
+test("read-only settings line up: paths break only after slashes and cards fill their rows", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mock(page, { ...settings, editable: false }, []);
+  await page.goto("/#/settings");
+  const database = page.getByRole("definition").filter({ hasText: "/fixture/mash.db" });
+  // Every break opportunity follows a slash, so "mash.db" is never split at its dot.
+  const before = await database.evaluate((node) =>
+    node.innerHTML
+      .replace(/<!--.*?-->/g, "")
+      .split("<wbr>")
+      .slice(0, -1)
+      .map((piece) => piece.at(-1)),
+  );
+  expect(before.length).toBeGreaterThan(0);
+  expect(before.every((last) => last === "/" || last === "\\")).toBe(true);
+  // Indexing and privacy share a row and its height: no hole under the shorter one.
+  const card = (name: string) =>
+    page
+      .locator("section.sec")
+      .filter({ has: page.getByRole("heading", { level: 2, name, exact: true }) })
+      .locator(".card")
+      .first()
+      .boundingBox();
+  const [indexing, privacy] = await Promise.all([card("indexing"), card("privacy")]);
+  expect(Math.round(indexing?.y ?? 0)).toBe(Math.round(privacy?.y ?? 1));
+  expect(Math.round(indexing?.height ?? 0)).toBe(Math.round(privacy?.height ?? 1));
+  // Mashy's state sits at the end of its row, like the privacy settings.
+  const mashy = page.locator(".mashy-card .kvs");
+  const row = await mashy.boundingBox();
+  const state = await mashy.getByRole("definition").first().boundingBox();
+  expect((row?.x ?? 0) + (row?.width ?? 0) - ((state?.x ?? 0) + (state?.width ?? 0))).toBeLessThan(
+    40,
+  );
 });

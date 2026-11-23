@@ -5,7 +5,7 @@ import { followRail } from "./shell";
 const kindNav = (page: Page) => page.getByRole("navigation", { name: "Memory kind" });
 const records = (page: Page) => page.getByRole("main").getByRole("article");
 
-test("memory categories work from the rail even when chat history is unavailable", async ({
+test("memory categories work from the page's tabs even when chat history is unavailable", async ({
   page,
 }) => {
   await page.route("**/api/chats**", (route) => route.fulfill({ status: 503 }));
@@ -24,7 +24,8 @@ test("memory categories work from the rail even when chat history is unavailable
     ["preferences", "preference"],
     ["facts", "fact"],
   ] as const) {
-    await followRail(page, label, "memory");
+    await followRail(page, "memory");
+    await kindNav(page).getByRole("link", { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`kind=${kind}`));
     await expect(kindNav(page).getByRole("link", { name: label, exact: true })).toHaveAttribute(
       "aria-current",
@@ -281,18 +282,15 @@ test("unavailable or forgotten records show an error instead of a cached conclus
     page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
   ).toBeVisible();
   forgotten = true;
-  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
+  await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("alert")).toContainText("forgotten");
   await expect(
     page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
   ).toHaveCount(0);
 });
 
-// The earlier Memory page had a "Refresh memory" button. The list is now read
-// once per address and cached for the life of the document (stableRead), and
-// RecordsView.svelte offers no control that refetches it, so a reader who
-// knows an agent has just saved something must reload the browser page to
-// see it. The same cache also serves the overview's "recent memories".
+// The memory list is read once per address and cached for the life of the
+// document (stableRead); the rail's Check for updates reads it again.
 test("the memory list can be refreshed on request without reloading", async ({ page }) => {
   let statement = "First statement";
   let documents = 0;
@@ -321,7 +319,7 @@ test("the memory list can be refreshed on request without reloading", async ({ p
   await page.goto("/#/records?");
   await expect(records(page).getByRole("link", { name: "First statement" })).toBeVisible();
   statement = "Second statement";
-  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
+  await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(records(page).getByRole("link", { name: "Second statement" })).toBeVisible();
   expect(documents).toBe(1);
 });
