@@ -791,19 +791,8 @@ async fn asset(uri: Uri) -> Response {
     ([(header::CONTENT_TYPE, content_type(path))], *body).into_response()
 }
 
-fn content_type(path: &str) -> &'static str {
-    match path.rsplit_once('.').map(|(_, extension)| extension) {
-        Some("html") => "text/html; charset=utf-8",
-        Some("js") => "text/javascript; charset=utf-8",
-        Some("css") => "text/css; charset=utf-8",
-        Some("svg") => "image/svg+xml",
-        Some("png") => "image/png",
-        Some("woff2") => "font/woff2",
-        Some("woff") => "font/woff",
-        Some("json") => "application/json",
-        _ => "application/octet-stream",
-    }
-}
+mod static_files;
+use static_files::content_type;
 
 #[cfg(test)]
 mod tests;

@@ -651,6 +651,7 @@ fn known_assets_get_their_media_types() {
         "text/javascript; charset=utf-8"
     );
     assert_eq!(content_type("/agents/claude.svg"), "image/svg+xml");
+    assert_eq!(content_type("/favicon.ico"), "image/x-icon");
     assert_eq!(content_type("/unknown"), "application/octet-stream");
 }
 #[tokio::test]

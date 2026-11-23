@@ -8,6 +8,12 @@ export default defineConfig({
     starlight({
       title: "mash",
       favicon: "/favicon.svg",
+      // Safari, iOS home screens and older browsers ignore SVG icons, so the
+      // same logo also ships as PNG and ICO (rendered from favicon.svg).
+      head: [
+        { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" } },
+        { tag: "link", attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" } },
+      ],
       description: "The Multi-Agent Search History Tool",
       locales: docsLocales,
       // src/pages/404.astro draws the missing-page screen without the hero.
