@@ -126,12 +126,14 @@ async fn attachment(
 pub(crate) fn relay(from: &reqwest::header::HeaderMap, body: Vec<u8>) -> Response {
     let text = |name: HeaderName| from.get(name).and_then(|value| value.to_str().ok());
     // A peer that chose a download keeps it one; the other way is never taken.
-    let download =
-        text(header::CONTENT_DISPOSITION).is_some_and(|value| value.starts_with("attachment"));
+    // Its file name rides along so the download saves under it, as it would
+    // from this machine; `served` sanitises the name again.
+    let disposition = text(header::CONTENT_DISPOSITION).unwrap_or_default();
+    let name = peer_name(disposition);
     let mut answer = served(
         text(header::CONTENT_TYPE).unwrap_or_default(),
-        None,
-        download,
+        name.as_deref(),
+        disposition.starts_with("attachment"),
     );
     let cache = if text(header::CACHE_CONTROL) == Some(KEPT) {
         KEPT
@@ -227,6 +229,34 @@ fn plain_type(media_type: &str) -> bool {
 }
 
 /// `attachment` with an ASCII `filename` and the exact UTF-8 `filename*`.
+/// The file name in a peer's `filename*=UTF-8''…` download header, decoded.
+/// Anything malformed gives no name, and the download is saved as
+/// "attachment", as before.
+fn peer_name(disposition: &str) -> Option<String> {
+    let encoded = disposition
+        .split(';')
+        .map(str::trim)
+        .find_map(|part| part.strip_prefix("filename*=UTF-8''"))?;
+    let mut bytes = Vec::with_capacity(encoded.len());
+    let mut rest = encoded;
+    while let Some(c) = rest.chars().next() {
+        if c == '%' {
+            let byte = rest
+                .get(1..3)
+                .and_then(|hex| u8::from_str_radix(hex, 16).ok())?;
+            bytes.push(byte);
+            rest = &rest[3..];
+        } else {
+            let mut buffer = [0; 4];
+            bytes.extend_from_slice(c.encode_utf8(&mut buffer).as_bytes());
+            rest = &rest[c.len_utf8()..];
+        }
+    }
+    String::from_utf8(bytes)
+        .ok()
+        .filter(|name| !name.trim().is_empty())
+}
+
 fn download_name(name: &str) -> String {
     let name = name.trim();
     if name.is_empty() {

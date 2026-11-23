@@ -297,11 +297,17 @@ fn a_peer_answer_keeps_only_headers_this_dashboard_would_send() {
     assert_eq!(image.headers()["cache-control"], super::KEPT);
     assert_eq!(image.headers()["etag"], tag.as_str());
 
-    // A peer that served the picture as a download keeps it one.
+    // A peer that served the picture as a download keeps it one, under the
+    // name the peer gave it, sanitised again here.
+    let named = "attachment; filename=\"r_sum_.png\"; filename*=UTF-8''r%C3%A9sum%C3%A9.png";
+    from.insert("content-disposition", named.parse().unwrap());
+    let saved = super::relay(&from, PNG.to_vec());
+    assert_eq!(saved.headers()["content-disposition"], named);
+    // A malformed name gives none rather than a wrong one.
     from.insert(
         "content-disposition",
-        "attachment; filename=\"shot.png\"".parse().unwrap(),
+        "attachment; filename*=UTF-8''bad%G1".parse().unwrap(),
     );
-    let saved = super::relay(&from, PNG.to_vec());
-    assert_eq!(saved.headers()["content-disposition"], "attachment");
+    let unnamed = super::relay(&from, PNG.to_vec());
+    assert_eq!(unnamed.headers()["content-disposition"], "attachment");
 }
