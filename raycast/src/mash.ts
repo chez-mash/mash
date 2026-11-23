@@ -1,15 +1,21 @@
 /**
- * Talking to Mash: finding the `mash` program, reading what `mash search
- * --live` and `mash view` answer, and the mash:// links that open a chat in the
- * Mash desktop app. Everything here is plain data in and out, so it is tested
+ * Talking to Mash: finding the `mash` program and the desktop app, reading what
+ * `mash search --live`, `mash list-chats` and `mash view` answer, and the
+ * mash:// links that open a chat in the Mash desktop app. Everything here is plain data in and out, so it is tested
  * without Raycast.
  */
 import { join } from "node:path";
 
-/** One chat that mentions what was typed, at its best matching message. */
+/**
+ * One chat in the list: either a chat that mentions what was typed, at its best
+ * matching message, or a recent chat, at its first message.
+ */
 export interface Hit {
   readonly chatId: string;
+  /** The message `mash view` reads: the match, or a recent chat's first message. */
   readonly messageId: string;
+  /** Whether the chat matched what was typed, rather than being a recent chat. */
+  readonly matched: boolean;
   readonly title: string;
   readonly agent: string;
   readonly project: string;
@@ -25,6 +31,20 @@ export interface Message {
 }
 
 /**
+ * Where the Mash desktop app can be installed: the Applications folder for
+ * everyone, or the one in the reader's home folder. The app is what opens
+ * mash:// links.
+ */
+export function appLocations(home: string): string[] {
+  return ["/Applications/Mash.app", join(home, "Applications/Mash.app")];
+}
+
+/** Whether the Mash desktop app is installed. */
+export function hasDesktopApp(home: string, exists: (path: string) => boolean): boolean {
+  return appLocations(home).some(exists);
+}
+
+/**
  * Where Mash's install methods put `mash`, in the order to try. Raycast starts
  * commands with a short PATH, so the usual places are named outright.
  */
@@ -35,7 +55,8 @@ export function installLocations(home: string): string[] {
     "/usr/local/bin/mash", // Homebrew on Intel, and manual installs
     join(home, ".cargo/bin/mash"), // cargo-binstall
     join(home, ".local/share/mise/shims/mash"), // mise
-    "/Applications/Mash.app/Contents/MacOS/mash", // the engine inside the desktop app
+    // the engine inside the desktop app
+    ...appLocations(home).map((app) => join(app, "Contents/MacOS/mash")),
   ];
 }
 
@@ -53,6 +74,11 @@ export function findMash(
 /** The arguments for a live search: this machine, by words, a short list. */
 export function liveSearchArguments(query: string): string[] {
   return ["search", query, "--live", "--limit", "20"];
+}
+
+/** The arguments that list this machine's latest chats, the most recent first. */
+export function recentChatsArguments(): string[] {
+  return ["list-chats", "--local", "--limit", "20"];
 }
 
 /** The arguments that read a message with a few on either side of it. */
@@ -96,11 +122,36 @@ export function parseSearch(stdout: string): Hit[] {
       {
         chatId,
         messageId,
+        matched: true,
         title: text(row.title).trim() || "Untitled chat",
         agent: text(row.provider),
         project: text(row.project),
         updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
         passage: text(match?.snippet).trim(),
+      },
+    ];
+  });
+}
+
+/** The chats in a `mash list-chats` answer, each at its first message. */
+export function parseChats(stdout: string): Hit[] {
+  const chats = answer(stdout).chats;
+  if (!Array.isArray(chats)) return [];
+  return chats.flatMap((row: Record<string, unknown>) => {
+    const lookup = row.lookup as { view?: { id?: unknown } } | undefined;
+    const chatId = text(row.chat_id);
+    const messageId = text(lookup?.view?.id);
+    if (!chatId || !messageId) return [];
+    return [
+      {
+        chatId,
+        messageId,
+        matched: false,
+        title: text(row.title).trim() || "Untitled chat",
+        agent: text(row.provider),
+        project: text(row.project),
+        updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
+        passage: "",
       },
     ];
   });
@@ -117,15 +168,29 @@ export function parseView(stdout: string): Message[] {
   }));
 }
 
-/** The mash:// link that opens a hit's chat at its message in the desktop app. */
-export function chatLink(hit: Pick<Hit, "chatId" | "messageId">): string {
-  const query = new URLSearchParams({ message: hit.messageId });
-  return `mash://chat/${encodeURIComponent(hit.chatId)}?${query}`;
+/**
+ * The mash:// link that opens a chat in the desktop app: at the matching
+ * message for a match, or at the chat itself for a recent chat.
+ */
+export function chatLink(hit: Pick<Hit, "chatId" | "messageId" | "matched">): string {
+  const chat = `mash://chat/${encodeURIComponent(hit.chatId)}`;
+  return hit.matched ? `${chat}?${new URLSearchParams({ message: hit.messageId })}` : chat;
 }
+
+/** The mash:// link that opens Mash's main window, as the panel's Open Mash does. */
+export const appLink = "mash://";
 
 /** The mash:// link for Mash's full search of the same words. */
 export function searchLink(query: string): string {
   return `mash://search?${new URLSearchParams({ q: query.trim() })}`;
+}
+
+/**
+ * The terminal command for Mash's full search of the same words, for readers
+ * without the desktop app. The words are quoted for a POSIX shell.
+ */
+export function searchCommand(query: string): string {
+  return `mash search '${query.trim().replace(/'/g, `'\\''`)}'`;
 }
 
 /**

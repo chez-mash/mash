@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
   MashError,
+  appLocations,
   chatLink,
   findMash,
+  hasDesktopApp,
   installLocations,
   agentLogo,
   literal,
   liveSearchArguments,
+  parseChats,
   parseSearch,
   parseView,
+  recentChatsArguments,
   rendered,
+  searchCommand,
   searchLink,
 } from "./mash";
 
@@ -24,6 +29,12 @@ describe("finding mash", () => {
     expect(findMash(undefined, home, (path) => installed.has(path))).toBe("/opt/homebrew/bin/mash");
     expect(findMash("  ", home, () => false)).toBeUndefined();
     expect(installLocations(home)[0]).toBe("/Users/ada/.local/bin/mash");
+    expect(installLocations(home)).toContain("/Users/ada/Applications/Mash.app/Contents/MacOS/mash");
+  });
+  it("finds the desktop app in either Applications folder", () => {
+    expect(appLocations(home)).toEqual(["/Applications/Mash.app", "/Users/ada/Applications/Mash.app"]);
+    expect(hasDesktopApp(home, (path) => path === "/Users/ada/Applications/Mash.app")).toBe(true);
+    expect(hasDesktopApp(home, () => false)).toBe(false);
   });
 });
 
@@ -52,11 +63,44 @@ describe("reading Mash's answers", () => {
       {
         chatId: "c1",
         messageId: "m3",
+        matched: true,
         title: "Fix the deploy retry loop",
         agent: "claude-code",
         project: "/work/infra",
         updatedAt: new Date(1_794_690_968_860),
         passage: "the deploy step retries forever",
+      },
+    ]);
+  });
+
+  it("lists this machine's recent chats, each at its first message", () => {
+    expect(recentChatsArguments()).toEqual(["list-chats", "--local", "--limit", "20"]);
+    const chats = parseChats(
+      JSON.stringify({
+        chats: [
+          {
+            chat_id: "c9",
+            provider: "codex",
+            title: "Rotate the logs",
+            project: "/work/ops",
+            updated_at: 1_795_409_863_721,
+            lookup: { view: { id: "first" } },
+          },
+          { chat_id: "c10", title: "Nothing to read" },
+        ],
+        next_offset: null,
+      }),
+    );
+    expect(chats).toEqual([
+      {
+        chatId: "c9",
+        messageId: "first",
+        matched: false,
+        title: "Rotate the logs",
+        agent: "codex",
+        project: "/work/ops",
+        updatedAt: new Date(1_795_409_863_721),
+        passage: "",
       },
     ]);
   });
@@ -80,8 +124,14 @@ describe("reading Mash's answers", () => {
 
 describe("links and untrusted text", () => {
   it("opens a chat or the full search in the desktop app", () => {
-    expect(chatLink({ chatId: "a/b", messageId: "m 1" })).toBe("mash://chat/a%2Fb?message=m+1");
+    expect(chatLink({ chatId: "a/b", messageId: "m 1", matched: true })).toBe("mash://chat/a%2Fb?message=m+1");
+    expect(chatLink({ chatId: "a/b", messageId: "first", matched: false })).toBe("mash://chat/a%2Fb");
     expect(searchLink(" checkout outage ")).toBe("mash://search?q=checkout+outage");
+  });
+
+  it("quotes the words of the terminal search command", () => {
+    expect(searchCommand(" deploy retry ")).toBe("mash search 'deploy retry'");
+    expect(searchCommand("don't")).toBe("mash search 'don'\\''t'");
   });
 
   it("shows history as literal text, never as Markdown that loads or links", () => {
