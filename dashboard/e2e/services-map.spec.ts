@@ -97,14 +97,45 @@ const serverView = {
   },
 };
 
+/** This machine's `mash status`, publishing to the shared server as `shared` says. */
+function status(shared: unknown) {
+  return {
+    ready: true,
+    chats: 12,
+    messages: 340,
+    searchable_messages: 300,
+    models_installed: true,
+    query_models: "available",
+    local_qdrant: { state: "reachable", url: "http://127.0.0.1:6334" },
+    realized_mode: "hybrid",
+    database_path: "/fixture/mash.db",
+    recommended_action: null,
+    shared,
+    configuration: {
+      path: "/fixture/config.toml",
+      loaded: true,
+      providers: { codex: { roots: ["/fixture/codex"] } },
+      index: { since_days: null, destination: "both" },
+      embeddings: { backend: "local" },
+      qdrant: { url: "http://127.0.0.1:6334", vector_search: { algorithm: "hnsw" } },
+      views: { query: { ranking: "rrf" } },
+      records: { enabled: true },
+      redaction: { output: true, publication: true },
+      shared: { group_id: "harbor", node_id: "laptop", api_url: "https://mash.harbor.example" },
+    },
+  };
+}
+
 async function mock(
   page: Page,
   problem: boolean,
   report = false,
+  publication: unknown = { state: "published" },
 ): Promise<{ actions: () => number }> {
   let actions = 0;
   await page.route("**/api/**", (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === "/api/status") return route.fulfill({ json: status(publication) });
     if (url.pathname === "/api/shared/server")
       return route.fulfill({ json: report ? serverView : { admin_key: false, may_change: false } });
     if (url.pathname === "/api/services/access")
@@ -265,6 +296,23 @@ test.describe("with the shared server's report", () => {
       expect(await fitsViewport(page)).toBe(true);
     });
   }
+
+  test("a refused publication shows on this machine's shared server, not another's", async ({
+    page,
+  }) => {
+    const refused =
+      "The watcher's publications have been refused for 5 hours: set MASH_NODE_TOKEN to this node's API token";
+    await mock(page, false, true, { state: "pending", error: refused });
+    await page.goto("/#/services?machine=laptop&place=server");
+    const panel = page.getByRole("complementary", { name: "Shared server details" });
+    await expect(
+      panel.getByRole("status").filter({ hasText: "aren't reaching the server" }),
+    ).toContainText("set MASH_NODE_TOKEN");
+    await page.goto("/#/services?machine=workstation&place=server");
+    await expect(
+      page.getByRole("complementary", { name: "Shared server details" }),
+    ).not.toContainText("aren't reaching the server");
+  });
 
   test("without a report the band says what is not reported", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });

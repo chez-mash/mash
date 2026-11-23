@@ -17,6 +17,12 @@ export interface Status {
   readonly nextStep: Wire["RecommendedAction"] | null;
   /** An `index --watch` process is running for this machine's database. */
   readonly watching: boolean;
+  /**
+   * Whether this machine's history has reached its shared server: published,
+   * or pending, with the reason when the watcher's publications are refused.
+   * Null when the machine publishes to no shared server.
+   */
+  readonly publication: { readonly published: boolean; readonly problem: string | null } | null;
   readonly configuration: {
     readonly path: string;
     /** False when no file exists and built-in defaults apply. */
@@ -48,6 +54,9 @@ export function parseStatus(body: Answer<"/api/status">): Status {
     databasePath: body.database_path ?? null,
     nextStep: body.recommended_action ?? null,
     watching: body.watcher?.running === true,
+    publication: body.shared
+      ? { published: body.shared.state === "published", problem: body.shared.error ?? null }
+      : null,
     configuration: {
       path: config.path,
       loaded: config.loaded,

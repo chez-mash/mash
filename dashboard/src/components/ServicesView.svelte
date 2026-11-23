@@ -30,6 +30,7 @@ import {
   serviceOptions,
   servicesHref,
 } from "../lib/services.svelte";
+import { statusOptions } from "../lib/status";
 import { machineMap, type PlaceId } from "../lib/topology";
 import { updates } from "../lib/updates.svelte";
 import LoadError from "./LoadError.svelte";
@@ -52,6 +53,12 @@ const enabled = $derived(access.data !== undefined);
 const fleet = createQuery(() => serviceOptions(enabled));
 // Without a machine in the address, the page shows the local one.
 const selectedId = $derived(machineId || access.data?.localNode || "");
+// Whether this machine's history reaches the shared server is known only here,
+// so the map shows it for this machine alone.
+const status = createQuery(() => statusOptions);
+const publication = $derived(
+  selectedId && selectedId === access.data?.localNode ? (status.data?.publication ?? null) : null,
+);
 const machine = $derived(fleet.data?.find((machine) => machine.id === selectedId));
 const healthy = $derived(
   (fleet.data ?? []).filter((machine) => machineState(machine) === "healthy").length,
@@ -321,7 +328,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       {/if}
     </div>
     <div class="c-side">
-      {#if map && place}<MapPanel {map} {place} {report} controls={serviceControls} />{/if}
+      {#if map && place}<MapPanel {map} {place} {report} {publication} controls={serviceControls} />{/if}
       {#if selectedId}{@render activity()}{/if}
     </div>
   </div>

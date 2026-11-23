@@ -5,6 +5,7 @@ import type { Snippet } from "svelte";
 import { agoLabel } from "../lib/browse";
 import { publishWords, type ServerReport, staleWords } from "../lib/serverStatus";
 import { checkedTime, type Service, servicesHref } from "../lib/services.svelte";
+import type { Status } from "../lib/status";
 import { dependents, type MachineMap, type Place, placeHref, placeLabel } from "../lib/topology";
 import ServiceStatus from "./ServiceStatus.svelte";
 import { placeIcon } from "./ServicesMap.svelte";
@@ -17,11 +18,14 @@ let {
   place,
   controls,
   report = { kind: "none" },
+  publication = null,
 }: {
   map: MachineMap;
   place: Place;
   controls: Snippet<[Service]>;
   report?: ServerReport;
+  /** This machine's own publication state; only for the machine running this dashboard. */
+  publication?: Status["publication"];
 } = $props();
 
 const Icon = $derived(placeIcon[place.id]);
@@ -71,6 +75,15 @@ const about: Record<Place["id"], string> = {
       <a class="a" href={servicesHref(machine, service.id)}><ExternalLink size={13} aria-hidden="true" />Full details</a>
     </section>
   {/each}
+  {#if place.id === "server" && publication}
+    <!-- Recorded by the watcher when the server refuses it, so a refusal shows
+         here even though publishing happens in another process. -->
+    {#if publication.problem}
+      <p class="card tight warn" role="status"><strong>This machine's new chats aren't reaching the server.</strong> {publication.problem}</p>
+    {:else}
+      <p class="meta" role="status">This machine's history: {publication.published ? "published and current" : "publishing"}.</p>
+    {/if}
+  {/if}
   {#if place.id === "server"}
     {#if report.kind === "reported"}
       <dl class="kvs">
