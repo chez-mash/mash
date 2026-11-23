@@ -131,7 +131,7 @@ If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit
 the query again. Choose **Browse chats** to open the chat list with the
 current filters. Use your browser's Back button to return to the search.
-Choose **Check for updates** above the results after refreshing the index. If you still can’t find
+Choose **Check for updates** at the foot of the rail after refreshing the index. If you still can’t find
 what you’re looking for, [check for a missing chat](find-missing-chat.md).
 
 A transcript shows your messages on the right and the agent's replies on the
@@ -168,8 +168,8 @@ If your dashboard does not show the menu, choose the mode with
 
 ## Inspect conversation records
 
-Open **memory** in the rail, or one of the kinds beneath it. Switch kinds with
-the chips at the top, search statements with **find a statement**, and filter
+Open **memory** in the rail. Switch between decisions, preferences and facts
+with the chips at the top, search statements with **find a statement**, and filter
 with the status, review and source chips. Source chooses this machine's
 records or those published to your shared group. Choose **Apply filters** to
 run the search and **Next page** to continue.
@@ -209,8 +209,8 @@ by itself.
 Chats and memories from other machines arrive as each machine publishes them.
 That needs a shared server at least as new as this dashboard. With an older
 one, or with more than 16 dashboard tabs open at once, load them yourself:
-**Check for updates** at the foot of the rail, and the refresh button in a
-transcript.
+**Check for updates** at the foot of the rail. It reads again everything the
+page shows, including an open transcript.
 
 If the connection drops, in the browser or between the dashboard and the
 shared server, it reconnects by itself and then catches up.
