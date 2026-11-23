@@ -14,6 +14,7 @@ import { plainTitle } from "../lib/markdown";
 import { mashy } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
 import { router } from "../lib/route.svelte";
+import { watchScrolling } from "../lib/tuck";
 import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
 import MashyUnset from "./MashyUnset.svelte";
 import MessageBody from "./MessageBody.svelte";
@@ -142,6 +143,8 @@ $effect(() => {
     seen.removeEventListener("scroll", follow);
   };
 });
+// The circle steps aside on a phone while the reader scrolls down.
+$effect(() => watchScrolling());
 let moved = $state(placed());
 let grip: { x: number; y: number; left: number; top: number } | undefined;
 function placed(): { x: number; y: number } {

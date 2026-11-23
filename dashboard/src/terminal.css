@@ -4249,6 +4249,36 @@ body:has(#mashy-fab):has(.ends) #main {
     padding-bottom: 204px;
   }
 }
+/* Without that column, on a phone, the controls step aside while the reader
+   scrolls down through what they cover, and come back once they scroll up,
+   stop or reach the end (see lib/tuck.ts). They stay in the accessibility
+   tree and come back for keyboard focus, and they never step aside while
+   Mashy is open or new messages are offered. Fading away for good, or
+   shrinking into a smaller pill, would still cover the line being read. */
+@media (max-width: 800px) {
+  #mashy-fab,
+  .ends {
+    transition:
+      translate 160ms ease-out,
+      opacity 160ms ease-out;
+  }
+  :root[data-scrolling="down"]:not(:has(#mashy, .newpill .btn))
+    :is(#mashy-fab:not(:focus-visible), .ends:not(:has(:focus-visible))) {
+    translate: 0 var(--tuck-drop, 24px);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+@media (max-width: 800px) and (prefers-reduced-motion: reduce) {
+  #mashy-fab,
+  .ends {
+    transition: opacity 120ms linear;
+  }
+  /* They fade where they are rather than sliding. */
+  :root {
+    --tuck-drop: 0px;
+  }
+}
 /* On a phone, upright or on its side, the chat is a sheet over the page, and
    the circle hides under it. */
 @media (max-width: 700px), (max-height: 500px) {
