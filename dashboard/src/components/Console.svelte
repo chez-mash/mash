@@ -187,7 +187,7 @@ $effect(() => () => controller?.abort());
         {@const expanded = open === entry.name}
         <div class="mop" class:open={expanded} class:locked={!entry.readOnly} id="tool-{entry.name}">
           <button class="op-h" type="button" aria-expanded={expanded} onclick={() => toggle(entry.name)}>
-            <span class="pill" class:warn={!entry.readOnly}>{entry.readOnly ? "READ" : "WRITE"}</span>
+            <span class="pill" class:ok={entry.readOnly} class:warn={!entry.readOnly}>{entry.readOnly ? "READ" : "WRITE"}</span>
             <code class="op-n">{entry.name}</code>
             {#if !entry.readOnly}<Lock size={13} aria-label="locked" />{/if}
             <span class="op-a">{headline(entry.about)}</span>

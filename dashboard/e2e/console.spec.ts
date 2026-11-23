@@ -209,4 +209,14 @@ test("tool groups use the dashboard's section headings and locked tools keep roo
     (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length,
   );
   expect(columns).toBe(2);
+  // Each tool says whether it only reads, in words and in colour.
+  const reader = page.locator(".pill", { hasText: "READ" }).first();
+  const writer = page.locator(".pill", { hasText: "WRITE" }).first();
+  await expect(reader).toHaveClass(/\bok\b/);
+  await expect(writer).toHaveClass(/\bwarn\b/);
+  if (process.env.MASH_SCREENSHOTS)
+    await page.screenshot({
+      path: `${process.env.MASH_SCREENSHOTS}/console-1440.png`,
+      fullPage: true,
+    });
 });
