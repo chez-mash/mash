@@ -91,7 +91,7 @@ for (const editable of [true, false])
     await expect(mashy.getByLabel("Ask Mashy about your past chats")).toBeDisabled();
     if (editable) {
       // The key is asked for right here, and Mashy is ready once it is saved.
-      await expect(mashy.getByLabel("model service")).toHaveValue("openrouter");
+      await expect(mashy.getByRole("radio", { name: "OpenRouter" })).toBeChecked();
       await mashy.getByLabel("API key").fill("sk-or-test");
       await mashy.getByRole("button", { name: "Turn on Mashy" }).click();
       await expect

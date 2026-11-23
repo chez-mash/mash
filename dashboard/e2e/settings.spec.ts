@@ -285,7 +285,7 @@ test("Mashy is set up from settings by choosing a service and pasting a key", as
   );
   await page.goto("/#/settings");
   const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
-  await expect(page.getByLabel("model service")).toHaveValue("openrouter");
+  await expect(page.getByRole("radio", { name: "OpenRouter" })).toBeChecked();
   await expect(turnOn).toBeDisabled();
   await page.getByLabel("API key").fill("  sk-or-test  ");
   await turnOn.click();
@@ -318,7 +318,7 @@ test("another service needs its address and model before Mashy can be turned on"
 }) => {
   await mock(page, settings, []);
   await page.goto("/#/settings");
-  await page.getByLabel("model service").selectOption({ label: "Another service" });
+  await page.getByText("Another service", { exact: true }).click();
   await page.getByLabel("API key").fill("k");
   const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
   await expect(turnOn).toBeDisabled();
@@ -407,4 +407,22 @@ test("read-only settings line up: paths break only after slashes and cards fill 
   expect((row?.x ?? 0) + (row?.width ?? 0) - ((state?.x ?? 0) + (state?.width ?? 0))).toBeLessThan(
     40,
   );
+});
+
+test("OpenAI is offered as a service and asks which model to use", async ({ page }) => {
+  await mock(page, settings, []);
+  await page.goto("/#/settings");
+  const services = page.getByRole("group", { name: /model service/ });
+  await expect(services.getByRole("radio")).toHaveCount(4);
+  await services.getByText("OpenAI", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "OpenAI" })).toBeChecked();
+  await expect(page.getByRole("link", { name: "get an API key from OpenAI" })).toHaveAttribute(
+    "href",
+    "https://platform.openai.com/api-keys",
+  );
+  await page.getByLabel("API key").fill("sk-test");
+  const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
+  await expect(turnOn).toBeDisabled();
+  await page.locator("#settings-mashy-model").fill("a-model");
+  await expect(turnOn).toBeEnabled();
 });

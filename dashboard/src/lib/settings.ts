@@ -175,6 +175,14 @@ export const assistantServices = [
     model: "claude-haiku-5-5",
     keys: "https://console.anthropic.com/settings/keys",
   },
+  {
+    id: "openai",
+    name: "OpenAI",
+    baseUrl: "https://api.openai.com/v1",
+    // OpenAI's model names change often, so the person names the one to use.
+    model: "",
+    keys: "https://platform.openai.com/api-keys",
+  },
 ] as const;
 
 /**
