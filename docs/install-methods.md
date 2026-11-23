@@ -72,13 +72,14 @@ release archive.
 cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
 ```
 
-If a release archive is unavailable for your platform, see
+To try a revision that isn't released yet, see
 [build from source](#build-from-source).
 
 ## Build from source
 
-Use these instructions on a machine without a prebuilt release or to try an
-unreleased revision. [Include the web dashboard](#include-the-web-dashboard)
+Use these instructions to try an unreleased revision. Building works on the
+same systems as the releases, since Mash's search models need a prebuilt ONNX
+Runtime for the platform. [Include the web dashboard](#include-the-web-dashboard)
 to search in a browser. For [terminal search and agent tools](#cli-and-agent-tools),
 use the shorter Cargo install.
 

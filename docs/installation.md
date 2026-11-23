@@ -133,8 +133,8 @@ Then [start the local search service](#start-the-local-search-service).
 
 Prebuilt releases cover Linux x86-64 and ARM64, macOS Apple silicon, and
 Windows x64 and ARM64. The Linux binaries need glibc 2.34 or newer, available in
-Ubuntu 22.04, Debian 12, RHEL 9 and later. Alpine and other musl systems
-aren’t supported.
+Ubuntu 22.04, Debian 12, RHEL 9 and later. Alpine and other musl systems,
+and Intel Macs, aren’t supported.
 
 #### macOS or Linux
 

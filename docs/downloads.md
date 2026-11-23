@@ -42,7 +42,9 @@ the app. Each archive contains the terminal program and browser dashboard.
 See the [release notes and checksum file on GitHub](https://github.com/mashium/mash/releases/latest).
 Use the archive and `SHA256SUMS` from the same release page when checking a file.
 For Linux requirements, see [supported systems](installation.md#recommended-release-installers).
-For a platform such as an Intel Mac, see [build from source](install-methods.md#build-from-source).
+Intel Macs aren't supported yet: Mash's search models run on ONNX Runtime,
+which publishes no build for them, so Mash can't be built there from source
+either.
 
 ## Verify the checksum
 
