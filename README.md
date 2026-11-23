@@ -1,10 +1,8 @@
 <p align="center">
-  <img src="assets/mash-logo.svg" alt="Mash logo" width="280">
+  <img src="assets/mash-logo.svg" alt="Mash logo" width="320">
 </p>
 
-# Mash
-
-**The Multi-Agent Search History Tool**
+# Mash: The Multi-Agent Search History Tool
 
 [Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
 

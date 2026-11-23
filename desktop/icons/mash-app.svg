@@ -6,6 +6,6 @@
   <g transform="translate(144 124) scale(11.5)">
     <path d="M9 47a23 23 0 0 1 46 0z" fill="#fff6dc" stroke="#16150f" stroke-width="3.4" stroke-linejoin="round" />
     <rect x="26" y="13.5" width="13" height="10" rx="2.2" fill="#f4a583" stroke="#16150f" stroke-width="3.4" stroke-linejoin="round" transform="rotate(-12 32.5 18.5)" />
-    <path d="M6 54h52" fill="none" stroke="#16150f" stroke-width="4.4" stroke-linecap="round" />
+    <rect x="5.5" y="51" width="53" height="6.5" rx="3.25" fill="#f4a583" stroke="#16150f" stroke-width="3.4" />
   </g>
 </svg>
