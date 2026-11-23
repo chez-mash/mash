@@ -743,6 +743,18 @@ a.card.sum:hover {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   }
 }
+/* The services map with its details beside it once both fit; the map needs
+   about 700px, the details 300px. */
+.cols.map-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@container (min-width: 1000px) {
+  .cols.map-side {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: 24px;
+  }
+}
 .g3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

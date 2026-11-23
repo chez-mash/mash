@@ -152,17 +152,11 @@ for (const width of [390, 1440]) {
     await page.goto("/#/services");
     await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
     await expect(page.getByLabel("Services access token")).toHaveCount(0);
-    // Without a machine in the address every machine is listed and none is picked.
-    await expect(page.getByRole("link", { name: "xenia: needs attention" })).not.toHaveAttribute(
-      "aria-current",
-    );
-    await expect(page.getByRole("link", { name: "macbook: unreachable" })).toBeVisible();
-    await expect(
-      page.getByText("macbook: this machine's dashboard could not be reached."),
-    ).toBeVisible();
+    // The map shows the local machine in full and the others as cards.
+    const map = page.getByRole("region", { name: "How your services connect" });
+    await expect(map.getByRole("link", { name: /macbook.*Did not answer/ })).toBeVisible();
     await expect(page.getByRole("region", { name: "Needs attention on macbook" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "services", exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Index watcher/ })).toBeVisible();
+    await expect(map.getByRole("link", { name: /Automatic indexing/ })).toBeVisible();
     // Each fault is listed with what to do about it and, where one exists, its control.
     const attention = page.getByRole("region", { name: "Needs attention on xenia" });
     await expect(attention.getByText("Running · schema mismatch", { exact: true })).toBeVisible();
@@ -183,7 +177,11 @@ for (const width of [390, 1440]) {
     await expect(
       setup.getByText("Open /hooks in Codex, trust the Mash hooks, then start a new session."),
     ).toBeVisible();
-    await page.getByRole("link", { name: /Mash MCP · PID 10/ }).click();
+    await map.getByRole("link", { name: /Mash MCP/ }).click();
+    await page
+      .getByRole("complementary", { name: "Mash MCP details" })
+      .getByRole("link", { name: "Full details" })
+      .click();
     await expect(page.getByRole("heading", { name: "Schema compatibility" })).toBeVisible();
     await expect(page.getByText("database 65 / supported 64", { exact: true })).toBeVisible();
     await expect(
@@ -194,16 +192,19 @@ for (const width of [390, 1440]) {
     await page.getByRole("link", { name: "Back to services" }).click();
     await expect(page).toHaveURL(/#\/services\?machine=xenia$/);
     await expect(setup.getByText("Hooks need approval")).toBeVisible();
-    // Choosing a machine in the table narrows the page to it; a link widens it again.
-    await page.getByRole("link", { name: "macbook: unreachable" }).click();
+    // A machine's card opens its own map; its faults stay listed.
+    await map.getByRole("link", { name: /macbook/ }).click();
+    await expect(page).toHaveURL(/machine=macbook/);
     await expect(page.getByRole("region", { name: "Needs attention on macbook" })).toContainText(
       "Could not be reached",
     );
-    await expect(page.getByRole("link", { name: /Index watcher/ })).toHaveCount(0);
-    await page.getByRole("link", { name: "Show every machine" }).click();
-    await expect(page.getByRole("link", { name: /Index watcher/ })).toBeVisible();
-    await page.getByRole("link", { name: "xenia: needs attention" }).click();
-    await page.getByRole("link", { name: /Index watcher/ }).click();
+    await expect(map.getByRole("link", { name: /Automatic indexing/ })).toHaveCount(0);
+    await map.getByRole("link", { name: /xenia/ }).click();
+    await map.getByRole("link", { name: /Automatic indexing/ }).click();
+    await page
+      .getByRole("complementary", { name: "Automatic indexing details" })
+      .getByRole("link", { name: "Full details" })
+      .click();
     await expect(page.getByText("Start it to bring it back.")).toBeVisible();
     await page.getByRole("button", { name: "Start", exact: true }).click();
     const confirm = page.getByRole("group", { name: "Confirm service action" });
@@ -315,18 +316,9 @@ for (const width of [390, 1440]) {
       return route.fulfill({ json: [] });
     });
     await page.goto("/#/services?machine=xenia");
-    const row = page.getByRole("link", { name: "xenia: all services healthy" });
-    // Every column stays readable at phone width: on a phone each cell names
-    // its service, because the header row is hidden.
-    for (const label of ["index", "search", "API", "watcher", "MCP", "dash"])
-      if (width === 390) await expect(row.getByText(label, { exact: true })).toBeVisible();
-      else await expect(row.getByText(label, { exact: true })).toBeHidden();
+    const map = page.getByRole("region", { name: "How your services connect" });
+    await expect(map.getByRole("link", { name: /SQLite index.*Readable/ })).toBeVisible();
     expect(await fitsViewport(page)).toBe(true);
-    expect(
-      await page.locator(".matrix").evaluate((node) => node.scrollWidth <= node.clientWidth),
-    ).toBe(true);
-    // With one machine there is nothing wider to go back to.
-    await expect(page.getByRole("link", { name: "Show every machine" })).toHaveCount(0);
     const setup = page
       .locator("section")
       .filter({ has: page.getByRole("heading", { name: "agent setup", exact: true }) });
@@ -337,7 +329,11 @@ for (const width of [390, 1440]) {
       "#/setup",
     );
     // A service with nothing to control says so instead of an empty panel.
-    await page.getByRole("link", { name: /SQLite index/ }).click();
+    await map.getByRole("link", { name: /SQLite index/ }).click();
+    await page
+      .getByRole("complementary", { name: "SQLite index details" })
+      .getByRole("link", { name: "Full details" })
+      .click();
     await expect(page.getByText("No actions are available for this service here.")).toBeVisible();
     await expect(page.getByRole("link", { name: "How to turn on service controls" })).toHaveCount(
       0,

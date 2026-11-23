@@ -66,7 +66,7 @@ const shots: readonly Shot[] = [
   { name: "machines", route: "#/machines", height: 400, withoutRail: true },
   { name: "export", route: "#/export", height: 640, withoutRail: true },
   { name: "settings", route: "#/settings", height: 640, withoutRail: true },
-  { name: "services", route: "#/services", height: 480, withoutRail: true },
+  { name: "services", route: "#/services", height: 820, withoutRail: true },
   { name: "tools", route: "#/console", height: 600, withoutRail: true },
 ];
 

@@ -284,6 +284,27 @@ function firstRun(): Answer<"/api/services/setup"> {
 }
 function machine(now: number): Answer<"/api/services/local"> {
   const checked = Math.round(now / 1000);
+  // A typical install: a watcher indexing, local search, and one agent connected.
+  const process = (
+    id: string,
+    name: string,
+    kind: "watcher" | "qdrant" | "mcp",
+    summary: string,
+  ) => ({
+    id,
+    name,
+    kind,
+    state: "healthy" as const,
+    summary,
+    checked_at: checked,
+    pid: null,
+    actions: [],
+    control_note: "Read by this demo; nothing here can be started or stopped.",
+    control_revision: null,
+    diagnostics: [],
+    compatibility: null,
+    logs_available: false,
+  });
   return {
     id: localMachine,
     platform: "linux",
@@ -291,6 +312,9 @@ function machine(now: number): Answer<"/api/services/local"> {
     reachable: true,
     warnings: [],
     services: [
+      process("watcher-leadership", "Index watcher", "watcher", "Running · watching this index"),
+      process("qdrant", "Local search", "qdrant", "Running · ready"),
+      process("runtime-1", "Mash MCP", "mcp", "Connected"),
       {
         id: "sqlite",
         name: "SQLite index",

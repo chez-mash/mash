@@ -1,6 +1,5 @@
 <script lang="ts">
 import Bot from "@lucide/svelte/icons/bot";
-import Check from "@lucide/svelte/icons/check";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import Clock from "@lucide/svelte/icons/clock";
 import Info from "@lucide/svelte/icons/info";
@@ -17,14 +16,12 @@ import { agoLabel } from "../lib/browse";
 import { stableRead } from "../lib/queries";
 import {
   checkedTime,
-  incidental,
   type Machine,
   machineState,
   type Operation,
   problems,
   type Service,
   type ServiceAction,
-  type ServiceState,
   serviceAccessOptions,
   serviceAction,
   serviceHistory,
@@ -32,12 +29,15 @@ import {
   serviceOptions,
   servicesHref,
 } from "../lib/services.svelte";
+import { machineMap, type PlaceId } from "../lib/topology";
 import { updates } from "../lib/updates.svelte";
 import LoadError from "./LoadError.svelte";
 import MachineSetup from "./MachineSetup.svelte";
+import MapPanel from "./MapPanel.svelte";
 import QueryError from "./QueryError.svelte";
-import ServiceRows, { kindIcon } from "./ServiceRows.svelte";
+import { kindIcon } from "./ServiceRows.svelte";
 import ServiceStatus from "./ServiceStatus.svelte";
+import ServicesMap from "./ServicesMap.svelte";
 import SetupLink from "./SetupLink.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -52,32 +52,15 @@ const fleet = createQuery(() => serviceOptions(enabled));
 // Without a machine in the address, the page shows the local one.
 const selectedId = $derived(machineId || access.data?.localNode || "");
 const machine = $derived(fleet.data?.find((machine) => machine.id === selectedId));
-const columns = [
-  { kind: "sqlite", label: "index" },
-  { kind: "qdrant", label: "search" },
-  { kind: "server", label: "API" },
-  { kind: "watcher", label: "watcher" },
-  { kind: "mcp", label: "MCP" },
-  { kind: "dashboard", label: "dash" },
-] as const;
-const severity: readonly ServiceState[] = ["failed", "unknown", "degraded", "stopped", "healthy"];
-/** The state a matrix cell shows: the worst among that machine's services of a
- * kind, or a plain note when the only thing to say is not a fault. */
-function cell(
-  services: readonly Service[],
-  kind: Service["kind"],
-): ServiceState | "reconnect" | "off" | null {
-  const ofKind = services.filter((service) => service.kind === kind);
-  const states = ofKind.filter((service) => !incidental(service)).map((service) => service.state);
-  const worst = severity.find((state) => states.includes(state)) ?? null;
-  if ((worst === null || worst === "healthy") && ofKind.some(incidental))
-    return kind === "mcp" ? "reconnect" : "off";
-  return worst;
-}
 const healthy = $derived(
   (fleet.data ?? []).filter((machine) => machineState(machine) === "healthy").length,
 );
 const service = $derived(machine?.services.find((service) => service.id === serviceId));
+// The map of the chosen machine, and the place on it whose details are open.
+const map = $derived(machine ? machineMap(machine) : null);
+const placeId = $derived((selection.get("place") ?? "") as PlaceId | "");
+const place = $derived(placeId ? map?.places.get(placeId) : undefined);
+const others = $derived((fleet.data ?? []).filter((candidate) => candidate.id !== selectedId));
 const history = createQuery(() => ({
   ...stableRead,
   queryKey: ["service-history", selectedId],
@@ -95,6 +78,8 @@ interface Target {
   machine: Machine;
   service: Service;
   action: ServiceAction;
+  /** Set when asked from the map's panel, so only the panel shows it. */
+  fromPanel?: boolean;
 }
 let confirm = $state<Target | null>(null);
 // Faults are shown with the machine they belong to, not across the fleet.
@@ -185,6 +170,14 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
     <button class="btn" type="button" onclick={() => (confirm = null)}>Cancel</button>
   </div>
 {/snippet}
+{#snippet serviceControls(entry: Service)}
+  {#if machine && entry.actions.length}
+    <div class="chips" style:gap="8px">
+      {#each entry.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={action !== "stop" && entry.state !== "healthy"} type="button" disabled={blocked || !machine.reachable} onclick={() => machine && (confirm = { machine, service: entry, action, fromPanel: true })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
+    </div>
+  {/if}
+  {#if confirm?.fromPanel && confirm.service.id === entry.id && confirm.machine.id === machine?.id}{@render confirmation(confirm)}{/if}
+{/snippet}
 {#snippet activity()}
   <section class="sec">
     <h2 class="h2"><Clock size={15} aria-hidden="true" />recent activity{serviceId ? "" : ` on ${selectedId}`}</h2>
@@ -210,6 +203,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   <div class="hd">
     <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check. This page does not refresh on its own.</p></div>
     <span class="acts">
+      {#if enabled}<button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>{/if}
       <span role="status">{#if fleet.data}<span class="pill" class:ok={allHealthy} class:warn={!allHealthy}>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
     </span>
   </div>
@@ -270,28 +264,10 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   {/if}
 {:else if enabled && fleet.data}
   {#if machineId && !machine}<div class="state-c"><p role="alert">This machine is not in the configured inventory.</p></div>{/if}
-  <div class="matrix">
-    <div class="mx">
-      <div class="mx-r head"><span style:padding-left="16px">machine</span>{#each columns as column (column.kind)}<span>{column.label}</span>{/each}</div>
-      {#each fleet.data as item (item.id)}
-        {@const state = machineState(item)}
-        <a class="mx-r" class:on={item.id === machineId} href={servicesHref(item.id)} aria-current={item.id === machineId ? "true" : undefined} aria-label="{item.id}: {item.reachable ? (state === 'healthy' ? 'all services healthy' : 'needs attention') : 'unreachable'}">
-          <span class="mx-n"><i class="dot" class:warn={state !== "healthy"}></i><span>{item.id}</span></span>
-          {#each columns as column (column.kind)}
-            {@const status = item.reachable ? cell(item.services, column.kind) : "unknown"}
-            {#if status === null}<span class="cell none"><span class="cell-l">{column.label}</span>–</span>
-            {:else if status === "healthy"}<span class="cell"><span class="cell-l">{column.label}</span><span class="check on"><Check aria-label="healthy" /></span></span>
-            {:else if status === "reconnect" || status === "off"}<span class="cell none"><span class="cell-l">{column.label}</span>{status}</span>
-            {:else}<span class="cell" title={status}><span class="cell-l">{column.label}</span><span class="check warn"><TriangleAlert aria-label={status} /></span></span>{/if}
-          {/each}
-        </a>
-      {/each}
-    </div>
-  </div>
-  {#if machineId && machine && fleet.data.length > 1}<p class="meta"><a class="a" href={servicesHref()}>Show every machine</a></p>{/if}
-  <div class="cols c32">
+  <div class="cols map-side">
     <div class="c-main stack">
-      {#each shown as machine (machine.id)}
+      <!-- The map shows every machine, so every machine's faults are listed. -->
+      {#each fleet.data as machine (machine.id)}
         {@const issues = problems([machine])}
         {#if issues.length}
           <section class="sec" aria-label="Needs attention on {machine.id}">
@@ -312,19 +288,15 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
                   {/if}
                 </span>
               </div>
-              {#if entry && confirm?.service.id === entry.id && confirm.machine.id === issue.machine.id}{@render confirmation(confirm)}{/if}
+              {#if entry && confirm && !confirm.fromPanel && confirm.service.id === entry.id && confirm.machine.id === issue.machine.id}{@render confirmation(confirm)}{/if}
             {/each}
           </section>
         {/if}
       {/each}
-      <section class="sec">
-        <h2 class="h2"><Server size={15} aria-hidden="true" />services</h2>
-        {#if shown.some((machine) => machine.services.length)}<ServiceRows machines={shown} showMachine={shown.length > 1} />{/if}
-        {#each shown as machine (machine.id)}
-          {#if !machine.services.length}<p class="meta">{machine.id}: {machine.reachable ? "no services were reported." : "this machine's dashboard could not be reached."}</p>{/if}
-          {#if machine.reachable}{#each machine.warnings as warning (warning)}<p class="meta">{machine.id}: {warning}</p>{/each}{/if}
-        {/each}
-      </section>
+      {#if map}<ServicesMap {map} {others} selected={placeId} />{/if}
+      {#each shown as machine (machine.id)}
+        {#if machine.reachable}{#each machine.warnings as warning (warning)}<p class="meta">{machine.id}: {warning}</p>{/each}{/if}
+      {/each}
       {#if shown.some((machine) => machine.reachable)}
         <section class="sec">
           <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
@@ -336,7 +308,10 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
         </section>
       {/if}
     </div>
-    <div class="c-side">{#if selectedId}{@render activity()}{/if}</div>
+    <div class="c-side">
+      {#if map && place}<MapPanel {map} {place} controls={serviceControls} />{/if}
+      {#if selectedId}{@render activity()}{/if}
+    </div>
   </div>
 {/if}
 {#if enabled && selectedId && serviceId}{@render activity()}{/if}

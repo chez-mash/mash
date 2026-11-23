@@ -5,18 +5,28 @@ local SQLite schema, registered MCP and watcher processes, the dashboard
 process, and configured Qdrant and shared-server endpoints. Checks never start
 indexing, migrate SQLite or rebuild Qdrant.
 
-![The services page: each machine’s search services and agent setup, with their status](../assets/screenshots/services.webp)
+![The services page: a map of each machine’s services and how they connect, with their status](../assets/screenshots/services.webp)
 
-The page is a table of machines against kinds of service: index, search, API,
-watcher, MCP and dashboard. Choose a machine's row to list its services, then a
-service to see its diagnostics, schema compatibility and any controls.
+The page is a map of how your services connect. On the chosen machine it draws
+Mash's pipeline: agent histories, automatic indexing, the SQLite index, local
+search, and the dashboard and agents (over MCP) that search it. Above that are
+the shared server this machine publishes to, if it shares, and your other
+machines. Choose any box for its details beside the map, then **Full details**
+for its diagnostics, schema compatibility, log and controls. Choose another
+machine's box to see its map.
 
-- A supervised service and its health check share one row, healthy only when
-  the process is running and the check passes.
-- Agent sessions on an older build show as **reconnect**, and an unsupervised
-  watcher shows as **off**. Neither counts against the machine.
-- **Needs attention** lists what counts against the selected machine and what
-  to do, with a button such as **Start** where a control would fix it.
+- A box's colour and text both give its state. A dashed box is unknown, or
+  works but can't search because something it depends on is down.
+- A line is solid when the connection works, red and dashed when a fault at the
+  end it depends on breaks it, and grey and dashed when that end's state is
+  unknown.
+- The map shows only what the machine reports. The shared server's address, its
+  other machines and when each machine last published aren't reported yet, and
+  the map says so instead of guessing.
+- Agent sessions on an older build show as **reconnect to update**, and an
+  unsupervised watcher has no verdict. Neither counts against the machine.
+- **Needs attention** lists every machine's faults and what to do, with a
+  button such as **Start** where a control would fix it.
 - **Check again** refreshes the report. Nothing polls on a timer, so an old
   green result is not a current one.
 
