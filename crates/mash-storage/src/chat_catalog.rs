@@ -63,6 +63,11 @@ pub struct Request {
     #[schemars(range(min = 0, max = 10000))]
     #[arg(long, default_value_t = 0)]
     pub offset: usize,
+    /// Leave out chats an agent marked as subagents it started for its own
+    /// subtasks, so a list shows the chats people had.
+    #[arg(long)]
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub exclude_subagents: bool,
     /// Exclude the caller's published copy, for combined local/shared discovery.
     #[arg(skip)]
     pub exclude_self: bool,
@@ -74,6 +79,7 @@ impl Default for Request {
             provider: Vec::new(),
             node: Vec::new(),
             title_contains: None,
+            exclude_subagents: false,
             after: None,
             before: None,
             sort: Sort::default(),
@@ -116,6 +122,7 @@ impl Request {
 
     fn matches(&self, thread: &Chat) -> bool {
         (self.provider.is_empty() || self.provider.contains(&thread.provider))
+            && !(self.exclude_subagents && thread.metadata.subagent.is_some())
             && self.title_contains.as_ref().is_none_or(|title| {
                 thread.metadata.title.as_ref().is_some_and(|value| {
                     value

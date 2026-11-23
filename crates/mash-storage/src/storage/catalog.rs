@@ -38,6 +38,7 @@ impl Storage {
             .before_ms(request.before.map(|time| time * 1000))
             .sort_key(sort)
             .descending(i64::from(matches!(request.direction, Direction::Desc)))
+            .exclude_subagents(i64::from(request.exclude_subagents))
             .page_offset(0)
             .page_size(size)
             .build()

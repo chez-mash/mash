@@ -10,7 +10,6 @@ import {
   literal,
   liveSearchArguments,
   MashError,
-  ownRecentChats,
   parseChats,
   parseSearch,
   parseStreamLine,
@@ -80,7 +79,7 @@ describe("reading Mash's answers", () => {
   });
 
   it("lists this machine's recent chats, each at its first message", () => {
-    expect(recentChatsArguments()).toEqual(["list-chats", "--local", "--limit", "100"]);
+    expect(recentChatsArguments()).toEqual(["list-chats", "--local", "--exclude-subagents", "--limit", "20"]);
     const chats = parseChats(
       JSON.stringify({
         chats: [
@@ -137,15 +136,6 @@ describe("subagent chats", () => {
     ...(subagent ? { subagent } : {}),
   });
   const fork = { parent_chat_id: "p", label: "Fix the build", role: "fork", depth: 1 };
-
-  it("leaves subagent and fork chats out of the recent list, keeping twenty of the reader's own", () => {
-    const rows = [chat("mine-1"), chat("sub-1", fork), chat("mine-2")];
-    for (let index = 0; index < 30; index += 1) rows.push(chat(`more-${index}`));
-    const recent = ownRecentChats(parseChats(JSON.stringify({ chats: rows })));
-    expect(recent).toHaveLength(20);
-    expect(recent.map((hit) => hit.chatId).slice(0, 2)).toEqual(["mine-1", "mine-2"]);
-    expect(recent.some((hit) => hit.subagent)).toBe(false);
-  });
 
   it("marks search matches in subagent chats, and only those", () => {
     const row = (id: string, subagent?: object) => ({

@@ -602,6 +602,10 @@
             "description": "Exclude the caller's published copy, for combined local/shared discovery.",
             "type": "boolean"
           },
+          "exclude_subagents": {
+            "description": "Leave out chats an agent marked as subagents it started for its own\nsubtasks, so a list shows the chats people had.",
+            "type": "boolean"
+          },
           "limit": {
             "default": 50,
             "description": "Results per page, from 1 to 100; use `next_offset` to fetch another page.",

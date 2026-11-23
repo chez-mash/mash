@@ -64,6 +64,7 @@ history.
 <div class="param"><span class="name"><code>diagnostics</code><small>true or false</small></span><span class="about">Include metadata source outcomes and listing/merge timings.</span></div>
 <div class="param"><span class="name"><code>direction</code><small>one of <code>asc</code>, <code>desc</code></small></span><span class="about"><small>Default <code>desc</code>.</small></span></div>
 <div class="param"><span class="name"><code>exclude_self</code><small>true or false</small></span><span class="about">Exclude the caller's published copy, for combined local/shared discovery.</span></div>
+<div class="param"><span class="name"><code>exclude_subagents</code><small>true or false</small></span><span class="about">Leave out chats an agent marked as subagents it started for its own subtasks, so a list shows the chats people had.</span></div>
 <div class="param"><span class="name"><code>limit</code><small>whole number</small></span><span class="about">Results per page, from 1 to 100; use <code>next_offset</code> to fetch another page. <small>Default <code>50</code>.</small></span></div>
 <div class="param"><span class="name"><code>local</code><small>true or false</small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>node</code><small>list of text</small></span><span class="about"></span></div>

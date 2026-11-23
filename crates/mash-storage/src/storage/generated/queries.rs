@@ -71,6 +71,7 @@ pub struct ListChats<'a> {
     before_ms: Option<i64>,
     sort_key: &'a str,
     descending: i64,
+    exclude_subagents: i64,
 }
 impl<'a> ListChats<'a> {
     pub const QUERY: &'static str = r"WITH scope AS (SELECT
@@ -80,7 +81,8 @@ impl<'a> ListChats<'a> {
     CAST(?6 AS INTEGER) AS after_ms,
     CAST(?7 AS INTEGER) AS before_ms,
     CAST(?8 AS TEXT) AS sort_key,
-    CAST(?9 AS INTEGER) AS descending)
+    CAST(?9 AS INTEGER) AS descending,
+    CAST(?10 AS INTEGER) AS exclude_subagents)
 SELECT c.id,c.provider AS provider,c.title,c.project,c.repository,c.created_at,c.updated_at,e.evidence AS enrichment,
     f.id AS first_message_id,
     a.parent_chat_id,a.label AS subagent_label,a.role AS subagent_role,a.depth AS subagent_depth,
@@ -100,6 +102,7 @@ WHERE (s.all_providers = 1 OR c.provider IN (
 AND (s.title_contains IS NULL OR instr(lower(c.title),lower(s.title_contains)) > 0)
 AND (s.after_ms IS NULL OR c.updated_at >= s.after_ms)
 AND (s.before_ms IS NULL OR c.updated_at < s.before_ms)
+AND (s.exclude_subagents = 0 OR a.chat_id IS NULL)
 ORDER BY
 CASE s.sort_key
     WHEN 'title' THEN c.title IS NULL
@@ -140,18 +143,19 @@ impl<'a> ListChats<'a> {
             self.before_ms,
             self.sort_key,
             self.descending,
+            self.exclude_subagents,
         )
     }
 }
 impl<'a> ListChats<'a> {
-    pub const fn builder() -> ListChatsBuilder<'a, ((), (), (), (), (), (), (), (), ())> {
+    pub const fn builder() -> ListChatsBuilder<'a, ((), (), (), (), (), (), (), (), (), ())> {
         ListChatsBuilder {
-            fields: ((), (), (), (), (), (), (), (), ()),
+            fields: ((), (), (), (), (), (), (), (), (), ()),
             _phantom: std::marker::PhantomData,
         }
     }
 }
-pub struct ListChatsBuilder<'a, Fields = ((), (), (), (), (), (), (), (), ())> {
+pub struct ListChatsBuilder<'a, Fields = ((), (), (), (), (), (), (), (), (), ())> {
     fields: Fields,
     _phantom: std::marker::PhantomData<&'a ()>,
 }
@@ -165,6 +169,7 @@ impl<
     BeforeMs,
     SortKey,
     Descending,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -178,6 +183,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -196,6 +202,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -208,6 +215,7 @@ impl<
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -221,6 +229,7 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -236,6 +245,7 @@ impl<
     BeforeMs,
     SortKey,
     Descending,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -249,6 +259,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -267,6 +278,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -279,6 +291,7 @@ impl<
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -292,12 +305,24 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
     }
 }
-impl<'a, PageOffset, PageSize, ProvidersJson, TitleContains, AfterMs, BeforeMs, SortKey, Descending>
+impl<
+    'a,
+    PageOffset,
+    PageSize,
+    ProvidersJson,
+    TitleContains,
+    AfterMs,
+    BeforeMs,
+    SortKey,
+    Descending,
+    ExcludeSubagents,
+>
     ListChatsBuilder<
         'a,
         (
@@ -310,6 +335,7 @@ impl<'a, PageOffset, PageSize, ProvidersJson, TitleContains, AfterMs, BeforeMs, 
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -328,6 +354,7 @@ impl<'a, PageOffset, PageSize, ProvidersJson, TitleContains, AfterMs, BeforeMs, 
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -340,6 +367,7 @@ impl<'a, PageOffset, PageSize, ProvidersJson, TitleContains, AfterMs, BeforeMs, 
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -353,12 +381,24 @@ impl<'a, PageOffset, PageSize, ProvidersJson, TitleContains, AfterMs, BeforeMs, 
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
     }
 }
-impl<'a, PageOffset, PageSize, AllProviders, TitleContains, AfterMs, BeforeMs, SortKey, Descending>
+impl<
+    'a,
+    PageOffset,
+    PageSize,
+    AllProviders,
+    TitleContains,
+    AfterMs,
+    BeforeMs,
+    SortKey,
+    Descending,
+    ExcludeSubagents,
+>
     ListChatsBuilder<
         'a,
         (
@@ -371,6 +411,7 @@ impl<'a, PageOffset, PageSize, AllProviders, TitleContains, AfterMs, BeforeMs, S
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -389,6 +430,7 @@ impl<'a, PageOffset, PageSize, AllProviders, TitleContains, AfterMs, BeforeMs, S
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -401,6 +443,7 @@ impl<'a, PageOffset, PageSize, AllProviders, TitleContains, AfterMs, BeforeMs, S
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -414,12 +457,24 @@ impl<'a, PageOffset, PageSize, AllProviders, TitleContains, AfterMs, BeforeMs, S
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
     }
 }
-impl<'a, PageOffset, PageSize, AllProviders, ProvidersJson, AfterMs, BeforeMs, SortKey, Descending>
+impl<
+    'a,
+    PageOffset,
+    PageSize,
+    AllProviders,
+    ProvidersJson,
+    AfterMs,
+    BeforeMs,
+    SortKey,
+    Descending,
+    ExcludeSubagents,
+>
     ListChatsBuilder<
         'a,
         (
@@ -432,6 +487,7 @@ impl<'a, PageOffset, PageSize, AllProviders, ProvidersJson, AfterMs, BeforeMs, S
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -450,6 +506,7 @@ impl<'a, PageOffset, PageSize, AllProviders, ProvidersJson, AfterMs, BeforeMs, S
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -462,6 +519,7 @@ impl<'a, PageOffset, PageSize, AllProviders, ProvidersJson, AfterMs, BeforeMs, S
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -475,6 +533,7 @@ impl<'a, PageOffset, PageSize, AllProviders, ProvidersJson, AfterMs, BeforeMs, S
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -490,6 +549,7 @@ impl<
     BeforeMs,
     SortKey,
     Descending,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -503,6 +563,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -521,6 +582,7 @@ impl<
             BeforeMs,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -533,6 +595,7 @@ impl<
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -546,6 +609,7 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -561,6 +625,7 @@ impl<
     AfterMs,
     SortKey,
     Descending,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -574,6 +639,7 @@ impl<
             (),
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -592,6 +658,7 @@ impl<
             Option<i64>,
             SortKey,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -604,6 +671,7 @@ impl<
             (),
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -617,6 +685,7 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -632,6 +701,7 @@ impl<
     AfterMs,
     BeforeMs,
     Descending,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -645,6 +715,7 @@ impl<
             BeforeMs,
             (),
             Descending,
+            ExcludeSubagents,
         ),
     >
 {
@@ -663,6 +734,7 @@ impl<
             BeforeMs,
             &'a str,
             Descending,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -675,6 +747,7 @@ impl<
             before_ms,
             (),
             descending,
+            exclude_subagents,
         ) = self.fields;
         let _phantom = self._phantom;
         ListChatsBuilder {
@@ -688,6 +761,7 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -703,6 +777,7 @@ impl<
     AfterMs,
     BeforeMs,
     SortKey,
+    ExcludeSubagents,
 >
     ListChatsBuilder<
         'a,
@@ -716,6 +791,7 @@ impl<
             BeforeMs,
             SortKey,
             (),
+            ExcludeSubagents,
         ),
     >
 {
@@ -734,6 +810,7 @@ impl<
             BeforeMs,
             SortKey,
             i64,
+            ExcludeSubagents,
         ),
     > {
         let (
@@ -745,6 +822,83 @@ impl<
             after_ms,
             before_ms,
             sort_key,
+            (),
+            exclude_subagents,
+        ) = self.fields;
+        let _phantom = self._phantom;
+        ListChatsBuilder {
+            fields: (
+                page_offset,
+                page_size,
+                all_providers,
+                providers_json,
+                title_contains,
+                after_ms,
+                before_ms,
+                sort_key,
+                descending,
+                exclude_subagents,
+            ),
+            _phantom,
+        }
+    }
+}
+impl<
+    'a,
+    PageOffset,
+    PageSize,
+    AllProviders,
+    ProvidersJson,
+    TitleContains,
+    AfterMs,
+    BeforeMs,
+    SortKey,
+    Descending,
+>
+    ListChatsBuilder<
+        'a,
+        (
+            PageOffset,
+            PageSize,
+            AllProviders,
+            ProvidersJson,
+            TitleContains,
+            AfterMs,
+            BeforeMs,
+            SortKey,
+            Descending,
+            (),
+        ),
+    >
+{
+    pub fn exclude_subagents(
+        self,
+        exclude_subagents: i64,
+    ) -> ListChatsBuilder<
+        'a,
+        (
+            PageOffset,
+            PageSize,
+            AllProviders,
+            ProvidersJson,
+            TitleContains,
+            AfterMs,
+            BeforeMs,
+            SortKey,
+            Descending,
+            i64,
+        ),
+    > {
+        let (
+            page_offset,
+            page_size,
+            all_providers,
+            providers_json,
+            title_contains,
+            after_ms,
+            before_ms,
+            sort_key,
+            descending,
             (),
         ) = self.fields;
         let _phantom = self._phantom;
@@ -759,6 +913,7 @@ impl<
                 before_ms,
                 sort_key,
                 descending,
+                exclude_subagents,
             ),
             _phantom,
         }
@@ -777,6 +932,7 @@ impl<'a>
             Option<i64>,
             &'a str,
             i64,
+            i64,
         ),
     >
 {
@@ -791,6 +947,7 @@ impl<'a>
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         ) = self.fields;
         ListChats {
             page_offset,
@@ -802,6 +959,7 @@ impl<'a>
             before_ms,
             sort_key,
             descending,
+            exclude_subagents,
         }
     }
 }

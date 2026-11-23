@@ -8,7 +8,8 @@ WITH scope AS (SELECT
     CAST(sqlc.narg(after_ms) AS INTEGER) AS after_ms,
     CAST(sqlc.narg(before_ms) AS INTEGER) AS before_ms,
     CAST(sqlc.arg(sort_key) AS TEXT) AS sort_key,
-    CAST(sqlc.arg(descending) AS INTEGER) AS descending)
+    CAST(sqlc.arg(descending) AS INTEGER) AS descending,
+    CAST(sqlc.arg(exclude_subagents) AS INTEGER) AS exclude_subagents)
 SELECT c.id,c.provider AS provider,c.title,c.project,c.repository,c.created_at,c.updated_at,e.evidence AS enrichment,
     f.id AS first_message_id,
     a.parent_chat_id,a.label AS subagent_label,a.role AS subagent_role,a.depth AS subagent_depth,
@@ -28,6 +29,7 @@ WHERE (s.all_providers = 1 OR c.provider IN (
 AND (s.title_contains IS NULL OR instr(lower(c.title),lower(s.title_contains)) > 0)
 AND (s.after_ms IS NULL OR c.updated_at >= s.after_ms)
 AND (s.before_ms IS NULL OR c.updated_at < s.before_ms)
+AND (s.exclude_subagents = 0 OR a.chat_id IS NULL)
 ORDER BY
 CASE s.sort_key
     WHEN 'title' THEN c.title IS NULL

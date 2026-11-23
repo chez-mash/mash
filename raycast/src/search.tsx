@@ -34,7 +34,6 @@ import {
   hasDesktopApp,
   failures,
   literal,
-  ownRecentChats,
   parseChats,
   parseView,
   recentChatsArguments,
@@ -133,12 +132,9 @@ export default function Command() {
     );
   }
 
-  // The recent list is the reader's own chats: subagent chats are their
-  // agents' work, and would crowd them out. Search includes them unless the
-  // reader turns that off, as the dashboard does.
-  const hits = searching
-    ? live.hits.filter((hit) => subagentMatches || !hit.subagent)
-    : ownRecentChats(recent.data ?? []);
+  // Search includes matches in subagent chats unless the reader turns that
+  // off, as the dashboard does; the recent list never has them.
+  const hits = searching ? live.hits.filter((hit) => subagentMatches || !hit.subagent) : (recent.data ?? []);
   const isLoading = searching ? !live.done : recent.isLoading;
   const shownError = searching ? live.error : recent.error;
   const coming = searching ? stillComing(live.sources) : "";

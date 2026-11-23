@@ -82,21 +82,13 @@ export function liveSearchArguments(query: string): string[] {
   return ["search", query, "--live", "--limit", "20"];
 }
 
-/** How many recent chats the list shows before anything is typed. */
-export const RECENT_CHATS = 20;
-
 /**
  * The arguments that list this machine's latest chats, the most recent first.
- * Agents start many subagent chats, which the list leaves out, so this asks
- * for as many as Mash lists at once to leave enough of the reader's own.
+ * Agents start many subagent chats for their own subtasks; the list is the
+ * reader's own chats, so Mash leaves those out.
  */
 export function recentChatsArguments(): string[] {
-  return ["list-chats", "--local", "--limit", "100"];
-}
-
-/** The latest chats the reader had, without the subagent chats their agents started. */
-export function ownRecentChats(hits: readonly Hit[]): Hit[] {
-  return hits.filter((hit) => !hit.subagent).slice(0, RECENT_CHATS);
+  return ["list-chats", "--local", "--exclude-subagents", "--limit", "20"];
 }
 
 /** A row's subagent marker: Mash names a subagent chat's parent; other chats have none. */

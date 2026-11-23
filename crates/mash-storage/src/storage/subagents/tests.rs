@@ -94,6 +94,47 @@ fn subagents_are_listed_with_their_parent_and_parents_count_them() {
 }
 
 #[test]
+fn a_list_can_leave_subagents_out_in_storage_and_when_pages_merge() {
+    let directory = tempfile::tempdir().unwrap();
+    let mut storage = Storage::open_writer(&directory.path().join("index.sqlite3")).unwrap();
+    storage
+        .replace_chat(&codex_chat("parent", "plan", None))
+        .unwrap();
+    storage
+        .replace_chat(&codex_chat("child", "work", Some(spawned("parent"))))
+        .unwrap();
+    let request = Request {
+        exclude_subagents: true,
+        ..Request::default()
+    };
+    let own = storage.chat_candidates(&request, "local").unwrap();
+    assert_eq!(
+        own.iter()
+            .map(|chat| chat.chat_id.as_str())
+            .collect::<Vec<_>>(),
+        ["parent"]
+    );
+    // Rows merged from other copies, such as a shared server that does not
+    // filter, pass the same rule.
+    let mut collector = crate::chat_catalog::Collector::new(request).unwrap();
+    for chat in catalogue(&storage) {
+        collector.push(chat);
+    }
+    let merged = collector.finish().chats;
+    assert_eq!(
+        merged
+            .iter()
+            .map(|chat| chat.chat_id.as_str())
+            .collect::<Vec<_>>(),
+        ["parent"]
+    );
+    // A request that keeps subagents says nothing about them on the wire, so
+    // older servers, which reject unknown fields, still accept it.
+    let ordinary = serde_json::to_value(Request::default()).unwrap();
+    assert!(ordinary.get("exclude_subagents").is_none());
+}
+
+#[test]
 fn a_claude_contribution_without_the_marker_keeps_the_subagent_row() {
     let directory = tempfile::tempdir().unwrap();
     let mut storage = Storage::open_writer(&directory.path().join("index.sqlite3")).unwrap();
