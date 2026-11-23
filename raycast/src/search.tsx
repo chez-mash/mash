@@ -1,10 +1,10 @@
 import {
   Action,
   ActionPanel,
-  Detail,
   Icon,
   type Image,
   Keyboard,
+  LaunchProps,
   List,
   getPreferenceValues,
   openExtensionPreferences,
@@ -25,7 +25,6 @@ import {
 } from "./agentApps";
 import {
   type Hit,
-  MashError,
   agentLogo,
   agentName,
   appLink,
@@ -33,10 +32,9 @@ import {
   findMash,
   hasDesktopApp,
   failures,
-  literal,
   parseChats,
-  parseView,
   recentChatsArguments,
+  resumeCommand,
   rows,
   type Show,
   rendered,
@@ -45,8 +43,8 @@ import {
   type ViewChoice,
   viewChoice,
   stillComing,
-  viewArguments,
 } from "./mash";
+import { ChatMessages, read } from "./chatMessages";
 import { useStreamSearch } from "./stream";
 
 interface Preferences {
@@ -54,8 +52,6 @@ interface Preferences {
   /** Whether search results include matches in subagent chats; off unless the reader turns it on. */
   readonly subagentMatches?: boolean;
 }
-
-type Run = { stdout: string; exitCode: number | null; error?: Error };
 
 const readText: ReadText = (path) => {
   try {
@@ -86,22 +82,13 @@ interface AgentLinks {
   readonly owned: ReadonlySet<string>;
 }
 
-// Mash prints a JSON answer even when it fails, so read it before the exit
-// code: its message names the fix (start the search service, run mash init).
-function read<T>(parse: (stdout: string) => T) {
-  return ({ stdout, exitCode, error }: Run): T => {
-    if (stdout.trim()) return parse(stdout);
-    throw error ?? new MashError(`Mash stopped without an answer (exit ${exitCode}).`);
-  };
-}
-
-export default function Command() {
+export default function Command(props: LaunchProps<{ arguments: Arguments.Search }>) {
   const { mashPath, subagentMatches = false } = getPreferenceValues<Preferences>();
   const mash = useMemo(() => findMash(mashPath, homedir(), existsSync), [mashPath]);
   // Without the desktop app nothing opens mash:// links, so actions that
   // need one are offered only when it is installed.
   const hasApp = useMemo(() => hasDesktopApp(homedir(), existsSync), []);
-  const [typed, setTyped] = useState("");
+  const [typed, setTyped] = useState(props.arguments.query ?? "");
   const query = typed.trim();
   const searching = mash !== undefined && query.length >= 2;
   // Every source at once (this machine by words and by meaning, and your
@@ -160,6 +147,7 @@ export default function Command() {
   return (
     <List
       isLoading={isLoading}
+      searchText={typed}
       onSearchTextChange={setTyped}
       throttle
       onSelectionChange={() => live.interact()}
@@ -361,7 +349,13 @@ function HitActions({
     <Action.Push
       title="Read Messages"
       icon={Icon.Text}
-      target={<Messages hit={hit} mash={mash} hasApp={hasApp} inAgent={inAgent} />}
+      target={
+        <ChatMessages hit={hit} mash={mash}>
+          {hasApp ? <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} /> : null}
+          {inAgent}
+          <CopyActions hit={hit} hasApp={hasApp} />
+        </ChatMessages>
+      }
     />
   );
   const open = <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />;
@@ -397,8 +391,17 @@ function openInAgent(hit: Hit, links: AgentLinks) {
  * agent's Mash tools read the message by it.
  */
 function CopyActions({ hit, hasApp }: { hit: Hit; hasApp: boolean }) {
+  const resume = resumeCommand(hit);
   return (
     <ActionPanel.Section>
+      {resume ? (
+        <Action.CopyToClipboard
+          title="Copy Resume Command"
+          icon={Icon.Terminal}
+          content={resume}
+          shortcut={{ modifiers: ["cmd", "shift"], key: "r" }}
+        />
+      ) : null}
       {hasApp ? (
         <Action.CopyToClipboard title="Copy Link" content={chatLink(hit)} shortcut={Keyboard.Shortcut.Common.Copy} />
       ) : null}
@@ -432,47 +435,6 @@ function fullSearch(query: string, hasApp: boolean) {
       icon={Icon.Terminal}
       content={searchCommand(query)}
       shortcut={shortcut}
-    />
-  );
-}
-
-/** A chat's messages read with `mash view`: around the match, or from the start of a recent chat. */
-function Messages({
-  hit,
-  mash,
-  hasApp,
-  inAgent,
-}: {
-  hit: Hit;
-  mash: string;
-  hasApp: boolean;
-  inAgent: ReturnType<typeof openInAgent>;
-}) {
-  const { data, isLoading, error } = useExec(mash, viewArguments(hit.messageId), {
-    parseOutput: read(parseView),
-    failureToastOptions: { title: "Mash couldn’t read the chat" },
-  });
-  const markdown = error
-    ? `**Mash couldn’t read this chat.**\n\n${literal(error.message)}`
-    : (data ?? [])
-        .map((message) => {
-          const match = hit.matched && message.id === hit.messageId;
-          const heading = match ? `### ${message.role} · the match` : `### ${message.role}`;
-          return `${heading}\n\n${rendered(message.content)}`;
-        })
-        .join("\n\n");
-  return (
-    <Detail
-      isLoading={isLoading}
-      navigationTitle={hit.title}
-      markdown={markdown}
-      actions={
-        <ActionPanel>
-          {hasApp ? <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} /> : null}
-          {inAgent}
-          <CopyActions hit={hit} hasApp={hasApp} />
-        </ActionPanel>
-      }
     />
   );
 }

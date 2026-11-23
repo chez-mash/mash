@@ -15,6 +15,8 @@ use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
 mod help;
 use help::{help_paths, version_info};
+mod models;
+use models::ModelsCommand;
 mod qdrant;
 use qdrant::QdrantCommand;
 mod request;
@@ -110,6 +112,7 @@ enum Command {
         #[arg(long)]
         diagnostics: bool,
     },
+    Records(request::RecordsArguments),
     /// Discover and index supported local histories.
     Index {
         /// Build local retrieval state from certified stored silver, offline.
@@ -273,7 +276,9 @@ enum Command {
     ))]
     Doctor,
     /// Remove one chat and its derived search rows.
-    Forget { id: String },
+    Forget {
+        id: String,
+    },
     /// Run one read-only query over local silver.
     ///
     /// Use --request for the typed contract (target, filter, `group_by`, order,
@@ -303,7 +308,9 @@ enum Command {
         timeout_seconds: u64,
     },
     /// Export local silver and retained attachments to a new private directory.
-    Export { directory: PathBuf },
+    Export {
+        directory: PathBuf,
+    },
     /// Import verified silver into a new database; project views explicitly afterward.
     Import {
         directory: PathBuf,
@@ -420,19 +427,6 @@ enum DashCommand {
         #[arg(long)]
         remove: bool,
     },
-}
-
-#[derive(Debug, Clone, Subcommand)]
-enum ModelsCommand {
-    /// Explicitly install embedding and reranking models.
-    #[command(long_about = concat!(
-        "Explicitly install embedding and reranking models.\n\n",
-        "Downloads about 177 MB (about 90 MB more on Apple silicon and Windows, which add the embedding model their GPU engines run) ",
-        "from https://huggingface.co, or from the Hugging Face mirror named by HF_ENDPOINT, ",
-        "into the models directory, ~/.mash/models unless --models-dir is set. ",
-        "Word-exact search does not need these models.",
-    ))]
-    Install,
 }
 
 #[derive(Debug, Serialize)]
@@ -958,6 +952,7 @@ mod tests {
             [
                 "init",
                 "list-chats",
+                "records",
                 "index",
                 "search",
                 "view",

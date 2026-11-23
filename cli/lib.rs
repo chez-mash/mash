@@ -10,7 +10,7 @@ use std::ffi::OsString;
 use std::io::{self, IsTerminal, Write};
 
 use mash_app::{
-    BROKEN_PIPE, blocking, chat_catalog, config, core, observability, remote, runtime,
+    BROKEN_PIPE, blocking, chat_catalog, config, core, observability, records, remote, runtime,
     search_filter, search_results, semantic, shared, storage, usage, views, watch, write_json,
 };
 use mash_dash as dash;

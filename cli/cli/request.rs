@@ -96,6 +96,7 @@ impl Cli {
                 shared,
                 diagnostics,
             },
+            Command::Records(arguments) => Operation::Records(arguments.into_list()?),
             Command::Index {
                 rebuild_local_views,
                 full,
@@ -283,6 +284,42 @@ impl Cli {
             }
         };
         Ok(Request { paths, operation })
+    }
+}
+
+/// List the decisions, preferences and facts Mash remembers, newest first.
+#[derive(Debug, Clone, clap::Args)]
+pub(super) struct RecordsArguments {
+    /// Literal text the record must contain.
+    #[arg(long)]
+    query: Option<String>,
+    /// Only this kind of record.
+    #[arg(long, value_parser = ["decision", "preference", "fact"])]
+    kind: Option<String>,
+    /// Also list records that were superseded or withdrawn.
+    #[arg(long)]
+    include_inactive: bool,
+    /// Records per page, from 1 to 100.
+    #[arg(long)]
+    limit: Option<usize>,
+    #[arg(long, default_value_t = 0)]
+    offset: usize,
+}
+
+impl RecordsArguments {
+    fn into_list(self) -> Result<crate::records::List, AppError> {
+        Ok(crate::records::List {
+            query: self.query,
+            kind: self
+                .kind
+                .map(|kind| serde_json::from_value(serde_json::Value::String(kind)))
+                .transpose()
+                .map_err(|_| AppError::usage("unknown record kind"))?,
+            include_inactive: self.include_inactive,
+            limit: self.limit,
+            offset: self.offset,
+            ..crate::records::List::default()
+        })
     }
 }
 

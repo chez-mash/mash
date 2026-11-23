@@ -9,7 +9,13 @@ It asks every source at once: this machine by words, this machine by meaning
 answers; once you move the selection, the rows on screen keep their places and
 later results are added below. A chat found only by meaning is tagged **by
 meaning**, and a machine that doesn't answer is listed with **↵ to retry**.
-Choose **All machines** or **This machine** beside the search field.
+The dropdown beside the search field chooses what to list, **Chats** (one row
+per chat) or **Messages** (one row per matching message), and whose history,
+**All machines** or **This machine**; ⌘1 and ⌘2 switch between chats and
+messages from any row, and the choice is remembered. Chats your agents started
+as subagents are left out unless you turn on **Include matches in subagent
+chats** in the extension's preferences. Type a query after **Search Mash** in
+Raycast's root search to start with it.
 From a chat you can:
 
 - **Open Chat in Mash** (↵) — the chat, at that message, in the Mash desktop
@@ -27,11 +33,22 @@ From a chat you can:
 - **Copy Message ID** — the ID that `mash view` and your agents' Mash tools
   read the message by (⇧⌘C without the desktop app).
 - **Copy Passage** (⇧⌘.).
+- **Copy Resume Command** (⇧⌘R) — `claude --resume …` or `codex resume …`,
+  in the folder the chat ran in, to pick the session up in a terminal.
+  Offered for this machine's own Claude Code and Codex sessions.
 - **Search Everywhere** (⌘↵) — the same words in Mash's full search, which
   also reads your other machines, matches exact identifiers and can search by
   meaning. Without the desktop app, this copies the `mash search` command
   that does the same in a terminal.
 - **Open Mash** (⌘O) — the desktop app's main window.
+
+**Search Memory** lists the decisions, preferences and facts Mash remembers
+from your chats, grouped by the repository or project they apply to, newest
+first. Choose a kind beside the search field. Each shows why it was recorded,
+when it applies, and the quotes from the chat behind it; **Open Source Chat in
+Mash** or **Read Source Messages** (⌘O) goes to the message it came from, and
+**Copy Statement** (↵) copies it. A record an agent proposed that you haven't
+confirmed is tagged **unconfirmed**.
 
 When Mash fails, the extension shows Mash's own message with the next steps:
 try again, the [troubleshooting guide](https://getmash.io/troubleshooting/),

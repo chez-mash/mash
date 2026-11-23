@@ -13,6 +13,7 @@ import {
   parseChats,
   parseSearch,
   parseStreamLine,
+  resumeCommand,
   rows,
   viewChoice,
   parseView,
@@ -308,5 +309,21 @@ describe("chats or messages", () => {
     expect(viewChoice("messages:local")).toEqual({ show: "messages", scope: "local" });
     expect(viewChoice("chats:all")).toEqual({ show: "chats", scope: "all" });
     expect(viewChoice("sideways")).toEqual({ show: "chats", scope: "all" });
+  });
+});
+
+describe("resuming a chat in its agent", () => {
+  const chat = { agent: "claude-code", chatId: "3cd8e223-aea3", project: "/work/it's here" };
+
+  it("resumes Claude Code and Codex sessions in the folder they ran in", () => {
+    expect(resumeCommand(chat)).toBe("cd '/work/it'\\''s here' && claude --resume 3cd8e223-aea3");
+    expect(resumeCommand({ ...chat, agent: "codex", project: "" })).toBe("codex resume 3cd8e223-aea3");
+  });
+
+  it("offers nothing it could not resume here", () => {
+    expect(resumeCommand({ ...chat, subagent: true })).toBeUndefined();
+    expect(resumeCommand({ ...chat, machine: "xenia" })).toBeUndefined();
+    expect(resumeCommand({ ...chat, agent: "cursor" })).toBeUndefined();
+    expect(resumeCommand({ ...chat, chatId: "x; rm -rf ~" })).toBeUndefined();
   });
 });

@@ -1,0 +1,232 @@
+/**
+ * Search Memory: the decisions, preferences and facts Mash remembers from your
+ * chats, grouped by where they apply, each with the quotes behind it.
+ */
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  getPreferenceValues,
+  openExtensionPreferences,
+  Keyboard,
+} from "@raycast/api";
+import { useCachedState, usePromise } from "@raycast/utils";
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { useMemo } from "react";
+import { ChatMessages } from "./chatMessages";
+import { chatLink, findMash, type Hit, hasDesktopApp, MashError } from "./mash";
+import { type Memory, type MemoryKind, memoryMarkdown, parseRecords, RECORD_PAGE, recordsArguments } from "./records";
+
+interface Preferences {
+  readonly mashPath?: string;
+}
+
+type Choice = "all" | MemoryKind;
+
+const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon: Icon; readonly tint: Color }[] = [
+  { value: "decision", title: "Decisions", icon: Icon.CheckCircle, tint: Color.Blue },
+  { value: "preference", title: "Preferences", icon: Icon.Heart, tint: Color.Magenta },
+  { value: "fact", title: "Facts", icon: Icon.Info, tint: Color.Green },
+];
+
+/** One page of `mash records`. Mash answers with JSON even when it fails, so its message is kept. */
+function page(mash: string, offset: number): Promise<{ memories: Memory[]; next: number | null }> {
+  return new Promise((resolve, reject) => {
+    execFile(mash, recordsArguments(offset), { maxBuffer: 64 * 1024 * 1024 }, (error, stdout) => {
+      if (stdout.trim()) {
+        try {
+          resolve(parseRecords(stdout));
+        } catch (parseError) {
+          reject(parseError);
+        }
+        return;
+      }
+      reject(error ?? new MashError("Mash stopped without an answer."));
+    });
+  });
+}
+
+/** Every current record, newest first. Ten pages is far more than a person keeps. */
+async function everything(mash: string): Promise<Memory[]> {
+  const all: Memory[] = [];
+  let offset: number | null = 0;
+  for (let pages = 0; offset !== null && pages < 10; pages += 1) {
+    const answer = await page(mash, offset);
+    all.push(...answer.memories);
+    offset = answer.memories.length < RECORD_PAGE ? null : answer.next;
+  }
+  return all;
+}
+
+export default function Command() {
+  const { mashPath } = getPreferenceValues<Preferences>();
+  const mash = useMemo(() => findMash(mashPath, homedir(), existsSync), [mashPath]);
+  const hasApp = useMemo(() => hasDesktopApp(homedir(), existsSync), []);
+  const [choice, setChoice] = useCachedState<Choice>("memory-kind", "all");
+  const { data, isLoading, error, revalidate } = usePromise(everything, [mash ?? ""], {
+    execute: mash !== undefined,
+    failureToastOptions: { title: "Mash couldn’t list what it remembers" },
+  });
+
+  if (!mash) {
+    return (
+      <List>
+        <List.EmptyView
+          icon={Icon.Warning}
+          title={mashPath ? "Mash isn’t at the location you set" : "Mash isn’t installed"}
+          actions={
+            <ActionPanel>
+              <Action title="Set Mash Location" icon={Icon.Gear} onAction={openExtensionPreferences} />
+            </ActionPanel>
+          }
+        />
+      </List>
+    );
+  }
+
+  const shown = (data ?? []).filter((memory) => choice === "all" || memory.kind === choice);
+  // Sections in the order their newest record appears, so recent work leads.
+  const sections = new Map<string, Memory[]>();
+  for (const memory of shown) sections.set(memory.scope, [...(sections.get(memory.scope) ?? []), memory]);
+
+  return (
+    <List
+      isLoading={isLoading}
+      isShowingDetail={shown.length > 0}
+      searchBarPlaceholder="Search what Mash remembers"
+      searchBarAccessory={
+        <List.Dropdown tooltip="Kind of record" value={choice} onChange={(value) => setChoice(value as Choice)}>
+          <List.Dropdown.Item title="Everything" value="all" icon={Icon.Bookmark} />
+          {kinds.map((kind) => (
+            <List.Dropdown.Item
+              key={kind.value}
+              title={kind.title}
+              value={kind.value}
+              icon={{ source: kind.icon, tintColor: kind.tint }}
+            />
+          ))}
+        </List.Dropdown>
+      }
+    >
+      {error ? (
+        <List.EmptyView
+          icon={Icon.Warning}
+          title="Mash couldn’t list what it remembers"
+          description={error.message}
+          actions={
+            <ActionPanel>
+              <Action title="Try Again" icon={Icon.ArrowClockwise} onAction={revalidate} />
+            </ActionPanel>
+          }
+        />
+      ) : (
+        <List.EmptyView
+          icon={Icon.Bookmark}
+          title={isLoading ? "Reading what Mash remembers…" : "Nothing remembered yet"}
+          description="Mash keeps the decisions, preferences and facts your agents record from your chats."
+        />
+      )}
+      {[...sections].map(([scope, memories]) => (
+        <List.Section key={scope} title={scope} subtitle={String(memories.length)}>
+          {memories.map((memory) => (
+            <MemoryItem key={memory.id} memory={memory} mash={mash} hasApp={hasApp} reload={revalidate} />
+          ))}
+        </List.Section>
+      ))}
+    </List>
+  );
+}
+
+function MemoryItem({
+  memory,
+  mash,
+  hasApp,
+  reload,
+}: {
+  memory: Memory;
+  mash: string;
+  hasApp: boolean;
+  reload: () => void;
+}) {
+  const kind = kinds.find((entry) => entry.value === memory.kind) ?? kinds[0];
+  const source = memory.evidence[0];
+  // The chat a record came from, at the message it quotes.
+  const hit: Hit | undefined = source && {
+    chatId: source.chatId,
+    messageId: source.messageId,
+    matched: true,
+    title: memory.statement,
+    agent: "",
+    project: "",
+    updatedAt: undefined,
+    passage: source.quote,
+  };
+  return (
+    <List.Item
+      icon={{ source: kind.icon, tintColor: kind.tint }}
+      title={memory.statement}
+      keywords={[memory.scope, memory.kind, ...memory.conditions]}
+      accessories={memory.candidate ? [{ tag: { value: "unconfirmed", color: Color.Orange } }] : []}
+      detail={
+        <List.Item.Detail
+          markdown={memoryMarkdown(memory)}
+          metadata={
+            <List.Item.Detail.Metadata>
+              <List.Item.Detail.Metadata.TagList title="Kind">
+                <List.Item.Detail.Metadata.TagList.Item text={kind.title.slice(0, -1)} color={kind.tint} />
+              </List.Item.Detail.Metadata.TagList>
+              <List.Item.Detail.Metadata.Label title="Applies to" text={memory.scope} />
+              {memory.recordedAt ? (
+                <List.Item.Detail.Metadata.Label title="Recorded" text={memory.recordedAt.toLocaleString()} />
+              ) : null}
+              <List.Item.Detail.Metadata.Label
+                title="Confirmed"
+                text={memory.candidate ? "Not yet: an agent proposed it" : "Yes"}
+              />
+            </List.Item.Detail.Metadata>
+          }
+        />
+      }
+      actions={
+        <ActionPanel>
+          <Action.CopyToClipboard title="Copy Statement" content={memory.statement} />
+          {hit && hasApp ? (
+            <Action.Open title="Open Source Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />
+          ) : null}
+          {hit ? (
+            <Action.Push
+              title="Read Source Messages"
+              icon={Icon.Text}
+              shortcut={Keyboard.Shortcut.Common.Open}
+              target={
+                <ChatMessages hit={hit} mash={mash}>
+                  {hasApp ? (
+                    <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />
+                  ) : null}
+                  <Action.CopyToClipboard title="Copy Statement" content={memory.statement} />
+                </ChatMessages>
+              }
+            />
+          ) : null}
+          <ActionPanel.Section>
+            <Action.CopyToClipboard
+              title="Copy Record ID"
+              content={memory.id}
+              shortcut={Keyboard.Shortcut.Common.Copy}
+            />
+            <Action
+              title="Reload"
+              icon={Icon.ArrowClockwise}
+              shortcut={Keyboard.Shortcut.Common.Refresh}
+              onAction={reload}
+            />
+          </ActionPanel.Section>
+        </ActionPanel>
+      }
+    />
+  );
+}

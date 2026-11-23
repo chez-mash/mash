@@ -327,6 +327,26 @@ export function chatLink(hit: Pick<Hit, "chatId" | "messageId" | "matched">): st
   return hit.matched ? `${chat}?${new URLSearchParams({ message: hit.messageId })}` : chat;
 }
 
+/**
+ * The terminal command that resumes a chat in its agent's CLI, in the folder
+ * it ran in. Only an agent's own sessions can be resumed: a subagent's ID is
+ * Mash's, not a session the agent knows, and another machine's session is
+ * not on this one. The folder is quoted for a POSIX shell.
+ */
+export function resumeCommand(
+  hit: Pick<Hit, "agent" | "chatId" | "project" | "subagent" | "machine">,
+): string | undefined {
+  if (hit.subagent || hit.machine) return undefined;
+  const resume =
+    hit.agent === "claude-code"
+      ? `claude --resume ${hit.chatId}`
+      : hit.agent === "codex"
+        ? `codex resume ${hit.chatId}`
+        : undefined;
+  if (!resume || !/^[\w-]+$/.test(hit.chatId)) return undefined;
+  return hit.project ? `cd '${hit.project.replace(/'/g, `'\\''`)}' && ${resume}` : resume;
+}
+
 /** The mash:// link that opens Mash's main window, as the panel's Open Mash does. */
 export const appLink = "mash://";
 
