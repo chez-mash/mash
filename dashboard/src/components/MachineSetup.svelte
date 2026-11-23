@@ -61,7 +61,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
 {/snippet}
 
 {#if setup.isPending && enabled}<p class="meta rw-note" role="status">Checking agent setup on {machineId}…</p>{/if}
-{#if setup.error}<p class="meta rw-note"><span class="warn" role="alert">Agent setup on {machineId} is unavailable: {setup.error.message}</span> A machine running an older Mash cannot report its setup. Update it, then check again.</p>{/if}
+{#if setup.error}<p class="meta rw-note"><span class="warn" role="alert">Agent setup on {machineId} is unavailable: {setup.error.message}</span> A machine running an older Mash cannot report its setup. Update it, then check for updates.</p>{/if}
 {#each setup.data?.agents ?? [] as agent (agent.agent)}
   {@const headline = setupHeadline(agent)}
   {@const chain = setupChain(agent)}

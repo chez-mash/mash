@@ -13,6 +13,7 @@ import {
   serviceRequestId,
   submitFleetJob,
 } from "../lib/services.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 
 // The button that does the plugin fix on the machine: update Mash there when
 // Fleet manager may, reinstall the plugin, then say the one step left, which
@@ -80,8 +81,15 @@ function start(): void {
   if (deployRevision) confirming = true;
   else void run();
 }
-function checkAgain(): void {
-  void client.invalidateQueries({ queryKey: ["service-setup", machineId] });
+// After a fix, the setup is read again to see whether the plugin is current.
+let checking = $state(false);
+async function checkAgain(): Promise<void> {
+  checking = true;
+  try {
+    await client.invalidateQueries({ queryKey: ["service-setup", machineId] });
+  } finally {
+    checking = false;
+  }
 }
 
 type Mark = "todo" | "running" | "done" | "failed";
@@ -138,7 +146,7 @@ const busy = $derived(stage !== null);
   {/if}
   {#if result?.ok}
     <p class="ok rp-out" role="status"><Check size={16} aria-hidden="true" /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
-    <div class="rp-acts"><button class="btn sm" type="button" onclick={checkAgain}>Check again</button></div>
+    <div class="rp-acts"><CheckUpdates {checking} check={checkAgain} /></div>
   {:else if result}
     <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} Use the steps by hand below instead.</span></p>
     <div class="rp-acts"><button class="btn sm" type="button" onclick={start}>Try again</button></div>

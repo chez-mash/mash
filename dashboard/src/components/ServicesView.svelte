@@ -32,6 +32,7 @@ import {
   serviceOptions,
   servicesHref,
 } from "../lib/services.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 import LoadError from "./LoadError.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 import QueryError from "./QueryError.svelte";
@@ -195,14 +196,14 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><ChevronLeft size={15} aria-hidden="true" />services</a>
   <div class="hd">
     <div class="dh"><span class="ico lg services"><KindIcon size={20} aria-hidden="true" /></span><div><h1 class="h1">{service?.name ?? serviceId}</h1><p class="meta">{selectedId}{service ? ` / ${service.kind}` : ""}</p></div></div>
-    <span class="acts"><button class="btn" type="button" disabled={!enabled || fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />{fleet.isFetching ? "Checking…" : "Check again"}</button></span>
+    <span class="acts"><CheckUpdates checking={fleet.isFetching} disabled={!enabled || fleet.isFetching || pending} check={refresh} /></span>
   </div>
 {:else}
   <div class="hd">
     <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check. This page does not refresh on its own.</p></div>
     <span class="acts">
       <span role="status">{#if fleet.data}<span class="pill" class:ok={allHealthy} class:warn={!allHealthy}>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
-      <button class="btn" type="button" disabled={!enabled || fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />{fleet.isFetching ? "Checking…" : "Check again"}</button>
+      <CheckUpdates checking={fleet.isFetching} disabled={!enabled || fleet.isFetching || pending} check={refresh} />
     </span>
   </div>
 {/if}
