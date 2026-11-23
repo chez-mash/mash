@@ -38,7 +38,7 @@ pub fn revoked_credential() -> AppError {
 
 /// Why the server refused this machine's credential: removed or replaced by
 /// its operator, or never accepted.
-pub(super) async fn unauthorized(response: reqwest::Response) -> AppError {
+pub(crate) async fn unauthorized(response: reqwest::Response) -> AppError {
     if revoked(response).await {
         return revoked_credential();
     }

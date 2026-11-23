@@ -9,65 +9,11 @@
 //! never named.
 use axum::Json;
 use axum::extract::{Extension, State};
-use mash_app::shared::server::{Identity, configuration, enrollment, status, store};
+use mash_app::shared::server::report::{GroupStatus, MachineState, MachineStatus};
+use mash_app::shared::server::{Identity, configuration, enrollment, status};
 use mash_model::AppError;
-use serde::Serialize;
 
 use super::{ApiError, App};
-
-/// How a machine stands with the server.
-#[derive(Debug, Clone, Copy, Serialize, schemars::JsonSchema)]
-#[serde(tag = "state", rename_all = "kebab-case")]
-pub(crate) enum MachineState {
-    /// Listed in the operator's own configuration file.
-    Configured,
-    /// Its join string can still be redeemed until `expires_at`.
-    Waiting {
-        expires_at: u64,
-    },
-    /// Its join string was never redeemed and no longer can be.
-    Expired,
-    Joined,
-    /// Its credential was removed; what it published stays until deleted.
-    Removed {
-        delete_requested: bool,
-    },
-}
-
-#[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
-pub(crate) struct MachineStatus {
-    pub(crate) group_id: String,
-    pub(crate) node_id: String,
-    #[serde(flatten)]
-    pub(crate) state: MachineState,
-    /// When its current credential was made, by the server's clock.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) credential_created_at: Option<u64>,
-    /// The last four characters of the stored hash of its credential: enough
-    /// to tell two credentials apart, nothing to sign in with.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) fingerprint: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) published: Option<store::Published>,
-    /// A first publish still arriving.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) receiving: Option<status::Receiving>,
-    /// Its history is being deleted once its open connections close.
-    pub(crate) delete_waiting: bool,
-}
-
-#[derive(Debug, Serialize, schemars::JsonSchema)]
-pub(crate) struct GroupStatus {
-    /// The server's build revision.
-    pub(crate) build: String,
-    /// When the server started, in seconds since 1970 by its clock.
-    pub(crate) started_at: u64,
-    pub(crate) now: u64,
-    pub(crate) group_id: String,
-    /// This server needs a restart before it accepts machines of this group.
-    pub(crate) restart_needed: bool,
-    pub(crate) machines: Vec<MachineStatus>,
-}
 
 /// Every machine the server knows, with its state, for the groups `include`
 /// keeps.

@@ -1459,47 +1459,6 @@
         ],
         "type": "string"
       },
-      "GroupStatus": {
-        "properties": {
-          "build": {
-            "description": "The server's build revision.",
-            "type": "string"
-          },
-          "group_id": {
-            "type": "string"
-          },
-          "machines": {
-            "items": {
-              "$ref": "#/components/schemas/MachineStatus"
-            },
-            "type": "array"
-          },
-          "now": {
-            "format": "uint64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "restart_needed": {
-            "description": "This server needs a restart before it accepts machines of this group.",
-            "type": "boolean"
-          },
-          "started_at": {
-            "description": "When the server started, in seconds since 1970 by its clock.",
-            "format": "uint64",
-            "minimum": 0,
-            "type": "integer"
-          }
-        },
-        "required": [
-          "build",
-          "started_at",
-          "now",
-          "group_id",
-          "restart_needed",
-          "machines"
-        ],
-        "type": "object"
-      },
       "IdentityState": {
         "additionalProperties": false,
         "properties": {
@@ -1539,6 +1498,7 @@
         ]
       },
       "JoinAnswer": {
+        "description": "A new join string, shown once.",
         "properties": {
           "expires_in_seconds": {
             "format": "uint64",
@@ -1546,7 +1506,7 @@
             "type": "integer"
           },
           "join": {
-            "description": "Shown once; it holds the machine's one-time secret.",
+            "description": "It holds the machine's one-time secret: pass it privately.",
             "type": "string"
           },
           "restart_needed": {
@@ -1783,9 +1743,9 @@
       },
       "MachineRequest": {
         "additionalProperties": false,
+        "description": "An admin's request about one machine.",
         "properties": {
           "confirm": {
-            "default": null,
             "description": "For a deletion: the machine's name typed again.",
             "type": [
               "string",
@@ -1793,7 +1753,6 @@
             ]
           },
           "group_id": {
-            "default": null,
             "description": "Defaults to the server's only group.",
             "type": [
               "string",
@@ -1806,140 +1765,6 @@
         },
         "required": [
           "node_id"
-        ],
-        "type": "object"
-      },
-      "MachineStatus": {
-        "description": "How a machine stands with the server.",
-        "oneOf": [
-          {
-            "description": "Listed in the operator's own configuration file.",
-            "properties": {
-              "state": {
-                "const": "configured",
-                "type": "string"
-              }
-            },
-            "required": [
-              "state"
-            ],
-            "type": "object"
-          },
-          {
-            "description": "Its join string can still be redeemed until `expires_at`.",
-            "properties": {
-              "expires_at": {
-                "format": "uint64",
-                "minimum": 0,
-                "type": "integer"
-              },
-              "state": {
-                "const": "waiting",
-                "type": "string"
-              }
-            },
-            "required": [
-              "state",
-              "expires_at"
-            ],
-            "type": "object"
-          },
-          {
-            "description": "Its join string was never redeemed and no longer can be.",
-            "properties": {
-              "state": {
-                "const": "expired",
-                "type": "string"
-              }
-            },
-            "required": [
-              "state"
-            ],
-            "type": "object"
-          },
-          {
-            "properties": {
-              "state": {
-                "const": "joined",
-                "type": "string"
-              }
-            },
-            "required": [
-              "state"
-            ],
-            "type": "object"
-          },
-          {
-            "description": "Its credential was removed; what it published stays until deleted.",
-            "properties": {
-              "delete_requested": {
-                "type": "boolean"
-              },
-              "state": {
-                "const": "removed",
-                "type": "string"
-              }
-            },
-            "required": [
-              "state",
-              "delete_requested"
-            ],
-            "type": "object"
-          }
-        ],
-        "properties": {
-          "credential_created_at": {
-            "description": "When its current credential was made, by the server's clock.",
-            "format": "uint64",
-            "minimum": 0,
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "delete_waiting": {
-            "description": "Its history is being deleted once its open connections close.",
-            "type": "boolean"
-          },
-          "fingerprint": {
-            "description": "The last four characters of the stored hash of its credential: enough\nto tell two credentials apart, nothing to sign in with.",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "group_id": {
-            "type": "string"
-          },
-          "node_id": {
-            "type": "string"
-          },
-          "published": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Published2"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "receiving": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Receiving"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "A first publish still arriving."
-          }
-        },
-        "required": [
-          "group_id",
-          "node_id",
-          "delete_waiting"
         ],
         "type": "object"
       },
@@ -2316,52 +2141,6 @@
             "type": "object"
           }
         ]
-      },
-      "Overview": {
-        "description": "Every machine in every group, the actions recorded, and the admin keys.",
-        "properties": {
-          "actions": {
-            "description": "Newest first.",
-            "items": {
-              "$ref": "#/components/schemas/Action"
-            },
-            "type": "array"
-          },
-          "build": {
-            "type": "string"
-          },
-          "keys": {
-            "items": {
-              "$ref": "#/components/schemas/KeyName"
-            },
-            "type": "array"
-          },
-          "machines": {
-            "items": {
-              "$ref": "#/components/schemas/MachineStatus"
-            },
-            "type": "array"
-          },
-          "now": {
-            "format": "uint64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "started_at": {
-            "format": "uint64",
-            "minimum": 0,
-            "type": "integer"
-          }
-        },
-        "required": [
-          "build",
-          "started_at",
-          "now",
-          "machines",
-          "actions",
-          "keys"
-        ],
-        "type": "object"
       },
       "Page": {
         "properties": {
@@ -3185,6 +2964,182 @@
         ],
         "type": "string"
       },
+      "SharedGroupStatus": {
+        "description": "A group as any of its machines may read it.",
+        "properties": {
+          "build": {
+            "description": "The server's build revision.",
+            "type": "string"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SharedMachine"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "restart_needed": {
+            "description": "The server needs a restart before it accepts machines of this group.",
+            "type": "boolean"
+          },
+          "started_at": {
+            "description": "When the server started, in seconds since 1970 by its clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "group_id",
+          "restart_needed",
+          "machines"
+        ],
+        "type": "object"
+      },
+      "SharedMachine": {
+        "description": "How a machine stands with the server.",
+        "oneOf": [
+          {
+            "description": "Listed in the operator's own configuration file.",
+            "properties": {
+              "state": {
+                "const": "configured",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string can still be redeemed until `expires_at`.",
+            "properties": {
+              "expires_at": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "state": {
+                "const": "waiting",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "expires_at"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string was never redeemed and no longer can be.",
+            "properties": {
+              "state": {
+                "const": "expired",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "state": {
+                "const": "joined",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its credential was removed; what it published stays until deleted.",
+            "properties": {
+              "delete_requested": {
+                "type": "boolean"
+              },
+              "state": {
+                "const": "removed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "delete_requested"
+            ],
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "credential_created_at": {
+            "description": "When its current credential was made, by the server's clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "delete_waiting": {
+            "default": false,
+            "description": "Its history is being deleted once its open connections close.",
+            "type": "boolean"
+          },
+          "fingerprint": {
+            "description": "The last four characters of the stored hash of its credential: enough\nto tell two credentials apart, nothing to sign in with.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Published2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receiving": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Receiving"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A first publish still arriving."
+          }
+        },
+        "required": [
+          "group_id",
+          "node_id"
+        ],
+        "type": "object"
+      },
       "SharedQuery": {
         "additionalProperties": false,
         "properties": {
@@ -3202,6 +3157,52 @@
         },
         "required": [
           "request"
+        ],
+        "type": "object"
+      },
+      "SharedServerOverview": {
+        "description": "Every machine in every group, the actions recorded, and the admin keys,\nfor an admin.",
+        "properties": {
+          "actions": {
+            "description": "Newest first.",
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "type": "array"
+          },
+          "build": {
+            "type": "string"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/KeyName"
+            },
+            "type": "array"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SharedMachine"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "machines",
+          "actions",
+          "keys"
         ],
         "type": "object"
       },
@@ -3488,6 +3489,7 @@
               }
             }
           },
+          "description": "An admin's request about one machine.",
           "required": true
         },
         "responses": {
@@ -3499,7 +3501,7 @@
                 }
               }
             },
-            "description": ""
+            "description": "A new join string, shown once."
           },
           "400": {
             "content": {
@@ -3544,6 +3546,7 @@
               }
             }
           },
+          "description": "An admin's request about one machine.",
           "required": true
         },
         "responses": {
@@ -3597,11 +3600,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Overview"
+                  "$ref": "#/components/schemas/SharedServerOverview"
                 }
               }
             },
-            "description": "Every machine in every group, the actions recorded, and the admin keys."
+            "description": "Every machine in every group, the actions recorded, and the admin keys,\nfor an admin."
           }
         }
       }
@@ -3616,6 +3619,7 @@
               }
             }
           },
+          "description": "An admin's request about one machine.",
           "required": true
         },
         "responses": {
@@ -3672,6 +3676,7 @@
               }
             }
           },
+          "description": "An admin's request about one machine.",
           "required": true
         },
         "responses": {
@@ -3683,7 +3688,7 @@
                 }
               }
             },
-            "description": ""
+            "description": "A new join string, shown once."
           },
           "400": {
             "content": {
@@ -4387,11 +4392,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GroupStatus"
+                  "$ref": "#/components/schemas/SharedGroupStatus"
                 }
               }
             },
-            "description": ""
+            "description": "A group as any of its machines may read it."
           }
         }
       }

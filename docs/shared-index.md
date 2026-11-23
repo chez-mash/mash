@@ -60,13 +60,23 @@ This writes the server settings under `~/.mash/server`, starts a user service,
 and prints its private HTTPS address and a `join` value. To add another
 computer, run the command on the server again with a different name, such as
 `personal/desktop`. Use a different join string for each computer. The join
-string contains its credential, so pass it privately. Rerunning setup with a
-name already added repairs the service and reuses that registration.
+string contains its credential, so pass it privately. Each join string works
+once, within 24 hours; if it expires or is used, make a new one. Rerunning
+setup with a name already added repairs the service and reuses that
+registration.
+
+The first setup also makes an admin key and saves it for the dashboard on the
+server machine, so you can add, remove and replace machines from Machines
+there. To manage machines from another computer, see
+[Manage machines from any computer](#manage-machines-from-any-computer).
 
 ### Join and review each computer
 
 On a computer you want to connect, [install Mash](installation.md) and pause
-any background indexing while you review. Then run this with the full join
+any background indexing while you review. In Mash, open Machines or Settings,
+paste the join value into **Join a shared index**, and choose **Check**. Mash
+shows the server, group and name the string joins as before saving anything;
+**Save and continue** then joins. Or run this in a terminal with the full join
 value for that computer.
 
 ```sh
@@ -246,6 +256,30 @@ and run `mash index` again. To keep publishing new chats, run a
 [Search across your machines](search-across-machines.md) shows how to choose a
 machine in the dashboard, search from the terminal, and check for missing chats.
 
+## Manage machines from any computer
+
+Every computer that joined can see the server's machines in Machines: which
+have joined, which are waiting, and when each last published. It reads them
+with its own credential, which can never change anything.
+
+To add, remove or replace machines from another computer, give it an admin
+key. On the server machine, run:
+
+```sh
+mash-server --server-config /absolute/path/to/server.toml --add-admin laptop
+```
+
+It prints the key once; the server keeps only its hash. On the computer you
+manage from, open Machines, choose **Manage this server**, and paste the key.
+Mash checks it with the server before saving it in `~/.mash/admin.env`,
+readable only by you. A dashboard other people can reach without signing in
+never uses it. The server records each admin action with the key's name and
+the computer it came from, shown under Recent admin actions. Too many wrong
+keys make the server refuse every admin request for a minute.
+
+Run `--add-admin` with the same name to replace a key, and
+`--revoke-admin NAME` to stop accepting one, for example for a lost laptop.
+
 ## Remove a machine, or let a rebuilt one publish again
 
 The server ties each node ID to the local index that first published under it,
@@ -257,6 +291,12 @@ from a [backup](upgrades.md#replace-an-index-that-cannot-be-upgraded) with
 To remove a computer for good, stop publishing from that computer and retire
 its history before revoking its credential. Uninstalling Mash on a computer
 leaves the server's copy in place.
+
+For a machine added with a join string, use Machines in Mash with an admin
+key: **Remove** stops its credential at once and keeps what it published, and
+**Delete what it published** then deletes it while the server runs, once you
+type the machine's name. The rest of this section is the terminal route, and
+the only one for a machine listed in `server.toml` itself.
 
 Stop `mash-server` and keep its Qdrant running. Run this with the same server
 configuration and environment the service uses:
@@ -278,7 +318,12 @@ removing the computer, revoke its credential before restarting the server.
 
 ### Revoke or replace a computer’s credential
 
-On the server, find the `[[nodes]]` block with that computer’s `group_id` and
+For a machine added with a join string, choose **Replace credential** or
+**Remove** in Machines with an admin key. Either takes effect without a
+restart; a replaced credential comes with a new join string, shown once. The
+computer is told its credential was revoked the next time it connects.
+
+For a computer added by hand, on the server, find the `[[nodes]]` block with that computer’s `group_id` and
 `node_id`. For a computer added with `--add-node`, the block is in the file
 next to your server configuration, usually `server.toml.nodes`. For a computer
 added by hand, it is in `server.toml`. Remove the block and restart the server

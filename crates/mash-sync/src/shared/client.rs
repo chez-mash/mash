@@ -9,6 +9,7 @@ mod contexts;
 mod query_error;
 mod revocation;
 pub(super) use contexts::read as context_batch;
+pub(crate) use revocation::unauthorized as unauthorized_answer;
 pub use revocation::{freshness_with_token, revoked_credential};
 #[cfg(test)]
 mod retry_tests;

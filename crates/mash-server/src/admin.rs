@@ -19,11 +19,11 @@ use axum::extract::{Extension, Request, State};
 use axum::http::StatusCode;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
+use mash_app::shared::server::report::{Done, JoinAnswer, KeyName, MachineRequest, Overview};
 use mash_app::shared::server::{admin, configuration, enrollment};
 use mash_model::AppError;
-use serde::{Deserialize, Serialize};
 
-use super::group_status::{self, MachineStatus};
+use super::group_status;
 use super::{ApiError, App, json};
 
 /// Wrong admin keys allowed per minute, across the server.
@@ -102,24 +102,6 @@ pub(crate) async fn gate(app: App, mut request: Request, next: Next) -> Response
     next.run(request).await
 }
 
-/// Every machine in every group, the actions recorded, and the admin keys.
-#[derive(Serialize, schemars::JsonSchema)]
-pub(crate) struct Overview {
-    build: String,
-    started_at: u64,
-    now: u64,
-    machines: Vec<MachineStatus>,
-    /// Newest first.
-    actions: Vec<admin::Action>,
-    keys: Vec<KeyName>,
-}
-
-#[derive(Serialize, schemars::JsonSchema)]
-pub(crate) struct KeyName {
-    name: String,
-    created_at: u64,
-}
-
 pub(crate) async fn overview(
     State(app): State<App>,
     Extension(_admin): Extension<Admin>,
@@ -150,32 +132,6 @@ fn not_live() -> ApiError {
         StatusCode::NOT_FOUND,
         AppError::usage("this server's machines are set in its configuration file only"),
     )
-}
-
-#[derive(Deserialize, schemars::JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct MachineRequest {
-    /// Defaults to the server's only group.
-    #[serde(default)]
-    group_id: Option<String>,
-    node_id: String,
-    /// For a deletion: the machine's name typed again.
-    #[serde(default)]
-    confirm: Option<String>,
-}
-
-#[derive(Serialize, schemars::JsonSchema)]
-pub(crate) struct JoinAnswer {
-    /// Shown once; it holds the machine's one-time secret.
-    join: String,
-    expires_in_seconds: u64,
-    /// The server must restart before it accepts machines in this group.
-    restart_needed: bool,
-}
-
-#[derive(Serialize, schemars::JsonSchema)]
-pub(crate) struct Done {
-    done: bool,
 }
 
 /// The group a request names, or the server's only one.

@@ -5,6 +5,7 @@ pub mod admin;
 pub mod configuration;
 pub mod enrollment;
 pub mod events;
+pub mod report;
 pub mod status;
 pub mod store;
 

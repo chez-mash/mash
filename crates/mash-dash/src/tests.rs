@@ -868,3 +868,57 @@ async fn settings_are_changed_only_where_the_dashboard_is_private() {
     let rejected = client.post(&private).json(&extra).send().await.unwrap();
     assert_eq!(rejected.status(), reqwest::StatusCode::BAD_REQUEST);
 }
+
+#[tokio::test]
+async fn an_open_network_dashboard_never_joins_or_manages_machines() {
+    // Reachable by its network and signed in to by nobody: it may read the
+    // shared server's state, but joining, saving an admin key and changing
+    // machines are refused before any request leaves this machine.
+    let (_directory, paths, _) = record_fixture();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let app = super::router(std::sync::Arc::new(super::Dash {
+        console: crate::mcp::console::Console::new(crate::core::Paths::default()),
+        paths,
+        hosts: allowed_hosts(address),
+        loopback: false,
+        access: super::access::Access::new(None),
+        shared_only: false,
+        model_work: tokio::sync::Semaphore::new(0),
+        services: super::services::Services::load(None).unwrap(),
+        live: super::live::Live::new(None, None),
+        questions: std::sync::Arc::new(tokio::sync::Semaphore::new(2)),
+    }));
+    let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    let client = reqwest::Client::new();
+    let url = |path: &str| format!("http://{address}{path}");
+    let key = format!("mash-admin.{}", "a".repeat(64));
+    for (path, body) in [
+        (
+            "/api/shared/join",
+            serde_json::json!({"join": "mash-join.x", "apply": true}),
+        ),
+        ("/api/shared/admin/key", serde_json::json!({"key": key})),
+        (
+            "/api/shared/admin/change",
+            serde_json::json!({"change": "add", "node_id": "desk"}),
+        ),
+    ] {
+        let response = client.post(url(path)).json(&body).send().await.unwrap();
+        assert_eq!(response.status(), reqwest::StatusCode::FORBIDDEN, "{path}");
+        let text = response.text().await.unwrap();
+        assert!(!text.contains(&key), "{path} repeats no key");
+    }
+    let response = client.get(url("/api/shared/admin")).send().await.unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::FORBIDDEN);
+    let view: serde_json::Value = client
+        .get(url("/api/shared/server"))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(view["may_change"], false);
+    server.abort();
+}

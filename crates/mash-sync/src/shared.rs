@@ -16,6 +16,7 @@ pub mod client;
 pub mod exact;
 pub mod join;
 mod lexical_manifest;
+pub mod manage;
 mod output;
 pub mod protocol;
 pub mod publication;

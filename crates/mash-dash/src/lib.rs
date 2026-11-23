@@ -31,6 +31,7 @@ mod search;
 mod services;
 mod settings;
 mod setup;
+mod shared_server;
 mod startup;
 
 pub use assets::has_web_dashboard;
@@ -155,7 +156,9 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
         ..Default::default()
     };
     let router = settings::routes(history_routes(setup::routes(assistant::routes(
-        live::routes(services::routes(aide::axum::ApiRouter::new())),
+        live::routes(services::routes(shared_server::routes(
+            aide::axum::ApiRouter::new(),
+        ))),
     ))))
     .finish_api(&mut document);
     (router, document)
@@ -356,18 +359,9 @@ async fn guard(
         )
             .into_response();
     }
-    let service_action = (session_path
-        || path == "/api/session/code"
-        || matches!(
-            request.uri().path(),
-            "/api/services/action"
-                | "/api/services/fleet/jobs"
-                | "/api/services/settings"
-                | "/api/services/assistant"
-                | "/api/services/setup"
-                | "/api/assistant"
-        ))
-        && request.method() == axum::http::Method::POST;
+    let service_action =
+        (session_path || path == "/api/session/code" || access::takes_post(request.uri().path()))
+            && request.method() == axum::http::Method::POST;
     if service_action && let Some(origin) = request.headers().get(header::ORIGIN) {
         let valid = origin
             .to_str()

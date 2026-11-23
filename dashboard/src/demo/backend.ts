@@ -355,6 +355,9 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/chat": transcript,
   "/api/view": view,
   "/api/open-in": () => ({ link: null }), // the demo opens no agent apps
+  // The demo's laptop shares nothing, so it has no shared server to read or manage.
+  "/api/shared/server": () => ({ admin_key: false, may_change: false }),
+  "/api/shared/admin": () => refuse(404, "The demo has no shared server."),
   "/api/records": recordList,
   "/api/record": (params, now) => {
     const entry = records.find((candidate) => candidate.id === params.get("id"));

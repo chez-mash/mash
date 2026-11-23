@@ -479,3 +479,25 @@ removed chats, and then recertifies; a crash between those steps leaves views
 stale rather than wrong-and-current. Activation replaces the group configuration
 point; API processes with superseded settings fail closed. The 64 MiB upload
 limit is configurable. Keep the silver database on persistent, backed-up storage.
+
+## Status and admin routes
+
+`GET /v1/status` answers any machine's ordinary token with its own group: the
+server's build and start time and each machine's state, credential time,
+four-character fingerprint of the stored hash, and what it published. It
+names no other group and holds no secret.
+
+`/v1/admin/*` (`machines`, `add`, `replace`, `remove`, `delete`) takes only an
+admin key (`mash-admin.…`), checked by its own gate before the token lookup;
+a machine's token is never one, and an admin key is never a machine's token.
+Keys live as BLAKE3 hashes in the added-machines file beside the server
+configuration, with the audit of actions (key name, the `x-mash-from` machine
+the request names, action, target). Wrong keys are counted server-wide: after
+10 in a minute every admin request gets 429 until the minute ends. `delete`
+needs `confirm` equal to the node name and a machine already removed.
+
+Dashboards reach these through `/api/shared/server`, `/api/shared/admin`,
+`/api/shared/admin/key`, `/api/shared/admin/change` and `/api/shared/join`.
+The admin key is kept in `~/.mash/admin.env` and is used only by a dashboard
+on its own machine or one every visitor signs in to; the three POST routes
+also check the request's origin.

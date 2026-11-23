@@ -22,6 +22,7 @@ import Search from "./components/Search.svelte";
 import ServicesView from "./components/ServicesView.svelte";
 import Settings from "./components/Settings.svelte";
 import Setup from "./components/Setup.svelte";
+import SharedServer from "./components/SharedServer.svelte";
 import SignIn from "./components/SignIn.svelte";
 import TopBar from "./components/TopBar.svelte";
 import TranscriptView from "./components/TranscriptView.svelte";
@@ -232,6 +233,7 @@ function skip(event: MouseEvent): void {
         {/if}
       {:else if route.page === "machines"}
         <BrowseTiles field="machine" />
+        <SharedServer joinable />
       {:else if route.page === "machine"}
         {@const id = route.id}
         {#key id}

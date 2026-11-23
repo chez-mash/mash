@@ -169,6 +169,23 @@ fn cookie(value: &str, seconds: u64, secure: bool) -> String {
     format!("{COOKIE}={value}; Path=/; Max-Age={seconds}; HttpOnly; SameSite=Lax{secure}")
 }
 
+/// The routes that accept a POST: the actions a visitor may take, each also
+/// held to the request's own origin. Every other route only reads.
+pub(super) fn takes_post(path: &str) -> bool {
+    matches!(
+        path,
+        "/api/services/action"
+            | "/api/services/fleet/jobs"
+            | "/api/services/settings"
+            | "/api/services/assistant"
+            | "/api/services/setup"
+            | "/api/assistant"
+            | "/api/shared/join"
+            | "/api/shared/admin/key"
+            | "/api/shared/admin/change"
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

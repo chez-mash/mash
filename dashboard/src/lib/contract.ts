@@ -433,6 +433,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/shared/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every machine of the shared server, read with the admin key saved here. */
+        get: operations["getApiSharedAdmin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/admin/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add, replace, remove or delete one machine with the admin key saved here. */
+        post: operations["postApiSharedAdminChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/admin/key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save an admin key on this machine after the server accepts it, or forget it. */
+        post: operations["postApiSharedAdminKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check a join string without saving anything, or join with it. */
+        post: operations["postApiSharedJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/server": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The shared server this machine publishes to, as it reports this machine's group. */
+        get: operations["getApiSharedServer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/status": {
         parameters: {
             query?: never;
@@ -474,6 +559,22 @@ export interface components {
         Access: {
             authentication_required: boolean;
             local_node: string;
+        };
+        /** @description One admin action, kept so the operator can see who changed what. */
+        Action: {
+            /** @description `add`, `replace`, `remove` or `delete`. */
+            action: string;
+            /** Format: uint64 */
+            at: number;
+            /**
+             * @description The machine the request said it came from; told by the caller, so it
+             *     names, it does not prove.
+             */
+            from?: string | null;
+            /** @description The admin key's name. */
+            key: string;
+            /** @description `GROUP/NODE`. */
+            target: string;
         };
         ActionRequest: {
             action: components["schemas"]["ServiceAction"];
@@ -725,6 +826,21 @@ export interface components {
             /** Format: uint32 */
             since_days?: number | null;
         };
+        ChangeAnswer: {
+            /** @description A new join string, for an addition or a replaced credential. */
+            join?: components["schemas"]["JoinAnswer"] | null;
+        };
+        /** @description An admin's request about one machine. */
+        ChangeInput: {
+            change: components["schemas"]["ChangeKind"];
+            /** @description For a deletion: the machine's name typed again. */
+            confirm?: string | null;
+            /** @description Defaults to the server's only group. */
+            group_id?: string | null;
+            node_id: string;
+        };
+        /** @enum {string} */
+        ChangeKind: "add" | "replace" | "remove" | "delete";
         Chat: {
             chat_id: string;
             /** Format: int64 */
@@ -857,6 +973,26 @@ export interface components {
             role?: string | null;
             /** @description The parent's tool call that started it, when recorded. */
             spawn_call_id?: string | null;
+        };
+        /**
+         * @description What the server says about a join secret, before anything is saved. The
+         *     group's machines and the name's history are told only for a string that
+         *     can still be redeemed.
+         */
+        CheckAnswer: {
+            /**
+             * Format: uint64
+             * @description Seconds until the string expires, by the server's own clock.
+             */
+            expires_in_seconds?: number | null;
+            /**
+             * @description The other machines of the group, by name.
+             * @default []
+             */
+            machines: string[];
+            /** @description What the server already holds under this machine's name, if anything. */
+            published?: components["schemas"]["Published2"] | null;
+            status: components["schemas"]["JoinStatus"];
         };
         ClientSummary: {
             agent: components["schemas"]["SetupAgent"];
@@ -1099,7 +1235,7 @@ export interface components {
             recommended_action?: components["schemas"]["RecommendedAction"] | null;
             retryable: boolean;
         };
-        ErrorKind: ("shared-index" | "qdrant-unavailable" | "qdrant-failure" | "configuration" | "usage" | "database-missing" | "index-busy" | "model-busy" | "database" | "io" | "internal" | "model" | "search-not-ready" | "schema-incompatible" | "remote-inference" | "conflict" | "source-changed" | "search-timeout" | "not-found" | "qdrant-install") | "credential-revoked";
+        ErrorKind: ("shared-index" | "qdrant-unavailable" | "qdrant-failure" | "configuration" | "usage" | "database-missing" | "index-busy" | "model-busy" | "database" | "io" | "internal" | "model" | "search-not-ready" | "schema-incompatible" | "remote-inference" | "conflict" | "source-changed" | "search-timeout" | "not-found" | "qdrant-install") | "credential-revoked" | "not-admin";
         /** @description One step of an answer, as the browser reads it. */
         Event: {
             /** @constant */
@@ -1422,6 +1558,49 @@ export interface components {
             revision: string;
             targets: string[];
         };
+        /** @description A new join string, shown once. */
+        JoinAnswer: {
+            /** Format: uint64 */
+            expires_in_seconds: number;
+            /** @description It holds the machine's one-time secret: pass it privately. */
+            join: string;
+            /** @description The server must restart before it accepts machines in this group. */
+            restart_needed: boolean;
+        };
+        /** @description What a join string would do, or did. */
+        JoinAnswerView: {
+            check: components["schemas"]["CheckAnswer"];
+            group_id: string;
+            /** @description This machine joined: its configuration and token are saved. */
+            joined: boolean;
+            node_id: string;
+            server: string;
+        };
+        JoinInput: {
+            /**
+             * @description Join now; otherwise only check, saving nothing.
+             * @default false
+             */
+            apply: boolean;
+            join: string;
+        };
+        /** @description What a join secret is worth right now. */
+        JoinStatus: "ready" | "expired" | "used" | "revoked" | "unknown";
+        KeyInput: {
+            /**
+             * @description The admin key to save; absent to forget the saved one.
+             * @default null
+             */
+            key: string | null;
+        };
+        KeyName: {
+            /** Format: uint64 */
+            created_at: number;
+            name: string;
+        };
+        KeyState: {
+            admin_key: boolean;
+        };
         /** @enum {string} */
         Kind: "decision" | "preference" | "fact";
         LexicalManifest: {
@@ -1710,6 +1889,22 @@ export interface components {
         };
         /** @enum {string} */
         PublicationState: "pending" | "published";
+        /** @description What one machine has published to this server. */
+        Published: {
+            /** Format: uint64 */
+            chats: number;
+            instance: string;
+            last_synced_at?: string | null;
+            /** Format: uint64 */
+            messages: number;
+        };
+        /** @description History the server already holds under a name. */
+        Published2: {
+            /** Format: uint64 */
+            chats: number;
+            /** @description The local index that published it; only that index may publish more. */
+            instance: string;
+        };
         QdrantConfig: {
             /** @default null */
             api_key_env: string | null;
@@ -1768,6 +1963,12 @@ export interface components {
         ReadinessState: "missing" | "stale" | "ready" | "disabled";
         /** @description Why an answer could not be given. */
         Reason: "failed" | "unreachable" | "refused" | "limited";
+        Receiving: {
+            /** Format: uint64 */
+            covered: number;
+            /** Format: uint64 */
+            total: number;
+        };
         RecommendedAction: ("init" | "index" | "models install") | "start-qdrant";
         Record: {
             conflicted: boolean;
@@ -2065,6 +2266,23 @@ export interface components {
             machine: string;
             name: string;
         };
+        /** @description The shared server as this machine sees it. */
+        ServerView: {
+            /** @description An admin key is saved on this machine. */
+            admin_key: boolean;
+            group_id?: string | null;
+            /** @description This dashboard may join a server or manage its machines. */
+            may_change: boolean;
+            node_id?: string | null;
+            /**
+             * @description Why the status could not be read: the server did not answer, or no
+             *     longer accepts this machine's credential.
+             */
+            problem?: components["schemas"]["ErrorBody"] | null;
+            /** @description This machine's shared settings, when it joined one. */
+            server?: string | null;
+            status?: components["schemas"]["SharedGroupStatus"] | null;
+        };
         Service: {
             actions: components["schemas"]["ServiceAction"][];
             /** Format: uint64 */
@@ -2169,6 +2387,78 @@ export interface components {
             group_id: string;
             node_id: string;
             token_env: string;
+        };
+        /** @description A group as any of its machines may read it. */
+        SharedGroupStatus: {
+            /** @description The server's build revision. */
+            build: string;
+            group_id: string;
+            machines: components["schemas"]["SharedMachine"][];
+            /** Format: uint64 */
+            now: number;
+            /** @description The server needs a restart before it accepts machines of this group. */
+            restart_needed: boolean;
+            /**
+             * Format: uint64
+             * @description When the server started, in seconds since 1970 by its clock.
+             */
+            started_at: number;
+        };
+        /** @description How a machine stands with the server. */
+        SharedMachine: {
+            /**
+             * Format: uint64
+             * @description When its current credential was made, by the server's clock.
+             */
+            credential_created_at?: number | null;
+            /**
+             * @description Its history is being deleted once its open connections close.
+             * @default false
+             */
+            delete_waiting: boolean;
+            /**
+             * @description The last four characters of the stored hash of its credential: enough
+             *     to tell two credentials apart, nothing to sign in with.
+             */
+            fingerprint?: string | null;
+            group_id: string;
+            node_id: string;
+            published?: components["schemas"]["Published"] | null;
+            /** @description A first publish still arriving. */
+            receiving?: components["schemas"]["Receiving"] | null;
+        } & ({
+            /** @constant */
+            state: "configured";
+        } | {
+            /** Format: uint64 */
+            expires_at: number;
+            /** @constant */
+            state: "waiting";
+        } | {
+            /** @constant */
+            state: "expired";
+        } | {
+            /** @constant */
+            state: "joined";
+        } | {
+            delete_requested: boolean;
+            /** @constant */
+            state: "removed";
+        });
+        /**
+         * @description Every machine in every group, the actions recorded, and the admin keys,
+         *     for an admin.
+         */
+        SharedServerOverview: {
+            /** @description Newest first. */
+            actions: components["schemas"]["Action"][];
+            build: string;
+            keys: components["schemas"]["KeyName"][];
+            machines: components["schemas"]["SharedMachine"][];
+            /** Format: uint64 */
+            now: number;
+            /** Format: uint64 */
+            started_at: number;
         };
         SharedViewsManifest: {
             build: components["schemas"]["Build"];
@@ -3561,6 +3851,246 @@ export interface operations {
                 };
                 content: {
                     "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiSharedAdmin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /**
+             * @description Every machine in every group, the actions recorded, and the admin keys,
+             *     for an admin.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedServerOverview"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiSharedAdminChange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description An admin's request about one machine. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeInput"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeAnswer"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiSharedAdminKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeyInput"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyState"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiSharedJoin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinInput"];
+            };
+        };
+        responses: {
+            /** @description What a join string would do, or did. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinAnswerView"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiSharedServer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The shared server as this machine sees it. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerView"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

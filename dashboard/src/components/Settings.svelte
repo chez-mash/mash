@@ -31,6 +31,7 @@ import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import AssistantKeyForm from "./AssistantKeyForm.svelte";
 import QueryError from "./QueryError.svelte";
+import SharedServer from "./SharedServer.svelte";
 import Skeleton from "./Skeleton.svelte";
 import Wrapped from "./Wrapped.svelte";
 
@@ -355,15 +356,7 @@ async function save(): Promise<void> {
     </section>
     <section class="sec">
       <h2 class="h2"><Server size={15} aria-hidden="true" />shared index</h2>
-      {#if config.shared}
-        <dl class="card kvs">
-          {@render row("this machine", config.shared.node)}
-          {@render row("group", config.shared.group)}
-          {@render row("server", config.shared.url)}
-        </dl>
-      {:else}
-        <p class="card tight cream meta">Not configured. This machine's history stays local.</p>
-      {/if}
+      <SharedServer joinable />
     </section>
   </div>
   <p class="meta">To change the search engine or storage settings, edit the configuration file. <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>

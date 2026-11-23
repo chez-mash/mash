@@ -16,6 +16,43 @@
         ],
         "type": "object"
       },
+      "Action": {
+        "additionalProperties": false,
+        "description": "One admin action, kept so the operator can see who changed what.",
+        "properties": {
+          "action": {
+            "description": "`add`, `replace`, `remove` or `delete`.",
+            "type": "string"
+          },
+          "at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "from": {
+            "description": "The machine the request said it came from; told by the caller, so it\nnames, it does not prove.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key": {
+            "description": "The admin key's name.",
+            "type": "string"
+          },
+          "target": {
+            "description": "`GROUP/NODE`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "key",
+          "action",
+          "target"
+        ],
+        "type": "object"
+      },
       "ActionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -770,6 +807,62 @@
         ],
         "type": "object"
       },
+      "ChangeAnswer": {
+        "properties": {
+          "join": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JoinAnswer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A new join string, for an addition or a replaced credential."
+          }
+        },
+        "type": "object"
+      },
+      "ChangeInput": {
+        "additionalProperties": false,
+        "description": "An admin's request about one machine.",
+        "properties": {
+          "change": {
+            "$ref": "#/components/schemas/ChangeKind"
+          },
+          "confirm": {
+            "description": "For a deletion: the machine's name typed again.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "description": "Defaults to the server's only group.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "node_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "change",
+          "node_id"
+        ],
+        "type": "object"
+      },
+      "ChangeKind": {
+        "enum": [
+          "add",
+          "replace",
+          "remove",
+          "delete"
+        ],
+        "type": "string"
+      },
       "Chat": {
         "additionalProperties": false,
         "properties": {
@@ -1244,6 +1337,46 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "CheckAnswer": {
+        "description": "What the server says about a join secret, before anything is saved. The\ngroup's machines and the name's history are told only for a string that\ncan still be redeemed.",
+        "properties": {
+          "expires_in_seconds": {
+            "description": "Seconds until the string expires, by the server's own clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "machines": {
+            "default": [],
+            "description": "The other machines of the group, by name.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Published2"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the server already holds under this machine's name, if anything."
+          },
+          "status": {
+            "$ref": "#/components/schemas/JoinStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ClientSummary": {
@@ -3127,6 +3260,148 @@
         ],
         "type": "object"
       },
+      "JoinAnswer": {
+        "description": "A new join string, shown once.",
+        "properties": {
+          "expires_in_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "join": {
+            "description": "It holds the machine's one-time secret: pass it privately.",
+            "type": "string"
+          },
+          "restart_needed": {
+            "description": "The server must restart before it accepts machines in this group.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "join",
+          "expires_in_seconds",
+          "restart_needed"
+        ],
+        "type": "object"
+      },
+      "JoinAnswerView": {
+        "description": "What a join string would do, or did.",
+        "properties": {
+          "check": {
+            "$ref": "#/components/schemas/CheckAnswer"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "joined": {
+            "description": "This machine joined: its configuration and token are saved.",
+            "type": "boolean"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "server": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "server",
+          "group_id",
+          "node_id",
+          "check",
+          "joined"
+        ],
+        "type": "object"
+      },
+      "JoinInput": {
+        "additionalProperties": false,
+        "properties": {
+          "apply": {
+            "default": false,
+            "description": "Join now; otherwise only check, saving nothing.",
+            "type": "boolean"
+          },
+          "join": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "join"
+        ],
+        "type": "object"
+      },
+      "JoinStatus": {
+        "description": "What a join secret is worth right now.",
+        "oneOf": [
+          {
+            "const": "ready",
+            "description": "It can be redeemed.",
+            "type": "string"
+          },
+          {
+            "const": "expired",
+            "description": "More than a day old and never redeemed.",
+            "type": "string"
+          },
+          {
+            "const": "used",
+            "description": "Already redeemed, by another machine or an earlier attempt.",
+            "type": "string"
+          },
+          {
+            "const": "revoked",
+            "description": "The operator removed the machine or replaced its credential.",
+            "type": "string"
+          },
+          {
+            "const": "unknown",
+            "description": "This server never made it.",
+            "type": "string"
+          }
+        ]
+      },
+      "KeyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "default": null,
+            "description": "The admin key to save; absent to forget the saved one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "KeyName": {
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "KeyState": {
+        "properties": {
+          "admin_key": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "admin_key"
+        ],
+        "type": "object"
+      },
       "Kind": {
         "enum": [
           "decision",
@@ -4135,6 +4410,55 @@
         ],
         "type": "string"
       },
+      "Published": {
+        "description": "What one machine has published to this server.",
+        "properties": {
+          "chats": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "last_synced_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "messages": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "instance",
+          "chats",
+          "messages"
+        ],
+        "type": "object"
+      },
+      "Published2": {
+        "description": "History the server already holds under a name.",
+        "properties": {
+          "chats": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "instance": {
+            "description": "The local index that published it; only that index may publish more.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instance",
+          "chats"
+        ],
+        "type": "object"
+      },
       "QdrantConfig": {
         "additionalProperties": false,
         "properties": {
@@ -4291,6 +4615,25 @@
             "type": "string"
           }
         ]
+      },
+      "Receiving": {
+        "properties": {
+          "covered": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "covered",
+          "total"
+        ],
+        "type": "object"
       },
       "RecommendedAction": {
         "oneOf": [
@@ -5232,6 +5575,64 @@
         ],
         "type": "object"
       },
+      "ServerView": {
+        "description": "The shared server as this machine sees it.",
+        "properties": {
+          "admin_key": {
+            "description": "An admin key is saved on this machine.",
+            "type": "boolean"
+          },
+          "group_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "may_change": {
+            "description": "This dashboard may join a server or manage its machines.",
+            "type": "boolean"
+          },
+          "node_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the status could not be read: the server did not answer, or no\nlonger accepts this machine's credential."
+          },
+          "server": {
+            "description": "This machine's shared settings, when it joined one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedGroupStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "admin_key",
+          "may_change"
+        ],
+        "type": "object"
+      },
       "Service": {
         "properties": {
           "actions": {
@@ -5610,6 +6011,228 @@
           "node_id",
           "api_url",
           "token_env"
+        ],
+        "type": "object"
+      },
+      "SharedGroupStatus": {
+        "description": "A group as any of its machines may read it.",
+        "properties": {
+          "build": {
+            "description": "The server's build revision.",
+            "type": "string"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SharedMachine"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "restart_needed": {
+            "description": "The server needs a restart before it accepts machines of this group.",
+            "type": "boolean"
+          },
+          "started_at": {
+            "description": "When the server started, in seconds since 1970 by its clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "group_id",
+          "restart_needed",
+          "machines"
+        ],
+        "type": "object"
+      },
+      "SharedMachine": {
+        "description": "How a machine stands with the server.",
+        "oneOf": [
+          {
+            "description": "Listed in the operator's own configuration file.",
+            "properties": {
+              "state": {
+                "const": "configured",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string can still be redeemed until `expires_at`.",
+            "properties": {
+              "expires_at": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "state": {
+                "const": "waiting",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "expires_at"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its join string was never redeemed and no longer can be.",
+            "properties": {
+              "state": {
+                "const": "expired",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "state": {
+                "const": "joined",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Its credential was removed; what it published stays until deleted.",
+            "properties": {
+              "delete_requested": {
+                "type": "boolean"
+              },
+              "state": {
+                "const": "removed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "delete_requested"
+            ],
+            "type": "object"
+          }
+        ],
+        "properties": {
+          "credential_created_at": {
+            "description": "When its current credential was made, by the server's clock.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "delete_waiting": {
+            "default": false,
+            "description": "Its history is being deleted once its open connections close.",
+            "type": "boolean"
+          },
+          "fingerprint": {
+            "description": "The last four characters of the stored hash of its credential: enough\nto tell two credentials apart, nothing to sign in with.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Published"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receiving": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Receiving"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A first publish still arriving."
+          }
+        },
+        "required": [
+          "group_id",
+          "node_id"
+        ],
+        "type": "object"
+      },
+      "SharedServerOverview": {
+        "description": "Every machine in every group, the actions recorded, and the admin keys,\nfor an admin.",
+        "properties": {
+          "actions": {
+            "description": "Newest first.",
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "type": "array"
+          },
+          "build": {
+            "type": "string"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/KeyName"
+            },
+            "type": "array"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SharedMachine"
+            },
+            "type": "array"
+          },
+          "now": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "build",
+          "started_at",
+          "now",
+          "machines",
+          "actions",
+          "keys"
         ],
         "type": "object"
       },
@@ -8007,6 +8630,267 @@
           }
         },
         "summary": "Save the configuration, connect agents and start the first index."
+      }
+    },
+    "/api/shared/admin": {
+      "get": {
+        "operationId": "getApiSharedAdmin",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedServerOverview"
+                }
+              }
+            },
+            "description": "Every machine in every group, the actions recorded, and the admin keys,\nfor an admin."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Every machine of the shared server, read with the admin key saved here."
+      }
+    },
+    "/api/shared/admin/change": {
+      "post": {
+        "operationId": "postApiSharedAdminChange",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeInput"
+              }
+            }
+          },
+          "description": "An admin's request about one machine.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeAnswer"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Add, replace, remove or delete one machine with the admin key saved here."
+      }
+    },
+    "/api/shared/admin/key": {
+      "post": {
+        "operationId": "postApiSharedAdminKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyState"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Save an admin key on this machine after the server accepts it, or forget it."
+      }
+    },
+    "/api/shared/join": {
+      "post": {
+        "operationId": "postApiSharedJoin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinAnswerView"
+                }
+              }
+            },
+            "description": "What a join string would do, or did."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Check a join string without saving anything, or join with it."
+      }
+    },
+    "/api/shared/server": {
+      "get": {
+        "operationId": "getApiSharedServer",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerView"
+                }
+              }
+            },
+            "description": "The shared server as this machine sees it."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "The shared server this machine publishes to, as it reports this machine's group."
       }
     },
     "/api/status": {
