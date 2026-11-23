@@ -1,9 +1,14 @@
 ---
 // The site has one theme. Starlight's provider would choose light or dark from
 // the system setting or a kept choice; this one always chooses light, before
-// the page is drawn.
+// the page is drawn. Starlight's pages are built with `data-theme="dark"`,
+// and moving between pages without a full load copies that attribute across,
+// so each incoming page is set to light before it is swapped in.
 ---
 
 <script is:inline>
   document.documentElement.dataset.theme = "light";
+  document.addEventListener("astro:before-swap", (event) => {
+    event.newDocument.documentElement.dataset.theme = "light";
+  });
 </script>

@@ -139,7 +139,8 @@ the values in `theme.css` and the bundled fonts listed in
 
 There is one theme, the light one. `ThemeProvider.astro` always chooses it,
 whatever the reader's system prefers, and `ThemeSelect.astro` draws nothing,
-so there is no switch. Code blocks use one highlighting theme to match.
+so there is no switch. Starlight's built pages say `data-theme="dark"`, so the
+provider also sets light on each page swapped in without a full load.
 
 ## Local preview and checks
 
