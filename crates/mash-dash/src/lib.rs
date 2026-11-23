@@ -1,9 +1,8 @@
 //! `mash dash`: read-only history with optional authenticated service control.
-//! It serves the front end built
-//! from `dashboard/` (embedded at compile time) and a small JSON API over the
-//! same typed core as the CLI and MCP. It binds to loopback by default and
-//! answers only requests addressed to the bound host, so other websites cannot
-//! reach it through DNS rebinding; it sends no CORS headers.
+//! It serves the front end built from `dashboard/` (embedded at compile time)
+//! and a small JSON API over the same typed core as the CLI and MCP. It binds
+//! to loopback by default and answers only requests addressed to the bound
+//! host, so other sites cannot reach it by DNS rebinding; it sends no CORS headers.
 // The search futures this crate drives nest deeper than the default limit
 // when the compiler proves them `Send`, as they do in `mash-app`.
 #![recursion_limit = "256"]
@@ -27,6 +26,7 @@ mod assets;
 mod assistant;
 mod contract;
 mod live;
+mod open_in;
 mod search;
 mod services;
 mod settings;
@@ -165,7 +165,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
 fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use aide::axum::routing::get_with;
     use contract::reads;
-    search::routes(router)
+    open_in::routes(search::routes(router))
         .api_route(
             "/api/health",
             get_with(

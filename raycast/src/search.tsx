@@ -9,11 +9,20 @@ import {
   getPreferenceValues,
   openExtensionPreferences,
 } from "@raycast/api";
-import { useExec } from "@raycast/utils";
-import { existsSync } from "node:fs";
+import { useExec, usePromise } from "@raycast/utils";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename } from "node:path";
+import { basename, join } from "node:path";
 import { useMemo, useState } from "react";
+import {
+  type AgentApp,
+  type ReadText,
+  claudeOwnedSessions,
+  claudeSessionsFolder,
+  installedAgentApps,
+  isClaudeSessionFile,
+  openInAgentApp,
+} from "./agentApps";
 import {
   type Hit,
   MashError,
@@ -40,6 +49,35 @@ interface Preferences {
 }
 
 type Run = { stdout: string; exitCode: number | null; error?: Error };
+
+const readText: ReadText = (path) => {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return undefined;
+  }
+};
+
+/** The Claude app's session files: one per session, under account and organisation folders. */
+function claudeSessionFiles(home: string): string[] {
+  const children = (folder: string): string[] => {
+    try {
+      return readdirSync(folder).map((name) => join(folder, name));
+    } catch {
+      return [];
+    }
+  };
+  return children(claudeSessionsFolder(home))
+    .flatMap(children)
+    .flatMap(children)
+    .filter((file) => isClaudeSessionFile(basename(file)));
+}
+
+/** Where a chat opens in its agent's own app, as these results need it. */
+interface AgentLinks {
+  readonly installed: readonly AgentApp[];
+  readonly owned: ReadonlySet<string>;
+}
 
 // Mash prints a JSON answer even when it fails, so read it before the exit
 // code: its message names the fix (start the search service, run mash init).
@@ -94,6 +132,17 @@ export default function Command() {
 
   const shown = searching ? live : recent;
   const hits = shown.data ?? [];
+  // Results come from this machine only, so its agents' apps can open them.
+  const installed = useMemo(() => installedAgentApps(homedir(), readText), []);
+  const claudeChats = installed.some((app) => app.agent === "claude-code")
+    ? hits.filter((hit) => hit.agent === "claude-code").map((hit) => hit.chatId)
+    : [];
+  const owned = usePromise(
+    async (ids: string[]) =>
+      ids.length ? claudeOwnedSessions(claudeSessionFiles(homedir()), ids, readText) : new Set<string>(),
+    [claudeChats],
+  );
+  const links: AgentLinks = { installed, owned: owned.data ?? new Set() };
   return (
     <List
       isLoading={shown.isLoading}
@@ -146,7 +195,7 @@ export default function Command() {
             subtitle={searching ? undefined : projectName(hit.project)}
             accessories={hit.updatedAt ? [{ date: hit.updatedAt }] : []}
             detail={<HitDetail hit={hit} />}
-            actions={<HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} />}
+            actions={<HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} links={links} />}
           />
         ))}
       </List.Section>
@@ -208,20 +257,51 @@ function HitDetail({ hit }: { hit: Hit }) {
   );
 }
 
-function HitActions({ hit, mash, query, hasApp }: { hit: Hit; mash: string; query: string; hasApp: boolean }) {
+function HitActions({
+  hit,
+  mash,
+  query,
+  hasApp,
+  links,
+}: {
+  hit: Hit;
+  mash: string;
+  query: string;
+  hasApp: boolean;
+  links: AgentLinks;
+}) {
+  const inAgent = openInAgent(hit, links);
   const read = (
-    <Action.Push title="Read Messages" icon={Icon.Text} target={<Messages hit={hit} mash={mash} hasApp={hasApp} />} />
+    <Action.Push
+      title="Read Messages"
+      icon={Icon.Text}
+      target={<Messages hit={hit} mash={mash} hasApp={hasApp} inAgent={inAgent} />}
+    />
   );
   const open = <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />;
   return (
     <ActionPanel>
       {hasApp ? open : read}
       {hasApp ? read : null}
+      {inAgent}
       <CopyActions hit={hit} hasApp={hasApp} />
       {query ? fullSearch(query, hasApp) : null}
       {hasApp ? openApp : null}
     </ActionPanel>
   );
+}
+
+/** The action that opens the chat in its agent's own desktop app, when one is installed that can. */
+function openInAgent(hit: Hit, links: AgentLinks) {
+  const link = openInAgentApp(hit, links.installed, links.owned);
+  return link ? (
+    <Action.Open
+      title={link.title}
+      icon={agentIcon(hit.agent)}
+      target={link.url}
+      shortcut={Keyboard.Shortcut.Common.OpenWith}
+    />
+  ) : null;
 }
 
 /**
@@ -270,7 +350,17 @@ function fullSearch(query: string, hasApp: boolean) {
 }
 
 /** A chat's messages read with `mash view`: around the match, or from the start of a recent chat. */
-function Messages({ hit, mash, hasApp }: { hit: Hit; mash: string; hasApp: boolean }) {
+function Messages({
+  hit,
+  mash,
+  hasApp,
+  inAgent,
+}: {
+  hit: Hit;
+  mash: string;
+  hasApp: boolean;
+  inAgent: ReturnType<typeof openInAgent>;
+}) {
   const { data, isLoading, error } = useExec(mash, viewArguments(hit.messageId), {
     parseOutput: read(parseView),
     failureToastOptions: { title: "Mash couldn’t read the chat" },
@@ -292,6 +382,7 @@ function Messages({ hit, mash, hasApp }: { hit: Hit; mash: string; hasApp: boole
       actions={
         <ActionPanel>
           {hasApp ? <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} /> : null}
+          {inAgent}
           <CopyActions hit={hit} hasApp={hasApp} />
         </ActionPanel>
       }

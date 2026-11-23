@@ -20,7 +20,8 @@ own; change the dashboard instead. It adds only engine start and stop,
 bar icon and shortcut that show the dashboard's `#/quick` search panel, and
 sending other addresses to the browser. See `docs/internal/desktop-app.md`.
 The Raycast extension (`raycast/`) runs `mash search --live` and `mash view`
-and opens chats with `mash://` links; it reads only.
+and opens chats with `mash://` links, or in their agent's own app with
+`codex://` and `claude://` links; it reads only.
 The shared HTTP service has its own `mash-server` executable; keep its process
 arguments separate from the local CLI and share the typed server implementation.
 Embedding uses the fastest engine available: Core ML inside Mash on Apple

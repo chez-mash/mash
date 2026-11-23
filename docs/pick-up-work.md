@@ -24,7 +24,14 @@ and [what to check when a chat is missing](find-missing-chat.md).
 
 ## Reopen the original session
 
-For one of your Codex or Claude Code chats, choose **Copy session ID** in the transcript.
+On a Mac, a chat of the same computer can open straight in its agent's app:
+**Open in Codex** opens a Codex thread in the ChatGPT app, and **Open in
+Claude** opens a Claude Code session the Claude app started. Mash shows these
+only when the app is installed and the dashboard is on that computer. The same
+actions are in the [Raycast extension](https://github.com/mashium/mash/tree/main/raycast).
+
+Otherwise, choose **Copy resume command** in the transcript, or **Copy session
+ID** for one of your Codex or Claude Code chats.
 On the computer where the original session is saved, open a terminal in the
 project and replace `SESSION_ID` in the command for your agent.
 

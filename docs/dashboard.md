@@ -147,7 +147,9 @@ dashboard. A local link works on the computer running the dashboard, and a
 [private remote dashboard](dashboard-access.md)
 still requires sign-in.
 
-Use **Copy session ID** to [reopen an original session](pick-up-work.md#reopen-the-original-session),
+Use **Open in Codex** or **Open in Claude** (on a Mac, for this computer's
+chats), **Copy resume command** or **Copy session ID** to
+[reopen an original session](pick-up-work.md#reopen-the-original-session),
 or [pick up the work in a new session](pick-up-work.md#ask-an-agent-for-a-recap).
 
 Chat and memory views are read-only.

@@ -25,6 +25,7 @@ import { clearMatches, paintMatches, revealMatch } from "../lib/findHighlight";
 import { concerns, onChange } from "../lib/live";
 import { plainTitle } from "../lib/markdown";
 import { messageText, saidText, shownText } from "../lib/message";
+import { onThisMachine } from "../lib/openIn";
 import { catalogOptions, stableRead } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import { label, recordPage } from "../lib/records";
@@ -37,6 +38,7 @@ import FindBar from "./FindBar.svelte";
 import MessageActions from "./MessageActions.svelte";
 import MessageBody from "./MessageBody.svelte";
 import MetaChips from "./MetaChips.svelte";
+import OpenInAgent from "./OpenInAgent.svelte";
 import QueryError from "./QueryError.svelte";
 import ToolStep from "./ToolStep.svelte";
 
@@ -367,6 +369,7 @@ const prompts = $derived(
         <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={toggleSessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
         <button class="btn" type="button" aria-expanded={findOpen} onclick={openFind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
         <button class="btn" type="button" onclick={copySession}><Copy size={15} aria-hidden="true" />Copy session ID</button>
+        {#if chat}<OpenInAgent {chat} local={onThisMachine(chat, catalogue.data?.localNode, shared)} onnotice={(text) => (notice = text)} />{/if}
         <span style:position="relative">
         <button class="btn" type="button" aria-expanded={exportOpen} onclick={() => (exportOpen = !exportOpen)}><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</button>
         {#if exportOpen}

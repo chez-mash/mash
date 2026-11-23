@@ -243,6 +243,22 @@
         ],
         "type": "object"
       },
+      "AppLink": {
+        "properties": {
+          "app": {
+            "description": "The app's name, as a button names it.",
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "app",
+          "url"
+        ],
+        "type": "object"
+      },
       "Artifact": {
         "enum": [
           "metadata",
@@ -3723,6 +3739,38 @@
         ],
         "type": "object"
       },
+      "OpenIn": {
+        "properties": {
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppLink"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Absent when no app on this machine can open the chat."
+          }
+        },
+        "type": "object"
+      },
+      "OpenInParams": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/Provider"
+          },
+          "id": {
+            "description": "The chat's ID, which is the session ID the agent knows it by.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent",
+          "id"
+        ],
+        "type": "object"
+      },
       "Origin": {
         "oneOf": [
           {
@@ -6711,6 +6759,56 @@
           }
         },
         "summary": "The build this dashboard is running."
+      }
+    },
+    "/api/open-in": {
+      "get": {
+        "operationId": "getApiOpenIn",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Provider"
+            },
+            "style": "form"
+          },
+          {
+            "description": "The chat's ID, which is the session ID the agent knows it by.",
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "The chat's ID, which is the session ID the agent knows it by.",
+              "type": "string"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenIn"
+                }
+              }
+            },
+            "description": ""
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "The link that opens a chat of this machine in its agent's desktop app, if any."
       }
     },
     "/api/record": {

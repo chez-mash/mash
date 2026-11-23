@@ -265,11 +265,19 @@ pub(crate) fn navigate(app: &AppHandle, url: &Url, from_panel: bool) -> bool {
     }
 }
 
-/// Open a web or mail address in the program the reader uses for it.
+/// Open a web or mail address in the program the reader uses for it, and a
+/// chat's link into its agent's app (the dashboard's Open in Codex or Claude).
 pub(crate) fn open_outside(app: &AppHandle, url: &Url) {
-    if matches!(url.scheme(), "http" | "https" | "mailto") {
+    if opens_outside(url) {
         let _ = app.opener().open_url(url.as_str(), None::<&str>);
     }
+}
+
+fn opens_outside(url: &Url) -> bool {
+    matches!(
+        url.scheme(),
+        "http" | "https" | "mailto" | "codex" | "claude"
+    )
 }
 
 /// Follow mash:// links, both the one that launched the app and later ones.
@@ -471,7 +479,7 @@ fn local_page() -> Url {
 
 #[cfg(test)]
 mod tests {
-    use super::{Navigation, fit, navigation, page};
+    use super::{Navigation, fit, navigation, opens_outside, page};
     use tauri::Url;
 
     fn url(text: &str) -> Url {
@@ -500,6 +508,22 @@ mod tests {
             "mailto:someone@example.com",
         ] {
             assert!(!stays_in_app(&url(outside), Some(&dashboard)), "{outside}");
+        }
+        // Web, mail and agent-app links go to the system; other schemes do not.
+        for system in [
+            "https://getmash.io/",
+            "mailto:someone@example.com",
+            "codex://threads/01a1b649-827e-7692-a5b1-0de415a69df5",
+            "claude://resume?session=586f44fa-8aaa-4587-b69f-b763d3279ef1",
+        ] {
+            assert!(opens_outside(&url(system)), "{system}");
+        }
+        for refused in [
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+            "vscode://file/x",
+        ] {
+            assert!(!opens_outside(&url(refused)), "{refused}");
         }
         assert!(
             !stays_in_app(&dashboard, None),

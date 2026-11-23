@@ -141,6 +141,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/open-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The link that opens a chat of this machine in its agent's desktop app, if any. */
+        get: operations["getApiOpenIn"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/record": {
         parameters: {
             query?: never;
@@ -524,6 +541,11 @@ export interface components {
             failed: boolean;
             reply?: unknown;
             text: string;
+        };
+        AppLink: {
+            /** @description The app's name, as a button names it. */
+            app: string;
+            url: string;
         };
         /** @enum {string} */
         Artifact: "metadata" | "lexical" | "dense";
@@ -1568,6 +1590,15 @@ export interface components {
             shared: boolean;
             /** @default null */
             title: string | null;
+        };
+        OpenIn: {
+            /** @description Absent when no app on this machine can open the chat. */
+            link?: components["schemas"]["AppLink"] | null;
+        };
+        OpenInParams: {
+            agent: components["schemas"]["Provider"];
+            /** @description The chat's ID, which is the session ID the agent knows it by. */
+            id: string;
         };
         Origin: {
             /** @constant */
@@ -2696,6 +2727,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiOpenIn: {
+        parameters: {
+            query: {
+                agent: components["schemas"]["Provider"];
+                /** @description The chat's ID, which is the session ID the agent knows it by. */
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenIn"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

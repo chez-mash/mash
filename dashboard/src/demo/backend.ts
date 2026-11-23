@@ -312,6 +312,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/search/live": search, // the demo's search is already instant
   "/api/chat": transcript,
   "/api/view": view,
+  "/api/open-in": () => ({ link: null }), // the demo opens no agent apps
   "/api/records": recordList,
   "/api/record": (params, now) => {
     const entry = records.find((candidate) => candidate.id === params.get("id"));
