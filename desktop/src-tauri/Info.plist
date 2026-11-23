@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<!-- The icon in Assets.car, compiled from icons/Mash.icon. It gives macOS
-	     a dark appearance that keeps the butter tile, so the icon does not turn
+	     a dark appearance that keeps the blue tile, so the icon does not turn
 	     black when the system's icon style is Dark. icon.icns stays the icon
 	     for systems that do not read it. -->
 	<key>CFBundleIconName</key>

@@ -32,7 +32,7 @@ menu bar icon is `icons/tray.svg`, rendered with `pnpm tray-icon`.
 
 On macOS 26 and later the app's icon comes from `src-tauri/icons/Assets.car`,
 compiled from the layered `icons/Mash.icon` (editable in Icon Composer). Its
-dark appearance keeps the butter tile, so the icon stays the same when the
+dark appearance keeps the blue tile, so the icon stays the same when the
 system's icon style is Dark. Rebuild it on a Mac after changing the icon:
 
 ```sh
