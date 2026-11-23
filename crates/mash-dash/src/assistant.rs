@@ -311,44 +311,11 @@ async fn ask(
             "Mashy is answering other questions; try again in a moment",
         );
     };
-    let (events, receiver) = mpsc::channel(32);
-    tokio::spawn(async move {
-        let _permit = permit;
-        let started = std::time::Instant::now();
-        let outcome = converse(&state, &assistant, &token, node, ask, &events).await;
-        let elapsed_ms = crate::progress::milliseconds(started);
-        let last = match outcome {
-            Ok(partial) => {
-                tracing::info!(
-                    outcome = "answered",
-                    partial,
-                    elapsed_ms,
-                    "assistant_question"
-                );
-                Event::Done { partial }
-            }
-            Err(Stop::Gone) => {
-                tracing::info!(outcome = "abandoned", elapsed_ms, "assistant_question");
-                return;
-            }
-            Err(Stop::Failed(reason, message)) => {
-                tracing::warn!(
-                    outcome = "failed",
-                    ?reason,
-                    elapsed_ms,
-                    "assistant_question"
-                );
-                Event::Failed { reason, message }
-            }
-        };
-        let _ = events.send(last).await;
-    });
-    let stream = futures_util::stream::unfold(receiver, |mut receiver| async move {
-        let event = receiver.recv().await?;
+    let stream = answer(state, assistant, token, node, ask, permit).map(|event| {
         let event = axum::response::sse::Event::default()
             .json_data(&event)
-            .ok()?;
-        Some((Ok::<_, std::convert::Infallible>(event), receiver))
+            .unwrap_or_default();
+        Ok::<_, std::convert::Infallible>(event)
     });
     Sse::new(stream)
         .keep_alive(KeepAlive::new().interval(Duration::from_secs(15)))
@@ -357,8 +324,6 @@ async fn ask(
 
 /// Why a conversation ended without an answer.
 enum Stop {
-    /// The browser went away.
-    Gone,
     Failed(Reason, String),
 }
 
@@ -553,19 +518,13 @@ async fn converse(
         if reply.tool_calls.is_empty() || exhausted {
             if reply.content.is_none() {
                 let delta = NOTHING_TO_SAY.to_owned();
-                events
-                    .send(Event::Text { delta })
-                    .await
-                    .map_err(|_| Stop::Gone)?;
+                say(events, Event::Text { delta }).await;
             }
             return Ok(refused || !reply.tool_calls.is_empty());
         }
         // Whatever the model wrote beside its request was a note to itself;
         // this tells the browser to drop it.
-        events
-            .send(Event::Searching)
-            .await
-            .map_err(|_| Stop::Gone)?;
+        say(events, Event::Searching).await;
         let calls = reply.tool_calls.clone();
         messages.push(reply);
         for call in calls {
@@ -710,7 +669,6 @@ async fn send(
     token: &str,
     messages: &[Message],
     tools: &[Tool],
-    events: &mpsc::Sender<Event>,
 ) -> Result<reqwest::Response, Stop> {
     let unreachable = || failed(Reason::Unreachable, "Couldn’t reach the model.");
     let client = CLIENT.as_ref().map_err(|_| unreachable())?;
@@ -726,13 +684,7 @@ async fn send(
             stream: true,
             max_tokens: MAX_REPLY_TOKENS,
         });
-    // A reader who has gone is noticed here too, not only when there is
-    // something to send them: a model can think for a long time in silence.
-    let sent = tokio::select! {
-        sent = request.send() => sent,
-        () = events.closed() => return Err(Stop::Gone),
-    };
-    let response = sent.map_err(|error| {
+    let response = request.send().await.map_err(|error| {
         tracing::warn!(
             timeout = error.is_timeout(),
             connect = error.is_connect(),
@@ -756,7 +708,7 @@ async fn complete(
 ) -> Result<(Message, bool), Stop> {
     let unreachable = || failed(Reason::Unreachable, "Couldn’t reach the model.");
     let started = std::time::Instant::now();
-    let response = send(assistant, token, messages, tools, events).await?;
+    let response = send(assistant, token, messages, tools).await?;
     if let Some(stop) = turned_down(response.status().as_u16()) {
         return Err(stop);
     }
@@ -775,11 +727,7 @@ async fn complete(
         MAX_MODEL_LINE
     ));
     loop {
-        let line = tokio::select! {
-            line = frames.next() => line,
-            () = events.closed() => return Err(Stop::Gone),
-        };
-        let line = match line {
+        let line = match frames.next().await {
             None | Some(Err(LineError::Unterminated(_))) => break,
             Some(Ok(line)) => line,
             Some(Err(LineError::Source(_))) => return Err(unreachable()),
@@ -814,10 +762,7 @@ async fn complete(
                     text.push_str(&delta);
                     let delta = links.pass(&delta, reader);
                     if !delta.is_empty() {
-                        events
-                            .send(Event::Text { delta })
-                            .await
-                            .map_err(|_| Stop::Gone)?;
+                        say(events, Event::Text { delta }).await;
                     }
                 }
                 for call in choice.delta.tool_calls {
@@ -831,10 +776,7 @@ async fn complete(
     }
     let delta = links.rest(reader);
     if !delta.is_empty() {
-        events
-            .send(Event::Text { delta })
-            .await
-            .map_err(|_| Stop::Gone)?;
+        say(events, Event::Text { delta }).await;
     }
     // Sizes and the service's own words for why it stopped; never the text.
     tracing::info!(
@@ -873,13 +815,15 @@ fn turned_down(status: u16) -> Option<Stop> {
     })
 }
 
+mod answer;
 mod docs;
 mod lookups;
 mod reply;
+use answer::{answer, say};
 use lookups::{Reader, clip, ends};
-use reply::{Usage, chunk, gather};
 #[cfg(test)]
 use reply::{CallDelta, FunctionDelta};
+use reply::{Usage, chunk, gather};
 
 #[cfg(test)]
 mod tests;

@@ -2,6 +2,7 @@ use super::{
     Call, CallDelta, Function, FunctionDelta, Links, MAX_LOOKUPS, Reader, chunk, clip, ends,
     gather, mend,
 };
+use futures_util::StreamExt;
 use serde_json::{Value, json};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex};
@@ -55,6 +56,15 @@ fn wants(calls: &[(&str, &str)]) -> String {
 }
 
 async fn fixture(assistant: Option<Script>, access: Option<&str>) -> Fixture {
+    paced_fixture(assistant, access, std::time::Duration::ZERO).await
+}
+
+/// A fixture whose stand-in model service takes `pace` to answer each request.
+async fn paced_fixture(
+    assistant: Option<Script>,
+    access: Option<&str>,
+    pace: std::time::Duration,
+) -> Fixture {
     let directory = tempfile::tempdir().unwrap();
     let database = directory.path().join("index.sqlite3");
     let mut storage = crate::storage::Storage::open_writer(&database).unwrap();
@@ -101,6 +111,7 @@ async fn fixture(assistant: Option<Script>, access: Option<&str>) -> Fixture {
                         let token = headers["authorization"].to_str().unwrap().to_owned();
                         record.lock().unwrap().push((token, body));
                         async move {
+                            tokio::time::sleep(pace).await;
                             (
                                 axum::http::StatusCode::from_u16(status).unwrap(),
                                 [("content-type", "text/event-stream")],
@@ -348,6 +359,48 @@ fn runs_out(text: &str) -> String {
         json!({"choices": [{"delta": {}, "finish_reason": "length"}], "usage": {"prompt_tokens": 9, "completion_tokens": 4000}})
     );
     body
+}
+
+#[tokio::test]
+async fn closing_the_answer_stops_the_conversation_and_frees_its_place() {
+    // A model that keeps asking for lookups would make every request allowed.
+    let script: Script = Arc::new(|_| (200, wants(&[("chats", "{\"from\": \"2026-11-01\"}")])));
+    let pace = std::time::Duration::from_millis(150);
+    let fixture = paced_fixture(Some(script), None, pace).await;
+    let response = reqwest::Client::new()
+        .post(fixture.url())
+        .json(&question("anything"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), reqwest::StatusCode::OK);
+    // Read until the first lookup has been asked for, then close the answer.
+    let mut body = response.bytes_stream();
+    while let Some(chunk) = body.next().await {
+        if String::from_utf8_lossy(&chunk.unwrap()).contains("searching") {
+            break;
+        }
+    }
+    drop(body);
+    let asked = fixture.asked.lock().unwrap().len();
+    tokio::time::sleep(pace * 6).await;
+    let later = fixture.asked.lock().unwrap().len();
+    // At most the request already on its way; never the rest of the conversation.
+    assert!(
+        later <= asked + 1,
+        "asked {asked} then {later} after closing"
+    );
+    assert!(
+        later < MAX_LOOKUPS + 1,
+        "the conversation ran on after closing"
+    );
+    // Its place is free again: every place takes a new question at once
+    // (a leaked place would turn one of these away).
+    let all = futures_util::future::join_all(
+        (0..super::MAX_QUESTIONS).map(|_| fixture.ask(question("again"))),
+    )
+    .await;
+    assert!(all.iter().all(|events| !events.is_empty()));
 }
 
 #[tokio::test]
