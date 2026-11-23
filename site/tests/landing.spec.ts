@@ -18,7 +18,11 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Mash supercharges your agents so that they can search and remember from each others' chats. Leave off with Claude and pick up with Codex, without having to re-explain yourself. 100% self-hosted and open-source.";
   await expect(page.locator(".hero .tagline")).toHaveText(blurb);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
-  await expect(page.locator(".hero .actions a")).toHaveText(["Get started", "Try the demo"]);
+  await expect(page.locator(".hero .actions a")).toHaveText([
+    /^Download (Mash|for \w+)$/,
+    "Get started",
+    "Try the demo",
+  ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "Find it. However you remember it.",
     "Meet Mashy. Ask your history anything.",
@@ -63,9 +67,20 @@ test("the landing page fits a phone", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("the hero's two actions sit side by side", async ({ page }) => {
+test("the hero leads with the app download, beside its other actions", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
+  // A Linux x86-64 browser here, so the download is the Linux app.
+  const download = page.locator(".hero .actions a").first();
+  await expect(download).toHaveText(/Download for (Linux|macOS|Windows)/);
+  await expect(download).toHaveAttribute(
+    "href",
+    /^https:\/\/github\.com\/mashium\/mash\/releases\/latest\/download\/mash-desktop-/,
+  );
+  await expect(page.locator(".mash-install")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Install from a terminal or with your agent" }),
+  ).toHaveAttribute("href", "/quick-start/#install-it-yourself");
   const [first, second] = await page
     .locator(".hero .actions a")
     .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().top));
@@ -104,129 +119,12 @@ test("the hero leads with its stamp and headline, beside the handoff cards", asy
   for (const width of widths) expect(width).toBeGreaterThan(340);
 });
 
-test("the hero's install command copies to the clipboard", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/");
-  await page.getByRole("button", { name: "Install it yourself" }).click();
-  const command = page.locator(".mash-install .picked code");
-  // The browser under test runs on Linux, so the picker opens on the shell script.
-  await expect(command).toHaveText(/^curl .*install\.sh \| sh -s -- --dashboard$/);
-  await expect(page.getByRole("link", { name: "Install separately" })).toBeVisible();
-  const copy = page.getByRole("button", { name: "Copy the install command" });
-  await copy.click();
-  await expect(copy).toHaveText("Copied");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    await command.textContent(),
-  );
-});
-
-test("the hero's install picker follows the chosen system and method", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/");
-  const install = page.locator(".mash-install");
-  const command = install.locator(".picked code");
-  const requirements = install.locator("[data-requirements]");
-  const linuxSetup = install.getByRole("link", { name: "Linux setup without systemd" });
-  // One box at a time: the agent's prompt first, the install command on request.
-  await expect(install.locator(".command:visible")).toHaveCount(1);
-  await expect(install.locator(".command:visible code")).toHaveText(/^Read https/);
-  await expect(requirements).toBeHidden();
-  await install.getByRole("button", { name: "Install it yourself" }).click();
-  await expect(install.locator(".command:visible")).toHaveCount(1);
-  await expect(install.locator(".command:visible code")).toHaveText(/^curl /);
-  await expect(requirements).toContainText("Requires a systemd user session");
-  await expect(linuxSetup).toBeVisible();
-  await expect(linuxSetup).toHaveAttribute(
-    "href",
-    "/local-search/#linux-without-a-systemd-user-session",
-  );
-  await expect(install.getByRole("link", { name: "See browser setup" })).toHaveAttribute(
-    "href",
-    "/dashboard/#set-up-mash-from-the-dashboard",
-  );
-  await install.getByRole("button", { name: "Windows", exact: true }).click();
-  await expect(command).toHaveText(/^& .*irm .*install\.ps1\)\)\) -Dashboard$/);
-  await expect(install.locator(".picked .prompt")).toHaveText(">");
-  await expect(requirements).toHaveText(
-    "For Windows x64. Open PowerShell after signing in to the Windows desktop.",
-  );
-  await expect(linuxSetup).toBeHidden();
-  await install.getByRole("button", { name: "Scoop", exact: true }).click();
-  await expect(requirements).toHaveText("Requires Windows x64 and Scoop. Run in PowerShell.");
-  await install.getByRole("button", { name: "Cargo", exact: true }).click();
-  await expect(command).toHaveText(/^cargo \+stable install /);
-  await expect(requirements).toContainText("a stable Rust toolchain");
-  await expect(
-    install.getByText("This command installs terminal search and agent tools."),
-  ).toBeVisible();
-  await expect(install.getByRole("link", { name: "Set up terminal search" })).toBeVisible();
-  const buildDashboard = install.getByRole("link", { name: "Build with the dashboard" });
-  await expect(buildDashboard).toBeVisible();
-  await expect(
-    install.getByRole("link", {
-      name: "start the local search service and choose which histories to read",
-    }),
-  ).toBeHidden();
-  await page.getByRole("button", { name: "Copy the install command" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    await command.textContent(),
-  );
-  // The method carries over to another system, and the choice is kept for the next visit.
-  await install.getByRole("button", { name: "macOS", exact: true }).click();
-  await expect(command).toHaveText(/^cargo \+stable install /);
-  await page.reload();
-  await expect(command).toBeVisible();
-  await expect(command).toHaveText(/^cargo \+stable install /);
-  await expect(requirements).toContainText("a stable Rust toolchain");
-  await expect(install.getByRole("button", { name: "Homebrew", exact: true })).toBeVisible();
-  // Linux offers apt and not Homebrew.
-  await install.getByRole("button", { name: "Linux", exact: true }).click();
-  await expect(install.getByRole("button", { name: "Homebrew", exact: true })).toHaveCount(0);
-  await install.getByRole("button", { name: "apt", exact: true }).click();
-  await expect(command).toHaveText(/sudo apt install mash-cli$/);
-  await expect(requirements).toContainText("Debian 12+ or Ubuntu 22.04+");
-  await expect(linuxSetup).toBeHidden();
-  await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
-  await expect(install.getByRole("link", { name: "Review the package sources" })).toBeVisible();
-  await expect(buildDashboard).toBeHidden();
-
-  await install.getByRole("button", { name: "Cargo", exact: true }).click();
-  await expect(install.getByRole("link", { name: "Review the source build" })).toBeVisible();
-  await expect(install.getByRole("link", { name: "Review the package sources" })).toBeHidden();
-  await buildDashboard.click();
-  await expect(page).toHaveURL(/\/install-methods\/#include-the-web-dashboard$/);
-  await expect(page.getByRole("heading", { name: "Include the web dashboard" })).toBeVisible();
-  await expect(
-    page.locator("pre").filter({ hasText: "pnpm@11.28.5 --dir dashboard run build" }),
-  ).toContainText("cargo +stable install --locked --path .");
-});
-
 test("a Homebrew visitor can review the package source and see what to do next", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 700 });
-  await page.goto("/");
-  const install = page.locator(".mash-install");
-  await install.getByRole("button", { name: "Install it yourself" }).click();
-  await install.getByRole("button", { name: "macOS", exact: true }).click();
-  await expect(install.locator("[data-requirements]")).toContainText("Apple silicon Macs");
-  await install.getByRole("button", { name: "Homebrew", exact: true }).click();
-  await expect(install.locator(".picked code")).toHaveText("brew install mashium/tap/mash");
-  await expect(install.locator("[data-requirements]")).toContainText(
-    "an Apple silicon Mac and Homebrew",
-  );
-  await expect(install.getByText("Includes the browser dashboard.")).toBeVisible();
+  await page.goto("/install-methods/#install-with-a-package-manager");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expect(
-    install.getByRole("link", {
-      name: "start the local search service and choose which histories to read",
-    }),
-  ).toHaveAttribute("href", "/installation/#start-the-local-search-service");
-  await install.getByRole("link", { name: "Review the package sources" }).click();
-  await expect(page).toHaveURL(/\/install-methods\/#install-with-a-package-manager$/);
   await expect(page.getByRole("link", { name: "Mashium’s Homebrew formula" })).toHaveAttribute(
     "href",
     "https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb",
@@ -236,17 +134,13 @@ test("a Homebrew visitor can review the package source and see what to do next",
   ).toBeVisible();
 });
 
-test("the hero offers a prompt that hands setup to a coding agent", async ({
+test("the quick start offers a prompt that hands setup to a coding agent", async ({
   page,
-  context,
   request,
 }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/");
-  await page.getByRole("button", { name: "Copy the prompt for your agent" }).click();
-  const prompt = await page.evaluate(() => navigator.clipboard.readText());
-  expect(prompt).toBe(
-    "Read https://getmash.io/setup.md and set up Mash on this machine. Review the choices with me first.",
+  await page.goto("/quick-start/");
+  await expect(page.locator(".sl-markdown-content")).toContainText(
+    "Read https://getmash.io/setup.md and set up Mash on this machine.",
   );
   // The file the prompt names is published as plain Markdown.
   const setup = await request.get("/setup.md");
@@ -266,13 +160,6 @@ test("the hero offers a prompt that hands setup to a coding agent", async ({
 });
 
 test("visitors can inspect the installer and read about privacy before setup", async ({ page }) => {
-  await page.goto("/");
-  await expect(
-    page.locator(".mash-install").getByRole("link", {
-      name: /Inspect the installer|Download and verify an archive|See what stays local/,
-      includeHidden: true,
-    }),
-  ).toHaveCount(0);
   await page.goto("/quick-start/");
   await page.getByRole("link", { name: "how to verify the download", exact: true }).click();
   await expect(page).toHaveURL("/downloads/#verify-the-checksum");
@@ -336,14 +223,10 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
     await expect(caption).toBeVisible();
   await welcome.locator(".measured summary").click();
   await expect(welcome.locator(".measured").getByText("66 ms", { exact: true })).toBeVisible();
-  const install = page.locator(".mash-install");
-  await expect(install.locator(".agent code")).toBeVisible();
-  await expect(install.locator(".picked")).toBeHidden();
-  await expect(install.getByRole("button")).toHaveCount(0);
-  await install
-    .getByRole("link", { name: "See the install steps for your operating system" })
-    .click();
-  await expect(page.getByRole("heading", { name: "Get Mash for your system" })).toBeVisible();
+  // Without scripting the download button cannot tell the system, so it opens the downloads.
+  await page.getByRole("link", { name: "Download Mash" }).click();
+  await expect(page).toHaveURL(/\/downloads\/#desktop-app$/);
+  await expect(page.getByRole("heading", { name: "Desktop app" })).toBeVisible();
   await context.close();
 });
 

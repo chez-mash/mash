@@ -57,6 +57,7 @@ test("the quick start goes from setup to a first chat and links to package insta
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.locator("#quick-start")).toBeAttached();
   await expect(guide.getByRole("heading", { level: 2 })).toHaveText([
+    "Download the app",
     "Install it yourself",
     "Choose what Mash reads",
     "Find your first chat",
@@ -149,6 +150,9 @@ test("the release check bookmark leads to the right archives and checksum steps"
   const base = "https://github.com/mashium/mash/releases/latest/download/";
   expect(archives).toEqual(
     [
+      "mash-desktop-macos-arm64.dmg",
+      "mash-desktop-windows-x64-setup.exe",
+      "mash-desktop-linux-x86_64.AppImage",
       "mash-aarch64-apple-darwin.tar.gz",
       "mash-x86_64-unknown-linux-gnu.tar.gz",
       "mash-aarch64-unknown-linux-gnu.tar.gz",

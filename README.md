@@ -61,6 +61,13 @@ Already using Mash? [Upgrade your installation](docs/upgrades.md#upgrade-an-exis
 By the end you'll have every chat your coding agents saved on this machine
 in one searchable place, and an agent that remembers your decisions.
 
+### Download the app
+
+The Mash app is the quickest start: [download it for macOS, Windows or
+Linux](docs/downloads.md#desktop-app), open it, and it walks you through
+setup. Prefer the terminal, or setting up a server? Install with a command
+instead.
+
 ### Install it yourself
 
 Run the command for your system. It downloads Mash and opens setup in your

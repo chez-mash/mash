@@ -5,10 +5,29 @@ published checksum, and open the dashboard from the folder where you extract
 them. This path skips the Mash install script. You can also
 [inspect the script](#inspect-the-installer) or [install with a package manager](install-methods.md).
 
+## Desktop app
+
+The Mash app opens the dashboard in its own window, puts search in the menu
+bar, and includes everything the archives below do.
+
+| Computer | Download |
+| --- | --- |
+| Mac with Apple silicon | [`mash-desktop-macos-arm64.dmg`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-macos-arm64.dmg) |
+| Windows x64 | [`mash-desktop-windows-x64-setup.exe`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-windows-x64-setup.exe) |
+| Linux x86-64 | [`mash-desktop-linux-x86_64.AppImage`](https://github.com/mashium/mash/releases/latest/download/mash-desktop-linux-x86_64.AppImage) |
+
+The Linux app needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36 and later) and WebKitGTK 4.1.
+
+The app is not signed yet, so your system asks before opening it the first
+time. On a Mac, open the app, then choose **Open Anyway** in **System
+Settings › Privacy & Security**. On Windows, choose **More info**, then
+**Run anyway**. On Linux, make the AppImage executable
+(`chmod +x mash-desktop-linux-x86_64.AppImage`) and run it.
+
 ## Choose your download
 
-These links download the latest published archives. Each archive contains
-the terminal program and browser dashboard.
+These links download the latest published archives, for using Mash without
+the app. Each archive contains the terminal program and browser dashboard.
 
 | Computer | Download |
 | --- | --- |
