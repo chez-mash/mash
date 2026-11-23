@@ -413,10 +413,8 @@ impl Cache {
 /// The caching and browser-safety headers every response carries.
 fn harden(mut response: Response, cache: Cache) -> Response {
     let headers = response.headers_mut();
-    // Built assets carry a content hash in their name, so a browser may keep
-    // them for good. Logos and other images keep the same name across
-    // releases, so they are rechecked like the page: a long cache kept the old
-    // logo in the desktop app's window for a day after an upgrade.
+    // Hashed build assets may be kept for good; images keep their names across
+    // releases, so they are rechecked like the page.
     headers.insert(
         header::CACHE_CONTROL,
         HeaderValue::from_static(match cache {
