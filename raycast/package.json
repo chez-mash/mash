@@ -5,7 +5,10 @@
   "description": "Search the history of your coding agents as you type, and open a chat in Mash.",
   "icon": "mash.png",
   "author": "mashium",
-  "categories": ["Developer Tools", "Productivity"],
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
   "license": "MIT",
   "commands": [
     {
@@ -36,6 +39,15 @@
       "type": "textfield",
       "required": false,
       "placeholder": "/opt/homebrew/bin/mash"
+    },
+    {
+      "name": "subagentMatches",
+      "title": "Subagent Chats",
+      "label": "Include matches in subagent chats",
+      "description": "Show search matches in chats your agents started for their own subtasks. The recent chats list never shows them.",
+      "type": "checkbox",
+      "required": false,
+      "default": true
     }
   ],
   "packageManager": "pnpm@11.28.5",

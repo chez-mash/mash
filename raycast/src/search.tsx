@@ -34,6 +34,7 @@ import {
   hasDesktopApp,
   failures,
   literal,
+  ownRecentChats,
   parseChats,
   parseView,
   recentChatsArguments,
@@ -48,6 +49,8 @@ import { useStreamSearch } from "./stream";
 
 interface Preferences {
   readonly mashPath?: string;
+  /** Whether search results include matches in subagent chats; on unless the reader turns it off. */
+  readonly subagentMatches?: boolean;
 }
 
 type Run = { stdout: string; exitCode: number | null; error?: Error };
@@ -91,7 +94,7 @@ function read<T>(parse: (stdout: string) => T) {
 }
 
 export default function Command() {
-  const { mashPath } = getPreferenceValues<Preferences>();
+  const { mashPath, subagentMatches = true } = getPreferenceValues<Preferences>();
   const mash = useMemo(() => findMash(mashPath, homedir(), existsSync), [mashPath]);
   // Without the desktop app nothing opens mash:// links, so actions that
   // need one are offered only when it is installed.
@@ -130,7 +133,12 @@ export default function Command() {
     );
   }
 
-  const hits = (searching ? live.hits : recent.data) ?? [];
+  // The recent list is the reader's own chats: subagent chats are their
+  // agents' work, and would crowd them out. Search includes them unless the
+  // reader turns that off, as the dashboard does.
+  const hits = searching
+    ? live.hits.filter((hit) => subagentMatches || !hit.subagent)
+    : ownRecentChats(recent.data ?? []);
   const isLoading = searching ? !live.done : recent.isLoading;
   const shownError = searching ? live.error : recent.error;
   const coming = searching ? stillComing(live.sources) : "";

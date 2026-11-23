@@ -10,6 +10,7 @@ import {
   literal,
   liveSearchArguments,
   MashError,
+  ownRecentChats,
   parseChats,
   parseSearch,
   parseStreamLine,
@@ -79,7 +80,7 @@ describe("reading Mash's answers", () => {
   });
 
   it("lists this machine's recent chats, each at its first message", () => {
-    expect(recentChatsArguments()).toEqual(["list-chats", "--local", "--limit", "20"]);
+    expect(recentChatsArguments()).toEqual(["list-chats", "--local", "--limit", "100"]);
     const chats = parseChats(
       JSON.stringify({
         chats: [
@@ -124,6 +125,46 @@ describe("reading Mash's answers", () => {
       { id: "m2", role: "user", content: "why?" },
       { id: "m3", role: "message", content: "" },
     ]);
+  });
+});
+
+describe("subagent chats", () => {
+  const chat = (id: string, subagent?: object) => ({
+    chat_id: id,
+    provider: "claude-code",
+    title: id,
+    lookup: { view: { id: `${id}-m` } },
+    ...(subagent ? { subagent } : {}),
+  });
+  const fork = { parent_chat_id: "p", label: "Fix the build", role: "fork", depth: 1 };
+
+  it("leaves subagent and fork chats out of the recent list, keeping twenty of the reader's own", () => {
+    const rows = [chat("mine-1"), chat("sub-1", fork), chat("mine-2")];
+    for (let index = 0; index < 30; index += 1) rows.push(chat(`more-${index}`));
+    const recent = ownRecentChats(parseChats(JSON.stringify({ chats: rows })));
+    expect(recent).toHaveLength(20);
+    expect(recent.map((hit) => hit.chatId).slice(0, 2)).toEqual(["mine-1", "mine-2"]);
+    expect(recent.some((hit) => hit.subagent)).toBe(false);
+  });
+
+  it("marks search matches in subagent chats, and only those", () => {
+    const row = (id: string, subagent?: object) => ({
+      chat_id: id,
+      provider: "claude-code",
+      title: id,
+      matches: [{ message_id: `${id}-m`, snippet: "x" }],
+      ...(subagent ? { subagent } : {}),
+    });
+    const hits = parseSearch(JSON.stringify({ results: [row("mine"), row("sub", fork)] }));
+    expect(hits.map((hit) => [hit.chatId, hit.subagent ?? false])).toEqual([
+      ["mine", false],
+      ["sub", true],
+    ]);
+  });
+
+  it("does not take a null subagent field for a subagent", () => {
+    const [hit] = parseChats(JSON.stringify({ chats: [{ ...chat("mine"), subagent: null }] }));
+    expect(hit?.subagent).toBeUndefined();
   });
 });
 

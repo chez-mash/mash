@@ -25,6 +25,8 @@ export interface Hit {
   readonly machine?: string;
   /** Found only by meaning, not by its words. */
   readonly byMeaning?: boolean;
+  /** A chat an agent started for its own subtask (a subagent or fork), not one of the reader's. */
+  readonly subagent?: boolean;
 }
 
 /** One message around a hit, as `mash view` returns it. */
@@ -80,10 +82,26 @@ export function liveSearchArguments(query: string): string[] {
   return ["search", query, "--live", "--limit", "20"];
 }
 
-/** The arguments that list this machine's latest chats, the most recent first. */
+/** How many recent chats the list shows before anything is typed. */
+export const RECENT_CHATS = 20;
+
+/**
+ * The arguments that list this machine's latest chats, the most recent first.
+ * Agents start many subagent chats, which the list leaves out, so this asks
+ * for as many as Mash lists at once to leave enough of the reader's own.
+ */
 export function recentChatsArguments(): string[] {
-  return ["list-chats", "--local", "--limit", "20"];
+  return ["list-chats", "--local", "--limit", "100"];
 }
+
+/** The latest chats the reader had, without the subagent chats their agents started. */
+export function ownRecentChats(hits: readonly Hit[]): Hit[] {
+  return hits.filter((hit) => !hit.subagent).slice(0, RECENT_CHATS);
+}
+
+/** A row's subagent marker: Mash names a subagent chat's parent; other chats have none. */
+const subagentMark = (row: Record<string, unknown>) =>
+  typeof row.subagent === "object" && row.subagent !== null ? { subagent: true } : {};
 
 /** The arguments that read a message with a few on either side of it. */
 export function viewArguments(messageId: string): string[] {
@@ -140,6 +158,7 @@ function hitFromRow(row: Record<string, unknown>): Hit[] {
       ...(Array.isArray(row.matched_by) && row.matched_by.length === 1 && row.matched_by[0] === "meaning"
         ? { byMeaning: true }
         : {}),
+      ...subagentMark(row),
     },
   ];
 }
@@ -232,6 +251,7 @@ export function parseChats(stdout: string): Hit[] {
         project: text(row.project),
         updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
         passage: "",
+        ...subagentMark(row),
       },
     ];
   });
