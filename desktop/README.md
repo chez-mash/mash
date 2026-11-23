@@ -30,6 +30,18 @@ The app icons in `src-tauri/icons/` are generated from `icons/mash-app.svg`:
 render it to `icons/mash-app.png` at 1024 pixels, then run `pnpm icons`. The
 menu bar icon is `icons/tray.svg`, rendered with `pnpm tray-icon`.
 
+On macOS 26 and later the app's icon comes from `src-tauri/icons/Assets.car`,
+compiled from the layered `icons/Mash.icon` (editable in Icon Composer). Its
+dark appearance keeps the butter tile, so the icon stays the same when the
+system's icon style is Dark. Rebuild it on a Mac after changing the icon:
+
+```sh
+xcrun actool icons/Mash.icon --compile /tmp/mash-icon --app-icon Mash \
+  --platform macosx --minimum-deployment-target 11.0 --target-device mac \
+  --output-partial-info-plist /tmp/mash-icon/partial.plist
+cp /tmp/mash-icon/Assets.car src-tauri/icons/Assets.car
+```
+
 ## Try a link
 
 With the app installed, open `mash://search?q=deploy` from a browser or a

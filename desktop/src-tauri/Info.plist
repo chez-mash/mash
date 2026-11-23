@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The icon in Assets.car, compiled from icons/Mash.icon. It gives macOS
+	     a dark appearance that keeps the butter tile, so the icon does not turn
+	     black when the system's icon style is Dark. icon.icns stays the icon
+	     for systems that do not read it. -->
+	<key>CFBundleIconName</key>
+	<string>Mash</string>
+</dict>
+</plist>
