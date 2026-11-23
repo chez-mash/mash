@@ -20,7 +20,6 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
   await expect(page.locator(".hero .actions a")).toHaveText([
     /^Download (Mash|for \w+)$/,
-    "Get started",
     "Try the demo",
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
@@ -50,7 +49,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   const measured = page.locator(".mash-welcome .measured");
   await expect(measured.locator("p")).toBeHidden();
   await measured.locator("summary").click();
-  await expect(measured.locator("dt")).toHaveText(["66 ms", "20 MB", "5× and 9×"]);
+  await expect(measured.locator("dt")).toHaveText(["66 ms and 103k", "5× and 9×"]);
   await expect(measured.locator("p")).toContainText("experimental and off until you");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
@@ -78,9 +77,10 @@ test("the hero leads with the app download, beside its other actions", async ({ 
     /^https:\/\/github\.com\/mashium\/mash\/releases\/latest\/download\/mash-desktop-/,
   );
   await expect(page.locator(".mash-install")).toHaveCount(0);
-  await expect(
-    page.getByRole("link", { name: "Install from a terminal or with your agent" }),
-  ).toHaveAttribute("href", "/quick-start/#install-it-yourself");
+  // One quiet link for every other system; terminal installs live in the docs.
+  const note = page.locator(".hero .download-note");
+  await expect(note.getByRole("link")).toHaveText(["Other systems"]);
+  await expect(note.getByRole("link")).toHaveAttribute("href", "/downloads/#desktop-app");
   const [first, second] = await page
     .locator(".hero .actions a")
     .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().top));
@@ -222,7 +222,9 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   for (const caption of await welcome.locator(".caps li").all())
     await expect(caption).toBeVisible();
   await welcome.locator(".measured summary").click();
-  await expect(welcome.locator(".measured").getByText("66 ms", { exact: true })).toBeVisible();
+  await expect(
+    welcome.locator(".measured").getByText("66 ms and 103k", { exact: true }),
+  ).toBeVisible();
   // Without scripting the download button cannot tell the system, so it opens the downloads.
   await page.getByRole("link", { name: "Download Mash" }).click();
   await expect(page).toHaveURL(/\/downloads\/#desktop-app$/);
@@ -249,7 +251,13 @@ test("every feature tile has an icon, the stack chips have logos, and the close 
   const welcome = page.locator(".mash-welcome");
   const tiles = welcome.locator("#welcome-features article");
   await expect(tiles).toHaveCount(5);
-  for (const tile of await tiles.all()) await expect(tile.locator(".ico svg")).toBeVisible();
+  for (const tile of await tiles.all()) await expect(tile.locator(".ico").first()).toBeVisible();
+  // Every tile is paper; the colour lives in the icon stickers.
+  await expect(tiles.locator(".butter")).toHaveCount(0);
+  // The three small tiles each show their three subjects: systems, machines, formats.
+  for (const index of [2, 3, 4])
+    await expect(tiles.nth(index).locator(".icos .ico")).toHaveCount(3);
+  await expect(tiles.nth(4).locator(".icos .ico")).toHaveText(["MD", "</>", "PDF"]);
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();

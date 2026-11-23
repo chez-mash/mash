@@ -24,8 +24,7 @@ test("the home page leads to troubleshooting and the right GitHub report forms",
 test("visitors can check which histories Mash reads and which agents it connects", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "Check support for your agent" }).click();
+  await page.goto("/supported-agents/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Supported agents");
   const support = page.getByRole("table").first();
   const copilot = support.getByRole("row", { name: /GitHub Copilot CLI/ });
@@ -198,7 +197,7 @@ test("internal links and browser history keep the current document alive", async
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   const origin = await page.evaluate(() => performance.timeOrigin);
-  await page.locator(".hero").getByRole("link", { name: "Get started", exact: true }).click();
+  await page.locator(".closing").getByRole("link", { name: "Get started", exact: true }).click();
   await expect(page).toHaveURL(/\/quick-start\/$/);
   await expect(page.locator("h1")).toHaveText("Quick start");
   expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);

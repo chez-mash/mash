@@ -11,6 +11,7 @@ import qdrant from "../art/stack/qdrant.svg?raw";
 import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
+import LineIcon from "./LineIcon.astro";
 
 /** The projects Mash is built on, shown under Ferris, each with its logo and
  * linked to its own site. */
@@ -138,38 +139,33 @@ function mark(svg: string): string {
       </div>
       <dl class="stats">
         <div>
+          <span class="ico"><LineIcon name="zap" /></span>
           <dt><b>66</b><small> ms</small></dt>
           <dd>for an exact-phrase search, at its quickest</dd>
         </div>
         <div>
-          <dt><b>20</b><small> MB</small></dt>
-          <dd>of memory for an idle Mash MCP process</dd>
+          <span class="ico"><Icon name="database" /></span>
+          <dt><b>103</b><small>k</small></dt>
+          <dd>messages from 1,137 chats, searched in one index on one machine</dd>
         </div>
         <div>
+          <span class="ico"><LineIcon name="chip" /></span>
           <dt><b>5</b>×</dt>
           <dd>embedding throughput on a Windows GPU</dd>
         </div>
         <div>
+          <span class="ico"><Icon name="rocket" /></span>
           <dt><b>9</b>×</dt>
           <dd>embedding throughput with an experimental NVIDIA worker</dd>
         </div>
       </dl>
-      <ul class="light">
-        <li>No GPU needed</li>
-        <li>Word search loads no models</li>
-        <li>No Mash cloud</li>
-      </ul>
       <details class="measured">
         <summary>How these were measured</summary>
         <div class="measurement-copy" role="region" aria-label="Benchmark conditions" tabindex="0">
           <dl>
             <div>
-              <dt>66 ms</dt>
-              <dd>One exact-phrase search across 1,137 chats and about 103,000 searchable messages on one Linux machine. A common word took up to a second there.</dd>
-            </div>
-            <div>
-              <dt>20 MB</dt>
-              <dd>Approximate memory for one idle Mash MCP process. On that machine, idle processes used 16–23 MB each, or 220–330 MB after loading semantic search models. Qdrant memory was measured separately.</dd>
+              <dt>66 ms and 103k</dt>
+              <dd>One exact-phrase search across 1,137 chats and about 103,000 searchable messages in one index on one Linux machine. A common word took up to a second there.</dd>
             </div>
             <div>
               <dt>5× and 9×</dt>
@@ -235,7 +231,7 @@ function mark(svg: string): string {
           decisions and discussions into new sessions.
         </p>
       </article>
-      <article class="big butter">
+      <article class="big">
         <span class="ico"><Icon name="random" /></span>
         <h3>RAG over your own history.</h3>
         <p>
@@ -244,17 +240,17 @@ function mark(svg: string): string {
         </p>
       </article>
       <article>
-        <span class="ico"><Icon name="desktop" /></span>
+        <span class="icos"><span class="ico" title="macOS"><Icon name="apple" /></span><span class="ico" title="Linux"><Icon name="linux" /></span><span class="ico" title="Windows"><LineIcon name="windows" /></span></span>
         <h3>macOS. Linux. Windows.</h3>
         <p>Wherever you work.</p>
       </article>
       <article>
-        <span class="ico"><Icon name="laptop" /></span>
+        <span class="icos"><span class="ico"><Icon name="laptop" /></span><span class="ico"><Icon name="desktop" /></span><span class="ico"><Icon name="server" /></span></span>
         <h3>Every machine.</h3>
         <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
       </article>
       <article>
-        <span class="ico"><Icon name="document" /></span>
+        <span class="icos files" aria-hidden="true"><span class="ico">MD</span><span class="ico">&lt;/&gt;</span><span class="ico">PDF</span></span>
         <h3>Markdown. HTML. PDF.</h3>
         <p>Export any chat.</p>
       </article>
