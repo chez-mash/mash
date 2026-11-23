@@ -33,7 +33,7 @@ test("the guide index opens a sample search that fits a narrow screen", async ({
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/guides/");
   const link = page.getByRole("link", {
-    name: "Try a dashboard search with sample chats",
+    name: "Try the demo",
     exact: true,
   });
   await expect(link).toHaveAttribute("href", /^https:\/\/getmash\.io\/demo\/#\/search\?q=/);

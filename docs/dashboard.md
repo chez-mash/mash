@@ -1,4 +1,4 @@
-# Navigating the dashboard
+# Use the dashboard
 
 Try a [search for invoice exports](https://getmash.io/demo/#/search?q=invoice+exports+queue)
 in the browser demo. Open a result to see the original conversation. You can

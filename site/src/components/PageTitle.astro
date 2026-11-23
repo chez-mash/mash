@@ -19,7 +19,9 @@ function trail(entries: readonly Entry[]): string[] | undefined {
   return undefined;
 }
 
-const groups = trail(Astro.locals.starlightRoute.sidebar) ?? [];
+// A page without a sidebar, such as the guides directory, stands alone.
+const { hasSidebar, sidebar } = Astro.locals.starlightRoute;
+const groups = (hasSidebar && trail(sidebar)) || [];
 const title = Astro.locals.starlightRoute.entry.data.title;
 ---
 

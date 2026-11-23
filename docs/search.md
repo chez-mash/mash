@@ -1,4 +1,4 @@
-# Introduction to Mash search
+# Search from the terminal
 
 Mash searches your [saved coding-agent conversations](supported-agents.md) on
 this machine and on other machines you connect through a [shared index](shared-index.md).

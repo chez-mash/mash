@@ -10,6 +10,8 @@ export default defineConfig({
       favicon: "/favicon.svg",
       description: "The Multi-Agent Search History Tool",
       locales: docsLocales,
+      // src/pages/404.astro draws the missing-page screen without the hero.
+      disable404Route: true,
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
       logo: { src: "./public/mash-mark.svg" },
@@ -78,6 +80,7 @@ export default defineConfig({
         Hero: "./src/components/Hero.astro",
         PageTitle: "./src/components/PageTitle.astro",
         Search: "./src/components/Search.astro",
+        Sidebar: "./src/components/Sidebar.astro",
         SocialIcons: "./src/components/SocialIcons.astro",
         ThemeProvider: "./src/components/ThemeProvider.astro",
         ThemeSelect: "./src/components/ThemeSelect.astro",
@@ -93,14 +96,17 @@ export default defineConfig({
           },
           items: [
             {
-              label: "Welcome to Mash",
+              // The directory of every guide, named as its page is. The English
+              // index is the landing page, which leaves the docs, so the
+              // sidebar points here instead.
+              label: "Mash documentation",
               translations: {
-                es: "Mash en español",
-                fr: "Mash en français",
-                "zh-CN": "Mash 简体中文指南",
-                ja: "Mash 日本語ガイド",
+                es: "Documentación de Mash",
+                fr: "Documentation de Mash",
+                "zh-CN": "Mash 文档",
+                ja: "Mash ドキュメント",
               },
-              slug: "index",
+              slug: "guides",
             },
             {
               label: "Quick start",
@@ -123,7 +129,7 @@ export default defineConfig({
               collapsed: true,
               items: [
                 {
-                  label: "Set up Mash",
+                  label: "Install Mash",
                   translations: {
                     es: "Configurar Mash",
                     fr: "Configurer Mash",
@@ -219,7 +225,7 @@ export default defineConfig({
           },
           items: [
             {
-              label: "Terminal search",
+              label: "Search from the terminal",
               translations: {
                 es: "Búsqueda desde el terminal",
                 fr: "Recherche dans le terminal",
@@ -297,7 +303,7 @@ export default defineConfig({
               slug: "supported-agents",
             },
             {
-              label: "Connect an agent",
+              label: "Use Mash with your agent",
               translations: {
                 es: "Conectar un agente",
                 fr: "Connecter un agent",
@@ -325,7 +331,7 @@ export default defineConfig({
               slug: "pick-up-work",
             },
             {
-              label: "Memory",
+              label: "Use Mash memory",
               translations: { es: "Memoria", fr: "Mémoire", "zh-CN": "记忆" },
               slug: "records",
             },

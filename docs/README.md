@@ -7,13 +7,14 @@ New here? Follow the [quick start](../README.md#quick-start).
 
 ## Start here
 
-- [Try a dashboard search with sample chats](https://getmash.io/demo/#/search?q=invoice+exports+queue)
+- [Quick start](../README.md#quick-start): install Mash and find your first chat
+- [Try the demo](https://getmash.io/demo/#/search?q=invoice+exports+queue) with sample chats
 - [See what Mash can do](compare.md)
 - [See where your history is stored and what stays private](privacy.md)
 
 ### Installation
 
-- [Install Mash and choose which histories to read](installation.md)
+- [Install Mash](installation.md) and choose which histories to read
 - [Download and verify a release archive](downloads.md)
 - [Install with a package manager or build from source](install-methods.md)
 - [Manage the local search service or run your own Qdrant](local-search.md)
@@ -24,7 +25,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 
 ### Dashboard
 
-- [Find chats in the dashboard and download transcripts](dashboard.md)
+- [Use the dashboard](dashboard.md) to find chats and download transcripts
 - [Change dashboard settings](dashboard-settings.md)
 - [Ask Mashy about your chats and follow its sources](mashy.md)
 - [Open the dashboard from your phone or another computer](dashboard-access.md)
@@ -32,7 +33,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 
 ### Search
 
-- [Search from the terminal](search.md#your-first-search)
+- [Search from the terminal](search.md)
 - [Find a missing chat](find-missing-chat.md)
 - [Search chats in other languages](search-languages.md)
 - [Keep new chats searchable](synchronization.md)
@@ -45,10 +46,10 @@ New here? Follow the [quick start](../README.md#quick-start).
 ### Agents and memory
 
 - [Check which agent histories Mash reads and which agents it connects to](supported-agents.md)
-- [Connect and use Mash from Claude Code, Codex or Copilot](agents.md)
+- [Use Mash with your agent](agents.md): Claude Code, Codex or Copilot
 - [Use the plugin's skills, commands and hooks](plugin.md)
 - [Pick up where you left off or leave a handoff](pick-up-work.md)
-- [Save decisions and revisit the messages behind them](records.md)
+- [Use Mash memory](records.md) to save decisions and revisit the messages behind them
 
 <span id="manage-mash"></span>
 
