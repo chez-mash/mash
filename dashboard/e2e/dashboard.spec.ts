@@ -444,29 +444,38 @@ test("Export downloads the entire chat as safe HTML and Markdown", async ({ page
       json: { local_node: "local", truncated: false, chats: [{ ...chat, node_id: "local" }] },
     }),
   );
+  // Answers the way the server does: `limit` messages from `offset` of a chat
+  // longer than the most one read returns (500), so the export has to read on.
+  // (Answering one message for any offset made the reader load a thousand
+  // one-message stretches, moving the menu under the pointer as it went.)
+  const total = 501;
+  const text = (ordinal: number): string =>
+    ordinal === 0
+      ? "First **message** <script>window.pwned=true</script><img src=https://evil.example/pixel>"
+      : ordinal === total - 1
+        ? "Last message on another page"
+        : `Message ${ordinal}`;
   await page.route("**/api/chat?**", (route) => {
-    const offset = Number(new URL(route.request().url()).searchParams.get("offset"));
+    const params = new URL(route.request().url()).searchParams;
+    const offset = Number(params.get("offset"));
+    const end = Math.min(total, offset + Number(params.get("limit")));
     return route.fulfill({
       json: {
-        messages:
-          offset >= 1000
-            ? []
-            : [
-                {
-                  id: `message-${offset}`,
-                  ordinal: offset,
-                  role: "assistant",
-                  content:
-                    offset === 0
-                      ? "First **message** <script>window.pwned=true</script><img src=https://evil.example/pixel>"
-                      : "Last message on another page",
-                },
-              ],
+        message_count: total,
+        messages: Array.from({ length: Math.max(0, end - offset) }, (_, index) => ({
+          id: `message-${offset + index}`,
+          ordinal: offset + index,
+          role: "assistant",
+          content: text(offset + index),
+        })),
       },
     });
   });
   await page.goto("/#/chat/same-id?node=local");
   await expect(page.getByRole("heading", { name: chat.title })).toBeVisible();
+  // At the start of the chat nothing loads above the menu to move it.
+  await page.getByRole("button", { name: "First message" }).click();
+  await expect(page.locator("#message-message-0")).toBeInViewport();
   const openExport = page.getByRole("button", { name: "Export", exact: true });
   for (const format of ["Markdown", "HTML"]) {
     await openExport.click();
@@ -478,12 +487,15 @@ test("Export downloads the entire chat as safe HTML and Markdown", async ({ page
     let content = "";
     for await (const chunk of stream) content += chunk.toString();
     expect(content).toContain("Last message on another page");
+    expect(content).toContain("Message 499");
     if (format === "HTML") {
       expect(content).toContain("<strong>message</strong>");
       expect(content).not.toContain("<script>");
       expect(content).not.toContain("<img");
     }
-    await expect(page.getByRole("status").filter({ hasText: "Exported" })).toBeVisible();
+    await expect(
+      page.getByRole("status").filter({ hasText: `Exported ${total} messages.` }),
+    ).toBeVisible();
   }
   await openExport.click();
   await expect(page.getByRole("button", { name: "Export to PDF", exact: true })).toBeEnabled();
