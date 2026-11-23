@@ -51,7 +51,10 @@ export function attachments(
       ...(typeof row.bytes === "number" ? { bytes: row.bytes } : {}),
       image: kept && PICTURES.includes(mediaType),
       ...(kept && row.digest
-        ? { url: attachmentUrl(message, row.id, row.digest, source) }
+        ? {
+            url: attachmentUrl(message, row.id, row.digest, source),
+            downloadUrl: `${attachmentUrl(message, row.id, row.digest, source)}&download=true`,
+          }
         : {
             missing:
               row.availability === "retained"

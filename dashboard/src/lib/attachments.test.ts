@@ -18,6 +18,8 @@ describe("message attachments", () => {
     expect(local?.url).toBe(
       `/api/attachment?message=m1&attachment=${kept.id}&digest=${kept.digest}&node=laptop&shared=true`,
     );
+    // Its Download asks the server for a download, which every webview saves.
+    expect(local?.downloadUrl).toBe(`${local?.url}&download=true`);
     expect(attachmentUrl("m1", kept.id, kept.digest, { peer: "desk top" })).toBe(
       `/api/peer/desk%20top/api/attachment?message=m1&attachment=${kept.id}&digest=${kept.digest}`,
     );

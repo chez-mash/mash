@@ -453,6 +453,11 @@
               "null"
             ]
           },
+          "download": {
+            "default": false,
+            "description": "Serve even a picture as a download named for the file. A page's\n`download` attribute alone is not honoured by every embedded webview,\nsuch as the desktop app's; this header is.",
+            "type": "boolean"
+          },
           "message": {
             "description": "The message's ID.",
             "type": "string"
@@ -7616,6 +7621,17 @@
             "schema": {
               "description": "The digest the page was shown. When it still matches, the answer may\nbe kept; when it does not, the attachment changed and is refused.",
               "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Serve even a picture as a download named for the file. A page's\n`download` attribute alone is not honoured by every embedded webview,\nsuch as the desktop app's; this header is.",
+            "in": "query",
+            "name": "download",
+            "schema": {
+              "default": false,
+              "description": "Serve even a picture as a download named for the file. A page's\n`download` attribute alone is not honoured by every embedded webview,\nsuch as the desktop app's; this header is.",
+              "type": "boolean"
             },
             "style": "form"
           },

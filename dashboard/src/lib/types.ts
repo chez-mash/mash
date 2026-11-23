@@ -111,6 +111,12 @@ export interface Attachment {
   readonly bytes?: number;
   /** Where its bytes are read; absent when Mash did not keep them. */
   readonly url?: string;
+  /**
+   * The same bytes as a download named for the file. The server says so in
+   * its headers, which the desktop app's webview honours where a link's
+   * `download` attribute alone is not.
+   */
+  readonly downloadUrl?: string;
   /** A kept picture the browser can draw, shown rather than downloaded. */
   readonly image: boolean;
   /** Why no copy is kept, when none is. */

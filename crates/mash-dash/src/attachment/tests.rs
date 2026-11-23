@@ -148,6 +148,16 @@ async fn an_image_is_served_inline_and_kept_by_its_digest() {
     assert_eq!(unchanged.status(), reqwest::StatusCode::NOT_MODIFIED);
     assert!(unchanged.bytes().await.unwrap().is_empty());
 
+    // Asked for as a download, as the Download button does, the same picture
+    // is an attachment named for the file, which every webview saves.
+    let saved = client
+        .get(format!("{url}&download=true"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(header(&saved, "content-type"), "image/png");
+    assert!(header(&saved, "content-disposition").starts_with("attachment; filename="));
+
     let pinned = client
         .get(format!("{url}&digest={}", digest(PNG)))
         .send()
@@ -286,4 +296,12 @@ fn a_peer_answer_keeps_only_headers_this_dashboard_would_send() {
     assert_eq!(image.headers()["content-disposition"], "inline");
     assert_eq!(image.headers()["cache-control"], super::KEPT);
     assert_eq!(image.headers()["etag"], tag.as_str());
+
+    // A peer that served the picture as a download keeps it one.
+    from.insert(
+        "content-disposition",
+        "attachment; filename=\"shot.png\"".parse().unwrap(),
+    );
+    let saved = super::relay(&from, PNG.to_vec());
+    assert_eq!(saved.headers()["content-disposition"], "attachment");
 }

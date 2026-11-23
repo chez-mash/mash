@@ -32,7 +32,7 @@ function close(): void {
       <div class="card tight file">
         <FileIcon size={18} aria-hidden="true" />
         <span class="what"><b>{file.name}</b><span class="mtx">{kind(file.mediaType)}{file.bytes === undefined ? "" : ` · ${size(file.bytes)}`}</span></span>
-        <a class="a get" href={file.url} download={file.name} aria-label="Download {file.name}"><Download size={15} aria-hidden="true" />Download</a>
+        <a class="a get" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Download size={15} aria-hidden="true" />Download</a>
       </div>
     {:else}
       <div class="card tight cream file gone">
@@ -47,7 +47,7 @@ function close(): void {
   <dialog bind:this={dialog} class="full" aria-label={open.name} onclose={() => (open = undefined)} onclick={(event) => { if (event.target === dialog) close(); }}>
     <div class="viewbar">
       <span class="viewname">{open.name}</span>
-      <a class="btn icon" href={open.url} download={open.name} aria-label="Download {open.name}" title="Download"><Download size={15} aria-hidden="true" /></a>
+      <a class="btn icon" href={open.downloadUrl ?? open.url} download={open.name} aria-label="Download {open.name}" title="Download"><Download size={15} aria-hidden="true" /></a>
       <button type="button" class="btn icon" onclick={close} aria-label="Close" title="Close"><X size={15} aria-hidden="true" /></button>
     </div>
     <img src={open.url} alt={open.name} />

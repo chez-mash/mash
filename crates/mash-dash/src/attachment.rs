@@ -56,6 +56,11 @@ struct AttachmentParams {
     /// The digest the page was shown. When it still matches, the answer may
     /// be kept; when it does not, the attachment changed and is refused.
     digest: Option<String>,
+    /// Serve even a picture as a download named for the file. A page's
+    /// `download` attribute alone is not honoured by every embedded webview,
+    /// such as the desktop app's; this header is.
+    #[serde(default)]
+    download: bool,
 }
 
 async fn attachment(
@@ -91,7 +96,11 @@ async fn attachment(
         CHECKED
     };
     let tag = format!("\"{digest}\"");
-    let mut answer = served(&file.attachment.media_type, Some(&file.attachment.name));
+    let mut answer = served(
+        &file.attachment.media_type,
+        Some(&file.attachment.name),
+        params.download,
+    );
     answer.push((header::CACHE_CONTROL, HeaderValue::from_static(cache)));
     if let Ok(value) = HeaderValue::from_str(&tag) {
         answer.push((header::ETAG, value));
@@ -116,7 +125,14 @@ async fn attachment(
 /// and only the cache and digest values this module itself sends are kept.
 pub(crate) fn relay(from: &reqwest::header::HeaderMap, body: Vec<u8>) -> Response {
     let text = |name: HeaderName| from.get(name).and_then(|value| value.to_str().ok());
-    let mut answer = served(text(header::CONTENT_TYPE).unwrap_or_default(), None);
+    // A peer that chose a download keeps it one; the other way is never taken.
+    let download =
+        text(header::CONTENT_DISPOSITION).is_some_and(|value| value.starts_with("attachment"));
+    let mut answer = served(
+        text(header::CONTENT_TYPE).unwrap_or_default(),
+        None,
+        download,
+    );
     let cache = if text(header::CACHE_CONTROL) == Some(KEPT) {
         KEPT
     } else {
@@ -164,10 +180,11 @@ fn with_headers(
 /// The type, disposition and safety headers for a file of `media_type`.
 /// A file that is not shown inline is a download named for `name`, and is
 /// sandboxed should a browser open it anyway.
-fn served(media_type: &str, name: Option<&str>) -> Vec<(HeaderName, HeaderValue)> {
+fn served(media_type: &str, name: Option<&str>, download: bool) -> Vec<(HeaderName, HeaderValue)> {
     let media_type = media_type.trim().to_ascii_lowercase();
-    let inline = INLINE.contains(&media_type.as_str());
-    let kind = if inline || plain_type(&media_type) {
+    let picture = INLINE.contains(&media_type.as_str());
+    let inline = picture && !download;
+    let kind = if picture || plain_type(&media_type) {
         media_type.as_str()
     } else {
         "application/octet-stream"

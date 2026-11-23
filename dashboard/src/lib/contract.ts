@@ -768,6 +768,13 @@ export interface components {
              *     be kept; when it does not, the attachment changed and is refused.
              */
             digest?: string | null;
+            /**
+             * @description Serve even a picture as a download named for the file. A page's
+             *     `download` attribute alone is not honoured by every embedded webview,
+             *     such as the desktop app's; this header is.
+             * @default false
+             */
+            download: boolean;
             /** @description The message's ID. */
             message: string;
             /** @description The node the chat page was read with. */
@@ -3101,6 +3108,12 @@ export interface operations {
                  *     be kept; when it does not, the attachment changed and is refused.
                  */
                 digest?: string;
+                /**
+                 * @description Serve even a picture as a download named for the file. A page's
+                 *     `download` attribute alone is not honoured by every embedded webview,
+                 *     such as the desktop app's; this header is.
+                 */
+                download?: boolean;
                 /** @description The message's ID. */
                 message: string;
                 /** @description The node the chat page was read with. */
