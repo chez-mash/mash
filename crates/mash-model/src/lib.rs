@@ -8,6 +8,7 @@ pub mod attachments;
 pub mod database_error;
 pub mod diagnostics;
 mod error;
+pub mod file_lock;
 pub mod message_context;
 pub mod platform;
 pub mod progress;

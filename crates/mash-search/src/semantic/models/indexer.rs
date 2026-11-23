@@ -225,8 +225,9 @@ mod tests {
         let collector = std::fs::File::create(&path).unwrap();
         scope_with_idle_timeout(
             async {
-                let reader = std::fs::File::open(&path).unwrap();
-                reader.lock_shared().unwrap();
+                let reader =
+                    mash_model::file_lock::FileLock::shared(std::fs::File::open(&path).unwrap())
+                        .unwrap();
                 let mut retained = pool();
                 retained.assets_lease = Some(reader);
                 drop(LoadedIndexer::new(retained, key(), current()));
@@ -325,8 +326,9 @@ mod tests {
         let path = directory.path().join("asset-lease");
         let collector = std::fs::File::create(&path).unwrap();
         scope(async {
-            let reader = std::fs::File::open(&path).unwrap();
-            reader.lock_shared().unwrap();
+            let reader =
+                mash_model::file_lock::FileLock::shared(std::fs::File::open(&path).unwrap())
+                    .unwrap();
             let mut retained = pool();
             retained.assets_lease = Some(reader);
             drop(LoadedIndexer::new(retained, key(), current()));

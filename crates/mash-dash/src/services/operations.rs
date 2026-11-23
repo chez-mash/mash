@@ -140,8 +140,10 @@ pub(super) async fn execute(
                 .write(true)
                 .open(directory.join(format!("{id}.lock")))
                 .map_err(|_| "Cannot open service control lock")?;
-            lock.try_lock()
-                .map_err(|_| "Another operation is running for this service")?;
+            let lock = mash_model::file_lock::FileLock::try_exclusive(lock)
+                .ok()
+                .flatten()
+                .ok_or("Another operation is running for this service")?;
             // The second read closes the race between checking and locking.
             if let Some(operation) = prior(&directory, &request)? {
                 return Ok((None, Some(operation)));

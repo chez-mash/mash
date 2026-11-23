@@ -1,6 +1,7 @@
 //! Isolated SDK caches, atomic activation, and leases for lazy model readers.
 use super::assets::{self, InstallMarker};
 use crate::AppError;
+use mash_model::file_lock::FileLock;
 use std::fs;
 use std::path::{Path, PathBuf};
 mod durability;
@@ -12,7 +13,7 @@ pub(super) const LEASE_NAME: &str = ".mash-use.lock";
 pub(super) struct SelectedAssets {
     pub(super) marker: InstallMarker,
     pub(super) root: PathBuf,
-    pub(super) lease: Option<fs::File>,
+    pub(super) lease: Option<FileLock>,
 }
 
 pub(super) fn select(root: &Path) -> Result<SelectedAssets, AppError> {
@@ -36,10 +37,9 @@ pub(super) fn select(root: &Path) -> Result<SelectedAssets, AppError> {
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
                 Err(error) => return Err(AppError::io(error)),
             };
-            match file.try_lock_shared() {
-                Ok(()) if asset_root.is_dir() => Some(file),
-                Ok(()) | Err(fs::TryLockError::WouldBlock) => continue,
-                Err(fs::TryLockError::Error(error)) => return Err(AppError::io(error)),
+            match FileLock::try_shared(file).map_err(AppError::io)? {
+                Some(lease) if asset_root.is_dir() => Some(lease),
+                Some(_) | None => continue,
             }
         } else {
             // The original root is never changed by staged installers or GC.
@@ -209,10 +209,9 @@ fn cleanup(root: &Path) -> Result<(), AppError> {
             }
             Err(error) => return Err(AppError::io(error)),
         };
-        match file.try_lock() {
-            Ok(()) => fs::remove_dir_all(entry.path()).map_err(AppError::io)?,
-            Err(fs::TryLockError::WouldBlock) => (),
-            Err(fs::TryLockError::Error(error)) => return Err(AppError::io(error)),
+        // Hold the lock while removing, so no reader leases a half-removed stage.
+        if let Some(_lock) = FileLock::try_exclusive(file).map_err(AppError::io)? {
+            fs::remove_dir_all(entry.path()).map_err(AppError::io)?;
         }
     }
     Ok(())

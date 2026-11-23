@@ -19,11 +19,11 @@ use fastembed::{
     InitOptionsUserDefined, QuantizationMode, TextEmbedding, UserDefinedEmbeddingModel,
 };
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+use mash_model::file_lock::FileLock;
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use ort::ep;
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use std::collections::HashMap;
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-use std::fs;
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use std::path::{Path, PathBuf};
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
@@ -37,7 +37,7 @@ pub(super) struct CoreMlEmbeddingPool {
 pub(super) struct CoreMlSession {
     // Drop the SDK session before releasing its cache namespace lease.
     pub(super) model: TextEmbedding,
-    _cache_lease: fs::File,
+    _cache_lease: FileLock,
 }
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]

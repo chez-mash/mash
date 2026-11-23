@@ -233,7 +233,13 @@ pub fn read(inventory: &Inventory, id: &str) -> Result<Job, String> {
     let lock =
         File::open(directory.join("worker.lock")).map_err(|_| "cannot inspect fleet worker")?;
     match lock.try_lock() {
-        Ok(()) => job.outcome = Outcome::Unknown,
+        Ok(()) => {
+            // Release the probe explicitly: a child process started by another
+            // thread may still hold a copy of this descriptor, keeping a
+            // merely closed `flock` lock held (see `mash_model::file_lock`).
+            let _ = lock.unlock();
+            job.outcome = Outcome::Unknown;
+        }
         Err(std::fs::TryLockError::WouldBlock) => {}
         Err(_) => return Err("cannot inspect fleet worker lock".into()),
     }
@@ -390,6 +396,8 @@ impl Pending {
         };
         self.job.completed_at = Some(now());
         persist(&self.directory.join("result.json"), &self.job)?;
+        // Unlock rather than only close; see the probe in `read`.
+        let _ = self.lock.unlock();
         drop(self.lock);
         Ok(self.job)
     }

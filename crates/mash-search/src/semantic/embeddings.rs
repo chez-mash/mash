@@ -16,7 +16,7 @@ pub(super) mod cpu;
 
 pub struct EmbeddingPool {
     pub(super) backend: EmbeddingPoolBackend,
-    pub(super) assets_lease: Option<std::fs::File>,
+    pub(super) assets_lease: Option<mash_model::file_lock::FileLock>,
     /// Why the CPU is embedding although the GPU was asked for.
     pub(super) fallback: Option<String>,
 }

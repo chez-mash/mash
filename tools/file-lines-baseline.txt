@@ -7,7 +7,7 @@
 711 app/core/installation/clients.rs
 506 app/core/installation/plugin.rs
 605 app/core/output/text.rs
-706 app/core/qdrant.rs
+701 app/core/qdrant.rs
 648 app/core/search.rs
 604 app/core/setup.rs
 572 app/core/uninstall.rs
@@ -31,7 +31,7 @@
 642 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
-764 crates/mash-sync/src/shared/publication.rs
+761 crates/mash-sync/src/shared/publication.rs
 653 crates/mash-sync/src/shared/server/store.rs
 519 crates/mash-sync/src/shared/server/store/sync.rs
 793 crates/mash-sync/src/shared/silver_store/apply.rs

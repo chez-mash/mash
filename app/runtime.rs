@@ -1,6 +1,7 @@
 //! Live-process evidence and admission checks for long-lived local runtimes.
 //! Replacing an executable prevents new work; already admitted work may finish.
 use crate::{AppError, core::Paths};
+use mash_model::file_lock::{self, FileLock};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -157,7 +158,7 @@ pub struct Lease {
     // An OS-held lock proves liveness without guessing from a reusable PID.
     // It is a sibling of the record because Windows locks block reading a
     // file: the record itself stays unlocked so any observer can read it.
-    _lock: tempfile::NamedTempFile,
+    _lock: FileLock<tempfile::NamedTempFile>,
     record: Record,
 }
 
@@ -209,10 +210,11 @@ impl Lease {
             .suffix(".lock")
             .tempfile_in(directory)
             .map_err(|_| AppError::configuration("cannot register Mash runtime"))?;
-        lock.as_file()
-            .try_lock()
-            .map_err(|_| AppError::configuration("cannot lock Mash runtime record"))?;
-        let path = lock.path().with_extension("json");
+        let lock = FileLock::try_exclusive(lock)
+            .ok()
+            .flatten()
+            .ok_or_else(|| AppError::configuration("cannot lock Mash runtime record"))?;
+        let path = lock.file().path().with_extension("json");
         let bytes = serde_json::to_vec(&record)
             .map_err(|_| AppError::internal("serialize Mash runtime record"))?;
         let mut file = std::fs::File::create_new(&path)
@@ -417,10 +419,8 @@ fn read_live(path: &Path) -> Result<Option<Record>, ()> {
         }
         Err(_) => return Err(()),
     };
-    match lock.try_lock() {
-        Ok(()) => return Ok(None), // Abandoned record, not a live process.
-        Err(std::fs::TryLockError::WouldBlock) => (),
-        Err(std::fs::TryLockError::Error(_)) => return Err(()),
+    if !file_lock::held(&lock).map_err(|_| ())? {
+        return Ok(None); // Abandoned record, not a live process.
     }
     let mut bytes = Vec::new();
     Read::by_ref(&mut file)

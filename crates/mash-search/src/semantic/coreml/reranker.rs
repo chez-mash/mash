@@ -6,9 +6,9 @@ use crate::AppError;
 use crate::semantic::models::{read_tokenizer_files, snapshot};
 use crate::semantic::{COREML_CACHE_DIRECTORY, RERANKER_MODEL, RERANKER_REPOSITORY};
 use fastembed::{RerankInitOptionsUserDefined, TextRerank, UserDefinedRerankingModel};
+use mash_model::file_lock::FileLock;
 use std::{
     collections::HashMap,
-    fs,
     path::{Path, PathBuf},
 };
 
@@ -29,7 +29,7 @@ fn bucket(tokens: usize) -> usize {
 struct Session {
     model: TextRerank,
     // Keep compiled artifacts leased until the SDK session has been dropped.
-    _lease: fs::File,
+    _lease: FileLock,
 }
 
 pub(crate) struct Pool {

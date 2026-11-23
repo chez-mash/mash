@@ -4,6 +4,7 @@
 //! to 127.0.0.1 on the configured ports. Rerunning repairs or upgrades it
 //! without touching its storage; `mash qdrant uninstall` removes it.
 use crate::AppError;
+use mash_model::file_lock::FileLock;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -629,7 +630,7 @@ fn read_text(path: &Path) -> Result<Option<String>, AppError> {
 }
 
 /// One installer at a time; a second one stops instead of racing the first.
-fn lock(root: &Path) -> Result<std::fs::File, AppError> {
+fn lock(root: &Path) -> Result<FileLock, AppError> {
     create_private_directory(root)?;
     let file = std::fs::OpenOptions::new()
         .create(true)
@@ -637,16 +638,10 @@ fn lock(root: &Path) -> Result<std::fs::File, AppError> {
         .write(true)
         .open(root.join(LOCK))
         .map_err(AppError::io)?;
-    match file.try_lock() {
-        Ok(()) => Ok(file),
-        Err(std::fs::TryLockError::WouldBlock) => Err(AppError::new(
-            6,
-            crate::ErrorKind::Conflict,
-            "another `mash qdrant` command is running; retry after it finishes",
-            true,
-        )),
-        Err(std::fs::TryLockError::Error(error)) => Err(AppError::io(error)),
-    }
+    let busy = "another `mash qdrant` command is running; retry after it finishes";
+    FileLock::try_exclusive(file)
+        .map_err(AppError::io)?
+        .ok_or_else(|| AppError::new(6, crate::ErrorKind::Conflict, busy, true))
 }
 
 /// A download interrupted by a killed process leaves its staging folder;

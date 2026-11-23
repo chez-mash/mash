@@ -9,10 +9,11 @@ use super::{
 };
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 use crate::semantic::embeddings::EmbeddingGroup;
+use mash_model::file_lock::FileLock;
 use std::fs;
 use std::path::Path;
 
-fn installation_lock(root: &Path) -> Result<fs::File, AppError> {
+fn installation_lock(root: &Path) -> Result<FileLock, AppError> {
     fs::create_dir_all(root).map_err(AppError::io)?;
     let mut options = fs::OpenOptions::new();
     options.create(true).truncate(false).read(true).write(true);
@@ -20,11 +21,9 @@ fn installation_lock(root: &Path) -> Result<fs::File, AppError> {
     let lock = options
         .open(root.join(assets::INSTALL_LOCK_NAME))
         .map_err(AppError::io)?;
-    match lock.try_lock() {
-        Ok(()) => Ok(lock),
-        Err(fs::TryLockError::WouldBlock) => Err(AppError::model_busy()),
-        Err(fs::TryLockError::Error(error)) => Err(AppError::io(error)),
-    }
+    FileLock::try_exclusive(lock)
+        .map_err(AppError::io)?
+        .ok_or_else(AppError::model_busy)
 }
 
 impl Models {

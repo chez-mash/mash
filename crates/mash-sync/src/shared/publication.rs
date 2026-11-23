@@ -3,6 +3,7 @@ use super::client::Endpoint;
 use super::protocol::{self, Event};
 use super::{Publication, PublicationState};
 use crate::{AppError, config::SharedConfig, storage::Storage};
+use mash_model::file_lock::FileLock;
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -358,7 +359,7 @@ pub(super) fn publish_lock_path(database: &Path, target: &str) -> PathBuf {
     PathBuf::from(lock)
 }
 
-fn try_publish_lock(path: &Path) -> Result<Option<std::fs::File>, AppError> {
+fn try_publish_lock(path: &Path) -> Result<Option<FileLock>, AppError> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(AppError::io)?;
     }
@@ -368,11 +369,7 @@ fn try_publish_lock(path: &Path) -> Result<Option<std::fs::File>, AppError> {
         .write(true)
         .open(path)
         .map_err(AppError::io)?;
-    match file.try_lock() {
-        Ok(()) => Ok(Some(file)),
-        Err(std::fs::TryLockError::WouldBlock) => Ok(None),
-        Err(std::fs::TryLockError::Error(error)) => Err(AppError::io(error)),
-    }
+    FileLock::try_exclusive(file).map_err(AppError::io)
 }
 
 /// Acquire the publisher lock, waiting up to `wait` for a live owner to finish.
@@ -380,7 +377,7 @@ async fn acquire_publish_lock(
     database: &Path,
     target: &str,
     wait: Duration,
-) -> Result<Option<std::fs::File>, AppError> {
+) -> Result<Option<FileLock>, AppError> {
     let path = publish_lock_path(database, target);
     let deadline = tokio::time::Instant::now() + wait;
     loop {

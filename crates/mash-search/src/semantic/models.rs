@@ -8,6 +8,7 @@ use fastembed::{
     InitOptionsUserDefined, RerankInitOptionsUserDefined, TextEmbedding, TextRerank,
     UserDefinedEmbeddingModel, UserDefinedRerankingModel,
 };
+use mash_model::file_lock::FileLock;
 use serde::Serialize;
 use std::fs;
 use std::ops::{Deref, DerefMut};
@@ -44,7 +45,7 @@ pub struct Backend {
     // a cached backend is idle.
     remote_reranker: RemoteReranker,
     // Retained with cached models and lazy Core ML sessions until their drop.
-    assets_lease: Option<fs::File>,
+    assets_lease: Option<FileLock>,
 }
 
 #[derive(PartialEq, Eq)]

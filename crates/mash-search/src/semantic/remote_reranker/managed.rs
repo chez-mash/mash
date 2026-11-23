@@ -8,6 +8,7 @@ use super::Client;
 use super::worker::{self, Scorer};
 use crate::AppError;
 use crate::observability::retrieval::RerankerFallback;
+use mash_model::file_lock::{self, FileLock};
 use serde::{Deserialize, Serialize};
 use std::ffi::OsString;
 use std::fs;
@@ -81,7 +82,7 @@ fn lock_file(root: &Path) -> Option<fs::File> {
 
 /// A worker holds the lock from before it loads a model until it exits.
 fn running(root: &Path) -> bool {
-    lock_file(root).is_some_and(|file| matches!(file.try_lock(), Err(fs::TryLockError::WouldBlock)))
+    lock_file(root).is_some_and(|file| matches!(file_lock::held(&file), Ok(true)))
 }
 
 fn read_state(root: &Path) -> Option<State> {
@@ -188,10 +189,10 @@ pub fn entry(args: impl IntoIterator<Item = OsString>) -> Option<i32> {
 
 async fn run(root: &Path) -> Result<(), AppError> {
     let lock = lock_file(root).ok_or_else(|| AppError::model("cannot open the worker lock"))?;
-    if lock.try_lock().is_err() {
+    let Ok(Some(lock)) = FileLock::try_exclusive(lock) else {
         // Another worker got here first.
         return Ok(());
-    }
+    };
     let _ = fs::remove_file(root.join(STATE));
     let models = root.to_path_buf();
     let engine = crate::blocking(move || worker::Engine::load(&models)).await;

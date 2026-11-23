@@ -6,6 +6,7 @@ use super::protocol::{ChatRecord, MessageRecord, Tombstone};
 use super::server::Identity;
 use super::silver_revision::State;
 use crate::{AppError, provider::Provider, storage::Counts};
+use mash_model::file_lock::FileLock;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -69,12 +70,12 @@ pub struct SilverStore {
     root: PathBuf,
     groups: BTreeMap<String, Vec<String>>,
     /// None only for `unavailable`, whose every connection fails.
-    owner: Option<std::sync::Arc<std::fs::File>>,
+    owner: Option<std::sync::Arc<FileLock>>,
 }
 
 /// Exclusive ownership of a silver directory for this process's lifetime:
 /// per-node publication locks and views synchronization are in-process only.
-fn own(root: &Path) -> Result<std::fs::File, AppError> {
+fn own(root: &Path) -> Result<FileLock, AppError> {
     std::fs::create_dir_all(root).map_err(AppError::io)?;
     let lock = std::fs::OpenOptions::new()
         .create(true)
@@ -82,13 +83,11 @@ fn own(root: &Path) -> Result<std::fs::File, AppError> {
         .write(true)
         .open(root.join("serve.lock"))
         .map_err(AppError::io)?;
-    match lock.try_lock() {
-        Ok(()) => Ok(lock),
-        Err(std::fs::TryLockError::WouldBlock) => Err(AppError::configuration(
-            "another mash-server is already using this silver_dir",
-        )),
-        Err(std::fs::TryLockError::Error(error)) => Err(AppError::io(error)),
-    }
+    FileLock::try_exclusive(lock)
+        .map_err(AppError::io)?
+        .ok_or_else(|| {
+            AppError::configuration("another mash-server is already using this silver_dir")
+        })
 }
 
 fn database(error: rusqlite::Error) -> AppError {

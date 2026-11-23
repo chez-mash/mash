@@ -1,6 +1,7 @@
 //! Cross-process admission for a complete local silver-to-views mutation.
 //! SQLite transactions alone do not cover awaited inference and gold writes.
 use crate::AppError;
+use mash_model::file_lock::{self, FileLock};
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -9,7 +10,7 @@ use std::{
 
 #[derive(Debug)]
 pub struct Owner {
-    _file: File,
+    _file: FileLock,
     database: PathBuf,
 }
 
@@ -91,18 +92,17 @@ pub fn acquire(database: &Path) -> Result<Arc<Owner>, AppError> {
         .write(true)
         .open(Path::new(&path))
         .map_err(AppError::io)?;
-    match file.try_lock() {
-        Ok(()) => Ok(Arc::new(Owner {
+    match FileLock::try_exclusive(file).map_err(AppError::io)? {
+        Some(file) => Ok(Arc::new(Owner {
             _file: file,
             database,
         })),
-        Err(std::fs::TryLockError::WouldBlock) => Err(AppError::new(
+        None => Err(AppError::new(
             6,
             crate::ErrorKind::IndexBusy,
             "another Mash operation is updating this local index; retry after it finishes",
             true,
         )),
-        Err(std::fs::TryLockError::Error(error)) => Err(AppError::io(error)),
     }
 }
 
@@ -173,11 +173,7 @@ pub fn held(database: &Path) -> Result<bool, AppError> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
         Err(error) => return Err(AppError::io(error)),
     };
-    match file.try_lock_shared() {
-        Ok(()) => Ok(false),
-        Err(std::fs::TryLockError::WouldBlock) => Ok(true),
-        Err(std::fs::TryLockError::Error(error)) => Err(AppError::io(error)),
-    }
+    file_lock::held_exclusive(&file).map_err(AppError::io)
 }
 
 #[cfg(test)]

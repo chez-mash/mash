@@ -1,5 +1,6 @@
 //! Serialize SDK construction and retire only unleased cache generations.
 use crate::AppError;
+use mash_model::file_lock::FileLock;
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -72,10 +73,8 @@ fn selected(root: &Path) -> Result<PathBuf, AppError> {
     Ok(directory)
 }
 
-fn lease(directory: &Path) -> Result<File, AppError> {
-    let file = lock_file(&directory.join(LEASE))?;
-    file.lock_shared().map_err(AppError::io)?;
-    Ok(file)
+fn lease(directory: &Path) -> Result<FileLock, AppError> {
+    FileLock::shared(lock_file(&directory.join(LEASE))?).map_err(AppError::io)
 }
 
 fn publish(root: &Path, directory: &Path) -> Result<(), AppError> {
@@ -124,16 +123,16 @@ fn collect(root: &Path, active: &Path) -> Result<(), AppError> {
             Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => continue,
             Err(error) => return Err(AppError::io(error)),
         };
-        match file.try_lock() {
-            Ok(()) => match fs::remove_dir_all(entry.path()) {
-                Ok(()) => (),
-                // An externally read-only retired cache cannot prevent a
-                // healthy replacement from loading. Keep it for later cleanup.
-                Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => (),
-                Err(error) => return Err(AppError::io(error)),
-            },
-            Err(fs::TryLockError::WouldBlock) => (),
-            Err(fs::TryLockError::Error(error)) => return Err(AppError::io(error)),
+        // Keep the lock while removing, so no reader leases a half-removed cache.
+        let Some(_lock) = FileLock::try_exclusive(file).map_err(AppError::io)? else {
+            continue;
+        };
+        match fs::remove_dir_all(entry.path()) {
+            Ok(()) => (),
+            // An externally read-only retired cache cannot prevent a
+            // healthy replacement from loading. Keep it for later cleanup.
+            Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => (),
+            Err(error) => return Err(AppError::io(error)),
         }
     }
     Ok(())
@@ -142,10 +141,10 @@ fn collect(root: &Path, active: &Path) -> Result<(), AppError> {
 pub(super) fn load<T>(
     root: &Path,
     mut build: impl FnMut(&Path) -> Result<T, BuildError>,
-) -> Result<(T, File), AppError> {
+) -> Result<(T, FileLock), AppError> {
     fs::create_dir_all(root).map_err(AppError::io)?;
-    let guard = lock_file(&root.join(".compile.lock"))?;
-    guard.lock().map_err(AppError::io)?;
+    let _guard =
+        FileLock::exclusive(lock_file(&root.join(".compile.lock"))?).map_err(AppError::io)?;
     let directory = selected(root)?;
     collect(root, &directory)?;
     let reader = lease(&directory)?;

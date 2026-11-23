@@ -9,6 +9,7 @@ use tokio::sync::{mpsc, watch};
 use tokio::time::Instant;
 
 use crate::AppError;
+use mash_model::file_lock::{self, FileLock};
 
 const RETRY: Duration = Duration::from_secs(30);
 const RECONCILE: Duration = Duration::from_secs(300);
@@ -29,11 +30,7 @@ pub fn active(database: &Path) -> std::io::Result<bool> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
         Err(error) => return Err(error),
     };
-    match file.try_lock_shared() {
-        Ok(()) => Ok(false), // Dropping the file releases our temporary probe.
-        Err(std::fs::TryLockError::WouldBlock) => Ok(true),
-        Err(std::fs::TryLockError::Error(error)) => Err(error),
-    }
+    file_lock::held_exclusive(&file)
 }
 
 /// A watcher service that `mash-fleet watch start` installed for this user,
@@ -183,21 +180,15 @@ fn lock_path(request: &Request) -> Result<PathBuf, AppError> {
     Ok(lock.into())
 }
 
-fn try_lead(path: &Path) -> Result<Option<std::fs::File>, AppError> {
+fn try_lead(path: &Path) -> Result<Option<FileLock>, AppError> {
     let file = std::fs::OpenOptions::new()
         .create(true)
         .truncate(false)
         .write(true)
         .open(path)
         .map_err(|_| AppError::configuration(format!("cannot open {}", path.display())))?;
-    match file.try_lock() {
-        Ok(()) => Ok(Some(file)),
-        Err(std::fs::TryLockError::WouldBlock) => Ok(None),
-        Err(std::fs::TryLockError::Error(_)) => Err(AppError::internal(format!(
-            "cannot lock {}",
-            path.display()
-        ))),
-    }
+    FileLock::try_exclusive(file)
+        .map_err(|_| AppError::internal(format!("cannot lock {}", path.display())))
 }
 
 pub(crate) struct Targets {
