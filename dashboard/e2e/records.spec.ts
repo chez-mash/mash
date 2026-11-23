@@ -281,7 +281,7 @@ test("unavailable or forgotten records show an error instead of a cached conclus
     page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
   ).toBeVisible();
   forgotten = true;
-  await page.getByRole("button", { name: "check for updates" }).click();
+  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("alert")).toContainText("forgotten");
   await expect(
     page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
@@ -321,7 +321,7 @@ test("the memory list can be refreshed on request without reloading", async ({ p
   await page.goto("/#/records?");
   await expect(records(page).getByRole("link", { name: "First statement" })).toBeVisible();
   statement = "Second statement";
-  await page.getByRole("button", { name: /refresh|check for updates/i }).click();
+  await page.getByRole("main").getByRole("button", { name: "Check for updates" }).click();
   await expect(records(page).getByRole("link", { name: "Second statement" })).toBeVisible();
   expect(documents).toBe(1);
 });

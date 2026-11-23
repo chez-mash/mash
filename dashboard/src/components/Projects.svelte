@@ -7,13 +7,13 @@ const view: ProjectView = $state({ find: "", agent: "", machine: "", sort: "rece
 
 <script lang="ts">
 import ArrowDownAZ from "@lucide/svelte/icons/arrow-down-a-z";
-import ArrowDownWideNarrow from "@lucide/svelte/icons/arrow-down-wide-narrow";
 import Bot from "@lucide/svelte/icons/bot";
-import Clock from "@lucide/svelte/icons/clock";
+import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import SearchIcon from "@lucide/svelte/icons/search";
+import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { isAgent } from "../lib/api";
@@ -57,9 +57,9 @@ $effect(() => {
   return () => watcher.disconnect();
 });
 const sorts = [
-  { value: "recent", label: "most recent" },
+  { value: "recent", label: "newest" },
   { value: "chats", label: "most chats" },
-  { value: "name", label: "by name" },
+  { value: "name", label: "name" },
 ] as const;
 const now = Date.now();
 </script>
@@ -70,16 +70,16 @@ const now = Date.now();
 {#if projects.length}
   <div class="chips" role="group" aria-label="Project filters">
     <label class="find"><SearchIcon size={15} aria-hidden="true" /><input type="search" aria-label="Find a project" placeholder="find a project" autocomplete="off" bind:value={view.find} /></label>
-    <FilterMenu label={sorts.find((sort) => sort.value === view.sort)?.label ?? "sort"} options={sorts} selected={[view.sort]} choose={(value) => { const sort = sorts.find((sort) => sort.value === value); if (sort) view.sort = sort.value; }}>
-      {#snippet icon()}<ArrowDownWideNarrow size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value === "chats"}<MessagesSquare size={15} aria-hidden="true" />{:else if value === "name"}<ArrowDownAZ size={15} aria-hidden="true" />{:else}<Clock size={15} aria-hidden="true" />{/if}{/snippet}
-    </FilterMenu>
     <FilterMenu label={chosenAgent ? agentInfo[chosenAgent].name : "any agent"} active={!!view.agent} options={[{ value: "", label: "any agent" }, ...agentChoices.map((agent) => ({ value: agent, label: agentInfo[agent].name }))]} selected={[view.agent]} choose={(value) => (view.agent = value)}>
       {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
       {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={view.machine || "any machine"} active={!!view.machine} options={[{ value: "", label: "any machine" }, ...machineChoices.map((machine) => ({ value: machine, label: machine }))]} selected={[view.machine]} choose={(value) => (view.machine = value)}>
       {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+    <FilterMenu label="sort: {sorts.find((sort) => sort.value === view.sort)?.label}" options={sorts} selected={[view.sort]} choose={(value) => { const sort = sorts.find((sort) => sort.value === value); if (sort) view.sort = sort.value; }}>
+      {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value === "chats"}<MessagesSquare size={15} aria-hidden="true" />{:else if value === "name"}<ArrowDownAZ size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     {#if narrowed}<button class="a" type="button" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px" onclick={() => { view.find = ""; view.agent = ""; view.machine = ""; }}>Show all</button>{/if}
   </div>

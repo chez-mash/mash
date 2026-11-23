@@ -317,6 +317,13 @@ input.radio:checked {
 .xcols > .c-side {
   gap: 14px;
 }
+/* In one column the format and the export button come first, so a phone
+ * reaches them without scrolling past every chat. */
+@container (max-width: 759px) {
+  .xcols > .c-side {
+    order: -1;
+  }
+}
 /* A choice drawn as a card: the radio, an icon tile, a name over a line. */
 .picks {
   display: flex;
@@ -662,17 +669,18 @@ a.card.sum:hover {
   min-width: 0;
 }
 
-/* A field with a search icon at its start. */
+/* A field with a search icon at its start, shaped like the filter chips
+ * (.chip) it sits beside. */
 .find {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 0 1 300px;
   min-width: 0;
-  min-height: 38px;
-  padding: 0 11px;
+  min-height: 34px;
+  padding: 0 13px;
   border: var(--border-strong);
-  border-radius: var(--radius-5);
+  border-radius: var(--radius-pill);
   background: var(--surface-field);
   color: var(--text-muted);
 }
@@ -887,13 +895,18 @@ a.lrow:hover {
 .rec-h > .mts {
   gap: 6px 14px;
 }
-.rec-w > .card {
+.rec-w > .card,
+.rec-h > .rec-u {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   font-size: 13.5px;
 }
-.rec-w svg {
+.rec-h > .rec-u {
+  max-width: 860px;
+}
+.rec-w svg,
+.rec-u svg {
   flex: none;
   margin-top: 2px;
 }

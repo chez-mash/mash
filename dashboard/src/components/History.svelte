@@ -1,13 +1,13 @@
 <script lang="ts">
-import Clock from "@lucide/svelte/icons/clock";
+import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import { createQuery } from "@tanstack/svelte-query";
 import { catalogOptions } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import ChatRow from "./ChatRow.svelte";
 import EmptyState from "./EmptyState.svelte";
 
-// Chats opened in this browser session, most recent first. Positions live in
-// the page, so they are gone after a reload.
+// Chats opened since the page was loaded, most recent first. Positions live
+// in the page, so they are gone after a reload.
 const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(
   reading.positions.flatMap(
@@ -19,7 +19,7 @@ const chats = $derived(
 );
 </script>
 
-<div><h1 class="h1">Viewing history</h1><p class="meta" style:margin-top="6px">Chats you opened in this browser session. Each reopens where you left it.</p></div>
+<div><h1 class="h1">Viewing history</h1><p class="meta" style:margin-top="6px">Chats you opened since this page was loaded. Each reopens where you left it.</p></div>
 <section>
   {#if chats.length}
     <div class="card pad0 list">
@@ -28,7 +28,7 @@ const chats = $derived(
   {:else}
     <EmptyState card>
       Nothing yet. Open a chat and it will be listed here until you reload the page.
-      {#snippet action()}<a class="btn" href="#/search"><Clock size={15} aria-hidden="true" />recent chats</a>{/snippet}
+      {#snippet action()}<a class="btn" href="#/search"><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>{/snippet}
     </EmptyState>
   {/if}
 </section>

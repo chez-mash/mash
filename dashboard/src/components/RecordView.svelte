@@ -2,16 +2,17 @@
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronsUp from "@lucide/svelte/icons/chevrons-up";
+import CircleDashed from "@lucide/svelte/icons/circle-dashed";
 import Clock from "@lucide/svelte/icons/clock";
 import FileText from "@lucide/svelte/icons/file-text";
 import Laptop from "@lucide/svelte/icons/laptop";
 import Lightbulb from "@lucide/svelte/icons/lightbulb";
 import Link2 from "@lucide/svelte/icons/link-2";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
 import { agentNamed } from "../lib/agents";
-import { stableRead } from "../lib/queries";
+import { agoLabel } from "../lib/browse";
+import { catalogOptions, stableRead } from "../lib/queries";
 import { kindIcons, scopeIcons } from "../lib/recordIcons";
 import {
   type Evidence,
@@ -20,16 +21,20 @@ import {
   label,
   type Revision,
   scopeLabel,
+  scopeName,
   standing,
   statePill,
   timingLabel,
 } from "../lib/records";
 import { chatHref, recordHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 import LoadError from "./LoadError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 let { id, node, back }: { id: string; node: string; back: string } = $props();
+// The chat list names this machine, as the memory list does.
+const catalogue = createQuery(() => catalogOptions);
 let before = $state<number | null>(null);
 let linkOffset = $state(0);
 const latest = createQuery(() => ({
@@ -58,6 +63,7 @@ function date(value: number | null): string {
 }
 </script>
 
+{#snippet ago(value: number)}<time datetime={new Date(value).toISOString()} title={date(value)}>{agoLabel(value, Date.now())}</time>{/snippet}
 {#snippet sources(evidence: readonly Evidence[], node: string, owner: string)}
   {#each evidence as source, index (index)}
     <figure class="card butter quote">
@@ -99,11 +105,16 @@ function date(value: number | null): string {
     </p>
     <h1 class="h1">{current.statement}</h1>
     <p class="mts">
-      <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={13} aria-hidden="true" />{scopeLabel(record.scope)}</span>
-      <span class="mt"><Laptop size={13} aria-hidden="true" />{record.node || "this machine"}</span>
+      <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={13} aria-hidden="true" />{scopeName(record.scope)}</span>
+      <span class="mt"><Laptop size={13} aria-hidden="true" />{record.node || catalogue.data?.localNode || "this machine"}</span>
       <span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}recorded by {current.recordedBy}</span>
-      <span class="mt">{date(current.recordedAt)}</span>
+      <span class="mt">{@render ago(current.recordedAt)}</span>
     </p>
+    {#if settled === "unconfirmed"}
+      <!-- The dashboard only reads memory: there is no way to confirm a record
+           from here. An agent confirms or corrects it in a review. -->
+      <p class="card tight cream rec-u" role="note"><CircleDashed size={16} aria-hidden="true" /><span>To confirm this, ask your agent to review your memory (<code>/mash:review</code> in Claude Code); opening it here leaves it unconfirmed. <a class="a" href="https://getmash.io/records/#correct-or-replace" target="_blank" rel="noreferrer">How review works</a></span></p>
+    {/if}
     {#if timingLabel(current, Date.now()) || record.conflicted || !current.evidenceCurrent}
       <div class="g3 rec-w">
         {#if timingLabel(current, Date.now())}<p class="card tight warn" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>{timingLabel(current, Date.now())}. Check the effective and expiry dates before relying on this.</span></p>{/if}
@@ -118,7 +129,7 @@ function date(value: number | null): string {
     {@render sources(current.evidence, record.node, record.owner)}
   </section>
   <section class="sec">
-    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />revision history</h2><button class="btn ghost sm" type="button" onclick={refresh} disabled={latest.isFetching}><RefreshCw size={14} aria-hidden="true" />check for updates</button></div>
+    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />revision history</h2><CheckUpdates checking={latest.isFetching} check={refresh} /></div>
     {#if page.isFetching}<p class="meta" role="status">Loading history…</p>{/if}
     {#if page.data}
       {#if !page.data.revisions.length}<p class="meta">No revisions on this page.</p>{/if}
@@ -126,7 +137,7 @@ function date(value: number | null): string {
         <div class="card pad0 list">
           {#each page.data.revisions as revision (revision.revision)}
             <div class="rev">
-              <div class="rev-t"><b>Revision {revision.revision}{revision.revision === record.currentRevision ? " (current)" : ""}: {label(revision.details.state).toLowerCase()}, {standing(revision)}</b><span class="meta">{date(revision.recordedAt)} / {revision.recordedBy}{revision.effectiveAt === null ? "" : ` / applies from ${date(revision.effectiveAt)}`}</span></div>
+              <div class="rev-t"><b>Revision {revision.revision}{revision.revision === record.currentRevision ? " (current)" : ""}: {label(revision.details.state).toLowerCase()}, {standing(revision)}</b><span class="meta">{@render ago(revision.recordedAt)} / {revision.recordedBy}{revision.effectiveAt === null ? "" : ` / applies from ${date(revision.effectiveAt)}`}</span></div>
               {#if revision.revision !== record.currentRevision}
                 <p class="rev-s">{revision.statement}</p>
                 {#if revision.rationale}<p class="meta" style:white-space="pre-wrap" style:overflow-wrap="anywhere">{revision.rationale}</p>{/if}
@@ -169,5 +180,5 @@ function date(value: number | null): string {
       {/if}
     </section>
   {/if}
-  <p class="meta mono" style:overflow-wrap="anywhere">record {record.id} / owner {record.owner} / reading a record does not confirm it</p>
+  <p class="meta mono" style:overflow-wrap="anywhere">record {record.id} / owner {record.owner}</p>
 {/if}

@@ -3,9 +3,12 @@
 import type { Answer, ReadPath } from "../lib/routes";
 import type { Transport } from "../lib/transport";
 import { chats, type DemoChat, type DemoMessage, localMachine } from "./history";
+import { record, recordList } from "./memory";
 import { records } from "./records";
-import { messageMatcher, searchSnippet } from "./search";
+import { messageMatcher, searchSnippet, terms } from "./search";
 import tools from "./tools.json";
+
+export { terms };
 
 const DAY = 86_400_000;
 const MINUTE = 60_000;
@@ -70,24 +73,6 @@ function messages(chat: DemoChat, now: number) {
   return chat.messages.map((entry, position) => message(chat, entry, position, now));
 }
 
-const IGNORED = new Set([
-  "the", "and", "for", "did", "does", "was", "were", "what", "when", "where", "which", "who",
-  "why", "how", "our", "about", "with", "that", "this", "have", "has", "had", "are", "you",
-  "your", "from", "into", "last", "week", "should", "can", "could",
-]); // biome-ignore format: a word list reads best packed.
-
-/** The words of a question worth matching, without common endings. */
-export function terms(query: string): string[] {
-  return [
-    ...new Set(
-      query
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter((word) => word.length > 2 && !IGNORED.has(word))
-        .map((word) => word.replace(/(ing|ed|es|s)$/, "")),
-    ),
-  ].filter((word) => word.length > 2);
-}
 function list(params: URLSearchParams, key: string): string[] {
   return (params.get(key) ?? "").split(",").filter(Boolean);
 }
@@ -170,82 +155,6 @@ function view(params: URLSearchParams, now: number): Answer<"/api/view"> | Refus
   const chat = chats.find((candidate) => id.startsWith(`${candidate.id}-`));
   if (!chat) return refuse(404, "That message is not in the demo's history.");
   return { id, messages: messages(chat, now) };
-}
-
-function record(entry: (typeof records)[number], now: number): Answer<"/api/record"> {
-  const chat = chatOf(entry.source.chat);
-  const details =
-    entry.kind === "decision"
-      ? {
-          kind: entry.kind,
-          state: "accepted" as const,
-          alternatives: [...(entry.alternatives ?? [])],
-          consequences: [...(entry.consequences ?? [])],
-        }
-      : entry.kind === "preference"
-        ? { kind: entry.kind, state: "active" as const, conditions: [] }
-        : { kind: entry.kind, state: "current" as const, reported_by: "Sam", valid_until: null };
-  return {
-    id: entry.id,
-    owner: "sam",
-    node_id: chat?.machine ?? localMachine,
-    scope: entry.project ? { kind: "repository", identity: entry.project } : { kind: "personal" },
-    current_revision: 1,
-    conflicted: false,
-    revisions: [
-      {
-        revision: 1,
-        recorded_at: Math.round(now - entry.daysAgo * DAY),
-        evidence_current: true,
-        confirmations: 0,
-        confirmation_history: [],
-        body: {
-          statement: entry.statement,
-          rationale: entry.rationale,
-          recorded_by: entry.recordedBy,
-          effective_at: null,
-          review: entry.review,
-          details,
-        },
-        evidence: [
-          {
-            chat_id: entry.source.chat,
-            message_id: `${entry.source.chat}-${entry.source.message}`,
-            fingerprint: `demo-${entry.id}`,
-            quote: entry.source.quote,
-            purpose: "endorsement",
-            source_role: "user",
-          },
-        ],
-      },
-    ],
-    links: [],
-    next_before_revision: null,
-    next_link_offset: null,
-  };
-}
-function recordList(params: URLSearchParams, now: number): Answer<"/api/records"> {
-  const wanted = terms(params.get("q") ?? "");
-  const kind = params.get("kind");
-  const review = params.get("review");
-  const chat = params.get("chat");
-  const state = params.get("state");
-  const current = ["accepted", "active", "current"];
-  return {
-    records: records
-      .filter(
-        (entry) =>
-          (!kind || entry.kind === kind) &&
-          (!review || entry.review === review) &&
-          (!chat || entry.source.chat === chat) &&
-          (!state || current.includes(state)) &&
-          wanted.every((term) =>
-            `${entry.statement} ${entry.rationale}`.toLowerCase().includes(term),
-          ),
-      )
-      .map((entry) => record(entry, now)),
-    next_offset: null,
-  };
 }
 
 const roots = {
@@ -405,7 +314,9 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/records": recordList,
   "/api/record": (params, now) => {
     const entry = records.find((candidate) => candidate.id === params.get("id"));
-    return entry ? record(entry, now) : refuse(404, "That memory is not in the demo.");
+    return entry
+      ? record(entry, now, params.has("node"))
+      : refuse(404, "That memory is not in the demo.");
   },
   "/api/status": status,
   "/api/console/tools": () => tools,

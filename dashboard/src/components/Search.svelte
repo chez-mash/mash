@@ -2,12 +2,13 @@
 import Bot from "@lucide/svelte/icons/bot";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import CircleHelp from "@lucide/svelte/icons/circle-help";
 import Clock from "@lucide/svelte/icons/clock";
 import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import SearchIcon from "@lucide/svelte/icons/search";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import Sparkles from "@lucide/svelte/icons/sparkles";
@@ -37,6 +38,7 @@ import {
 } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import Highlight from "./Highlight.svelte";
 import MetaChips from "./MetaChips.svelte";
@@ -140,10 +142,10 @@ function toggle(field: "agents" | "machines" | "projects", value: string): void 
 }
 function chipLabel(field: "agents" | "machines" | "projects", noun: string): string {
   const chosen = draft[field];
-  if (chosen.length === 0) return noun;
+  if (chosen.length === 0) return `any ${noun}`;
   if (chosen.length > 1) return `${chosen.length} ${noun}s`;
   const [only] = chosen;
-  if (only === undefined) return noun;
+  if (only === undefined) return `any ${noun}`;
   if (field === "agents") return isAgent(only) ? agentInfo[only].name : only;
   return field === "projects" ? projectLabel(only) : only;
 }
@@ -171,7 +173,7 @@ const rangeLabel = $derived.by(() => {
 });
 </script>
 
-<h1 class="sr-only">{applied.query ? "Search results" : "Chats"}</h1>
+{#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents and machines.</p></div>{/if}
 <div class="hd" style:align-items="flex-start">
 <div class="chips" role="group" aria-label="Filters" style:flex="1 1 480px">
   <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
@@ -230,9 +232,7 @@ const rangeLabel = $derived.by(() => {
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
 {#if applied.query}
-  <button class="btn sm" type="button" disabled={!result.data || result.isFetching} onclick={() => result.refetch({ cancelRefetch: false })} style:margin-top="3px">
-    <RefreshCw size={13} aria-hidden="true" />{result.data && result.isFetching ? "Searching…" : "Search again"}
-  </button>
+  <CheckUpdates checking={!!result.data && result.isFetching} disabled={!result.data || result.isFetching} check={() => result.refetch({ cancelRefetch: false })} />
 {:else if result.data && hits.length}
   <p class="meta" role="status" style:margin-top="8px">{rangeLabel}</p>
 {/if}
@@ -273,10 +273,12 @@ const rangeLabel = $derived.by(() => {
           <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
         {/if}
         {#if applied.query && result.data.first === 0}
-          <a class="btn" href={browseChatsHref}>Browse chats</a>
+          <!-- Two ways on when a search finds nothing: look through the chats
+               themselves, or learn why one might not be indexed. -->
+          <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
+          <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><CircleHelp size={15} aria-hidden="true" />Find a missing chat</a>
         {/if}
       </div>
-      {#if applied.query && result.data.first === 0}<a class="a" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer" style:font-size="12.5px">Find a missing chat</a>{/if}
     </div>
   {:else}
     <section id="reslist">

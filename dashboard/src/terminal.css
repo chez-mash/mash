@@ -2155,7 +2155,8 @@ h1:focus {
     color: var(--text-muted);
     font-size: 22px;
   }
-  .chip {
+  .chip,
+  .find {
     min-height: 36px;
   }
   #applyf {

@@ -9,7 +9,6 @@ import History from "@lucide/svelte/icons/history";
 import House from "@lucide/svelte/icons/house";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import Server from "@lucide/svelte/icons/server";
 import Settings from "@lucide/svelte/icons/settings";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
@@ -26,6 +25,7 @@ import { getRecord, label as kindLabel, kinds } from "../lib/records";
 import { agentHref, machineHref, projectHref, recordsHref, router } from "../lib/route.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
 import AgentMark from "./AgentMark.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 
 let { open, close }: { open: boolean; close: () => void } = $props();
 const catalogue = createQuery(() => catalogOptions);
@@ -278,7 +278,7 @@ function toggle(id: Section): void {
     {/each}
     <div class="status" style:margin-top="auto" style:padding-top="14px">
       {#if catalogue.data}{catalogue.data.localNode} / {chats.length.toLocaleString()} chats{:else if catalogue.error}history unavailable{:else}loading…{/if}
-      <button class="a" type="button" disabled={catalogue.isFetching} onclick={() => catalogue.refetch()} style:display="flex" style:align-items="center" style:gap="6px" style:min-height="32px"><RefreshCw size={14} aria-hidden="true" />{catalogue.isFetching ? "reloading…" : "reload chat list"}</button>
+      <span style:display="flex" style:margin-top="6px"><CheckUpdates checking={catalogue.isFetching} check={() => catalogue.refetch()} /></span>
     </div>
   </nav>
   </div>

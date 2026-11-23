@@ -183,7 +183,7 @@ test("an empty search page can return to the first page and get search help", as
   await expect(page.getByRole("link", { name: "Clear filters" })).toHaveCount(0);
 });
 
-test("Search again checks for newly indexed matches with the applied query and filters", async ({
+test("Check for updates looks for newly indexed matches with the applied query and filters", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -212,7 +212,10 @@ test("Search again checks for newly indexed matches with the applied query and f
   indexed = true;
   await searchBox(page).fill("unsubmitted draft");
   expect(requests).toHaveLength(1);
-  await page.getByRole("button", { name: "Search again", exact: true }).click();
+  await page
+    .getByRole("main")
+    .getByRole("button", { name: "Check for updates", exact: true })
+    .click();
   await expect(page.getByRole("link", { name: /Recently indexed chat/ })).toBeVisible();
   expect(requests).toHaveLength(2);
   expect(requests[1]).toBe(requests[0]);

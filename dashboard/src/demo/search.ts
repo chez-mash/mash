@@ -37,3 +37,22 @@ export function searchSnippet(text: string, matchOffset: number): string {
   const piece = plain.slice(start, start + 220);
   return (start > 0 ? "…" : "") + piece + (start + 220 < plain.length ? "…" : "");
 }
+
+const IGNORED = new Set([
+  "the", "and", "for", "did", "does", "was", "were", "what", "when", "where", "which", "who",
+  "why", "how", "our", "about", "with", "that", "this", "have", "has", "had", "are", "you",
+  "your", "from", "into", "last", "week", "should", "can", "could",
+]); // biome-ignore format: a word list reads best packed.
+
+/** The words of a question worth matching, without common endings. */
+export function terms(query: string): string[] {
+  return [
+    ...new Set(
+      query
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((word) => word.length > 2 && !IGNORED.has(word))
+        .map((word) => word.replace(/(ing|ed|es|s)$/, "")),
+    ),
+  ].filter((word) => word.length > 2);
+}

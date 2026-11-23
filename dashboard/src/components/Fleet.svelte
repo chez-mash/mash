@@ -28,6 +28,7 @@ import {
   serviceRequestId,
   submitFleetJob,
 } from "../lib/services.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -187,7 +188,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
   {job.outcome === "running" ? "started " : ""}{agoLabel(job.requested_at * 1000, now)}{compact ? ` · ${countLabel(job.targets.map((target) => target.id))}` : ""}
 {/snippet}
 {#snippet activity()}
-  <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />{action ? "recent runs" : "activity"}</h2><button class="a" type="button" disabled={history.isFetching} onclick={() => history.refetch()} style:font-size="12.5px">check jobs</button></div>
+  <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />{action ? "recent runs" : "activity"}</h2><CheckUpdates checking={history.isFetching} check={() => history.refetch()} /></div>
   <QueryError title="Couldn’t check fleet jobs" query={history} />
   {#if history.data && !jobs.length}<p class="card tight cream meta">No runs yet.</p>{/if}
   {#if action && jobs.length}

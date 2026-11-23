@@ -15,6 +15,7 @@ import { agentHref, chatHref, machineHref, projectHref, searchHref } from "../li
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
+import EmptyState from "./EmptyState.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -47,17 +48,27 @@ const latest = $derived(
     undefined,
   ),
 );
+// A project exists only through its chats, so one with none is a link to
+// nothing. An agent or machine can be real with no chats yet.
+const unknown = $derived(field === "project" && catalogue.data !== undefined && !group);
 const now = Date.now();
 </script>
 
 {#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label}</a>{/if}
+{#if unknown}
+  <EmptyState card title="Project not found" heading="h1">
+    No indexed chat belongs to <code style:overflow-wrap="anywhere">{value}</code>.
+    {#snippet action()}<a class="btn p" href="#/projects"><Folder size={15} aria-hidden="true" />All projects</a>{/snippet}
+  </EmptyState>
+{:else}
 <div class="dh">
   {@render icon()}
   <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}</p></div>
 </div>
+{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
-{#if catalogue.data && !group}<div class="state-c"><p>No indexed chats here.</p></div>{/if}
+{#if catalogue.data && !group && !unknown}<div class="state-c"><p>No indexed chats here.</p></div>{/if}
 {#if group}
   <nav class="stats" aria-label="Summary">
     <a href={searchHref({ [field]: value })}><span class="eyebrow"><MessagesSquare size={12} aria-hidden="true" />chats</span><b>{chats.length.toLocaleString()}</b></a>

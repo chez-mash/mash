@@ -12,7 +12,6 @@ import MetaChips from "./MetaChips.svelte";
 let {
   chat,
   decisions = 0,
-  icons = true,
   title,
   snippet,
   to,
@@ -20,8 +19,6 @@ let {
   chat: ChatSummary;
   /** Decisions saved from this chat; a butter pill says how many. */
   decisions?: number;
-  /** Whether the agent, machine and project carry small icons. */
-  icons?: boolean;
   /** The title as drawn, for instance with the searched words marked. */
   title?: Snippet;
   /** A line of the chat's text under the title. */
@@ -42,5 +39,5 @@ const href = $derived.by(() => {
 <a class="chatrow" {href}>
   <span class="chatrow-t"><AgentMark agent={chat.agent} size="sm" /><b>{#if title}{@render title()}{:else}{plainTitle(chat.title)}{/if}</b>{#if decisions}<span class="pill decision">{decisions} decision{decisions === 1 ? "" : "s"}</span>{/if}</span>
   {#if snippet}<span class="snip">{@render snippet()}</span>{/if}
-  <MetaChips {chat} {icons} />
+  <MetaChips {chat} />
 </a>

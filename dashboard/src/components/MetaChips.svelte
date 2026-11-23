@@ -11,12 +11,10 @@ import AgentMark from "./AgentMark.svelte";
 let {
   chat,
   extra = "",
-  icons = true,
   agentMark = false,
 }: {
   chat: ChatSummary;
   extra?: string;
-  icons?: boolean;
   /** Name the agent on an outlined chip with its mark, as a chat's header does. */
   agentMark?: boolean;
 } = $props();
@@ -27,10 +25,10 @@ const now = Date.now();
   {#if agentMark}
     <span class="mt agent"><AgentMark agent={chat.agent} size="sm" />{agents[chat.agent].name}</span>
   {:else}
-    <span class="mt">{#if icons}<Bot size={12} aria-hidden="true" />{/if}{agents[chat.agent].name}</span>
+    <span class="mt"><Bot size={12} aria-hidden="true" />{agents[chat.agent].name}</span>
   {/if}
-  <span class="mt">{#if icons}<Laptop size={12} aria-hidden="true" />{/if}{chat.machine}</span>
-  {#if chat.project}<span class="mt">{#if icons}<Folder size={12} aria-hidden="true" />{/if}{projectLabel(chat.project)}</span>{/if}
+  <span class="mt"><Laptop size={12} aria-hidden="true" />{chat.machine}</span>
+  {#if chat.project}<span class="mt"><Folder size={12} aria-hidden="true" />{projectLabel(chat.project)}</span>{/if}
   <span class="mtx">{whenLabel(chat.updatedMs, now)}</span>
   {#if extra}<span class="mtx">{extra}</span>{/if}
 </span>

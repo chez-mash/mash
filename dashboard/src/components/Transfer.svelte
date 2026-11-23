@@ -101,10 +101,10 @@ function toggleFilter(field: Field, value: string): void {
 }
 function chipLabel(field: Field, noun: string): string {
   const picked = applied[field];
-  if (picked.length === 0) return noun;
+  if (picked.length === 0) return `any ${noun}`;
   if (picked.length > 1) return `${picked.length} ${noun}s`;
   const [only] = picked;
-  if (only === undefined) return noun;
+  if (only === undefined) return `any ${noun}`;
   if (field === "agents") return isAgent(only) ? agentInfo[only].name : only;
   return field === "projects" ? projectLabel(only) : only;
 }

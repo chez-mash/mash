@@ -35,7 +35,7 @@ const machines = $derived(groupChats(chats, (chat) => chat.machine));
 const providers = $derived(groupChats(chats, (chat) => chat.agent));
 </script>
 
-<h1 class="sr-only">Overview</h1>
+<div><h1 class="h1">Overview</h1><p class="meta">{catalogue.data ? `${chats.length.toLocaleString()} chat${chats.length === 1 ? "" : "s"} from ${machines.length.toLocaleString()} machine${machines.length === 1 ? "" : "s"}` : ""}</p></div>
 {#if status.data && !status.data.configuration.loaded}<p class="card tight warn" style:display="flex" style:gap="10px" style:align-items="flex-start"><TriangleAlert size={17} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</span></p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <div class="cols">
@@ -47,7 +47,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
     {#if catalogue.isPending}<div class="card pad0"><Skeleton rows={8} /></div>{/if}
     {#if recent.length}
       <div class="card pad0 list">
-        {#each recent as chat (chat.machine + chat.id)}<ChatRow {chat} icons={false} decisions={decided.get(chat.id) ?? 0} />{/each}
+        {#each recent as chat (chat.machine + chat.id)}<ChatRow {chat} decisions={decided.get(chat.id) ?? 0} />{/each}
       </div>
     {/if}
     {#if catalogue.data && !chats.length}

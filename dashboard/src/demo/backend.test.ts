@@ -160,16 +160,32 @@ describe("the demo answers in the shapes mash dash sends", () => {
   });
 
   it("lists memories that quote a message which exists", () => {
-    const page = parseRecordPage(body("/api/records"));
+    const page = parseRecordPage(body("/api/records", "?shared=true"));
     expect(page.records).toHaveLength(records.length);
     for (const entry of records) {
       const chat = chats.find((candidate) => candidate.id === entry.source.chat);
       expect(chat?.messages[entry.source.message]?.content, entry.id).toContain(entry.source.quote);
       expect(parseRecord(body("/api/record", `?id=${entry.id}&link_offset=0`)).id).toBe(entry.id);
     }
-    expect(parseRecordPage(body("/api/records", "?kind=decision")).records).toHaveLength(
-      records.filter((entry) => entry.kind === "decision").length,
-    );
+    expect(
+      parseRecordPage(body("/api/records", "?kind=decision&shared=true")).records,
+    ).toHaveLength(records.filter((entry) => entry.kind === "decision").length);
+  });
+
+  it("keeps this machine's memories apart from the shared server's", () => {
+    const savedOn = (id: string) =>
+      chats.find((chat) => chat.id === records.find((entry) => entry.id === id)?.source.chat)
+        ?.machine;
+    const local = parseRecordPage(body("/api/records")).records;
+    expect(local.length).toBeGreaterThan(0);
+    expect(local.length).toBeLessThan(records.length);
+    for (const entry of local) {
+      expect(entry.node).toBe("");
+      expect(savedOn(entry.id)).toBe(localMachine);
+    }
+    const workstation = parseRecordPage(body("/api/records", "?shared=true&node=workstation"));
+    expect(workstation.records.length).toBeGreaterThan(0);
+    for (const entry of workstation.records) expect(entry.node).toBe("workstation");
   });
 
   it("reports status, settings, machines and tools", () => {

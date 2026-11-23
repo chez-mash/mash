@@ -8,7 +8,6 @@ import Database from "@lucide/svelte/icons/database";
 import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import Network from "@lucide/svelte/icons/network";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import SearchIcon from "@lucide/svelte/icons/search";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
@@ -33,6 +32,7 @@ import {
 } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
+import CheckUpdates from "./CheckUpdates.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -60,6 +60,25 @@ const nodes = $derived([
     ...(initial.get("node") ? [initial.get("node") ?? ""] : []),
   ]),
 ]);
+// Where records are read from. This machine's own records are one choice,
+// named for the machine; the shared server's copies are the others. This
+// machine's published copy is left out of the list (unless a link chose it),
+// since it repeats this machine's records under a second name.
+const localNode = $derived(catalogue.data?.localNode ?? "");
+const sources = $derived([
+  { value: "", label: localNode ? `this machine (${localNode})` : "this machine" },
+  { value: "shared", label: "all shared machines" },
+  ...nodes
+    .filter((node) => node !== localNode || source === `node:${node}`)
+    .map((node) => ({ value: `node:${node}`, label: `${node} (shared)` })),
+]);
+const sourceLabel = $derived(
+  source === ""
+    ? "this machine"
+    : source === "shared"
+      ? "all shared"
+      : `${source.slice(5)} (shared)`,
+);
 const page = createQuery(() => ({
   ...stableRead,
   queryKey: ["records", params],
@@ -141,12 +160,12 @@ const dirty = $derived(
     {#snippet icon()}<BadgeCheck size={15} aria-hidden="true" />{/snippet}
     {#snippet optionIcon(value: string)}{#if value === "candidate"}<CircleDashed size={15} aria-hidden="true" />{:else}<BadgeCheck size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
-  <FilterMenu label={source === "" ? "this machine" : source === "shared" ? "all shared" : source.slice(5)} active={!!source} options={[{ value: "", label: "this machine" }, { value: "shared", label: "all shared machines" }, ...nodes.map((node) => ({ value: `node:${node}`, label: `${node} (shared)` }))]} selected={[source]} choose={(value) => (source = value)}>
+  <FilterMenu label={sourceLabel} active={!!source} options={sources} selected={[source]} choose={(value) => (source = value)}>
     {#snippet icon()}<Database size={15} aria-hidden="true" />{/snippet}
     {#snippet optionIcon(value: string)}{#if value === ""}<Laptop size={15} aria-hidden="true" />{:else if value === "shared"}<Network size={15} aria-hidden="true" />{:else}<Server size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
   {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
-  <button class="btn ghost sm" type="button" disabled={page.isFetching} onclick={() => page.refetch()} style:margin-left="auto"><RefreshCw size={14} aria-hidden="true" />{page.isFetching ? "checking…" : "check for updates"}</button>
+  <span style:margin-left="auto"><CheckUpdates checking={page.isFetching} check={() => page.refetch()} /></span>
 </form>
 {#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}
