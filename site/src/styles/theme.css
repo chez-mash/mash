@@ -126,6 +126,10 @@
   --agent-antigravity: #3d7fd6;
   /* Rust's orange, for Ferris on the welcome page. */
   --mark-rust: #de5a24;
+  /* Brand colours of the projects Mash is built with, beside Ferris. */
+  --stack-tauri: #24c8d8;
+  --stack-qdrant: #dc244c;
+  --stack-tokio: #16150f;
   /* Corners for small keys, icon tiles and large buttons. */
   --radius-key: 0.3125rem;
   --radius-icon: 0.625rem;

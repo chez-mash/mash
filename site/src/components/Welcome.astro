@@ -7,7 +7,26 @@ import { Icon } from "@astrojs/starlight/components";
 import "../styles/welcome.css";
 import "../styles/welcome-panels.css";
 import ferris from "../art/ferris.svg?raw";
+import qdrant from "../art/stack/qdrant.svg?raw";
+import tauri from "../art/stack/tauri.svg?raw";
+import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
+
+/** The projects Mash is built on, shown under Ferris. Axum has no logo. */
+const built = [
+  { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)" },
+  { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)" },
+  { name: "Tokio", svg: tokio, colour: "var(--stack-tokio)" },
+  { name: "Axum", svg: undefined, colour: undefined },
+];
+
+/** A Simple Icons mark, drawn in the current colour. */
+function mark(svg: string): string {
+  return svg
+    .replace(/<title>.*?<\/title>/s, "")
+    .replace(/\srole="[^"]*"/, "")
+    .replace("<svg", '<svg fill="currentColor" aria-hidden="true" focusable="false"');
+}
 ---
 
 <div class="mash-welcome not-content">
@@ -253,8 +272,18 @@ import Agents from "./Agents.astro";
           <a class="more" href="https://github.com/mashium/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
         </p>
       </div>
-      <!-- Ferris, Rust's unofficial mascot. -->
-      <Fragment set:html={ferris} />
+      <div class="rust-art">
+        <!-- Ferris, Rust's unofficial mascot. -->
+        <Fragment set:html={ferris} />
+        <ul class="built" aria-label="Built with">
+          {built.map((part) => (
+            <li>
+              {part.svg && <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />}
+              {part.name}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </section>
 

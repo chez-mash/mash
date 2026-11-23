@@ -367,13 +367,60 @@
     flex: 1;
     gap: 0.875rem;
   }
-  .rust .ferris {
+  /* Ferris, with the projects Mash is built on lined up under him. */
+  .rust-art {
     flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .rust .ferris {
     width: 17rem;
     height: auto;
     color: var(--mark-rust);
     /* As heavy as the page's 2px outlines at this size. */
     stroke-width: 14;
+  }
+  .built {
+    display: flex;
+    flex-wrap: wrap;
+    width: 26rem;
+    max-width: 100%;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .built li {
+    display: flex;
+    align-items: center;
+    gap: 0.4375rem;
+    margin: 0;
+    padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+    border: var(--border-outline);
+    border-radius: var(--radius-pill);
+    background: var(--surface-paper);
+    color: var(--text-ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  /* Axum has no logo, so its chip is the name alone. */
+  .built li:not(:has(.tile)) {
+    padding-inline-start: 0.75rem;
+  }
+  .built .tile {
+    display: grid;
+    place-items: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: var(--radius-round);
+    background: var(--fill-sticker);
+  }
+  .built .tile svg {
+    width: 1rem;
+    height: 1rem;
   }
   .blurb {
     max-width: 35rem;
@@ -447,9 +494,15 @@
       flex-direction: column;
       align-items: stretch;
     }
+    .rust-art {
+      align-self: center;
+      max-width: 100%;
+    }
+    .built {
+      width: auto;
+    }
     .rust .ferris {
       width: 12rem;
-      align-self: center;
       stroke-width: 18;
     }
     .privacy-head .aside {
