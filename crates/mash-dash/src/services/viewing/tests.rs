@@ -28,8 +28,7 @@ async fn other_dashboard(
             let target = request
                 .uri()
                 .path_and_query()
-                .map(ToString::to_string)
-                .unwrap_or_default();
+                .map_or_else(String::new, ToString::to_string);
             log.lock().unwrap().push((target, authorization));
             if hang {
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
