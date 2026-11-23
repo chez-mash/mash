@@ -131,7 +131,7 @@ If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit
 the query again. Choose **Browse chats** to open the chat list with the
 current filters. Use your browser's Back button to return to the search.
-Use **Search again** after refreshing the index. If you still can’t find
+Choose **Check for updates** above the results after refreshing the index. If you still can’t find
 what you’re looking for, [check for a missing chat](find-missing-chat.md).
 
 A transcript shows your messages on the right and the agent's replies on the
@@ -203,13 +203,13 @@ by itself.
 - **A submitted search**, of chats or of memories, keeps its results and
   filters until you submit again, including when you open a result and return
   with your browser's Back button.
-- **An open memory record** changes only when you choose **check for
+- **An open memory record** changes only when you choose **Check for
   updates**.
 
 Chats and memories from other machines arrive as each machine publishes them.
 That needs a shared server at least as new as this dashboard. With an older
 one, or with more than 16 dashboard tabs open at once, load them yourself:
-**reload chat list** at the foot of the rail, and the refresh button in a
+**Check for updates** at the foot of the rail, and the refresh button in a
 transcript.
 
 If the connection drops, in the browser or between the dashboard and the

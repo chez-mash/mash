@@ -218,8 +218,8 @@ On the computer where the agent saved the chat, run:
 mash index
 ```
 
-When indexing finishes, choose **Search again** in the dashboard. If your
-dashboard has no **Search again** button, reload the search page.
+When indexing finishes, choose **Check for updates** on the dashboard's search
+page. If the button is missing, reload the search page.
 For a chat from another computer, [check that it was published](synchronization.md#across-machines).
 
 - “search is catching up with new history”: an index pass is running. Retry in

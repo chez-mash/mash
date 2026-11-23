@@ -204,7 +204,7 @@ belong in the inventory, never in browser requests.
 
 ### Run fleet operations
 
-Open **Services → Fleet operations** on the controller. Choose an operation,
+Open **fleet manager** in the rail on the controller. Choose an operation,
 select machines, and review the named targets before confirming.
 
 - The controller's `allow_actions` selects which operations appear.

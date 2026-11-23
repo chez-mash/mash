@@ -21,8 +21,8 @@ it gives, then run `mash index` again to retry. `mash status` reports whether
 local search is ready.
 
 The dashboard chat list updates after indexing. To update an open search,
-choose **Search again**. If your dashboard has no **Search again** button,
-reload the page to run the same search.
+choose **Check for updates**. If the button is missing, reload the page to run
+the same search.
 
 ## Keep refreshing while you work
 

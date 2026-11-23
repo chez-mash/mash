@@ -34,7 +34,7 @@ mash index
 ```
 
 Check the final result for errors. Return to the chat list or choose
-**Search again** to refresh an open search. If the button is missing, reload the search
+**Check for updates** to refresh an open search. If the button is missing, reload the search
 page. [Keep new chats searchable](synchronization.md#keep-refreshing-while-you-work).
 
 If Mash reports a search service problem,

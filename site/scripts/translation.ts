@@ -54,6 +54,7 @@ const uiLabels = new Set([
   "Apply filters",
   "Ask Mashy",
   "Browse chats",
+  "Check for updates",
   "Check search service again",
   "Choose agents to connect",
   "Clear filters",

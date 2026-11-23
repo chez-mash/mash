@@ -73,6 +73,6 @@ publish the chat before other machines can find it. Use `mash status --shared`
 there to check what the server received. If publication is pending, follow
 [the steps to refresh across machines](synchronization.md#across-machines).
 
-After publishing finishes, choose **Search again** in the dashboard or reload
+After publishing finishes, choose **Check for updates** in the dashboard or reload
 the search page if the button is missing. If the chat still doesn’t appear,
 [check the chat list, search filters, and history range](find-missing-chat.md).
