@@ -1,7 +1,7 @@
 use super::*;
 use crate::core::Paths;
 
-const TOKEN: &str = "test-services-token-0123456789abcdef";
+pub(super) const TOKEN: &str = "test-services-token-0123456789abcdef";
 
 #[derive(Deserialize)]
 struct Fleet {
@@ -16,6 +16,16 @@ async fn app_named(
     root: &Path,
     peers: Vec<Peer>,
     name: &str,
+) -> (String, tokio::task::JoinHandle<()>) {
+    app_signed(root, peers, name, None).await
+}
+
+/// A dashboard on loopback, behind `access` when one is given.
+pub(super) async fn app_signed(
+    root: &Path,
+    peers: Vec<Peer>,
+    name: &str,
+    access: Option<&str>,
 ) -> (String, tokio::task::JoinHandle<()>) {
     let config: config::Configuration =
         toml::from_str(&format!("node='{name}'\ntoken_env='UNUSED'\n")).unwrap();
@@ -40,7 +50,7 @@ async fn app_named(
         },
         hosts: super::super::allowed_hosts(address),
         loopback: true,
-        access: super::super::access::Access::new(None),
+        access: super::super::access::Access::new(access),
         shared_only: false,
         live: super::super::live::Live::new(None, None),
         questions: Arc::new(tokio::sync::Semaphore::new(2)),

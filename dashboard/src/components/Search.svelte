@@ -21,9 +21,11 @@ import { browse, isAgent, search } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
-import { catalogOptions, searchQueryKey, stableRead } from "../lib/queries";
+import { searchQueryKey, stableRead } from "../lib/queries";
 import { decisionOptions, decisionsByChat } from "../lib/records";
 import { chatHref } from "../lib/route.svelte";
+import { scope, scopeText } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import {
   type Applied,
   appliedHref,
@@ -48,6 +50,7 @@ import FilterMenu from "./FilterMenu.svelte";
 import Highlight from "./Highlight.svelte";
 import MetaChips from "./MetaChips.svelte";
 import QueryError from "./QueryError.svelte";
+import ScopeNote from "./ScopeNote.svelte";
 import SubagentPill from "./SubagentPill.svelte";
 
 // Chats and search are one page: without a query it lists chats, newest
@@ -83,7 +86,9 @@ const browseChatsHref = $derived(
 );
 let draft = $state<Applied>(untrack(() => parseApplied(params)));
 const dirty = $derived(!sameSearch(draft, applied));
-const catalogue = createQuery(() => catalogOptions);
+// The list and the search follow the viewing scope chosen in the sidebar.
+const catalogue = createScoped();
+const scopeKey = $derived(catalogue.data ? scopeText(catalogue.data.scope) : "");
 const chats = $derived(catalogue.data?.chats ?? []);
 
 const options = $derived({
@@ -111,14 +116,28 @@ const result = createQuery(() => ({
   ...stableRead,
   // A list of chats without a question follows the chat list as it updates;
   // a submitted search keeps its results until it is submitted again.
-  queryKey: applied.query ? searchQueryKey(params) : ["chat-list", params, catalogue.dataUpdatedAt],
+  queryKey: applied.query
+    ? [...searchQueryKey(params), scopeKey]
+    : ["chat-list", params, catalogue.dataUpdatedAt, scopeKey],
   placeholderData: (previous, query) => (query?.queryKey[1] === params ? previous : undefined),
   enabled: catalogue.data !== undefined,
   queryFn: async ({ signal }: { signal: AbortSignal }) => {
     const data = catalogue.data;
     if (!data) throw new Error("The chat list is not loaded yet.");
     if (applied.query) {
-      const page = await search(applied, data.localNode, signal);
+      // A machine read live is searched on its own dashboard; otherwise the
+      // scope narrows the search to the machines it covers.
+      const peer = data.live && data.scope.kind === "node" ? data.scope.node : undefined;
+      // This machine's own scope narrows only when other machines are there.
+      const others = data.reach.joined || data.reach.sharedOnly;
+      const covered =
+        data.scope.kind === "local" && others
+          ? [data.localNode]
+          : data.scope.kind === "node"
+            ? [data.scope.node]
+            : [];
+      const machines = applied.machines.length ? applied.machines : covered;
+      const page = await search({ ...applied, machines }, data.localNode, signal, peer);
       // A session copied over SSH is shown once, from the machine it ran on.
       const unique = withoutCopies(page.hits, data.all);
       // Only this machine records which chats are subagents, so a chat from
@@ -216,7 +235,7 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
     : undefined;
 </script>
 
-{#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents and machines.</p></div>{/if}
+{#if applied.query}<h1 class="sr-only">Search results</h1><ScopeNote scoped={catalogue.data} />{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents.</p><ScopeNote scoped={catalogue.data} /></div>{/if}
 <div class="hd" style:align-items="flex-start">
 <!-- On a phone the filters fold behind one button, so results start near the top. -->
 <button class="btn sm fold-t" type="button" aria-expanded={filtersOpen || dirty} aria-controls="search-filters" onclick={() => (filtersOpen = !filtersOpen)}><SlidersHorizontal size={14} aria-hidden="true" />Filters{#if activeFilters}<span class="pill">{activeFilters}</span>{/if}</button>
@@ -225,9 +244,10 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
     {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
     {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
-  <FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
+  <!-- Which machines is the viewing scope's to choose; a link may still name one. -->
+  {#if applied.machines.length || draft.machines.length}<FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
     {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
-  </FilterMenu>
+  </FilterMenu>{/if}
   <FilterMenu label={chipLabel("projects", "project")} active={draft.projects.length > 0} draft={changed("projects")} multiple options={options.project} selected={draft.projects} choose={(value) => toggle("projects", value)}>
     {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
   </FilterMenu>

@@ -234,6 +234,8 @@ test("the old index status address opens services, which reports the local index
   const map = page.getByRole("region", { name: "How your services connect" });
   const index = map.getByRole("link", { name: /SQLite index/ });
   await expect(index).toContainText("Schema 65 · current");
-  await expect(page.getByRole("navigation", { name: "Main" })).toContainText("xenia / 0 chats");
+  await expect(page.getByRole("navigation", { name: "Main" })).toContainText(
+    "This machine · xenia",
+  );
   await expect(page.getByRole("link", { name: "Index status" })).toHaveCount(0);
 });

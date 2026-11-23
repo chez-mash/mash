@@ -9,6 +9,7 @@ mod plugin;
 mod probe;
 #[cfg(test)]
 mod tests;
+pub(super) mod viewing;
 
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};

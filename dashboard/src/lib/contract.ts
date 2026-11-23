@@ -552,6 +552,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/viewing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The other machines whose own dashboards this one can read live. */
+        get: operations["getApiViewing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1100,6 +1117,11 @@ export interface components {
         /** @description A bounded catalogue, retaining machine identity even for copied histories. */
         DashboardCatalog: {
             chats: components["schemas"]["Chat"][];
+            /**
+             * @description This machine is configured to publish to and read a shared index, so
+             *     other machines' published chats can be listed beside its own.
+             */
+            joined: boolean;
             local_node: string;
             shared_error?: string | null;
             /**
@@ -2733,6 +2755,13 @@ export interface components {
              */
             omitted_before?: number;
         };
+        Viewing: {
+            /**
+             * @description Machines with a configured dashboard, by machine ID. Whether one
+             *     answers is known only when it is asked.
+             */
+            machines: string[];
+        };
         ViewsConfiguration: {
             /**
              * @default {
@@ -4156,6 +4185,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ViewResponse"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiViewing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Viewing"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

@@ -106,6 +106,28 @@ The left rail is the way around. On a phone it opens from the menu button.
   reads, and control sharing, privacy, and Mashy on this machine.
   [Change dashboard settings](dashboard-settings.md).
 
+### Choose whose history you see
+
+The **viewing** switcher in the rail's bottom corner chooses whose history
+the overview, chats, search, memory, projects and agents show. On a phone it
+is the pill beside the search box.
+
+- **This machine:** only what this machine indexed, including chats it has
+  not published.
+- **All machines:** this machine's own chats and everything your other
+  machines published to the shared index. A chat this machine published is
+  listed once. This is the default once the machine joins a shared index.
+- **One machine:** another machine on its own. If its dashboard is set up in
+  your [services configuration](services.md) with its access token, Mash reads
+  it live, including work it has not published, and labels it **live**.
+  Otherwise you see what it published, labelled **published copy**. When a
+  machine's dashboard does not answer, its published copy is shown instead,
+  and the page says so.
+
+Each page names the choice under its title. Services and Machines always
+show every machine. The choice is remembered in this browser and added to the
+page's address, so a link you share opens the same view.
+
 ### Check if local search is ready
 
 Open **settings** and look at the search status at the top. The message counts
@@ -199,8 +221,8 @@ If your dashboard does not show the menu, choose the mode with
 
 Open **memory** in the rail. Switch between decisions, preferences and facts
 with the chips at the top, search statements with **find a statement**, and filter
-with the status, review and source chips. Source chooses this machine's
-records or those published to your shared group. Choose **Apply filters** to
+with the status and review chips. Whose memories are listed follows the
+[viewing switcher](#choose-whose-history-you-see). Choose **Apply filters** to
 run the search and **Next page** to continue.
 
 Open a record to read its revision history, quoted supporting messages and

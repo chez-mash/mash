@@ -162,8 +162,9 @@ for (const sourceNode of ["remote/one", "local"]) {
     let calls = 0,
       title = "Shared fact";
     const requests: URL[] = [];
+    // This machine reads a shared index, so a link to its records can name it.
     await page.route("**/api/chats**", (route) =>
-      route.fulfill({ json: { local_node: "local", truncated: false, chats: [] } }),
+      route.fulfill({ json: { local_node: "local", truncated: false, joined: true, chats: [] } }),
     );
     await page.route("**/api/records?**", (route) => {
       calls++;
@@ -253,8 +254,11 @@ for (const sourceNode of ["remote/one", "local"]) {
     const sent = requests.length;
     await page.getByRole("link", { name: "memory from this chat" }).click();
     await expect.poll(() => requests.length).toBeGreaterThan(sent);
-    expect(requests.at(-1)?.searchParams.get("node")).toBe(sourceNode);
-    expect(requests.at(-1)?.searchParams.get("shared")).toBe("true");
+    // Another machine's memories are its published copy; this machine's own
+    // published copy is shown as this machine's own index instead.
+    const local = sourceNode === "local";
+    expect(requests.at(-1)?.searchParams.get("node")).toBe(local ? null : sourceNode);
+    expect(requests.at(-1)?.searchParams.get("shared")).toBe(local ? null : "true");
   });
 }
 
@@ -340,44 +344,18 @@ test("a shared-only dashboard names the shared machines and never calls one this
     route.fulfill({ json: { records: [], next_offset: null } }),
   );
   await page.goto("/#/records?");
-  const menu = page.getByRole("button", { name: "all shared", exact: true });
-  await expect(menu).toBeVisible();
-  await menu.click();
-  const options = page.getByRole("group", { name: "all shared" }).getByRole("menuitemradio");
-  await expect(options).toHaveText(["all shared machines", "phone (shared)", "desk (shared)"]);
-  await expect(page.getByText("this machine")).toHaveCount(0);
+  await page.locator("#rail .vw-b").click();
+  const options = page
+    .getByRole("group", { name: "Show chats and memory from" })
+    .getByRole("menuitemradio");
+  await expect(options).toHaveText([/^\s*All machines/, /^\s*desk/, /^\s*phone/]);
+  await expect(page.getByText(/This machine/)).toHaveCount(0);
 });
 
-test("the overview shows memories from other machines when this one has none", async ({ page }) => {
+/** A machine that reads a shared index and has saved nothing of its own. */
+async function joinedWithSharedMemory(page: Page): Promise<URLSearchParams[]> {
   await page.route("**/api/chats**", (route) =>
-    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
-  );
-  await page.route("**/api/records?**", (route) => {
-    const params = new URL(route.request().url()).searchParams;
-    if (params.get("shared") !== "true")
-      return route.fulfill({ json: { records: [], next_offset: null } });
-    // The first machine in the shared listing has none of its own.
-    if (!params.has("cursor_node"))
-      return route.fulfill({
-        json: { records: [], next_offset: null, next_cursor: { node_id: "xenia", offset: 0 } },
-      });
-    return route.fulfill({
-      json: { records: [{ ...recordFixture(), node_id: "xenia" }], next_offset: null },
-    });
-  });
-  await page.goto("/#/");
-  const section = page.locator("section").filter({ hasText: "recent memories" });
-  await expect(section.getByText("From your other machines")).toBeVisible();
-  await expect(section.getByText(/Nothing saved yet/)).toHaveCount(0);
-  await expect(section.getByRole("link", { name: "recent memories" })).toHaveAttribute(
-    "href",
-    "#/records?shared=true",
-  );
-});
-
-test("the memory page shows other machines' memories when this one has none", async ({ page }) => {
-  await page.route("**/api/chats**", (route) =>
-    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
+    route.fulfill({ json: { local_node: "laptop", truncated: false, joined: true, chats: [] } }),
   );
   const asked: URLSearchParams[] = [];
   await page.route("**/api/records?**", (route) => {
@@ -385,6 +363,7 @@ test("the memory page shows other machines' memories when this one has none", as
     asked.push(params);
     if (params.get("shared") !== "true")
       return route.fulfill({ json: { records: [], next_offset: null } });
+    // The first machine in the shared listing has none of its own.
     if (!params.has("cursor_node"))
       return route.fulfill({
         json: { records: [], next_offset: null, next_cursor: { node_id: "xenia", offset: 0 } },
@@ -399,16 +378,36 @@ test("the memory page shows other machines' memories when this one has none", as
       });
     return route.fulfill({ json: { records: [], next_offset: null } });
   });
+  return asked;
+}
+
+test("once joined, the overview shows every machine's memories and says whose", async ({
+  page,
+}) => {
+  await joinedWithSharedMemory(page);
+  await page.goto("/#/");
+  const section = page.locator("section").filter({ hasText: "recent memories" });
+  await expect(section.locator("a").nth(1)).toBeVisible();
+  await expect(section.getByText(/Nothing saved yet/)).toHaveCount(0);
+  await expect(page.getByRole("main").getByText("All machines · 0")).toBeVisible();
+});
+
+test("the memory page reads the scope's index on every page", async ({ page }) => {
+  const asked = await joinedWithSharedMemory(page);
   await page.goto("/#/records?");
-  await expect(
-    page.getByText("From your other machines; none are saved on this one yet."),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "all shared", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Memory" }).locator("a").first()).toBeVisible();
-  // The next page keeps reading the shared memories.
   await page.getByRole("button", { name: /next/i }).click();
-  await expect(page).toHaveURL(/shared=true/);
   await expect(page).toHaveURL(/cursor_offset=20/);
+  await expect.poll(() => asked.at(-1)?.get("cursor_offset")).toBe("20");
+  expect(asked.at(-1)?.get("shared")).toBe("true");
+  // Choosing this machine reads only what it saved: nothing, and it says so.
+  await page.locator("#rail .vw-b").click();
+  await page
+    .getByRole("group", { name: "Show chats and memory from" })
+    .getByRole("menuitemradio", { name: /^\s*This machine/ })
+    .click();
+  await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
+  expect(asked.at(-1)?.get("shared")).toBeNull();
 });
 
 test("a chosen source never falls back to another one", async ({ page }) => {

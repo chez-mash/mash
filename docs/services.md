@@ -198,6 +198,13 @@ through further dashboards. An unavailable or incorrectly authenticated machine
 appears **Unknown**, not **Stopped**, and shows no controls until it reports
 again.
 
+A machine added here can also be read live from the
+[viewing switcher](dashboard.md#choose-whose-history-you-see): its chats,
+search and memory come from its own dashboard, through this one. The remote
+dashboard accepts the services token for those history reads as well as for
+its services, so give each machine its own `token_env` if anyone else can
+reach it. Only those reads are forwarded, never actions.
+
 ## Manage the fleet from one inventory
 
 Optional, for multi-machine setups. One private TOML inventory gives

@@ -86,7 +86,13 @@ describe("subagent folding", () => {
   });
 
   it("lists folded or shown chats, counting what was folded under the filters", () => {
-    const catalog: Catalog = { ...fold(all), localNode: "laptop", sharedOnly: false, warnings: [] };
+    const catalog: Catalog = {
+      ...fold(all),
+      localNode: "laptop",
+      sharedOnly: false,
+      joined: false,
+      warnings: [],
+    };
     const filters = { agents: [], machines: ["laptop"], projects: [], days: null };
     const folded = browse(catalog, filters, 0);
     expect(folded.hits.map((hit) => hit.chat.id)).toEqual(["session", "c1", "d1", "e1"]);

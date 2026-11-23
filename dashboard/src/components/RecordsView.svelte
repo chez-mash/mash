@@ -4,28 +4,22 @@ import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
 import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import Database from "@lucide/svelte/icons/database";
 import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
-import Network from "@lucide/svelte/icons/network";
 import SearchIcon from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
 import { untrack } from "svelte";
 import { agentNamed } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { whenLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
-import { catalogOptions, stableRead } from "../lib/queries";
+import { stableRead } from "../lib/queries";
 import { kindIcons, scopeIcons } from "../lib/recordIcons";
 import {
   kindPill,
   kinds,
   label,
-  memorySourceLabel,
-  memorySources,
-  ownOrSharedPage,
-  recordPage,
+  scopedRecordPage,
   scopeLabel,
   scopeName,
   standing,
@@ -34,9 +28,12 @@ import {
   timingLabel,
 } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
+import { readingScope, scope, scopeText } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import AgentMark from "./AgentMark.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
+import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 const now = Date.now();
@@ -47,43 +44,38 @@ let query = $state(initial.get("q") ?? "");
 let kind = $state(initial.get("kind") ?? "");
 let lifecycle = $state(initial.get("state") ?? "");
 let review = $state(initial.get("review") ?? "");
-let source = $state(
-  initial.get("shared") === "true"
-    ? initial.get("node")
-      ? `node:${initial.get("node")}`
-      : "shared"
-    : "",
-);
 const chat = initial.get("chat") ?? "";
-const catalogue = createQuery(() => catalogOptions);
-const nodes = $derived([
-  ...new Set([
-    ...(catalogue.data?.chats.map((chat) => chat.machine) ?? []),
-    ...(initial.get("node") ? [initial.get("node") ?? ""] : []),
-  ]),
-]);
-// Where records are read from; see `memorySources` for who is "this machine".
-const localNode = $derived(catalogue.data?.localNode ?? "");
-const sharedOnly = $derived(catalogue.data?.sharedOnly ?? false);
-const sources = $derived(memorySources(localNode, sharedOnly, nodes, source));
-// A view with no source, filter or page chosen falls back to other machines'
-// memories when this one has none; any choice reads exactly what it names.
+// Whose memories: the viewing scope chosen in the sidebar, the same as every page.
+const scoped = createScoped();
+// Older links named a source here; the scope has replaced it, so a link's
+// source becomes the scope, as a link's scope= does.
+if (initial.get("shared") === "true") {
+  const node = initial.get("node");
+  scope.choose(node ? { kind: "node", node } : { kind: "all" });
+}
+const own = $derived.by(() => {
+  const next = new URLSearchParams(params);
+  next.delete("shared");
+  next.delete("node");
+  return next.toString();
+});
+// Memory still shows when the chat list cannot be read (see readingScope).
+const reading = $derived(readingScope(scoped.data, scoped.isError, scope.chosen));
 const result = createQuery(() => ({
   ...stableRead,
   // Its own key: the decisions list caches plain pages under ["records", …].
-  queryKey: ["records", "view", params],
-  queryFn: async ({ signal }: { signal: AbortSignal }) =>
-    params === ""
-      ? ownOrSharedPage(signal)
-      : { page: await recordPage(params, signal), shared: false },
+  queryKey: ["records", "view", reading ? scopeText(reading.scope) : "", own],
+  enabled: reading !== undefined,
+  queryFn: ({ signal }: { signal: AbortSignal }) =>
+    reading
+      ? scopedRecordPage(own, reading.scope, reading.reach, signal)
+      : Promise.reject(new Error("The viewing scope is not known yet.")),
 }));
 const page = $derived({
   data: result.data?.page,
   error: result.error,
   isPending: result.isPending,
 });
-const fellBack = $derived(result.data?.shared ?? false);
-const sourceLabel = $derived(memorySourceLabel(fellBack ? "shared" : source, sharedOnly));
 const hasNext = $derived(
   page.data && (page.data.nextCursor !== null || page.data.nextOffset !== null),
 );
@@ -95,16 +87,11 @@ function submit(event: SubmitEvent): void {
   if (lifecycle) next.set("state", lifecycle);
   if (review) next.set("review", review);
   if (chat) next.set("chat", chat);
-  if (source) {
-    next.set("shared", "true");
-    if (source.startsWith("node:")) next.set("node", source.slice(5));
-  }
   navigate(recordsHref(next));
 }
 function nextPage(): void {
   if (!page.data) return;
-  const next = new URLSearchParams(params);
-  if (fellBack) next.set("shared", "true");
+  const next = new URLSearchParams(own);
   next.delete("offset");
   next.delete("cursor_node");
   next.delete("cursor_offset");
@@ -134,17 +121,11 @@ function kindHref(value: string): string {
 const dirty = $derived(
   query.trim() !== (initial.get("q") ?? "") ||
     lifecycle !== (initial.get("state") ?? "") ||
-    review !== (initial.get("review") ?? "") ||
-    source !==
-      (initial.get("shared") === "true"
-        ? initial.get("node")
-          ? `node:${initial.get("node")}`
-          : "shared"
-        : ""),
+    review !== (initial.get("review") ?? ""),
 );
 </script>
 
-<div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and facts, with the conversations behind them.</p></div>
+<div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and facts, with the conversations behind them.</p><ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></div>
 <nav class="chips" aria-label="Memory kind" style:gap="10px">
   <a class="btn" class:sel={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Bookmark size={15} aria-hidden="true" />all</a>
   {#each kinds as value (value)}
@@ -161,17 +142,12 @@ const dirty = $derived(
     {#snippet icon()}<BadgeCheck size={15} aria-hidden="true" />{/snippet}
     {#snippet optionIcon(value: string)}{#if value === "candidate"}<CircleDashed size={15} aria-hidden="true" />{:else}<BadgeCheck size={15} aria-hidden="true" />{/if}{/snippet}
   </FilterMenu>
-  <FilterMenu label={sourceLabel} active={!!source} options={sources} selected={[source]} choose={(value) => (source = value)}>
-    {#snippet icon()}<Database size={15} aria-hidden="true" />{/snippet}
-    {#snippet optionIcon(value: string)}{#if value === ""}<Laptop size={15} aria-hidden="true" />{:else if value === "shared"}<Network size={15} aria-hidden="true" />{:else}<Server size={15} aria-hidden="true" />{/if}{/snippet}
-  </FilterMenu>
   {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
 </form>
 {#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load memory" query={result} />
 {#if page.data && !page.error}
-  {#if fellBack}<p class="meta" role="status">From your other machines; none are saved on this one yet.</p>{/if}
   {#if !page.data.records.length}
     <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions, preferences and facts as you state them."}</span></p>
   {:else}
@@ -195,7 +171,7 @@ const dirty = $derived(
             <a href={recordHref(record.id, record.node, recordsHref(new URLSearchParams(params)))}>{revision.statement}</a>
             <span class="mts">
               <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span>
-              <span class="mt"><Laptop size={12} aria-hidden="true" />{record.node || catalogue.data?.localNode || "this machine"}</span>
+              <span class="mt"><Laptop size={12} aria-hidden="true" />{record.node || scoped.data?.reach.localNode || "this machine"}</span>
               {#if revision.recordedBy}<span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}{revision.recordedBy}</span>{/if}
               <span class="mtx">{whenLabel(revision.recordedAt, now)}</span>
             </span>

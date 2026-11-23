@@ -9,23 +9,33 @@ import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats } from "../lib/browse";
-import { catalogOptions, stableRead } from "../lib/queries";
-import { decisionOptions, decisionsByChat, ownOrSharedPage } from "../lib/records";
+import { stableRead } from "../lib/queries";
+import { decisionOptions, decisionsByChat, scopedRecordPage } from "../lib/records";
 import { agentHref, machineHref } from "../lib/route.svelte";
+import { readingScope, scope, scopeText } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import { statusOptions } from "../lib/status";
 import { foldedNote } from "../lib/subagents";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
 import MemoryRow from "./MemoryRow.svelte";
 import QueryError from "./QueryError.svelte";
+import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
 
-const catalogue = createQuery(() => catalogOptions);
+// Everything here follows the viewing scope chosen in the sidebar.
+const catalogue = createScoped();
 const status = createQuery(() => statusOptions);
+// Memory still shows when the chat list cannot be read (see readingScope).
+const reading = $derived(readingScope(catalogue.data, catalogue.isError, scope.chosen));
 const memories = createQuery(() => ({
   ...stableRead,
-  queryKey: ["records", "overview"],
-  queryFn: ({ signal }: { signal: AbortSignal }) => ownOrSharedPage(signal),
+  queryKey: ["records", "overview", reading ? scopeText(reading.scope) : ""],
+  enabled: reading !== undefined,
+  queryFn: ({ signal }: { signal: AbortSignal }) =>
+    reading
+      ? scopedRecordPage("", reading.scope, reading.reach, signal)
+      : Promise.reject(new Error("The viewing scope is not known yet.")),
 }));
 // Both lists follow the index by themselves (see lib/live.ts).
 const chats = $derived(catalogue.data?.chats ?? []);
@@ -37,7 +47,7 @@ const machines = $derived(groupChats(chats, (chat) => chat.machine));
 const providers = $derived(groupChats(chats, (chat) => chat.agent));
 </script>
 
-<div><h1 class="h1">Overview</h1><p class="meta">{catalogue.data ? `${chats.length.toLocaleString()} chat${chats.length === 1 ? "" : "s"} from ${machines.length.toLocaleString()} machine${machines.length === 1 ? "" : "s"}${foldedNote(catalogue.data.folded)}` : ""}</p></div>
+<div><h1 class="h1">Overview</h1><p class="meta">{catalogue.data ? `${chats.length.toLocaleString()} chat${chats.length === 1 ? "" : "s"} from ${machines.length.toLocaleString()} machine${machines.length === 1 ? "" : "s"}${foldedNote(catalogue.data.folded)}` : ""}</p><ScopeNote scoped={catalogue.data} /></div>
 {#if status.data && !status.data.configuration.loaded}<p class="card tight warn" style:display="flex" style:gap="10px" style:align-items="flex-start"><TriangleAlert size={17} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</span></p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <div class="cols">
@@ -63,8 +73,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
   </section>
   <div class="c-side">
     <section>
-      <h2 class="h2" style:margin-bottom="14px"><a href={memories.data?.shared ? "#/records?shared=true" : "#/records?"}><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
-      {#if memories.data?.shared}<p class="meta" style:margin="-8px 0 10px">From your other machines; none are saved on this one yet.</p>{/if}
+      <h2 class="h2" style:margin-bottom="14px"><a href="#/records?"><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
       {#if memories.isPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
       {#if memories.data?.page.records.length}
         <div class="card pad0 list">

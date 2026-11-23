@@ -11,14 +11,18 @@ import { liveSearch } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { navigate } from "../lib/navigation";
-import { catalogOptions, searchQueryKey } from "../lib/queries";
+import { searchQueryKey } from "../lib/queries";
 import { chatHref, router, searchHref } from "../lib/route.svelte";
+import { inScope, scope, scopeText } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
+import ViewingSwitcher from "./ViewingSwitcher.svelte";
 
 let { railOpen, toggleRail }: { railOpen: boolean; toggleRail: () => void } = $props();
 const client = useQueryClient();
-const catalogue = createQuery(() => catalogOptions);
+// Suggestions follow the viewing scope, as the results page does.
+const catalogue = createScoped();
 let text = $state("");
 let focused = $state(false);
 let root: HTMLDivElement;
@@ -88,9 +92,17 @@ $effect(() => {
   const timer = setTimeout(() => (typed = value), 60);
   return () => clearTimeout(timer);
 });
+// A machine read live is asked itself; otherwise this machine's words search
+// stands in, kept to what the scope covers.
 const live = createQuery(() => ({
-  queryKey: ["live-search", typed],
-  queryFn: ({ signal }) => liveSearch(typed, catalogue.data?.localNode ?? "", signal),
+  queryKey: ["live-search", typed, catalogue.data ? scopeText(catalogue.data.scope) : ""],
+  queryFn: async ({ signal }: { signal: AbortSignal }) => {
+    const data = catalogue.data;
+    if (!data) return [];
+    const peer = data.live && data.scope.kind === "node" ? data.scope.node : undefined;
+    const hits = await liveSearch(typed, data.reach.localNode, signal, peer);
+    return peer ? hits : hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode));
+  },
   enabled: focused && typed.length >= 2 && catalogue.data !== undefined,
   networkMode: "always" as const,
   staleTime: 30_000,
@@ -117,7 +129,8 @@ function submit(event: SubmitEvent): void {
   const submitted = params.toString();
   focused = false;
   if (query) {
-    const target = { queryKey: searchQueryKey(submitted), exact: true };
+    // Every scope's results for this address: the scope is the key's last part.
+    const target = { queryKey: searchQueryKey(submitted) };
     if (route.page === "search" && route.params === submitted) {
       void client.refetchQueries(target, { cancelRefetch: false });
       return;
@@ -170,4 +183,23 @@ function submit(event: SubmitEvent): void {
       </div>
     {/if}
   </div>
+  <!-- On a phone the sidebar is a drawer, so the viewing scope sits here. -->
+  <div class="top-scope"><ViewingSwitcher variant="top" /></div>
 </header>
+
+<style>
+  .top-scope {
+    display: none;
+  }
+  @media (max-width: 800px) {
+    .top-scope {
+      display: block;
+      flex: none;
+    }
+    /* With the scope beside it, the box's text field may be narrow before
+       the search button wraps under it. */
+    #top :global(.box input) {
+      flex-basis: 40px;
+    }
+  }
+</style>

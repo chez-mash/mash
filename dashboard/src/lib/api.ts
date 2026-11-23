@@ -1,4 +1,5 @@
 import type { Answer, ReadPath, Wire } from "./routes";
+import { liveMachinesSeen } from "./scope.svelte";
 import type { Applied } from "./search";
 import { check } from "./session.svelte";
 import { withoutCopies } from "./sshCopies";
@@ -17,6 +18,8 @@ export interface Catalog {
   readonly localNode: string;
   /** The dashboard reads only the shared index: no machine's history is local. */
   readonly sharedOnly: boolean;
+  /** This machine publishes to and reads a shared index. */
+  readonly joined: boolean;
   readonly warnings: readonly string[];
 }
 export interface SearchPage {
@@ -74,12 +77,18 @@ function chat(row: Wire["Chat"] | Wire["ChatHit"], localNode: string): ChatSumma
     ...(row.ssh_copy ? { sshCopy: true as const } : {}),
   };
 }
+/**
+ * Reads a route of this dashboard or, with `peer`, the same route of another
+ * machine's own dashboard through this one (which adds that machine's token).
+ */
 export async function read<P extends ReadPath>(
   path: P,
   params: URLSearchParams,
   signal: AbortSignal,
+  peer?: string,
 ): Promise<Answer<P>> {
-  const response = await send(`${path}?${params}`, {
+  const target = peer ? `/api/peer/${encodeURIComponent(peer)}${path}` : path;
+  const response = await send(`${target}?${params}`, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
     cache: "no-store",
   }).catch((error: unknown) => {
@@ -112,6 +121,10 @@ export function parseCatalog(body: Answer<"/api/chats">): Catalog {
   return {
     localNode: body.local_node,
     sharedOnly: body.shared_only,
+    // Another machine's chats in the list also show a shared index is read.
+    joined:
+      (body.joined ?? false) ||
+      body.chats.some((row) => !!row.node_id && row.node_id !== body.local_node),
     ...fold(all),
     warnings: [
       ...(body.shared_error ? [`Shared history is unavailable: ${body.shared_error}`] : []),
@@ -123,6 +136,18 @@ export function parseCatalog(body: Answer<"/api/chats">): Catalog {
 }
 export async function catalog(signal: AbortSignal): Promise<Catalog> {
   return parseCatalog(await read("/api/chats", new URLSearchParams(), signal));
+}
+/** Another machine's own chats, read live from its dashboard. Its catalogue
+ * also lists what it reads from the shared index; only its own are kept. */
+export async function peerCatalog(peer: string, signal: AbortSignal): Promise<Catalog> {
+  const all = parseCatalog(await read("/api/chats", new URLSearchParams(), signal, peer));
+  const own = (chat: ChatSummary) => chat.machine === all.localNode;
+  return { ...all, chats: all.chats.filter(own), all: all.all.filter(own) };
+}
+/** The other machines whose own dashboards this one can read live. */
+export async function liveMachines(signal: AbortSignal): Promise<readonly string[]> {
+  const machines = (await read("/api/viewing", new URLSearchParams(), signal)).machines;
+  return Array.isArray(machines) ? machines.filter((id) => typeof id === "string") : [];
 }
 /** Empty submissions filter one catalogue snapshot; drafts never alter submitted results. */
 export function browse(
@@ -146,10 +171,13 @@ export function browse(
     warnings: catalog.warnings,
   };
 }
+/** With `peer`, the search runs on that machine's own dashboard and keeps only
+ * its own chats; `applied.machines` then does not apply. */
 export async function search(
   applied: Applied,
   localNode: string,
   signal: AbortSignal,
+  peer?: string,
 ): Promise<SearchPage> {
   const params = new URLSearchParams({
     q: applied.query,
@@ -161,7 +189,14 @@ export async function search(
   if (applied.days !== null) params.set("days", String(applied.days));
   if (applied.rank !== "relevance") params.set("sort", applied.rank);
   if (applied.intent !== "default") params.set("intent", applied.intent);
+  if (peer) {
+    params.delete("machine");
+    return ownHits(parseSearch(await read("/api/search", params, signal, peer), peer), peer);
+  }
   return parseSearch(await read("/api/search", params, signal), localNode);
+}
+function ownHits(page: SearchPage, peer: string): SearchPage {
+  return { ...page, hits: page.hits.filter((hit) => hit.chat.machine === peer) };
 }
 
 /**
@@ -172,11 +207,12 @@ export async function liveSearch(
   query: string,
   localNode: string,
   signal: AbortSignal,
+  peer?: string,
 ): Promise<readonly SearchHit[]> {
   const limit = 5;
   const params = new URLSearchParams({ q: query, limit: String(limit) });
-  const page = parseSearch(await read("/api/search/live", params, signal), localNode);
-  return page.hits.slice(0, limit);
+  const page = parseSearch(await read("/api/search/live", params, signal, peer), peer ?? localNode);
+  return (peer ? ownHits(page, peer) : page).hits.slice(0, limit);
 }
 
 export function parseSearch(
@@ -279,19 +315,38 @@ export async function transcript(
   shared = false,
   limit = PAGE_SIZE,
 ): Promise<MessagePage> {
+  const page = { offset: String(offset), limit: String(limit) };
   return parseMessages(
-    await read(
-      "/api/chat",
-      new URLSearchParams({
-        id,
-        ...(node ? { node } : {}),
-        ...(shared ? { shared: "true" } : {}),
-        offset: String(offset),
-        limit: String(limit),
-      }),
-      signal,
+    await fromOwner(node, signal, (peer) =>
+      read(
+        "/api/chat",
+        new URLSearchParams(
+          peer
+            ? { id, ...page }
+            : { id, ...(node ? { node } : {}), ...(shared ? { shared: "true" } : {}), ...page },
+        ),
+        signal,
+        peer,
+      ),
     ),
   );
+}
+/**
+ * A chat of a machine read live is read on that machine's own dashboard, as
+ * its own; if that dashboard stops answering, its published copy is read.
+ */
+export async function fromOwner<T>(
+  node: string,
+  signal: AbortSignal,
+  reading: (peer: string | undefined) => Promise<T>,
+): Promise<T> {
+  if (!node || !liveMachinesSeen.has(node)) return reading(undefined);
+  try {
+    return await reading(node);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return reading(undefined);
+  }
 }
 export async function context(
   id: string,
@@ -299,10 +354,14 @@ export async function context(
   signal: AbortSignal,
   shared = false,
 ): Promise<MessagePage> {
-  const params = new URLSearchParams({ id, context: "25" });
-  if (node) params.set("node", node);
-  if (shared) params.set("shared", "true");
-  return parseMessages(await read("/api/view", params, signal));
+  return parseMessages(
+    await fromOwner(node, signal, (peer) => {
+      const params = new URLSearchParams({ id, context: "25" });
+      if (node && !peer) params.set("node", node);
+      if (shared && !peer) params.set("shared", "true");
+      return read("/api/view", params, signal, peer);
+    }),
+  );
 }
 
 /** How far past a page's edge to look for the other half of a tool call. */

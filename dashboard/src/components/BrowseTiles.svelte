@@ -6,14 +6,22 @@ import { asset } from "../lib/asset";
 import { groupChats, whenLabel } from "../lib/browse";
 import { catalogOptions } from "../lib/queries";
 import { agentHref, machineHref } from "../lib/route.svelte";
+import { scope } from "../lib/scope.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import { statusOptions } from "../lib/status";
 import AgentMark from "./AgentMark.svelte";
 import QueryError from "./QueryError.svelte";
+import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 // The agents or machines that have chats, one card each.
 let { field }: { field: "agent" | "machine" } = $props();
-const catalogue = createQuery(() => catalogOptions);
+// Agents follow the viewing scope; machines are about the machines themselves,
+// so every machine is listed whatever the scope.
+const whole = createQuery(() => catalogOptions);
+const scopedQuery = createScoped();
+const catalogue = $derived(field !== "agent" ? whole : scopedQuery);
+const scoped = $derived(field !== "agent" ? undefined : scopedQuery.data);
 const chats = $derived(catalogue.data?.chats ?? []);
 const groups = $derived(
   groupChats(chats, (chat) => (field === "agent" ? chat.agent : chat.machine)),
@@ -41,6 +49,7 @@ function host(url: string): string {
 <div>
   <h1 class="h1">{field === "agent" ? "Agents" : "Machines"}</h1>
   <p class="meta">{chats.length.toLocaleString()} chats {field === "agent" ? "from" : "on"} {plural(groups.length, field)}</p>
+  {#if scoped}<ScopeNote {scoped} />{/if}
 </div>
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={4} />{/if}

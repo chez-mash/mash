@@ -18,15 +18,18 @@ import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { isAgent } from "../lib/api";
 import { arrangeProjects, groupChats, projectLabel, whenLabel } from "../lib/browse";
-import { catalogOptions } from "../lib/queries";
+import { createScoped } from "../lib/scoped.svelte";
+import { scope } from "../lib/scope.svelte";
 import { projectHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
+import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
 
-const catalogue = createQuery(() => catalogOptions);
+// Projects follow the viewing scope chosen in the sidebar.
+const catalogue = createScoped();
 const chats = $derived(catalogue.data?.chats ?? []);
 const projects = $derived(
   groupChats(
@@ -64,7 +67,7 @@ const sorts = [
 const now = Date.now();
 </script>
 
-<div><h1 class="h1">Projects</h1><p class="meta" role="status">{narrowed ? `${shown.length.toLocaleString()} of ${projects.length.toLocaleString()} projects` : `${projects.length.toLocaleString()} projects across ${chats.length.toLocaleString()} chats`}</p></div>
+<div><h1 class="h1">Projects</h1><p class="meta" role="status">{narrowed ? `${shown.length.toLocaleString()} of ${projects.length.toLocaleString()} projects` : `${projects.length.toLocaleString()} projects across ${chats.length.toLocaleString()} chats`}</p><ScopeNote scoped={catalogue.data} /></div>
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
 {#if projects.length}

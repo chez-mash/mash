@@ -114,7 +114,7 @@ test("on a phone the search filters fold behind one Filters button that counts t
   const first = await main.getByRole("link", { name: /Tune the export queue/ }).boundingBox();
   expect(first?.y ?? 1000).toBeLessThan(400);
   await toggle.click();
-  await expect(filters.getByRole("button", { name: "any machine", exact: true })).toBeVisible();
+  await expect(filters.getByRole("button", { name: "any project", exact: true })).toBeVisible();
   // Wide screens show the chips themselves and no button.
   await page.setViewportSize({ width: 1024, height: 768 });
   await expect(toggle).toBeHidden();
@@ -125,8 +125,10 @@ test("filter chips name what they leave open the same way on every page", async 
   await mockDashboard(page);
   await page.goto("/#/search");
   const filters = page.getByRole("group", { name: "Filters" });
-  for (const name of ["any agent", "any machine", "any project", "any time", "sort: newest"])
+  for (const name of ["any agent", "any project", "any time", "sort: newest"])
     await expect(filters.getByRole("button", { name, exact: true })).toBeVisible();
+  // Which machines is the viewing scope's to say, not a chip's.
+  await expect(filters.getByRole("button", { name: "any machine", exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Chats", exact: true })).toBeVisible();
   await page.goto("/#/projects");
   const projects = page.getByRole("group", { name: "Project filters" });
@@ -152,25 +154,22 @@ test("the overview has a title and its chat rows carry the agent, machine and pr
   await expect(row.locator(".mt svg")).toHaveCount(3);
 });
 
-test("memory sources name this machine once and only list other machines as shared", async ({
-  page,
-}) => {
+test("memory follows the viewing switcher, which names this machine once", async ({ page }) => {
   const requests = await mockDashboard(page);
   await page.goto("/#/records?");
-  await page.getByRole("button", { name: "this machine", exact: true }).click();
-  const menu = page.getByRole("group", { name: "this machine" });
+  const switcher = page.locator("#rail .vw-b");
+  await switcher.click();
+  const menu = page.getByRole("group", { name: "Show chats and memory from" });
   await expect(menu.getByRole("menuitemradio")).toHaveText([
-    "this machine (laptop)",
-    "all shared machines",
-    "workstation (shared)",
+    /^\s*This machine · laptop/,
+    /^\s*All machines/,
+    /^\s*workstation/,
   ]);
-  await menu.getByRole("menuitemradio", { name: "workstation (shared)" }).click();
-  await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page).toHaveURL(/shared=true&node=workstation/);
+  await menu.getByRole("menuitemradio", { name: /^\s*workstation/ }).click();
+  await expect(page).toHaveURL(/scope=node%3Aworkstation/);
   await expect.poll(() => requests.at(-1)?.searchParams.get("node")).toBe("workstation");
-  await expect(
-    page.getByRole("button", { name: "workstation (shared)", exact: true }),
-  ).toBeVisible();
+  expect(requests.at(-1)?.searchParams.get("shared")).toBe("true");
+  await expect(page.getByRole("main").getByText("workstation · published copy")).toBeVisible();
 });
 
 test("a memory shows its project and dates as the lists do and explains how to confirm it", async ({

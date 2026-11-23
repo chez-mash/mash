@@ -77,6 +77,9 @@ pub struct DashboardCatalog {
     /// This dashboard has no index of its own and reads only the shared one,
     /// so nothing in it is "this machine's" except what the machine published.
     pub(crate) shared_only: bool,
+    /// This machine is configured to publish to and read a shared index, so
+    /// other machines' published chats can be listed beside its own.
+    pub(crate) joined: bool,
 }
 
 pub(super) async fn dashboard(
@@ -137,6 +140,7 @@ pub(super) async fn dashboard(
             .await?;
     Ok(DashboardCatalog {
         shared_only,
+        joined: config.shared.is_some(),
         ..catalog
     })
 }
@@ -209,6 +213,7 @@ fn finish_dashboard(
         truncated,
         shared_error,
         shared_only: false,
+        joined: false,
     }
 }
 

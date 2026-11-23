@@ -1753,6 +1753,10 @@
             },
             "type": "array"
           },
+          "joined": {
+            "description": "This machine is configured to publish to and read a shared index, so\nother machines' published chats can be listed beside its own.",
+            "type": "boolean"
+          },
           "local_node": {
             "type": "string"
           },
@@ -1774,7 +1778,8 @@
           "chats",
           "local_node",
           "truncated",
-          "shared_only"
+          "shared_only",
+          "joined"
         ],
         "type": "object"
       },
@@ -7084,6 +7089,21 @@
         ],
         "type": "object"
       },
+      "Viewing": {
+        "properties": {
+          "machines": {
+            "description": "Machines with a configured dashboard, by machine ID. Whether one\nanswers is known only when it is asked.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "machines"
+        ],
+        "type": "object"
+      },
       "ViewsConfiguration": {
         "additionalProperties": false,
         "properties": {
@@ -8986,6 +9006,34 @@
           }
         },
         "summary": "The messages around one message."
+      }
+    },
+    "/api/viewing": {
+      "get": {
+        "operationId": "getApiViewing",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Viewing"
+                }
+              }
+            },
+            "description": ""
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "The other machines whose own dashboards this one can read live."
       }
     }
   }

@@ -1,6 +1,7 @@
-import { read } from "./api";
+import { fromOwner, read } from "./api";
 import { stableRead } from "./queries";
 import type { Answer, Wire } from "./routes";
+import type { Reach, Scope as Viewing } from "./scope.svelte";
 
 export const kinds = ["decision", "preference", "fact"] as const;
 export const states = [
@@ -180,34 +181,61 @@ const EMPTY_MACHINES = 32;
  * next machine, so an empty shared page is followed on to the next machine
  * rather than read as "nothing saved".
  */
-export async function recordPage(params: string, signal: AbortSignal): Promise<RecordPage> {
+export async function recordPage(
+  params: string,
+  signal: AbortSignal,
+  peer?: string,
+): Promise<RecordPage> {
   const query = new URLSearchParams(params);
-  let page = parseRecordPage(await read("/api/records", query, signal));
+  let page = parseRecordPage(await read("/api/records", query, signal, peer));
   for (let step = 0; step < EMPTY_MACHINES && !page.records.length && page.nextCursor; step++) {
     query.set("cursor_node", page.nextCursor.node);
     query.set("cursor_offset", String(page.nextCursor.offset));
-    page = parseRecordPage(await read("/api/records", query, signal));
+    page = parseRecordPage(await read("/api/records", query, signal, peer));
   }
   return page;
 }
-/**
- * The first page of memories for a view that chose no source: this machine's,
- * or, when it has saved none, the ones other machines published. A machine
- * whose agents run elsewhere (over SSH, say) saves no memories of its own, and
- * an empty page would wrongly read as "nothing saved anywhere". `shared` says
- * which one was read.
- */
-export async function ownOrSharedPage(
+/** The records request a scope makes: which index to read, and whose
+ * dashboard reads it. "All machines" reads the shared index, which holds what
+ * every machine published, this one included. */
+export function recordSource(
+  scope: Viewing,
+  reach: Reach,
+): { readonly params: Readonly<Record<string, string>>; readonly peer?: string } {
+  if (scope.kind === "local") return { params: {} };
+  if (scope.kind === "all")
+    return { params: reach.joined || reach.sharedOnly ? { shared: "true" } : {} };
+  if (reach.live.includes(scope.node)) return { params: {}, peer: scope.node };
+  return { params: { shared: "true", node: scope.node } };
+}
+
+/** One page of the memories a scope covers. A machine read live that does not
+ * answer falls back to its published copy, and `fallback` says so. */
+export async function scopedRecordPage(
+  params: string,
+  scope: Viewing,
+  reach: Reach,
   signal: AbortSignal,
-): Promise<{ page: RecordPage; shared: boolean }> {
-  const own = await recordPage("", signal);
-  if (own.records.length) return { page: own, shared: false };
+): Promise<{ page: RecordPage; fallback?: string }> {
+  const source = recordSource(scope, reach);
+  const query = new URLSearchParams(params);
+  for (const [key, value] of Object.entries(source.params)) query.set(key, value);
+  if (!source.peer) return { page: await recordPage(query.toString(), signal) };
   try {
-    const shared = await recordPage("shared=true", signal);
-    return shared.records.length ? { page: shared, shared: true } : { page: own, shared: false };
-  } catch {
-    // Without a shared index, this machine's empty list is the answer.
-    return { page: own, shared: false };
+    const page = await recordPage(query.toString(), signal, source.peer);
+    // Its own memories carry no machine there; here they are that machine's.
+    const peer = source.peer;
+    return {
+      page: { ...page, records: page.records.map((r) => (r.node ? r : { ...r, node: peer })) },
+    };
+  } catch (error) {
+    if (signal.aborted || scope.kind !== "node") throw error;
+    query.set("shared", "true");
+    query.set("node", scope.node);
+    return {
+      page: await recordPage(query.toString(), signal),
+      fallback: `${scope.node}'s dashboard didn't answer, so this is its published copy.`,
+    };
   }
 }
 export async function getRecord(
@@ -217,10 +245,14 @@ export async function getRecord(
   linkOffset: number,
   signal: AbortSignal,
 ): Promise<NativeRecord> {
-  const params = new URLSearchParams({ id, link_offset: String(linkOffset) });
-  if (node) params.set("node", node);
-  if (before !== null) params.set("before_revision", String(before));
-  const record = parseRecord(await read("/api/record", params, signal));
+  const record = parseRecord(
+    await fromOwner(node, signal, (peer) => {
+      const params = new URLSearchParams({ id, link_offset: String(linkOffset) });
+      if (node && !peer) params.set("node", node);
+      if (before !== null) params.set("before_revision", String(before));
+      return read("/api/record", params, signal, peer);
+    }),
+  );
   if (
     before === null &&
     !record.revisions.some((revision) => revision.revision === record.currentRevision)
@@ -304,40 +336,4 @@ export function decisionsByChat(records: readonly NativeRecord[]): ReadonlyMap<s
       counts.set(chat, (counts.get(chat) ?? 0) + 1);
   }
   return counts;
-}
-
-/** One choice in the memory page's source menu, by its URL form. */
-export interface MemorySource {
-  readonly value: string;
-  readonly label: string;
-}
-/**
- * Where memories can be read from. With an index of its own, this machine's
- * records are one choice, named for the machine, and the shared server's
- * copies are the others; this machine's published copy is left out (unless a
- * link chose it), since it repeats its records under a second name. A
- * shared-only dashboard has no records of its own: everything it reads is a
- * shared copy, so there is no "this machine" choice and every machine is
- * named, its own published copy included.
- */
-export function memorySources(
-  localNode: string,
-  sharedOnly: boolean,
-  nodes: readonly string[],
-  source: string,
-): MemorySource[] {
-  const machines = nodes
-    .filter((node) => sharedOnly || node !== localNode || source === `node:${node}`)
-    .map((node) => ({ value: `node:${node}`, label: `${node} (shared)` }));
-  if (sharedOnly) return [{ value: "", label: "all shared machines" }, ...machines];
-  return [
-    { value: "", label: localNode ? `this machine (${localNode})` : "this machine" },
-    { value: "shared", label: "all shared machines" },
-    ...machines,
-  ];
-}
-/** The source menu's short label for its current choice. */
-export function memorySourceLabel(source: string, sharedOnly: boolean): string {
-  if (source === "") return sharedOnly ? "all shared" : "this machine";
-  return source === "shared" ? "all shared" : `${source.slice(5)} (shared)`;
 }

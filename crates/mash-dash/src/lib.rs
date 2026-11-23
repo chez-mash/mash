@@ -168,7 +168,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
 fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use aide::axum::routing::get_with;
     use contract::reads;
-    open_in::routes(search::routes(router))
+    services::viewing::routes(open_in::routes(search::routes(router)))
         .api_route(
             "/api/health",
             get_with(
@@ -329,10 +329,9 @@ async fn guard(
     let service_path = path == "/api/services" || path.starts_with("/api/services/");
     let session_path = matches!(path, "/api/session" | "/api/session/end");
     // The page and its assets say nothing about history; everything under
-    // /api does, except the build stamp and signing in. Another dashboard
-    // presents the services token instead of a session.
-    let peer =
-        service_path && state.services.has_token() && state.services.authorized(request.headers());
+    // /api does, except the build stamp and signing in. Another dashboard presents
+    // the services token instead, for service routes and the history reads it shows.
+    let peer = services::viewing::is_peer(&state.services, service_path, &request);
     if path.starts_with("/api/")
         && path != "/api/health"
         && !session_path

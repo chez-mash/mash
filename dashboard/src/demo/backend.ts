@@ -348,6 +348,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
     truncated: false,
     shared_error: null,
     shared_only: false,
+    joined: true,
     chats: chats.map((chat) => row(chat, now)),
   }),
   "/api/search": search,
@@ -358,6 +359,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   // The demo's laptop shares nothing, so it has no shared server to read or manage.
   "/api/shared/server": () => ({ admin_key: false, may_change: false }),
   "/api/shared/admin": () => refuse(404, "The demo has no shared server."),
+  "/api/viewing": () => ({ machines: [] }), // the demo's machines are published copies
   "/api/records": recordList,
   "/api/record": (params, now) => {
     const entry = records.find((candidate) => candidate.id === params.get("id"));

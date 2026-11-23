@@ -107,26 +107,3 @@ describe("decisions by chat", () => {
     expect(wire.decisionsByChat([decision("a", ["chat-1"], "withdrawn")]).size).toBe(0);
   });
 });
-
-describe("memory source menu", () => {
-  it("names this machine only when it has an index of its own", () => {
-    expect(wire.memorySources("laptop", false, ["laptop", "desk"], "")).toEqual([
-      { value: "", label: "this machine (laptop)" },
-      { value: "shared", label: "all shared machines" },
-      { value: "node:desk", label: "desk (shared)" },
-    ]);
-    expect(wire.memorySourceLabel("", false)).toBe("this machine");
-  });
-
-  it("in shared-only mode offers the shared machines, its own published copy included", () => {
-    const sources = wire.memorySources("laptop", true, ["laptop", "desk"], "");
-    expect(sources).toEqual([
-      { value: "", label: "all shared machines" },
-      { value: "node:laptop", label: "laptop (shared)" },
-      { value: "node:desk", label: "desk (shared)" },
-    ]);
-    expect(sources.some((source) => source.label.includes("this machine"))).toBe(false);
-    expect(wire.memorySourceLabel("", true)).toBe("all shared");
-    expect(wire.memorySourceLabel("node:desk", true)).toBe("desk (shared)");
-  });
-});

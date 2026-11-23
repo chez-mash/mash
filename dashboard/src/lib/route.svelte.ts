@@ -1,4 +1,6 @@
 // Hash routes keep the static bundle servable from any path: #/ and #/chat/<id>.
+import { withoutScope } from "./scope.svelte";
+
 export type Route =
   | { readonly page: "overview" }
   /** Chats and search share one page: an empty query lists chats. */
@@ -58,7 +60,9 @@ function segment(hash: string, prefix: string): string | undefined {
   return value ? decodeURIComponent(value) : undefined;
 }
 
-export function parseRoute(hash: string): Route {
+export function parseRoute(address: string): Route {
+  // The viewing scope applies to every page, so no page reads it as its own.
+  const hash = withoutScope(address);
   if (hash === "" || hash === "#" || hash === "#/") return { page: "overview" };
   try {
     if (hash in plain) return plain[hash as keyof typeof plain];

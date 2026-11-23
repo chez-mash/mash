@@ -24,6 +24,7 @@ import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelt
 import { updates } from "../lib/updates.svelte";
 import AgentMark from "./AgentMark.svelte";
 import CheckUpdates from "./CheckUpdates.svelte";
+import ViewingSwitcher from "./ViewingSwitcher.svelte";
 
 let { open, close }: { open: boolean; close: () => void } = $props();
 const client = useQueryClient();
@@ -307,8 +308,11 @@ function arrows(event: KeyboardEvent, id: Section): void {
         </div>
       {/if}
     {/each}
-    <div class="status" style:margin-top="auto" style:padding-top="14px">
-      {#if catalogue.data}{catalogue.data.localNode} / {chats.length.toLocaleString()} chats{:else if catalogue.error}history unavailable{:else}loading…{/if}
+    <!-- data-chats keeps the chat lists above in use while every section is
+         folded: read for the first time inside a section opened later, they
+         kept the empty list from before the catalogue arrived. -->
+    <div class="status" style:margin-top="auto" style:padding-top="14px" data-chats={chats.length}>
+      {#if catalogue.error}history unavailable{:else}<ViewingSwitcher />{/if}
       <span style:display="flex" style:margin-top="6px"><CheckUpdates checking={updates.checking} check={() => updates.check(client)} /></span>
     </div>
   </nav>
