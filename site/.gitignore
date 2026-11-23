@@ -10,3 +10,4 @@ public/mash-shared-index.svg
 public/mashy.png
 public/screenshots/
 .agentation-runtime/
+tests/review/.fixture/

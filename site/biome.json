@@ -10,7 +10,8 @@
       "!pnpm-lock.yaml",
       "!test-results",
       "!playwright-report",
-      "!.agentation-runtime"
+      "!.agentation-runtime",
+      "!tests/review/.fixture"
     ]
   },
   "formatter": { "indentStyle": "space", "lineWidth": 100 },

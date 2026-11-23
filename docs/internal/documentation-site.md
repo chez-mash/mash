@@ -196,10 +196,11 @@ toolbar keep the note:
 
 Both live in `agentation-review`: `site/src/agentation.ts` adds its
 `holdReloadsWhileDrafting()` Vite plugin and mounts the toolbar with
-`import.meta.hot`. `pnpm test:review` in `site/` checks them in Chromium
-against its own dev server on port 4339, with a six-second hold and the
-review services answered in the browser, so it does not disturb a running
-review.
+`import.meta.hot`. `pnpm test:review` in `site/` checks them in Chromium: it
+serves the one-page site in `site/tests/review/fixture/` from a fresh copy on
+port 4339, with a six-second hold, edits only that copy, and answers the
+review services in the browser. It never changes a file under `site/src` and
+sends no notes, so a running review is not reloaded.
 
 On Xenia the review is also served on the tailnet, for a phone or laptop,
 at `https://xenia.taild75e12.ts.net:8449/`, by this one-time setting:

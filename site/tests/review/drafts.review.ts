@@ -1,17 +1,23 @@
-import { utimes } from "node:fs/promises";
+import { readFile, utimes, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { expect, type Page, test } from "@playwright/test";
 import { holdMs } from "../../playwright.review.config.ts";
 
-// Touching a component the docs pages render makes Astro send a full reload,
-// as a review worker's edit would. Only the modification time changes.
-const component = fileURLToPath(new URL("../../src/components/Footer.astro", import.meta.url));
+// The fixture copy the dev server serves (see playwright.review.config.ts).
+// Touching its component makes Astro send a full reload, as a review worker's
+// edit would; changing its style is a CSS hot update.
+const component = fileURLToPath(new URL(".fixture/src/components/Note.astro", import.meta.url));
 // Long enough for the dev server to notice the change and send its reload.
 const settleMs = 2500;
 
 async function touchComponent(): Promise<void> {
   const now = new Date();
   await utimes(component, now, now);
+}
+
+async function recolourComponent(colour: string): Promise<void> {
+  const source = await readFile(component, "utf8");
+  await writeFile(component, source.replace(/color: [^;]+;/, `color: ${colour};`));
 }
 
 // Answer the review supervisor so the toolbar mounts, and refuse the sync
@@ -40,7 +46,7 @@ const noteText = (page: Page) => popup(page).locator("textarea");
 
 async function openNote(page: Page, text: string): Promise<void> {
   await page.locator('[data-agentation-toolbar] > [role="button"]').click();
-  await page.locator("main h1").click();
+  await page.locator(".note").click();
   await expect(noteText(page)).toBeFocused();
   await noteText(page).pressSequentially(text);
 }
@@ -50,9 +56,9 @@ async function openNote(page: Page, text: string): Promise<void> {
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
   await stubReviewServices(page);
-  await page.goto("/backup/");
+  await page.goto("/");
   await page.waitForTimeout(5000);
-  await page.goto("/backup/");
+  await page.goto("/");
   await expect(page.locator('[data-agentation-toolbar] > [role="button"]')).toBeVisible();
   await page.close();
 });
@@ -62,7 +68,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("a full reload waits until the open note is added", async ({ page }) => {
-  await page.goto("/backup/");
+  await page.goto("/");
   const loads = countLoads(page);
   await openNote(page, "Half-typed note");
 
@@ -79,7 +85,7 @@ test("a full reload waits until the open note is added", async ({ page }) => {
 });
 
 test("reloading the page reopens the note on the same element", async ({ page }) => {
-  await page.goto("/backup/");
+  await page.goto("/");
   await openNote(page, "Typed before the reload");
   const header = await popup(page).textContent();
 
@@ -95,7 +101,7 @@ test("reloading the page reopens the note on the same element", async ({ page })
 });
 
 test("a forgotten note releases the held reload after the timeout", async ({ page }) => {
-  await page.goto("/backup/");
+  await page.goto("/");
   const loads = countLoads(page);
   await openNote(page, "Left open");
   const typedAt = Date.now();
@@ -108,8 +114,41 @@ test("a forgotten note releases the held reload after the timeout", async ({ pag
   await expect(noteText(page), "the note survives the reload").toHaveValue("Left open");
 });
 
+test("style updates still apply while a note is open", async ({ page }) => {
+  await page.goto("/");
+  const loads = countLoads(page);
+  await openNote(page, "Watching the colour");
+  await recolourComponent("rgb(200, 0, 0)");
+  await expect(page.locator(".note")).toHaveCSS("color", "rgb(200, 0, 0)");
+  await page.waitForTimeout(settleMs);
+  expect(loads(), "a style update does not reload the page").toBe(0);
+  await expect(noteText(page)).toHaveValue("Watching the colour");
+});
+
+// Seen on the live review: a style hot update whose module fails to load
+// ("Importing a module script failed" in Safari). Vite's client logs the
+// failure, and any full reload the server sends after it is held.
+test("a failed style update does not reload the page while a note is open", async ({ page }) => {
+  await page.goto("/");
+  const loads = countLoads(page);
+  await openNote(page, "Despite a failed update");
+  let failedUpdates = 0;
+  await page.route(/Note\.astro\?t=\d+&astro&type=style/, (route) => {
+    failedUpdates += 1;
+    return route.abort();
+  });
+  await recolourComponent("rgb(0, 0, 200)");
+  await expect.poll(() => failedUpdates, { message: "the style update was attempted" }).toBe(1);
+  await touchComponent();
+  await page.waitForTimeout(settleMs);
+  expect(loads(), "the page is not reloaded").toBe(0);
+  await expect(noteText(page)).toHaveValue("Despite a failed update");
+  await popup(page).getByRole("button", { name: "Cancel" }).click();
+  await expect.poll(loads, { message: "the held reload follows the cancelled note" }).toBe(1);
+});
+
 test("without an open note, the reload is not held", async ({ page }) => {
-  await page.goto("/backup/");
+  await page.goto("/");
   await expect(page.locator('[data-agentation-toolbar] > [role="button"]')).toBeVisible();
   const loads = countLoads(page);
   await touchComponent();
