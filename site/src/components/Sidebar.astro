@@ -1,0 +1,24 @@
+---
+// Starlight's sidebar with the phone menu's links and language picker first.
+// On a phone the sidebar is the whole menu, and Starlight puts these controls
+// after every guide, where a visitor would have to scroll past thirty entries
+// to reach them. From 50rem wide the header holds them and this block hides.
+import MobileMenuFooter from "@astrojs/starlight/components/MobileMenuFooter.astro";
+import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
+import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
+
+const { sidebar } = Astro.locals.starlightRoute;
+---
+
+<div class="mash-menu-top md:sl-hidden"><MobileMenuFooter /></div>
+
+<SidebarPersister><SidebarSublist sublist={sidebar} /></SidebarPersister>
+
+<style>
+  /* The controls lead the menu, so their rule sits under them. */
+  .mash-menu-top :global(.mobile-preferences) {
+    padding-block: 0 0.5rem;
+    border-top: 0;
+    border-bottom: var(--border-divider);
+  }
+</style>

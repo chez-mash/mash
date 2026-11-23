@@ -2,7 +2,7 @@
 // Starlight's header, plus a menu for pages without a sidebar (the landing
 // page and the guides directory) on a phone, where the header's links and
 // language picker do not fit. Docs pages keep Starlight's own menu
-// button, which opens the sidebar with the same controls at its foot.
+// button, which opens the sidebar with the same controls at its top.
 import Default from "@astrojs/starlight/components/Header.astro";
 import LanguageSelect from "@astrojs/starlight/components/LanguageSelect.astro";
 import SocialIcons from "./SocialIcons.astro";
@@ -93,12 +93,14 @@ const { hasSidebar } = Astro.locals.starlightRoute;
   document.addEventListener("click", async (event) => {
     const button = event.target instanceof Element ? event.target.closest("button[data-copy]") : null;
     if (!(button instanceof HTMLButtonElement)) return;
-    const label = button.textContent;
+    // A button with an icon keeps it and changes only its label.
+    const target = button.querySelector("[data-label]") ?? button;
+    const label = target.textContent;
     try {
       await navigator.clipboard.writeText(button.dataset.copy ?? "");
-      button.textContent = button.dataset.copied ?? "Copied";
+      target.textContent = button.dataset.copied ?? "Copied";
       setTimeout(() => {
-        button.textContent = label;
+        target.textContent = label;
       }, 2000);
     } catch {
       // Without clipboard access, select the words so they can be copied by hand.

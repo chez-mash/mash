@@ -72,3 +72,63 @@ test("why Mash shows each feature and the agent list uses tiles and pills", asyn
     first.getByRole("row", { name: /^Claude Code/ }).locator(".mash-pill.ok"),
   ).toHaveText("Yes");
 });
+
+test("the guides tip opens search and names the shortcut for the platform", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/guides/");
+  const tip = page.getByRole("button", { name: "Search the docs" });
+  await expect(tip.locator("kbd")).toHaveText(/^(Ctrl K|⌘ K)$/);
+  await tip.click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("dialog").locator("input").first()).toBeFocused();
+});
+
+test("a missing page explains itself and offers search, home and the docs", async ({ page }) => {
+  await page.goto("/no-such-guide/");
+  await expect(page.locator("h1")).toHaveText("Page not found");
+  await expect(page.locator(".mash-hero")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Search the docs" })).toBeVisible();
+  const actions = page.locator(".mash-missing");
+  await expect(actions.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+  await expect(actions.getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/guides/");
+});
+
+test("every code window has the same copy button inside its title bar", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/quick-start/");
+  const frame = page.locator(".expressive-code .frame.has-title").first();
+  const bar = await frame.locator(".header").boundingBox();
+  const copy = await frame.locator(".copy button").boundingBox();
+  expect(bar && copy && copy.y + copy.height <= bar.y + bar.height).toBe(true);
+  // A Windows shell's window has no Mac window dots.
+  const windows = page.locator(".expressive-code .frame:has(pre[data-language='powershell'])");
+  const dots = await windows
+    .first()
+    .locator(".header")
+    .evaluate((header) => getComputedStyle(header, "::before").display);
+  expect(dots).toBe("none");
+  // The prompt's copy button matches the code windows': same height, corners
+  // and lettering (a code window's word is drawn in its ::before).
+  const prompt = page.getByRole("button", { name: "Copy the prompt for your agent" }).first();
+  const code = frame.locator(".copy button");
+  const style = (element: Element, part: string | null) => {
+    const { height, borderRadius, fontSize, fontWeight } = getComputedStyle(element);
+    const word = getComputedStyle(element, part);
+    return [
+      height,
+      borderRadius,
+      part ? word.fontSize : fontSize,
+      part ? word.fontWeight : fontWeight,
+    ];
+  };
+  expect(await prompt.evaluate(style, null)).toEqual(await code.evaluate(style, "::before"));
+});
+
+test("on a phone the docs menu starts with the links and the language picker", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/quick-start/");
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  const menu = page.locator("nav.sidebar");
+  await expect(menu.getByRole("link", { name: "Try the demo" })).toBeInViewport();
+  await expect(menu.locator("starlight-lang-select")).toBeInViewport();
+});
