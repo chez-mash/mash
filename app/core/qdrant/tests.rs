@@ -196,20 +196,53 @@ impl FakeSupervisor {
     }
 }
 
-fn free_ports() -> Ports {
-    let port = || {
-        std::net::TcpListener::bind("127.0.0.1:0")
+/// Ports a fixture owns until it is dropped.
+///
+/// Binding port 0 and letting it go is not enough: nextest runs every test in
+/// its own process at once, and the system can hand the released port to
+/// another test's server before Mash's port check runs, which then reports it
+/// in use. So ports come from below the system's ephemeral range (32768 and
+/// up on Linux), which nothing is handed by chance, and each is held with a
+/// lock file that the suite's other processes respect.
+struct PortLease {
+    _locks: Vec<mash_model::file_lock::FileLock>,
+}
+
+fn free_ports() -> (Ports, PortLease) {
+    let folder = std::env::temp_dir().join("mash-qdrant-test-ports");
+    std::fs::create_dir_all(&folder).unwrap();
+    let seed = std::process::id() as usize
+        ^ std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .local_addr()
-            .unwrap()
-            .port()
-    };
-    let http = port();
-    let mut grpc = port();
-    while grpc == http {
-        grpc = port();
+            .subsec_nanos() as usize;
+    let mut locks = Vec::new();
+    let mut ports = Vec::new();
+    for offset in 0..12_000 {
+        let port = u16::try_from(20_000 + (seed + offset * 7) % 12_000).unwrap();
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .write(true)
+            .open(folder.join(format!("{port}.lock")))
+            .unwrap();
+        let Some(lock) = mash_model::file_lock::FileLock::try_exclusive(file).unwrap() else {
+            continue;
+        };
+        if std::net::TcpListener::bind(("127.0.0.1", port)).is_err() {
+            continue;
+        }
+        locks.push(lock);
+        ports.push(port);
+        if ports.len() == 2 {
+            let ports = Ports {
+                http: ports[0],
+                grpc: ports[1],
+            };
+            return (ports, PortLease { _locks: locks });
+        }
     }
-    Ports { http, grpc }
+    panic!("no two free test ports between 20000 and 32000");
 }
 
 fn config(ports: Ports) -> crate::config::QdrantConfig {
@@ -262,6 +295,7 @@ fn layout(home: &Path, platform: Platform) -> Layout {
 struct Fixture {
     home: tempfile::TempDir,
     ports: Ports,
+    _held: PortLease,
     server: ReleaseServer,
     fake: Arc<FakeSupervisor>,
     host: Host,
@@ -269,7 +303,7 @@ struct Fixture {
 
 async fn fixture(serve: Serve, asset: Asset) -> Fixture {
     let home = tempfile::tempdir().unwrap();
-    let ports = free_ports();
+    let (ports, held) = free_ports();
     let server = release_server(serve).await;
     let fake = FakeSupervisor::new(ports);
     let host = Host {
@@ -285,6 +319,7 @@ async fn fixture(serve: Serve, asset: Asset) -> Fixture {
     Fixture {
         home,
         ports,
+        _held: held,
         server,
         fake,
         host,
