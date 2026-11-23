@@ -126,7 +126,8 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
         .center()
         // Mash has one theme, the light one, so the title bar is light too.
-        .theme(Some(Theme::Light))
+        // On macOS that is set on this window alone (see light_title_bar).
+        .theme((!cfg!(target_os = "macos")).then_some(Theme::Light))
         .initialization_script(window_script())
         .on_navigation(move |url| navigate(&navigation, url, false))
         .on_new_window(move |url, features| {
@@ -143,6 +144,8 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
     let window = app
         .get_webview_window(WINDOW)
         .ok_or(tauri::Error::WindowNotFound)?;
+    #[cfg(target_os = "macos")]
+    light_title_bar(&window);
     let hidden = window.clone();
     let quitting = app.clone();
     window.on_window_event(move |event| match event {
@@ -163,6 +166,28 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         _ => {}
     });
     Ok(())
+}
+
+/// Give the main window the light appearance, and only that window. Tauri's
+/// window theme sets the whole app's appearance on macOS, which would also
+/// turn the search panel and the app's notices light in dark mode; the panel
+/// follows the system, as macOS's own menu bar extras do.
+#[cfg(target_os = "macos")]
+fn light_title_bar(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::{NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSWindow};
+    let target = window.clone();
+    let _ = window.run_on_main_thread(move || {
+        let Ok(pointer) = target.ns_window() else {
+            return;
+        };
+        // SAFETY: Tauri hands out the window's live NSWindow, and this runs
+        // on the main thread, where AppKit may be used.
+        unsafe {
+            let ns_window = &*pointer.cast::<NSWindow>();
+            let appearance = NSAppearance::appearanceNamed(NSAppearanceNameAqua);
+            ns_window.setAppearance(appearance.as_deref());
+        }
+    });
 }
 
 /// The window's size when the screen has room, and its smallest size, in
@@ -273,7 +298,7 @@ fn follow(app: &AppHandle, link: &str) {
         return;
     };
     if route == "#/quick" {
-        menubar::toggle(app, menubar::Placement::Centre);
+        menubar::toggle(app, menubar::Placement::MenuBar);
         return;
     }
     open_route(app, &route);

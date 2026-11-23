@@ -86,8 +86,14 @@ development build works.
 The app lives in the menu bar (`src-tauri/src/menubar.rs`). Clicking its icon
 drops a search panel down under it; right-clicking opens a native menu
 (Search Mash…, Open Mash, Settings…, Install Command-Line Tool…, Quit Mash);
-⌥⇧Space (Alt+Shift+Space) shows the same panel in the upper middle of the
-screen, and so does `mash://quick`. ⌥Space is left to launchers such as
+⌥⇧Space (Alt+Shift+Space) and `mash://quick` drop the same panel from the
+same icon, like a menu bar extra; it never appears mid-screen. When the icon
+is on no screen (a menu bar manager such as Ice or Bartender hides it off
+screen, or the system gives no position), the panel drops from the top right
+of the screen with the pointer. Positions are physical pixels in the
+desktop's one coordinate space, so the screen showing the icon, and its own
+scale, are found by containment; the panel stays inside that screen's work
+area, and rises above an icon in a taskbar at the bottom of the screen. ⌥Space is left to launchers such as
 Raycast and Alfred, and the shortcut is registered after start so an app that
 already holds it costs only the shortcut. The tray menu names only shortcuts
 that work: the global one, and on macOS ⌘, and ⌘Q, which the app menu
@@ -114,7 +120,14 @@ the panel; the only Tauri permission the panel has is hiding its own window
 (`capabilities/quick.json`). It hides whenever it loses focus, and it is on
 every desktop (Space). The window is
 transparent, for its rounded edge, on macOS and Windows only: Linux desktops
-without a compositor paint a transparent window black. Showing it over
+without a compositor paint a transparent window black. On macOS the window is
+drawn on the system's popover material (a Tauri window effect) and the page,
+told so by `window.__MASH_PANEL_MATERIAL__`, uses the translucent
+`--native-surface-material`, so the panel looks like a menu bar extra in
+light and dark. Tauri's window theme sets the appearance of the whole app on
+macOS, so the main window's light title bar is set on that NSWindow alone
+(`light_title_bar` in `lib.rs`); otherwise the panel and the app's notices
+would stay light in dark mode. Showing it over
 another app's full-screen window on macOS would need a non-activating panel,
 which Tauri does not offer, so that is not attempted.
 

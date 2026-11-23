@@ -32,6 +32,10 @@ import { type Status, statusOptions } from "../lib/status";
 // before anything is typed. It looks like the operating system, not like the
 // dashboard; its colours are the theme's native roles.
 const desktop = inDesktopApp();
+// The desktop app on macOS draws the panel's window on the system's blurred
+// popover material, and says so before the page loads (menubar.rs).
+const material =
+  (globalThis as { __MASH_PANEL_MATERIAL__?: unknown }).__MASH_PANEL_MATERIAL__ === true;
 const keys = quickKeys(browserPlatform());
 const catalogue = createQuery(() => catalogOptions);
 let text = $state("");
@@ -168,7 +172,7 @@ function keydown(event: KeyboardEvent): void {
 <!-- Shown again from the menu bar, the panel is ready to type into. -->
 <svelte:window onfocus={shown} onkeydown={closeOnEscape} onpointerdown={pointerdown} />
 
-<div class="quick" role="search">
+<div class="quick" class:material role="search">
   <label class="q-field">
     <SearchIcon size={17} aria-hidden="true" />
     <span class="sr-only">Search Mash</span>
@@ -249,15 +253,18 @@ function keydown(event: KeyboardEvent): void {
     border-radius: var(--native-radius-panel);
     background: var(--native-surface);
     color: var(--native-text);
-    font: 13px / 1.35 var(--type-native);
+    font: 13px / 1.3 var(--type-native);
+  }
+  .quick.material {
+    background: var(--native-surface-material);
   }
   .q-field {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: none;
-    height: 46px;
-    padding: 0 14px;
+    height: 40px;
+    padding: 0 12px;
     border-bottom: 1px solid var(--native-line);
     color: var(--native-muted);
   }
@@ -268,7 +275,7 @@ function keydown(event: KeyboardEvent): void {
     outline: 0;
     background: none;
     color: var(--native-text);
-    font: 17px var(--type-native);
+    font: 15px var(--type-native);
   }
   .q-field small,
   .q-age,
@@ -282,10 +289,10 @@ function keydown(event: KeyboardEvent): void {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 6px;
+    padding: 4px 5px;
   }
   h2 {
-    margin: 4px 10px;
+    margin: 3px 8px 2px;
     font-size: 11px;
     font-weight: 600;
   }
@@ -297,8 +304,8 @@ function keydown(event: KeyboardEvent): void {
   .q-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
+    gap: 9px;
+    padding: 5px 8px;
     border-radius: var(--native-radius-row);
     color: var(--native-text);
     text-decoration: none;
@@ -341,7 +348,7 @@ function keydown(event: KeyboardEvent): void {
     text-overflow: ellipsis;
   }
   .q-title {
-    font-weight: 600;
+    font-weight: 500;
   }
   .q-passage {
     font-size: 12px;
@@ -367,10 +374,10 @@ function keydown(event: KeyboardEvent): void {
     align-items: center;
     justify-content: space-between;
     flex: none;
-    height: 34px;
-    padding: 0 8px 0 14px;
+    height: 28px;
+    padding: 0 6px 0 12px;
     border-top: 1px solid var(--native-line);
-    font-size: 12px;
+    font-size: 11px;
   }
   footer a,
   .q-note a,
@@ -417,7 +424,7 @@ function keydown(event: KeyboardEvent): void {
   .q-menu {
     position: absolute;
     right: 6px;
-    bottom: 30px;
+    bottom: 25px;
     display: flex;
     flex-direction: column;
     min-width: 180px;

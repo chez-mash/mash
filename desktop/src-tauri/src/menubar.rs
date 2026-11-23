@@ -1,6 +1,6 @@
 //! Mash in the menu bar: an icon whose click drops the quick search panel
 //! down under it, a native menu on right-click, and a global shortcut that
-//! shows the same panel mid-screen.
+//! drops the same panel from the same place, like a menu bar extra.
 //!
 //! The panel is a page of the dashboard (`#/quick`) in a second, borderless
 //! window, so its search, results and links are the dashboard's own; this
@@ -12,24 +12,33 @@ use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, Rect, Url, WebviewUrl, WebviewWindowBuilder, WindowEvent,
+    AppHandle, Manager, Monitor, PhysicalPosition, Rect, Url, WebviewUrl, WebviewWindowBuilder,
+    WindowEvent,
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 /// The panel window's label.
 pub const PANEL: &str = "quick";
-/// The panel's size in logical pixels.
-const PANEL_SIZE: (f64, f64) = (440.0, 420.0);
+/// The panel's size in logical pixels: room for the search field, five
+/// chats and a footer, about the size of a menu bar extra.
+const PANEL_SIZE: (f64, f64) = (380.0, 305.0);
+/// The space between the panel and the menu bar or the screen's edge, in
+/// logical pixels.
+const GAP: f64 = 6.0;
 /// The shortcut that shows the panel from anywhere. ⌥Space is left to the
 /// launchers (Spotlight's neighbours Raycast and Alfred use it by default).
 pub const SHORTCUT: &str = "Alt+Shift+Space";
 
-/// Where the panel appears.
+/// Where the panel appears. It always drops down from the menu bar icon.
 pub enum Placement {
-    /// Under the menu bar icon at this rectangle.
+    /// Under the icon at this rectangle, which was just clicked.
     Under(Rect),
-    /// In the upper middle of the screen, like Spotlight.
-    Centre,
+    /// Under the icon wherever it is now, for the shortcut and the menus.
+    /// When the icon is on no screen (a menu bar manager such as Ice or
+    /// Bartender has hidden it, or the system does not say where it is), the
+    /// panel drops down from the top right of the screen with the pointer,
+    /// where menu bar icons live.
+    MenuBar,
 }
 
 /// The global shortcut plugin, whose shortcut is registered once the app is
@@ -39,7 +48,7 @@ pub fn shortcut_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri_plugin_global_shortcut::Builder::new()
         .with_handler(|app, _shortcut, event| {
             if event.state == ShortcutState::Pressed {
-                toggle(app, Placement::Centre);
+                toggle(app, Placement::MenuBar);
             }
         })
         .build()
@@ -141,7 +150,7 @@ fn app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 /// Act on a choice from the tray menu or the app menu.
 pub fn choose(app: &AppHandle, id: &str) {
     match id {
-        "search" => toggle(app, Placement::Centre),
+        "search" => toggle(app, Placement::MenuBar),
         "open" => crate::open_route(app, "#/"),
         "settings" => crate::open_route(app, "#/settings"),
         "command-line" => crate::cli::install(app),
@@ -158,7 +167,7 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
         return panel.navigate(page);
     }
     let navigation = app.clone();
-    let window = WebviewWindowBuilder::new(app, PANEL, WebviewUrl::External(page))
+    let builder = WebviewWindowBuilder::new(app, PANEL, WebviewUrl::External(page))
         .title("Search Mash")
         .inner_size(PANEL_SIZE.0, PANEL_SIZE.1)
         .resizable(false)
@@ -174,8 +183,19 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
         .skip_taskbar(true)
         .visible(false)
         .initialization_script(crate::window_script())
-        .on_navigation(move |url| crate::navigate(&navigation, url, true))
-        .build()?;
+        .initialization_script(PANEL_SCRIPT)
+        .on_navigation(move |url| crate::navigate(&navigation, url, true));
+    // On macOS the panel is drawn on the system's popover material, which
+    // blurs what is behind it and follows light and dark like a menu bar
+    // extra; the page leaves its background translucent to let it through.
+    #[cfg(target_os = "macos")]
+    let builder = builder.effects(tauri::utils::config::WindowEffectsConfig {
+        effects: vec![tauri::window::Effect::Popover],
+        state: Some(tauri::window::EffectState::Active),
+        radius: Some(PANEL_RADIUS),
+        ..Default::default()
+    });
+    let window = builder.build()?;
     let panel = window.clone();
     window.on_window_event(move |event| {
         if let WindowEvent::Focused(false) = event {
@@ -184,6 +204,19 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
     });
     Ok(())
 }
+
+/// The corner radius of the panel's material, matching the page's
+/// `--native-radius-panel`.
+#[cfg(target_os = "macos")]
+const PANEL_RADIUS: f64 = 12.0;
+
+/// Tells the panel's page that the window behind it is the system material
+/// (QuickSearch.svelte makes its background translucent only then).
+const PANEL_SCRIPT: &str = if cfg!(target_os = "macos") {
+    "window.__MASH_PANEL_MATERIAL__ = true;"
+} else {
+    ""
+};
 
 /// Show the panel where `placement` says, or hide it if it is already showing.
 /// Before the engine is ready there is no panel yet, so the main window, with
@@ -197,7 +230,7 @@ pub fn toggle(app: &AppHandle, placement: Placement) {
         let _ = panel.hide();
         return;
     }
-    if let Some(position) = position(&panel, &placement) {
+    if let Some(position) = position(app, &panel, &placement) {
         let _ = panel.set_position(position);
     }
     let _ = panel.show();
@@ -220,39 +253,87 @@ pub fn hide(app: &AppHandle) {
     }
 }
 
-fn position(panel: &tauri::WebviewWindow, placement: &Placement) -> Option<PhysicalPosition<i32>> {
-    let monitor = match placement {
-        Placement::Under(rect) => {
-            let point = rect.position.to_physical::<f64>(1.0);
-            panel.monitor_from_point(point.x, point.y).ok().flatten()
+/// Where the panel goes: centred under the menu bar icon, on the screen that
+/// shows the icon, kept inside that screen's work area (the screen less its
+/// menu bar and dock or taskbar).
+///
+/// Every rectangle here is in physical pixels in the desktop's one coordinate
+/// space, as both the tray and the monitors report them, so a menu bar on a
+/// second screen with its own scale finds its own screen and its own scale.
+fn position(
+    app: &AppHandle,
+    panel: &tauri::WebviewWindow,
+    placement: &Placement,
+) -> Option<PhysicalPosition<i32>> {
+    let icon = match placement {
+        Placement::Under(rect) => Some(*rect),
+        Placement::MenuBar => app
+            .tray_by_id("mash")
+            .and_then(|tray| tray.rect().ok().flatten()),
+    };
+    let monitors = panel.available_monitors().ok()?;
+    let primary_scale = panel
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .map_or(1.0, |monitor| monitor.scale_factor());
+    // The tray reports physical pixels; a logical rectangle is read at the
+    // main screen's scale, the best guess available.
+    let icon = icon.map(|rect| {
+        let at = rect.position.to_physical::<f64>(primary_scale);
+        let size = rect.size.to_physical::<f64>(primary_scale);
+        Area {
+            x: at.x,
+            y: at.y,
+            width: size.width,
+            height: size.height,
         }
-        Placement::Centre => panel.primary_monitor().ok().flatten(),
-    }?;
+    });
+    let showing = icon.as_ref().and_then(|icon| {
+        let (x, y) = (icon.x + icon.width / 2.0, icon.y + icon.height / 2.0);
+        monitors
+            .iter()
+            .find(|monitor| screen(monitor).contains(x, y))
+    });
+    let (monitor, icon) = match showing {
+        Some(monitor) => (monitor.clone(), icon),
+        None => {
+            let cursor = app.cursor_position().ok();
+            let pointed = cursor.and_then(|at| panel.monitor_from_point(at.x, at.y).ok().flatten());
+            (
+                pointed.or_else(|| panel.primary_monitor().ok().flatten())?,
+                None,
+            )
+        }
+    };
     let scale = monitor.scale_factor();
+    let area = work_area(&monitor);
+    let size = (PANEL_SIZE.0 * scale, PANEL_SIZE.1 * scale);
+    let (x, y) = match icon {
+        Some(icon) => under_icon(&icon, size, &area, GAP * scale),
+        None => top_right(size, &area, GAP * scale),
+    };
+    #[allow(clippy::cast_possible_truncation)]
+    Some(PhysicalPosition::new(x.round() as i32, y.round() as i32))
+}
+
+fn screen(monitor: &Monitor) -> Area {
+    Area {
+        x: f64::from(monitor.position().x),
+        y: f64::from(monitor.position().y),
+        width: f64::from(monitor.size().width),
+        height: f64::from(monitor.size().height),
+    }
+}
+
+fn work_area(monitor: &Monitor) -> Area {
     let area = monitor.work_area();
-    let screen = Area {
+    Area {
         x: f64::from(area.position.x),
         y: f64::from(area.position.y),
         width: f64::from(area.size.width),
         height: f64::from(area.size.height),
-    };
-    let panel_size = (PANEL_SIZE.0 * scale, PANEL_SIZE.1 * scale);
-    let (x, y) = match placement {
-        Placement::Under(rect) => {
-            let at = rect.position.to_physical::<f64>(scale);
-            let size = rect.size.to_physical::<f64>(scale);
-            let icon = Area {
-                x: at.x,
-                y: at.y,
-                width: size.width,
-                height: size.height,
-            };
-            under_icon(&icon, panel_size, &screen, 6.0 * scale)
-        }
-        Placement::Centre => upper_middle(panel_size, &screen),
-    };
-    #[allow(clippy::cast_possible_truncation)]
-    Some(PhysicalPosition::new(x.round() as i32, y.round() as i32))
+    }
 }
 
 /// A rectangle in physical pixels.
@@ -263,28 +344,51 @@ struct Area {
     height: f64,
 }
 
-/// Centred under the icon, `gap` below it, kept on the screen's work area.
-fn under_icon(icon: &Area, (width, _height): (f64, f64), screen: &Area, gap: f64) -> (f64, f64) {
+impl Area {
+    fn contains(&self, x: f64, y: f64) -> bool {
+        (self.x..self.x + self.width).contains(&x) && (self.y..self.y + self.height).contains(&y)
+    }
+}
+
+/// Centred under the icon, `gap` below it, kept inside the screen's work
+/// area. A taskbar at the bottom of the screen (Windows, some Linux desktops)
+/// puts its icons below the work area, so there the panel rises above the
+/// icon instead.
+fn under_icon(icon: &Area, (width, height): (f64, f64), screen: &Area, gap: f64) -> (f64, f64) {
     let centred = icon.x + icon.width / 2.0 - width / 2.0;
-    let x = centred.clamp(
+    let x = clamp(
+        centred,
         screen.x + gap,
-        (screen.x + screen.width - width - gap).max(screen.x + gap),
+        screen.x + screen.width - width - gap,
     );
-    let y = (icon.y + icon.height + gap).max(screen.y + gap);
+    let below = icon.y + icon.height + gap;
+    let y = if below + height > screen.y + screen.height {
+        icon.y - height - gap
+    } else {
+        below
+    };
+    let y = clamp(y, screen.y + gap, screen.y + screen.height - height - gap);
     (x, y)
 }
 
-/// Centred across the screen, a fifth of the way down, where Spotlight sits.
-fn upper_middle((width, _height): (f64, f64), screen: &Area) -> (f64, f64) {
+/// The top right of the screen's work area, where menu bar icons live, for
+/// when the icon itself cannot be found.
+fn top_right((width, _height): (f64, f64), screen: &Area, gap: f64) -> (f64, f64) {
     (
-        screen.x + (screen.width - width) / 2.0,
-        screen.y + screen.height / 5.0,
+        (screen.x + screen.width - width - gap).max(screen.x + gap),
+        screen.y + gap,
     )
+}
+
+/// `value` kept between `low` and `high`, preferring `low` when they cross
+/// (a panel larger than the screen keeps its top left corner on it).
+fn clamp(value: f64, low: f64, high: f64) -> f64 {
+    value.min(high).max(low)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Area, under_icon, upper_middle};
+    use super::{Area, top_right, under_icon};
 
     fn area(x: f64, y: f64, width: f64, height: f64) -> Area {
         Area {
@@ -325,10 +429,22 @@ mod tests {
     }
 
     #[test]
-    fn the_shortcut_shows_it_in_the_upper_middle_of_the_screen() {
+    fn a_bottom_taskbar_puts_the_panel_above_its_icon() {
+        let screen = area(0.0, 0.0, 1920.0, 1040.0);
+        let icon = area(1800.0, 1050.0, 32.0, 30.0);
         assert_eq!(
-            upper_middle((880.0, 840.0), &area(0.0, 50.0, 2880.0, 1700.0)),
-            (1000.0, 390.0)
+            under_icon(&icon, (760.0, 660.0), &screen, 12.0),
+            (1920.0 - 760.0 - 12.0, 1040.0 - 660.0 - 12.0)
+        );
+    }
+
+    #[test]
+    fn without_its_icon_the_panel_drops_from_the_top_right() {
+        // Mash's icon hidden by a menu bar manager: a 1168x755 point Retina
+        // screen whose work area starts under a 24-point menu bar.
+        assert_eq!(
+            top_right((760.0, 660.0), &area(0.0, 48.0, 2336.0, 1364.0), 12.0),
+            (2336.0 - 760.0 - 12.0, 60.0)
         );
     }
 }

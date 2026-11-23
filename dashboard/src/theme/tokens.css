@@ -195,6 +195,9 @@
   --native-scheme: light dark;
   --native-backdrop: transparent;
   --native-surface: Canvas;
+  /* Over the system's blurred popover material (the desktop app on macOS),
+     the panel lets most of the material through, as a menu bar extra does. */
+  --native-surface-material: color-mix(in srgb, Canvas 30%, transparent);
   --native-text: CanvasText;
   --native-muted: GrayText;
   --native-line: color-mix(in srgb, CanvasText 12%, transparent);
