@@ -96,9 +96,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **Agent marks** under the hero are `<img>` logos in ink on ivory tiles
   (`Agents.astro`). Do not draw them as CSS masks through an inline custom
   property: iPhone Safari rendered those tiles empty.
-- **The README snapshots** (`assets/dashboard-demo.svg` and
-  `site/public/welcome/welcome-mashy.svg`) are SVG exports with outlined text
-  from editable Figma frames. Use fictional history from the demo.
+- **The README pictures** are the current light design. The opening picture
+  is `assets/screenshots/dashboard.webp`, taken with the other dashboard
+  pictures below. `assets/mashy-answer.webp` is the landing page's Mashy
+  window, captured from a site build at 2x in the light scheme; capture it
+  again when that window changes. Use fictional history from the demo.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA

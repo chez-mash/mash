@@ -4,6 +4,10 @@
 
 # Mash
 
+**The Multi-Agent Search History Tool**
+
+[Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
+
 Search the chats your coding agents already saved, find the message behind a
 decision, and pick up work in another agent. Mash is open source and self-hosted.
 By default, indexing and search stay on your machine and require no account.
@@ -13,7 +17,7 @@ By default, indexing and search stay on your machine and require no account.
 
 [![Supported agents: Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, Antigravity](assets/supported-agents.svg)](docs/supported-agents.md)
 
-[![Mash dashboard showing the original sign-in decision in a Claude Code conversation](assets/dashboard-demo.svg)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop&message=sign-in-tokens-2)
+[![Mash dashboard showing the original sign-in decision in a Claude Code conversation](assets/screenshots/dashboard.webp)](https://getmash.io/demo/#/chat/sign-in-tokens?node=laptop&message=sign-in-tokens-2)
 
 <span id="why-mash"></span>
 
@@ -48,7 +52,7 @@ By default, indexing and search stay on your machine and require no account.
 <details>
 <summary>See Mashy answer a question</summary>
 
-![Mashy traces a sample checkout outage to a database migration and quotes the source conversation](site/public/welcome/welcome-mashy.svg)
+![Mashy traces a sample checkout outage to a database migration and quotes the source conversation](assets/mashy-answer.webp)
 
 </details>
 
@@ -203,8 +207,6 @@ or [report a security concern privately](SECURITY.md#report-a-vulnerability).
 [Architecture overview](docs/architecture.md) ·
 [Download and verify a release archive](docs/downloads.md).
 To fix a guide, improve a translation, or send a code change, see [Contributing](CONTRIBUTING.md#where-to-start).
-
-[Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
 
 ## Licence
 

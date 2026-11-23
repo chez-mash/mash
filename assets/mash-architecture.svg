@@ -3,9 +3,6 @@
   <desc id="description">On each machine, Mash reads supported agent histories and indexes them into a SQLite chat copy and a Qdrant search index. Optional local embeddings can use a GPU or CPU and feed Qdrant. The dashboard, CLI, and connected agents can read and search the chats. Machines that opt in publish through authenticated connections to a Mash server you run with its own SQLite copies and Qdrant index.</desc>
   <style>
     svg { --background: #f7f3ee; --panel: #fffdfb; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
-    @media (prefers-color-scheme: dark) {
-      svg { --background: #201c18; --panel: #2d2722; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
-    }
     text { fill: var(--text); font: 600 22px system-ui, sans-serif; }
     .detail { fill: var(--quiet); font: 19px system-ui, sans-serif; }
     .outline { stroke: var(--line); stroke-width: 1.5; }

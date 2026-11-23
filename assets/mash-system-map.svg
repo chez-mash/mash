@@ -3,9 +3,6 @@
   <desc id="description">People and agents reach the mash executable through the dashboard, the CLI and the stdio MCP server. All three, and the optional watcher, send typed requests to one application core. The core reads agent histories without writing to them, commits silver SQLite, builds Qdrant views from silver, searches them, and uses local models for embedding and reranking. Optionally it publishes to and searches a mash-server you run, which keeps per-machine silver SQLite and its own Qdrant views. Optional services are a remote GPU embedding worker and the OpenAI-compatible model the dashboard assistant asks.</desc>
   <style>
     svg { --background: #f7f3ee; --panel: #fffdfb; --group: #efe7de; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
-    @media (prefers-color-scheme: dark) {
-      svg { --background: #201c18; --panel: #2d2722; --group: #26211d; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
-    }
     text { fill: var(--text); font: 600 15px system-ui, sans-serif; }
     .title { font-size: 17px; }
     .detail { fill: var(--quiet); font: 13px system-ui, sans-serif; }

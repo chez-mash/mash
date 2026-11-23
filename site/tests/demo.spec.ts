@@ -100,10 +100,10 @@ test("the welcome examples open the checkout source and the cross-agent handoff"
   await expect(page.locator("#message-mobile-keychain-follow-up-1")).toHaveClass(/\bhit\b/);
 });
 
-test("the README dashboard illustration opens the sign-in decision it shows", async ({ page }) => {
+test("the README dashboard picture opens the sign-in decision it shows", async ({ page }) => {
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
-  const link = /\]\(assets\/dashboard-demo\.svg\)\]\(([^)]+)\)/.exec(readme)?.[1];
-  if (!link) throw new Error("Missing README dashboard illustration link");
+  const link = /\]\(assets\/screenshots\/dashboard\.webp\)\]\(([^)]+)\)/.exec(readme)?.[1];
+  if (!link) throw new Error("Missing README dashboard picture link");
   const target = new URL(link);
   expect(target.origin).toBe("https://getmash.io");
   await page.goto(target.pathname + target.hash);

@@ -35,6 +35,13 @@ const shots: readonly Shot[] = [
     prepare: (page) => removeAll(page, "main .card.warn"),
   },
   { name: "overview", route: "#/" },
+  // The README's opening picture: the whole dashboard, rail and logo included,
+  // open at the message where the sign-in decision was made.
+  {
+    name: "dashboard",
+    route: "#/chat/sign-in-tokens?node=laptop&message=sign-in-tokens-2",
+    height: 720,
+  },
   {
     name: "search",
     route: "#/search?q=checkout",

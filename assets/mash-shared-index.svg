@@ -3,9 +3,6 @@
   <desc id="description">Three machines, a laptop, a desktop and a build box, each run several agents. On each machine Mash reads every agent's history into its own local index of SQLite chats and a Qdrant search index, which keeps working offline. Each machine publishes its own index to one Mash server you run, and searches everything the group has published. The server checks each machine's token, keeps a SQLite copy of the chats from each machine, and builds one shared Qdrant search index for the group.</desc>
   <style>
     svg { --background: #f7f3ee; --panel: #fffdfb; --chip: #efe7de; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
-    @media (prefers-color-scheme: dark) {
-      svg { --background: #201c18; --panel: #2d2722; --chip: #26211d; --optional: #39271f; --text: #f8ede3; --quiet: #ddcabe; --line: #ad9a8c; --accent: #f2aa86; }
-    }
     text { fill: var(--text); font: 600 16px system-ui, sans-serif; }
     .title { font-size: 19px; }
     .chip-text { font: 600 12px system-ui, sans-serif; }
