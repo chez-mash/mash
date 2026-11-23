@@ -15,11 +15,14 @@ import { mashy } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
 import { router } from "../lib/route.svelte";
 import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
+import MashyUnset from "./MashyUnset.svelte";
 import MessageBody from "./MessageBody.svelte";
 
-// Mashy is always shown, so people know it exists; without a model to ask,
-// a question is answered with how to set one up.
+// Mashy is always shown, so people know it exists. Without a model to ask,
+// it says so up front, with where to set one up, rather than offering
+// questions it cannot answer.
 const status = createQuery(() => assistantOptions);
+const unset = $derived(status.data?.enabled === false);
 const catalogue = createQuery(() => catalogOptions);
 const route = $derived(router.current);
 // On a chat's page, "this chat" means the one on screen.
@@ -400,7 +403,9 @@ function followed(event: MouseEvent): void {
           <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
         </div>
       {/if}
-      {#if empty}
+      {#if empty && unset}
+        <MashyUnset leave={() => void close()} />
+      {:else if empty}
         <div class="mashy-hello">
           <img src={asset("mashy.png")} alt="" />
           <p>Hi, I’m Mashy. Ask me about anything in your past chats{openChat ? ", or about the chat you have open" : ""}.</p>
@@ -451,7 +456,8 @@ function followed(event: MouseEvent): void {
         autocomplete="off"
         spellcheck="false"
         {...uncorrected}
-        placeholder={mashy.busy ? "Mashy is answering…" : "Ask Mashy about your past chats"}
+        disabled={unset}
+        placeholder={unset ? "Mashy isn’t set up yet" : mashy.busy ? "Mashy is answering…" : "Ask Mashy about your past chats"}
         bind:this={input}
         bind:value={draft}
         oninput={resize}

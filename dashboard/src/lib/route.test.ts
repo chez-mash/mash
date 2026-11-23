@@ -9,6 +9,7 @@ import {
   recordHref,
   recordsHref,
   searchHref,
+  settingsHref,
 } from "./route.svelte";
 
 describe("routes", () => {
@@ -93,6 +94,12 @@ describe("browse pages", () => {
     for (const page of ["projects", "agents", "machines", "console", "settings", "history"])
       expect(parseRoute(`#/${page}`)).toEqual({ page });
   });
+});
+
+it("reads the settings section to show", () => {
+  expect(parseRoute(settingsHref("assistant"))).toEqual({ page: "settings", section: "assistant" });
+  expect(parseRoute("#/settings?")).toEqual({ page: "settings" });
+  expect(settingsHref()).toBe("#/settings");
 });
 
 it("sends the old index status route to services", () => {

@@ -35,22 +35,51 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test("Mashy is shown without a model and says how to set one up", async ({ page }) => {
-  let asked = 0;
-  await page.route("**/api/assistant**", (route) => {
-    if (route.request().method() === "POST") asked++;
-    return route.fulfill({ json: { enabled: false, model: null } });
+for (const editable of [true, false])
+  test(`Mashy says up front that it isn't set up${editable ? "" : " and where to do it"}`, async ({
+    page,
+  }) => {
+    let asked = 0;
+    await page.route("**/api/assistant**", (route) => {
+      if (route.request().method() === "POST") asked++;
+      return route.fulfill({ json: { enabled: false, model: null } });
+    });
+    await page.route("**/api/services/settings", (route) =>
+      route.fulfill({
+        json: {
+          path: "/fixture/config.toml",
+          revision: "r1",
+          editable,
+          agents: {},
+          since_days: null,
+          destination: "local",
+          shared: false,
+          memory_capture: true,
+          hide_credentials: { output: true, publication: true },
+        },
+      }),
+    );
+    await page.goto("/");
+    await expect(page.getByRole("link", { name: /Port decision/ }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Open Mashy" }).click();
+    const mashy = page.getByRole("region", { name: "Mashy" });
+    await expect(mashy.getByText("Mashy isn’t set up yet")).toBeVisible();
+    // No questions are offered that Mashy could not answer.
+    await expect(mashy.locator(".mashy-sugg")).toHaveCount(0);
+    await expect(mashy.getByLabel("Ask Mashy about your past chats")).toBeDisabled();
+    if (editable) {
+      await mashy.getByRole("link", { name: "Set up Mashy in Settings" }).click();
+      await expect(page).toHaveURL(/#\/settings\?section=assistant$/);
+    } else {
+      await expect(mashy).toContainText("doesn’t change settings");
+      await expect(mashy.getByRole("link", { name: "Set up Mashy in Settings" })).toHaveCount(0);
+      await expect(mashy.getByRole("link", { name: "How to set up Mashy" })).toHaveAttribute(
+        "target",
+        "_blank",
+      );
+    }
+    expect(asked).toBe(0);
   });
-  await page.goto("/");
-  await expect(page.getByRole("link", { name: /Port decision/ }).first()).toBeVisible();
-  await page.getByRole("button", { name: "Open Mashy" }).click();
-  await page.getByLabel("Ask Mashy about your past chats").fill("Which port did we pick?");
-  await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("alert")).toContainText("Mashy isn’t set up yet");
-  expect(asked).toBe(0);
-  await page.getByRole("link", { name: "Open Settings" }).click();
-  await expect(page).toHaveURL(/#\/settings$/);
-});
 
 test("Mashy answers about the open chat, links its sources and reports failures", async ({
   page,

@@ -16,7 +16,8 @@ export type Route =
   /** An empty action is the list of fleet actions. */
   | { readonly page: "fleet"; readonly action: string }
   | { readonly page: "console" }
-  | { readonly page: "settings" }
+  /** A section, such as "assistant", is scrolled into view. */
+  | { readonly page: "settings"; readonly section?: string }
   /** First-run setup: the questions `mash init` asks. */
   | { readonly page: "setup" }
   /** The desktop app's quick search panel, shown alone from the menu bar. */
@@ -62,6 +63,10 @@ export function parseRoute(hash: string): Route {
   try {
     if (hash in plain) return plain[hash as keyof typeof plain];
     if (/^#\/recent\?/.test(hash)) return { page: "search", params: "" };
+    if (/^#\/settings\?/.test(hash)) {
+      const section = query(hash).get("section");
+      return section ? { page: "settings", section } : { page: "settings" };
+    }
     for (const page of ["services", "search", "records", "export"] as const)
       if (new RegExp(`^#/${page}(?:\\?|$)`).test(hash))
         return { page, params: query(hash).toString() };
@@ -103,6 +108,9 @@ export function parseRoute(hash: string): Route {
 
 export function chatHref(id: string, node = "", message = "", shared = false): string {
   return `#/chat/${encodeURIComponent(id)}?${new URLSearchParams({ node, message, ...(shared ? { shared: "true" } : {}) })}`;
+}
+export function settingsHref(section = ""): string {
+  return section ? `#/settings?${new URLSearchParams({ section })}` : "#/settings";
 }
 export function searchHref(filters: Record<string, string> = {}): string {
   const params = new URLSearchParams(filters);

@@ -15,7 +15,6 @@ import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import Wrench from "@lucide/svelte/icons/wrench";
 import X from "@lucide/svelte/icons/x";
 import { createQuery } from "@tanstack/svelte-query";
-import { untrack } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
@@ -174,14 +173,37 @@ const child = $derived.by((): string => {
   return "";
 });
 let expanded = $state<readonly Section[]>([]);
-// Arriving in a section opens it once. After that it is the reader's to
-// collapse, even while one of its pages is the current one.
+// Arriving in a section opens it and folds the others, so the rail keeps to
+// the section the reader is in and its last rows stay in view. While they
+// stay in a section, what they open or close is theirs.
 let arrived = "";
 $effect(() => {
   if (area === arrived) return;
   arrived = area;
-  if (area && expandable.includes(area))
-    expanded = untrack(() => (expanded.includes(area) ? expanded : [...expanded, area]));
+  expanded = area && expandable.includes(area) ? [area] : [];
+});
+// Where the rows are taller than the rail, the list fades at the edge that
+// has more to scroll to, so rows out of sight are not mistaken for none.
+let nav = $state<HTMLElement>();
+let fade = $state({ above: false, below: false });
+function measure(): void {
+  if (!nav) return;
+  const above = nav.scrollTop > 1;
+  const below = nav.scrollHeight - nav.scrollTop - nav.clientHeight > 1;
+  if (above !== fade.above || below !== fade.below) fade = { above, below };
+}
+$effect(() => {
+  const list = nav;
+  if (!list) return;
+  measure();
+  const resized = new ResizeObserver(measure);
+  resized.observe(list);
+  const changed = new MutationObserver(measure);
+  changed.observe(list, { childList: true, subtree: true });
+  return () => {
+    resized.disconnect();
+    changed.disconnect();
+  };
 });
 
 // The reader can drag the edge to set the width, which this browser keeps.
@@ -238,7 +260,7 @@ function toggle(id: Section): void {
   <div class="rail-in">
   <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i aria-hidden="true">_</i></span></a>
   <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
-  <nav class="nav" aria-label="Main">
+  <nav class="nav" class:fade-above={fade.above} class:fade-below={fade.below} aria-label="Main" bind:this={nav} onscroll={measure}>
     {#each offered as section (section.id)}
       {@const on = section.id === area && !child}
       {@const isOpen = expanded.includes(section.id)}

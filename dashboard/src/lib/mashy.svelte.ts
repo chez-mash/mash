@@ -1,6 +1,7 @@
 // The conversation with Mashy. It belongs to this tab: it survives moving
 // between pages, is never saved, and is not part of the indexed history.
 import { type AssistantEvent, answer, ask, type OpenChat, type Turn } from "./assistant";
+import { settingsHref } from "./route.svelte";
 
 export interface Note {
   readonly kind: "partial" | "error" | "stopped";
@@ -66,7 +67,7 @@ class Conversation {
       title: "Mashy isn’t set up yet",
       text: "Mashy answers from your history using a model service you choose, with your own API key. Add one in Settings.",
       retry: false,
-      link: { href: "#/settings", label: "Open Settings" },
+      link: { href: settingsHref("assistant"), label: "Open Settings" },
     };
   }
 

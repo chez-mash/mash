@@ -14,6 +14,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
+import { router } from "../lib/route.svelte";
 import {
   assistantServices,
   type Draft,
@@ -117,6 +118,15 @@ async function saveKey(withService: boolean): Promise<void> {
     keySaving = false;
   }
 }
+// Mashy links here when it is not set up: the assistant section is brought
+// into view once everything above it has loaded, so it does not move after.
+let assistantSection = $state<HTMLElement>();
+$effect(() => {
+  const route = router.current;
+  if (route.page !== "settings" || route.section !== "assistant") return;
+  if (status.isPending || settings.isPending) return;
+  assistantSection?.scrollIntoView({ block: "start" });
+});
 async function save(): Promise<void> {
   if (!file || !draft || saving || blocked || !changed.length) return;
   const count = changed.length;
@@ -198,13 +208,13 @@ async function save(): Promise<void> {
     <p class="card tight warn">Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable"} or run <code class="i">mash init</code> in a terminal{/if}.</p>
   {/if}
   {#if status.data.searchService === "unreachable"}
-    <p class="card tight warn">Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Start or repair the search service</a>.</p>
+    <p class="card tight warn">Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Start or repair the search service</a>.</p>
   {:else if status.data.searchService === "rejected"}
-    <p class="card tight warn">The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>.</p>
+    <p class="card tight warn">The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Check the search service</a>.</p>
   {:else if status.data.nextStep === "index"}
     <p class="card tight warn">Run <code class="i">mash index</code> in a terminal on this machine to update local search.</p>
   {:else if status.data.nextStep === "models install"}
-    <p class="card tight warn">Search by meaning needs local models. Run <code class="i">mash models install</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search">Finish setting up search by meaning</a>.</p>
+    <p class="card tight warn">Search by meaning needs local models. Run <code class="i">mash models install</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
   {/if}
 
   <section class="sec">
@@ -323,10 +333,10 @@ async function save(): Promise<void> {
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec" id="assistant" bind:this={assistantSection}>
         <div class="hd">
           <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
-          <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" style:font-size="12.5px">Set up Mashy</a>
+          <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer" style:font-size="12.5px">Set up Mashy</a>
         </div>
         <div class="card mashy-card set-card">
           {#if file?.assistant && draft?.assistant && file.editable}

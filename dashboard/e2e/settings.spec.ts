@@ -98,10 +98,13 @@ test("word search is ready when optional models are absent", async ({ page }) =>
   await expect(page.getByText("Local search ready", { exact: true })).toBeVisible();
   await expect(page.getByText("not needed for word search", { exact: true })).toBeVisible();
   await expect(page.getByText("mash models install", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Set up Mashy", exact: true })).toHaveAttribute(
+  const guide = page.getByRole("link", { name: "Set up Mashy", exact: true });
+  await expect(guide).toHaveAttribute(
     "href",
     "https://getmash.io/configuration/#the-dashboard-assistant",
   );
+  // Guides open beside the dashboard, like every documentation link here.
+  await expect(guide).toHaveAttribute("target", "_blank");
   await expect(page.getByText("Mashy answers questions about your history.")).toContainText(
     "paste its API key",
   );
@@ -302,6 +305,14 @@ test("Mashy is set up from settings by choosing a service and pasting a key", as
   await expect(page.getByText("sk-or-test")).toHaveCount(0);
 });
 
+test("Mashy's link to settings opens at the assistant section", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 700 });
+  await mock(page, settings, []);
+  await page.goto("/#/settings?section=assistant");
+  await expect(page.getByRole("button", { name: "Turn on Mashy" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "assistant" })).toBeInViewport();
+});
+
 test("another service needs its address and model before Mashy can be turned on", async ({
   page,
 }) => {
@@ -343,8 +354,16 @@ test("a read-only dashboard names the file to edit, with a copy button and guide
       .filter({ hasText: "/fixture/mash.db" })
       .evaluate((node) => node.querySelectorAll("wbr").length),
   ).toBeGreaterThan(0);
-  // Settings use the same width as the other list pages.
-  const main = await page.locator("#main").boundingBox();
+  // Settings use the same width as the other list pages: the page's whole
+  // content width, inside the room kept for the floating controls.
+  const main = await page.locator("#main").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return (
+      element.clientWidth -
+      Number.parseFloat(style.paddingLeft) -
+      Number.parseFloat(style.paddingRight)
+    );
+  });
   const section = await page.locator("#main > .sec").first().boundingBox();
-  expect(Math.round(section?.width ?? 0)).toBeGreaterThan(Math.round((main?.width ?? 0) * 0.9));
+  expect(Math.round(section?.width ?? 0)).toBeGreaterThan(Math.round(main * 0.9));
 });

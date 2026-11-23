@@ -289,13 +289,29 @@ summary::-webkit-details-marker {
   background: var(--surface-top);
   border-bottom: var(--border-outline);
 }
+/* On a narrow screen the navigation is a drawer. Its button shows the usual
+   three-line menu icon, beside the mark, so it reads as a menu and not only
+   as the logo. */
 #burger {
   display: none;
   flex: none;
-  width: 44px;
   height: 44px;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+#burger .menu-ico {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: var(--border-strong);
+  border-radius: var(--radius-field);
+  background: var(--surface-field);
+  color: var(--text-strong);
+}
+#burger:hover .menu-ico {
+  background: var(--selected-surface);
 }
 .search {
   position: relative;
@@ -1332,6 +1348,20 @@ h1:focus {
   scrollbar-width: thin;
   scrollbar-color: var(--line-outline) transparent;
 }
+/* Rows past the rail's edge fade out there, so a reader can tell the list
+   goes on. The rail sets these while there is more to scroll to. */
+.nav.fade-below {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+}
+.nav.fade-above {
+  -webkit-mask-image: linear-gradient(transparent, #000 40px);
+  mask-image: linear-gradient(transparent, #000 40px);
+}
+.nav.fade-above.fade-below {
+  -webkit-mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 56px), transparent);
+}
 #changes {
   position: sticky;
   bottom: 12px;
@@ -2329,6 +2359,14 @@ button:disabled {
 #burger img {
   width: 30px;
   height: 30px;
+}
+/* Mashy's link to its settings lands with the section below the top bar. */
+#assistant {
+  scroll-margin-top: 88px;
+}
+.mashy-unset strong {
+  color: var(--text-strong);
+  font-size: 15px;
 }
 
 /* Weights for a proportional face. At the same size it reads lighter than the
@@ -4057,9 +4095,28 @@ summary.rw::-webkit-details-marker {
   color: var(--text-faint);
   cursor: default;
 }
-/* A list's last controls scroll clear of the circle. */
+/* Content never rests under the floating controls in the corner: Mashy's
+   circle (60px, 24px in) and, on a chat, the jumps to either end above it.
+   The page ends with room for the whole stack, so its last rows scroll
+   clear of it. */
 body:has(#mashy-fab) #main {
   padding-bottom: 96px;
+}
+body:has(#mashy-fab):has(.ends) #main {
+  padding-bottom: 188px;
+}
+/* Where there is width to spare, the controls get a column of their own,
+   so nothing passes under them while scrolling either. */
+@media (min-width: 801px) {
+  body:has(#mashy-fab) #main {
+    padding-right: max(96px, calc(env(safe-area-inset-right, 0px) + 72px));
+  }
+}
+@media (max-width: 800px) {
+  /* Buttons are taller here, so the jumps reach higher. */
+  body:has(#mashy-fab):has(.ends) #main {
+    padding-bottom: 204px;
+  }
 }
 /* On a phone, upright or on its side, the chat is a sheet over the page, and
    the circle hides under it. */

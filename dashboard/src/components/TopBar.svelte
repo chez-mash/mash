@@ -2,6 +2,7 @@
 import Bot from "@lucide/svelte/icons/bot";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
+import Menu from "@lucide/svelte/icons/menu";
 import Search from "@lucide/svelte/icons/search";
 import X from "@lucide/svelte/icons/x";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
@@ -130,7 +131,7 @@ function submit(event: SubmitEvent): void {
 </script>
 
 <header id="top">
-  <button id="burger" type="button" aria-label="Open navigation" aria-expanded={railOpen} onclick={toggleRail}><img src={asset("mash-mark.svg")} alt="" width="30" height="28" /></button>
+  <button id="burger" type="button" aria-label="Open navigation" aria-expanded={railOpen} onclick={toggleRail}><span class="menu-ico"><Menu size={20} aria-hidden="true" /></span><img src={asset("mash-mark.svg")} alt="" width="30" height="28" /></button>
   <div
     class="search"
     role="search"
