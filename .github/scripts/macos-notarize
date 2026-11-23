@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Sends a file to Apple's notary service and waits for the verdict; staples
+# the ticket to an app or disk image so it opens offline too. A bare binary
+# cannot hold a ticket, so it is checked online when first opened.
+#
+# Usage: macos-notarize FILE   (needs APPLE_API_KEY_PATH, APPLE_API_KEY_ID, APPLE_API_ISSUER)
+set -euo pipefail
+file=$1
+upload=$file
+case "$file" in
+  *.dmg | *.zip | *.pkg) ;;
+  *)
+    upload="$RUNNER_TEMP/$(basename "$file").zip"
+    ditto -c -k --keepParent "$file" "$upload"
+    ;;
+esac
+xcrun notarytool submit "$upload" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY_ID" \
+  --issuer "$APPLE_API_ISSUER" --wait --timeout 30m
+case "$file" in
+  *.dmg | *.app) xcrun stapler staple "$file" ;;
+esac

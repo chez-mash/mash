@@ -114,6 +114,28 @@ jobs:
           [ -f "$server.exe" ] && server="$server.exe"
           "$server" --version
           "$server" --help
+      # With the Apple secrets set, the Mac binaries are signed with the
+      # hardened runtime and notarized, so macOS opens them without a warning.
+      - name: Prepare Mac signing
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: .github/scripts/macos-signing-setup
+      - name: Sign and notarize the Mac binaries
+        if: runner.os == 'macOS' && env.MASH_SIGN == '1'
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          for binary in target/release/mash target/release/mash-server; do
+            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$binary"
+            codesign --verify --strict "$binary"
+            .github/scripts/macos-notarize "$binary"
+          done
       - name: Package
         run: |
           archive="mash-${{ matrix.target }}.${{ matrix.archive }}"
@@ -199,8 +221,22 @@ jobs:
           [ "${{ runner.os }}" = Windows ] && suffix=.exe
           mkdir -p desktop/src-tauri/binaries
           cp "engine/mash$suffix" "desktop/src-tauri/binaries/mash-${{ matrix.target }}$suffix"
+      - name: Prepare Mac signing
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: .github/scripts/macos-signing-setup
+      # Tauri signs the app and its bundled engine with the hardened runtime
+      # and notarizes the app when APPLE_SIGNING_IDENTITY and the API key are
+      # set (by the step above); unset, it builds the app unsigned.
       - name: Build the installer
         working-directory: desktop
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
           pnpm install --frozen-lockfile
           pnpm exec tauri build --ci --bundles ${{ matrix.bundle }}
@@ -209,6 +245,15 @@ jobs:
           built=( ${{ matrix.built }} )
           [ "${#built[@]}" = 1 ] || { echo "expected one installer, found: ${built[*]}"; exit 1; }
           cp "${built[0]}" "${{ matrix.name }}"
+      - name: Notarize the disk image
+        if: runner.os == 'macOS' && env.MASH_SIGN == '1'
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "${{ matrix.name }}"
+          .github/scripts/macos-notarize "${{ matrix.name }}"
+          spctl --assess --type open --context context:primary-signature --verbose "${{ matrix.name }}"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ matrix.name }}
