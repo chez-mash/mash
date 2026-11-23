@@ -275,9 +275,9 @@ impl Cli {
                     keep_history,
                 })
             }
-            Command::Mcp { .. } | Command::Dash { .. } => {
+            Command::Mcp { .. } | Command::Dash { .. } | Command::Usage { .. } => {
                 return Err(AppError::usage(
-                    "server commands must run as process commands",
+                    "server and usage commands must run as process commands",
                 ));
             }
         };

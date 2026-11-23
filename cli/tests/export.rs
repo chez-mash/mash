@@ -41,6 +41,19 @@ fn export_imports_history_offline_and_requires_explicit_views_rebuild() {
     assert_eq!(created["counts"]["chats"], 1);
     assert_eq!(created["counts"]["messages"], 1);
     assert_eq!(std::fs::read(&views).unwrap(), b"unreadable gold fixture");
+    // The usage log beside the index records the commands, and a backup
+    // never carries it.
+    assert!(root.path().join("usage.sqlite3").exists());
+    let exported: Vec<_> = std::fs::read_dir(&export)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name())
+        .collect();
+    assert!(
+        !exported
+            .iter()
+            .any(|name| name.to_string_lossy().contains("usage")),
+        "{exported:?}"
+    );
     std::fs::remove_dir_all(provider).unwrap();
     let result = run_json(
         &[

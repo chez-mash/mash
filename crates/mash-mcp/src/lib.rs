@@ -35,6 +35,8 @@ mod record;
 #[cfg(test)]
 mod reference;
 mod schema;
+mod usage;
+mod writes;
 
 #[derive(Clone)]
 struct Mash {
@@ -350,35 +352,6 @@ impl Mash {
         self.dispatch(operation).await
     }
 
-    /// `record` waits up to `patience` for the MCP gate and the local writer
-    /// lock instead of failing while an index pass runs, and stops waiting if
-    /// the request is cancelled. The runtime check follows admission, so a
-    /// runtime superseded during the wait still refuses the write.
-    async fn record_within(
-        &self,
-        input: crate::records::Mutation,
-        patience: std::time::Duration,
-        cancelled: impl std::future::Future<Output = ()>,
-    ) -> Result<core::Response, crate::AppError> {
-        use crate::storage::admission;
-        let deadline = tokio::time::Instant::now() + patience;
-        tokio::pin!(cancelled);
-        let _guard = tokio::select! {
-            guard = tokio::time::timeout_at(deadline, self.gate.lock()) => {
-                guard.map_err(|_| admission::still_busy())?
-            }
-            () = &mut cancelled => return Err(admission::abandoned()),
-        };
-        let database = self
-            .paths
-            .db
-            .clone()
-            .unwrap_or_else(core::default_database_path);
-        let owner = admission::acquire_until(&database, deadline, cancelled).await?;
-        self.ensure_current().await?;
-        admission::scope(Some(owner), self.dispatch(Operation::RecordMutation(input))).await
-    }
-
     async fn ensure_current(&self) -> Result<(), crate::AppError> {
         match &self.runtime {
             Some(lease) => {
@@ -400,12 +373,6 @@ impl Mash {
         .await
     }
 }
-
-/// How long `record` waits for an index pass to release the local index. A
-/// watcher pass holds it for roughly 5 to 25 s; this is nearly twice the
-/// longest measured pass, while the wait plus a typical 1.5 s save stays
-/// inside common 60 s MCP client tool timeouts (Codex's default).
-const RECORD_PATIENCE: std::time::Duration = std::time::Duration::from_secs(45);
 
 fn tool_result(result: Result<core::Response, crate::AppError>) -> CallToolResult {
     tool_result_detailed(result, Detail::Extended)
@@ -597,7 +564,7 @@ impl Mash {
             Err(error) => return tool_result(Err(error)),
         };
         tool_result(
-            self.record_within(change, RECORD_PATIENCE, context.ct.cancelled())
+            self.record_within(change, writes::RECORD_PATIENCE, context.ct.cancelled())
                 .await,
         )
     }
@@ -852,6 +819,24 @@ impl Mash {
 #[allow(clippy::unused_async_trait_impl)]
 #[rmcp::tool_handler(router = Self::served())]
 impl rmcp::ServerHandler for Mash {
+    async fn call_tool(
+        &self,
+        request: rmcp::model::CallToolRequestParams,
+        context: rmcp::service::RequestContext<rmcp::RoleServer>,
+    ) -> Result<rmcp::model::CallToolResponse, rmcp::ErrorData> {
+        usage::recorded(
+            self.paths.as_ref(),
+            request,
+            context,
+            |request, context| async move {
+                let call =
+                    rmcp::handler::server::tool::ToolCallContext::new(self, request, context);
+                Self::served().call(call).await
+            },
+        )
+        .await
+    }
+
     fn get_info(&self) -> rmcp::model::ServerConfig {
         let mut info = rmcp::model::ServerConfig::default();
         info.capabilities = rmcp::model::ServerCapabilities::builder()

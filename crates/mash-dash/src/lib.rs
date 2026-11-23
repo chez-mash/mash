@@ -22,6 +22,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 mod access;
+pub(crate) use access::allowed_hosts;
 mod assets;
 mod assistant;
 mod contract;
@@ -33,6 +34,7 @@ mod settings;
 mod setup;
 mod shared_server;
 mod startup;
+mod usage;
 
 pub use assets::has_web_dashboard;
 
@@ -260,6 +262,10 @@ fn router(state: Arc<Dash>) -> Router {
         .route("/api/session/end", axum::routing::post(sign_out))
         .route("/api/session/code", axum::routing::post(sign_in_code))
         .fallback(axum::routing::get(asset))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            usage::record,
+        ))
         .layer(axum::middleware::from_fn_with_state(state.clone(), guard))
         // The chat catalogue is over a megabyte of JSON for a few thousand
         // chats; a phone on a slow link should not have to carry all of it.
@@ -269,20 +275,6 @@ fn router(state: Arc<Dash>) -> Router {
         )
         .layer(axum::middleware::from_fn(trace))
         .with_state(state)
-}
-
-/// The names a browser uses for the bound address; anything else is refused.
-fn allowed_hosts(address: SocketAddr) -> Vec<String> {
-    let port = address.port();
-    let mut hosts = vec![address.to_string()];
-    if address.ip().is_loopback() {
-        hosts.extend([
-            format!("localhost:{port}"),
-            format!("127.0.0.1:{port}"),
-            format!("[::1]:{port}"),
-        ]);
-    }
-    hosts
 }
 
 /// One span per request when tracing is on (`MASH_TRACE=1`). It opens when

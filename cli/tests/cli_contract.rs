@@ -25,5 +25,6 @@ mod shared_server;
 mod streaming;
 mod tools;
 mod uninstall;
+mod usage;
 mod vector_overrides;
 mod watch_flow;

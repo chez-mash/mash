@@ -11,7 +11,7 @@ use std::io::{self, IsTerminal, Write};
 
 use mash_app::{
     BROKEN_PIPE, blocking, chat_catalog, config, core, observability, remote, runtime,
-    search_filter, search_results, semantic, shared, storage, views, watch, write_json,
+    search_filter, search_results, semantic, shared, storage, usage, views, watch, write_json,
 };
 use mash_dash as dash;
 use mash_mcp as mcp;
@@ -113,7 +113,67 @@ where
     T: Into<OsString> + Clone,
 {
     let arguments: Vec<OsString> = args.into_iter().map(Into::into).collect();
-    match cli::run(arguments.clone()) {
+    let recording = cli::usage::start(&arguments);
+    let result = cli::run(arguments.clone());
+    let mut counted = Counted {
+        inner: stdout,
+        bytes: 0,
+        kept: Vec::new(),
+    };
+    let code = respond(
+        result_ref(&result),
+        &mut counted,
+        stderr,
+        terminal,
+        &arguments,
+    );
+    if let Some(recording) = recording {
+        let printed = String::from_utf8(counted.kept).ok();
+        recording.finish(&result, Some(counted.bytes), printed);
+    }
+    // Rows queued by this command, or by the MCP or dashboard server that is
+    // now stopping, are written before the process exits.
+    usage::flush(std::time::Duration::from_secs(1));
+    code
+}
+
+/// Counts the bytes a command prints, and keeps up to [`KEPT`] of them, so
+/// the usage log can note what the command returned.
+struct Counted<'a> {
+    inner: &'a mut dyn Write,
+    bytes: u64,
+    kept: Vec<u8>,
+}
+
+/// The most printed output kept for the usage log's references.
+const KEPT: usize = 16 * 1024 * 1024;
+
+impl Write for Counted<'_> {
+    fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+        let written = self.inner.write(buffer)?;
+        self.bytes += u64::try_from(written).unwrap_or(0);
+        if self.kept.len() + written <= KEPT {
+            self.kept.extend_from_slice(&buffer[..written]);
+        }
+        Ok(written)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush()
+    }
+}
+
+fn result_ref(result: &Result<cli::Response, AppError>) -> Result<&cli::Response, &AppError> {
+    result.as_ref()
+}
+
+fn respond(
+    result: Result<&cli::Response, &AppError>,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+    terminal: bool,
+    arguments: &[OsString],
+) -> i32 {
+    match result {
         // MCP owns stdout for its entire session, including shutdown.
         Ok(cli::Response::ServerStopped) => 0,
         // The async runtime and its lease are gone; start the replacement.
@@ -121,7 +181,7 @@ where
             let _ = write_json(stderr, &reason);
             if cfg!(unix) {
                 let _ = write_json(stderr, &WatchRestart::event());
-                let error = runtime::restart(&executable, &arguments);
+                let error = runtime::restart(executable, arguments);
                 let _ = write_json(stderr, &error);
                 error.code
             } else {
@@ -129,7 +189,7 @@ where
             }
         }
         // Help is for a person to read: plain text, as clap renders it.
-        Ok(cli::Response::Help { help }) => write_text(stdout, stderr, &help),
+        Ok(cli::Response::Help { help }) => write_text(stdout, stderr, help),
         Ok(cli::Response::Setup(value)) if terminal => {
             let core::Response::Init(report) = value.as_ref() else {
                 let error = AppError::internal("wizard did not return a setup report");
@@ -137,7 +197,7 @@ where
                 return error.code;
             };
             let summary = report.terminal_summary(dash::has_web_dashboard());
-            write_summary(stdout, stderr, &value, &summary)
+            write_summary(stdout, stderr, value, &summary)
         }
         Ok(cli::Response::InitCancelled { .. }) if terminal => 0,
         Ok(response) => {
@@ -156,7 +216,7 @@ where
                 }
                 Ok(()) => match response {
                     cli::Response::Operation(value) | cli::Response::Setup(value) => {
-                        operation_exit(&value, Some(stderr))
+                        operation_exit(value, Some(stderr))
                     }
                     _ => 0,
                 },

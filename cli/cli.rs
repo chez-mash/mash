@@ -14,12 +14,13 @@ use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
 mod help;
-use help::help_paths;
+use help::{help_paths, version_info};
 mod qdrant;
 use qdrant::QdrantCommand;
 mod request;
 use request::SearchArguments;
 mod stream;
+pub(crate) mod usage;
 mod watch;
 mod wizard;
 
@@ -345,6 +346,11 @@ enum Command {
         #[arg(long)]
         keep_history: bool,
     },
+    /// Turn off, turn on, or clear the local log of every command and tool call.
+    Usage {
+        #[command(subcommand)]
+        command: usage::UsageCommand,
+    },
     /// Serve search tools over the stdio MCP protocol.
     Mcp {
         /// Offer only the eight tools that find and read history and memories,
@@ -437,6 +443,7 @@ pub(super) enum Response {
     Help {
         help: String,
     },
+    Usage(usage::Answer),
     /// The release and the silver schema it opens; deployment compares the
     /// latter with an existing database's `user_version` before replacing it.
     Version {
@@ -526,22 +533,6 @@ fn remote_action(code: bool, qr: bool, remove: bool) -> crate::remote::Action {
     } else {
         RemoteAction::Setup
     }
-}
-
-/// What `--version-info` prints, wherever the flag appears: the release and
-/// the silver schemas it opens.
-fn version_info(arguments: &[OsString]) -> Option<Response> {
-    arguments
-        .iter()
-        .skip(1)
-        .any(|argument| argument == VERSION_INFO)
-        .then_some(Response::Version {
-            version: env!("CARGO_PKG_VERSION"),
-            silver_schema: crate::storage::schema::SCHEMA_VERSION,
-            silver_schema_min: crate::storage::schema::MIN_SCHEMA_VERSION,
-            record_citations: ["message_id", "session_id"],
-            session_citations: ["claude-code", "codex", "copilot"],
-        })
 }
 
 pub(super) fn run<I, T>(args: I) -> Result<Response, AppError>
@@ -661,6 +652,9 @@ async fn run_parsed(mut cli: Cli) -> Result<Response, AppError> {
         *watch = false;
         let debounce = *debounce_ms;
         return watch::run(cli, debounce).await;
+    }
+    if let Command::Usage { command } = &cli.command {
+        return usage::run(&cli, command);
     }
     if matches!(cli.command, Command::Search { stream: true, .. }) {
         return stream::run(cli).await;
@@ -976,6 +970,7 @@ mod tests {
                 "models",
                 "qdrant",
                 "uninstall",
+                "usage",
                 "mcp",
                 "dash"
             ]

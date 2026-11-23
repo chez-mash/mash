@@ -12,7 +12,9 @@ use super::models::Paths;
 use crate::AppError;
 
 mod guidance;
+mod removal;
 use guidance::{binary, next};
+use removal::{present, remove, size};
 
 /// The watcher service `mash-fleet watch start` installs, per manager.
 const WATCHER_UNIT: &str = "mash-index-watch.service";
@@ -123,6 +125,8 @@ enum Content {
     Dashboard,
     /// What the agent plugin's hooks remember between sessions.
     HookState,
+    /// The local log of every command and tool call.
+    UsageLog,
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -402,6 +406,10 @@ fn files(target: &Target, search_data: &[PathBuf], request: Request) -> (Vec<Ite
         (Content::Configuration, configuration(&target.config)),
         (Content::Index, family(&target.database)),
         (Content::Tokens, vec![home.join("node.env")]),
+        (
+            Content::UsageLog,
+            family(&crate::usage::path_for(&target.database)),
+        ),
     ];
     let mut items = vec![
         (Content::Models, vec![target.models.clone()]),
@@ -529,47 +537,6 @@ fn family(path: &Path) -> Vec<PathBuf> {
     members
 }
 
-fn present(path: &Path) -> bool {
-    std::fs::symlink_metadata(path).is_ok()
-}
-
-/// Bytes under `path`, without following links.
-fn size(path: &Path) -> u64 {
-    let Ok(metadata) = std::fs::symlink_metadata(path) else {
-        return 0;
-    };
-    if !metadata.is_dir() {
-        return metadata.len();
-    }
-    std::fs::read_dir(path)
-        .into_iter()
-        .flatten()
-        .flatten()
-        .map(|entry| size(&entry.path()))
-        .sum()
-}
-
-/// Delete one file or directory tree. A path that is, or holds, the user's
-/// home directory is refused whatever a flag named.
-fn remove(path: &Path, user: &Path) -> Result<(), String> {
-    if !path.is_absolute() || user.starts_with(path) {
-        return Err(format!(
-            "refusing to delete {}: it is not a location Mash owns",
-            path.display()
-        ));
-    }
-    let result = match std::fs::symlink_metadata(path) {
-        Ok(metadata) if metadata.is_dir() => std::fs::remove_dir_all(path),
-        Ok(_) => std::fs::remove_file(path),
-        Err(error) => Err(error),
-    };
-    match result {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(format!("cannot delete {}: {error}", path.display())),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -600,6 +567,8 @@ mod tests {
             ("mash.sqlite3.attachments/a", 3),
             ("models/embedding/model.onnx", 40),
             ("node.env", 7),
+            ("usage.sqlite3", 8),
+            ("usage.sqlite3-wal", 3),
             ("dashboard.env", 2),
             ("notes.txt", 1),
         ] {
@@ -627,6 +596,7 @@ mod tests {
         assert_eq!(bytes(Content::Index), Some(123));
         assert_eq!(bytes(Content::Configuration), Some(15));
         assert_eq!(bytes(Content::Models), Some(40));
+        assert_eq!(bytes(Content::UsageLog), Some(11));
         assert!(items.iter().all(|item| item.outcome == Outcome::Planned));
         // What Mash's local commands did not create is named and left.
         let left: Vec<_> = kept.iter().filter_map(|kept| kept.path.clone()).collect();
@@ -670,7 +640,7 @@ mod tests {
     }
 
     #[test]
-    fn keep_history_keeps_the_index_configuration_tokens_and_search_data() {
+    fn keep_history_keeps_the_index_configuration_tokens_usage_log_and_search_data() {
         let root = tempfile::tempdir().unwrap();
         let target = target(root.path());
         populate(&target);
@@ -696,6 +666,7 @@ mod tests {
             "mash.sqlite3-wal",
             "mash.sqlite3.attachments/a",
             "node.env",
+            "usage.sqlite3",
             "qdrant/storage",
         ] {
             assert!(target.home.join(name).exists(), "{name}");
@@ -705,7 +676,7 @@ mod tests {
             .iter()
             .filter(|kept| kept.reason.contains("--keep-history"))
             .count();
-        assert_eq!(reasons, 4, "{kept:?}");
+        assert_eq!(reasons, 5, "{kept:?}");
     }
 
     #[test]

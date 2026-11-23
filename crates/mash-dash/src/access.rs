@@ -3,6 +3,7 @@
 //! token once for a cookie, and every history route then requires it.
 use crate::AppError;
 use axum::http::{HeaderMap, header};
+use std::net::SocketAddr;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -184,6 +185,20 @@ pub(super) fn takes_post(path: &str) -> bool {
             | "/api/shared/admin/key"
             | "/api/shared/admin/change"
     )
+}
+
+/// The names a browser uses for the bound address; anything else is refused.
+pub(crate) fn allowed_hosts(address: SocketAddr) -> Vec<String> {
+    let port = address.port();
+    let mut hosts = vec![address.to_string()];
+    if address.ip().is_loopback() {
+        hosts.extend([
+            format!("localhost:{port}"),
+            format!("127.0.0.1:{port}"),
+            format!("[::1]:{port}"),
+        ]);
+    }
+    hosts
 }
 
 #[cfg(test)]

@@ -29,7 +29,8 @@ terminal and confirm.
 mash uninstall --yes
 ```
 
-This removes Mash's index, settings, saved tokens and downloaded models. Mash
+This removes Mash's index, settings, saved tokens, [usage log](privacy.md#the-usage-log)
+and downloaded models. Mash
 stops and removes the services it set up, including its search service and that
 service's data. It removes both the search tools and the plugin from connected
 [agents](agents.md#disconnect-an-agent) through the agents' own commands.
@@ -61,7 +62,7 @@ that data from the local Mash index with `mash index --rebuild-local-views --ful
 
 Use `--keep-history` if you plan to return to the same computer and want the
 same indexed chats and saved memories. Mash keeps its index, configuration,
-saved tokens, and the data for its managed search service. It removes the
+saved tokens, usage log, and the data for its managed search service. It removes the
 services, agent connections and downloaded models.
 
 Preview with the flag, then use the same flag when you confirm.

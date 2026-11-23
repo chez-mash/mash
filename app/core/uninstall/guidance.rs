@@ -50,6 +50,7 @@ impl Response {
                 Content::Tokens => "saved tokens",
                 Content::Dashboard => "dashboard service settings and logs",
                 Content::HookState => "agent hook state",
+                Content::UsageLog => "the usage log",
             };
             report_step(
                 &mut output,

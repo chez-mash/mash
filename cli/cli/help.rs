@@ -1,5 +1,5 @@
 //! The global paths `--help` reports, read without the normal parser.
-use super::{Cli, Paths};
+use super::{Cli, Paths, Response, VERSION_INFO};
 use clap::CommandFactory;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -33,4 +33,20 @@ pub(super) fn help_paths(arguments: &[OsString]) -> Paths {
             models_dir: matches.get_one::<PathBuf>("models_dir").cloned(),
         },
     )
+}
+
+/// What `--version-info` prints, wherever the flag appears: the release and
+/// the silver schemas it opens.
+pub(super) fn version_info(arguments: &[OsString]) -> Option<Response> {
+    arguments
+        .iter()
+        .skip(1)
+        .any(|argument| argument == VERSION_INFO)
+        .then_some(Response::Version {
+            version: env!("CARGO_PKG_VERSION"),
+            silver_schema: crate::storage::schema::SCHEMA_VERSION,
+            silver_schema_min: crate::storage::schema::MIN_SCHEMA_VERSION,
+            record_citations: ["message_id", "session_id"],
+            session_citations: ["claude-code", "codex", "copilot"],
+        })
 }

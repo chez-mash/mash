@@ -69,6 +69,23 @@ be removed. It lists the managed directories, including the separate Qdrant
 folder on Windows. Add `--yes` when you are ready to uninstall.
 [See what uninstall removes](uninstall.md)
 
+## The usage log
+
+Mash keeps a log of every command and tool call in `usage.sqlite3`, beside
+the index (by default `~/.mash/usage.sqlite3`): searches, reads, memory
+lookups and actions from the terminal, connected agents and the dashboard.
+Each row holds the call's arguments as given, such as search text, paths and
+chat IDs, and references to what it returned, but not the returned text.
+Recognizable credentials are masked, and join strings and keys are never
+stored. The log is readable only by you, never leaves this machine, and is
+kept until you clear it. It is a plain SQLite file you can query yourself.
+[Query the usage log](cli.md#usage-log)
+
+- Stop recording with `mash usage off`, and start again with `mash usage on`.
+  Setting `MASH_USAGE=0` in the environment also turns it off.
+- Delete everything recorded with `mash usage clear`. It asks first; pass
+  `--yes` in a script.
+
 ## Try a small local setup
 
 [Try a sample chat search](https://getmash.io/demo/#/search?q=invoice+exports+queue)

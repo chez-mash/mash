@@ -68,6 +68,8 @@ pub mod shared {
     #[cfg(test)]
     mod exact_core_tests;
 }
+/// The local log of every tool and command call; see `usage`.
+pub mod usage;
 pub mod watch;
 
 use std::io::{self, Write};
