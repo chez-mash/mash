@@ -14,6 +14,14 @@
       <h1>Mash</h1>
       <p id="status" role="status">Starting Mash…</p>
       <p id="detail" class="detail" hidden></p>
+      <p id="actions" hidden><button id="retry" class="primary" type="button">Try again</button></p>
+      <section id="output" class="output" aria-labelledby="output-title" hidden>
+        <div class="output-head">
+          <h2 id="output-title">The engine’s last output</h2>
+          <button id="copy" type="button">Copy</button>
+        </div>
+        <pre id="lines" tabindex="0"></pre>
+      </section>
     </main>
     <script src="page.js"></script>
   </body>

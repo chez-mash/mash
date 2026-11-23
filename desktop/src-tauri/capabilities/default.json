@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The app's own loading page. The dashboard's single permission is in dashboard.json.",
+  "description": "The app's own loading and error page, which may start the engine again and read its last output. Capabilities without remote addresses apply only to the app's own page, so the dashboard in the same window gets no Tauri permissions.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "allow-retry-engine", "allow-engine-log"]
 }

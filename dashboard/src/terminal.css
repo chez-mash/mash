@@ -964,6 +964,8 @@ code.i {
   border-radius: var(--radius-3);
   background: var(--surface-muted);
   font-size: 12.5px;
+  /* A command can name a long path, such as the desktop app's own mash. */
+  overflow-wrap: anywhere;
 }
 /* A text link or text action: ink words over a peach rule. */
 .a {

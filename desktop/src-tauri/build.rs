@@ -47,5 +47,9 @@ fn main() {
             );
         }
     }
-    tauri_build::build();
+    // The app's own commands, which only its loading page may call
+    // (capabilities/default.json): the dashboard and the panel get none.
+    let commands = tauri_build::AppManifest::new().commands(&["retry_engine", "engine_log"]);
+    tauri_build::try_build(tauri_build::Attributes::new().app_manifest(commands))
+        .unwrap_or_else(|error| panic!("prepare the app's build: {error:#}"));
 }

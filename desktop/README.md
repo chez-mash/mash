@@ -28,7 +28,9 @@ with `cargo test` in `src-tauri/`.
 
 The app icons in `src-tauri/icons/` are generated from `icons/mash-app.svg`:
 render it to `icons/mash-app.png` at 1024 pixels, then run `pnpm icons`. The
-menu bar icon is `icons/tray.svg`, rendered with `pnpm tray-icon`.
+macOS menu bar icon is `icons/tray.svg`, rendered with `pnpm tray-icon`, which
+uses Playwright's Chromium from the dashboard's packages (run `pnpm install`
+in `dashboard/` first). Windows and Linux show the app icon in the tray.
 
 On macOS 26 and later the app's icon comes from `src-tauri/icons/Assets.car`,
 compiled from the layered `icons/Mash.icon` (editable in Icon Composer). Its

@@ -14,6 +14,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
+import { mashCommand } from "../lib/command";
 import { router } from "../lib/route.svelte";
 import {
   type Draft,
@@ -24,6 +25,7 @@ import {
   saveSettings,
   settingsOptions,
 } from "../lib/settings";
+import { inDesktopApp } from "../lib/shareLink";
 import { statusOptions } from "../lib/status";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
@@ -37,6 +39,8 @@ import Wrapped from "./Wrapped.svelte";
 // saves, and history locations are never typed here: the machine
 // finds them itself.
 const queryClient = useQueryClient();
+// Inside the desktop app the setup page, not a terminal, is the way to set up.
+const desktop = inDesktopApp();
 const status = createQuery(() => statusOptions);
 const assistant = createQuery(() => assistantOptions);
 const settings = createQuery(() => settingsOptions);
@@ -156,16 +160,16 @@ async function save(): Promise<void> {
 {#if settings.error}<p class="meta warn" role="alert">Settings can't be changed right now: {settings.error.message}</p>{/if}
 {#if status.data && config}
   {#if !config.loaded}
-    <p class="card tight warn">Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable"} or run <code class="i">mash init</code> in a terminal{/if}.</p>
+    <p class="card tight warn">Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable" && !desktop} or run <code class="i">mash init</code> in a terminal{/if}.</p>
   {/if}
   {#if status.data.searchService === "unreachable"}
     <p class="card tight warn">Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Start or repair the search service</a>.</p>
   {:else if status.data.searchService === "rejected"}
     <p class="card tight warn">The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Check the search service</a>.</p>
   {:else if status.data.nextStep === "index"}
-    <p class="card tight warn">Run <code class="i">mash index</code> in a terminal on this machine to update local search.</p>
+    <p class="card tight warn">Run <code class="i">{mashCommand("index")}</code> in a terminal on this machine to update local search.</p>
   {:else if status.data.nextStep === "models install"}
-    <p class="card tight warn">Search by meaning needs local models. Run <code class="i">mash models install</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
+    <p class="card tight warn">Search by meaning needs local models. Run <code class="i">{mashCommand("models install")}</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
   {/if}
 
   <section class="sec">
@@ -386,7 +390,7 @@ async function save(): Promise<void> {
     {#if saved && !changed.length}
       <p class="ok" role="status">
         Saved {saved} change{saved === 1 ? "" : "s"} to the file. New requests use the saved
-        settings. To update the index now, run <code class="i">mash index</code> on this machine,
+        settings. To update the index now, run <code class="i">{mashCommand("index")}</code> on this machine,
         or wait for the next pass if a watcher is running.
       </p>
     {/if}

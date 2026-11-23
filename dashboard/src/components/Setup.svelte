@@ -8,6 +8,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
+import { mashCommand } from "../lib/command";
 import { catalogOptions } from "../lib/queries";
 import { settingsOptions } from "../lib/settings";
 import {
@@ -27,6 +28,7 @@ import {
   stepWord,
   summary,
 } from "../lib/setup";
+import { inDesktopApp } from "../lib/shareLink";
 import { statusOptions } from "../lib/status";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
@@ -36,6 +38,9 @@ import Skeleton from "./Skeleton.svelte";
 // Nothing is written until the reader confirms, and the machine finds its
 // own history locations.
 const queryClient = useQueryClient();
+// Inside the desktop app `mash` may not be on PATH: prefer a button here, and
+// name the app's own mash in commands (lib/command.ts).
+const desktop = inDesktopApp();
 const setup = createQuery(() => firstRunOptions);
 const file = $derived(setup.data);
 const searchServiceReady = $derived(file?.qdrant.state === "reachable");
@@ -155,7 +160,7 @@ function toggleConnect(agent: Integration): void {
       {#if service.message}<p class="meta" style:overflow-wrap="anywhere">{service.message}</p>{/if}
       <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>
     {:else}
-      {@render command("mash qdrant install")}
+      {@render command(mashCommand("qdrant install"))}
     {/if}
     <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}>{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
     <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{service.url}</code></p>
@@ -335,7 +340,9 @@ function toggleConnect(agent: Integration): void {
               <p class="meta">Indexing was skipped.</p>
             {/if}
             {#if !indexed && indexRun?.state !== "running"}
-              {#if searchServiceReady}
+              {#if searchServiceReady && desktop}
+                <div><button class="btn p" type="button" disabled={running || !file.editable} onclick={() => run(true)}>{running ? "Starting…" : "Index now"}</button></div>
+              {:else if searchServiceReady}
                 <p class="meta">Run this in a terminal on this machine to index your history.</p>
                 {@render command("mash index")}
               {:else}
@@ -351,7 +358,7 @@ function toggleConnect(agent: Integration): void {
           <summary>Search by meaning</summary>
           {#if !file.modelsInstalled}
             <p class="meta">Start by installing the optional local models in your terminal.</p>
-            {@render command("mash models install")}
+            {@render command(mashCommand("models install"))}
           {/if}
           <p class="meta"><a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Configure and index for search by meaning</a>. You can choose which search the dashboard uses.</p>
         </details>
@@ -399,7 +406,7 @@ function toggleConnect(agent: Integration): void {
         <span class="sp"></span>
         <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}>{openChats ? "Open your chats" : "Open the dashboard"}</a>
       </div>
-      <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">mash init</code>.</p>
+      <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">{mashCommand("init")}</code>.</p>
     {/if}
   </div>
 </main>

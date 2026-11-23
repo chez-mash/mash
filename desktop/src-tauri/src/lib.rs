@@ -6,22 +6,27 @@
 //! adds only what a browser tab cannot: it starts and stops the engine, opens
 //! mash:// links, keeps a single window, lives in the menu bar with a quick
 //! search panel (menubar.rs), and sends any address that is not the dashboard
-//! to the reader's browser.
+//! to the reader's browser. Around the dashboard it keeps only what a browser
+//! would do itself: saving downloads (downloads.rs) and printing a chat to
+//! PDF (print.rs), plus a way to run the bundled `mash` (cli.rs).
 
+mod cli;
+mod downloads;
 mod engine;
 mod links;
 mod menubar;
+mod print;
+mod stop;
 
 use engine::Engine;
-use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
-use tauri::webview::{DownloadEvent, NewWindowResponse};
+use tauri::webview::NewWindowResponse;
 use tauri::{AppHandle, Manager, RunEvent, Theme, Url, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_opener::OpenerExt;
 
-const WINDOW: &str = "main";
+pub(crate) const WINDOW: &str = "main";
 
 /// What the app knows about its engine and the links waiting for it.
 #[derive(Default)]
@@ -31,6 +36,10 @@ struct Shared {
     dashboard: Option<Url>,
     /// The route a mash:// link asked for before the dashboard was ready.
     waiting: Option<String>,
+    /// Whether an engine is being started.
+    starting: bool,
+    /// The engine's last lines of output, for the error page.
+    log: engine::Log,
 }
 
 type State = Arc<Mutex<Shared>>;
@@ -60,8 +69,12 @@ pub fn run() {
     let app = builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(menubar::shortcut_plugin())
         .manage(state.clone())
+        .manage(downloads::Downloads::default())
+        .invoke_handler(tauri::generate_handler![retry_engine, engine_log])
+        .on_menu_event(|app, event| menubar::choose(app, event.id().as_ref()))
         .setup(move |app| {
             open_window(app.handle())?;
             menubar::install(app.handle())?;
@@ -94,6 +107,13 @@ pub fn run() {
     });
 }
 
+/// What runs in the app's windows before each page loads, the dashboard's
+/// included: the flag that says the page is in the app, and how to name the
+/// app's own `mash` in a command.
+pub(crate) fn window_script() -> String {
+    format!("{}\n{}\n", include_str!("window.js"), cli::page_script())
+}
+
 /// The window, first showing the app's loading page.
 fn open_window(app: &AppHandle) -> tauri::Result<()> {
     let navigation = app.clone();
@@ -107,42 +127,41 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         .center()
         // Mash has one theme, the light one, so the title bar is light too.
         .theme(Some(Theme::Light))
-        .initialization_script(include_str!("window.js"))
+        .initialization_script(window_script())
         .on_navigation(move |url| navigate(&navigation, url, false))
-        .on_new_window(move |url, _features| {
+        .on_new_window(move |url, features| {
             // An empty window is the one the dashboard writes a chat into for
             // printing to PDF; it holds no address of its own.
             if url.scheme() == "about" {
-                return NewWindowResponse::Allow;
+                return print::open(&popups, url, features);
             }
             open_outside(&popups, &url);
             NewWindowResponse::Deny
         })
-        .on_download(move |_webview, event| {
-            if let DownloadEvent::Requested { destination, .. } = event
-                && let Ok(folder) = downloads.path().download_dir()
-            {
-                *destination = unused_path(&folder, destination);
-            }
-            true
-        })
+        .on_download(move |_webview, event| downloads::handle(&downloads, event))
         .build()?;
-    // Closing the window leaves Mash in the menu bar, as a menu bar app does;
-    // Quit in its menu ends it. Linux desktops do not all show a tray icon,
-    // so there closing the window quits.
-    #[cfg(any(target_os = "macos", windows))]
-    {
-        let window = app
-            .get_webview_window(WINDOW)
-            .ok_or(tauri::Error::WindowNotFound)?;
-        let hidden = window.clone();
-        window.on_window_event(move |event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                api.prevent_close();
-                let _ = hidden.hide();
-            }
-        });
-    }
+    let window = app
+        .get_webview_window(WINDOW)
+        .ok_or(tauri::Error::WindowNotFound)?;
+    let hidden = window.clone();
+    let quitting = app.clone();
+    window.on_window_event(move |event| match event {
+        // Closing the window leaves Mash in the menu bar, as a menu bar app
+        // does; Quit in its menu ends it.
+        tauri::WindowEvent::CloseRequested { api, .. }
+            if cfg!(any(target_os = "macos", windows)) =>
+        {
+            api.prevent_close();
+            let _ = hidden.hide();
+        }
+        // Linux desktops do not all show a tray icon, so there closing the
+        // window quits, rather than leaving Mash running with no window and,
+        // perhaps, no icon to bring one back.
+        tauri::WindowEvent::Destroyed if cfg!(not(any(target_os = "macos", windows))) => {
+            quitting.exit(0);
+        }
+        _ => {}
+    });
     Ok(())
 }
 
@@ -222,35 +241,10 @@ pub(crate) fn navigate(app: &AppHandle, url: &Url, from_panel: bool) -> bool {
 }
 
 /// Open a web or mail address in the program the reader uses for it.
-fn open_outside(app: &AppHandle, url: &Url) {
+pub(crate) fn open_outside(app: &AppHandle, url: &Url) {
     if matches!(url.scheme(), "http" | "https" | "mailto") {
         let _ = app.opener().open_url(url.as_str(), None::<&str>);
     }
-}
-
-/// A file in `folder` named like the download, numbered so nothing is replaced.
-fn unused_path(folder: &Path, suggested: &Path) -> PathBuf {
-    let name = suggested
-        .file_name()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| "download".into());
-    let stem = name
-        .file_stem()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .into_owned();
-    let extension = name
-        .extension()
-        .map(|extension| format!(".{}", extension.to_string_lossy()));
-    let extension = extension.unwrap_or_default();
-    let mut path = folder.join(&name);
-    for number in 1.. {
-        if !path.exists() {
-            break;
-        }
-        path = folder.join(format!("{stem} ({number}){extension}"));
-    }
-    path
 }
 
 /// Follow mash:// links, both the one that launched the app and later ones.
@@ -314,25 +308,56 @@ fn show_route(app: &AppHandle, dashboard: &Url, route: &str) {
     }
 }
 
-/// Bring the window forward.
+/// Bring the window forward, opening it again if it was closed.
 pub(crate) fn show(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window(WINDOW) {
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
+    let window = match app.get_webview_window(WINDOW) {
+        Some(window) => window,
+        None => {
+            if let Err(error) = open_window(app) {
+                eprintln!("Mash couldn’t open its window: {error}");
+                return;
+            }
+            let dashboard = lock(&app.state::<State>()).dashboard.clone();
+            if let Some(dashboard) = dashboard {
+                show_route(app, &dashboard, "#/");
+            }
+            let Some(window) = app.get_webview_window(WINDOW) else {
+                return;
+            };
+            window
+        }
+    };
+    let _ = window.unminimize();
+    let _ = window.show();
+    let _ = window.set_focus();
 }
 
 /// Start the engine away from the window's thread, then open the dashboard,
 /// and report on the loading page if it fails to start or later stops.
 fn start_engine(app: AppHandle, state: State) {
-    std::thread::spawn(move || match Engine::start() {
+    let log = {
+        let mut shared = lock(&state);
+        if shared.starting || shared.engine.is_some() {
+            return;
+        }
+        shared.starting = true;
+        shared.log = engine::Log::default();
+        shared.log.clone()
+    };
+    // The engine's process number, so a later start can stop an engine this
+    // run leaves behind if it ends without quitting properly.
+    let pid_file = app.path().app_data_dir().ok().and_then(|folder| {
+        std::fs::create_dir_all(&folder).ok()?;
+        Some(folder.join("engine.pid"))
+    });
+    std::thread::spawn(move || match Engine::start(&log, pid_file) {
         Ok(engine) => {
             let dashboard = engine.address.clone();
             let route = {
                 let mut shared = lock(&state);
                 shared.dashboard = Some(dashboard.clone());
                 shared.engine = Some(engine);
+                shared.starting = false;
                 shared.waiting.take()
             };
             show_route(&app, &dashboard, route.as_deref().unwrap_or("#/"));
@@ -341,7 +366,10 @@ fn start_engine(app: AppHandle, state: State) {
             }
             watch_engine(&app, &state);
         }
-        Err(error) => show_error(&app, &error),
+        Err(error) => {
+            lock(&state).starting = false;
+            show_error(&app, &error);
+        }
     });
 }
 
@@ -353,17 +381,38 @@ fn watch_engine(app: &AppHandle, state: &State) {
         let Some(engine) = shared.engine.as_mut() else {
             return; // The app is quitting.
         };
-        if engine.stopped() {
+        if let Some(status) = engine.stopped() {
             shared.engine = None;
             shared.dashboard = None;
             drop(shared);
-            show_error(app, "The Mash engine stopped.");
+            // The panel shows a page of the stopped engine; close it so the
+            // icon and shortcut bring the main window and its error forward.
+            menubar::close(app);
+            show_error(app, &format!("The Mash engine stopped ({status})."));
             return;
         }
     }
 }
 
-/// Show `message` on the app's loading page.
+/// Start the engine again from the error page.
+#[tauri::command]
+fn retry_engine(app: AppHandle) {
+    let state = app.state::<State>().inner().clone();
+    start_engine(app, state);
+}
+
+/// The engine's last lines of output, for the error page.
+#[tauri::command]
+fn engine_log(app: AppHandle) -> Vec<String> {
+    let log = lock(&app.state::<State>()).log.clone();
+    log.lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .iter()
+        .cloned()
+        .collect()
+}
+
+/// Show `message` on the app's loading page, and bring the window forward.
 fn show_error(app: &AppHandle, message: &str) {
     let Some(window) = app.get_webview_window(WINDOW) else {
         return;
@@ -382,6 +431,7 @@ fn show_error(app: &AppHandle, message: &str) {
         .clear()
         .append_pair("error", message);
     let _ = window.navigate(local);
+    show(app);
 }
 
 /// The address the app serves its own page from on this platform.
@@ -396,7 +446,7 @@ fn local_page() -> Url {
 
 #[cfg(test)]
 mod tests {
-    use super::{Navigation, fit, navigation, page, unused_path};
+    use super::{Navigation, fit, navigation, page};
     use tauri::Url;
 
     fn url(text: &str) -> Url {
@@ -488,19 +538,5 @@ mod tests {
             })
             .map(|value| value.trim().trim_matches('"'));
         assert_eq!(version, Some(env!("CARGO_PKG_VERSION")));
-    }
-
-    #[test]
-    fn downloads_never_replace_a_file() {
-        let folder = std::env::temp_dir().join(format!("mash-desktop-test-{}", std::process::id()));
-        std::fs::create_dir_all(&folder).unwrap();
-        let first = unused_path(&folder, "/somewhere/chat.md".as_ref());
-        assert_eq!(first, folder.join("chat.md"));
-        std::fs::write(&first, "").unwrap();
-        assert_eq!(
-            unused_path(&folder, "chat.md".as_ref()),
-            folder.join("chat (1).md")
-        );
-        std::fs::remove_dir_all(&folder).unwrap();
     }
 }

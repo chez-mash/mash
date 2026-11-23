@@ -2,6 +2,7 @@ import { exportDocumentStyle } from "../theme/exportDocument";
 import { type MessagePage, transcript, WHOLE_PAGE } from "./api";
 import { markdown } from "./markdown";
 import { isStep, messageText } from "./message";
+import { inDesktopApp } from "./shareLink";
 import { contextLabel } from "./steps";
 import type { Message } from "./types";
 
@@ -149,6 +150,17 @@ export function downloadChat(content: string, format: "markdown" | "html"): void
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Prints or closes the PDF tab. A webview does neither for a page, so inside
+ * the desktop app the tab asks the app instead, through an address the app
+ * catches (desktop/src-tauri/src/print.rs).
+ */
+function finish(popup: Window, action: "print" | "close"): void {
+  if (inDesktopApp()) popup.location.href = `mash://${action}`;
+  else if (action === "print") popup.print();
+  else popup.close();
+}
+
 /** The chat an export reads, and how to read its pages. */
 export interface ExportSource {
   readonly id: string;
@@ -197,7 +209,7 @@ export async function exportChat(
       popup.document.write(htmlExport(title, machine, messages));
       popup.document.close();
       popup.focus();
-      popup.print();
+      finish(popup, "print");
       notify("Choose Save as PDF in the print dialog. The preview includes the entire chat.");
     } else {
       downloadChat(
@@ -209,7 +221,7 @@ export async function exportChat(
       notify(`Exported ${messages.length.toLocaleString()} messages.`);
     }
   } catch (error) {
-    popup?.close();
+    if (popup) finish(popup, "close");
     notify(
       signal.aborted
         ? "Export cancelled."

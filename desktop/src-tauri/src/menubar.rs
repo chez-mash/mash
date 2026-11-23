@@ -45,32 +45,36 @@ pub fn shortcut_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
-/// The icon, its right-click menu, and the shortcut.
+/// The icon, its right-click menu, and the shortcut. Menu choices, from this
+/// menu and the app menu alike, arrive at `choose`.
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
-    let menu = Menu::with_items(
+    // Only the panel's shortcut is global. The others work while Mash is the
+    // active app, through the app menu that macOS shows; elsewhere there is no
+    // app menu, so the tray menu names no shortcut it cannot keep.
+    let app_shortcut = |keys: &'static str| cfg!(target_os = "macos").then_some(keys);
+    let search = MenuItem::with_id(app, "search", "Search Mash…", true, Some(SHORTCUT))?;
+    let open = MenuItem::with_id(app, "open", "Open Mash", true, None::<&str>)?;
+    let separator = PredefinedMenuItem::separator(app)?;
+    let settings = MenuItem::with_id(
         app,
-        &[
-            &MenuItem::with_id(app, "search", "Search Mash…", true, Some(SHORTCUT))?,
-            &MenuItem::with_id(app, "open", "Open Mash", true, Some("CmdOrCtrl+O"))?,
-            &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "settings", "Settings…", true, Some("CmdOrCtrl+,"))?,
-            &MenuItem::with_id(app, "quit", "Quit Mash", true, Some("CmdOrCtrl+Q"))?,
-        ],
+        "settings",
+        "Settings…",
+        true,
+        app_shortcut("CmdOrCtrl+,"),
     )?;
+    let quit = MenuItem::with_id(app, "quit", "Quit Mash", true, app_shortcut("CmdOrCtrl+Q"))?;
+    let menu = Menu::with_items(app, &[&search, &open, &separator, &settings])?;
+    #[cfg(unix)]
+    menu.append(&command_line_item(app)?)?;
+    menu.append_items(&[&PredefinedMenuItem::separator(app)?, &quit])?;
     TrayIconBuilder::with_id("mash")
-        .icon(Image::from_bytes(include_bytes!("../icons/tray.png"))?)
-        // A template image takes the menu bar's own colour in light and dark.
-        .icon_as_template(true)
+        .icon(tray_icon()?)
+        // On macOS a template image takes the menu bar's own colour in light
+        // and dark. Other systems draw a tray icon as it is.
+        .icon_as_template(cfg!(target_os = "macos"))
         .tooltip("Mash")
         .menu(&menu)
         .show_menu_on_left_click(false)
-        .on_menu_event(|app, event| match event.id().as_ref() {
-            "search" => toggle(app, Placement::Centre),
-            "open" => crate::open_route(app, "#/"),
-            "settings" => crate::open_route(app, "#/settings"),
-            "quit" => app.exit(0),
-            _ => {}
-        })
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -83,36 +87,95 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
             }
         })
         .build(app)?;
+    #[cfg(target_os = "macos")]
+    app.set_menu(app_menu(app)?)?;
     if let Err(error) = app.global_shortcut().register(SHORTCUT) {
         eprintln!("Mash couldn’t use {SHORTCUT} as its shortcut: {error}");
     }
     Ok(())
 }
 
+/// The tray picture. macOS draws the one-colour scoop (icons/tray.svg) in the
+/// menu bar's colour. Windows and Linux bars are light or dark with no way to
+/// tint an icon, so there it is the app's own full-colour tile, which reads
+/// on both.
+fn tray_icon() -> tauri::Result<Image<'static>> {
+    if cfg!(target_os = "macos") {
+        Image::from_bytes(include_bytes!("../icons/tray.png"))
+    } else {
+        Image::from_bytes(include_bytes!("../icons/64x64.png"))
+    }
+}
+
+/// The item that links the app's `mash` into `~/.local/bin` (cli.rs).
+#[cfg(unix)]
+fn command_line_item(app: &AppHandle) -> tauri::Result<MenuItem<tauri::Wry>> {
+    MenuItem::with_id(
+        app,
+        "command-line",
+        "Install Command-Line Tool…",
+        true,
+        None::<&str>,
+    )
+}
+
+/// The macOS app menu: the standard one, with Settings… and the command-line
+/// tool after About.
+#[cfg(target_os = "macos")]
+fn app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let menu = Menu::default(app)?;
+    let first = menu.items()?.into_iter().next();
+    if let Some(about) = first.as_ref().and_then(|item| item.as_submenu()) {
+        about.insert_items(
+            &[
+                &PredefinedMenuItem::separator(app)?,
+                &MenuItem::with_id(app, "settings", "Settings…", true, Some("CmdOrCtrl+,"))?,
+                &command_line_item(app)?,
+            ],
+            1,
+        )?;
+    }
+    Ok(menu)
+}
+
+/// Act on a choice from the tray menu or the app menu.
+pub fn choose(app: &AppHandle, id: &str) {
+    match id {
+        "search" => toggle(app, Placement::Centre),
+        "open" => crate::open_route(app, "#/"),
+        "settings" => crate::open_route(app, "#/settings"),
+        "command-line" => crate::cli::install(app),
+        "quit" => app.exit(0),
+        _ => {}
+    }
+}
+
 /// The panel window, once the dashboard it shows is running. It starts
 /// hidden and hides again whenever it loses focus, like a menu.
 pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
+    let page = crate::page(dashboard, "#/quick");
+    if let Some(panel) = app.get_webview_window(PANEL) {
+        return panel.navigate(page);
+    }
     let navigation = app.clone();
-    let window = WebviewWindowBuilder::new(
-        app,
-        PANEL,
-        WebviewUrl::External(crate::page(dashboard, "#/quick")),
-    )
-    .title("Search Mash")
-    .inner_size(PANEL_SIZE.0, PANEL_SIZE.1)
-    .resizable(false)
-    .decorations(false)
-    // The page draws the panel's rounded edge and the window around it is
-    // clear. Linux desktops without a compositor paint a clear window black,
-    // so there the window is opaque and its corners square.
-    .transparent(cfg!(any(target_os = "macos", windows)))
-    .shadow(true)
-    .always_on_top(true)
-    .skip_taskbar(true)
-    .visible(false)
-    .initialization_script(include_str!("window.js"))
-    .on_navigation(move |url| crate::navigate(&navigation, url, true))
-    .build()?;
+    let window = WebviewWindowBuilder::new(app, PANEL, WebviewUrl::External(page))
+        .title("Search Mash")
+        .inner_size(PANEL_SIZE.0, PANEL_SIZE.1)
+        .resizable(false)
+        .decorations(false)
+        // The page draws the panel's rounded edge and the window around it is
+        // clear. Linux desktops without a compositor paint a clear window black,
+        // so there the window is opaque and its corners square.
+        .transparent(cfg!(any(target_os = "macos", windows)))
+        .shadow(true)
+        .always_on_top(true)
+        // On every desktop (Space), like a menu.
+        .visible_on_all_workspaces(true)
+        .skip_taskbar(true)
+        .visible(false)
+        .initialization_script(crate::window_script())
+        .on_navigation(move |url| crate::navigate(&navigation, url, true))
+        .build()?;
     let panel = window.clone();
     window.on_window_event(move |event| {
         if let WindowEvent::Focused(false) = event {
@@ -139,6 +202,15 @@ pub fn toggle(app: &AppHandle, placement: Placement) {
     }
     let _ = panel.show();
     let _ = panel.set_focus();
+}
+
+/// Close the panel when the engine behind it stops, so it never shows a page
+/// that can no longer load; the shortcut and the icon then bring the main
+/// window forward instead, and the panel returns with the engine.
+pub fn close(app: &AppHandle) {
+    if let Some(panel) = app.get_webview_window(PANEL) {
+        let _ = panel.destroy();
+    }
 }
 
 /// Hide the panel, after it has opened something in the main window.

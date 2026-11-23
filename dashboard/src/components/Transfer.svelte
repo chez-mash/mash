@@ -23,6 +23,7 @@ import { plainTitle } from "../lib/markdown";
 import { navigate } from "../lib/navigation";
 import { catalogOptions } from "../lib/queries";
 import { type Applied, appliedHref, dateRanges, filtersOf, parseApplied } from "../lib/search";
+import { inDesktopApp } from "../lib/shareLink";
 import AgentMark from "./AgentMark.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
@@ -302,7 +303,7 @@ async function copy(): Promise<void> {
       <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}
-    <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them. Your browser saves it as one .zip file; attachments are not included.</span></p>
+    <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them. {inDesktopApp() ? "Mash saves it in your Downloads folder" : "Your browser saves it"} as one .zip file; attachments are not included.</span></p>
   {/if}
   </section>
 
