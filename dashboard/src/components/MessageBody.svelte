@@ -1,5 +1,8 @@
 <script lang="ts">
+import { mount, unmount } from "svelte";
+import { fenceLanguage } from "../lib/codeLanguage";
 import { markdown } from "../lib/markdown";
+import Code from "./Code.svelte";
 
 // `own` marks a message the reader typed: its line breaks and tags are kept.
 // `inApp` is Mashy's answer, whose links to chats and memories stay links.
@@ -25,9 +28,32 @@ $effect(() => {
   observer.observe(element);
   return () => observer.disconnect();
 });
+// Code fences that name a language are coloured in place.
+const html = $derived(markdown(text, own, inApp));
+$effect(() => {
+  void html;
+  if (!body) return;
+  const mounted: ReturnType<typeof mount>[] = [];
+  for (const code of body.querySelectorAll<HTMLElement>("pre > code[data-language]")) {
+    const pre = code.parentElement;
+    const language = fenceLanguage(code.dataset.language);
+    if (!pre || !language) continue;
+    mounted.push(
+      mount(Code, {
+        target: pre.parentElement ?? body,
+        anchor: pre,
+        props: { text: code.textContent ?? "", language, fence: true },
+      }),
+    );
+    pre.remove();
+  }
+  return () => {
+    for (const component of mounted) void unmount(component);
+  };
+});
 </script>
 
-<div bind:this={body} class="prose min-w-0 break-words" class:collapsed={!expanded && huge} class:clamped={!expanded && !huge && own && tall}>{@html markdown(text, own, inApp)}</div>
+<div bind:this={body} class="prose min-w-0 break-words" class:collapsed={!expanded && huge} class:clamped={!expanded && !huge && own && tall}>{@html html}</div>
 {#if huge}
   <button type="button" class="a" style:align-self="flex-start" style:font-size="13.5px" onclick={() => expanded = !expanded}>{expanded ? "Collapse" : `Show full message (${text.length.toLocaleString()} characters)`}</button>
 {:else if own && tall}

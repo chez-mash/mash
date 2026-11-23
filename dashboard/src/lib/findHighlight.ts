@@ -18,20 +18,50 @@ function pattern(query: string): RegExp | undefined {
   return new RegExp(escaped.join("\\s+"), "giu");
 }
 
+/** Matches in text nodes read together as one string. A coloured code block
+ * splits its text into a node per token, and a match may cross them. */
+function matchRun(nodes: readonly Text[], expression: RegExp, found: Range[]): void {
+  const ends: number[] = [];
+  let text = "";
+  for (const node of nodes) {
+    text += node.nodeValue ?? "";
+    ends.push(text.length);
+  }
+  // The node holding a position; an end on a boundary stays in the node before.
+  const at = (offset: number, end: boolean): [Text, number] => {
+    let index = ends.findIndex((nodeEnd) => (end ? offset <= nodeEnd : offset < nodeEnd));
+    if (index < 0) index = nodes.length - 1;
+    const start = (ends[index] ?? 0) - (nodes[index]?.nodeValue?.length ?? 0);
+    return [nodes[index] as Text, offset - start];
+  };
+  expression.lastIndex = 0;
+  for (let match = expression.exec(text); match; match = expression.exec(text)) {
+    if (!match[0]) break;
+    const range = document.createRange();
+    range.setStart(...at(match.index, false));
+    range.setEnd(...at(match.index + match[0].length, true));
+    found.push(range);
+  }
+}
+
 function ranges(root: Node, expression: RegExp): Range[] {
   const found: Range[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let block: Element | null = null;
+  let run: Text[] = [];
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const text = node.nodeValue ?? "";
-    expression.lastIndex = 0;
-    for (let match = expression.exec(text); match; match = expression.exec(text)) {
-      if (!match[0]) break;
-      const range = document.createRange();
-      range.setStart(node, match.index);
-      range.setEnd(node, match.index + match[0].length);
-      found.push(range);
+    const text = node as Text;
+    // Text inside one highlighted block is searched as a whole; any other
+    // text node stands alone, as before.
+    const coloured = text.parentElement?.closest("pre[data-highlight]") ?? null;
+    if (!coloured || coloured !== block) {
+      if (run.length) matchRun(run, expression, found);
+      run = [];
     }
+    block = coloured;
+    run.push(text);
   }
+  if (run.length) matchRun(run, expression, found);
   return found;
 }
 

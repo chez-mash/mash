@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import { Marked, type RendererObject } from "marked";
+import { fenceLanguage } from "./codeLanguage";
 
 const escapes: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
 function asText(text: string): string {
@@ -19,6 +20,12 @@ const renderer: RendererObject = {
     return /^https?:\/\//i.test(href) ? false : this.parser.parseInline(tokens);
   },
   checkbox: ({ checked }) => (checked ? "[x] " : "[ ] "),
+  /** A fence names its language; the page colours it when it is one it knows. */
+  code({ text, lang }) {
+    const language = fenceLanguage(lang);
+    const tag = language ? ` data-language="${language}"` : "";
+    return `<pre><code${tag}>${asText(text)}</code></pre>\n`;
+  },
 };
 const replies = new Marked({ renderer });
 /** Mashy's answers, which also link to pages of the dashboard itself. */

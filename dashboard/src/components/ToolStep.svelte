@@ -1,7 +1,9 @@
 <script lang="ts">
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Terminal from "@lucide/svelte/icons/terminal";
+import { argumentHighlight, outputHighlight } from "../lib/codeLanguage";
 import { durationLabel, type ToolCall } from "../lib/toolcalls";
+import Code from "./Code.svelte";
 import JsonView from "./JsonView.svelte";
 
 // One tool call with its output, laid out by the same rules for every tool:
@@ -17,6 +19,8 @@ let all = $state(false);
 let raw = $state(false);
 const lines = $derived(call.output?.text.split("\n") ?? []);
 const long = $derived(lines.length > LINES || (call.output?.text.length ?? 0) > CHARACTERS);
+// Colour only where the language is certain; see lib/codeLanguage.ts.
+const outputLanguage = $derived(outputHighlight(call));
 const shown = $derived(
   all || !long ? (call.output?.text ?? "") : lines.slice(0, LINES).join("\n").slice(0, CHARACTERS),
 );
@@ -37,7 +41,7 @@ const shown = $derived(
     {#each call.args as argument (argument.key)}
       <div class="tc-r">
         <span class="tc-k">{argument.key}</span>
-        {#if argument.block}<pre class="tc-pre" class:wrap={!argument.text.includes("\n")}>{argument.text}</pre>{:else}<span class="tc-v">{argument.text}</span>{/if}
+        {#if argument.block}{@const coloured = argumentHighlight(call, argument)}<Code class="tc-pre" wrap={!argument.text.includes("\n")} text={argument.text} language={coloured?.language} tone={coloured?.tone} />{:else}<span class="tc-v">{argument.text}</span>{/if}
       </div>
     {/each}
     {#if call.output}
@@ -46,7 +50,7 @@ const shown = $derived(
         {#if call.output.json !== undefined}
           <div class="tc-pre"><JsonView value={call.output.json} /></div>
         {:else}
-          <pre class="tc-pre" class:wrap={lines.length < 3}>{shown}</pre>
+          <Code class="tc-pre" wrap={lines.length < 3} text={shown} language={outputLanguage?.language} numbered={outputLanguage?.numbered} />
           {#if long}
             <p class="tc-f">
               <span>{all ? `${lines.length.toLocaleString()} lines` : `${Math.min(LINES, lines.length).toLocaleString()} of ${lines.length.toLocaleString()} lines`}</span>
