@@ -1,6 +1,6 @@
 import process from "node:process";
 import { expect, test } from "@playwright/test";
-import { searchBox } from "./shell";
+import { documentLoads, searchBox } from "./shell";
 
 // These tests use the deployed page and real API, without route interception.
 // Choose a query known to occur in the target's indexed history.
@@ -11,10 +11,7 @@ for (const submit of ["Enter", "button"] as const) {
     test.setTimeout(120_000);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    let documents = 0;
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
+    const documents = documentLoads(page);
     await page.goto("/");
     await expect(page.locator('a[href*="/chat/"]').first()).toBeVisible({ timeout: 30_000 });
     await searchBox(page).fill(query);
@@ -33,7 +30,7 @@ for (const submit of ["Enter", "button"] as const) {
     await expect(page).toHaveURL(/#\/chat\//);
     await expect(page.locator("main [data-message]").first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("alert")).toHaveCount(0);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     expect(errors).toEqual([]);
   });
 }

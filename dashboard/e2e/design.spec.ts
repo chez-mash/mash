@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { recordFixture } from "./record-fixtures";
-import { fitsViewport, followRail, rail, searchBox } from "./shell";
+import { documentLoads, fitsViewport, followRail, rail, searchBox } from "./shell";
 
 const chat = {
   chat_id: "chat-1",
@@ -48,13 +48,10 @@ async function mockHistory(page: Page, searched: () => void): Promise<void> {
 for (const width of [1440, 390]) {
   test(`approved layout navigation, memory and reading at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    let documents = 0;
+    const documents = documentLoads(page);
     let searches = 0;
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
     await mockHistory(page, () => searches++);
     await page.goto("/");
     const main = page.getByRole("main");
@@ -157,7 +154,7 @@ for (const width of [1440, 390]) {
         .getByRole("link", { name: "facts", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     expect(await fitsViewport(page)).toBe(true);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     expect(errors).toEqual([]);
   });
 }

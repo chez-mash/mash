@@ -1,20 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { fitsViewport } from "./shell";
+import { documentLoads, fitsViewport } from "./shell";
 
 for (const width of [390, 1440]) {
   test(`services open directly, inspect schemas and manage explicit targets at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    let documents = 0,
-      serviceReads = 0,
+    const documents = documentLoads(page);
+    let serviceReads = 0,
       mutations = 0,
       running = false;
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
     const base = {
       control_revision: "fixture-target",
       checked_at: 1794140000,
@@ -236,7 +233,7 @@ for (const width of [390, 1440]) {
     expect(serviceReads).toBe(reads);
     expect(mutations).toBe(2);
     expect(await fitsViewport(page)).toBe(true);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     expect(errors).toEqual([]);
   });
 }

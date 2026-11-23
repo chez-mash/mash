@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { fitsViewport, followRail, rail } from "./shell";
+import { documentLoads, fitsViewport, followRail, rail } from "./shell";
 
 async function mockServices(page: Page): Promise<void> {
   await page.route("**/api/services/access", (route) =>
@@ -16,10 +16,7 @@ test("opening chats while offline settles and retries without a document reload"
   page,
   context,
 }) => {
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
+  const documents = documentLoads(page);
   await mockServices(page);
   let online = true;
   await page.route("**/api/chats**", (route) =>
@@ -48,7 +45,7 @@ test("opening chats while offline settles and retries without a document reload"
     "href",
     "https://getmash.io/synchronization/#refresh-now",
   );
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 for (const width of [390, 1440]) {
@@ -56,10 +53,7 @@ for (const width of [390, 1440]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    let documents = 0;
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
+    const documents = documentLoads(page);
     await mockServices(page);
     await page.route("**/api/records?**", (route) =>
       route.fulfill({ json: { records: [], next_offset: null } }),
@@ -95,7 +89,7 @@ for (const width of [390, 1440]) {
     release();
     await expect(alert).toHaveCount(0);
     await expect(page.getByText("No indexed chats yet.", { exact: false })).toBeVisible();
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
   });
 }
 
@@ -127,4 +121,65 @@ test("a retry in flight keeps the error in place with a disabled button", async 
   await expect(alert.getByRole("button", { name: "Trying again…" })).toBeDisabled();
   release();
   await expect(alert).toHaveCount(0);
+});
+
+// A network change on the host (Wi-Fi, a VPN, Docker starting a container)
+// makes Chromium abort requests in flight with ERR_NETWORK_CHANGED, even to
+// 127.0.0.1. When one of the dashboard's own modules is lost that way, the
+// page reloads instead of staying blank, a few times at most.
+async function loseModule(page: Page, times: number): Promise<() => number> {
+  let lost = 0;
+  await page.route(
+    (url) => url.pathname === "/src/lib/api.ts",
+    (route) => {
+      if (lost >= times) return route.fallback();
+      lost++;
+      return route.abort("connectionreset");
+    },
+  );
+  return () => lost;
+}
+
+test("modules lost while the page loads are fetched again by reloading", async ({ page }) => {
+  let documents = 0;
+  page.on("request", (request) => {
+    if (request.resourceType() === "document") documents++;
+  });
+  const navigations = documentLoads(page);
+  await mockServices(page);
+  // Two losses in a row, as a container's interface and its IPv6 address
+  // coming up a second and a half apart can cause.
+  const lost = await loseModule(page, 2);
+  await page.goto("/#/services");
+  await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
+  expect(lost()).toBe(2);
+  expect(documents).toBe(3);
+  // The other tests' document counts leave the recovery reloads out.
+  expect(navigations()).toBe(1);
+  // The app ran, so a later lost module starts a fresh count.
+  expect(
+    await page.evaluate(() => sessionStorage.getItem("mash.reloads-after-load-failure")),
+  ).toBeNull();
+});
+
+test("a module still missing after the reloads says so instead of a blank page", async ({
+  page,
+}) => {
+  let documents = 0;
+  page.on("request", (request) => {
+    if (request.resourceType() === "document") documents++;
+  });
+  await mockServices(page);
+  const lost = await loseModule(page, Number.POSITIVE_INFINITY);
+  await page.goto("/#/services");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("Mash couldn’t load");
+  await expect(alert).toContainText("the network changed while the page loaded");
+  // The first load and three reloads, then no more.
+  expect(documents).toBe(4);
+  expect(lost()).toBe(4);
+  await alert.getByRole("button", { name: "Reload" }).click();
+  await expect.poll(() => documents).toBe(5);
+  await expect(page.getByRole("alert")).toContainText("Mash couldn’t load");
+  expect(documents).toBe(5);
 });

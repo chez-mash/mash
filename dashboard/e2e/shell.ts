@@ -66,3 +66,23 @@ export async function mockShell(page: Page): Promise<void> {
     return route.fulfill({ json: [] });
   });
 }
+
+/**
+ * Counts the documents the page loads, leaving out a reload that follows a
+ * module that failed to arrive. index.html makes those reloads when a network
+ * change on the host aborts the page's own code while it loads (see its
+ * load-failure handler); they recover a blank page and are not navigation.
+ */
+export function documentLoads(page: Page): () => number {
+  let loads = 0;
+  let lostModule = false;
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "script") lostModule = true;
+  });
+  page.on("request", (request) => {
+    if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) return;
+    if (!lostModule) loads++;
+    lostModule = false;
+  });
+  return () => loads;
+}

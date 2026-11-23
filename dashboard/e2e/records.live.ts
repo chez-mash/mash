@@ -1,6 +1,6 @@
 import process from "node:process";
 import { expect, test } from "@playwright/test";
-import { rail } from "./shell";
+import { documentLoads, rail } from "./shell";
 
 // Run against a disposable Mash database seeded with four Dashboard records
 // through the real MCP record tool. No route interception or writes in-browser.
@@ -12,11 +12,8 @@ test("live records browse, filter, expose revisions and open the real source cha
     "Requires the disposable record fixture",
   );
   const errors: string[] = [];
-  let documents = 0;
+  const documents = documentLoads(page);
   page.on("pageerror", (error) => errors.push(error.message));
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
   const records = page.getByRole("main").getByRole("article");
   await page.goto("/");
   await rail(page).getByRole("link", { name: "memory", exact: true }).click();
@@ -62,6 +59,6 @@ test("live records browse, filter, expose revisions and open the real source cha
     path: "../../mash-artifacts/dashboard-records-live/mobile-list.png",
     fullPage: true,
   });
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
   expect(errors).toEqual([]);
 });

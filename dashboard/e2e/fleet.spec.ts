@@ -1,20 +1,17 @@
 import { expect, test } from "@playwright/test";
 import type { FleetRequest } from "../src/lib/services.svelte";
-import { fitsViewport } from "./shell";
+import { documentLoads, fitsViewport } from "./shell";
 
 for (const width of [390, 1280]) {
   test(`fleet confirmation, progress and uncertain outcomes at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 });
-    let documents = 0;
+    const documents = documentLoads(page);
     let submissions = 0;
     let submitted: FleetRequest | null = null;
     const action = width === 390 ? "status" : "watch-start";
     const label = width === 390 ? "Check machines" : "Set up and start watchers";
     const group = width === 390 ? "check" : "watchers";
     const readOnly = action === "status";
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
     await page.route("**/api/**", async (route) => {
       const request = route.request();
       const path = new URL(request.url()).pathname;
@@ -123,7 +120,7 @@ for (const width of [390, 1280]) {
     await expect(run).toContainText("Build 0123456789ab installed; local search ready");
     await expect(run.locator(".jb")).toHaveText("succeeded");
     expect(submissions).toBe(1);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     await machine("macbook").check();
     await start.click();
     if (!readOnly) await confirm.getByRole("button", { name: "Yes, start it" }).click();
@@ -135,7 +132,7 @@ for (const width of [390, 1280]) {
     await expect(machine("macbook")).toBeDisabled();
     await expect(page.getByRole("button", { name: "Select all" })).toBeDisabled();
     expect(submissions).toBe(2);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     await page.getByRole("button", { name: "I’ve checked the outcome" }).click();
     await expect(page.getByRole("alert")).toHaveCount(0);
     await expect(start).toBeEnabled();

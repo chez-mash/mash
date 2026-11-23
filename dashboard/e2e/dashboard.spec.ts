@@ -1,5 +1,5 @@
 import { expect, type Locator, test } from "@playwright/test";
-import { searchBox } from "./shell";
+import { documentLoads, searchBox } from "./shell";
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/records?**", (route) =>
@@ -268,10 +268,7 @@ test("real API shapes, explicit search, source identity, safe content and stable
 // offers a way to ask.
 test("the reader can ask for new chats without reloading the document", async ({ page }) => {
   let title = chat.title;
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
+  const documents = documentLoads(page);
   await page.route("**/api/chats**", (route) =>
     route.fulfill({
       json: {
@@ -287,19 +284,18 @@ test("the reader can ask for new chats without reloading the document", async ({
   title = "Refreshed catalogue";
   await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(main.getByRole("link", { name: /Refreshed catalogue/ })).toBeVisible();
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 test("chat navigation retains the sidebar and refresh requires an explicit request", async ({
   page,
 }) => {
   let requests = 0;
-  let documents = 0;
+  const documents = documentLoads(page);
   page.on("request", (request) => {
     // No dashboard answers here, so the event stream keeps trying to connect;
     // one that is connected and quiet asks for nothing.
     if (request.url().includes("/api/") && !request.url().includes("/api/events")) requests++;
-    if (request.resourceType() === "document") documents++;
   });
   let content = "Original answer";
   await page.route("**/api/chats**", (route) =>
@@ -345,7 +341,7 @@ test("chat navigation retains the sidebar and refresh requires an explicit reque
   const beforeIdle = requests;
   await page.clock.runFor(91_000);
   expect(requests).toBe(beforeIdle);
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
   await expect(page.getByRole("button", { name: /This chat has changed/ })).toHaveCount(0);
   await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("button", { name: /This chat has changed/ })).toBeVisible();
@@ -355,10 +351,7 @@ test("chat navigation retains the sidebar and refresh requires an explicit reque
 });
 
 test("switching a scrolled chat keeps the top bar and sidebar stationary", async ({ page }) => {
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documents++;
-  });
+  const documents = documentLoads(page);
   let release: (() => void) | undefined;
   const ready = new Promise<void>((resolve) => {
     release = resolve;
@@ -428,14 +421,14 @@ test("switching a scrolled chat keeps the top bar and sidebar stationary", async
     // A newly opened chat starts at its top, with the sidebar where it began.
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     expect(await place(sidebar)).toEqual(initialSidebar);
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
   } finally {
     release?.();
   }
   await page.locator("#message-message-chat-4").waitFor();
   expect(await place(header)).toEqual(initialHeader);
   expect(await place(mainNav)).toEqual(initialNav);
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 test("Export downloads the entire chat as safe HTML and Markdown", async ({ page }) => {

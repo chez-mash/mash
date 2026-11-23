@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { recordFixture } from "./record-fixtures";
-import { followRail } from "./shell";
+import { documentLoads, followRail } from "./shell";
 
 const kindNav = (page: Page) => page.getByRole("navigation", { name: "Memory kind" });
 const records = (page: Page) => page.getByRole("main").getByRole("article");
@@ -12,10 +12,7 @@ test("memory categories work from the page's tabs even when chat history is unav
   await page.route("**/api/records?**", (route) =>
     route.fulfill({ json: { records: [], next_offset: null } }),
   );
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
+  const documents = documentLoads(page);
   await page.goto("/");
   await expect(page.getByRole("alert")).toContainText("Couldn’t load chats");
   await expect(page.getByText(/Nothing saved yet/)).toBeVisible();
@@ -36,7 +33,7 @@ test("memory categories work from the page's tabs even when chat history is unav
     await page.getByRole("link", { name: "mash", exact: true }).click();
     await expect(page.getByRole("heading", { name: "recent memories" })).toBeVisible();
   }
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 test("records filter on submission, expose history and safe citations, and navigate without reloads", async ({
@@ -44,11 +41,8 @@ test("records filter on submission, expose history and safe citations, and navig
 }) => {
   const errors: string[] = [],
     requests: URL[] = [];
-  let documents = 0;
+  const documents = documentLoads(page);
   page.on("pageerror", (error) => errors.push(error.message));
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
   const fact = recordFixture();
   const revision = fact.revisions[0];
   const statement = "Port 8080 <script>window.recordPwned=true</script>";
@@ -157,7 +151,7 @@ test("records filter on submission, expose history and safe citations, and navig
   ).toBeVisible();
   await page.getByRole("link", { name: "memory from this chat" }).click();
   await expect(page.getByText(/Memory citing chat/)).toContainText("chat-1");
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
   expect(errors).toEqual([]);
 });
 
@@ -295,10 +289,7 @@ test("unavailable or forgotten records show an error instead of a cached conclus
 // document (stableRead); the rail's Check for updates reads it again.
 test("the memory list can be refreshed on request without reloading", async ({ page }) => {
   let statement = "First statement";
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
+  const documents = documentLoads(page);
   await page.route("**/api/chats**", (route) =>
     route.fulfill({ json: { local_node: "local", truncated: false, chats: [] } }),
   );
@@ -323,7 +314,7 @@ test("the memory list can be refreshed on request without reloading", async ({ p
   statement = "Second statement";
   await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(records(page).getByRole("link", { name: "Second statement" })).toBeVisible();
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 test("a shared-only dashboard names the shared machines and never calls one this machine", async ({

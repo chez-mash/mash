@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { followRail, openRail, rail } from "./shell";
+import { documentLoads, followRail, openRail, rail } from "./shell";
 
 // Answers every read the rail's pages make with an empty but valid body.
 async function mockEmptyDashboard(page: Page, fleet = true): Promise<void> {
@@ -47,12 +47,9 @@ for (const width of [390, 1280]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 850 });
-    let documents = 0;
+    const documents = documentLoads(page);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    page.on("request", (request) => {
-      if (request.resourceType() === "document") documents++;
-    });
     await mockEmptyDashboard(page);
     await page.goto("/");
     await page.evaluate(() => {
@@ -95,12 +92,12 @@ for (const width of [390, 1280]) {
     expect(await page.evaluate(() => document.documentElement.dataset.fragmentNavigations)).toBe(
       "0",
     );
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     await page.goBack();
     await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
     await page.goForward();
     await expect(page.getByRole("heading", { name: "recent chats", exact: true })).toBeVisible();
-    expect(documents).toBe(1);
+    expect(documents()).toBe(1);
     expect(errors).toEqual([]);
   });
 }
@@ -129,10 +126,7 @@ test("an unknown address shows a missing page instead of the overview", async ({
 test("the app boundary prevents document navigation from bare links and unhandled forms", async ({
   page,
 }) => {
-  let documents = 0;
-  page.on("request", (request) => {
-    if (request.resourceType() === "document") documents++;
-  });
+  const documents = documentLoads(page);
   await page.route("**/api/**", (route) =>
     route.fulfill({ json: { local_node: "local", chats: [], truncated: false } }),
   );
@@ -164,7 +158,7 @@ test("the app boundary prevents document navigation from bare links and unhandle
   await page.goForward();
   await expect(page).toHaveURL(/#\/$/);
   await expect(page.locator("#unhandled-form")).toBeAttached();
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY),
   ).toBe("none");
@@ -185,7 +179,7 @@ test("the app boundary prevents document navigation from bare links and unhandle
   );
   expect(blocked).toBe("form-action");
   expect(await page.evaluate(() => document.querySelector("#unhandled-form") !== null)).toBe(true);
-  expect(documents).toBe(1);
+  expect(documents()).toBe(1);
 });
 
 test("the old index status address opens services, which reports the local index", async ({
