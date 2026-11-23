@@ -3,6 +3,7 @@ import {
   ActionPanel,
   Detail,
   Icon,
+  type Image,
   Keyboard,
   List,
   getPreferenceValues,
@@ -15,6 +16,7 @@ import { useMemo, useState } from "react";
 import {
   type Hit,
   MashError,
+  agentLogo,
   agentName,
   chatLink,
   findMash,
@@ -22,6 +24,7 @@ import {
   liveSearchArguments,
   parseSearch,
   parseView,
+  rendered,
   searchLink,
   viewArguments,
 } from "./mash";
@@ -100,7 +103,7 @@ export default function Command() {
       {hits.map((hit) => (
         <List.Item
           key={hit.chatId}
-          icon={Icon.Message}
+          icon={agentIcon(hit.agent)}
           title={hit.title}
           accessories={hit.updatedAt ? [{ date: hit.updatedAt }] : []}
           detail={<HitDetail hit={hit} />}
@@ -111,10 +114,20 @@ export default function Command() {
   );
 }
 
+/** The agent's own logo, in its colour; ink logos follow Raycast's theme. */
+function agentIcon(agent: string): Image.ImageLike {
+  const logo = agentLogo(agent);
+  if (!logo) return Icon.Message;
+  return {
+    source: `agents/${logo.file}`,
+    tintColor: logo.tint ?? { light: "#16150f", dark: "#f5f0e4", adjustContrast: false },
+  };
+}
+
 function HitDetail({ hit }: { hit: Hit }) {
   return (
     <List.Item.Detail
-      markdown={hit.passage ? literal(hit.passage) : "_This chat matched by its title._"}
+      markdown={hit.passage ? rendered(hit.passage) : "_This chat matched by its title._"}
       metadata={
         <List.Item.Detail.Metadata>
           <List.Item.Detail.Metadata.Label title="Agent" text={agentName(hit.agent)} />
@@ -170,7 +183,7 @@ function Messages({ hit, mash }: { hit: Hit; mash: string }) {
     : (data ?? [])
         .map((message) => {
           const heading = message.id === hit.messageId ? `### ${message.role} · the match` : `### ${message.role}`;
-          return `${heading}\n\n${literal(message.content)}`;
+          return `${heading}\n\n${rendered(message.content)}`;
         })
         .join("\n\n");
   return (

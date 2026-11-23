@@ -140,6 +140,49 @@ export function literal(content: string, limit = 4000): string {
   return `${fence}text\n${clipped}\n${fence}`;
 }
 
+/**
+ * Chat history rendered as Markdown, so code, lists and emphasis read as they
+ * did in the chat. History is untrusted, and Raycast loads images, so every
+ * image is turned into a link (links load nothing until clicked) and raw HTML
+ * tags are shown as text. Code blocks and code spans are left alone: Raycast
+ * shows them literally.
+ */
+export function rendered(content: string, limit = 4000): string {
+  const clipped = content.length > limit ? `${content.slice(0, limit)}…` : content;
+  let fence = "";
+  return clipped
+    .split("\n")
+    .map((line) => {
+      const opener = /^\s{0,3}(`{3,}|~{3,})/.exec(line)?.[1];
+      if (fence) {
+        if (opener && opener[0] === fence[0] && opener.length >= fence.length) fence = "";
+        return line;
+      }
+      if (opener) {
+        fence = opener;
+        return line;
+      }
+      return outsideCode(line);
+    })
+    .join("\n");
+}
+
+/** Defuses images and HTML in one line, outside its code spans. */
+function outsideCode(line: string): string {
+  const parts = line.split(/(`+)/);
+  let open = "";
+  return parts
+    .map((part) => {
+      if (/^`+$/.test(part)) {
+        if (!open) open = part;
+        else if (part === open) open = "";
+        return part;
+      }
+      return open ? part : part.replace(/!\[/g, "\\![").replace(/<(?=[a-zA-Z!/?])/g, "&lt;");
+    })
+    .join("");
+}
+
 /** Names agents the way Mash does. */
 export function agentName(agent: string): string {
   const names: Record<string, string> = {
@@ -151,4 +194,18 @@ export function agentName(agent: string): string {
     antigravity: "Antigravity",
   };
   return names[agent] ?? agent;
+}
+
+/** The logo file under assets/agents for each agent Mash reads, and its brand colour.
+ * Logos in ink follow Raycast's theme instead. */
+export function agentLogo(agent: string): { file: string; tint?: string } | undefined {
+  const logos: Record<string, { file: string; tint?: string }> = {
+    "claude-code": { file: "claude.svg", tint: "#d97757" },
+    codex: { file: "openai.svg" },
+    copilot: { file: "githubcopilot.svg", tint: "#8957e5" },
+    cursor: { file: "cursor.svg" },
+    opencode: { file: "opencode.svg" },
+    antigravity: { file: "antigravity.svg", tint: "#3d7fd6" },
+  };
+  return logos[agent];
 }

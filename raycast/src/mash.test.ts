@@ -4,10 +4,12 @@ import {
   chatLink,
   findMash,
   installLocations,
+  agentLogo,
   literal,
   liveSearchArguments,
   parseSearch,
   parseView,
+  rendered,
   searchLink,
 } from "./mash";
 
@@ -87,5 +89,21 @@ describe("links and untrusted text", () => {
     expect(shown.startsWith("````text\n")).toBe(true);
     expect(shown.endsWith("\n````")).toBe(true);
     expect(literal("abcdef", 3)).toBe("```text\nabc…\n```");
+  });
+
+  it("renders history as Markdown without loading images or HTML", () => {
+    expect(rendered("**bold** and `Vec<T>` stay")).toBe("**bold** and `Vec<T>` stay");
+    expect(rendered("see ![x](https://example.com/p.png)")).toBe("see \\![x](https://example.com/p.png)");
+    expect(rendered('<img src="https://example.com/p.png"> a < b')).toBe(
+      '&lt;img src="https://example.com/p.png"> a < b',
+    );
+    expect(rendered("```html\n<img src=x>\n```\n<b>")).toBe("```html\n<img src=x>\n```\n&lt;b>");
+    expect(rendered("abcdef", 3)).toBe("abc…");
+  });
+
+  it("knows each agent's logo, and nothing for an unknown one", () => {
+    expect(agentLogo("claude-code")).toEqual({ file: "claude.svg", tint: "#d97757" });
+    expect(agentLogo("codex")).toEqual({ file: "openai.svg" });
+    expect(agentLogo("someone-else")).toBeUndefined();
   });
 });
