@@ -72,12 +72,25 @@ there. To manage machines from another computer, see
 
 ### Join and review each computer
 
-On a computer you want to connect, [install Mash](installation.md) and pause
-any background indexing while you review. In Mash, open Machines or Settings,
-paste the join value into **Join a shared index**, and choose **Check**. Mash
-shows the server, group and name the string joins as before saving anything;
-**Save and continue** then joins. Or run this in a terminal with the full join
-value for that computer.
+On a computer you want to connect, [install Mash](installation.md). In Mash,
+choose **Join a shared index**: it is offered when you first set Mash up, and
+on the Machines and Settings pages. Paste the join value and choose **Check**.
+Mash shows the server, group and name the string joins as before saving
+anything; **Save and continue** then joins, and sends nothing yet.
+
+Mash then asks what this computer shares. It lists each agent's indexed chats
+with a switch to keep that agent's chats on this computer, along with the
+history range and whether credentials are hidden in the shared copy. Chats you
+leave out are still indexed and searchable here, and so are any memories
+drawn from them; neither is sent. Choose **Publish** to start, or **Save and
+publish later**. Mash then shows how many chats the server has received.
+
+You can change what is shared later from the same place. Turning an agent off
+removes its chats from the server at the next publish; turning it back on
+sends them again.
+
+To join from a terminal instead, pause any background indexing while you
+review, and run this with the full join value for that computer.
 
 ```sh
 mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents
@@ -85,7 +98,9 @@ mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents
 
 Joining saves the server, group, and node settings, and stores the credential
 in `~/.mash/node.env`, readable only by you. These options skip indexing and
-leave agent settings alone. A plain `mash init --join` also connects detected
+leave agent settings alone. To keep an agent's chats off the server from the
+terminal, list it under `[shared]` in the configuration, for example
+`unshared = ["cursor"]`. A plain `mash init --join` also connects detected
 supported agents and starts indexing and publishing without a wizard.
 
 Run `mash status --installation` to check the configured history folders and use

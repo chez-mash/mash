@@ -1152,3 +1152,18 @@ a.card.opc:hover {
   width: 15px;
   height: 15px;
 }
+
+/* Setup's first-run choice of where chats are searched. */
+.setup-reach {
+  display: grid;
+  gap: 12px;
+  border: var(--border-fill);
+}
+.setup-reach input {
+  accent-color: var(--text-strong);
+}
+.setup-reach label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}

@@ -343,7 +343,7 @@ fn sharing(
         token_env,
         publication_redaction: crate::redaction::Policy::default(),
         // Re-entering the server keeps which agents stay on this machine.
-        unshared: existing.map(|s| s.unshared.clone()).unwrap_or_default(),
+        unshared: existing.map_or_else(Vec::new, |s| s.unshared.clone()),
     }))
 }
 

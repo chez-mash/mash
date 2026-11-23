@@ -3,9 +3,12 @@ import KeyRound from "@lucide/svelte/icons/key-round";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { read } from "../lib/api";
+import { settingsOptions } from "../lib/settings";
 import { lastPublish, machineState, setAdminKey } from "../lib/shared";
 import JoinShared from "./JoinShared.svelte";
 import ServerAdmin from "./ServerAdmin.svelte";
+import ShareDone from "./ShareDone.svelte";
+import ShareReview from "./ShareReview.svelte";
 
 // The shared server this machine publishes to, as the server reports this
 // machine's group, read with this machine's own token. With an admin key
@@ -19,6 +22,10 @@ const view = createQuery(() => ({
     read("/api/shared/server", new URLSearchParams(), signal),
 }));
 const now = $derived(view.data?.status?.now ?? Math.floor(Date.now() / 1000));
+// A joined machine whose index is still local has not chosen what to share.
+const settings = createQuery(() => settingsOptions);
+let reviewing = $state(false);
+const held = $derived(settings.data?.shared === true && settings.data.destination === "local");
 
 let adding = $state(false);
 let key = $state("");
@@ -91,6 +98,13 @@ async function forgetKey(): Promise<void> {
         <p class="meta">Machines are managed from Mash on the machine itself, or from a dashboard that every visitor signs in to.</p>
       {/if}
     </section>
+    {#if data.may_change && settings.data}
+      {#if reviewing || held}
+        <ShareReview server={data} done={() => (reviewing = false)} />
+      {:else}
+        <ShareDone server={data} change={() => (reviewing = true)} />
+      {/if}
+    {/if}
   {:else if joinable && data.may_change}
     <JoinShared joined={() => void client.invalidateQueries({ queryKey: ["shared-server"] })} />
   {/if}

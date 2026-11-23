@@ -159,12 +159,11 @@ fn choose(
     let choices = Choices {
         providers,
         since_days: choice.since_days,
-        // Setup here never starts or stops publishing to a shared server.
-        shared: (configured && current.destination == IndexDestination::Both)
-            .then(|| current.shared.clone())
-            .flatten(),
+        // Setup here never starts or stops publishing to a shared server: a
+        // joined server is kept, and so is a join still held for review.
+        shared: configured.then(|| current.shared.clone()).flatten(),
         records: current.records.clone(),
-        hold_publication: false,
+        hold_publication: current.destination == IndexDestination::Local,
     };
     // Validate now, as the terminal wizard does before it confirms.
     let base = match text {
@@ -277,5 +276,51 @@ mod tests {
             chosen.providers[&Provider::ClaudeCode],
             vec![home("claude")]
         );
+    }
+
+    #[test]
+    fn setup_keeps_a_joined_server_and_a_join_still_held_for_review() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("config.toml");
+        let base = init::render(
+            &ProviderRoots::from([(Provider::Codex, vec![home("codex")])]),
+            false,
+        )
+        .unwrap();
+        for hold in [true, false] {
+            let joined = init::configure(
+                &base,
+                &Choices {
+                    providers: ProviderRoots::from([(Provider::Codex, vec![home("codex")])]),
+                    since_days: None,
+                    shared: Some(super::super::SharedConfig {
+                        group_id: "g".into(),
+                        node_id: "n".into(),
+                        api_url: "https://example.com".into(),
+                        token_env: "TOKEN".into(),
+                        publication_redaction: crate::redaction::Policy::default(),
+                        unshared: vec![Provider::Cursor],
+                    }),
+                    records: crate::records::capture::Policy::default(),
+                    hold_publication: hold,
+                },
+            )
+            .unwrap();
+            std::fs::write(&path, &joined).unwrap();
+            let current = current(&path).unwrap();
+            let chosen = choose(
+                Some(&joined),
+                &current,
+                &detected(),
+                &choice(Some(&joined), &[]),
+            )
+            .unwrap();
+            let shared = chosen.shared.expect("setup must keep the joined server");
+            assert_eq!(shared.unshared, vec![Provider::Cursor]);
+            assert_eq!(
+                chosen.hold_publication, hold,
+                "setup neither starts nor stops publishing"
+            );
+        }
     }
 }

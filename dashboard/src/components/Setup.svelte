@@ -32,6 +32,7 @@ import { inDesktopApp } from "../lib/shareLink";
 import { statusOptions } from "../lib/status";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import SharedServer from "./SharedServer.svelte";
 import Skeleton from "./Skeleton.svelte";
 
 // Open on the detected choices. The guided steps are available for editing.
@@ -49,6 +50,9 @@ const names = Object.fromEntries(
 ) as Record<Agent, string>;
 
 const steps = ["histories", "range", "agents", "review"] as const;
+// Where this computer's chats are searched: here only, or also on a shared
+// index this computer joins with a join string.
+let reach = $state<"local" | "join">("local");
 const titles = {
   histories: "Which histories should Mash index?",
   range: "How far back?",
@@ -281,6 +285,13 @@ function toggleConnect(agent: Integration): void {
         {/if}
         {#if file.shared}
           <p class="card tight cream">This machine is already set to send indexed chats to your shared server.</p>
+        {:else if file.editable && at === null}
+          <fieldset class="card tight setup-reach">
+            <legend class="set-l">Where should this computer’s chats be searched?</legend>
+            <label><input type="radio" name="reach" value="local" bind:group={reach} /> <span><strong>On this computer only</strong><br /><span class="meta">Mash indexes chats here. Nothing leaves this computer.</span></span></label>
+            <label><input type="radio" name="reach" value="join" bind:group={reach} /> <span><strong>Join a shared index</strong><br /><span class="meta">You have a join string from the machine that runs your Mash server.</span></span></label>
+          </fieldset>
+          {#if reach === "join"}<SharedServer joinable />{/if}
         {/if}
         {#if !file.configured && file.editable}
           <p class="card tight mashy-card note"><img src={asset("mashy.png")} alt="" /><span>Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</span></p>

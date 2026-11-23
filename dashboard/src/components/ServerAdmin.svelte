@@ -55,11 +55,15 @@ async function copy(text: string): Promise<void> {
   {#if overview.error}<p class="warn" role="alert">{overview.error.message}</p>{/if}
   {#if overview.data}
     {@const data = overview.data}
+    {@const taken = data.machines.find((machine) => machine.group_id === groups[0] && machine.node_id === name.trim())}
     <form class="card tight" aria-label="Add a machine" onsubmit={(event) => { event.preventDefault(); void act("add", groups[0] ?? "", name.trim()); }}>
       <label class="meta" style:display="block" for="new-machine">Name the new machine</label>
       <input id="new-machine" class="field" autocomplete="off" spellcheck="false" bind:value={name} />
       <p class="meta">Each machine needs its own name. It appears beside every chat in search results. Use lower-case letters, numbers and dashes.</p>
-      <button class="btn p" type="submit" disabled={!name.trim() || busy || groups.length !== 1}><Plus size={15} aria-hidden="true" />Create join string</button>
+      {#if taken}
+        <p class="warn" role="alert"><strong>{taken.group_id} already has a machine called {taken.node_id}.</strong> Pick another name. If this is the same {taken.node_id} after a reinstall, <button class="a" type="button" disabled={busy} onclick={() => act("replace", taken.group_id, taken.node_id)}>replace {taken.node_id}’s credential</button> instead.</p>
+      {/if}
+      <button class="btn p" type="submit" disabled={!name.trim() || busy || groups.length !== 1 || !!taken}><Plus size={15} aria-hidden="true" />Create join string</button>
       {#if groups.length > 1}<p class="meta">This server serves several groups; add machines with <code class="i">mash-server --add-node GROUP/NODE</code>.</p>{/if}
     </form>
     {#if fresh}

@@ -205,6 +205,8 @@ for (const width of [390, 1280]) {
       destination: "both",
       memory_capture: true,
       hide_credentials: { output: true, publication: false },
+      // The settings page never changes which agents stay unshared.
+      unshared: null,
       assistant: null,
     });
     await expect(page.getByRole("switch", { name: "Index Cursor" })).toHaveAttribute(
