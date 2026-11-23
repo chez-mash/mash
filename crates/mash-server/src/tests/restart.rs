@@ -44,6 +44,7 @@ fn snapshot(revision: i64, second: bool) -> Vec<Event> {
             repository: Some("repo://restart".into()),
             created_at: Some(1_700_000_000_000),
             updated_at: Some(1_700_000_000_000),
+            subagent: None,
         })
         .collect();
     let mut messages: Vec<_> = providers

@@ -15,6 +15,7 @@ use axum::{Json, Router};
 mod admin;
 mod admission;
 mod attachments;
+mod chats;
 mod contexts;
 mod events;
 mod group_status;
@@ -350,19 +351,6 @@ async fn get_record(
     Ok(Json(record))
 }
 
-async fn list_chats(
-    State(app): State<App>,
-    Extension(id): Extension<Identity>,
-    input: Result<Json<crate::chat_catalog::Request>, JsonRejection>,
-) -> Result<Json<crate::chat_catalog::Page>, ApiError> {
-    let input = json(input)?;
-    input.validate()?;
-    let mut page = app.store.list_chats(&id, input).await?;
-    for thread in &mut page.chats {
-        thread.metadata.redact(app.store.responses());
-    }
-    Ok(Json(page))
-}
 async fn view(
     State(app): State<App>,
     Extension(id): Extension<Identity>,
@@ -380,41 +368,6 @@ async fn view(
         redaction.tools(&mut message.tools);
     }
     Ok(Json(messages))
-}
-
-async fn catalog(
-    State(app): State<App>,
-    Extension(id): Extension<Identity>,
-) -> Result<Json<Vec<crate::chat_catalog::Chat>>, ApiError> {
-    let mut chats = app
-        .store
-        .catalog(
-            &id,
-            &crate::chat_catalog::Request {
-                exclude_self: true,
-                ..Default::default()
-            },
-        )
-        .await?;
-    chats.sort_by(|a, b| {
-        b.metadata
-            .updated_at
-            .cmp(&a.metadata.updated_at)
-            .then_with(|| a.node_id.cmp(&b.node_id))
-            .then_with(|| a.chat_id.cmp(&b.chat_id))
-    });
-    // One extra row lets the dashboard report an incomplete catalogue.
-    chats.truncate(10_001);
-    for chat in &mut chats {
-        // The dashboard is this endpoint's only reader and shows one line of
-        // each title and no provenance, so neither is masked or sent.
-        chat.metadata.enrichment = None;
-        if let Some(title) = &mut chat.metadata.title {
-            crate::chat_catalog::headline(title);
-        }
-        chat.metadata.redact(app.store.responses());
-    }
-    Ok(Json(chats))
 }
 
 async fn chat_page(

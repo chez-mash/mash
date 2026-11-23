@@ -50,6 +50,7 @@ fn file(content: Option<&str>, revision: i64) -> tempfile::NamedTempFile {
                 repository: None,
                 created_at: None,
                 updated_at: None,
+                subagent: None,
             }],
         }),
         Event::Batch(Batch::Messages { records: messages }),

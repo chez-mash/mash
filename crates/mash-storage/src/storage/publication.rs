@@ -1,9 +1,11 @@
 use super::Storage;
 use crate::provider::Provider;
-use crate::shared::batches::{Amendment, Batch, BatchKind, ChatRecord, MessageRecord, Tombstone};
+use crate::shared::batches::{Amendment, Batch, BatchKind, Tombstone};
 use rusqlite::{Connection, OpenFlags};
+mod records;
 mod unshared;
 use crate::AppError;
+use records::{chat_record, message_record};
 pub use unshared::Unshared;
 
 pub struct Snapshot<'a> {
@@ -270,9 +272,12 @@ pub struct Delta {
     pub amend: bool,
 }
 
+/// A chat and its subagent marker, which publishes with the record.
 const CHATS: &str =
-    "SELECT c.id,c.provider,c.title,c.created_at,c.updated_at,c.project,c.repository,e.evidence
-                 FROM chats c LEFT JOIN chat_enrichment e ON e.chat_id=c.id";
+    "SELECT c.id,c.provider,c.title,c.created_at,c.updated_at,c.project,c.repository,e.evidence,
+                 a.chat_id IS NOT NULL,a.parent_chat_id,a.label,a.role,a.depth,a.finished,a.spawn_call_id
+                 FROM chats c LEFT JOIN chat_enrichment e ON e.chat_id=c.id
+                 LEFT JOIN chat_subagents a ON a.chat_id=c.id";
 const MESSAGES: &str = "SELECT m.id, m.chat_id, m.ordinal, m.role, m.content,
                 COALESCE(m.search_projection, m.content), m.created_at, m.context_parent, m.attachments, m.metadata";
 
@@ -327,58 +332,6 @@ fn selected_query(sql: &str, kind: BatchKind, delta: Option<Delta>) -> Result<St
     Ok(format!(
         "{query} {join} {id} IN (SELECT chat_id FROM shared_changes WHERE revision>{after}{amended}) ORDER BY{order}"
     ))
-}
-
-fn chat_record(row: &rusqlite::Row<'_>) -> Result<ChatRecord, AppError> {
-    Ok(ChatRecord {
-        enrichment: row
-            .get::<_, Option<String>>(7)
-            .map_err(AppError::database)?
-            .map(|json| super::enrichment::decode(&json))
-            .transpose()?,
-        id: row.get::<_, String>(0).map_err(AppError::database)?,
-        provider: row.get::<_, Provider>(1).map_err(AppError::database)?,
-        title: row
-            .get::<_, Option<String>>(2)
-            .map_err(AppError::database)?,
-        created_at: row.get::<_, Option<i64>>(3).map_err(AppError::database)?,
-        updated_at: row.get::<_, Option<i64>>(4).map_err(AppError::database)?,
-        project: row
-            .get::<_, Option<String>>(5)
-            .map_err(AppError::database)?,
-        repository: row
-            .get::<_, Option<String>>(6)
-            .map_err(AppError::database)?,
-    })
-}
-
-fn message_record(row: &rusqlite::Row<'_>) -> Result<MessageRecord, AppError> {
-    Ok(MessageRecord {
-        attachments: serde_json::from_str(
-            &row.get::<_, String>("attachments")
-                .map_err(AppError::database)?,
-        )
-        .map_err(|_| AppError::database_data("invalid attachment metadata"))?,
-        id: row.get::<_, String>(0).map_err(AppError::database)?,
-        chat_id: row.get::<_, String>(1).map_err(AppError::database)?,
-        ordinal: row.get::<_, i64>(2).map_err(AppError::database)?,
-        context: crate::message_context::MessageContext::from_parent(
-            row.get("context_parent").map_err(AppError::database)?,
-        ),
-        role: row
-            .get::<_, crate::role::Role>(3)
-            .map_err(AppError::database)?,
-        content: row.get::<_, String>(4).map_err(AppError::database)?,
-        projection: row.get::<_, String>(5).map_err(AppError::database)?,
-        created_at: row.get::<_, Option<i64>>(6).map_err(AppError::database)?,
-        generation: None,
-        vector: None,
-        tools: crate::tools::Activity::decode(
-            row.get::<_, Option<String>>("metadata")
-                .map_err(AppError::database)?
-                .as_deref(),
-        )?,
-    })
 }
 
 /// What a completed publication may remove from the local change journal.

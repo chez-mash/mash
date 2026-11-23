@@ -1939,6 +1939,7 @@ async fn qdrant_backfill_commits_each_batch_progressively() {
         repository: None,
         created_at: Some(1),
         updated_at: Some(updated_at),
+        subagent: None,
     };
     let message = |chat: &str, id: &str, seed: f64| crate::shared::protocol::MessageRecord {
         attachments: Vec::new(),
@@ -2224,6 +2225,7 @@ async fn qdrant_backfill_lanes_assign_ordered_revisions() {
         repository: None,
         created_at: Some(1),
         updated_at: Some(1),
+        subagent: None,
     };
     let message = |chat: &str, seed: f64| crate::shared::protocol::MessageRecord {
         attachments: Vec::new(),

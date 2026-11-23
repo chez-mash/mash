@@ -26,6 +26,7 @@ mod restart;
 mod selections;
 mod silver_revision;
 mod source_silver;
+mod subagents;
 mod sync;
 mod views;
 
@@ -47,6 +48,7 @@ fn provider_snapshot(vector: &[f64], revision: i64) -> Vec<Value> {
             repository: None,
             created_at: None,
             updated_at: None,
+            subagent: None,
         })
         .collect();
     let messages = Provider::ALL

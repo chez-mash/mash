@@ -434,6 +434,12 @@ the one upload transaction and rejects it, committing nothing, unless the
 chat's documented fields and resulting message count match; the publisher then
 sends a whole-chat baseline. `qdrant_long_chat_delta_publishes_only_changed_messages`
 compares an amended server with a fresh replacement of the same history.
+The same triggers journal `chat_subagents` (published subagent markers) as
+an amendment, like `chat_enrichment`, and the schema 69 upgrade writes one
+journal row per already-marked chat at a new revision in its migration
+transaction. Both are ordinary journal edits at revision boundaries the model
+already has, so no model or configuration changes; the marker rides in the
+chat record of the same snapshot and upload transactions.
 
 ### NativeSilver: revision guards and deletion intent
 

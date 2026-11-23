@@ -6,6 +6,11 @@ pub use crate::views::retrieval::Search;
 pub use crate::views::retrieval::{Document, valid_vector};
 pub use mash_storage::shared::batches::*;
 
+/// Sent with every request by clients that read subagent markers in shared
+/// catalogue rows. Older clients reject the fields they do not know there, so
+/// the server sends markers and counts only to clients that send this.
+pub const SUBAGENT_MARKERS_HEADER: &str = "x-mash-subagent-markers";
+
 /// One node's committed publication, as `/v1/events` tells listening
 /// dashboards about it. It names chats and never carries their text.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]

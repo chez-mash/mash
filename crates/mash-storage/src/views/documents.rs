@@ -35,6 +35,11 @@ pub struct ChatRecord {
     pub repository: Option<String>,
     pub created_at: Option<i64>,
     pub updated_at: Option<i64>,
+    /// Set only when the agent marked the chat as a subagent it started.
+    /// Older publishers never send it. No search document carries it, so
+    /// views and their fingerprints leave it out.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subagent: Option<crate::silver::subagent::Subagent>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -200,8 +200,9 @@ titled with its task and links back to the chat that started it; one whose
 parent is not indexed here says it is a subagent of a chat not on this machine.
 Search leaves subagent chats out. To include their matches, labelled with
 their parent, choose **subagents: hidden** and then **Include matches in
-subagent chats**. Only the machine that indexed a chat knows it is a subagent,
-so results from other machines stay in either way.
+subagent chats**. Each machine publishes which of its chats are subagents,
+so this covers other machines' chats too; a chat its machine has not
+published again since upgrading to this release stays in either way.
 
 ### Sessions run over SSH
 

@@ -168,6 +168,10 @@ fn request_with_token(
                 .map_err(|_| AppError::shared("invalid API identity"))?,
         );
     }
+    headers.insert(
+        protocol::SUBAGENT_MARKERS_HEADER,
+        reqwest::header::HeaderValue::from_static("1"),
+    );
     let client = HTTP_CLIENT
         .as_ref()
         .map_err(|_| AppError::shared("could not configure HTTP client"))?;

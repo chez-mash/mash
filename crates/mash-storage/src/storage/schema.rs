@@ -7,7 +7,7 @@ use crate::database_error::Operation;
 /// First supported migration baseline. Earlier releases require export/import.
 const BASELINE: i64 = 62;
 pub const MIN_SCHEMA_VERSION: i64 = BASELINE;
-pub const SCHEMA_VERSION: i64 = 68;
+pub const SCHEMA_VERSION: i64 = 69;
 
 /// The one silver schema, shared by local nodes and the shared server.
 pub const SILVER: &str = include_str!("silver.sql");
@@ -27,6 +27,9 @@ const CHAT_SUBAGENTS_UPGRADE: &str = concat!(
     "UPDATE source_checkpoints SET interpretation_version = 0 WHERE provider = 'codex'
        OR (provider = 'claude-code' AND (source_path LIKE '%/ssh-%' OR source_path LIKE '%\\ssh-%'));"
 );
+/// Journals the chats marked as subagents before markers were published. A new
+/// database has none, so only an upgrade runs it.
+const PUBLICATION_SUBAGENTS: &str = include_str!("publication_subagents.sql");
 /// Writers run in WAL mode with NORMAL sync: commits are atomic and survive a
 /// process crash without an fsync each; only an OS crash or power loss can
 /// drop the latest commits, and the database stays consistent. Per connection.
@@ -115,6 +118,7 @@ pub fn initialize_silver(connection: &mut Connection) -> Result<(), AppError> {
         steps.push(rusqlite_migration::M::up(RECORD_KINDS));
         steps.push(rusqlite_migration::M::up(PUBLICATION_MESSAGES));
         steps.push(rusqlite_migration::M::up(CHAT_SUBAGENTS_UPGRADE));
+        steps.push(rusqlite_migration::M::up(PUBLICATION_SUBAGENTS));
         connection.set_transaction_behavior(rusqlite::TransactionBehavior::Immediate);
         let result = rusqlite_migration::Migrations::new(steps).to_latest(connection);
         connection.set_transaction_behavior(rusqlite::TransactionBehavior::Deferred);
@@ -145,7 +149,15 @@ pub fn unsupported(version: i64) -> AppError {
 pub(super) fn install_publication_triggers(connection: &Connection) -> Result<(), AppError> {
     let mut statements = String::new();
     // Publication journals canonical agent history; turns are derived on receipt.
-    for table in ["chats", "messages", "tombstones", "chat_enrichment"] {
+    // A subagent marker publishes with its chat record and no search document
+    // carries it, so a marked chat is amended rather than resent whole.
+    for table in [
+        "chats",
+        "messages",
+        "tombstones",
+        "chat_enrichment",
+        "chat_subagents",
+    ] {
         for operation in ["INSERT", "UPDATE", "DELETE"] {
             let references = match operation {
                 "INSERT" => vec!["NEW"],

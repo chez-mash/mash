@@ -342,9 +342,12 @@ chat, so it cannot replace the parent's history. Search never indexes history im
 
 A chat is a subagent only when the agent's own marker says so; titles such as
 "Work ONLY in …", file names and prompts are never evidence. The marker is kept
-in `chat_subagents` beside the chat (schema 68), is local only (never published,
-so a shared-only dashboard does not fold), and is replayed by reading the
-history again.
+in `chat_subagents` beside the chat (schema 68) and is replayed by reading the
+history again. A node publishes it with the chat record (`subagent` on the
+record, an optional field older servers ignore), and the shared server keeps it
+in that node's silver, so shared search, `list_chats` and a shared-only
+dashboard recognise other machines' subagents (see "Published subagent
+markers" in `shared-api.md`).
 
 - Claude Code: every record naming an `agentId` has `isSidechain: true`, with
   one agent per transcript. The parent is the session's own chat (its

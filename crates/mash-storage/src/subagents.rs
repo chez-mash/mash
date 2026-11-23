@@ -1,8 +1,10 @@
 //! A subagent chat as lists and search results describe it.
 //!
 //! Silver keeps what the agent recorded (`chat_subagents`); readers add the
-//! parent's title when the parent is indexed in the same silver. A shared
-//! index never carries these rows, so a subagent read from it is unmarked.
+//! parent's title when the parent is indexed in the same silver. Nodes publish
+//! their rows, so the shared index marks other machines' subagents too; a
+//! chat published by a release older than that, or to an older server, is
+//! unmarked there until it is published again.
 use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 

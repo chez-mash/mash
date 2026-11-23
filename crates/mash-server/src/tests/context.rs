@@ -125,6 +125,10 @@ use crate::{
     storage::{Message, MessageContent},
 };
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one explicit branching chat with every context kind"
+)]
 fn snapshot(revision: i64) -> Vec<Value> {
     let mut vector = vec![0.0; 384];
     vector[0] = 127.0;
@@ -218,6 +222,7 @@ fn snapshot(revision: i64) -> Vec<Value> {
                 repository: None,
                 created_at: None,
                 updated_at: None,
+                subagent: None,
             }],
         }),
         Event::Batch(Batch::Messages { records: messages }),

@@ -11,6 +11,7 @@ fn chat(id: &str, updated_at: i64) -> Event {
             repository: None,
             created_at: Some(1),
             updated_at: Some(updated_at),
+            subagent: None,
         }],
     })
 }
@@ -143,6 +144,7 @@ fn the_planner_never_splits_a_chat_across_batches() {
                 repository: None,
                 created_at: Some(1),
                 updated_at: Some(2),
+                subagent: None,
             }],
         }),
         Event::Batch(crate::shared::protocol::Batch::Messages {
@@ -188,6 +190,7 @@ fn the_planner_never_splits_a_chat_across_batches() {
         repository: None,
         created_at: Some(1),
         updated_at: Some(2),
+        subagent: None,
     };
     assert_eq!(
         big.members[0].digest,
@@ -222,6 +225,7 @@ fn spool(instance: &str) -> tempfile::NamedTempFile {
         repository: None,
         created_at: Some(1),
         updated_at: Some(2),
+        subagent: None,
     };
     for event in [
         Event::Start(start),

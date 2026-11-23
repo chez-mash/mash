@@ -77,6 +77,7 @@ pub(super) fn publication(chat: crate::silver::Chat) -> (Vec<Value>, Vec<String>
         repository: chat.repository,
         created_at: chat.created_at,
         updated_at: chat.updated_at,
+        subagent: None,
     };
     let mut vector = vec![0.0; 384];
     vector[0] = 127.0;

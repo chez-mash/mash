@@ -167,7 +167,8 @@ const streamedHits = $derived.by(() => {
   const inside = data
     ? federated.hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode))
     : federated.hits;
-  // Mash leaves subagent chats out of the search itself, unless asked.
+  // Mash leaves subagent chats out of the search itself, unless asked,
+  // other machines' ones too: each machine publishes its chats' markers.
   return withoutCopies(inside, data?.all ?? []);
 });
 const status = $derived(statusLine(federated.sources, federated.hits.length, federated.done));

@@ -144,6 +144,36 @@ no Qdrant staging or conditional head protocol. A node that sees stale views
 resends a complete snapshot, which repairs views without changing silver.
 Chat lists, `view` and context reads come from shared silver.
 
+#### Published subagent markers
+
+A chat record carries the chat's subagent marker (`subagent`: parent chat ID,
+label, role, depth, finished state and spawning call), read with the record
+from the node's `chat_subagents` row. It is an optional Protobuf field (tag 9
+of `Chat`), so servers older than it decode records and drop the marker. The
+server keeps it in the node's own `chat_subagents`: a snapshot replaces every
+row, and a replaced or amended chat takes the marker its record carries or
+none. A record is read from the node's whole silver chat, so one without a
+marker means the chat is not a subagent; older nodes never published markers,
+and a silver that has published them is refused by older releases, so no
+older node can clear one. No search document, thread fingerprint, silver
+revision or backfill member digest includes the marker: marking a chat never
+makes views stale or a baseline incomplete.
+
+The node journals `chat_subagents` like the chat's other fields, as an
+amendment (no whole resend). Schema 69 journals every chat already marked when
+a node upgrades, so its next delta amends each with its record and marker and
+resends no messages; a recipe that cannot amend resends those chats whole
+once. Publish to an upgraded server: an older server drops the markers, and
+chats published to it gain theirs only when they next change or with a full
+snapshot.
+
+Shared `list_chats` and the dashboard catalogue carry each node's markers and
+parents' `subagents` counts, and `exclude_subagents` applies to them, for
+clients that send `x-mash-subagent-markers: 1`, as this release does. Older
+clients reject unknown catalogue fields, so they get rows without markers or
+counts (the exclusion still applies). Search results carry `subagent`
+whatever the client, because older search hits ignore unknown fields.
+
 If Qdrant data is lost or damaged, start the service with `--replay-views` to
 rebuild every configured node's documents and vectors from shared silver before
 serving. Replay uses local embedding model assets from `--models-dir`, in the

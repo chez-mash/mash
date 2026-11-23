@@ -101,8 +101,9 @@ impl Subagents {
     /// The hits a search may return. Applied before anything is ranked or
     /// paged, so a page left without subagent chats is still a full page.
     ///
-    /// Only this machine records which chats are subagents: hits from other
-    /// machines carry no marker and always stay.
+    /// Hits from the shared index carry the marker their machine published,
+    /// so other machines' subagents leave too. A chat that machine has not
+    /// published with its marker yet carries none and stays.
     pub fn admit(self, mut hits: Vec<crate::storage::SearchHit>) -> Vec<crate::storage::SearchHit> {
         if self == Self::Excluded {
             hits.retain(|hit| hit.metadata.subagent.is_none());

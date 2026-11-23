@@ -226,3 +226,166 @@ fn ssh_copies_are_marked_in_lists_and_search_until_read_from_elsewhere() {
     assert!(!catalogue(&storage)[0].metadata.ssh_copy);
     assert!(!super::ssh_copy(&storage.connection, "session").unwrap());
 }
+
+/// The chats a delta after `after` journals, with whether each is resent whole.
+fn journaled(storage: &Storage, after: i64) -> Vec<(String, bool)> {
+    storage
+        .connection
+        .prepare("SELECT chat_id, whole FROM shared_changes WHERE revision > ?1 ORDER BY chat_id")
+        .unwrap()
+        .query_map([after], |row| Ok((row.get(0)?, row.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap()
+}
+
+fn published_revision(storage: &Storage) -> i64 {
+    storage
+        .connection
+        .query_row("SELECT revision FROM shared_publication", [], |row| {
+            row.get(0)
+        })
+        .unwrap()
+}
+
+/// Mark everything so far as published to `destination`.
+fn publish(storage: &Storage) -> i64 {
+    use crate::storage::publication::JournalCoverage;
+    storage.prepare_publication_target("destination").unwrap();
+    let revision = published_revision(storage);
+    storage
+        .acknowledge_publication(
+            "destination",
+            revision,
+            JournalCoverage::Incremental { through: revision },
+        )
+        .unwrap();
+    revision
+}
+
+/// What a delta after `after` that may amend uploads: the chats resent whole,
+/// and each amended chat with its marker, replaced messages and message count.
+type Amended = (String, Option<Subagent>, Vec<String>, u64);
+
+fn delta(storage: &Storage, after: i64) -> (Vec<String>, Vec<Amended>, usize) {
+    use crate::shared::batches::{Batch, BatchKind};
+    use crate::storage::publication::Delta;
+    let (mut whole, mut amended, mut messages) = (Vec::new(), Vec::new(), 0);
+    storage
+        .with_publication_snapshot(|snapshot| {
+            let delta = Some(Delta { after, amend: true });
+            snapshot.visit_selected(BatchKind::Chats, false, delta, |batch| {
+                if let Batch::Chats { records } = batch {
+                    whole.extend(records.into_iter().map(|record| record.id));
+                }
+                Ok(())
+            })?;
+            snapshot.visit_amendments(after, |amendment| {
+                amended.push((
+                    amendment.chat.id,
+                    amendment.chat.subagent,
+                    amendment.replaced,
+                    amendment.messages,
+                ));
+                Ok(())
+            })?;
+            snapshot.visit_selected(BatchKind::Messages, true, delta, |batch| {
+                messages += batch.len();
+                Ok(())
+            })?;
+            snapshot.visit_amended_messages(after, |batch| {
+                messages += batch.len();
+                Ok(())
+            })
+        })
+        .unwrap();
+    (whole, amended, messages)
+}
+
+#[test]
+fn upgrading_journals_marked_chats_so_a_delta_amends_them_without_messages() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("index.sqlite3");
+    {
+        let mut storage = Storage::open_writer(&path).unwrap();
+        storage
+            .replace_chat(&codex_chat("parent", "plan", None))
+            .unwrap();
+        storage
+            .replace_chat(&codex_chat("child", "work", Some(spawned("parent"))))
+            .unwrap();
+        storage.commit_writer().unwrap();
+    }
+    // Published by a release that did not publish markers, then upgraded.
+    let published = publish(&Storage::open_existing(&path).unwrap());
+    let connection = Connection::open(&path).unwrap();
+    connection.execute_batch("PRAGMA user_version=68;").unwrap();
+    drop(connection);
+    let storage = Storage::open_existing(&path).unwrap();
+    assert!(published_revision(&storage) > published);
+    assert!(Storage::publication_is_pending(&path, "destination").unwrap());
+    // Only the marked chat, and as an amendment rather than a whole resend.
+    assert_eq!(journaled(&storage, published), [("child".into(), false)]);
+    let (whole, amended, messages) = delta(&storage, published);
+    assert_eq!(whole, [] as [String; 0]);
+    assert_eq!(
+        amended,
+        [("child".into(), Some(spawned("parent")), Vec::new(), 1)]
+    );
+    assert_eq!(messages, 0, "no message is resent");
+}
+
+#[test]
+fn a_changed_marker_is_journaled_as_an_amendment_and_an_unchanged_one_is_not() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("index.sqlite3");
+    let mut storage = Storage::open_writer(&path).unwrap();
+    storage
+        .replace_chat(&codex_chat("parent", "plan", None))
+        .unwrap();
+    let child = codex_chat("child", "work", Some(spawned("parent")));
+    storage.replace_chat(&child).unwrap();
+    storage.commit_writer().unwrap();
+    drop(storage);
+    let storage = Storage::open_existing(&path).unwrap();
+    let published = publish(&storage);
+    // Every record carries its chat's marker, or none.
+    let mut markers = Vec::new();
+    storage
+        .with_publication_snapshot(|snapshot| {
+            use crate::shared::batches::{Batch, BatchKind};
+            snapshot.visit_selected(BatchKind::Chats, false, None, |batch| {
+                if let Batch::Chats { records } = batch {
+                    markers.extend(records.into_iter().map(|chat| (chat.id, chat.subagent)));
+                }
+                Ok(())
+            })
+        })
+        .unwrap();
+    assert_eq!(
+        markers,
+        [
+            ("child".into(), Some(spawned("parent"))),
+            ("parent".into(), None)
+        ]
+    );
+    drop(storage);
+
+    // Reading the same transcript again changes nothing to publish.
+    let mut storage = Storage::open_writer(&path).unwrap();
+    storage.replace_chat(&child).unwrap();
+    storage.commit_writer().unwrap();
+    assert_eq!(journaled(&storage, published), []);
+
+    let mut finished = spawned("parent");
+    finished.label = Some("Locke, done".into());
+    let mut storage = Storage::open_writer(&path).unwrap();
+    storage
+        .replace_chat(&codex_chat("child", "work", Some(finished.clone())))
+        .unwrap();
+    storage.commit_writer().unwrap();
+    let (whole, amended, messages) = delta(&storage, published);
+    assert_eq!(whole, [] as [String; 0]);
+    assert_eq!(amended, [("child".into(), Some(finished), Vec::new(), 1)]);
+    assert_eq!(messages, 0);
+}

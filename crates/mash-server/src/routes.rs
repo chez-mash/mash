@@ -1,7 +1,8 @@
 //! The server's route table, and the contract derived from it.
+use super::chats::{catalog, list_chats};
 use super::{
-    App, admin, attachments, catalog, chat_page, contexts, events, fingerprints, freshness,
-    get_record, group_status, join, list_chats, list_records, query, search, sync, view,
+    App, admin, attachments, chat_page, contexts, events, fingerprints, freshness, get_record,
+    group_status, join, list_records, query, search, sync, view,
 };
 use axum::Router;
 

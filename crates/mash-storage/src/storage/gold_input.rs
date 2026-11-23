@@ -41,7 +41,10 @@ impl Input {
         storage.with_publication_snapshot(|snapshot| {
             snapshot.visit_selected(BatchKind::Chats, false, None, |batch| {
                 if let Batch::Chats { records } = batch {
-                    for record in records {
+                    for mut record in records {
+                        // No search document carries the subagent marker, so
+                        // marking a chat must not make its views stale.
+                        record.subagent = None;
                         let mut hash = blake3::Hasher::new();
                         hash.update(b"mash-search-protobuf\0");
                         hash.update(

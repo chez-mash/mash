@@ -22,7 +22,7 @@
 501 crates/mash-search/src/views/materialize.rs
 1183 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
-563 crates/mash-server/src/lib.rs
+516 crates/mash-server/src/lib.rs
 1534 crates/mash-server/src/sync.rs
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
@@ -32,10 +32,10 @@
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
 756 crates/mash-sync/src/shared/publication.rs
-631 crates/mash-sync/src/shared/server/store.rs
+580 crates/mash-sync/src/shared/server/store.rs
 519 crates/mash-sync/src/shared/server/store/sync.rs
-793 crates/mash-sync/src/shared/silver_store/apply.rs
+660 crates/mash-sync/src/shared/silver_store/apply.rs
 899 crates/mash-sync/src/shared/sync/catalog.rs
 1088 crates/mash-sync/src/shared/sync/client.rs
-1147 crates/mash-sync/src/shared/sync/wire.rs
+1132 crates/mash-sync/src/shared/sync/wire.rs
 650 tools/ux-session.py

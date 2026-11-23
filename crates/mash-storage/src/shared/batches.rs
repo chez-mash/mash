@@ -114,6 +114,34 @@ impl ChatRecord {
         if changed {
             self.enrichment = None;
         }
+        // A label is the agent's task description, which can quote a person;
+        // no enrichment derives from it.
+        if let Some(label) = self
+            .subagent
+            .as_mut()
+            .and_then(|marker| marker.label.as_mut())
+        {
+            *label = crate::redaction::text(label);
+        }
+    }
+
+    /// A published subagent marker must fit the columns silver keeps it in:
+    /// a parent other than the chat itself, and bounded descriptive text.
+    pub fn validate_subagent(&self) -> Result<(), crate::AppError> {
+        let Some(marker) = &self.subagent else {
+            return Ok(());
+        };
+        if let Some(parent) = &marker.parent_chat_id {
+            super::validation::valid_id(parent)?;
+            if *parent == self.id {
+                return Err(crate::AppError::usage("a chat cannot be its own parent"));
+            }
+        }
+        let texts = [&marker.label, &marker.role, &marker.spawn_call_id];
+        if texts.into_iter().flatten().any(|text| text.len() > 4096) {
+            return Err(crate::AppError::usage("subagent marker text is too long"));
+        }
+        Ok(())
     }
 
     pub fn validate_enrichment(&self) -> Result<(), crate::AppError> {

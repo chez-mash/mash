@@ -9,11 +9,13 @@ use crate::views::qdrant::{self as qdrant_index, NodeViews};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
+mod catalog;
 mod readiness;
 mod records;
 mod replay;
 mod retire;
 mod search;
+pub use catalog::without_subagents;
 pub use retire::Retired;
 #[cfg(any(test, feature = "test-support"))]
 pub use {replay::ReplayFault, retire::RetireFault};
@@ -518,59 +520,6 @@ impl Store {
             group_views: Some(Box::new(group_views)),
             nodes,
         })
-    }
-
-    pub async fn list_chats(
-        &self,
-        identity: &Identity,
-        input: crate::chat_catalog::Request,
-    ) -> Result<crate::chat_catalog::Page, AppError> {
-        let mut collector = crate::chat_catalog::Collector::new(input.clone())?;
-        for chat in self.catalog(identity, &input).await? {
-            collector.push(chat);
-        }
-        Ok(collector.finish())
-    }
-
-    pub async fn catalog(
-        &self,
-        identity: &Identity,
-        input: &crate::chat_catalog::Request,
-    ) -> Result<Vec<crate::chat_catalog::Chat>, AppError> {
-        let mut threads = Vec::new();
-        for node in self.heads(&identity.group_id).await?.into_keys() {
-            if !input.admits_node(&node, &identity.node_id) {
-                continue;
-            }
-            let scope = silver_store::node_identity(&identity.group_id, &node);
-            threads.extend(
-                self.read(&scope, move |connection| {
-                    silver_store::read::list_chats(connection, &node)
-                })
-                .await?,
-            );
-        }
-        let mut chats = Vec::new();
-        for thread in threads {
-            let row = thread.chat;
-            chats.push(crate::chat_catalog::Chat {
-                chat_id: row.id.clone(),
-                provider: row.provider,
-                node_id: thread.node_id,
-                metadata: crate::search_results::ChatMetadata {
-                    enrichment: row.enrichment,
-                    title: row.title,
-                    project: row.project,
-                    repository: row.repository,
-                    created_at: row.created_at,
-                    updated_at: row.updated_at,
-                    ..Default::default()
-                },
-                first_message_id: thread.first_message_id,
-                subagents: 0,
-            });
-        }
-        Ok(chats)
     }
 
     pub async fn chat_page(

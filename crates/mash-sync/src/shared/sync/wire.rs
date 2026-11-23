@@ -522,6 +522,8 @@ pub struct Chat {
     pub created_at: Option<i64>,
     #[prost(int64, optional, tag = "8")]
     pub updated_at: Option<i64>,
+    #[prost(message, optional, tag = "9")]
+    pub subagent: Option<ChatSubagent>,
 }
 
 #[derive(Clone, PartialEq, Message)]
@@ -1019,24 +1021,6 @@ pub fn decode_bytes(pieces: &[Piece], max_decoded: usize) -> Result<Vec<u8>, App
     Ok(decoded)
 }
 
-/// Baseline membership digest for a chat record.
-pub fn member_digest(record: &protocol::ChatRecord) -> Result<String, AppError> {
-    let mut bytes = Vec::new();
-    NativeRecord::from(record)
-        .encode_length_delimited(&mut bytes)
-        .map_err(|_| AppError::internal("encode backfill member"))?;
-    Ok(blake3::hash(&bytes).to_hex().to_string())
-}
-
-/// Baseline membership digest for a tombstone, independent of the changed
-/// chat record that may arrive later.
-pub fn tombstone_member_digest(chat_id: &str) -> String {
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(b"mash-backfill-tombstone-v1\0");
-    hasher.update(chat_id.as_bytes());
-    hasher.finalize().to_hex().to_string()
-}
-
 pub fn decode_backfill_manifest(
     bytes: &[u8],
     max_members: usize,
@@ -1144,6 +1128,7 @@ fn merge_event(pending: &mut Option<Event>, next: Event, output: &mut Vec<Event>
 
 mod metadata;
 mod records;
+pub use records::{ChatSubagent, member_digest, tombstone_member_digest};
 
 #[cfg(test)]
 mod tests {
@@ -1196,6 +1181,7 @@ mod tests {
                     repository: None,
                     created_at: Some(1),
                     updated_at: Some(2),
+                    subagent: None,
                 }],
             }),
             Event::Batch(protocol::Batch::Messages {

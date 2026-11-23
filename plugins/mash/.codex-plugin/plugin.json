@@ -1,6 +1,6 @@
 {
   "name": "mash",
-  "version": "0.1.82",
+  "version": "0.1.83",
   "author": { "name": "Mash contributors" },
   "description": "Search your past coding-agent conversations and open the original messages. Mash runs on your machine.",
   "skills": "./skills/",

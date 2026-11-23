@@ -90,6 +90,7 @@ fn events(revision: i64) -> Vec<Value> {
         repository: Some("repo://mash".into()),
         created_at: Some(1000),
         updated_at: Some(2000),
+        subagent: None,
     };
     let mut other = chat.clone();
     other.id = "claude".into();

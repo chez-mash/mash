@@ -129,6 +129,7 @@ impl Fixture {
             repository: Some("repo".into()),
             created_at: Some(1000),
             updated_at: Some(2000),
+            subagent: None,
         }
     }
 

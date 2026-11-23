@@ -163,6 +163,7 @@ fn corpus() -> Vec<Event> {
             repository: Some("repo://mash".into()),
             created_at: Some(1_760_000_000 + chat as i64),
             updated_at: Some(1_760_100_000 + chat as i64),
+            subagent: None,
         });
         for ordinal in 0..MESSAGES_PER_CHAT {
             let agent = ordinal % 3 != 0;

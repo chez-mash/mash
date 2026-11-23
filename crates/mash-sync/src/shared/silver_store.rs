@@ -320,6 +320,9 @@ pub fn counts(connection: &Connection) -> Result<Counts, AppError> {
 
 /// Typed silver columns back into the published record. This must be lossless:
 /// thread fingerprints and silver revisions are computed from these records.
+/// The subagent marker is left out on purpose: no search document carries it,
+/// so marking a chat must not change its fingerprint. Catalogue and search
+/// readers take it from `chat_subagents`.
 macro_rules! chat_record {
     ($row:expr) => {{
         let row = $row;
@@ -336,6 +339,7 @@ macro_rules! chat_record {
             repository: row.repository,
             created_at: row.created_at,
             updated_at: row.updated_at,
+            subagent: None,
         })
     }};
 }

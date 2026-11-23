@@ -17,9 +17,79 @@ impl From<&protocol::ChatRecord> for NativeRecord {
                 repository: record.repository.clone(),
                 created_at: record.created_at,
                 updated_at: record.updated_at,
+                subagent: record.subagent.as_ref().map(ChatSubagent::from),
             })),
         }
     }
+}
+
+/// A chat's subagent marker; see `protocol::ChatRecord::subagent`. Every
+/// field is optional, as the agent may record any of them or none.
+#[derive(Clone, PartialEq, prost::Message)]
+pub struct ChatSubagent {
+    #[prost(string, optional, tag = "1")]
+    pub parent_chat_id: Option<String>,
+    #[prost(string, optional, tag = "2")]
+    pub label: Option<String>,
+    #[prost(string, optional, tag = "3")]
+    pub role: Option<String>,
+    #[prost(uint32, optional, tag = "4")]
+    pub depth: Option<u32>,
+    #[prost(bool, optional, tag = "5")]
+    pub finished: Option<bool>,
+    #[prost(string, optional, tag = "6")]
+    pub spawn_call_id: Option<String>,
+}
+
+impl From<&crate::silver::subagent::Subagent> for ChatSubagent {
+    fn from(marker: &crate::silver::subagent::Subagent) -> Self {
+        Self {
+            parent_chat_id: marker.parent_chat_id.clone(),
+            label: marker.label.clone(),
+            role: marker.role.clone(),
+            depth: marker.depth,
+            finished: marker.finished,
+            spawn_call_id: marker.spawn_call_id.clone(),
+        }
+    }
+}
+
+impl From<ChatSubagent> for crate::silver::subagent::Subagent {
+    fn from(marker: ChatSubagent) -> Self {
+        Self {
+            parent_chat_id: marker.parent_chat_id,
+            label: marker.label,
+            role: marker.role,
+            depth: marker.depth,
+            finished: marker.finished,
+            spawn_call_id: marker.spawn_call_id,
+        }
+    }
+}
+
+/// Baseline membership digest for a chat record. It leaves out the subagent
+/// marker: a server older than the marker drops it on decoding and digests
+/// what it kept, and both sides must agree for a baseline to complete.
+pub fn member_digest(record: &protocol::ChatRecord) -> Result<String, AppError> {
+    use prost::Message as _;
+    let mut record = NativeRecord::from(record);
+    if let Some(native_record::Body::Chat(chat)) = &mut record.body {
+        chat.subagent = None;
+    }
+    let mut bytes = Vec::new();
+    record
+        .encode_length_delimited(&mut bytes)
+        .map_err(|_| AppError::internal("encode backfill member"))?;
+    Ok(blake3::hash(&bytes).to_hex().to_string())
+}
+
+/// Baseline membership digest for a tombstone, independent of the changed
+/// chat record that may arrive later.
+pub fn tombstone_member_digest(chat_id: &str) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"mash-backfill-tombstone-v1\0");
+    hasher.update(chat_id.as_bytes());
+    hasher.finalize().to_hex().to_string()
 }
 
 impl From<&protocol::Amendment> for NativeRecord {
@@ -50,6 +120,7 @@ impl TryFrom<Chat> for protocol::ChatRecord {
             repository: record.repository,
             created_at: record.created_at,
             updated_at: record.updated_at,
+            subagent: record.subagent.map(Into::into),
         })
     }
 }
@@ -271,3 +342,6 @@ impl TryFrom<ToolActivity> for crate::tools::Activity {
         })
     }
 }
+
+#[cfg(test)]
+mod subagent_tests;

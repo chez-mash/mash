@@ -6,8 +6,8 @@
 //! prompts and file names never do. A parent is named only when the marker
 //! names it exactly; a fork (`forked_from_id` without a subagent source) is a
 //! chat the person started, not a subagent.
-use serde::Deserialize;
 use serde::de::IgnoredAny;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 /// The longest label kept; labels are one-line descriptions or nicknames.
@@ -34,20 +34,28 @@ impl Origin {
     }
 }
 
-/// What the agent recorded about a chat it started.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+/// What the agent recorded about a chat it started. It is also the marker a
+/// node publishes with the chat, so every field is optional on the wire.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Subagent {
     /// The chat that started it, from the same agent on the same machine.
     /// `None` when the marker names no parent (a Codex review, for example).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub parent_chat_id: Option<String>,
     /// Claude Code's task description or Codex's nickname.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// Claude Code's agent type or Codex's agent role.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth: Option<u32>,
     /// Only what the agent wrote; absence means unknown, not running.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub finished: Option<bool>,
     /// The parent's tool call that started it (Claude Code's `toolUseId`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub spawn_call_id: Option<String>,
 }
 

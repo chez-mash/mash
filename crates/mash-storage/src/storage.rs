@@ -26,7 +26,7 @@ pub mod publication;
 pub mod records;
 pub mod search_input;
 mod silver_state;
-mod subagents;
+pub mod subagents;
 pub mod turns;
 
 // Connection/schema and generated query infrastructure for both layers.
