@@ -146,6 +146,8 @@ test.describe("at 1440px", () => {
     await page.goto("/#/services");
     const map = page.getByRole("region", { name: "How your services connect" });
     await expect(map).toBeVisible();
+    // A machine with no agents set up says so instead of showing an empty table.
+    await expect(page.getByText("No agents are set up on laptop yet")).toBeVisible();
     for (const name of [
       "Agent histories",
       "Automatic indexing",
