@@ -38,8 +38,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The engine links a prebuilt ONNX Runtime that needs a newer C++
+          # library than Ubuntu 22.04 has. Releases build it in a manylinux
+          # image instead and the app reuses that engine.
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
           - target: aarch64-apple-darwin
             runner: macos-26
           - target: x86_64-pc-windows-msvc
