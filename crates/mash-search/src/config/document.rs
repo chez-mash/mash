@@ -160,6 +160,19 @@ pub(super) fn edit(text: &str, edit: &Edit) -> Result<String, AppError> {
     Ok(text)
 }
 
+/// Replace the assistant's table with `assistant`, preserving every other
+/// typed field, as the dashboard does when someone sets Mashy up there.
+pub(super) fn with_assistant(text: &str, assistant: super::Assistant) -> Result<String, AppError> {
+    parse_document(text.as_bytes())?;
+    let mut document: RawDocument = toml::from_str(text)
+        .map_err(|error| AppError::configuration(format!("invalid configuration: {error}")))?;
+    document.assistant = Some(assistant);
+    let text = toml::to_string_pretty(&document)
+        .map_err(|error| AppError::configuration(format!("serialize configuration: {error}")))?;
+    parse_document(text.as_bytes())?;
+    Ok(text)
+}
+
 /// Each table's own rules, before the rules that span tables.
 fn validate_tables(raw: &RawDocument) -> Result<(), AppError> {
     raw.qdrant.validate()?;

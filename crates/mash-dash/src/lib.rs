@@ -162,7 +162,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
 
 /// The routes that read history, status and settings.
 fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
-    use aide::axum::routing::get_with;
+    use aide::axum::routing::{get_with, post_with};
     use contract::{changes, reads};
     search::routes(router)
         .api_route(
@@ -184,6 +184,16 @@ fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRo
             .post_with(
                 change_settings,
                 changes::<Settings>("/api/services/settings", "Rewrite the configuration file."),
+            ),
+        )
+        .api_route(
+            "/api/services/assistant",
+            post_with(
+                set_up_assistant,
+                changes::<Settings>(
+                    "/api/services/assistant",
+                    "Point Mashy at a model service and save its API key on this machine.",
+                ),
             ),
         )
         .api_route(
@@ -376,6 +386,7 @@ async fn guard(
             "/api/services/action"
                 | "/api/services/fleet/jobs"
                 | "/api/services/settings"
+                | "/api/services/assistant"
                 | "/api/services/setup"
                 | "/api/assistant"
         ))
@@ -616,6 +627,41 @@ async fn change_settings(
     })
     .await
     .unwrap_or_else(|_| Err(AppError::internal("write settings")));
+    settings_result(view, true)
+}
+
+/// Sets Mashy up: points the configuration at a model service and saves its
+/// API key with this machine's other saved credentials. The same machines
+/// that may change settings may do this; the key is never sent back.
+async fn set_up_assistant(
+    State(state): State<Arc<Dash>>,
+    input: Result<
+        axum::Json<crate::config::settings::AssistantSetup>,
+        axum::extract::rejection::JsonRejection,
+    >,
+) -> Response {
+    if !state.loopback && !state.services.managed() {
+        return (
+            StatusCode::FORBIDDEN,
+            axum::Json(AppError::configuration(
+                "Mashy can be set up on the machine itself, or from a dashboard started with a services configuration",
+            )),
+        )
+            .into_response();
+    }
+    let Ok(axum::Json(setup)) = input else {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(AppError::configuration("invalid assistant setup")),
+        )
+            .into_response();
+    };
+    let paths = state.paths.clone();
+    let view = tokio::task::spawn_blocking(move || {
+        crate::config::settings::set_up_assistant(&configuration_path(&paths)?, &setup)
+    })
+    .await
+    .unwrap_or_else(|_| Err(AppError::internal("set up the assistant")));
     settings_result(view, true)
 }
 

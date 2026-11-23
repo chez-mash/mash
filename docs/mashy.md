@@ -46,16 +46,19 @@ the passage to ask about something else.
 
 ## Set up Mashy
 
-On the computer running the dashboard, follow
-[the model service and API key instructions](configuration.md#the-dashboard-assistant).
-They show how to add an `[assistant]` section to your Mash configuration and
-set the key in the dashboard’s environment. Use an OpenAI-compatible model
-service with tool calls and streaming.
+Open the dashboard’s **settings**. Under **assistant**, choose a model
+service (OpenRouter, Anthropic, or another service that speaks the OpenAI
+chat format), paste its API key, and select **Turn on Mashy**. The key is
+saved on the computer running the dashboard, readable only by you, and is
+never shown again. Use **Replace the API key** there to change it.
 
-Start or restart the dashboard to load the updated environment. To change
-the model later, open **settings**, choose a model from that service, and
-select **Save to file**. If the service doesn’t list its models, type the
-name it uses.
+Mashy works from the dashboard on that computer, or from a dashboard started
+with a services configuration. You can also set it up in the configuration
+file: see [the model service and API key instructions](configuration.md#the-dashboard-assistant).
+
+To change the model later, open **settings**, choose a model from that
+service, and select **Save to file**. If the service doesn’t list its models,
+type the name it uses.
 
 ## Turn Mashy off
 

@@ -330,6 +330,39 @@
         ],
         "type": "object"
       },
+      "AssistantSetup": {
+        "additionalProperties": false,
+        "description": "What the dashboard sends to set Mashy up: a service, its API key and a\nmodel. The key is saved, never returned.",
+        "properties": {
+          "base_url": {
+            "default": null,
+            "description": "The service's API base, such as `https://openrouter.ai/api/v1`. Left\nout, the service already configured is kept, so only the key changes.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "model": {
+            "default": null,
+            "description": "Left out, the model already configured is kept.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "key"
+        ],
+        "type": "object"
+      },
       "AttachmentConfiguration": {
         "additionalProperties": false,
         "properties": {
@@ -7180,6 +7213,75 @@
           }
         },
         "summary": "Start, stop or restart one service."
+      }
+    },
+    "/api/services/assistant": {
+      "post": {
+        "operationId": "postApiServicesAssistant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantSetup"
+              }
+            }
+          },
+          "description": "What the dashboard sends to set Mashy up: a service, its API key and a\nmodel. The key is saved, never returned.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            },
+            "description": "The settings, with whether this dashboard accepts changes to them."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Point Mashy at a model service and save its API key on this machine."
       }
     },
     "/api/services/fleet": {

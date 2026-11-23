@@ -14,6 +14,7 @@ import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
 import {
+  assistantServices,
   type Draft,
   destinations,
   differences,
@@ -21,6 +22,7 @@ import {
   problem,
   saveSettings,
   settingsOptions,
+  setUpAssistant,
 } from "../lib/settings";
 import { statusOptions } from "../lib/status";
 import type { Agent } from "../lib/types";
@@ -75,6 +77,33 @@ function discard(): void {
   reviewing = false;
   failure = "";
 }
+// Mashy is set up here by choosing a service and pasting its API key. The
+// key is saved on the machine running the dashboard and never shown again.
+let service = $state<string>(assistantServices[0].id);
+let apiKey = $state("");
+let otherUrl = $state("");
+let otherModel = $state("");
+let replacingKey = $state(false);
+let keySaving = $state(false);
+let keyFailure = $state("");
+const chosenService = $derived(assistantServices.find((option) => option.id === service));
+async function saveKey(withService: boolean): Promise<void> {
+  if (!file || keySaving || !apiKey.trim()) return;
+  keySaving = true;
+  keyFailure = "";
+  try {
+    const target = chosenService ?? { baseUrl: otherUrl, model: otherModel };
+    const next = await setUpAssistant(file, apiKey, withService ? target : undefined);
+    apiKey = "";
+    replacingKey = false;
+    queryClient.setQueryData(settingsOptions.queryKey, next);
+    await queryClient.invalidateQueries({ queryKey: assistantOptions.queryKey });
+  } catch (error) {
+    keyFailure = error instanceof Error ? error.message : "Mashy was not set up.";
+  } finally {
+    keySaving = false;
+  }
+}
 async function save(): Promise<void> {
   if (!file || !draft || saving || blocked || !changed.length) return;
   const count = changed.length;
@@ -100,6 +129,30 @@ async function save(): Promise<void> {
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>
+{/snippet}
+{#snippet keyForm(withService: boolean)}
+  <form class="keyform" onsubmit={(event) => { event.preventDefault(); void saveKey(withService); }}>
+    {#if withService}
+      <label class="set-l" for="mashy-service">model service<small>any service that speaks the OpenAI chat format works</small></label>
+      <select id="mashy-service" class="field" bind:value={service}>
+        {#each assistantServices as option (option.id)}<option value={option.id}>{option.name}</option>{/each}
+        <option value="other">Another service</option>
+      </select>
+      {#if !chosenService}
+        <label class="set-l" for="mashy-url">API address<small>its base, such as https://api.example.com/v1</small></label>
+        <input id="mashy-url" class="field" type="url" autocomplete="off" spellcheck="false" bind:value={otherUrl} />
+        <label class="set-l" for="mashy-model">model<small>as that service names it</small></label>
+        <input id="mashy-model" class="field" autocomplete="off" spellcheck="false" bind:value={otherModel} />
+      {/if}
+    {/if}
+    <label class="set-l" for="mashy-key">API key<small>saved on the computer running the dashboard, readable only by you{#if withService && chosenService}; <a class="a" href={chosenService.keys} target="_blank" rel="noreferrer">get an API key from {chosenService.name}</a>{/if}</small></label>
+    <input id="mashy-key" class="field" type="password" autocomplete="off" spellcheck="false" bind:value={apiKey} />
+    {#if keyFailure}<p class="meta warn" role="alert">{keyFailure}</p>{/if}
+    <span class="keyacts">
+      <button class="btn p" type="submit" disabled={keySaving || !apiKey.trim() || (withService && !chosenService && (!otherUrl.trim() || !otherModel.trim()))}>{keySaving ? "Saving…" : withService ? "Turn on Mashy" : "Save key"}</button>
+      {#if replacingKey}<button class="btn" type="button" onclick={() => { replacingKey = false; apiKey = ""; keyFailure = ""; }}>Cancel</button>{/if}
+    </span>
+  </form>
 {/snippet}
 {#snippet changedPill(key: string)}
   {#if touched.has(key)}<span class="pill warn">changed</span>{/if}
@@ -274,16 +327,26 @@ async function save(): Promise<void> {
               </span>
             </div>
             {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
-              <p class="meta warn">Set the API key named in your configuration on the computer running the dashboard, then restart it.</p>
+              <p class="meta warn">Mashy has no API key on this computer yet.</p>
+              {@render keyForm(false)}
+            {:else if replacingKey}
+              {@render keyForm(false)}
             {:else}
-              <p class="meta">Mashy uses your model service and API key on the computer running the dashboard.</p>
+              <p class="meta">Mashy uses your model service and API key on the computer running the dashboard. <button class="a" type="button" onclick={() => (replacingKey = true)}>Replace the API key</button></p>
             {/if}
           {:else}
             <div class="mashy-l"><img src={asset("mashy.png")} alt="" /><dl class="kvs">
               {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
               {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
             </dl></div>
-            {#if !file?.assistant && !assistant.data?.enabled}<p class="meta">Mashy is optional. To use it, configure your model service and API key on the computer running the dashboard.</p>{/if}
+            {#if !file?.assistant && !assistant.data?.enabled}
+              {#if file?.editable}
+                <p class="meta">Mashy answers questions about your history. Choose a model service and paste its API key to turn it on.</p>
+                {@render keyForm(true)}
+              {:else}
+                <p class="meta">Mashy is optional. To use it, set it up from the dashboard on the computer that runs it.</p>
+              {/if}
+            {/if}
           {/if}
         </div>
       </section>

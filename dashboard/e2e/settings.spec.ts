@@ -102,8 +102,8 @@ test("word search is ready when optional models are absent", async ({ page }) =>
     "href",
     "https://getmash.io/configuration/#the-dashboard-assistant",
   );
-  await expect(page.getByText("Mashy is optional.", { exact: false })).toContainText(
-    "your model service and API key",
+  await expect(page.getByText("Mashy answers questions about your history.")).toContainText(
+    "paste its API key",
   );
 });
 
@@ -243,9 +243,7 @@ test("Mashy is switched off and given another model where an assistant is config
   const posts: unknown[] = [{}];
   await mock(page, { ...settings, assistant: { enabled: true, model: "test/model" } }, posts);
   await page.goto("/#/settings");
-  await expect(
-    page.getByText("Set the API key named in your configuration", { exact: false }),
-  ).toBeVisible();
+  await expect(page.getByText("Mashy has no API key on this computer yet.")).toBeVisible();
   const model = page.getByRole("combobox", { name: "Mashy's model" });
   await expect(model).toHaveValue("test/model");
   // The service's own list of models is offered as choices.
@@ -261,4 +259,59 @@ test("Mashy is switched off and given another model where an assistant is config
   await bar.getByRole("button", { name: "Save to file" }).click();
   await expect.poll(() => posts.length).toBe(2);
   expect(posts[1]).toMatchObject({ assistant: { enabled: false, model: "another/model" } });
+});
+
+test("Mashy is set up from settings by choosing a service and pasting a key", async ({ page }) => {
+  const sent: Record<string, unknown>[] = [];
+  let enabled = false;
+  await mock(page, settings, []);
+  // Later routes win: the setup itself, and Mashy's state before and after.
+  await page.route("**/api/services/assistant", async (route) => {
+    sent.push(route.request().postDataJSON());
+    enabled = true;
+    await route.fulfill({
+      json: {
+        ...settings,
+        revision: "r2",
+        assistant: { enabled: true, model: "anthropic/claude-haiku-5.5" },
+      },
+    });
+  });
+  await page.route("**/api/assistant", (route) =>
+    route.fulfill({ json: { enabled, model: enabled ? "anthropic/claude-haiku-5.5" : null } }),
+  );
+  await page.goto("/#/settings");
+  const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
+  await expect(page.getByLabel("model service")).toHaveValue("openrouter");
+  await expect(turnOn).toBeDisabled();
+  await page.getByLabel("API key").fill("  sk-or-test  ");
+  await turnOn.click();
+  await expect
+    .poll(() => sent)
+    .toEqual([
+      {
+        revision: "r1",
+        key: "sk-or-test",
+        base_url: "https://openrouter.ai/api/v1",
+        model: "anthropic/claude-haiku-5.5",
+      },
+    ]);
+  // Once set up, the switch and model take the form's place, and the key is not shown.
+  await expect(page.getByRole("switch", { name: "Mashy" })).toBeVisible();
+  await expect(page.getByLabel("Mashy's model")).toHaveValue("anthropic/claude-haiku-5.5");
+  await expect(page.getByText("sk-or-test")).toHaveCount(0);
+});
+
+test("another service needs its address and model before Mashy can be turned on", async ({
+  page,
+}) => {
+  await mock(page, settings, []);
+  await page.goto("/#/settings");
+  await page.getByLabel("model service").selectOption({ label: "Another service" });
+  await page.getByLabel("API key").fill("k");
+  const turnOn = page.getByRole("button", { name: "Turn on Mashy" });
+  await expect(turnOn).toBeDisabled();
+  await page.getByLabel("API address").fill("https://api.example.com/v1");
+  await page.locator("#mashy-model").fill("example-model");
+  await expect(turnOn).toBeEnabled();
 });

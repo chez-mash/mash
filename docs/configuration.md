@@ -140,8 +140,10 @@ embedded (`remote_inferences`, out of `model_inferences`) and its request time
 
 [Mashy](mashy.md) is an optional chat in the corner of the dashboard.
 It answers questions about your history using a model service and API key you
-provide. On the computer that runs the dashboard, add the service to your Mash
-configuration and set the environment variable that holds your API key.
+provide. The simplest way to set it up is from the dashboard’s **settings**,
+which writes the table below and saves the key for you. To set it up by hand,
+add the service to your Mash configuration and set the environment variable
+that holds your API key.
 
 ```toml
 [assistant]
@@ -158,17 +160,17 @@ streaming.
 - `base_url` is the API's base; requests go to `chat/completions` beneath it.
   It must use HTTPS, or HTTP on loopback.
 - `token_env` names the variable that holds the API key. Set it for the
-  process that runs `mash dash`. A dashboard run as a service can instead read
-  it from `~/.mash/node.env`, one `NAME=key` line, readable only by you.
+  process that runs `mash dash`, or keep the key in `~/.mash/node.env`, one
+  `NAME=key` line, readable only by you; a key entered in **settings** is
+  saved there. A variable that is set wins over the saved key.
 - `model` is the model's name as that service knows it.
 - `enabled = false` switches Mashy off while keeping the rest of the table.
   It is on when the line is left out.
 
 Mashy is off unless the table is present and the key is set. A key in your
 environment does not turn it on by itself. Once the table is there, the
-dashboard's **settings** page can switch Mashy off and on and change the
-model, choosing from the models the service lists; the service's address and
-the key's name are only ever set in this file.
+dashboard's **settings** page can switch Mashy off and on, change the model
+(choosing from the models the service lists) and replace the key.
 
 **What is sent.** When Mashy looks something up, the chat text and memories it
 reads are sent to that service, with recognizable credentials masked like any

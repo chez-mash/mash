@@ -260,6 +260,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/services/assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Point Mashy at a model service and save its API key on this machine. */
+        post: operations["postApiServicesAssistant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/services/fleet": {
         parameters: {
             query?: never;
@@ -535,6 +552,25 @@ export interface components {
         AssistantSettings: {
             enabled: boolean;
             model: string;
+        };
+        /**
+         * @description What the dashboard sends to set Mashy up: a service, its API key and a
+         *     model. The key is saved, never returned.
+         */
+        AssistantSetup: {
+            /**
+             * @description The service's API base, such as `https://openrouter.ai/api/v1`. Left
+             *     out, the service already configured is kept, so only the key changes.
+             * @default null
+             */
+            base_url: string | null;
+            key: string;
+            /**
+             * @description Left out, the model already configured is kept.
+             * @default null
+             */
+            model: string | null;
+            revision: string;
         };
         AttachmentConfiguration: {
             /**
@@ -2889,6 +2925,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceOperation"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiServicesAssistant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description What the dashboard sends to set Mashy up: a service, its API key and a
+         *     model. The key is saved, never returned.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantSetup"];
+            };
+        };
+        responses: {
+            /** @description The settings, with whether this dashboard accepts changes to them. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
                 };
             };
             /** @description Failed to parse the request body as JSON */

@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use super::IndexDestination;
-use super::document::{Edit, edit, parse_document};
+use super::document::{Edit, edit, parse_document, with_assistant};
 use crate::AppError;
 use crate::provider::{Provider, ProviderRoots};
 
@@ -119,6 +119,95 @@ pub fn apply(path: &Path, change: &Change) -> Result<View, AppError> {
     describe(path, &updated, &detected)
 }
 
+/// What the dashboard sends to set Mashy up: a service, its API key and a
+/// model. The key is saved, never returned.
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+#[schemars(rename = "AssistantSetup")]
+#[serde(deny_unknown_fields)]
+pub struct AssistantSetup {
+    revision: String,
+    /// The service's API base, such as `https://openrouter.ai/api/v1`. Left
+    /// out, the service already configured is kept, so only the key changes.
+    #[serde(default)]
+    base_url: Option<String>,
+    /// Left out, the model already configured is kept.
+    #[serde(default)]
+    model: Option<String>,
+    key: String,
+}
+
+/// The variable a key entered in the dashboard is saved under, unless the
+/// file already names one for the assistant.
+const ASSISTANT_KEY: &str = "MASH_ASSISTANT_KEY";
+
+/// Point the assistant at a service and save its key where Mash keeps saved
+/// credentials (`~/.mash/node.env`, readable only by this user), so Mashy
+/// works without editing the file or the dashboard's environment.
+pub fn set_up_assistant(path: &Path, setup: &AssistantSetup) -> Result<View, AppError> {
+    let detected = super::init::detect()?;
+    let text = read(path)?;
+    let set_in_environment =
+        |name: &str| std::env::var(name).is_ok_and(|value| !value.is_empty());
+    let (updated, token_env) = assistant_revision(&text, setup, set_in_environment)?;
+    let saved = super::saved_tokens()
+        .ok_or_else(|| AppError::configuration("no home directory to save the key in"))?;
+    super::save_token(&saved, &token_env, setup.key.trim())?;
+    super::init::write(path, &updated)?;
+    describe(path, &updated, &detected)
+}
+
+/// The file with the assistant set up as `setup` asks, and the variable its
+/// key is saved under. `set_in_environment` says whether a variable is set
+/// for the dashboard.
+fn assistant_revision(
+    text: &str,
+    setup: &AssistantSetup,
+    set_in_environment: impl Fn(&str) -> bool,
+) -> Result<(String, String), AppError> {
+    if revision(text) != setup.revision {
+        return Err(AppError::configuration(
+            "the configuration file changed since these settings were loaded; reload them and try again",
+        ));
+    }
+    let key = setup.key.trim();
+    if key.is_empty() || key.len() > 4096 || key.chars().any(char::is_control) {
+        return Err(AppError::configuration("enter the service's API key"));
+    }
+    let configured = parse_document(text.as_bytes())?.assistant;
+    let token_env = configured
+        .as_ref()
+        .map_or_else(|| ASSISTANT_KEY.to_owned(), |assistant| assistant.token_env.clone());
+    // A key in the dashboard's environment is used before a saved one, so a
+    // key saved here would be silently ignored.
+    if set_in_environment(&token_env) {
+        return Err(AppError::configuration(format!(
+            "{token_env} is set for the dashboard and is used instead of a saved key; change it there"
+        )));
+    }
+    let chosen = |given: Option<&String>, kept: Option<&String>, what: &str| {
+        given
+            .map(|value| value.trim().to_owned())
+            .or_else(|| kept.cloned())
+            .ok_or_else(|| AppError::configuration(format!("choose the assistant's {what}")))
+    };
+    let assistant = super::Assistant {
+        base_url: chosen(
+            setup.base_url.as_ref(),
+            configured.as_ref().map(|assistant| &assistant.base_url),
+            "service",
+        )?,
+        token_env: token_env.clone(),
+        model: chosen(
+            setup.model.as_ref(),
+            configured.as_ref().map(|assistant| &assistant.model),
+            "model",
+        )?,
+        enabled: true,
+    };
+    assistant.validate()?;
+    Ok((with_assistant(text, assistant)?, token_env))
+}
+
 fn revise(text: &str, change: &Change, detected: &ProviderRoots) -> Result<String, AppError> {
     if revision(text) != change.revision {
         return Err(AppError::configuration(
@@ -188,6 +277,81 @@ mod tests {
             hide_credentials: crate::redaction::Settings::default(),
             assistant: None,
         }
+    }
+
+    fn setup(text: &str, base_url: &str, key: &str) -> AssistantSetup {
+        AssistantSetup {
+            revision: revision(text),
+            base_url: Some(base_url.into()),
+            model: Some("anthropic/claude-haiku-5.5".into()),
+            key: key.into(),
+        }
+    }
+
+    #[test]
+    fn the_assistant_can_be_set_up_with_a_key_saved_under_its_variable() {
+        let unset = |_: &str| false;
+        let text = file();
+        let (updated, name) =
+            assistant_revision(&text, &setup(&text, "https://openrouter.ai/api/v1", " sk-1 "), unset)
+                .unwrap();
+        assert_eq!(name, "MASH_ASSISTANT_KEY");
+        let view = describe(Path::new("/c.toml"), &updated, &detected()).unwrap();
+        assert_eq!(
+            view.assistant,
+            Some(Assistant {
+                enabled: true,
+                model: "anthropic/claude-haiku-5.5".into()
+            })
+        );
+        // The key itself never goes into the file.
+        assert!(!updated.contains("sk-1"));
+        // A file that already names the key's variable keeps that name.
+        let named = format!(
+            "{}\n[assistant]\nbase_url = 'https://x.test/v1'\ntoken_env = 'KEY'\nmodel = 'a/b'\nenabled = false\n",
+            file()
+        );
+        let (_, name) =
+            assistant_revision(&named, &setup(&named, "https://openrouter.ai/api/v1", "k"), unset)
+                .unwrap();
+        assert_eq!(name, "KEY");
+        // A new key alone keeps the configured service and model, and turns Mashy on.
+        let key_only = AssistantSetup {
+            revision: revision(&named),
+            base_url: None,
+            model: None,
+            key: "k2".into(),
+        };
+        let (updated, _) = assistant_revision(&named, &key_only, unset).unwrap();
+        assert!(updated.contains("https://x.test/v1") && updated.contains("a/b"));
+        let view = describe(Path::new("/c.toml"), &updated, &detected()).unwrap();
+        assert_eq!(view.assistant.map(|assistant| assistant.enabled), Some(true));
+        // Without a configured service, a key alone is not enough.
+        let bare = AssistantSetup {
+            revision: revision(&text),
+            base_url: None,
+            model: None,
+            key: "k".into(),
+        };
+        assert!(assistant_revision(&text, &bare, unset).is_err());
+    }
+
+    #[test]
+    fn setting_the_assistant_up_refuses_what_would_not_work() {
+        let unset = |_: &str| false;
+        let text = file();
+        let good = "https://openrouter.ai/api/v1";
+        for key in ["", "  ", "two\nlines"] {
+            assert!(assistant_revision(&text, &setup(&text, good, key), unset).is_err());
+        }
+        // A plain-HTTP service away from this machine would send the key in the clear.
+        assert!(assistant_revision(&text, &setup(&text, "http://example.com/v1", "k"), unset).is_err());
+        // A variable set for the dashboard would be used instead of the saved key.
+        assert!(assistant_revision(&text, &setup(&text, good, "k"), |_: &str| true).is_err());
+        // An edit made elsewhere in between is not overwritten.
+        let mut stale = setup(&text, good, "k");
+        stale.revision = "old".into();
+        assert!(assistant_revision(&text, &stale, unset).is_err());
     }
 
     #[test]

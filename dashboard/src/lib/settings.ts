@@ -159,6 +159,44 @@ export function problem(settings: Settings, draft: Draft): string {
   return "";
 }
 
+/** Model services Mashy can be pointed at from the dashboard, by their API base. */
+export const assistantServices = [
+  {
+    id: "openrouter",
+    name: "OpenRouter",
+    baseUrl: "https://openrouter.ai/api/v1",
+    model: "anthropic/claude-haiku-5.5",
+    keys: "https://openrouter.ai/keys",
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    baseUrl: "https://api.anthropic.com/v1",
+    model: "claude-haiku-5-5",
+    keys: "https://console.anthropic.com/settings/keys",
+  },
+] as const;
+
+/**
+ * Points Mashy at a model service and saves its API key on the machine
+ * running the dashboard. Without `service`, only the key changes.
+ */
+export async function setUpAssistant(
+  settings: Settings,
+  key: string,
+  service?: { readonly baseUrl: string; readonly model: string },
+): Promise<Settings> {
+  return parseSettings(
+    await post("/api/services/assistant", {
+      revision: settings.revision,
+      key: key.trim(),
+      // Left out, the service and model already configured are kept.
+      base_url: service ? service.baseUrl.trim() : null,
+      model: service ? service.model.trim() : null,
+    }),
+  );
+}
+
 export async function saveSettings(settings: Settings, draft: Draft): Promise<Settings> {
   return parseSettings(
     await post("/api/services/settings", {

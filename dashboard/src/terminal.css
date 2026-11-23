@@ -3221,6 +3221,22 @@ summary.rw::-webkit-details-marker {
 #main.mid > * {
   max-width: 1016px;
 }
+/* Setting Mashy up: a service, its address and model when it is another
+   service, and the API key, one under another. */
+.keyform {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.keyform .field {
+  width: min(100%, 360px);
+  margin-bottom: 6px;
+}
+.keyacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .set-c {
   display: flex;
   flex-wrap: wrap;
