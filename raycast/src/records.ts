@@ -1,5 +1,5 @@
 /**
- * Reading what `mash records` answers: the decisions, preferences and facts
+ * Reading what `mash memory` answers: the decisions, preferences and facts
  * Mash remembers, each at its current revision, with the quotes that support
  * it. Plain data in and out, so it is tested without Raycast.
  */
@@ -37,14 +37,14 @@ export const RECORD_PAGE = 100;
 
 /** The arguments that list one page of current records, newest first. */
 export function recordsArguments(offset: number): string[] {
-  return ["records", "--limit", String(RECORD_PAGE), "--offset", String(offset)];
+  return ["memory", "--limit", String(RECORD_PAGE), "--offset", String(offset)];
 }
 
 const text = (value: unknown): string => (typeof value === "string" ? value : "");
 const object = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 
-/** One page of `mash records`: its records and where the next page starts. */
+/** One page of `mash memory`: its records and where the next page starts. */
 export function parseRecords(stdout: string): { memories: Memory[]; next: number | null } {
   let body: Record<string, unknown>;
   try {

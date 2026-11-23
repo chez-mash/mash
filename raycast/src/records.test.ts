@@ -32,7 +32,7 @@ const record = (overrides: Record<string, unknown> = {}) => ({
 
 describe("reading what Mash remembers", () => {
   it("asks for one page of records", () => {
-    expect(recordsArguments(100)).toEqual(["records", "--limit", "100", "--offset", "100"]);
+    expect(recordsArguments(100)).toEqual(["memory", "--limit", "100", "--offset", "100"]);
   });
 
   it("reads each record at its current revision, with its supporting quotes", () => {

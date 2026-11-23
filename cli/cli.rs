@@ -112,7 +112,8 @@ enum Command {
         #[arg(long)]
         diagnostics: bool,
     },
-    Records(request::RecordsArguments),
+    #[command(visible_alias = "mem")]
+    Memory(request::MemoryArguments),
     /// Discover and index supported local histories.
     Index {
         /// Build local retrieval state from certified stored silver, offline.
@@ -276,9 +277,7 @@ enum Command {
     ))]
     Doctor,
     /// Remove one chat and its derived search rows.
-    Forget {
-        id: String,
-    },
+    Forget { id: String },
     /// Run one read-only query over local silver.
     ///
     /// Use --request for the typed contract (target, filter, `group_by`, order,
@@ -308,9 +307,7 @@ enum Command {
         timeout_seconds: u64,
     },
     /// Export local silver and retained attachments to a new private directory.
-    Export {
-        directory: PathBuf,
-    },
+    Export { directory: PathBuf },
     /// Import verified silver into a new database; project views explicitly afterward.
     Import {
         directory: PathBuf,
@@ -952,7 +949,7 @@ mod tests {
             [
                 "init",
                 "list-chats",
-                "records",
+                "memory",
                 "index",
                 "search",
                 "view",

@@ -33,7 +33,7 @@ const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon
   { value: "fact", title: "Facts", icon: Icon.Info, tint: Color.Green },
 ];
 
-/** One page of `mash records`. Mash answers with JSON even when it fails, so its message is kept. */
+/** One page of `mash memory`. Mash answers with JSON even when it fails, so its message is kept. */
 function page(mash: string, offset: number): Promise<{ memories: Memory[]; next: number | null }> {
   return new Promise((resolve, reject) => {
     execFile(mash, recordsArguments(offset), { maxBuffer: 64 * 1024 * 1024 }, (error, stdout) => {

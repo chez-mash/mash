@@ -96,7 +96,7 @@ impl Cli {
                 shared,
                 diagnostics,
             },
-            Command::Records(arguments) => Operation::Records(arguments.into_list()?),
+            Command::Memory(arguments) => Operation::Records(arguments.into_list()?),
             Command::Index {
                 rebuild_local_views,
                 full,
@@ -289,7 +289,7 @@ impl Cli {
 
 /// List the decisions, preferences and facts Mash remembers, newest first.
 #[derive(Debug, Clone, clap::Args)]
-pub(super) struct RecordsArguments {
+pub(super) struct MemoryArguments {
     /// Literal text the record must contain.
     #[arg(long)]
     query: Option<String>,
@@ -306,7 +306,7 @@ pub(super) struct RecordsArguments {
     offset: usize,
 }
 
-impl RecordsArguments {
+impl MemoryArguments {
     fn into_list(self) -> Result<crate::records::List, AppError> {
         Ok(crate::records::List {
             query: self.query,
