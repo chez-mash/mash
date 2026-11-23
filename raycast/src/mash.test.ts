@@ -1,21 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
-  MashError,
+  agentLogo,
   appLocations,
   chatLink,
+  failures,
   findMash,
   hasDesktopApp,
   installLocations,
-  agentLogo,
   literal,
   liveSearchArguments,
+  MashError,
   parseChats,
   parseSearch,
+  parseStreamLine,
   parseView,
   recentChatsArguments,
   rendered,
   searchCommand,
   searchLink,
+  settle,
+  stillComing,
+  streamArguments,
 } from "./mash";
 
 describe("finding mash", () => {
@@ -155,5 +160,68 @@ describe("links and untrusted text", () => {
     expect(agentLogo("claude-code")).toEqual({ file: "claude.svg", tint: "#d97757" });
     expect(agentLogo("codex")).toEqual({ file: "openai.svg" });
     expect(agentLogo("someone-else")).toBeUndefined();
+  });
+});
+
+describe("federated search", () => {
+  const row = (chat: string, matchedBy: string[], node?: string) => ({
+    chat_id: chat,
+    provider: "codex",
+    title: chat,
+    ...(node ? { node_id: node } : {}),
+    matches: [{ message_id: `${chat}-m`, snippet: "words" }],
+    matched_by: matchedBy,
+  });
+
+  it("asks every source in the scope while typing", () => {
+    expect(streamArguments("invoice exports", "all")).toEqual([
+      "search",
+      "invoice exports",
+      "--live",
+      "--stream",
+      "--limit",
+      "20",
+      "--scope",
+      "all",
+    ]);
+  });
+
+  it("reads one line: the merged list, which chats only meaning found, and each source", () => {
+    const update = parseStreamLine(
+      JSON.stringify({
+        done: false,
+        results: [row("a", ["words", "meaning"]), row("b", ["meaning"]), row("c", ["machines"], "xenia")],
+        sources: [
+          { label: "laptop", state: "done", count: 2 },
+          { label: "xenia", state: "searching" },
+        ],
+      }),
+    );
+    expect(update.hits.map((hit) => [hit.chatId, hit.byMeaning ?? false, hit.machine])).toEqual([
+      ["a", false, undefined],
+      ["b", true, undefined],
+      ["c", false, "xenia"],
+    ]);
+    expect(update.done).toBe(false);
+    expect(stillComing(update.sources)).toBe("Searching xenia…");
+    expect(() => parseStreamLine('{"error":{"message":"no index"}}')).toThrow("no index");
+  });
+
+  it("keeps rows in place once frozen and adds new ones below", () => {
+    const hits = (...ids: string[]) =>
+      ids.map((chatId) => ({ ...parseStreamLine(JSON.stringify({ results: [row(chatId, ["words"])] })).hits[0]! }));
+    const shown = hits("a", "b");
+    expect(settle(shown, hits("c", "a", "b"), false).map((hit) => hit.chatId)).toEqual(["c", "a", "b"]);
+    expect(settle(shown, hits("c", "a", "b"), true).map((hit) => hit.chatId)).toEqual(["a", "b", "c"]);
+  });
+
+  it("names sources that failed so the reader can try again", () => {
+    expect(
+      failures([
+        { label: "build-box", state: "failed", timedOut: true },
+        { label: "xenia", state: "failed", message: "offline" },
+        { label: "laptop", state: "done" },
+      ]),
+    ).toBe("build-box didn’t answer · xenia: offline");
   });
 });

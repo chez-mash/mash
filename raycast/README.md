@@ -3,7 +3,13 @@
 Search the history of your coding agents from Raycast, as you type.
 
 **Search Mash** shows your latest chats on this machine before you type, and
-then the chats that mention what you type, each with the passage that matched.
+then the chats that match what you type, each with the passage that matched.
+It asks every source at once: this machine by words, this machine by meaning
+(once it is set up), and your other machines. Results join one list as each
+answers; once you move the selection, the rows on screen keep their places and
+later results are added below. A chat found only by meaning is tagged **by
+meaning**, and a machine that doesn't answer is listed with **↵ to retry**.
+Choose **All machines** or **This machine** beside the search field.
 From a chat you can:
 
 - **Open Chat in Mash** (↵) — the chat, at that message, in the Mash desktop
@@ -34,8 +40,8 @@ the installation guide, or **Set Mash Location**.
 ## Requirements
 
 [Mash](https://getmash.io/installation/), set up with `mash init` and indexed.
-The extension runs `mash list-chats --local` and `mash search --live`, which
-read this machine's index only, and `mash view`. It finds `mash` in the usual
+The extension runs `mash list-chats --local`, `mash search --live --stream`
+(stopped as soon as the search text changes) and `mash view`. It finds `mash` in the usual
 install locations (the install script, Homebrew, cargo-binstall, mise, or the
 Mash desktop app in `/Applications` or `~/Applications`); set **Mash
 Executable** in the Mash extension's preferences if yours is elsewhere.

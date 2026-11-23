@@ -21,6 +21,10 @@ export interface Hit {
   readonly project: string;
   readonly updatedAt: Date | undefined;
   readonly passage: string;
+  /** The machine a result came from, when it is not this one. */
+  readonly machine?: string;
+  /** Found only by meaning, not by its words. */
+  readonly byMeaning?: boolean;
 }
 
 /** One message around a hit, as `mash view` returns it. */
@@ -113,24 +117,100 @@ const text = (value: unknown): string => (typeof value === "string" ? value : ""
 export function parseSearch(stdout: string): Hit[] {
   const results = answer(stdout).results;
   if (!Array.isArray(results)) return [];
-  return results.flatMap((row: Record<string, unknown>) => {
-    const match = Array.isArray(row.matches) ? (row.matches[0] as Record<string, unknown>) : undefined;
-    const chatId = text(row.chat_id);
-    const messageId = text(match?.message_id);
-    if (!chatId || !messageId) return [];
-    return [
-      {
-        chatId,
-        messageId,
-        matched: true,
-        title: text(row.title).trim() || "Untitled chat",
-        agent: text(row.provider),
-        project: text(row.project),
-        updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
-        passage: text(match?.snippet).trim(),
-      },
-    ];
-  });
+  return results.flatMap(hitFromRow);
+}
+
+/** One search result row as a list item, or nothing when it names no message. */
+function hitFromRow(row: Record<string, unknown>): Hit[] {
+  const match = Array.isArray(row.matches) ? (row.matches[0] as Record<string, unknown>) : undefined;
+  const chatId = text(row.chat_id);
+  const messageId = text(match?.message_id);
+  if (!chatId || !messageId) return [];
+  return [
+    {
+      chatId,
+      messageId,
+      matched: true,
+      title: text(row.title).trim() || "Untitled chat",
+      agent: text(row.provider),
+      project: text(row.project),
+      updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
+      passage: text(match?.snippet).trim(),
+      ...(typeof row.node_id === "string" && row.node_id ? { machine: row.node_id } : {}),
+      ...(Array.isArray(row.matched_by) && row.matched_by.length === 1 && row.matched_by[0] === "meaning"
+        ? { byMeaning: true }
+        : {}),
+    },
+  ];
+}
+
+/** Whose history `mash search --stream` asks: this machine, or every machine. */
+export type StreamScope = "local" | "all";
+
+/** Federated search: every source at once, one line of JSON per update. */
+export function streamArguments(query: string, scope: StreamScope): string[] {
+  return ["search", query, "--live", "--stream", "--limit", "20", "--scope", scope];
+}
+
+export interface SourceState {
+  readonly label: string;
+  readonly state: "searching" | "done" | "failed" | "skipped";
+  readonly message?: string;
+  readonly timedOut?: boolean;
+}
+
+export interface StreamUpdate {
+  readonly hits: Hit[];
+  readonly sources: SourceState[];
+  readonly done: boolean;
+}
+
+/** One line of `mash search --stream`. */
+export function parseStreamLine(line: string): StreamUpdate {
+  const body = answer(line);
+  const results = Array.isArray(body.results) ? body.results : [];
+  const sources = Array.isArray(body.sources) ? body.sources : [];
+  return {
+    hits: results.flatMap(hitFromRow),
+    sources: sources.map((source: Record<string, unknown>) => ({
+      label: text(source.label),
+      state: (["searching", "done", "failed", "skipped"].includes(text(source.state))
+        ? text(source.state)
+        : "skipped") as SourceState["state"],
+      ...(typeof source.message === "string" ? { message: source.message } : {}),
+      ...(typeof source.timed_out === "boolean" ? { timedOut: source.timed_out } : {}),
+    })),
+    done: body.done === true,
+  };
+}
+
+/**
+ * The rows to show after a newer ranking. Before the list freezes the newer
+ * ranking is shown as it is; after, rows already shown keep their places and
+ * new ones are added below, so nothing moves under the selection.
+ */
+export function settle(shown: readonly Hit[], ranked: readonly Hit[], frozen: boolean): Hit[] {
+  if (!frozen) return [...ranked];
+  const key = (hit: Hit) => `${hit.machine ?? ""}\u0000${hit.chatId}`;
+  const fresh = new Map(ranked.map((hit) => [key(hit), hit]));
+  const seen = new Set(shown.map(key));
+  return [...shown.map((hit) => fresh.get(key(hit)) ?? hit), ...ranked.filter((hit) => !seen.has(key(hit)))];
+}
+
+/** What is still coming, in a few words; empty when nothing is. */
+export function stillComing(sources: readonly SourceState[]): string {
+  const searching = sources.filter((source) => source.state === "searching");
+  return searching.length ? `Searching ${searching.map((source) => source.label).join(", ")}…` : "";
+}
+
+/** The sources that failed, in words, for a row that offers to try again. */
+export function failures(sources: readonly SourceState[]): string {
+  return sources
+    .filter((source) => source.state === "failed")
+    .map((source) =>
+      source.timedOut ? `${source.label} didn’t answer` : `${source.label}: ${source.message ?? "failed"}`,
+    )
+    .join(" · ");
 }
 
 /** The chats in a `mash list-chats` answer, each at its first message. */

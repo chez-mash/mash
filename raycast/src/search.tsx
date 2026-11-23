@@ -32,17 +32,19 @@ import {
   chatLink,
   findMash,
   hasDesktopApp,
+  failures,
   literal,
-  liveSearchArguments,
   parseChats,
-  parseSearch,
   parseView,
   recentChatsArguments,
   rendered,
   searchCommand,
   searchLink,
+  type StreamScope,
+  stillComing,
   viewArguments,
 } from "./mash";
+import { useStreamSearch } from "./stream";
 
 interface Preferences {
   readonly mashPath?: string;
@@ -97,12 +99,10 @@ export default function Command() {
   const [typed, setTyped] = useState("");
   const query = typed.trim();
   const searching = mash !== undefined && query.length >= 2;
-  const live = useExec(mash ?? "mash", liveSearchArguments(query), {
-    execute: searching,
-    keepPreviousData: true,
-    parseOutput: read(parseSearch),
-    failureToastOptions: { title: "Mash couldn’t search" },
-  });
+  // Every source at once (this machine by words and by meaning, and your
+  // other machines), as one list that fills in as each answers.
+  const [scope, setScope] = useState<StreamScope>("all");
+  const live = useStreamSearch(mash, query, scope, searching);
   // Before anything is typed, the latest chats on this machine, as the
   // desktop panel shows. Listing reads metadata only, so it is quick. A
   // failure is shown in the list, not also as a toast on opening.
@@ -130,8 +130,11 @@ export default function Command() {
     );
   }
 
-  const shown = searching ? live : recent;
-  const hits = shown.data ?? [];
+  const hits = (searching ? live.hits : recent.data) ?? [];
+  const isLoading = searching ? !live.done : recent.isLoading;
+  const shownError = searching ? live.error : recent.error;
+  const coming = searching ? stillComing(live.sources) : "";
+  const failed = searching ? failures(live.sources) : "";
   // Results come from this machine only, so its agents' apps can open them.
   const installed = useMemo(() => installedAgentApps(homedir(), readText), []);
   const claudeChats = installed.some((app) => app.agent === "claude-code")
@@ -145,18 +148,25 @@ export default function Command() {
   const links: AgentLinks = { installed, owned: owned.data ?? new Set() };
   return (
     <List
-      isLoading={shown.isLoading}
+      isLoading={isLoading}
       onSearchTextChange={setTyped}
       throttle
+      onSelectionChange={() => live.interact()}
+      searchBarAccessory={
+        <List.Dropdown tooltip="Whose history" value={scope} onChange={(value) => setScope(value as StreamScope)}>
+          <List.Dropdown.Item title="All machines" value="all" />
+          <List.Dropdown.Item title="This machine" value="local" />
+        </List.Dropdown>
+      }
       searchBarPlaceholder="Search your coding-agent history"
       isShowingDetail={searching && hits.length > 0}
     >
-      {shown.error && hits.length === 0 ? (
+      {shownError && hits.length === 0 ? (
         <List.EmptyView
           icon={Icon.Warning}
           title={searching ? "Mash couldn’t search" : "Mash couldn’t list your chats"}
-          description={shown.error.message}
-          actions={<Trouble retry={shown.revalidate} hasApp={hasApp} />}
+          description={shownError.message}
+          actions={<Trouble retry={searching ? live.retry : recent.revalidate} hasApp={hasApp} />}
         />
       ) : !searching ? (
         <List.EmptyView
@@ -168,7 +178,7 @@ export default function Command() {
       ) : (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
-          title={`No chats on this machine mention “${query}”`}
+          title={isLoading ? "Searching…" : `No chats mention “${query}”`}
           description={
             hasApp
               ? "Press ⌘↵ to search every machine and by meaning in Mash."
@@ -186,18 +196,35 @@ export default function Command() {
           }
         />
       )}
-      <List.Section title={searching ? "Chats on This Machine" : "Recent Chats"}>
+      <List.Section title={searching ? "Chats" : "Recent Chats"} subtitle={coming || undefined}>
         {hits.map((hit) => (
           <List.Item
-            key={hit.chatId}
+            key={`${hit.machine ?? ""}/${hit.chatId}`}
             icon={agentIcon(hit.agent)}
             title={hit.title}
             subtitle={searching ? undefined : projectName(hit.project)}
-            accessories={hit.updatedAt ? [{ date: hit.updatedAt }] : []}
+            accessories={[
+              ...(hit.byMeaning ? [{ tag: "by meaning" }] : []),
+              ...(searching && hit.machine ? [{ text: hit.machine }] : []),
+              ...(hit.updatedAt ? [{ date: hit.updatedAt }] : []),
+            ]}
             detail={<HitDetail hit={hit} />}
             actions={<HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} links={links} />}
           />
         ))}
+        {failed ? (
+          <List.Item
+            key="failed"
+            icon={Icon.Warning}
+            title={failed}
+            accessories={[{ text: "↵ to retry" }]}
+            actions={
+              <ActionPanel>
+                <Action title="Try Again" icon={Icon.ArrowClockwise} onAction={live.retry} />
+              </ActionPanel>
+            }
+          />
+        ) : null}
       </List.Section>
     </List>
   );
