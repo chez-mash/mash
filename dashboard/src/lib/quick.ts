@@ -7,6 +7,7 @@
 
 import { chatHref, searchHref } from "./route.svelte";
 import { shareLink } from "./shareLink";
+import type { Status } from "./status";
 import type { Agent, ChatSummary, SearchHit } from "./types";
 
 /** How many rows the panel shows. */
@@ -62,6 +63,37 @@ export function fullSearchTarget(query: string, desktop: boolean): string {
 /** Pages of the main window the panel's menu opens. */
 export function pageTarget(route: "#/" | "#/settings", desktop: boolean): string {
   return desktop ? shareLink(route, "", true) : route;
+}
+
+/**
+ * The footer's account of search on this machine: a dot and a few words.
+ * `ready` is green, `busy` amber (search works partly, or will soon), and
+ * `problem` red (the panel cannot search); `checking` has no colour yet.
+ */
+export interface QuickStatus {
+  readonly tone: "ready" | "busy" | "problem" | "checking";
+  readonly label: string;
+}
+
+/**
+ * What the footer says, from `mash status`. It claims "Up to date" only when
+ * search is ready and status names nothing left to do, and "Indexing…" only
+ * when a watcher is running, since `index --watch` starts with a full pass.
+ */
+export function quickStatus(status: Status | undefined, failed: boolean): QuickStatus {
+  if (failed) return { tone: "problem", label: "Search unavailable" };
+  if (!status) return { tone: "checking", label: "Checking…" };
+  if (!status.configuration.loaded) return { tone: "busy", label: "Not set up" };
+  const chats = status.chats === 1 ? "1 chat" : `${status.chats.toLocaleString()} chats`;
+  if (status.ready)
+    return status.nextStep === null
+      ? { tone: "ready", label: `Up to date · ${chats}` }
+      : { tone: "busy", label: `Word search only · ${chats}` };
+  if (status.nextStep === "index")
+    return status.watching
+      ? { tone: "busy", label: "Indexing…" }
+      : { tone: "busy", label: "Not indexed yet" };
+  return { tone: "problem", label: "Search unavailable" };
 }
 
 /**

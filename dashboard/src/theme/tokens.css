@@ -201,6 +201,11 @@
   --native-selected-text: AccentColorText;
   --native-selected-fallback-bg: Highlight;
   --native-selected-fallback-text: HighlightText;
+  /* The system's status colours for the panel's footer dot: ready, working
+     or partial, and unavailable. */
+  --native-status-ready: #34c759;
+  --native-status-busy: #ff9f0a;
+  --native-status-problem: #ff3b30;
   --native-radius-panel: 12px;
   --native-radius-row: 7px;
   color-scheme: light;

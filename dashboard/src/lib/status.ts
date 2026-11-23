@@ -15,6 +15,8 @@ export interface Status {
   readonly mode: string;
   readonly databasePath: string | null;
   readonly nextStep: Wire["RecommendedAction"] | null;
+  /** An `index --watch` process is running for this machine's database. */
+  readonly watching: boolean;
   readonly configuration: {
     readonly path: string;
     /** False when no file exists and built-in defaults apply. */
@@ -45,6 +47,7 @@ export function parseStatus(body: Answer<"/api/status">): Status {
     mode: body.realized_mode,
     databasePath: body.database_path ?? null,
     nextStep: body.recommended_action ?? null,
+    watching: body.watcher?.running === true,
     configuration: {
       path: config.path,
       loaded: config.loaded,

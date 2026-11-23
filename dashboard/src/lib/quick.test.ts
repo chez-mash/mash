@@ -6,9 +6,11 @@ import {
   moveSelection,
   pageTarget,
   quickRows,
+  quickStatus,
   rowTarget,
   searching,
 } from "./quick";
+import type { Status } from "./status";
 import type { ChatSummary } from "./types";
 
 const chat = (id: string): ChatSummary => ({
@@ -55,6 +57,38 @@ describe("the quick search panel", () => {
     expect(fullSearchTarget("", false)).toBe("#/search");
     expect(pageTarget("#/settings", true)).toBe("mash://settings");
     expect(pageTarget("#/", true)).toBe("mash://");
+  });
+
+  it("says search is up to date only when status names nothing left to do", () => {
+    const base = {
+      ready: true,
+      chats: 1073,
+      nextStep: null,
+      watching: false,
+      configuration: { loaded: true },
+    } as unknown as Status;
+    const at = (change: object) => quickStatus({ ...base, ...change } as Status, false);
+    expect(at({})).toEqual({ tone: "ready", label: "Up to date · 1,073 chats" });
+    expect(at({ chats: 1 }).label).toBe("Up to date · 1 chat");
+    expect(at({ nextStep: "models install" })).toEqual({
+      tone: "busy",
+      label: "Word search only · 1,073 chats",
+    });
+    expect(at({ ready: false, nextStep: "index", watching: true })).toEqual({
+      tone: "busy",
+      label: "Indexing…",
+    });
+    expect(at({ ready: false, nextStep: "index" }).label).toBe("Not indexed yet");
+    expect(at({ ready: false, nextStep: "start-qdrant" })).toEqual({
+      tone: "problem",
+      label: "Search unavailable",
+    });
+    expect(at({ ready: false, nextStep: "init", configuration: { loaded: false } })).toEqual({
+      tone: "busy",
+      label: "Not set up",
+    });
+    expect(quickStatus(undefined, true).tone).toBe("problem");
+    expect(quickStatus(undefined, false)).toEqual({ tone: "checking", label: "Checking…" });
   });
 
   it("draws ink logos in the text colour so they show in dark mode", () => {

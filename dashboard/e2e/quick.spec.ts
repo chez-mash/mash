@@ -28,8 +28,35 @@ const chats = [
   },
 ];
 
-async function mock(page: Page): Promise<string[]> {
+const statusPath = (url: URL) => url.pathname === "/api/status";
+
+const ready = {
+  ready: true,
+  chats: 1073,
+  messages: 40_000,
+  searchable_messages: 39_000,
+  query_models: "available",
+  local_qdrant: { state: "reachable", url: "http://127.0.0.1:6333" },
+  realized_mode: "hybrid",
+  recommended_action: null,
+  watcher: { definition: "/u/mash-watch.service", running: true },
+  configuration: {
+    path: "/config/mash/config.toml",
+    loaded: true,
+    providers: {},
+    index: { since_days: null, destination: "local" },
+    embeddings: { backend: "local" },
+    qdrant: { url: "http://127.0.0.1:6333", vector_search: { algorithm: "hnsw" } },
+    views: { query: { ranking: "contextual-rerank" } },
+    records: { enabled: false },
+    redaction: { output: true, publication: true },
+    shared: null,
+  },
+};
+
+async function mock(page: Page, status: object = ready): Promise<string[]> {
   const typed: string[] = [];
+  await page.route(statusPath, (route) => route.fulfill({ json: status }));
   await page.route("**/api/chats**", (route) =>
     route.fulfill({ json: { local_node: "laptop", truncated: false, chats } }),
   );
@@ -67,6 +94,7 @@ test("the quick panel lists recent chats, searches as you type and opens a match
   const options = page.getByRole("option");
   await expect(options).toHaveCount(3);
   await expect(options.first()).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
 
   await field.fill("deplo");
   await expect(page.getByRole("heading", { name: "Chats on this machine" })).toBeVisible();
@@ -93,7 +121,8 @@ test("Escape clears the query before anything else, and the menu reaches the mai
   await field.press("Escape");
   await expect(field).toHaveValue("");
   await page.getByRole("button", { name: "More" }).click();
-  await expect(page.getByRole("menuitem", { name: "Settings…" })).toHaveAttribute(
+  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("⌘O");
+  await expect(page.getByRole("menuitem", { name: /Settings…/ })).toHaveAttribute(
     "href",
     "#/settings",
   );
@@ -101,4 +130,25 @@ test("Escape clears the query before anything else, and the menu reaches the mai
     "href",
     "#/search",
   );
+});
+
+test("the footer is honest while a new machine indexes, and when search is down", async ({
+  page,
+}) => {
+  await mock(page, { ...ready, ready: false, chats: 0, recommended_action: "index" });
+  await page.goto("/#/quick");
+  await expect(page.getByRole("status")).toHaveText("Indexing…");
+  await page.unroute(statusPath);
+  await page.route(statusPath, (route) =>
+    route.fulfill({ status: 503, json: { error: { message: "down" } } }),
+  );
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("Search unavailable");
+});
+
+test("Control+, opens settings from the field", async ({ page }) => {
+  await mock(page);
+  await page.goto("/#/quick");
+  await page.getByRole("textbox", { name: "Search Mash" }).press("Control+,");
+  await expect(page).toHaveURL(/#\/settings$/);
 });

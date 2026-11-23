@@ -16,11 +16,13 @@ import {
   pageTarget,
   type QuickRow,
   quickRows,
+  quickStatus,
   rowTarget,
   searching,
 } from "../lib/quick";
 import { chatHref } from "../lib/route.svelte";
 import { inDesktopApp, shareLink } from "../lib/shareLink";
+import { type Status, statusOptions } from "../lib/status";
 
 // The panel the desktop app drops down from its menu bar icon (and shows for
 // its global shortcut): live search over this machine, or the latest chats
@@ -46,6 +48,16 @@ const live = createQuery(() => ({
 }));
 const rows = $derived(quickRows(text, catalogue.data?.chats ?? [], live.data ?? []));
 const failed = $derived(searching(text) && live.isError ? live.error : null);
+// The panel stays open in the background, so it reads status again when it
+// is shown, and every few seconds while indexing is under way.
+const status = createQuery(() => ({
+  ...statusOptions,
+  staleTime: 10_000,
+  refetchOnWindowFocus: true,
+  refetchInterval: (query: { state: { data: Status | undefined } }) =>
+    query.state.data && !query.state.data.ready && query.state.data.watching ? 5_000 : false,
+}));
+const health = $derived(quickStatus(status.data, status.isError));
 let selected = $state(0);
 $effect(() => {
   void rows;
@@ -83,6 +95,9 @@ function keydown(event: KeyboardEvent): void {
     event.preventDefault();
     if (event.metaKey || event.ctrlKey) go(fullSearchTarget(text, desktop));
     else if (row) go(rowTarget(row, desktop));
+  } else if ((event.key === "o" || event.key === ",") && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault();
+    go(pageTarget(event.key === "o" ? "#/" : "#/settings", desktop));
   } else if (event.key === "Escape") {
     event.preventDefault();
     if (menuOpen) menuOpen = false;
@@ -143,15 +158,15 @@ function keydown(event: KeyboardEvent): void {
   </div>
 
   <footer>
-    <span>{catalogue.data ? `${catalogue.data.chats.length.toLocaleString()} chats` : ""}</span>
+    <span class="q-status" role="status"><span class="q-dot" data-tone={health.tone} aria-hidden="true"></span>{health.label}</span>
     <span class="q-end">
       <a href={fullSearchTarget(text, desktop)}>Search Everywhere ⌘↵</a>
       <button type="button" class="q-more" aria-label="More" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}><Ellipsis size={16} aria-hidden="true" /></button>
     </span>
     {#if menuOpen}
       <div class="q-menu" role="menu">
-        <a role="menuitem" href={pageTarget("#/", desktop)}>Open Mash</a>
-        <a role="menuitem" href={pageTarget("#/settings", desktop)}>Settings…</a>
+        <a role="menuitem" href={pageTarget("#/", desktop)} aria-keyshortcuts="Meta+O">Open Mash<kbd>⌘O</kbd></a>
+        <a role="menuitem" href={pageTarget("#/settings", desktop)} aria-keyshortcuts="Meta+,">Settings…<kbd>⌘,</kbd></a>
       </div>
     {/if}
   </footer>
@@ -336,11 +351,44 @@ function keydown(event: KeyboardEvent): void {
     background: var(--native-surface);
   }
   .q-menu a {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
     padding: 4px 9px;
     border-radius: var(--native-radius-row);
     color: var(--native-text);
     font-size: 13px;
     text-decoration: none;
+  }
+  .q-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .q-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--native-muted);
+  }
+  .q-dot[data-tone="ready"] {
+    background: var(--native-status-ready);
+  }
+  .q-dot[data-tone="busy"] {
+    background: var(--native-status-busy);
+  }
+  .q-dot[data-tone="problem"] {
+    background: var(--native-status-problem);
+  }
+  .q-menu kbd {
+    color: var(--native-muted);
+    font: inherit;
+  }
+  .q-menu a:hover kbd {
+    color: inherit;
   }
   .q-menu a:hover {
     background: var(--native-hover);
