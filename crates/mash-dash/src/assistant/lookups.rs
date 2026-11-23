@@ -5,8 +5,11 @@
 //! The MCP tools most of them run on describe themselves for coding agents,
 //! in schemas small models use badly and some services refuse, and answer in
 //! JSON too long to read much of within a question.
+mod paging;
 use super::{Dash, Definition, Function, Tool};
 use crate::core::{self, Operation};
+use futures_util::TryStreamExt;
+use paging::pages;
 use serde_json::{Value, json};
 use std::fmt::Write as _;
 
@@ -652,21 +655,19 @@ async fn placed(
     // began long before may not be among them, so the rest are looked for in
     // the whole list: the breakdown below must cover every chat counted.
     for since in [Some(after), None] {
-        let mut offset = 0;
-        while known.len() < counts.len() && offset < 4_000 {
-            let mut request = json!({"limit": 100, "offset": offset, "local": true});
-            if let Some(since) = since {
-                request["after"] = json!(since);
-            }
-            let page = console(state, "list_chats", request).await?;
-            for chat in rows(&page, "chats") {
+        let mut request = json!({"limit": 100, "local": true});
+        if let Some(since) = since {
+            request["after"] = json!(since);
+        }
+        let mut listed = std::pin::pin!(pages(state, "list_chats", request, "chats", 4_000));
+        while known.len() < counts.len() {
+            let Some(page) = listed.try_next().await? else {
+                break;
+            };
+            for chat in page {
                 if wanted.contains(text(&chat, "chat_id")) {
                     known.insert(text(&chat, "chat_id").to_owned(), chat);
                 }
-            }
-            match page.get("next_offset").and_then(Value::as_u64) {
-                Some(next) => offset = next,
-                None => break,
             }
         }
     }
@@ -1211,25 +1212,21 @@ async fn status(state: &Dash, reader: &Reader) -> Result<String, String> {
 
 async fn memories(state: &Dash, reader: &mut Reader, arguments: &str) -> Result<String, String> {
     let input: Memories = parse(arguments)?;
-    let mut all = Vec::new();
-    let mut offset = 0;
     // There are tens of memories, not thousands: all of them are read, and
     // the filters the model may use are applied here.
-    while offset < 1_000 {
-        let mut request = json!({"limit": 100, "offset": offset});
-        if let Some(kind) = given(input.kind.clone()) {
-            request["kind"] = json!(kind);
-        }
-        if let Some(chat) = given(input.chat_id.clone()) {
-            request["chat"] = json!(chat);
-        }
-        let reply = console(state, "list_records", request).await?;
-        all.extend(rows(&reply, "records"));
-        match reply.get("next_offset").and_then(Value::as_u64) {
-            Some(next) if next > offset => offset = next,
-            _ => break,
-        }
+    let mut request = json!({"limit": 100});
+    if let Some(kind) = given(input.kind.clone()) {
+        request["kind"] = json!(kind);
     }
+    if let Some(chat) = given(input.chat_id.clone()) {
+        request["chat"] = json!(chat);
+    }
+    let all: Vec<Value> = pages(state, "list_records", request, "records", 1_000)
+        .try_collect::<Vec<_>>()
+        .await?
+        .into_iter()
+        .flatten()
+        .collect();
     let words: Vec<String> = given(input.about).map_or_default(|about| {
         about
             .to_lowercase()

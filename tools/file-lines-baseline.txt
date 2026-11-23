@@ -14,7 +14,7 @@
 784 app/remote.rs
 674 cli/cli.rs
 827 crates/mash-dash/src/assistant.rs
-1307 crates/mash-dash/src/assistant/lookups.rs
+1304 crates/mash-dash/src/assistant/lookups.rs
 815 crates/mash-dash/src/lib.rs
 538 crates/mash-fleet/src/inventory.rs
 522 crates/mash-mcp/src/guidance.rs
