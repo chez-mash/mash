@@ -26,7 +26,13 @@ export interface StreamState {
 
 const empty: StreamState = { hits: [], sources: [], done: true, error: undefined };
 
-export function useStreamSearch(mash: string | undefined, query: string, scope: StreamScope, enabled: boolean) {
+export function useStreamSearch(
+  mash: string | undefined,
+  query: string,
+  scope: StreamScope,
+  enabled: boolean,
+  includeSubagents = false,
+) {
   const [state, setState] = useState<StreamState>(empty);
   const frozen = useRef(false);
   const question = useRef("");
@@ -47,7 +53,7 @@ export function useStreamSearch(mash: string | undefined, query: string, scope: 
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let stopped = false;
     setState((previous) => ({ ...previous, done: false, error: undefined }));
-    child = spawn(mash, streamArguments(query, scope));
+    child = spawn(mash, streamArguments(query, scope, includeSubagents));
     let pending = "";
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {
@@ -95,7 +101,7 @@ export function useStreamSearch(mash: string | undefined, query: string, scope: 
       child?.kill();
       child = undefined;
     };
-  }, [mash, query, scope, enabled, attempt]);
+  }, [mash, query, scope, enabled, includeSubagents, attempt]);
 
   // Moving the selection keeps the list where it is.
   const interact = useCallback(() => {

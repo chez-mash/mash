@@ -112,7 +112,9 @@ function search(params: URLSearchParams, now: number): Answer<"/api/search"> | R
         (!agents.length || agents.includes(chat.agent)) &&
         (!machines.length || machines.includes(chat.machine)) &&
         (!projects.length || projects.includes(chat.project)) &&
-        updatedAt(chat, now) >= since,
+        updatedAt(chat, now) >= since &&
+        // As Mash does, subagent chats are left out unless the search asks.
+        (!chat.subagent || params.get("include_subagents") === "true"),
     )
     .flatMap((chat) => {
       const matches = chat.messages.flatMap((entry, position) => {

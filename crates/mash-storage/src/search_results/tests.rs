@@ -7,6 +7,7 @@ fn collect(hits: Vec<SearchHit>, unit: SearchUnit, limit: usize, query: &str) ->
     super::collect(
         hits,
         unit,
+        Subagents::Included,
         Page::first(limit),
         query,
         crate::redaction::Policy::ON,
@@ -23,6 +24,7 @@ fn collect_exact(
     super::collect_exact(
         hits,
         unit,
+        Subagents::Included,
         Page::first(limit),
         literal,
         crate::redaction::Policy::ON,
@@ -116,6 +118,50 @@ fn hit(thread: &str, id: &str) -> SearchHit {
         rerank_score: None,
         node_id: None,
     }
+}
+
+/// One of three chats is a subagent's: left out, the page still fills with
+/// the others; included, it ranks where its evidence puts it.
+#[test]
+fn subagent_chats_are_left_out_before_the_page_is_cut() {
+    let subagent = |thread: &str, id: &str| {
+        let mut value = hit(thread, id);
+        value.metadata.subagent = Some(crate::subagents::Subagent::default());
+        value
+    };
+    let hits = || {
+        vec![
+            subagent("worker", "w"),
+            hit("first", "a"),
+            hit("second", "b"),
+        ]
+    };
+    let page = |subagents| {
+        let collected = super::collect(
+            hits(),
+            SearchUnit::Chats,
+            subagents,
+            Page::first(2),
+            "query",
+            crate::redaction::Policy::ON,
+        );
+        let Results::Chats(chats) = collected.results else {
+            panic!("chat results")
+        };
+        let ids = chats
+            .into_iter()
+            .map(|chat| chat.chat_id)
+            .collect::<Vec<_>>();
+        (ids, collected.next_offset)
+    };
+    assert_eq!(
+        page(Subagents::Excluded),
+        (vec!["first".to_owned(), "second".to_owned()], None)
+    );
+    assert_eq!(
+        page(Subagents::Included),
+        (vec!["worker".to_owned(), "first".to_owned()], Some(2))
+    );
 }
 
 fn threads(hits: Vec<SearchHit>, limit: usize) -> Vec<ChatHit> {
@@ -544,6 +590,7 @@ fn pages_partition_the_ranked_window_and_skip_abstaining_candidates() {
         super::collect(
             candidates(),
             unit,
+            Subagents::Included,
             page,
             "query",
             crate::redaction::Policy::ON,

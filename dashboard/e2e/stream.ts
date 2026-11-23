@@ -12,7 +12,7 @@ export async function streamFromSearch(page: Page): Promise<void> {
   await page.route("**/api/search/stream?**", async (route) => {
     const asked = new URL(route.request().url()).searchParams;
     const legacy = new URLSearchParams({ q: asked.get("q") ?? "" });
-    for (const name of ["provider", "project", "days"]) {
+    for (const name of ["provider", "project", "days", "include_subagents"]) {
       const value = asked.get(name);
       if (value) legacy.set(name, value);
     }

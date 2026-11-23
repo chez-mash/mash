@@ -20,7 +20,7 @@ open the [dashboard](dashboard.md) with `mash dash` or ask a
 | --- | --- | --- |
 | `mash qdrant install` | Downloads, verifies and starts the local search service. Rerun it to repair or upgrade; its data is kept. | |
 | `mash init` | Sets up Mash for the histories it finds, optionally [connects agents](agents.md), and indexes. | `--yes` accepts the defaults without prompts. `--no-index` configures without the search service running. `--no-agents` leaves agent settings unchanged. `--force` replaces an existing configuration, kept as `config.toml.previous`. |
-| `mash search 'QUERY'` | Searches indexed chats or messages. | `--intent exact-mention` or `--intent related-discussion`, `--unit messages`, `--days N`, `--provider PROVIDER`, `--limit N`. See [search filters](search.md). |
+| `mash search 'QUERY'` | Searches indexed chats or messages. | `--intent exact-mention` or `--intent related-discussion`, `--unit messages`, `--days N`, `--provider PROVIDER`, `--limit N`. Subagent chats are left out unless you add `--include-subagents`. See [search filters](search.md). |
 | `mash list-chats` | Lists chats, most recently active first. | `--title-contains 'part of the title'`, `--provider PROVIDER`, `--limit N`. `--exclude-subagents` leaves out chats agents started for their own subtasks. |
 | `mash view MESSAGE_ID` | Returns one message. | `--context N` adds up to N messages before and after. |
 | `mash dash` | Serves the [dashboard](dashboard.md) at `http://127.0.0.1:8790`. | `--listen ADDRESS`. `--services-config PATH` enables [service management](services.md). |

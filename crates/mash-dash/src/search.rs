@@ -26,6 +26,8 @@ pub(super) struct SearchParams {
     pub(super) offset: usize,
     /// relevance (default) or recent: newest first within each page of matching chats.
     pub(super) sort: crate::search_filter::Sort,
+    /// Also search chats agents started as subagents; they are left out otherwise.
+    pub(super) include_subagents: bool,
 }
 
 fn split(list: &str) -> Vec<String> {
@@ -71,6 +73,7 @@ pub(super) fn search_operation(
         project: split(&params.project),
         days: params.days,
         sort: params.sort,
+        include_subagents: params.include_subagents,
         ..Default::default()
     };
     Ok(Operation::Search {
@@ -153,6 +156,8 @@ pub(super) struct LiveParams {
     pub(super) days: Option<u32>,
     /// At most 20; 8 when omitted.
     pub(super) limit: Option<usize>,
+    /// Also search chats agents started as subagents; they are left out otherwise.
+    pub(super) include_subagents: bool,
 }
 
 /// Live search reads this machine's own index, so a dashboard that serves
@@ -167,6 +172,7 @@ pub(super) fn live_operation(params: LiveParams, shared_only: bool) -> Result<Op
         provider: providers(&params.provider)?,
         project: split(&params.project),
         days: params.days,
+        include_subagents: params.include_subagents,
         ..Default::default()
     };
     Ok(Operation::LiveSearch {

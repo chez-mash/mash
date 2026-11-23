@@ -3507,6 +3507,11 @@
               "null"
             ]
           },
+          "include_subagents": {
+            "default": false,
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "type": "boolean"
+          },
           "limit": {
             "default": null,
             "description": "At most 20; 8 when omitted.",
@@ -5419,6 +5424,11 @@
               "null"
             ]
           },
+          "include_subagents": {
+            "default": false,
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "type": "boolean"
+          },
           "intent": {
             "anyOf": [
               {
@@ -6769,6 +6779,11 @@
               "null"
             ]
           },
+          "include_subagents": {
+            "default": false,
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "type": "boolean"
+          },
           "limit": {
             "default": null,
             "description": "At most 20 while typing (`live`), 100 otherwise; 10 when omitted.",
@@ -8048,6 +8063,17 @@
             "style": "form"
           },
           {
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "in": "query",
+            "name": "include_subagents",
+            "schema": {
+              "default": false,
+              "description": "Also search chats agents started as subagents; they are left out otherwise.",
+              "type": "boolean"
+            },
+            "style": "form"
+          },
+          {
             "description": "Search intent override. Omission uses the machine's configured default.",
             "in": "query",
             "name": "intent",
@@ -8164,6 +8190,17 @@
             "style": "form"
           },
           {
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "in": "query",
+            "name": "include_subagents",
+            "schema": {
+              "default": false,
+              "description": "Also search chats agents started as subagents; they are left out otherwise.",
+              "type": "boolean"
+            },
+            "style": "form"
+          },
+          {
             "description": "At most 20; 8 when omitted.",
             "in": "query",
             "name": "limit",
@@ -8245,6 +8282,17 @@
               "format": "uint32",
               "minimum": 0,
               "type": "integer"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Also search chats agents started as subagents; they are left out otherwise.",
+            "in": "query",
+            "name": "include_subagents",
+            "schema": {
+              "default": false,
+              "description": "Also search chats agents started as subagents; they are left out otherwise.",
+              "type": "boolean"
             },
             "style": "form"
           },

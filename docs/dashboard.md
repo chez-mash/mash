@@ -194,10 +194,10 @@ whether the agent recorded them as done. Where the transcript holds the call
 that started one, a **Started a subagent** line opens it. A subagent's page is
 titled with its task and links back to the chat that started it; one whose
 parent is not indexed here says it is a subagent of a chat not on this machine.
-Search includes subagent matches and labels them with their parent. To leave
-them out, choose **subagents: included** and then **Leave subagent chats out**.
-Only the machine that indexed a chat knows it is a subagent, so results from
-other machines stay in.
+Search leaves subagent chats out. To include their matches, labelled with
+their parent, choose **subagents: hidden** and then **Include matches in
+subagent chats**. Only the machine that indexed a chat knows it is a subagent,
+so results from other machines stay in either way.
 
 ### Sessions run over SSH
 

@@ -189,6 +189,7 @@ export async function search(
   if (applied.days !== null) params.set("days", String(applied.days));
   if (applied.rank !== "relevance") params.set("sort", applied.rank);
   if (applied.intent !== "default") params.set("intent", applied.intent);
+  if (applied.subagentHits === "included") params.set("include_subagents", "true");
   if (peer) {
     params.delete("machine");
     return ownHits(parseSearch(await read("/api/search", params, signal, peer), peer), peer);

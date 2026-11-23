@@ -32,7 +32,7 @@ pub(in crate::core) async fn lexical(
     let shared = shared && shared_error.is_none();
     Ok(word_response(
         hits,
-        (options, page),
+        (options, page, filters.subagents),
         query,
         realized_mode,
         (shared, shared_error),
@@ -80,7 +80,7 @@ pub(in crate::core) async fn live(
     let hits = shared::search_typing((database, configuration), &query, options, &filters).await?;
     Ok(word_response(
         hits,
-        (options, page),
+        (options, page, filters.subagents),
         query,
         SearchMode::Lexical,
         (false, None),
@@ -89,13 +89,23 @@ pub(in crate::core) async fn live(
 
 fn word_response(
     hits: Vec<crate::storage::SearchHit>,
-    (options, page): (crate::views::config::Options, crate::search_results::Page),
+    (options, page, subagents): (
+        crate::views::config::Options,
+        crate::search_results::Page,
+        crate::search_filter::Subagents,
+    ),
     query: String,
     realized_mode: SearchMode,
     (shared, shared_error): (bool, Option<String>),
 ) -> SearchResponse {
-    let collected =
-        crate::search_results::collect(hits, options.unit, page, &query, options.output_redaction);
+    let collected = crate::search_results::collect(
+        hits,
+        options.unit,
+        subagents,
+        page,
+        &query,
+        options.output_redaction,
+    );
     SearchResponse {
         notice: None,
         freshness_warnings: Vec::new(),

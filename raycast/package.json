@@ -44,10 +44,10 @@
       "name": "subagentMatches",
       "title": "Subagent Chats",
       "label": "Include matches in subagent chats",
-      "description": "Show search matches in chats your agents started for their own subtasks. The recent chats list never shows them.",
+      "description": "Also show search matches in chats your agents started for their own subtasks. They are left out otherwise, and the recent chats list never shows them.",
       "type": "checkbox",
       "required": false,
-      "default": true
+      "default": false
     }
   ],
   "packageManager": "pnpm@11.28.5",

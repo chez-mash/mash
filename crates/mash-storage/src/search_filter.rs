@@ -83,6 +83,32 @@ pub struct Selection {
     /// and a schema that refers to itself is refused by some model services.
     #[schemars(skip)]
     pub filter: Option<Filter>,
+    /// Also search chats an agent started as subagents for its own subtasks.
+    /// They are left out unless this is set; chats named in `chat` are always
+    /// searched.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub include_subagents: bool,
+}
+
+/// Whether a search's results may come from subagent chats.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Subagents {
+    Excluded,
+    Included,
+}
+
+impl Subagents {
+    /// The hits a search may return. Applied before anything is ranked or
+    /// paged, so a page left without subagent chats is still a full page.
+    ///
+    /// Only this machine records which chats are subagents: hits from other
+    /// machines carry no marker and always stay.
+    pub fn admit(self, mut hits: Vec<crate::storage::SearchHit>) -> Vec<crate::storage::SearchHit> {
+        if self == Self::Excluded {
+            hits.retain(|hit| hit.metadata.subagent.is_none());
+        }
+        hits
+    }
 }
 
 #[derive(Clone)]
@@ -90,6 +116,7 @@ pub struct Scope {
     pub match_mode: crate::views::matching::Mode,
     pub filter: Filter,
     pub node: String,
+    pub subagents: Subagents,
 }
 
 /// Predicate names only; diagnostics never echo filter values or the query.
@@ -132,6 +159,12 @@ impl Selection {
     }
 
     pub fn resolve(self, node: &str) -> Result<Scope, AppError> {
+        // A search that names its chats searches them, subagents or not.
+        let subagents = if self.include_subagents || self.fields().contains(&Field::Chat) {
+            Subagents::Included
+        } else {
+            Subagents::Excluded
+        };
         let mut all = Vec::new();
         if !self.provider.is_empty() {
             all.push(Filter::Provider(self.provider));
@@ -174,6 +207,7 @@ impl Selection {
             match_mode: self.match_mode,
             filter,
             node: node.to_owned(),
+            subagents,
         })
     }
 }

@@ -225,6 +225,14 @@ describe("federated search", () => {
     ]);
   });
 
+  it("leaves subagent chats to Mash to leave out, unless the reader asks for them", () => {
+    expect(streamArguments("invoice exports", "local", true).slice(-3)).toEqual([
+      "--scope",
+      "local",
+      "--include-subagents",
+    ]);
+  });
+
   it("reads one line: the merged list, which chats only meaning found, and each source", () => {
     const update = parseStreamLine(
       JSON.stringify({

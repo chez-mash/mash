@@ -169,9 +169,13 @@ function hitFromRow(row: Record<string, unknown>): Hit[] {
 /** Whose history `mash search --stream` asks: this machine, or every machine. */
 export type StreamScope = "local" | "all";
 
-/** Federated search: every source at once, one line of JSON per update. */
-export function streamArguments(query: string, scope: StreamScope): string[] {
-  return ["search", query, "--live", "--stream", "--limit", "20", "--scope", scope];
+/**
+ * Federated search: every source at once, one line of JSON per update. Mash
+ * leaves subagent chats out unless asked to include them.
+ */
+export function streamArguments(query: string, scope: StreamScope, includeSubagents = false): string[] {
+  const asked = ["search", query, "--live", "--stream", "--limit", "20", "--scope", scope];
+  return includeSubagents ? [...asked, "--include-subagents"] : asked;
 }
 
 export interface SourceState {

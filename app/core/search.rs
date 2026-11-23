@@ -363,8 +363,8 @@ async fn shared_hybrid(
     )
     .await?;
     let shared_error = retrieval.into_error();
-    let collected =
-        crate::search_results::collect(results, unit, page, &query, options.output_redaction);
+    let (subagents, output) = (filters.subagents, options.output_redaction);
+    let collected = crate::search_results::collect(results, unit, subagents, page, &query, output);
     Ok(SearchResponse {
         freshness_warnings: Vec::new(),
         notice: None,
@@ -403,7 +403,8 @@ async fn shared_exact(
         output,
     )
     .await?;
-    let collected = crate::search_results::collect_exact(hits, unit, page, literal, output);
+    let collected =
+        crate::search_results::collect_exact(hits, unit, filters.subagents, page, literal, output);
     Ok(SearchResponse {
         notice: None,
         freshness_warnings: Vec::new(),
@@ -446,7 +447,8 @@ async fn local_exact(
         hit.node_id = None;
     }
     let hits = crate::views::exact::rank(hits, unit);
-    let collected = crate::search_results::collect_exact(hits, unit, page, literal, output);
+    let collected =
+        crate::search_results::collect_exact(hits, unit, filters.subagents, page, literal, output);
     Ok(SearchResponse {
         notice: None,
         freshness_warnings: Vec::new(),
@@ -536,13 +538,8 @@ async fn local_search(
     })
     .await?;
     let results = crate::search_ranking::finish(backend, ranked).await?;
-    let collected = crate::search_results::collect(
-        results,
-        options.unit,
-        page,
-        &query,
-        options.output_redaction,
-    );
+    let (unit, subagents, output) = (options.unit, filters.subagents, options.output_redaction);
+    let collected = crate::search_results::collect(results, unit, subagents, page, &query, output);
     Ok(SearchResponse {
         notice: None,
         freshness_warnings: Vec::new(),

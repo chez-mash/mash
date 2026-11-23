@@ -50,6 +50,8 @@ export interface FederatedParams {
   readonly agents?: readonly string[];
   readonly projects?: readonly string[];
   readonly days?: number | null;
+  /** Also search subagent chats, which are left out otherwise. */
+  readonly includeSubagents?: boolean;
 }
 
 /** The scope as the stream takes it. */
@@ -69,6 +71,7 @@ function streamParams(params: FederatedParams): URLSearchParams {
   if (params.agents?.length) query.set("provider", params.agents.join(","));
   if (params.projects?.length) query.set("project", params.projects.join(","));
   if (params.days !== null && params.days !== undefined) query.set("days", String(params.days));
+  if (params.includeSubagents) query.set("include_subagents", "true");
   return query;
 }
 

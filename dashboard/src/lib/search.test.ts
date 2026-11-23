@@ -17,20 +17,22 @@ describe("applied searches", () => {
       rank: "relevance",
       offset: 40,
       subagents: "folded",
-      subagentHits: "included",
+      subagentHits: "hidden",
     });
     expect(parseApplied(appliedHref(applied).split("?")[1] ?? "")).toEqual(applied);
     expect(appliedHref(parseApplied(""))).toBe("#/search");
     expect(parseApplied("subagents=shown").subagents).toBe("shown");
     expect(parseApplied("subagents=sideways").subagents).toBe("folded");
     expect(appliedHref(parseApplied("subagents=shown"))).toBe("#/search?subagents=shown");
-    expect(parseApplied("q=x&subagent_hits=hidden").subagentHits).toBe("hidden");
-    expect(parseApplied("q=x&subagent_hits=sideways").subagentHits).toBe("included");
-    expect(appliedHref(parseApplied("q=x&subagent_hits=hidden"))).toBe(
-      "#/search?q=x&subagent_hits=hidden",
+    // Subagent chats are left out of a query's results unless asked for.
+    expect(parseApplied("q=x").subagentHits).toBe("hidden");
+    expect(parseApplied("q=x&subagent_hits=included").subagentHits).toBe("included");
+    expect(parseApplied("q=x&subagent_hits=sideways").subagentHits).toBe("hidden");
+    expect(appliedHref(parseApplied("q=x&subagent_hits=included"))).toBe(
+      "#/search?q=x&subagent_hits=included",
     );
-    // Without a query there are no results to leave anything out of.
-    expect(appliedHref(parseApplied("subagent_hits=hidden"))).toBe("#/search");
+    // Without a query there are no results to include anything in.
+    expect(appliedHref(parseApplied("subagent_hits=included"))).toBe("#/search");
   });
   it("ignores values the controls cannot produce", () => {
     const applied = parseApplied("agent=shell,codex&days=13&sort=sideways&offset=-5");

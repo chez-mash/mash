@@ -37,6 +37,7 @@ impl SearchArguments {
                 .map(crate::search_filter::timestamp)
                 .transpose()?,
             filter,
+            include_subagents: self.include_subagents,
         })
     }
 }
@@ -319,4 +320,7 @@ pub(super) struct SearchArguments {
     /// JSON Boolean expression using all/any/not and metadata predicates.
     #[arg(long)]
     filter: Option<String>,
+    /// Also search chats agents started as subagents for their own subtasks.
+    #[arg(long)]
+    include_subagents: bool,
 }

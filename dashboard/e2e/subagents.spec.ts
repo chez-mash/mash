@@ -120,20 +120,25 @@ async function mock(page: Page): Promise<void> {
       return route.fulfill({ json: { message_count: messages.length, messages } });
     }
     if (url.pathname === "/api/search")
+      // As Mash does, subagent chats are left out unless the search asks.
       return route.fulfill({
         json: {
           results: [
-            {
-              ...windows,
-              score: 1,
-              matches: [
-                {
-                  message_id: "fixed",
-                  node_id: "laptop",
-                  snippet: "three tests asserted old wording",
-                },
-              ],
-            },
+            ...(url.searchParams.get("include_subagents") === "true"
+              ? [
+                  {
+                    ...windows,
+                    score: 1,
+                    matches: [
+                      {
+                        message_id: "fixed",
+                        node_id: "laptop",
+                        snippet: "three tests asserted old wording",
+                      },
+                    ],
+                  },
+                ]
+              : []),
             {
               ...parent,
               score: 0.5,
@@ -218,27 +223,24 @@ for (const width of [1440, 390]) {
       await expect(page.getByText("Subagent of a chat not on this machine")).toBeVisible();
     });
 
-    test("search keeps subagent matches, labelled with their parent", async ({ page }) => {
+    test("search leaves subagent chats out unless asked, then labels them", async ({ page }) => {
       await streamFromSearch(page);
       await page.goto("/#/search?q=windows+tests");
       const results = page.locator(".results");
-      const hit = results.locator("a.card").filter({ hasText: windows.subagent.label });
-      await expect(hit).toContainText(`subagent of ${parent.title}`);
-      await expect(
-        results.locator("a.card").filter({ hasText: parent.title }).first(),
-      ).toBeVisible();
-      await shoot(page, "search");
-      // Asked to, a search leaves subagent chats out and says so.
-      await page.goto("/#/search?q=windows+tests&subagent_hits=hidden");
       await expect(
         results.locator("a.card").filter({ hasText: parent.title }).first(),
       ).toBeVisible();
       await expect(
         results.locator("a.card").filter({ hasText: windows.subagent.label }),
       ).toHaveCount(0);
-      await expect(page.getByText(/in subagent chats left out on this page/)).toBeVisible();
       await expect(page.locator(".chip", { hasText: "subagents: hidden" })).toBeAttached();
-      await shoot(page, "search-hidden");
+      await shoot(page, "search");
+      // Asked to, a search includes them, each labelled with its parent.
+      await page.goto("/#/search?q=windows+tests&subagent_hits=included");
+      const hit = results.locator("a.card").filter({ hasText: windows.subagent.label });
+      await expect(hit).toContainText(`subagent of ${parent.title}`);
+      await expect(page.locator(".chip", { hasText: "subagents: included" })).toBeAttached();
+      await shoot(page, "search-included");
     });
   });
 }

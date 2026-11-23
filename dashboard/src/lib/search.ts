@@ -60,8 +60,8 @@ export const subagentViews = [
 ] as const;
 
 export const subagentHitViews = [
-  { value: "included", label: "Include matches in subagent chats" },
   { value: "hidden", label: "Leave subagent chats out" },
+  { value: "included", label: "Include matches in subagent chats" },
 ] as const;
 
 function list(params: URLSearchParams, name: string): string[] {
@@ -84,7 +84,7 @@ export function parseApplied(params: string): Applied {
     rank: values.get("rank") === "recent" ? "recent" : "relevance",
     offset: Number.isSafeInteger(offset) && offset > 0 ? offset : 0,
     subagents: values.get("subagents") === "shown" ? "shown" : "folded",
-    subagentHits: values.get("subagent_hits") === "hidden" ? "hidden" : "included",
+    subagentHits: values.get("subagent_hits") === "included" ? "included" : "hidden",
   };
 }
 
@@ -103,7 +103,7 @@ export function appliedHref(applied: Applied, base = "#/search"): string {
   if (applied.rank !== "relevance") params.set("rank", applied.rank);
   if (applied.offset) params.set("offset", String(applied.offset));
   if (applied.subagents === "shown") params.set("subagents", "shown");
-  if (applied.query && applied.subagentHits === "hidden") params.set("subagent_hits", "hidden");
+  if (applied.query && applied.subagentHits === "included") params.set("subagent_hits", "included");
   return params.size ? `${base}?${params}` : base;
 }
 

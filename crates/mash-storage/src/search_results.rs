@@ -1,5 +1,5 @@
 //! Built-in views: result granularity and bounded chat ranking across transports.
-use crate::AppError;
+use crate::search_filter::Subagents;
 use crate::storage::SearchHit;
 use rmcp::schemars;
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,9 @@ use std::collections::HashMap;
 
 pub mod lookup;
 mod metadata;
+mod page;
 pub use metadata::ChatMetadata;
+pub use page::Page;
 
 #[derive(
     Debug,
@@ -50,46 +52,6 @@ impl SearchUnit {
             Self::Chats => "chats",
             Self::Messages => "messages",
         }
-    }
-}
-
-/// One page, `[offset, offset + limit)`, of a search's final ranked list.
-/// Ranking never depends on the page, so pages partition one ordering.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Page {
-    pub offset: usize,
-    pub limit: usize,
-}
-
-impl Page {
-    /// Requests share the `views.query.limit` configuration bound.
-    pub const MAX_LIMIT: usize = 200;
-
-    pub fn new(limit: usize, offset: usize, unit: SearchUnit) -> Result<Self, AppError> {
-        let window = unit.result_window();
-        if !(1..=Self::MAX_LIMIT).contains(&limit) || offset >= window {
-            return Err(AppError::usage(format!(
-                "search pages require limit 1–{} and offset 0–{} for unit {}",
-                Self::MAX_LIMIT,
-                window - 1,
-                unit.name()
-            )));
-        }
-        Ok(Self { offset, limit })
-    }
-
-    /// The first page of `limit` results, for callers outside request validation.
-    #[cfg(test)]
-    pub const fn first(limit: usize) -> Self {
-        Self { offset: 0, limit }
-    }
-
-    /// Slice the ranked results; `next_offset` is set only when more remain.
-    fn take<T>(self, ranked: impl Iterator<Item = T>, window: usize) -> (Vec<T>, Option<usize>) {
-        let mut ranked = ranked.take(window).skip(self.offset);
-        let page = ranked.by_ref().take(self.limit).collect();
-        let next = self.offset + self.limit;
-        (page, ranked.next().is_some().then_some(next))
     }
 }
 
@@ -325,21 +287,30 @@ fn qualifies_as_evidence(hit: &SearchHit) -> bool {
 pub fn collect(
     hits: Vec<SearchHit>,
     unit: SearchUnit,
+    subagents: Subagents,
     page: Page,
     query: &str,
     redaction: crate::redaction::Policy,
 ) -> Collected {
-    collect_inner(hits, unit, page, query, None, redaction)
+    collect_inner(subagents.admit(hits), unit, page, query, None, redaction)
 }
 
 pub fn collect_exact(
     hits: Vec<SearchHit>,
     unit: SearchUnit,
+    subagents: Subagents,
     page: Page,
     literal: &crate::views::exact::Literal,
     redaction: crate::redaction::Policy,
 ) -> Collected {
-    collect_inner(hits, unit, page, "", Some(literal), redaction)
+    collect_inner(
+        subagents.admit(hits),
+        unit,
+        page,
+        "",
+        Some(literal),
+        redaction,
+    )
 }
 
 /// A chat result seeded from its best hit; matches and score accrue later.

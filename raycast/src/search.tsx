@@ -48,7 +48,7 @@ import { useStreamSearch } from "./stream";
 
 interface Preferences {
   readonly mashPath?: string;
-  /** Whether search results include matches in subagent chats; on unless the reader turns it off. */
+  /** Whether search results include matches in subagent chats; off unless the reader turns it on. */
   readonly subagentMatches?: boolean;
 }
 
@@ -93,7 +93,7 @@ function read<T>(parse: (stdout: string) => T) {
 }
 
 export default function Command() {
-  const { mashPath, subagentMatches = true } = getPreferenceValues<Preferences>();
+  const { mashPath, subagentMatches = false } = getPreferenceValues<Preferences>();
   const mash = useMemo(() => findMash(mashPath, homedir(), existsSync), [mashPath]);
   // Without the desktop app nothing opens mash:// links, so actions that
   // need one are offered only when it is installed.
@@ -104,7 +104,7 @@ export default function Command() {
   // Every source at once (this machine by words and by meaning, and your
   // other machines), as one list that fills in as each answers.
   const [scope, setScope] = useState<StreamScope>("all");
-  const live = useStreamSearch(mash, query, scope, searching);
+  const live = useStreamSearch(mash, query, scope, searching, subagentMatches);
   // Before anything is typed, the latest chats on this machine, as the
   // desktop panel shows. Listing reads metadata only, so it is quick. A
   // failure is shown in the list, not also as a toast on opening.
@@ -132,9 +132,9 @@ export default function Command() {
     );
   }
 
-  // Search includes matches in subagent chats unless the reader turns that
-  // off, as the dashboard does; the recent list never has them.
-  const hits = searching ? live.hits.filter((hit) => subagentMatches || !hit.subagent) : (recent.data ?? []);
+  // Mash leaves subagent chats out of both unless the reader asks, in the
+  // extension's preferences, for search to include them.
+  const hits = (searching ? live.hits : recent.data) ?? [];
   const isLoading = searching ? !live.done : recent.isLoading;
   const shownError = searching ? live.error : recent.error;
   const coming = searching ? stillComing(live.sources) : "";

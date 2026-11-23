@@ -8,7 +8,7 @@
 506 app/core/installation/plugin.rs
 601 app/core/output/text.rs
 701 app/core/qdrant.rs
-648 app/core/search.rs
+645 app/core/search.rs
 569 app/core/setup.rs
 539 app/core/uninstall.rs
 784 app/remote.rs
@@ -27,7 +27,7 @@
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
 574 crates/mash-storage/src/records.rs
-593 crates/mash-storage/src/search_results.rs
+564 crates/mash-storage/src/search_results.rs
 635 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs

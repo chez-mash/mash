@@ -539,6 +539,7 @@ fn live_search_reads_this_machine_with_the_box_filters() {
         project: "/p".into(),
         days: Some(7),
         limit: Some(5),
+        include_subagents: false,
     };
     let Operation::LiveSearch {
         query,

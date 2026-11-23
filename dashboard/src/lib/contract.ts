@@ -1676,6 +1676,11 @@ export interface components {
              */
             days: number | null;
             /**
+             * @description Also search chats agents started as subagents; they are left out otherwise.
+             * @default false
+             */
+            include_subagents: boolean;
+            /**
              * Format: uint
              * @description At most 20; 8 when omitted.
              * @default null
@@ -2246,6 +2251,11 @@ export interface components {
              */
             days: number | null;
             /**
+             * @description Also search chats agents started as subagents; they are left out otherwise.
+             * @default false
+             */
+            include_subagents: boolean;
+            /**
              * @description Search intent override. Omission uses the machine's configured default.
              * @default null
              */
@@ -2638,6 +2648,11 @@ export interface components {
              * @default null
              */
             days: number | null;
+            /**
+             * @description Also search chats agents started as subagents; they are left out otherwise.
+             * @default false
+             */
+            include_subagents: boolean;
             /**
              * Format: uint
              * @description At most 20 while typing (`live`), 100 otherwise; 10 when omitted.
@@ -3340,6 +3355,8 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                /** @description Also search chats agents started as subagents; they are left out otherwise. */
+                include_subagents?: boolean;
                 /** @description Search intent override. Omission uses the machine's configured default. */
                 intent?: components["schemas"]["Intent"];
                 /** @description Comma-separated machine (node) IDs. */
@@ -3382,6 +3399,8 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                /** @description Also search chats agents started as subagents; they are left out otherwise. */
+                include_subagents?: boolean;
                 /** @description At most 20; 8 when omitted. */
                 limit?: number;
                 /** @description Comma-separated recorded working directories. */
@@ -3419,6 +3438,8 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                /** @description Also search chats agents started as subagents; they are left out otherwise. */
+                include_subagents?: boolean;
                 /** @description At most 20 while typing (`live`), 100 otherwise; 10 when omitted. */
                 limit?: number;
                 /** @description Searching while the reader types: fast word search and short time limits. */

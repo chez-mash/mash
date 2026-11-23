@@ -76,7 +76,7 @@ const activeFilters = $derived(
     applied.projects.length > 0,
     applied.days !== null,
     !!applied.query && applied.intent !== "default",
-    !!applied.query && applied.subagentHits === "hidden",
+    !!applied.query && applied.subagentHits === "included",
   ].filter(Boolean).length,
 );
 let filtersOpen = $state(false);
@@ -154,6 +154,7 @@ $effect(() => {
     agents: applied.agents,
     projects: applied.projects,
     days: applied.days,
+    includeSubagents: applied.subagentHits === "included",
   };
   // Back to a search already answered shows it again without asking.
   untrack(() => {
@@ -166,8 +167,8 @@ const streamedHits = $derived.by(() => {
   const inside = data
     ? federated.hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode))
     : federated.hits;
-  const unique = withoutCopies(inside, data?.all ?? []);
-  return applied.subagentHits === "hidden" ? unique.filter((hit) => !hit.chat.subagent) : unique;
+  // Mash leaves subagent chats out of the search itself, unless asked.
+  return withoutCopies(inside, data?.all ?? []);
 });
 const status = $derived(statusLine(federated.sources, federated.hits.length, federated.done));
 const result = createQuery(() => ({
@@ -197,18 +198,14 @@ const result = createQuery(() => ({
       const machines = applied.machines.length ? applied.machines : covered;
       const page = await search({ ...applied, machines }, data.localNode, signal, peer);
       // A session copied over SSH is shown once, from the machine it ran on.
-      const unique = withoutCopies(page.hits, data.all);
-      // Only this machine records which chats are subagents, so a chat from
-      // another machine stays in the results whatever this choice is.
-      const hits =
-        applied.subagentHits === "hidden" ? unique.filter((hit) => !hit.chat.subagent) : unique;
+      // Mash itself leaves subagent chats out, unless asked, before it cuts
+      // the page, so a page stays full.
       return {
         ...page,
-        hits,
+        hits: withoutCopies(page.hits, data.all),
         total: null,
         first: applied.offset,
         folded: 0,
-        hidden: unique.length - hits.length,
       };
     }
     const all = browse(data, filtersOf(applied), Date.now(), applied.subagents);
@@ -238,7 +235,6 @@ const view = $derived(
           total: null,
           intent: undefined,
           folded: 0,
-          hidden: federated.hits.length - streamedHits.length,
         }
       : undefined
     : result.data,
@@ -299,8 +295,6 @@ const rangeLabel = $derived.by(() => {
 });
 // "19 chats · 11 subagent chats folded in": the list counts its own rows.
 const foldedLabel = $derived(foldedNote(view?.folded ?? 0));
-const remoteHits = $derived(hits.some((hit) => hit.chat.machine !== catalogue.data?.localNode));
-const hiddenHits = $derived(view && "hidden" in view ? (view.hidden ?? 0) : 0);
 const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
 const parentTitle = (chat: ChatSummary): string | undefined =>
   chat.subagent
@@ -370,14 +364,14 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
     </FilterMenu>
   {/if}
   {#if hasSubagents && draft.query}
-    <!-- A query finds matches in subagent chats too, unless asked not to. -->
+    <!-- A query leaves subagent chats out unless asked to include them. -->
     <FilterMenu
       label="subagents: {draft.subagentHits}"
-      active={draft.subagentHits === "hidden"}
+      active={draft.subagentHits === "included"}
       draft={draft.subagentHits !== applied.subagentHits}
       options={subagentHitViews}
       selected={[draft.subagentHits]}
-      choose={(value) => (draft = { ...draft, subagentHits: value === "hidden" ? "hidden" : "included" })}
+      choose={(value) => (draft = { ...draft, subagentHits: value === "included" ? "included" : "hidden" })}
     >
       {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
     </FilterMenu>
@@ -399,8 +393,6 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
 </div>
 {#if !applied.query && view && hits.length}
   <p class="meta" role="status" style:margin-top="8px">{rangeLabel}{foldedLabel}</p>
-{:else if applied.query && hiddenHits}
-  <p class="meta" role="status" style:margin-top="8px">{hiddenHits.toLocaleString()} match{hiddenHits === 1 ? "" : "es"} in subagent chats left out on this page.{#if remoteHits} Results from other machines stay in, since only the machine that indexed a chat knows it is a subagent.{/if}</p>
 {/if}
 </div>
 

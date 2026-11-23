@@ -31,6 +31,8 @@ pub(crate) struct StreamParams {
     pub(crate) live: bool,
     /// Skip search by meaning, as a reader still typing a short query does.
     pub(crate) words_only: bool,
+    /// Also search chats agents started as subagents; they are left out otherwise.
+    pub(crate) include_subagents: bool,
 }
 
 pub(crate) fn spec(params: StreamParams, shared_only: bool) -> Result<Spec, AppError> {
@@ -49,6 +51,7 @@ pub(crate) fn spec(params: StreamParams, shared_only: bool) -> Result<Spec, AppE
             provider: providers(&params.provider)?,
             project: split(&params.project),
             days: params.days,
+            include_subagents: params.include_subagents,
             ..Default::default()
         },
         scope,
