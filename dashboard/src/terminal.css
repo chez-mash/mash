@@ -142,7 +142,7 @@ summary::-webkit-details-marker {
 .brand img {
   width: 1.5em;
   height: 1.5em;
-  margin: 0 -0.1em 0 -0.14em;
+  margin: 0 0.12em 0 -0.14em;
   transform: translateY(0.2em);
 }
 /* The cursor follows the name directly, in the name's own weight, as in the
