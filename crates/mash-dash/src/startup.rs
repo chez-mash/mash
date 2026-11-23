@@ -70,6 +70,23 @@ impl Startup {
     }
 }
 
+/// Ctrl+C, or SIGTERM where there is one: how a terminal, a service manager
+/// and the desktop app ask the dashboard to stop.
+pub(crate) async fn stop_requested() {
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{SignalKind, signal};
+        if let Ok(mut terminate) = signal(SignalKind::terminate()) {
+            tokio::select! {
+                _ = tokio::signal::ctrl_c() => {}
+                _ = terminate.recv() => {}
+            }
+            return;
+        }
+    }
+    let _ = tokio::signal::ctrl_c().await;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

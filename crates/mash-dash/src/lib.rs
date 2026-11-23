@@ -131,7 +131,7 @@ pub async fn run(
     let stopping = state.clone();
     axum::serve(listener, router(state))
         .with_graceful_shutdown(async move {
-            let _ = tokio::signal::ctrl_c().await;
+            startup::stop_requested().await;
             // Open event streams would otherwise hold the server open.
             stopping.live.close();
         })
