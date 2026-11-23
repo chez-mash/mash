@@ -185,12 +185,14 @@
   --brand-name: #16150f;
   --brand-cursor: #f4a583;
   /* The quick search panel the desktop app shows from the menu bar. It looks
-     like the operating system rather than this theme: the system's light
-     colours (Mash has no dark look), the system font, and the system's
-     accent colour for the selected row. Older engines without AccentColor
-     use the selection highlight instead. */
+     like the operating system rather than this theme: the system's own
+     colours in its light or dark appearance, the system font, and the
+     system's accent colour for the selected row. The dashboard itself is
+     light only; this panel follows macOS because the system supplies both
+     looks, so there is nothing extra to maintain. Older engines without
+     AccentColor use the selection highlight instead. */
   --type-native: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --native-scheme: light;
+  --native-scheme: light dark;
   --native-backdrop: transparent;
   --native-surface: Canvas;
   --native-text: CanvasText;

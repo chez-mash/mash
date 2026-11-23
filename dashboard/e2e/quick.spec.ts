@@ -266,3 +266,24 @@ test("Control+, opens settings from the field", async ({ page }) => {
   await page.getByRole("textbox", { name: "Search Mash" }).press("Control+,");
   await expect(page).toHaveURL(/#\/settings$/);
 });
+
+test("the quick panel follows the system's dark appearance while the dashboard stays light", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/#/quick");
+  await expect(page.getByRole("heading", { name: "Recent chats" })).toBeVisible();
+  // The panel offers both schemes, so the system's dark Canvas colours apply.
+  expect(
+    await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
+  ).toContain("dark");
+  const ground = await page
+    .locator(".quick")
+    .evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(ground).not.toBe("rgb(255, 255, 255)");
+  await page.goto("/#/");
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
+    "light",
+  );
+});
