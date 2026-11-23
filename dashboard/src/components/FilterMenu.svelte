@@ -29,6 +29,7 @@ let {
 } = $props();
 let open = $state(false);
 let root: HTMLDivElement;
+let trigger: HTMLButtonElement;
 </script>
 
 <svelte:window
@@ -36,11 +37,16 @@ let root: HTMLDivElement;
     if (open && event.target instanceof Node && !root.contains(event.target)) open = false;
   }}
   onkeydown={(event) => {
-    if (event.key === "Escape") open = false;
+    // Escape closes the menu and puts focus back on its chip, so the reader
+    // carries on from where they were rather than from the top of the page.
+    if (event.key !== "Escape" || !open) return;
+    open = false;
+    if (root.contains(document.activeElement) || document.activeElement === document.body)
+      trigger.focus();
   }}
 />
 <div class="fwrap" bind:this={root}>
-  <button class="chip" class:on={active} class:draft type="button" aria-haspopup="true" aria-expanded={open} onclick={() => (open = !open)}>
+  <button class="chip" class:on={active} class:draft type="button" bind:this={trigger} aria-haspopup="true" aria-expanded={open} onclick={() => (open = !open)}>
     {@render icon()}{label}<ChevronDown size={13} aria-hidden="true" />
   </button>
   {#if open}

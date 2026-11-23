@@ -86,13 +86,37 @@ summary::-webkit-details-marker {
 .rail-in {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: calc(100vh - var(--rail-pushed, 0px));
   overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 18px 12px 14px;
 }
+/* A keyboard's first stop: hidden above the screen until it has focus. */
+.skip {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 60;
+  padding: 8px 14px;
+  border: var(--border-strong);
+  border-radius: var(--radius-field);
+  background: var(--selected-bg);
+  color: var(--selected-text);
+  font-weight: 700;
+  transform: translateY(calc(-100% - 20px));
+}
+.skip:focus {
+  transform: none;
+}
+#main:focus {
+  outline: none;
+}
+.mashy-host {
+  display: contents;
+}
 #col {
+  container-type: inline-size;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -121,11 +145,11 @@ summary::-webkit-details-marker {
   margin: 0 -0.1em 0 -0.14em;
   transform: translateY(0.2em);
 }
+/* The cursor follows the name directly, in the name's own weight, as in the
+   site's header. */
 .brand i {
   font-style: normal;
-  font-weight: 600;
   color: var(--brand-cursor);
-  margin-left: 2px;
   animation: cursor 1.6s ease-in-out infinite;
 }
 @keyframes cursor {
@@ -336,6 +360,12 @@ summary::-webkit-details-marker {
 }
 .box.open {
   border-color: var(--selected-line);
+}
+/* The field draws its own focus ring, as a .find field does, since the input
+   inside it has none. */
+.box:has(input:focus) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 .prompt {
   color: var(--accent);
@@ -1350,17 +1380,28 @@ h1:focus {
 }
 /* Rows past the rail's edge fade out there, so a reader can tell the list
    goes on. The rail sets these while there is more to scroll to. */
-.nav.fade-below {
-  -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
-  mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
-}
 .nav.fade-above {
   -webkit-mask-image: linear-gradient(transparent, #000 40px);
   mask-image: linear-gradient(transparent, #000 40px);
 }
-.nav.fade-above.fade-below {
-  -webkit-mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 56px), transparent);
-  mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 56px), transparent);
+/* The rail's footer (this machine, its chats and the update check) stays at
+   the rail's foot while the rows scroll, so on a short screen it is in view
+   without scrolling. Rows passing under it fade into it. */
+.nav > .status {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-inline: -4px;
+  padding: 14px 12px 2px;
+  background: var(--surface-rail);
+}
+.nav.fade-below > .status::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 100%;
+  height: 40px;
+  background: linear-gradient(transparent, var(--surface-rail));
+  pointer-events: none;
 }
 #changes {
   position: sticky;
@@ -1557,7 +1598,10 @@ h1:focus {
   background: var(--you-inset);
   color: var(--you-text);
 }
-@media (hover: hover) and (pointer: fine) and (not (any-pointer: coarse)) {
+/* With a mouse, a message's copy buttons wait in a gutter at its top right
+   until it is hovered. A phone-width screen has no width to give that gutter,
+   so there the buttons follow the message, as they do on a touch screen. */
+@media (hover: hover) and (pointer: fine) and (not (any-pointer: coarse)) and (min-width: 701px) {
   .msg:has(> .cp-actions),
   .log .hitbox > .you:has(> .cp-actions) {
     padding-inline-end: 76px;
@@ -1812,6 +1856,16 @@ h1:focus {
 }
 .chat.nosess .sess {
   display: none;
+}
+/* Where the page is only moderately wide, the list beside a transcript
+   narrows, so the transcript keeps a readable measure. */
+@container (min-width: 641px) and (max-width: 960px) {
+  .chat {
+    column-gap: 24px;
+  }
+  .sess {
+    flex-basis: 236px;
+  }
 }
 /* Page buttons: small squares, at the end of the chat's meta line and again
    under the last message. */
@@ -4105,11 +4159,17 @@ body:has(#mashy-fab) #main {
 body:has(#mashy-fab):has(.ends) #main {
   padding-bottom: 188px;
 }
-/* Where there is width to spare, the controls get a column of their own,
-   so nothing passes under them while scrolling either. */
+/* Beside the rail, the controls get a column of their own, so nothing
+   passes under them while scrolling either. The column is only as wide as
+   the content would otherwise reach into it: where the page is centred with
+   room on its right, that room is the column. (Container units here are the
+   column beside the rail, #col.) */
 @media (min-width: 801px) {
   body:has(#mashy-fab) #main {
-    padding-right: max(96px, calc(env(safe-area-inset-right, 0px) + 72px));
+    padding-right: max(
+      clamp(32px, calc(96px - (100cqw - 1188px) / 2), 96px),
+      calc(env(safe-area-inset-right, 0px) + 72px)
+    );
   }
 }
 @media (max-width: 800px) {

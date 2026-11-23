@@ -2,6 +2,7 @@
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+import { tick } from "svelte";
 import AgentMark from "./components/AgentMark.svelte";
 import BrowseDetail from "./components/BrowseDetail.svelte";
 import BrowseTiles from "./components/BrowseTiles.svelte";
@@ -115,6 +116,60 @@ $effect(() => {
   void route;
   railOpen = false;
 });
+// On a narrow screen the rail is a drawer over the page. While it is open it
+// holds the keyboard: focus moves into it, the page behind is inert, and Tab
+// cycles through the drawer. Closing it returns focus to the menu button,
+// unless the reader has already moved focus somewhere of their own.
+const drawerQuery =
+  typeof window === "undefined" ? undefined : window.matchMedia("(max-width: 800px)");
+$effect(() => {
+  if (!drawerQuery) return;
+  const widened = (): void => {
+    if (!drawerQuery.matches) railOpen = false;
+  };
+  drawerQuery.addEventListener("change", widened);
+  return () => drawerQuery.removeEventListener("change", widened);
+});
+let drawerWasOpen = false;
+$effect(() => {
+  if (railOpen) {
+    drawerWasOpen = true;
+    void tick().then(() => document.getElementById("xdrawer")?.focus());
+    return;
+  }
+  if (!drawerWasOpen) return;
+  drawerWasOpen = false;
+  const active = document.activeElement;
+  if (!active || active === document.body || document.getElementById("rail")?.contains(active))
+    document.getElementById("burger")?.focus();
+});
+function drawerStops(): HTMLElement[] {
+  const rail = document.getElementById("rail");
+  if (!rail) return [];
+  return [
+    ...rail.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    ),
+  ].filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0);
+}
+function keepInDrawer(event: KeyboardEvent): void {
+  const stops = drawerStops();
+  const first = stops[0];
+  const last = stops.at(-1);
+  if (!first || !last) return;
+  const active = document.activeElement;
+  const inside = active instanceof HTMLElement && stops.includes(active);
+  if (!inside) first.focus();
+  else if (event.shiftKey && active === first) last.focus();
+  else if (!event.shiftKey && active === last) first.focus();
+  else return;
+  event.preventDefault();
+}
+// The skip link lands on the page's content, past the rail and the search bar.
+function skip(event: MouseEvent): void {
+  event.preventDefault();
+  document.getElementById("main")?.focus();
+}
 </script>
 
 <svelte:window
@@ -122,7 +177,7 @@ $effect(() => {
     if (event.key === "Escape" && railOpen) {
       railOpen = false;
       document.getElementById("burger")?.focus();
-    }
+    } else if (event.key === "Tab" && railOpen) keepInDrawer(event);
   }}
 />
 {#if gate.value === "locked"}
@@ -136,10 +191,11 @@ $effect(() => {
     <!-- The desktop app's menu bar panel: search alone, in the system's look. -->
     <QuickSearch />
   {:else}
+  <a class="skip" href="#main" onclick={skip}>Skip to content</a>
   <Rail open={railOpen} close={() => (railOpen = false)} />
-  <div id="col">
+  <div id="col" inert={railOpen}>
     <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
-    <main id="main" class:narrow={narrow}>
+    <main id="main" class:narrow={narrow} tabindex="-1">
       {#if searchParams !== null}
         <div class="stack" hidden={route.page !== "search"}>
           {#key searchParams}<Search params={searchParams} />{/key}
@@ -205,7 +261,7 @@ $effect(() => {
   </div>
   <!-- The drawer's own button and Escape close it for keyboards and screen readers. -->
   {#if railOpen}<div id="scrim" aria-hidden="true" onclick={() => (railOpen = false)}></div>{/if}
-  <Mashy />
+  <div class="mashy-host" inert={railOpen}><Mashy /></div>
   {/if}
 </QueryClientProvider>
 {/if}

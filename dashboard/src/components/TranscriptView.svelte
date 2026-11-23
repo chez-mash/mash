@@ -50,7 +50,14 @@ const machine = $derived(node || "");
 const displayMachine = $derived(machine || catalogue.data?.localNode || "Local");
 const sessions = $derived(catalogue.data?.chats ?? []);
 const chat = $derived(sessions.find((chat) => chat.id === id && chat.machine === displayMachine));
-let showSessions = $state(true);
+// Where the screen is only moderately wide, the list beside the transcript
+// starts hidden, so the transcript has a readable measure; its button shows
+// the list. Crossing that width starts it over.
+const middleQuery =
+  typeof window === "undefined"
+    ? undefined
+    : window.matchMedia("(min-width: 701px) and (max-width: 1199px)");
+let showSessions = $state(!(middleQuery?.matches ?? false));
 // On a phone the list takes the whole screen in place of the transcript when
 // the reader opens it, and closing it returns to where they were reading.
 const phoneQuery =
@@ -58,12 +65,19 @@ const phoneQuery =
 let phone = $state(phoneQuery?.matches ?? false);
 let sessionsOpen = $state(false);
 $effect(() => {
-  if (!phoneQuery) return;
+  if (!phoneQuery || !middleQuery) return;
   const update = (): void => {
     phone = phoneQuery.matches;
   };
+  const middle = (): void => {
+    showSessions = !middleQuery.matches;
+  };
   phoneQuery.addEventListener("change", update);
-  return () => phoneQuery.removeEventListener("change", update);
+  middleQuery.addEventListener("change", middle);
+  return () => {
+    phoneQuery.removeEventListener("change", update);
+    middleQuery.removeEventListener("change", middle);
+  };
 });
 const sessionsShown = $derived(phone ? sessionsOpen : showSessions);
 let readingAt = 0;

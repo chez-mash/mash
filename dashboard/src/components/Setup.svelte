@@ -275,7 +275,7 @@ function toggleConnect(agent: Integration): void {
           <p class="meta">Mash uses each selected agent's own commands to add Mash tools and try to install the plugin.</p>
         {/if}
         {#if file.shared}
-          <p class="card tight warn">This machine is already set to send indexed chats to your shared server.</p>
+          <p class="card tight cream">This machine is already set to send indexed chats to your shared server.</p>
         {/if}
         {#if !file.configured && file.editable}
           <p class="card tight mashy-card note"><img src={asset("mashy.png")} alt="" /><span>Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</span></p>

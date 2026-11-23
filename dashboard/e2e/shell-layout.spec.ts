@@ -1,37 +1,5 @@
-import { expect, type Locator, type Page, test } from "@playwright/test";
-import { rail } from "./shell";
-
-// Enough chats that every section of the rail has several pages under it.
-const agents = ["codex", "claude-code", "cursor", "opencode", "copilot"];
-const chats = Array.from({ length: 12 }, (_, index) => ({
-  chat_id: `chat-${index}`,
-  node_id: `machine-${index % 4}`,
-  provider: agents[index % agents.length],
-  title: `Fixture chat ${index}`,
-  project: `/work/project-${index % 6}`,
-  updated_at: Date.now() - index * 60_000,
-}));
-const message = (index: number) => ({
-  id: `m${index}`,
-  ordinal: index,
-  role: index % 2 ? "assistant" : "user",
-  content: `Message number ${index}. ${"A line of ordinary text. ".repeat(6)}`,
-});
-
-async function mockShell(page: Page): Promise<void> {
-  await page.route("**/api/**", (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path === "/api/records") return route.fulfill({ json: { records: [], next_offset: null } });
-    if (path === "/api/assistant") return route.fulfill({ json: { enabled: true, model: "m" } });
-    if (path === "/api/chat")
-      return route.fulfill({
-        json: { message_count: 12, messages: Array.from({ length: 12 }, (_, i) => message(i)) },
-      });
-    if (path === "/api/chats")
-      return route.fulfill({ json: { local_node: "machine-0", truncated: false, chats } });
-    return route.fulfill({ json: [] });
-  });
-}
+import { expect, type Locator, test } from "@playwright/test";
+import { mockShell, rail } from "./shell";
 
 async function box(locator: Locator) {
   const found = await locator.boundingBox();
@@ -142,4 +110,43 @@ test("on a wide screen page content keeps clear of Mashy's button at any scroll"
     return rect.right - Number.parseFloat(style.paddingRight);
   });
   expect(main).toBeLessThanOrEqual(fab.x);
+});
+
+// The floating controls' column must not crowd the transcript out: at a
+// tablet's width the list beside it starts hidden and the actions fit on
+// one row, and on a phone a reply runs as wide as a prompt.
+test("a chat keeps a readable measure at 1024px", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await mockShell(page);
+  await page.goto("/#/chat/chat-0?node=machine-0");
+  await expect(page.locator("#message-m11")).toBeAttached();
+  const log = await box(page.locator(".log"));
+  expect(log.width).toBeGreaterThanOrEqual(600);
+  const tops = await page
+    .locator(".chat-h .acts > *")
+    .evaluateAll(
+      (items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size,
+    );
+  expect(tops).toBe(1);
+  // The list is a click away, and beside the transcript it leaves it room.
+  await page.getByRole("button", { name: "Show session list" }).click();
+  await expect(page.locator(".sess")).toBeVisible();
+  expect((await box(page.locator(".log"))).width).toBeGreaterThanOrEqual(360);
+});
+
+test("on a phone a reply runs as wide as a prompt", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockShell(page);
+  await page.goto("/#/chat/chat-0?node=machine-0");
+  const rightEdge = (id: string) =>
+    page.locator(`#message-${id}`).evaluate((element) => {
+      const text = element.querySelector("p") ?? element;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return Math.max(...[...range.getClientRects()].map((line) => line.right));
+    });
+  const prompt = await box(page.locator("#message-m0"));
+  const reply = await rightEdge("m1");
+  // Text wraps short of the box by up to a word; a gutter would be 76px.
+  expect(prompt.x + prompt.width - reply).toBeLessThan(60);
 });

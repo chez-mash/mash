@@ -162,7 +162,9 @@ const openedKind = $derived.by(() => {
 });
 // A row is the current page only while none of its children is.
 const child = $derived.by((): string => {
-  if (route.page === "search") return "recent";
+  // Search results are not the recent chats: with a query, the chats row is
+  // the current one.
+  if (route.page === "search") return new URLSearchParams(route.params).get("q") ? "" : "recent";
   if (route.page === "history") return "history";
   if (route.page === "export") return "export";
   if (route.page === "agent") return route.agent;
@@ -203,6 +205,27 @@ $effect(() => {
   return () => {
     resized.disconnect();
     changed.disconnect();
+  };
+});
+
+// Something above the dashboard, such as the demo's banner, pushes the rail
+// down until the page scrolls past it. The rail is shorter by that much
+// meanwhile, so its foot stays on screen.
+let aside = $state<HTMLElement>();
+let pushed = $state(0);
+$effect(() => {
+  const rail = aside;
+  if (!rail) return;
+  const update = (): void => {
+    const top = Math.max(0, Math.round(rail.getBoundingClientRect().top));
+    if (top !== pushed) pushed = top;
+  };
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+  return () => {
+    window.removeEventListener("scroll", update);
+    window.removeEventListener("resize", update);
   };
 });
 
@@ -254,10 +277,21 @@ function nudge(event: KeyboardEvent): void {
 function toggle(id: Section): void {
   expanded = expanded.includes(id) ? expanded.filter((item) => item !== id) : [...expanded, id];
 }
+// The chevron beside a row is for pointers; keyboards reach its pages from
+// the row's own link, which opens and closes them with the arrow keys, so
+// each row is one stop on the way through the rail.
+function arrows(event: KeyboardEvent, id: Section): void {
+  if (!expandable.includes(id)) return;
+  const isOpen = expanded.includes(id);
+  if (event.key === "ArrowRight" && !isOpen) toggle(id);
+  else if (event.key === "ArrowLeft" && isOpen) toggle(id);
+  else return;
+  event.preventDefault();
+}
 </script>
 
-<aside id="rail" class:open style:--rail-width="{width}px">
-  <div class="rail-in">
+<aside id="rail" class:open style:--rail-width="{width}px" bind:this={aside}>
+  <div class="rail-in" style:--rail-pushed="{pushed}px">
   <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i aria-hidden="true">_</i></span></a>
   <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
   <nav class="nav" class:fade-above={fade.above} class:fade-below={fade.below} aria-label="Main" bind:this={nav} onscroll={measure}>
@@ -265,9 +299,9 @@ function toggle(id: Section): void {
       {@const on = section.id === area && !child}
       {@const isOpen = expanded.includes(section.id)}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span>{section.label}</a>
+        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={expandable.includes(section.id) ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={(event) => arrows(event, section.id)}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span>{section.label}</a>
         {#if expandable.includes(section.id)}
-          <button class="chev" type="button" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={14} /></button>
+          <button class="chev" type="button" tabindex="-1" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={14} /></button>
         {/if}
       </div>
       {#if isOpen}

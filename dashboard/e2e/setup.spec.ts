@@ -185,6 +185,8 @@ test("a configured dashboard can connect another agent without indexing history"
   await page.goto("/#/setup");
   await expect(page.getByText("the last 7 days", { exact: true })).toBeVisible();
   await expect(page.getByText("this machine and the shared server", { exact: true })).toBeVisible();
+  // Sending to the shared server is information, not a problem to fix.
+  await expect(page.getByText(/already set to send indexed chats/)).not.toHaveClass(/warn/);
   await page.getByText("Choose agents to connect", { exact: true }).click();
   await expect(page.getByText(/leaves any existing connection in place/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Remove an agent connection" })).toHaveAttribute(
