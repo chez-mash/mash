@@ -1,8 +1,6 @@
 {
   "mash.nav.docs": "ドキュメント",
   "mash.nav.demo": "Mash を試す",
-  "mash.theme.dark": "ダークモード",
-  "mash.theme.switch": "ライトモードとダークモードを切り替える",
   "heading.anchorLabel": "「{{title}}」へのリンク",
   "pagefind.clear_search": "クリア",
   "pagefind.load_more": "さらに表示",

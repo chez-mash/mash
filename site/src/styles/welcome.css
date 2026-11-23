@@ -1,8 +1,7 @@
 /*
  * The landing page's bands: each idea is a full-width section ruled off in
- * ink, each on its own soft colour (a pale tint in light, a deep one in
- * dark), with Mashy on lilac and the close on butter. Text on the lilac and
- * butter bands is ink in both themes. The windows inside the bands are in welcome-panels.css.
+ * ink, each on its own pale tint, with Mashy on lilac and the close on
+ * butter. The windows inside the bands are in welcome-panels.css.
  */
 .mash-welcome {
   color: var(--text-body);

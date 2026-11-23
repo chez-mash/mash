@@ -14,9 +14,10 @@
  *   mustard  needs attention
  *   red      failed
  *   lilac    Mashy, and only Mashy
- * Text on any accent is ink, in both themes.
+ * Text on any accent is ink.
  *
- * Dark is the default. The light theme restates only what differs.
+ * There is one theme, the light one. A dark theme was removed in November
+ * 2026 so the dashboard keeps one look to maintain.
  */
 :root {
   /* Type. */
@@ -24,27 +25,27 @@
   --type-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --type-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Surfaces: the page, the rail and top bar on it, raised panels, filled chips, form fields. */
-  --surface-page: #16150f;
-  --surface-rail: #1f1d15;
-  --surface-top: #16150f;
-  --surface-raised: #1f1d15;
-  --surface-muted: #2b2817;
-  --surface-hover: #2b2817;
-  --surface-field: #1f1d15;
+  --surface-page: #f3ebdc;
+  --surface-rail: #fbf7ef;
+  --surface-top: #f3ebdc;
+  --surface-raised: #fbf7ef;
+  --surface-muted: #efe4cc;
+  --surface-hover: #efe4cc;
+  --surface-field: #fbf7ef;
   /* Text. */
-  --text-strong: #f3ead2;
-  --text-body: #e6dfc8;
-  --text-muted: #b3ab93;
-  --text-faint: #958e78;
+  --text-strong: #16150f;
+  --text-body: #2c2a21;
+  --text-muted: #5f5847;
+  --text-faint: #68604d;
   --text-on-accent: #16150f;
   /* Lines: outlines of panels and boxes, strong lines of controls and menus, dividers inside lists. */
-  --line-outline: #e9e0c6;
-  --line-strong: #e9e0c6;
-  --line-divider: rgba(233, 224, 198, 0.2);
-  /* The outline of a control or a colour fill on the page. It is the light
-     line on the dark page, so a butter, peach or mint fill keeps a visible
-     edge; anything drawn on top of a fill uses --line-on-accent instead. */
-  --line-ink: #e9e0c6;
+  --line-outline: #16150f;
+  --line-strong: #16150f;
+  --line-divider: rgba(22, 21, 15, 0.2);
+  /* The outline of a control or a colour fill on the page, so a butter,
+     peach or mint fill keeps a visible edge; anything drawn on top of a fill
+     uses --line-on-accent instead. */
+  --line-ink: #16150f;
   --line-on-accent: #16150f;
   --stroke-outline: 2px;
   --stroke-strong: 2px;
@@ -78,63 +79,63 @@
   --shadow-panel: none;
   --shadow-pick: none;
   --shadow-knob: none;
-  --scrim: rgba(10, 9, 6, 0.6);
+  --scrim: rgba(22, 21, 15, 0.45);
   /* Accent: links and hover, and the stronger accent for lines that mark something. */
-  --accent: #f0a785;
-  --accent-strong: #ecc244;
-  --focus: #ecc244;
+  --accent: #a8461f;
+  --accent-strong: #e3a92f;
+  --focus: #16150f;
   /* The main action on a screen. */
-  --action-bg: #e2966f;
-  --action-hover-bg: #eaa682;
-  --action-line: #e9e0c6;
+  --action-bg: #f4a583;
+  --action-hover-bg: #f09a74;
+  --action-line: #16150f;
   /* Text links: ink words over a peach rule. */
-  --link-line: #e2966f;
+  --link-line: #f4a583;
   /* Selected and current. Text on the selected fill is ink. */
-  --selected-surface: #ecc244;
+  --selected-surface: #ffd34e;
   --selected-text: #16150f;
-  --selected-line: #ecc244;
-  --selected-bg: #ecc244;
-  --selected-soft-bg: #ecc244;
+  --selected-line: #16150f;
+  --selected-bg: #ffd34e;
+  --selected-soft-bg: #ffd34e;
   --selected-soft-text: #16150f;
-  --toggle-on: #93cfb2;
+  --toggle-on: #a8e6c9;
   --toggle-knob: #16150f;
   /* Signals: progress, the linked message, find in chat, unread and unsaved. */
-  --progress: #ecc244;
-  --linked-line: #ecc244;
-  --find-bg: #ecc244;
+  --progress: #e3a92f;
+  --linked-line: #e3a92f;
+  --find-bg: #ffd34e;
   --find-text: #16150f;
-  --find-soft-bg: rgba(236, 194, 68, 0.38);
-  --find-current-bg: #e2966f;
+  --find-soft-bg: rgba(255, 211, 78, 0.5);
+  --find-current-bg: #f4a583;
   --find-current-line: #16150f;
-  --notify: #e2966f;
+  --notify: #f4a583;
   /* Status. Text colours read on the page; fills carry ink text. */
-  --status-ok: #93cfb2;
-  --status-warn: #e3b04a;
-  --status-bad: #f08a78;
-  --status-ok-bg: #93cfb2;
+  --status-ok: #1d6b45;
+  --status-warn: #7c5200;
+  --status-bad: #a83224;
+  --status-ok-bg: #a8e6c9;
   --status-ok-text: #16150f;
-  --status-warn-bg: #cf9a2a;
+  --status-warn-bg: #e3a92f;
   --status-warn-text: #16150f;
-  --status-bad-bg: #da6a58;
+  --status-bad-bg: #ec7563;
   --status-bad-text: #16150f;
-  --status-ok-dot: #93cfb2;
-  --status-warn-dot: #cf9a2a;
-  --status-bad-dot: #da6a58;
-  --status-running-dot: #e2966f;
+  --status-ok-dot: #4cbb88;
+  --status-warn-dot: #e3a92f;
+  --status-bad-dot: #ec7563;
+  --status-running-dot: #f4a583;
   /* Mashy: lilac is Mashy's alone. */
-  --mashy-pick-bg: #a895c6;
+  --mashy-pick-bg: #cfc4ff;
   --mashy-pick-text: #16150f;
-  --mashy-dot: #a895c6;
-  --mashy-surface: #a895c6;
+  --mashy-dot: #cfc4ff;
+  --mashy-surface: #cfc4ff;
   --mashy-surface-text: #16150f;
   /* The reader's own messages, set on the mash of the logo. */
-  --you-bg: #2b2817;
-  --you-text: #f3ead2;
-  --you-inset: #3a3622;
-  --you-rule: #57513a;
+  --you-bg: #efe4cc;
+  --you-text: #16150f;
+  --you-inset: #e4d6b8;
+  --you-rule: #cdbf9f;
   --border-you: var(--stroke-outline) solid var(--line-outline);
   /* The demo banner at the top of getmash.io/demo. */
-  --banner-bg: #ecc244;
+  --banner-bg: #ffd34e;
   --banner-text: #16150f;
   /* Section icons: ink, like the text. */
   --hue-chats: var(--text-strong);
@@ -173,23 +174,23 @@
   --agent-cursor: #16150f;
   --agent-antigravity: #3d7fd6;
   /* Code, JSON and quotes. */
-  --code-keyword: #f0a785;
-  --code-string: #93cfb2;
-  --code-key: #a9c4e8;
-  --code-value: #f3ead2;
-  --code-literal: #e3b04a;
-  --code-type: #93cfb2;
-  --quote-line: #57513a;
+  --code-keyword: #a8461f;
+  --code-string: #1d6b45;
+  --code-key: #2f5f9e;
+  --code-value: #16150f;
+  --code-literal: #7c5200;
+  --code-type: #1d6b6b;
+  --quote-line: #cdbf9f;
   /* The brand. */
-  --brand-name: #f3ead2;
-  --brand-cursor: #e2966f;
+  --brand-name: #16150f;
+  --brand-cursor: #f4a583;
   /* The quick search panel the desktop app shows from the menu bar. It looks
-     like the operating system rather than this theme: system colours that
-     follow the system's light or dark mode, the system font, and the system's
+     like the operating system rather than this theme: the system's light
+     colours (Mash has no dark look), the system font, and the system's
      accent colour for the selected row. Older engines without AccentColor
      use the selection highlight instead. */
   --type-native: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --native-scheme: light dark;
+  --native-scheme: light;
   --native-backdrop: transparent;
   --native-surface: Canvas;
   --native-text: CanvasText;
@@ -202,86 +203,6 @@
   --native-selected-fallback-text: HighlightText;
   --native-radius-panel: 12px;
   --native-radius-row: 7px;
-  color-scheme: dark;
-}
-
-:root[data-theme="light"] {
-  /* Surfaces: beige page, ivory panels and rail. */
-  --surface-page: #f3ebdc;
-  --surface-rail: #fbf7ef;
-  --surface-top: #f3ebdc;
-  --surface-raised: #fbf7ef;
-  --surface-muted: #efe4cc;
-  --surface-hover: #efe4cc;
-  --surface-field: #fbf7ef;
-  /* Text. */
-  --text-strong: #16150f;
-  --text-body: #2c2a21;
-  --text-muted: #5f5847;
-  --text-faint: #68604d;
-  /* Lines. */
-  --line-outline: #16150f;
-  --line-strong: #16150f;
-  --line-divider: rgba(22, 21, 15, 0.2);
-  --line-ink: #16150f;
-  --scrim: rgba(22, 21, 15, 0.45);
-  /* Accent. */
-  --accent: #a8461f;
-  --accent-strong: #e3a92f;
-  --focus: #16150f;
-  /* The main action. */
-  --action-bg: #f4a583;
-  --action-hover-bg: #f09a74;
-  --action-line: #16150f;
-  --link-line: #f4a583;
-  /* Selected and current. */
-  --selected-surface: #ffd34e;
-  --selected-line: #16150f;
-  --selected-bg: #ffd34e;
-  --selected-soft-bg: #ffd34e;
-  --toggle-on: #a8e6c9;
-  /* Signals. */
-  --progress: #e3a92f;
-  --linked-line: #e3a92f;
-  --find-bg: #ffd34e;
-  --find-soft-bg: rgba(255, 211, 78, 0.5);
-  --find-current-bg: #f4a583;
-  --notify: #f4a583;
-  /* Status. */
-  --status-ok: #1d6b45;
-  --status-warn: #7c5200;
-  --status-bad: #a83224;
-  --status-ok-bg: #a8e6c9;
-  --status-warn-bg: #e3a92f;
-  --status-bad-bg: #ec7563;
-  --status-ok-dot: #4cbb88;
-  --status-warn-dot: #e3a92f;
-  --status-bad-dot: #ec7563;
-  --status-running-dot: #f4a583;
-  /* Mashy. */
-  --mashy-pick-bg: #cfc4ff;
-  --mashy-dot: #cfc4ff;
-  --mashy-surface: #cfc4ff;
-  /* The reader's own messages. */
-  --you-bg: #efe4cc;
-  --you-text: #16150f;
-  --you-inset: #e4d6b8;
-  --you-rule: #cdbf9f;
-  /* The demo banner. */
-  --banner-bg: #ffd34e;
-  /* Agents. */
-  --agent-codex: #16150f;
-  /* Code, JSON and quotes. */
-  --code-keyword: #a8461f;
-  --code-string: #1d6b45;
-  --code-key: #2f5f9e;
-  --code-value: #16150f;
-  --code-literal: #7c5200;
-  --code-type: #1d6b6b;
-  --quote-line: #cdbf9f;
-  /* The brand. */
-  --brand-name: #16150f;
-  --brand-cursor: #f4a583;
   color-scheme: light;
 }
 

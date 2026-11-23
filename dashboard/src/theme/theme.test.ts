@@ -47,8 +47,7 @@ function block(selector: string): Map<string, string> {
     [...body.matchAll(/--([a-z0-9-]+):\s*([^;]+);/g)].map((m) => [m[1] ?? "", m[2] ?? ""]),
   );
 }
-const dark = block(":root");
-const light = block(':root[data-theme="light"]');
+const roles = block(":root");
 
 describe("the theme is defined in one place", () => {
   it("has no literal colours outside src/theme", () => {
@@ -88,7 +87,7 @@ describe("the theme is defined in one place", () => {
     const unknown = sources.flatMap(({ path, text }) =>
       [...text.matchAll(/var\(--([a-z0-9-]+)/g)]
         .map((m) => m[1] ?? "")
-        .filter((name) => !dark.has(name) && !local.has(name) && !name.startsWith("tw-"))
+        .filter((name) => !roles.has(name) && !local.has(name) && !name.startsWith("tw-"))
         .map((name) => `${path}: --${name}`),
     );
     expect(unknown).toEqual([]);
@@ -100,15 +99,11 @@ describe("the theme is defined in one place", () => {
         [...text.matchAll(/var\(--([a-z0-9-]+)/g)].map((m) => m[1]),
       ),
     );
-    expect([...dark.keys()].filter((name) => !used.has(name))).toEqual([]);
-  });
-
-  it("restates in the light theme only roles the dark theme defines", () => {
-    expect([...light.keys()].filter((name) => !dark.has(name))).toEqual([]);
+    expect([...roles.keys()].filter((name) => !used.has(name))).toEqual([]);
   });
 
   it("gives every role a value", () => {
-    expect([...dark].filter(([, value]) => value.trim() === "")).toEqual([]);
-    expect(dark.size).toBeGreaterThan(100);
+    expect([...roles].filter(([, value]) => value.trim() === "")).toEqual([]);
+    expect(roles.size).toBeGreaterThan(100);
   });
 });

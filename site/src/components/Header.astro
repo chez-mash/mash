@@ -1,12 +1,11 @@
 ---
 // Starlight's header, plus a menu for pages without a sidebar (the landing
-// page and the guides directory) on a phone, where the header's links, theme
-// switch and language picker do not fit. Docs pages keep Starlight's own menu
+// page and the guides directory) on a phone, where the header's links and
+// language picker do not fit. Docs pages keep Starlight's own menu
 // button, which opens the sidebar with the same controls at its foot.
 import Default from "@astrojs/starlight/components/Header.astro";
 import LanguageSelect from "@astrojs/starlight/components/LanguageSelect.astro";
 import SocialIcons from "./SocialIcons.astro";
-import ThemeSelect from "./ThemeSelect.astro";
 
 const { hasSidebar } = Astro.locals.starlightRoute;
 ---
@@ -23,7 +22,6 @@ const { hasSidebar } = Astro.locals.starlightRoute;
         <div class="panel">
           <nav class="links"><SocialIcons /></nav>
           <div class="controls">
-            <ThemeSelect />
             <LanguageSelect />
           </div>
         </div>

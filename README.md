@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/mash-logo-dark.svg">
-    <img src="assets/mash-logo-light.svg" alt="Mash logo" width="280">
-  </picture>
+  <img src="assets/mash-logo.svg" alt="Mash logo" width="280">
 </p>
 
 # Mash

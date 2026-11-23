@@ -105,8 +105,8 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         .inner_size(width, height)
         .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
         .center()
-        // The dashboard is dark until it says otherwise (see window.js).
-        .theme(Some(Theme::Dark))
+        // Mash has one theme, the light one, so the title bar is light too.
+        .theme(Some(Theme::Light))
         .initialization_script(include_str!("window.js"))
         .on_navigation(move |url| navigate(&navigation, url, false))
         .on_new_window(move |url, _features| {

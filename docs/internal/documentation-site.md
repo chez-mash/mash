@@ -135,6 +135,10 @@ the values in `theme.css` and the bundled fonts listed in
 `site/astro.config.mjs`. The dashboard keeps the same arrangement in
 `dashboard/src/theme/`.
 
+There is one theme, the light one. `ThemeProvider.astro` always chooses it,
+whatever the reader's system prefers, and `ThemeSelect.astro` draws nothing,
+so there is no switch. Code blocks use one highlighting theme to match.
+
 ## Local preview and checks
 
 From `site/`, with Node 24 and pnpm installed:

@@ -214,7 +214,7 @@ test("internal links and browser history keep the current document alive", async
   expect(errors).toEqual([]);
 });
 
-test("mobile menu and theme still work after navigation", async ({ page }) => {
+test("the mobile menu still works after navigation", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/quick-start/");
   await page.getByRole("button", { name: "Menu", exact: true }).click();
@@ -224,15 +224,9 @@ test("mobile menu and theme still work after navigation", async ({ page }) => {
   await expect(page.locator("h1")).toHaveText("Install Mash");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Menu", exact: true }).click();
-  // The button in the menu switches to the other theme, and the choice holds.
-  const before = await page.locator("html").getAttribute("data-theme");
-  const other = before === "light" ? "dark" : "light";
-  await page.locator(".mash-theme:visible").click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", other);
   await sidebar.locator("summary").getByText("Search", { exact: true }).click();
   await sidebar.locator('a[href="/synchronization/"]').click();
   await expect(page.locator("h1")).toHaveText("Keep history up to date");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", other);
 });
 
 test("direct links remain usable without JavaScript", async ({ browser }) => {

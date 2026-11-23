@@ -1,0 +1,9 @@
+---
+// The site has one theme. Starlight's provider would choose light or dark from
+// the system setting or a kept choice; this one always chooses light, before
+// the page is drawn.
+---
+
+<script is:inline>
+  document.documentElement.dataset.theme = "light";
+</script>

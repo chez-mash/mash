@@ -30,6 +30,8 @@ export default defineConfig({
       // a cream title bar for a titled or terminal block. docs.css adds the
       // bar's three dots and the outlined copy button.
       expressiveCode: {
+        // The site has one theme, so code has one too.
+        themes: ["starlight-light"],
         // Long commands wrap inside the window instead of scrolling sideways.
         defaultProps: { wrap: true, preserveIndent: true },
         styleOverrides: {
@@ -79,6 +81,7 @@ export default defineConfig({
         PageTitle: "./src/components/PageTitle.astro",
         Search: "./src/components/Search.astro",
         SocialIcons: "./src/components/SocialIcons.astro",
+        ThemeProvider: "./src/components/ThemeProvider.astro",
         ThemeSelect: "./src/components/ThemeSelect.astro",
       },
       sidebar: [

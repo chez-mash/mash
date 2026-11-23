@@ -2815,37 +2815,6 @@ select.prm-i {
   background: var(--surface-raised);
 }
 
-/* The light and dark switch, at the far end of the top bar. */
-#theme {
-  flex: none;
-  /* Held at the far corner whatever the width of the search box. */
-  margin-left: auto;
-  /* Two halves, sun and moon; the current one is butter. */
-  display: inline-flex;
-  border: var(--border-strong);
-  border-radius: var(--radius-5);
-  overflow: hidden;
-  background: var(--surface-raised);
-  color: var(--text-strong);
-}
-#theme .ic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 37px;
-  height: 24px;
-}
-#theme .ic + .ic {
-  border-left: var(--border-strong);
-}
-#theme .ic.on {
-  background: var(--selected-bg);
-  color: var(--selected-text);
-}
-#theme:hover .ic:not(.on) {
-  background: var(--surface-hover);
-}
-
 /* Services and agent setup as one list across machines: a row per item, with
    the machine as a column. */
 .rws {

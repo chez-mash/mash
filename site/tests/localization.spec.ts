@@ -18,7 +18,6 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
     .click();
   await expect(page).toHaveURL("/es/privacy/#prueba-con-menos-historial");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Privacidad del historial");
-  await expect(page.getByRole("switch", { name: "Modo oscuro" })).toBeVisible();
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await page.getByPlaceholder("Buscar", { exact: true }).fill("credenciales");
   await expect(page.locator('dialog a[href^="/es/privacy/"]').first()).toBeVisible();
@@ -669,7 +668,6 @@ for (const locale of [
     trialHeading: "Essayer Mash avec un historique limité",
     privacy: "Historique et confidentialité",
     docs: "Documentation",
-    theme: "Mode sombre",
     search: "Rechercher",
     query: "identifiants secrets",
     dashboard: "Tableau de bord",
@@ -684,7 +682,6 @@ for (const locale of [
     trialHeading: "用少量本地历史试用",
     privacy: "历史记录与隐私",
     docs: "文档",
-    theme: "深色模式",
     search: "搜索",
     query: "敏感信息",
     dashboard: "网页面板",
@@ -699,7 +696,6 @@ for (const locale of [
     trialHeading: "1 つの履歴で試す",
     privacy: "履歴とプライバシー",
     docs: "ドキュメント",
-    theme: "ダークモード",
     search: "検索",
     query: "プライバシー",
     dashboard: "ダッシュボード",
@@ -734,7 +730,6 @@ for (const locale of [
     await expect(
       page.locator(`a[href="/${locale.path}/quick-start/#install-it-yourself"]`),
     ).toBeVisible();
-    await expect(page.getByRole("switch", { name: locale.theme })).toBeVisible();
 
     await page.getByRole("button", { name: locale.search, exact: true }).click();
     await page.getByPlaceholder(locale.search, { exact: true }).fill(locale.query);

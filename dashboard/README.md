@@ -43,15 +43,15 @@ dashboard draws with is in `src/theme/`:
 
 - `tokens.css` holds every colour, line width, corner, shadow and typeface as
   a role: `--surface-page`, `--line-divider`, `--action-bg`, `--selected-text`,
-  `--status-warn`, `--hue-memory` and so on. Dark is the default; the light
-  theme restates only the roles that differ.
+  `--status-warn`, `--hue-memory` and so on. There is one theme, the light
+  one.
 - `fonts.ts` bundles the typefaces the type roles name. The dashboard never
   fetches fonts.
 - `exportDocument.ts` styles chats exported as HTML, which stand on their own.
 
 `terminal.css` and the components use the roles only. To change the look,
 change the values in `tokens.css` (and the fonts in `fonts.ts`); to add a
-role, add it to both themes there. `src/theme/theme.test.ts` fails when a
+role, add it there. `src/theme/theme.test.ts` fails when a
 literal colour, typeface, corner size or unknown token appears anywhere else.
 Tailwind's own palette and fonts are cleared in `app.css`, which maps
 Tailwind's names onto the roles.

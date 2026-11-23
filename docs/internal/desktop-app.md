@@ -24,9 +24,8 @@ width and Mashy's position in browser storage, which belongs to one origin.
 The dashboard knows it is inside the app only by `window.__MASH_DESKTOP__`,
 set by the app's initialization script (`src-tauri/src/window.js`). It uses
 that for one thing: copied links are `mash://` links rather than the private
-loopback address (`dashboard/src/lib/shareLink.ts`). The same script makes the
-title bar follow the dashboard's light or dark theme by watching the root
-element's `data-theme`; no dashboard code changes for it.
+loopback address (`dashboard/src/lib/shareLink.ts`). The window's title bar is
+light, like the dashboard, which has no dark theme.
 
 ## mash:// links
 
@@ -72,9 +71,8 @@ The window loads only the app's page and the dashboard's own origin. Any
 other address a page tries to open, by link or by a new window, goes to the
 reader's browser through `tauri-plugin-opener`. The one exception is the empty
 window the dashboard writes a chat into for printing to PDF. The dashboard is
-given one Tauri permission, setting the window's theme
-(`capabilities/dashboard.json`, scoped to `http://127.0.0.1:*`);
-`withGlobalTauri` is off, and the app's own page has `core:default`. Downloads go to the reader's
+given no Tauri permissions; `withGlobalTauri` is off, and the app's own page
+has `core:default`. Downloads go to the reader's
 Downloads folder, numbered so nothing is replaced.
 
 ## Building

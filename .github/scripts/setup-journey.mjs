@@ -22,7 +22,7 @@ await mkdir(join(report, 'user-docs', 'docs'), { recursive: true });
 await mkdir(join(work, 'assets'), { recursive: true });
 await mkdir(join(report, 'user-docs', 'assets'), { recursive: true });
 // The agent journey starts from the published setup page alone.
-const files = journey === 'agent' ? [] : ['README.md', 'assets/mash-logo-dark.svg', 'assets/mash-logo-light.svg', ...(await readdir('docs')).filter(n => n.endsWith('.md')).map(n => `docs/${n}`)];
+const files = journey === 'agent' ? [] : ['README.md', 'assets/mash-logo.svg', ...(await readdir('docs')).filter(n => n.endsWith('.md')).map(n => `docs/${n}`)];
 const documents = {};
 for (const file of files) {
   const content = await readFile(file);

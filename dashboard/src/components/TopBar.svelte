@@ -2,9 +2,7 @@
 import Bot from "@lucide/svelte/icons/bot";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
-import Moon from "@lucide/svelte/icons/moon";
 import Search from "@lucide/svelte/icons/search";
-import Sun from "@lucide/svelte/icons/sun";
 import X from "@lucide/svelte/icons/x";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
@@ -15,7 +13,6 @@ import { navigate } from "../lib/navigation";
 import { catalogOptions, searchQueryKey } from "../lib/queries";
 import { chatHref, router, searchHref } from "../lib/route.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
-import { theme, toggleTheme } from "../lib/theme.svelte";
 import AgentMark from "./AgentMark.svelte";
 
 let { railOpen, toggleRail }: { railOpen: boolean; toggleRail: () => void } = $props();
@@ -172,8 +169,4 @@ function submit(event: SubmitEvent): void {
       </div>
     {/if}
   </div>
-  <button id="theme" type="button" role="switch" aria-checked={theme.current === "dark"} aria-label="Dark mode" title={theme.current === "dark" ? "Switch to light mode" : "Switch to dark mode"} onclick={toggleTheme}>
-    <span class="ic" class:on={theme.current === "light"}><Sun size={14} aria-hidden="true" /></span>
-    <span class="ic" class:on={theme.current === "dark"}><Moon size={14} aria-hidden="true" /></span>
-  </button>
 </header>

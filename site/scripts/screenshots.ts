@@ -110,7 +110,6 @@ try {
     });
     // A fixed clock keeps ages such as "2h" the same from run to run.
     await page.clock.setFixedTime(new Date("2026-11-22T12:00:00Z"));
-    await page.addInitScript(() => localStorage.setItem("mash-theme", "light"));
     await page.goto(`http://127.0.0.1:${port}/demo/${shot.route}`);
     await page.waitForLoadState("networkidle");
     // The demo's banner and motion are not part of the dashboard people install.

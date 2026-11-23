@@ -106,9 +106,6 @@ The left rail is the way around. On a phone it opens from the menu button.
   reads, and control sharing, privacy, and Mashy on this machine.
   [Change dashboard settings](dashboard-settings.md).
 
-The button in the top right corner switches between light and dark; the
-choice is remembered in that browser.
-
 ### Check if local search is ready
 
 Open **settings** and look at the search status at the top. The message counts
