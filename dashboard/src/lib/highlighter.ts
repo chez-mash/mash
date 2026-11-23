@@ -44,31 +44,69 @@ const LOADERS: Readonly<Record<Language, () => Promise<{ default: LanguageInput 
 };
 
 const THEME = "mash";
-/** Shiki's colour names, as the dashboard's own code tokens. Anything it names
- * that is not here is drawn in the code's ordinary colour. */
-const COLOURS: Readonly<Record<string, string>> = {
-  "token-keyword": "var(--code-keyword)",
-  "token-constant": "var(--code-literal)",
-  "token-string": "var(--code-string)",
-  "token-string-expression": "var(--code-string)",
-  "token-comment": "var(--text-muted)",
-  "token-function": "var(--code-key)",
-  "token-link": "var(--accent)",
+/** Text the theme leaves uncoloured gets this marker, which is dropped below. */
+const PLAIN = "inherit";
+/** A TextMate theme whose colours are the dashboard's own code tokens. Names
+ * and operators stay in the code's ordinary colour so the kinds that matter
+ * (keywords, strings, literals, functions, types) stand apart. */
+const SCOPES: ReadonlyArray<readonly [readonly string[], string]> = [
+  [["comment", "punctuation.definition.comment"], "var(--text-muted)"],
+  [["keyword", "storage", "keyword.control"], "var(--code-keyword)"],
+  [["keyword.operator", "punctuation"], PLAIN],
+  [["string", "string punctuation.definition.string"], "var(--code-string)"],
+  [
+    ["constant.numeric", "constant.language", "constant.character", "constant.other.color"],
+    "var(--code-literal)",
+  ],
+  [
+    ["entity.name.function", "support.function", "meta.function-call entity.name.function"],
+    "var(--code-key)",
+  ],
+  [
+    [
+      "entity.name.type",
+      "entity.name.class",
+      "support.type",
+      "support.class",
+      "storage.type.primitive",
+      "entity.name.type.primitive",
+    ],
+    "var(--code-type)",
+  ],
+  [["entity.name.tag", "markup.heading"], "var(--code-keyword)"],
+  [
+    ["entity.other.attribute-name", "support.type.property-name", "meta.object-literal.key"],
+    "var(--code-key)",
+  ],
+  [["markup.inserted"], "var(--code-string)"],
+  [["markup.deleted"], "var(--code-keyword)"],
+  [["markup.underline.link", "string.other.link"], "var(--accent)"],
+];
+const theme = {
+  name: THEME,
+  type: "light" as const,
+  fg: PLAIN,
+  bg: "transparent",
+  settings: [
+    { settings: { foreground: PLAIN } },
+    ...SCOPES.map(([scope, foreground]) => ({ scope: [...scope], settings: { foreground } })),
+  ],
 };
 function colour(value: string | undefined): string | undefined {
-  const name = value?.match(/^var\(--hl-([a-z-]+)/)?.[1];
-  return name ? COLOURS[name] : undefined;
+  return value && value !== PLAIN && value.startsWith("var(--") ? value : undefined;
 }
 let core: Promise<HighlighterCore> | undefined;
 const loaded = new Map<Language, Promise<void>>();
 
 function highlighter(): Promise<HighlighterCore> {
   core ??= (async () => {
-    const [{ createHighlighterCore, createCssVariablesTheme }, { createJavaScriptRegexEngine }] =
-      await Promise.all([import("shiki/core"), import("shiki/engine/javascript")]);
+    const [{ createHighlighterCore }, { createJavaScriptRegexEngine }] = await Promise.all([
+      import("shiki/core"),
+      import("shiki/engine/javascript"),
+    ]);
     return createHighlighterCore({
-      // Colour only: bold and italic would change how wide the code is.
-      themes: [createCssVariablesTheme({ name: THEME, variablePrefix: "--hl-", fontStyle: false })],
+      // Colour only: the theme sets no bold or italic, which would change how wide the code is.
+      themes: [theme],
       langs: [],
       engine: createJavaScriptRegexEngine(),
     });
