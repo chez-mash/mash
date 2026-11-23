@@ -120,15 +120,129 @@ test("Escape clears the query before anything else, and the menu reaches the mai
   await field.fill("deplo");
   await field.press("Escape");
   await expect(field).toHaveValue("");
-  await page.getByRole("button", { name: "More" }).click();
-  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("⌘O");
+  // Recent chats name no message to jump to.
+  await expect(page.getByRole("option").first().getByRole("link")).toHaveAttribute(
+    "href",
+    "#/chat/c1?node=laptop",
+  );
+  const more = page.getByRole("button", { name: "More" });
+  await more.click();
+  // Linux has no Command key: the labels name Ctrl, which is what applies.
+  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("Ctrl+O");
   await expect(page.getByRole("menuitem", { name: /Settings…/ })).toHaveAttribute(
     "href",
     "#/settings",
   );
-  await expect(page.getByRole("link", { name: "Search Everywhere ⌘↵" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Search Everywhere Ctrl+Enter" })).toHaveAttribute(
     "href",
     "#/search",
+  );
+  // Escape closes the menu from the button, not only from the field.
+  await more.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(field).toBeFocused();
+  // A click outside the menu closes it too.
+  await more.click();
+  await expect(page.getByRole("menu")).toBeVisible();
+  await page.getByRole("heading", { name: "Recent chats" }).click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
+test("on a Mac the shortcuts are written with Command", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "platform", { get: () => "MacIntel" });
+    Object.defineProperty(navigator, "userAgentData", { get: () => undefined });
+  });
+  await mock(page);
+  await page.goto("/#/quick");
+  await expect(page.getByRole("link", { name: "Search Everywhere ⌘↵" })).toBeVisible();
+  await page.getByRole("button", { name: "More" }).click();
+  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("⌘O");
+  await expect(page.getByRole("menuitem", { name: /Settings…/ })).toHaveAttribute(
+    "aria-keyshortcuts",
+    "Meta+,",
+  );
+});
+
+test("copying a row's link says so", async ({ page }) => {
+  await page.addInitScript(() => {
+    const copies: string[] = [];
+    Object.assign(window, { copies });
+    Object.defineProperty(navigator, "clipboard", {
+      get: () => ({ writeText: async (text: string) => void copies.push(text) }),
+    });
+  });
+  await mock(page);
+  await page.goto("/#/quick");
+  await expect(page.getByRole("option")).toHaveCount(3);
+  await page.getByRole("textbox", { name: "Search Mash" }).press("Control+c");
+  await expect(page.getByRole("status")).toHaveText("Link copied");
+  expect(await page.evaluate(() => (window as unknown as { copies: string[] }).copies)).toEqual([
+    expect.stringMatching(/#\/chat\/c1\?node=laptop$/),
+  ]);
+  await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
+});
+
+test("ages move on while the panel stays open", async ({ page }) => {
+  await page.clock.install({ time: now });
+  await mock(page);
+  await page.goto("/#/quick");
+  const first = page.getByRole("option").first();
+  await expect(first).toContainText("2h");
+  await page.clock.runFor(3 * 3_600_000);
+  await expect(first).toContainText("5h");
+});
+
+test("when Mash isn't responding the panel says so, searches still fail visibly, and retry recovers", async ({
+  page,
+}) => {
+  await page.route("**/api/**", (route) => route.abort());
+  await page.goto("/#/quick");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("Mash isn’t responding.");
+  await expect(alert.getByRole("link", { name: "Open Mash" })).toHaveAttribute("href", "#/");
+  await expect(page.getByRole("status")).toHaveText("Search unavailable");
+  await page.getByRole("textbox", { name: "Search Mash" }).fill("deplo");
+  await expect(alert).toContainText("Mash couldn’t search.");
+  await expect(alert).toContainText("Could not reach Mash.");
+
+  await page.unroute("**/api/**");
+  await mock(page);
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("option")).toHaveCount(2);
+  await page.getByRole("textbox", { name: "Search Mash" }).fill("");
+  await expect(page.getByRole("option")).toHaveCount(3);
+  await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
+});
+
+test("with no chats yet the panel offers the next step", async ({ page }) => {
+  const unset = {
+    ...ready,
+    ready: false,
+    chats: 0,
+    recommended_action: "init",
+    watcher: null,
+    configuration: { ...ready.configuration, loaded: false },
+  };
+  await mock(page, unset);
+  await page.unroute("**/api/chats**");
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
+  );
+  await page.goto("/#/quick");
+  await expect(page.getByText("Mash isn’t set up on this machine yet.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open Mash to set up" })).toHaveAttribute(
+    "href",
+    "#/setup",
+  );
+  await page.unroute(statusPath);
+  await page.route(statusPath, (route) =>
+    route.fulfill({ json: { ...ready, chats: 0, recommended_action: null } }),
+  );
+  await page.reload();
+  await expect(page.getByRole("link", { name: "Connect an agent" })).toHaveAttribute(
+    "href",
+    "#/setup",
   );
 });
 

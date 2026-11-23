@@ -9,18 +9,21 @@ import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { catalogOptions } from "../lib/queries";
 import {
+  browserPlatform,
   fullSearchTarget,
   hidePanel,
   inkLogo,
   moveSelection,
   pageTarget,
   type QuickRow,
+  quickEmpty,
+  quickKeys,
   quickRows,
   quickStatus,
+  rowRoute,
   rowTarget,
   searching,
 } from "../lib/quick";
-import { chatHref } from "../lib/route.svelte";
 import { inDesktopApp, shareLink } from "../lib/shareLink";
 import { type Status, statusOptions } from "../lib/status";
 
@@ -29,6 +32,7 @@ import { type Status, statusOptions } from "../lib/status";
 // before anything is typed. It looks like the operating system, not like the
 // dashboard; its colours are the theme's native roles.
 const desktop = inDesktopApp();
+const keys = quickKeys(browserPlatform());
 const catalogue = createQuery(() => catalogOptions);
 let text = $state("");
 let typed = $state("");
@@ -38,9 +42,11 @@ $effect(() => {
   return () => clearTimeout(timer);
 });
 const live = createQuery(() => ({
-  queryKey: ["live-search", typed],
+  queryKey: ["live-search", typed, catalogue.data?.localNode ?? ""],
   queryFn: ({ signal }) => liveSearch(typed, catalogue.data?.localNode ?? "", signal),
-  enabled: searching(typed) && catalogue.data !== undefined,
+  // It waits for the chat list, which names this machine, but searches anyway
+  // when the list failed, so a typed search fails where the reader can see it.
+  enabled: searching(typed) && (catalogue.data !== undefined || catalogue.isError),
   networkMode: "always" as const,
   staleTime: 30_000,
   retry: false,
@@ -58,6 +64,9 @@ const status = createQuery(() => ({
     query.state.data && !query.state.data.ready && query.state.data.watching ? 5_000 : false,
 }));
 const health = $derived(quickStatus(status.data, status.isError));
+// Mash isn't answering when it cannot list chats, or cannot report status
+// before the list has arrived.
+const unreachable = $derived(catalogue.isError || (status.isError && !catalogue.data));
 let selected = $state(0);
 $effect(() => {
   void rows;
@@ -65,25 +74,71 @@ $effect(() => {
 });
 let menuOpen = $state(false);
 let input: HTMLInputElement | undefined = $state();
-const now = Date.now();
+let more: HTMLButtonElement | undefined = $state();
+let menu: HTMLDivElement | undefined = $state();
+let copied: { label: string; ok: boolean } | null = $state(null);
+// The panel lives for the whole app session, so ages are measured from a
+// clock that moves on when the panel is shown and every half minute.
+let now = $state(Date.now());
 
-function focusField(): void {
+function shown(): void {
+  now = Date.now();
+  // A failed or empty list is read again, so the panel catches up once Mash
+  // is back or its first index pass has finished.
+  if (catalogue.isError || catalogue.data?.chats.length === 0) void catalogue.refetch();
   input?.focus();
   input?.select();
 }
-onMount(focusField);
+onMount(() => {
+  shown();
+  const timer = setInterval(() => {
+    if (document.visibilityState === "visible") now = Date.now();
+  }, 30_000);
+  return () => clearInterval(timer);
+});
+
+function retry(): void {
+  void catalogue.refetch();
+  void status.refetch();
+  if (searching(typed)) void live.refetch();
+}
 
 function go(target: string): void {
   menuOpen = false;
   location.href = target;
 }
 
-function copyLink(row: QuickRow): void {
-  const route = chatHref(row.chat.id, row.chat.machine, row.messageId);
+let copiedTimer: ReturnType<typeof setTimeout> | undefined;
+async function copyLink(row: QuickRow): Promise<void> {
   const link = desktop
     ? rowTarget(row, true)
-    : shareLink(route, `${location.origin}${location.pathname}`, false);
-  void navigator.clipboard?.writeText(link);
+    : shareLink(rowRoute(row), `${location.origin}${location.pathname}`, false);
+  try {
+    if (!navigator.clipboard) throw new Error("no clipboard");
+    await navigator.clipboard.writeText(link);
+    copied = { label: "Link copied", ok: true };
+  } catch {
+    copied = { label: "Couldn’t copy the link", ok: false };
+  }
+  clearTimeout(copiedTimer);
+  copiedTimer = setTimeout(() => (copied = null), 1_500);
+}
+
+// Escape closes the menu, then clears the query, then hides the panel,
+// wherever focus is in the panel.
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  if (menuOpen) {
+    menuOpen = false;
+    input?.focus();
+  } else if (text) text = "";
+  else hidePanel();
+}
+
+function pointerdown(event: PointerEvent): void {
+  const target = event.target as Node | null;
+  if (menuOpen && !menu?.contains(target) && !more?.contains(target)) menuOpen = false;
 }
 
 function keydown(event: KeyboardEvent): void {
@@ -98,11 +153,6 @@ function keydown(event: KeyboardEvent): void {
   } else if ((event.key === "o" || event.key === ",") && (event.metaKey || event.ctrlKey)) {
     event.preventDefault();
     go(pageTarget(event.key === "o" ? "#/" : "#/settings", desktop));
-  } else if (event.key === "Escape") {
-    event.preventDefault();
-    if (menuOpen) menuOpen = false;
-    else if (text) text = "";
-    else hidePanel();
   } else if (
     event.key === "c" &&
     (event.metaKey || event.ctrlKey) &&
@@ -110,13 +160,13 @@ function keydown(event: KeyboardEvent): void {
     input?.selectionStart === input?.selectionEnd
   ) {
     event.preventDefault();
-    copyLink(row);
+    void copyLink(row);
   }
 }
 </script>
 
 <!-- Shown again from the menu bar, the panel is ready to type into. -->
-<svelte:window onfocus={focusField} />
+<svelte:window onfocus={shown} onkeydown={closeOnEscape} onpointerdown={pointerdown} />
 
 <div class="quick" role="search">
   <label class="q-field">
@@ -131,7 +181,13 @@ function keydown(event: KeyboardEvent): void {
       <div class="q-note" role="alert">
         <strong>Mash couldn’t search.</strong>
         <span>{failed.message}</span>
-        <a href={pageTarget("#/", desktop)}>Open Mash</a>
+        <span class="q-acts"><a href={pageTarget("#/", desktop)}>Open Mash</a><button type="button" onclick={retry}>Try again</button></span>
+      </div>
+    {:else if unreachable && !searching(text)}
+      <div class="q-note" role="alert">
+        <strong>Mash isn’t responding.</strong>
+        <span>The panel can’t read your chats right now.</span>
+        <span class="q-acts"><a href={pageTarget("#/", desktop)}>Open Mash</a><button type="button" onclick={retry}>Try again</button></span>
       </div>
     {:else}
       <h2>{searching(text) ? "Chats on this machine" : "Recent chats"}</h2>
@@ -152,21 +208,22 @@ function keydown(event: KeyboardEvent): void {
       {#if searching(text) && live.data && rows.length === 0}
         <p class="q-empty">No chats on this machine mention “{text.trim()}”.</p>
       {:else if !searching(text) && catalogue.data && rows.length === 0}
-        <p class="q-empty">No chats yet.</p>
+        {@const empty = quickEmpty(status.data)}
+        <p class="q-empty">{empty.text}{#if empty.action}<br /><a href={pageTarget(empty.action.route, desktop)}>{empty.action.label}</a>{/if}</p>
       {/if}
     {/if}
   </div>
 
   <footer>
-    <span class="q-status" role="status"><span class="q-dot" data-tone={health.tone} aria-hidden="true"></span>{health.label}</span>
+    <span class="q-status" role="status"><span class="q-dot" data-tone={copied ? (copied.ok ? "ready" : "problem") : health.tone} aria-hidden="true"></span>{copied?.label ?? health.label}</span>
     <span class="q-end">
-      <a href={fullSearchTarget(text, desktop)}>Search Everywhere ⌘↵</a>
-      <button type="button" class="q-more" aria-label="More" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}><Ellipsis size={16} aria-hidden="true" /></button>
+      <a href={fullSearchTarget(text, desktop)}>Search Everywhere {keys.everywhere}</a>
+      <button bind:this={more} type="button" class="q-more" aria-label="More" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}><Ellipsis size={16} aria-hidden="true" /></button>
     </span>
     {#if menuOpen}
-      <div class="q-menu" role="menu">
-        <a role="menuitem" href={pageTarget("#/", desktop)} aria-keyshortcuts="Meta+O">Open Mash<kbd>⌘O</kbd></a>
-        <a role="menuitem" href={pageTarget("#/settings", desktop)} aria-keyshortcuts="Meta+,">Settings…<kbd>⌘,</kbd></a>
+      <div bind:this={menu} class="q-menu" role="menu">
+        <a role="menuitem" href={pageTarget("#/", desktop)} aria-keyshortcuts="{keys.modifier}+O">Open Mash<kbd>{keys.open}</kbd></a>
+        <a role="menuitem" href={pageTarget("#/settings", desktop)} aria-keyshortcuts="{keys.modifier}+,">Settings…<kbd>{keys.settings}</kbd></a>
       </div>
     {/if}
   </footer>
@@ -316,8 +373,27 @@ function keydown(event: KeyboardEvent): void {
     font-size: 12px;
   }
   footer a,
-  .q-note a {
+  .q-note a,
+  .q-empty a {
     color: inherit;
+  }
+  .q-note a,
+  .q-empty a {
+    text-decoration: underline;
+  }
+  .q-acts {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+  .q-acts button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
   .q-end {
     display: flex;

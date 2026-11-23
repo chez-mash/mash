@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  browserPlatform,
   fullSearchTarget,
   hidePanel,
   inkLogo,
   moveSelection,
   pageTarget,
+  quickEmpty,
+  quickKeys,
   quickRows,
   quickStatus,
+  rowRoute,
   rowTarget,
   searching,
 } from "./quick";
@@ -57,6 +61,57 @@ describe("the quick search panel", () => {
     expect(fullSearchTarget("", false)).toBe("#/search");
     expect(pageTarget("#/settings", true)).toBe("mash://settings");
     expect(pageTarget("#/", true)).toBe("mash://");
+    expect(pageTarget("#/setup", false)).toBe("#/setup");
+  });
+
+  it("leaves the message out of a recent chat's link", () => {
+    const recent = { chat: chat("c1"), messageId: "", passage: "" };
+    expect(rowRoute(recent)).toBe("#/chat/c1?node=laptop");
+    expect(rowTarget(recent, true)).toBe("mash://chat/c1?node=laptop");
+  });
+
+  it("writes shortcuts with Command on Apple platforms and Ctrl elsewhere", () => {
+    expect(quickKeys("MacIntel")).toEqual({
+      everywhere: "⌘↵",
+      open: "⌘O",
+      settings: "⌘,",
+      modifier: "Meta",
+    });
+    expect(quickKeys("macOS").open).toBe("⌘O");
+    expect(quickKeys("Win32")).toEqual({
+      everywhere: "Ctrl+Enter",
+      open: "Ctrl+O",
+      settings: "Ctrl+,",
+      modifier: "Control",
+    });
+    expect(quickKeys("Linux x86_64").modifier).toBe("Control");
+    expect(quickKeys("").modifier).toBe("Control");
+    expect(browserPlatform({ navigator: { userAgentData: { platform: "macOS" } } })).toBe("macOS");
+    expect(
+      browserPlatform({ navigator: { userAgentData: { platform: "" }, platform: "Win32" } }),
+    ).toBe("Win32");
+    expect(browserPlatform({})).toBe("");
+  });
+
+  it("offers the next step when there are no chats yet", () => {
+    const base = {
+      ready: true,
+      chats: 0,
+      nextStep: null,
+      watching: false,
+      configuration: { loaded: true },
+    } as unknown as Status;
+    const at = (change: object) => quickEmpty({ ...base, ...change } as Status);
+    expect(quickEmpty(undefined)).toEqual({ text: "No chats yet." });
+    expect(at({ ready: false, nextStep: "init", configuration: { loaded: false } }).action).toEqual(
+      {
+        label: "Open Mash to set up",
+        route: "#/setup",
+      },
+    );
+    expect(at({ ready: false, nextStep: "index", watching: true }).action).toBeUndefined();
+    expect(at({ ready: false, nextStep: "index" }).action?.route).toBe("#/settings");
+    expect(at({}).action).toEqual({ label: "Connect an agent", route: "#/setup" });
   });
 
   it("says search is up to date only when status names nothing left to do", () => {

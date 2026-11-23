@@ -5,7 +5,7 @@
  * the panel does with them.
  */
 
-import { chatHref, searchHref } from "./route.svelte";
+import { searchHref } from "./route.svelte";
 import { shareLink } from "./shareLink";
 import type { Status } from "./status";
 import type { Agent, ChatSummary, SearchHit } from "./types";
@@ -50,8 +50,18 @@ export function moveSelection(current: number, step: number, rows: number): numb
  * dashboard's own chat page.
  */
 export function rowTarget(row: QuickRow, desktop: boolean): string {
-  const route = chatHref(row.chat.id, row.chat.machine, row.messageId);
+  const route = rowRoute(row);
   return desktop ? shareLink(route, "", true) : route;
+}
+
+/**
+ * The dashboard route of a row's chat. A recent chat has no message to jump
+ * to, so its link names none rather than carrying an empty `message=`.
+ */
+export function rowRoute(row: QuickRow): string {
+  const params = new URLSearchParams({ node: row.chat.machine });
+  if (row.messageId) params.set("message", row.messageId);
+  return `#/chat/${encodeURIComponent(row.chat.id)}?${params}`;
 }
 
 /** Mash's full search for the same words: other machines, identifiers, meaning. */
@@ -61,8 +71,67 @@ export function fullSearchTarget(query: string, desktop: boolean): string {
 }
 
 /** Pages of the main window the panel's menu opens. */
-export function pageTarget(route: "#/" | "#/settings", desktop: boolean): string {
+export function pageTarget(route: "#/" | "#/settings" | "#/setup", desktop: boolean): string {
   return desktop ? shareLink(route, "", true) : route;
+}
+
+/**
+ * The panel's keyboard shortcuts as the platform writes them. The keys work
+ * with either Command or Control everywhere; only the label differs, since
+ * Windows and Linux have no Command key.
+ */
+export interface QuickKeys {
+  readonly everywhere: string;
+  readonly open: string;
+  readonly settings: string;
+  /** The modifier's name for `aria-keyshortcuts`. */
+  readonly modifier: "Meta" | "Control";
+}
+
+export function quickKeys(platform: string): QuickKeys {
+  return /mac|iphone|ipad/i.test(platform)
+    ? { everywhere: "⌘↵", open: "⌘O", settings: "⌘,", modifier: "Meta" }
+    : { everywhere: "Ctrl+Enter", open: "Ctrl+O", settings: "Ctrl+,", modifier: "Control" };
+}
+
+/** The platform the browser reports, for {@link quickKeys}. */
+export function browserPlatform(scope: object = globalThis): string {
+  const nav = (
+    scope as { navigator?: { platform?: string; userAgentData?: { platform?: string } } }
+  ).navigator;
+  return nav?.userAgentData?.platform || nav?.platform || "";
+}
+
+/** What the panel says when there are no chats to list, and the step it offers. */
+export interface QuickEmpty {
+  readonly text: string;
+  readonly action?: { readonly label: string; readonly route: "#/" | "#/settings" | "#/setup" };
+}
+
+/**
+ * The next step for a machine with no chats yet, from `mash status`: set Mash
+ * up, wait for the watcher's first pass, index (Settings says how), or connect
+ * an agent whose chats Mash can read. Without status it says only that there
+ * are none.
+ */
+export function quickEmpty(status: Status | undefined): QuickEmpty {
+  if (!status) return { text: "No chats yet." };
+  if (!status.configuration.loaded)
+    return {
+      text: "Mash isn’t set up on this machine yet.",
+      action: { label: "Open Mash to set up", route: "#/setup" },
+    };
+  if (status.nextStep === "index")
+    return status.watching
+      ? { text: "Mash is reading your chats. They’ll appear here shortly." }
+      : {
+          text: "No chats are indexed yet.",
+          action: { label: "See how to index", route: "#/settings" },
+        };
+  return {
+    text: "No chats yet. Chats appear here after you use a coding agent.",
+    action: { label: "Connect an agent", route: "#/setup" },
+  };
 }
 
 /**
