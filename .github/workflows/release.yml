@@ -438,10 +438,17 @@ jobs:
           git clone "$remote" tap
           mkdir -p tap/Formula
           cp mash.rb tap/Formula/mash.rb
+          # The desktop app's cask, for releases that include its disk image.
+          if grep -q ' mash-desktop-macos-arm64.dmg$' dist/SHA256SUMS; then
+            mkdir -p tap/Casks
+            python3 packaging/render.py "$TAG" dist/SHA256SUMS \
+              packaging/homebrew/mash-desktop.rb.in tap/Casks/mash-desktop.rb
+          fi
           cd tap
           git config user.name "mash release"
           git config user.email "mash-release@users.noreply.github.com"
           git add Formula/mash.rb
+          if [ -f Casks/mash-desktop.rb ]; then git add Casks/mash-desktop.rb; fi
           if git diff --cached --quiet; then
             # Nothing to publish, but a credential that cannot push should
             # still fail here and not at the next release.

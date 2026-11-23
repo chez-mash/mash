@@ -1,0 +1,25 @@
+cask "mash-desktop" do
+  version "@VERSION@"
+  sha256 "@SHA256:mash-desktop-macos-arm64.dmg@"
+
+  url "https://github.com/mashium/mash/releases/download/v#{version}/mash-desktop-macos-arm64.dmg"
+  name "Mash"
+  desc "Search past coding-agent chats in a desktop app"
+  homepage "https://getmash.io/"
+
+  depends_on arch: :arm64
+  depends_on :macos
+
+  app "Mash.app"
+
+  # Only the app's own files. Indexed history lives in ~/.mash, which the
+  # command-line tools share, so uninstalling the app never removes it.
+  zap trash: [
+    "~/Library/Application Support/io.getmash.desktop",
+    "~/Library/Caches/io.getmash.desktop",
+    "~/Library/HTTPStorages/io.getmash.desktop",
+    "~/Library/Preferences/io.getmash.desktop.plist",
+    "~/Library/Saved Application State/io.getmash.desktop.savedState",
+    "~/Library/WebKit/io.getmash.desktop",
+  ]
+end
