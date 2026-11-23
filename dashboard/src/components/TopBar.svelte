@@ -5,15 +5,16 @@ import Laptop from "@lucide/svelte/icons/laptop";
 import Menu from "@lucide/svelte/icons/menu";
 import Search from "@lucide/svelte/icons/search";
 import X from "@lucide/svelte/icons/x";
-import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import { useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
-import { liveSearch } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
+import { askAfresh } from "../lib/federatedSearch.svelte";
+import { createLiveSearch } from "../lib/liveSearch.svelte";
 import { navigate } from "../lib/navigation";
 import { searchQueryKey } from "../lib/queries";
 import { chatHref, router, searchHref } from "../lib/route.svelte";
-import { inScope, scope, scopeText } from "../lib/scope.svelte";
+import { scope } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
@@ -82,35 +83,26 @@ const suggestions = $derived.by(() => {
   ].slice(0, 5);
   return { filters, chats: chats.filter((chat) => has(chat.title)).slice(0, 4) };
 });
-// While the reader types, the box also searches what chats said: this
-// machine only, by words, once typing pauses. Where that is unavailable (the
-// demo, or a dashboard serving only the shared index) the box falls back to
-// matching chat titles above.
+// While the reader types, the box also searches what chats said, in every
+// source the viewing scope covers (see lib/federated.ts): this machine's
+// words at once, search by meaning once typing pauses, other machines as they
+// answer, all in one list. Where that is unavailable (the demo, or a
+// dashboard serving only the shared index) the box falls back to matching
+// chat titles above.
 let typed = $state("");
 $effect(() => {
   const value = needle;
   const timer = setTimeout(() => (typed = value), 60);
   return () => clearTimeout(timer);
 });
-// A machine read live is asked itself; otherwise this machine's words search
-// stands in, kept to what the scope covers.
-const live = createQuery(() => ({
-  queryKey: ["live-search", typed, catalogue.data ? scopeText(catalogue.data.scope) : ""],
-  queryFn: async ({ signal }: { signal: AbortSignal }) => {
-    const data = catalogue.data;
-    if (!data) return [];
-    const peer = data.live && data.scope.kind === "node" ? data.scope.node : undefined;
-    const hits = await liveSearch(typed, data.reach.localNode, signal, peer);
-    return peer ? hits : hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode));
-  },
-  enabled: focused && typed.length >= 2 && catalogue.data !== undefined,
-  networkMode: "always" as const,
-  staleTime: 30_000,
-  retry: false,
-  // Keep the last answer on screen while the next keystroke's is on its way.
-  placeholderData: (previous: Awaited<ReturnType<typeof liveSearch>> | undefined) => previous,
+const live = createLiveSearch(() => ({
+  typed,
+  enabled: focused && typed.length >= 2,
+  catalogue: catalogue.data,
+  limit: 5,
 }));
-const said = $derived(needle.length >= 2 && !live.isError ? (live.data ?? []) : []);
+const said = $derived(needle.length >= 2 && !live.error ? live.hits : []);
+const status = $derived(needle.length >= 2 ? live.status : { text: "", retry: false });
 const showDrop = $derived(
   focused &&
     suggestions !== null &&
@@ -133,11 +125,14 @@ function submit(event: SubmitEvent): void {
     const target = { queryKey: searchQueryKey(submitted) };
     if (route.page === "search" && route.params === submitted) {
       void client.refetchQueries(target, { cancelRefetch: false });
+      // A streamed search is not a query; ask it to run again.
+      dispatchEvent(new Event("mash:search-again"));
       return;
     }
     // A typed submission should read current results even if we visited its
     // address before. Ordinary Back and Forward still reuse the saved query.
     void client.resetQueries(target);
+    askAfresh(submitted);
   }
   navigate(submitted ? `#/search?${submitted}` : "#/search");
 }
@@ -170,10 +165,13 @@ function submit(event: SubmitEvent): void {
           {/each}
         {/if}
         {#if said.length}
-          <h4>chats that mention it</h4>
-          {#each said as hit (hit.chat.machine + hit.chat.id)}
-            <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size="sm" /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span></a>
-          {/each}
+          <!-- One list from every source; moving to a result keeps it where it is. -->
+          <div class="said-list" role="presentation" onmouseenter={() => live.interact()} onfocusin={() => live.interact()}>
+            {#each said as hit (hit.chat.machine + hit.chat.id)}
+              <a class="opt said" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} onclick={() => (focused = false)}><AgentMark agent={hit.chat.agent} size="sm" /><span class="t"><span>{hit.chat.title}</span>{#if hit.before}<small>{hit.before}</small>{/if}</span>{#if hit.byMeaning}<small class="by-meaning">by meaning</small>{/if}<small>{hit.chat.machine}</small></a>
+            {/each}
+          </div>
+          {#if status.text}<p class="meta drop-status" role="status">{status.text}{#if status.retry}{" · "}<button class="a" type="button" onclick={() => live.retry()}>Retry</button>{/if}</p>{/if}
         {:else if suggestions.chats.length}
           <h4>chats</h4>
           {#each suggestions.chats as chat (chat.machine + chat.id)}
@@ -188,6 +186,12 @@ function submit(event: SubmitEvent): void {
 </header>
 
 <style>
+  .drop-status {
+    padding: 6px 12px 2px;
+  }
+  .by-meaning {
+    flex: none;
+  }
   .top-scope {
     display: none;
   }

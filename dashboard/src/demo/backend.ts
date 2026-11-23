@@ -1,11 +1,13 @@
 // Answers dashboard requests in the browser from demo history. The tests run
 // the responses through the same parsers used by `mash dash`.
+
 import type { Answer, ReadPath } from "../lib/routes";
 import type { Transport } from "../lib/transport";
 import { chats, type DemoChat, type DemoMessage, localMachine } from "./history";
 import { record, recordList } from "./memory";
 import { records } from "./records";
 import { messageMatcher, searchSnippet, terms } from "./search";
+import { streamed } from "./stream";
 import tools from "./tools.json";
 
 export { terms };
@@ -462,9 +464,21 @@ export function respond(url: string, method: string, now: number): Reply {
     : { status: 200, body: answer };
 }
 
+/** The demo's federated search: its one search, as a single finished update. */
+function stream(params: URLSearchParams, now: number): Reply {
+  const found = search(params, now);
+  return found instanceof Refusal
+    ? { status: found.status, body: { error: { message: found.message } } }
+    : { status: 200, body: streamed(found, params, localMachine) };
+}
+
 /** Installed by the demo's entry point in place of requests to `mash dash`. */
 export const transport: Transport = (path, init) => {
-  const answer = respond(path, init.method ?? "GET", Date.now());
+  const url = new URL(path, "http://demo.invalid");
+  const answer =
+    url.pathname === "/api/search/stream" && (init.method ?? "GET") === "GET"
+      ? stream(url.searchParams, Date.now())
+      : respond(path, init.method ?? "GET", Date.now());
   return Promise.resolve(
     new Response(JSON.stringify(answer.body), {
       status: answer.status,

@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { streamFromSearch } from "./stream";
 
 const now = Date.now();
 const chats = [
@@ -85,6 +86,7 @@ test("the quick panel lists recent chats, searches as you type and opens a match
   page,
 }) => {
   const typed = await mock(page);
+  await streamFromSearch(page);
   await page.goto("/#/quick");
   const field = page.getByRole("textbox", { name: "Search Mash" });
   await expect(field).toBeFocused();
@@ -97,7 +99,7 @@ test("the quick panel lists recent chats, searches as you type and opens a match
   await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
 
   await field.fill("deplo");
-  await expect(page.getByRole("heading", { name: "Chats on this machine" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Chats", exact: true })).toBeVisible();
   await expect(options).toHaveCount(2);
   await expect(options.first()).toContainText("the deploy step retries forever");
   expect(typed).toEqual(["deplo"]);
@@ -197,6 +199,7 @@ test("when Mash isn't responding the panel says so, searches still fail visibly,
   page,
 }) => {
   await page.route("**/api/**", (route) => route.abort());
+  await streamFromSearch(page);
   await page.goto("/#/quick");
   const alert = page.getByRole("alert");
   await expect(alert).toContainText("Mash isn’t responding.");
@@ -317,6 +320,7 @@ test("the panel follows the viewing scope chosen in the dashboard", async ({ pag
   );
   // The dashboard chose "This machine"; the panel reads the same browser storage.
   await page.addInitScript(() => localStorage.setItem("mash.scope", "local"));
+  await streamFromSearch(page);
   await page.goto("/#/quick");
   const options = page.getByRole("option");
   await expect(options).toHaveCount(3);

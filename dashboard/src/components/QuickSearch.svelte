@@ -4,8 +4,8 @@ import SearchIcon from "@lucide/svelte/icons/search";
 import { createQuery } from "@tanstack/svelte-query";
 import { onMount } from "svelte";
 import { agents } from "../lib/agents";
-import { liveSearch } from "../lib/api";
 import { whenLabel } from "../lib/browse";
+import { createLiveSearch } from "../lib/liveSearch.svelte";
 import { plainTitle } from "../lib/markdown";
 import {
   browserPlatform,
@@ -23,7 +23,6 @@ import {
   rowTarget,
   searching,
 } from "../lib/quick";
-import { inScope, scopeText } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import { inDesktopApp, shareLink } from "../lib/shareLink";
 import { type Status, statusOptions } from "../lib/status";
@@ -48,28 +47,18 @@ $effect(() => {
   const timer = setTimeout(() => (typed = value), 60);
   return () => clearTimeout(timer);
 });
-const live = createQuery(() => ({
-  queryKey: ["live-search", typed, catalogue.data ? scopeText(catalogue.data.scope) : ""],
-  // A machine read live is asked itself; otherwise this machine's word search
-  // stands in, kept to what the scope covers. Without the chat list it still
-  // searches this machine, so a failure shows where the reader can see it.
-  queryFn: async ({ signal }) => {
-    const data = catalogue.data;
-    if (!data) return liveSearch(typed, "", signal);
-    const peer = data.live && data.scope.kind === "node" ? data.scope.node : undefined;
-    const hits = await liveSearch(typed, data.reach.localNode, signal, peer);
-    return peer ? hits : hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode));
-  },
-  // It waits for the chat list, which names this machine, but searches anyway
-  // when the list failed, so a typed search fails where the reader can see it.
-  enabled: searching(typed) && (catalogue.data !== undefined || catalogue.isError),
-  networkMode: "always" as const,
-  staleTime: 30_000,
-  retry: false,
-  placeholderData: (previous: Awaited<ReturnType<typeof liveSearch>> | undefined) => previous,
+// Every source in the viewing scope, as one list (see lib/liveSearch.svelte.ts).
+// It waits for the chat list, which names this machine, but searches anyway
+// when the list failed, so a typed search fails where the reader can see it.
+const live = createLiveSearch(() => ({
+  typed,
+  enabled: searching(typed),
+  catalogue: catalogue.data,
+  withoutCatalogue: catalogue.isError,
+  limit: 8,
 }));
-const rows = $derived(quickRows(text, catalogue.data?.chats ?? [], live.data ?? []));
-const failed = $derived(searching(text) && live.isError ? live.error : null);
+const rows = $derived(quickRows(text, catalogue.data?.chats ?? [], live.hits));
+const failed = $derived(searching(text) ? live.error : null);
 // The panel stays open in the background, so it reads status again when it
 // is shown, and every few seconds while indexing is under way.
 const status = createQuery(() => ({
@@ -84,8 +73,10 @@ const health = $derived(quickStatus(status.data, status.isError));
 // before the list has arrived.
 const unreachable = $derived(catalogue.isError || (status.isError && !catalogue.data));
 let selected = $state(0);
+// A new text starts at the top; results still arriving for the same text
+// leave the highlighted row where it is.
 $effect(() => {
-  void rows;
+  void typed;
   selected = 0;
 });
 let menuOpen = $state(false);
@@ -116,7 +107,7 @@ onMount(() => {
 function retry(): void {
   void catalogue.refetch();
   void status.refetch();
-  if (searching(typed)) void live.refetch();
+  if (searching(typed)) live.retry();
 }
 
 function go(target: string): void {
@@ -161,6 +152,8 @@ function keydown(event: KeyboardEvent): void {
   const row = rows[selected];
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
+    // Moving to a result keeps the list where it is while more results arrive.
+    live.interact();
     selected = moveSelection(selected, event.key === "ArrowDown" ? 1 : -1, rows.length);
   } else if (event.key === "Enter") {
     event.preventDefault();
@@ -189,7 +182,7 @@ function keydown(event: KeyboardEvent): void {
     <SearchIcon size={17} aria-hidden="true" />
     <span class="sr-only">Search Mash</span>
     <input bind:this={input} bind:value={text} placeholder="Search Mash" autocomplete="off" spellcheck="false" onkeydown={keydown} />
-    {#if searching(text) && live.data}<small>{live.data.length === 1 ? "1 chat" : `${live.data.length} chats`}</small>{/if}
+    {#if searching(text) && live.answered}<small>{live.hits.length === 1 ? "1 chat" : `${live.hits.length} chats`}</small>{/if}
   </label>
 
   <div class="q-list">
@@ -206,23 +199,28 @@ function keydown(event: KeyboardEvent): void {
         <span class="q-acts"><a href={pageTarget("#/", desktop)}>Open Mash</a><button type="button" onclick={retry}>Try again</button></span>
       </div>
     {:else}
-      <h2>{searching(text) ? "Chats on this machine" : "Recent chats"}</h2>
+      <h2>{searching(text) ? "Chats" : "Recent chats"}</h2>
       <ul role="listbox" aria-label={searching(text) ? "Matching chats" : "Recent chats"}>
         {#each rows as row, index (row.chat.machine + row.chat.id)}
           <li role="option" aria-selected={index === selected}>
-            <a class="q-row" class:q-sel={index === selected} href={rowTarget(row, desktop)} onmouseenter={() => (selected = index)}>
+            <a class="q-row" class:q-sel={index === selected} href={rowTarget(row, desktop)} onmouseenter={() => {
+              selected = index;
+              live.interact();
+            }}>
               <span class="qmark" aria-hidden="true" style:color={index === selected || inkLogo(row.chat.agent) ? undefined : agents[row.chat.agent].tint}>{@html agents[row.chat.agent].logo}</span>
               <span class="q-t">
                 <span class="q-title">{plainTitle(row.chat.title)}</span>
                 {#if row.passage}<span class="q-passage">{row.passage}</span>{/if}
               </span>
+              {#if row.byMeaning}<span class="q-age">by meaning</span>{/if}
               <span class="q-age">{whenLabel(row.chat.updatedMs, now)}</span>
             </a>
           </li>
         {/each}
       </ul>
-      {#if searching(text) && live.data && rows.length === 0}
-        <p class="q-empty">No chats on this machine mention “{text.trim()}”.</p>
+      {#if searching(text) && live.status.text}<p class="q-empty" role="status">{live.status.text}{#if live.status.retry}{" · "}<button class="a" type="button" onclick={() => live.retry()}>Retry</button>{/if}</p>{/if}
+      {#if searching(text) && live.answered && !live.status.text && rows.length === 0}
+        <p class="q-empty">No chats mention “{text.trim()}”.</p>
       {:else if !searching(text) && catalogue.data && rows.length === 0}
         {@const empty = quickEmpty(status.data)}
         <p class="q-empty">{empty.text}{#if empty.action}<br /><a href={pageTarget(empty.action.route, desktop)}>{empty.action.label}</a>{/if}</p>

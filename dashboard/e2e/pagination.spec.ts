@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { fitsViewport, searchBox } from "./shell";
+import { streamFromSearch } from "./stream";
 
 const now = Date.now();
 const chats = Array.from({ length: 120 }, (_, index) => ({
@@ -43,6 +44,7 @@ test("the search box shows chats that mention what is typed, and falls back to t
       },
     });
   });
+  await streamFromSearch(page);
   await page.goto("/#/");
   await searchBox(page).fill("deplo");
   const said = page.getByRole("link", { name: /Fix the deploy script's retry loop/ });
@@ -113,6 +115,7 @@ test("a new search from a later page of chats starts at the first result", async
     offsets.push(new URL(route.request().url()).searchParams.get("offset"));
     return route.fulfill({ json: { results: [], next_offset: null } });
   });
+  await streamFromSearch(page);
   await page.goto("/#/search?offset=10");
   await expect(page.getByRole("navigation", { name: "Pages" })).toContainText("11–20 of 120 chats");
   await searchBox(page).fill("needle");
@@ -168,6 +171,7 @@ test("an empty search page can return to the first page and get search help", as
   await page.route("**/api/search?**", (route) =>
     route.fulfill({ json: { results: [], next_offset: null } }),
   );
+  await streamFromSearch(page);
   await page.goto("/#/search?q=needle&offset=20");
   await expect(
     page.getByRole("heading", { name: "No results on this page", exact: true }),
@@ -244,6 +248,7 @@ test("pressing Enter repeats an unchanged or previously cached search", async ({
       },
     });
   });
+  await streamFromSearch(page);
   await page.goto("/#/search?q=needle");
   await expect(page.getByRole("link", { name: /needle result 1/ })).toBeVisible();
   await searchBox(page).press("Enter");
@@ -333,6 +338,7 @@ test("search mode applies on request, follows the result page, and resets for a 
       },
     });
   });
+  await streamFromSearch(page);
   await page.goto("/#/search?q=needle&offset=10");
   await expect(page.getByRole("link", { name: /Default result/ })).toBeVisible();
   await page.getByRole("button", { name: "search: default (meaning)" }).click();

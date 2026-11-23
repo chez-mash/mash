@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { recordFixture } from "./record-fixtures";
+import { streamFromSearch } from "./stream";
 
 // The viewing switcher: whose history the overview, chats, search, memory,
 // projects and agents show. See the Viewing* artboards on the design canvas.
@@ -228,7 +229,15 @@ for (const width of [1440, 390]) {
 }
 
 test("this machine shows only what it indexed, searched there alone", async ({ page }) => {
-  const asked = await mock(page);
+  await mock(page);
+  await streamFromSearch(page);
+  // The search asks every source in the scope at once; this machine's scope
+  // keeps it to this machine's own index.
+  const streamed: URL[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === "/api/search/stream") streamed.push(url);
+  });
   await page.goto("/#/search?scope=local");
   const main = page.getByRole("main");
   await expect(main.getByText("This machine · laptop", { exact: true })).toBeVisible();
@@ -238,12 +247,12 @@ test("this machine shows only what it indexed, searched there alone", async ({ p
   await page.getByLabel("Search your history").press("Enter");
   await expect
     .poll(() =>
-      asked
-        .filter((url) => url.pathname === "/api/search")
+      streamed
+        .filter((url) => !url.searchParams.has("live"))
         .at(-1)
-        ?.searchParams.get("machine"),
+        ?.searchParams.get("scope"),
     )
-    .toBe("laptop");
+    .toBe("local");
 });
 
 test("a machine read live shows its own chats and says it is live", async ({ page }) => {

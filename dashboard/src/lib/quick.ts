@@ -18,6 +18,8 @@ export interface QuickRow {
   readonly chat: ChatSummary;
   readonly messageId: string;
   readonly passage: string;
+  /** Found only by meaning. */
+  readonly byMeaning?: boolean;
 }
 
 /** What a query needs before the panel searches instead of listing recent chats. */
@@ -29,13 +31,16 @@ export function searching(query: string): boolean {
 export function quickRows(
   query: string,
   recent: readonly ChatSummary[],
-  found: readonly SearchHit[],
+  found: readonly (SearchHit & { readonly byMeaning?: boolean })[],
 ): QuickRow[] {
   if (!searching(query))
     return recent.slice(0, QUICK_ROWS).map((chat) => ({ chat, messageId: "", passage: "" }));
-  return found
-    .slice(0, QUICK_ROWS)
-    .map((hit) => ({ chat: hit.chat, messageId: hit.messageId, passage: hit.before }));
+  return found.slice(0, QUICK_ROWS).map((hit) => ({
+    chat: hit.chat,
+    messageId: hit.messageId,
+    passage: hit.before,
+    ...(hit.byMeaning ? { byMeaning: true } : {}),
+  }));
 }
 
 /** The selection after moving `step` rows, staying on the list. */

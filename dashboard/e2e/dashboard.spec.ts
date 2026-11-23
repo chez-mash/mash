@@ -1,5 +1,6 @@
 import { expect, type Locator, test } from "@playwright/test";
 import { documentLoads, searchBox } from "./shell";
+import { streamFromSearch } from "./stream";
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/records?**", (route) =>
@@ -225,6 +226,7 @@ test("real API shapes, explicit search, source identity, safe content and stable
     }
   });
   await page.clock.install();
+  await streamFromSearch(page);
   await page.goto("/");
   const main = page.getByRole("main");
   await expect(main.getByRole("link", { name: /Real fixture chat/ })).toHaveCount(2);

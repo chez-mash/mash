@@ -1,6 +1,7 @@
 import process from "node:process";
 import { expect, type Page, test } from "@playwright/test";
 import { fitsViewport } from "./shell";
+import { streamFromSearch } from "./stream";
 
 // Subagent chats fold into the chat that started them, open on their own
 // pages, and stay in search results labelled with their parent.
@@ -218,6 +219,7 @@ for (const width of [1440, 390]) {
     });
 
     test("search keeps subagent matches, labelled with their parent", async ({ page }) => {
+      await streamFromSearch(page);
       await page.goto("/#/search?q=windows+tests");
       const results = page.locator(".results");
       const hit = results.locator("a.card").filter({ hasText: windows.subagent.label });

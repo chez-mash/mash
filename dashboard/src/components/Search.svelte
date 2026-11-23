@@ -20,11 +20,13 @@ import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent, search } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
+import { statusLine } from "../lib/federated";
+import { FederatedSearch, takeAfresh } from "../lib/federatedSearch.svelte";
 import { navigate } from "../lib/navigation";
 import { searchQueryKey, stableRead } from "../lib/queries";
 import { decisionOptions, decisionsByChat } from "../lib/records";
 import { chatHref } from "../lib/route.svelte";
-import { scope, scopeText } from "../lib/scope.svelte";
+import { inScope, scope, scopeText } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import {
   type Applied,
@@ -112,6 +114,62 @@ const options = $derived({
   })),
 });
 
+// A search of the default kind, by relevance and without a machine named,
+// asks every source in the viewing scope at once and shows one list as they
+// answer (lib/federated.ts). Other searches run as one request, as before.
+const streamed = $derived(
+  !!applied.query &&
+    applied.offset === 0 &&
+    applied.intent === "default" &&
+    applied.rank === "relevance" &&
+    !applied.machines.length &&
+    !!catalogue.data &&
+    !(catalogue.data.live && catalogue.data.scope.kind === "node"),
+);
+const federated = new FederatedSearch();
+// Pressing Enter on an unchanged search asks again (see TopBar).
+let again = $state(0);
+let lastAgain = 0;
+$effect(() => {
+  const asked = () => again++;
+  addEventListener("mash:search-again", asked);
+  return () => removeEventListener("mash:search-again", asked);
+});
+$effect(() => {
+  void params;
+  void scopeKey;
+  // Asked again, it starts afresh rather than keeping the rows it showed.
+  const fresh = again !== untrack(() => lastAgain) || takeAfresh(params);
+  if (fresh) {
+    lastAgain = again;
+    untrack(() => federated.stop());
+  }
+  const data = untrack(() => catalogue.data);
+  if (!untrack(() => streamed) || !data) return void untrack(() => federated.stop());
+  const question = {
+    query: applied.query,
+    scope: data.scope,
+    live: false,
+    limit: pageSize,
+    agents: applied.agents,
+    projects: applied.projects,
+    days: applied.days,
+  };
+  // Back to a search already answered shows it again without asking.
+  untrack(() => {
+    if (fresh || !federated.reuse(question, data.reach.localNode))
+      federated.start(question, data.reach.localNode);
+  });
+});
+const streamedHits = $derived.by(() => {
+  const data = catalogue.data;
+  const inside = data
+    ? federated.hits.filter((hit) => inScope(hit.chat, data.scope, data.reach.localNode))
+    : federated.hits;
+  const unique = withoutCopies(inside, data?.all ?? []);
+  return applied.subagentHits === "hidden" ? unique.filter((hit) => !hit.chat.subagent) : unique;
+});
+const status = $derived(statusLine(federated.sources, federated.hits.length, federated.done));
 const result = createQuery(() => ({
   ...stableRead,
   // A list of chats without a question follows the chat list as it updates;
@@ -120,7 +178,7 @@ const result = createQuery(() => ({
     ? [...searchQueryKey(params), scopeKey]
     : ["chat-list", params, catalogue.dataUpdatedAt, scopeKey],
   placeholderData: (previous, query) => (query?.queryKey[1] === params ? previous : undefined),
-  enabled: catalogue.data !== undefined,
+  enabled: catalogue.data !== undefined && !streamed,
   queryFn: async ({ signal }: { signal: AbortSignal }) => {
     const data = catalogue.data;
     if (!data) throw new Error("The chat list is not loaded yet.");
@@ -168,7 +226,24 @@ const result = createQuery(() => ({
     };
   },
 }));
-const hits = $derived(result.data?.hits ?? []);
+// What the page shows, from whichever path ran.
+const view = $derived(
+  streamed
+    ? federated.sources.length || federated.error
+      ? {
+          hits: streamedHits,
+          warnings: federated.error ? [federated.error] : [],
+          first: 0,
+          nextOffset: null,
+          total: null,
+          intent: undefined,
+          folded: 0,
+          hidden: federated.hits.length - streamedHits.length,
+        }
+      : undefined
+    : result.data,
+);
+const hits = $derived(view?.hits ?? []);
 // Chats that produced decisions say how many; the memory page reads the same list.
 const decisions = createQuery(() => decisionOptions);
 const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
@@ -179,7 +254,7 @@ const draftIntentLabel = $derived(
 );
 const resolvedDefaultLabel = $derived(
   draft.intent === "default" && applied.intent === "default"
-    ? searchIntents.find((intent) => intent.value === result.data?.intent)?.label
+    ? searchIntents.find((intent) => intent.value === view?.intent)?.label
     : undefined,
 );
 
@@ -213,19 +288,19 @@ function page(offset: number): string {
   return appliedHref({ ...applied, offset });
 }
 const rangeLabel = $derived.by(() => {
-  if (!result.data) return "";
-  const first = result.data.first + 1;
-  const last = result.data.first + hits.length;
-  if (result.data.total !== null)
-    return result.data.total > pageSize
-      ? `${first.toLocaleString()}–${last.toLocaleString()} of ${result.data.total.toLocaleString()} chats`
-      : `${result.data.total.toLocaleString()} chat${result.data.total === 1 ? "" : "s"}`;
+  if (!view) return "";
+  const first = view.first + 1;
+  const last = view.first + hits.length;
+  if (view.total !== null)
+    return view.total > pageSize
+      ? `${first.toLocaleString()}–${last.toLocaleString()} of ${view.total.toLocaleString()} chats`
+      : `${view.total.toLocaleString()} chat${view.total === 1 ? "" : "s"}`;
   return `results ${first.toLocaleString()}–${last.toLocaleString()} for “${applied.query}”`;
 });
 // "19 chats · 11 subagent chats folded in": the list counts its own rows.
-const foldedLabel = $derived(foldedNote(result.data?.folded ?? 0));
+const foldedLabel = $derived(foldedNote(view?.folded ?? 0));
 const remoteHits = $derived(hits.some((hit) => hit.chat.machine !== catalogue.data?.localNode));
-const hiddenHits = $derived(result.data && "hidden" in result.data ? (result.data.hidden ?? 0) : 0);
+const hiddenHits = $derived(view && "hidden" in view ? (view.hidden ?? 0) : 0);
 const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
 const parentTitle = (chat: ChatSummary): string | undefined =>
   chat.subagent
@@ -322,7 +397,7 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
   {/if}
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
-{#if !applied.query && result.data && hits.length}
+{#if !applied.query && view && hits.length}
   <p class="meta" role="status" style:margin-top="8px">{rangeLabel}{foldedLabel}</p>
 {:else if applied.query && hiddenHits}
   <p class="meta" role="status" style:margin-top="8px">{hiddenHits.toLocaleString()} match{hiddenHits === 1 ? "" : "es"} in subagent chats left out on this page.{#if remoteHits} Results from other machines stay in, since only the machine that indexed a chat knows it is a subagent.{/if}</p>
@@ -330,40 +405,40 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
 </div>
 
 <QueryError title="Couldn’t load chats" query={catalogue} />
-<QueryError title="Couldn’t load results" query={result} />
-{#if (result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
+{#if !streamed}<QueryError title="Couldn’t load results" query={result} />{/if}
+{#if (streamed ? !view && !federated.done : result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
   <div class="card" role="status">
     <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
     <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
   </div>
 {/if}
-{#if result.data}
-  {#each result.data.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
+{#if view}
+  {#each view.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
   {#if !hits.length}
     <div class="card empty">
       <img src={asset("mashy.png")} alt="" />
       <h2>
-        {#if result.data.first > 0}No results on this page
+        {#if view.first > 0}No results on this page
         {:else if applied.query || filtered}No results
         {:else}No chats to show{/if}
       </h2>
-      {#if applied.query && result.data.first === 0}
+      {#if applied.query && view.first === 0}
         <p>
           {#if filtered}Nothing matched “{applied.query}” with the selected filters.
-          {:else if result.data.intent === "related-discussion"}Try a short question in English about the chat.
+          {:else if view.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
       {/if}
       <div class="acts" style:justify-content="center">
-        {#if result.data.first > 0}
+        {#if view.first > 0}
           <a class="btn p" href={page(0)}>First page</a>
         {/if}
         {#if filtered}
           <a class="btn p" href={clearFiltersHref}>Clear filters</a>
-        {:else if result.data.first === 0 && !applied.query}
+        {:else if view.first === 0 && !applied.query}
           <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
         {/if}
-        {#if applied.query && result.data.first === 0}
+        {#if applied.query && view.first === 0}
           <!-- Two ways on when a search finds nothing: look through the chats
                themselves, or learn why one might not be indexed. -->
           <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
@@ -376,12 +451,13 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       {#if applied.query}
         <!-- Each match is a card of its own: the title and the passage that
              matched, with the searched words marked. -->
-        <p class="meta" role="status" style:margin-bottom="14px">{rangeLabel}</p>
-        <div class="results">
+        <p class="meta" role="status" style:margin-bottom="14px">{streamed && status.text ? status.text : rangeLabel}{#if streamed && status.retry}{" · "}<button class="a" type="button" onclick={() => federated.retry()}>Retry</button>{/if}</p>
+        <!-- Moving to a result keeps the list where it is while more arrive. -->
+        <div class="results" role="presentation" onmouseenter={() => federated.interact()} onfocusin={() => federated.interact()}>
           {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
             <a class="card pad0" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}>
               <span class="chatrow">
-                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b><SubagentPill chat={hit.chat} parentTitle={parentTitle(hit.chat)} />{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
+                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b>{#if "byMeaning" in hit && hit.byMeaning}<span class="pill">by meaning</span>{/if}<SubagentPill chat={hit.chat} parentTitle={parentTitle(hit.chat)} />{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
                 {#if hit.before}<span class="snip res-s"><Highlight text={hit.before} query={applied.query} /></span>{/if}
                 <MetaChips chat={hit.chat} />
               </span>
@@ -395,12 +471,15 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
           {/each}
         </div>
       {/if}
-      {#if result.data.first > 0 || result.data.nextOffset !== null}
+      {#if streamed && federated.done && hits.length && federated.hits.length % pageSize === 0}
+        <!-- More continues the same merged ranking; results already shown stay put. -->
+        <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}>Show more results</button></div>
+      {:else if view.first > 0 || view.nextOffset !== null}
         <nav class="hd" aria-label="Pages" style:margin-top="14px">
           <span class="meta">{rangeLabel}</span>
           <span class="acts">
-            {#if result.data.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, result.data.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
-            {#if result.data.nextOffset !== null}<a class="btn sm" rel="next" href={page(result.data.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
+            {#if view.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, view.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
+            {#if view.nextOffset !== null}<a class="btn sm" rel="next" href={page(view.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
           </span>
         </nav>
       {/if}

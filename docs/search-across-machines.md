@@ -28,6 +28,13 @@ the original message in the conversation.
 3. Check the machine shown on the result, then open it to read the surrounding
    conversation. [Read a chat in the dashboard](dashboard.md#find-and-read-a-chat).
 
+A search asks this computer and your other machines at the same time and shows
+one list, adding results as each machine answers. This computer's matches show
+first; once you move to a result, the rows on screen keep their places and later
+results are added below them. A line above the results says which machines are
+still searching, or which did not answer, with **Retry**. Results found only by
+meaning, not by their words, are marked **by meaning**.
+
 ## Search from the terminal
 
 Replace `authentication` with a word or phrase from your chats and
