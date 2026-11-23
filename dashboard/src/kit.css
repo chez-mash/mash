@@ -408,9 +408,9 @@ input.radio:checked {
 }
 /* The agent named on an outlined chip, as in a chat's header. */
 .mt.agent {
-  gap: 7px;
+  gap: 6px;
   height: 28px;
-  padding: 0 11px 0 3px;
+  padding: 0 12px 0 9px;
   border: var(--border-fill);
   border-radius: var(--radius-pill);
   background: var(--surface-raised);
@@ -1126,4 +1126,17 @@ a.card.opc:hover {
 }
 .kvs.flip {
   grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* Inside the pill the agent's logo stands on its own: a tile with its own
+   outline inside an outlined pill read as two nested boxes. */
+.mt.agent .mark {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  background: none;
+}
+.mt.agent .mark svg {
+  width: 15px;
+  height: 15px;
 }
