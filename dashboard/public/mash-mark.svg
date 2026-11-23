@@ -20,15 +20,6 @@
       stroke-width="3"
       transform="rotate(-12 32.5 18.5)"
     />
-    <rect
-      x="5.5"
-      y="51"
-      width="53"
-      height="6.5"
-      rx="3.25"
-      fill="#f4a583"
-      stroke="#16150f"
-      stroke-width="3"
-    />
+    <rect x="5.5" y="50.5" width="53" height="7" rx="3.5" fill="#ee7b3a" />
   </g>
 </svg>
