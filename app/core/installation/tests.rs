@@ -503,7 +503,7 @@ fn installation_expects_recorded_agents_whose_registration_disappeared() {
     let configuration = finding(&unused.clients[1], Component::Configuration);
     assert_eq!(
         configuration.remediation.as_deref(),
-        Some("To require this agent, run `mash status --installation --agent claude-code`.")
+        Some("Run `mash init` and select this agent.")
     );
     let report = collect(Some(&environment), &[], &[Agent::ClaudeCode]);
     let client = &report.clients[1];
