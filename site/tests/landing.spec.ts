@@ -50,7 +50,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   await expect(measured.locator("p")).toContainText("experimental and off until you");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
-    "Try it",
+    "Try the demo",
     "Privacy",
     "Get help",
     "GitHub",
