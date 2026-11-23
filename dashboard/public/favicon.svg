@@ -1,16 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mash">
-  <!-- The Mash logo: the mark as a sticker on a butter tile, the same in both themes and as the app icon. -->
-  <rect
-    x="1.5"
-    y="1.5"
-    width="61"
-    height="61"
-    rx="14"
-    fill="#ffd34e"
-    stroke="#16150f"
-    stroke-width="3"
-  />
-  <g transform="translate(6.4 5.2) scale(.8)">
+  <!-- The Mash logo: the mark on a plain butter tile, the same in both themes and as the app icon. -->
+  <rect width="64" height="64" rx="14" fill="#ffd34e" />
+  <g transform="translate(4.8 3.5) scale(.85)">
     <path
       d="M9 47a23 23 0 0 1 46 0z"
       fill="#fff6dc"
