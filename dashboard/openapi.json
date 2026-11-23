@@ -245,6 +245,10 @@
       },
       "AppLink": {
         "properties": {
+          "addsSession": {
+            "description": "Whether the app does not have the session yet, so following the link\nadds it to the app as a new session.",
+            "type": "boolean"
+          },
           "app": {
             "description": "The app's name, as a button names it.",
             "type": "string"
@@ -255,7 +259,8 @@
         },
         "required": [
           "app",
-          "url"
+          "url",
+          "addsSession"
         ],
         "type": "object"
       },
@@ -3867,8 +3872,15 @@
           "agent": {
             "$ref": "#/components/schemas/Provider"
           },
+          "cwd": {
+            "description": "The folder the chat ran in, as Mash recorded it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
-            "description": "The chat's ID, which is the session ID the agent knows it by.",
+            "description": "The chat's ID in Mash.",
             "type": "string"
           }
         },
@@ -6882,12 +6894,22 @@
             "style": "form"
           },
           {
-            "description": "The chat's ID, which is the session ID the agent knows it by.",
+            "description": "The folder the chat ran in, as Mash recorded it.",
+            "in": "query",
+            "name": "cwd",
+            "schema": {
+              "description": "The folder the chat ran in, as Mash recorded it.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "The chat's ID in Mash.",
             "in": "query",
             "name": "id",
             "required": true,
             "schema": {
-              "description": "The chat's ID, which is the session ID the agent knows it by.",
+              "description": "The chat's ID in Mash.",
               "type": "string"
             },
             "style": "form"

@@ -543,6 +543,11 @@ export interface components {
             text: string;
         };
         AppLink: {
+            /**
+             * @description Whether the app does not have the session yet, so following the link
+             *     adds it to the app as a new session.
+             */
+            addsSession: boolean;
             /** @description The app's name, as a button names it. */
             app: string;
             url: string;
@@ -1642,7 +1647,9 @@ export interface components {
         };
         OpenInParams: {
             agent: components["schemas"]["Provider"];
-            /** @description The chat's ID, which is the session ID the agent knows it by. */
+            /** @description The folder the chat ran in, as Mash recorded it. */
+            cwd?: string | null;
+            /** @description The chat's ID in Mash. */
             id: string;
         };
         Origin: {
@@ -2789,7 +2796,9 @@ export interface operations {
         parameters: {
             query: {
                 agent: components["schemas"]["Provider"];
-                /** @description The chat's ID, which is the session ID the agent knows it by. */
+                /** @description The folder the chat ran in, as Mash recorded it. */
+                cwd?: string;
+                /** @description The chat's ID in Mash. */
                 id: string;
             };
             header?: never;

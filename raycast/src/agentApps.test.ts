@@ -54,7 +54,16 @@ describe("the link to a chat in its agent's app", () => {
   });
   it("opens a Claude session only when the app owns it", () => {
     const chat = { agent: "claude-code", chatId: claudeSession };
-    expect(openInAgentApp(chat, all, new Set())).toBeUndefined();
+    // A session the app does not have yet is added to it, and the title says so.
+    expect(openInAgentApp(chat, all, new Set())).toEqual({
+      title: "Add to Claude",
+      url: `claude://resume?session=${claudeSession}`,
+    });
+    // The folder goes along, with every special character encoded.
+    expect(openInAgentApp({ ...chat, project: "/work/a b&c#d/é" }, all, new Set([claudeSession]))).toEqual({
+      title: "Open in Claude",
+      url: `claude://resume?session=${claudeSession}&cwd=%2Fwork%2Fa%20b%26c%23d%2F%C3%A9`,
+    });
     expect(openInAgentApp(chat, all, new Set([claudeSession]))).toEqual({
       title: "Open in Claude",
       url: `claude://resume?session=${claudeSession}`,

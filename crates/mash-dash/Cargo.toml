@@ -12,6 +12,7 @@ mash-app = { path = "../../app" }
 mash-fleet = { path = "../mash-fleet" }
 mash-mcp = { path = "../mash-mcp" }
 mash-model = { path = "../mash-model" }
+mash-silver = { path = "../mash-silver" }
 blake3 = "1.8.5"
 jiff = { version = "1.0.1", default-features = false, features = ["std"] }
 regex = "1.12"

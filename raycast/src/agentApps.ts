@@ -6,10 +6,14 @@
  *   opens `codex://threads/<thread id>` at that thread, whether Codex Desktop
  *   or the Codex CLI recorded it.
  * - Claude Code: the Claude app registers claude:// and opens
- *   `claude://resume?session=<session id>` at the app session that owns the
- *   transcript. A session the app does not own would be imported into the app
- *   as a new one, so the link is made only when one of the app's session files
- *   names it.
+ *   `claude://resume?session=<session id>&cwd=<folder>` at the app session
+ *   that owns the transcript. A session the app does not own is added to the
+ *   app as a new one, so the action says "Add to Claude" for it, from the
+ *   app's own session files.
+ *
+ * The Copilot app's link needs the session behind Mash's hashed chat ID, which
+ * only the dashboard works out; the other agents' apps have no link to one
+ * chat.
  *
  * File reading is passed in, so this is tested without a Mac.
  */
@@ -86,7 +90,7 @@ export function isClaudeSessionFile(name: string): boolean {
  * an installed app opens it; `owned` names the sessions the Claude app has.
  */
 export function openInAgentApp(
-  hit: { readonly agent: string; readonly chatId: string },
+  hit: { readonly agent: string; readonly chatId: string; readonly project?: string },
   installed: readonly AgentApp[],
   owned: ReadonlySet<string>,
 ): { title: string; url: string } | undefined {
@@ -96,8 +100,13 @@ export function openInAgentApp(
   if (app?.agent === "codex") {
     return { title: `Open in ${app.name}`, url: `codex://threads/${hit.chatId}` };
   }
-  if (app?.agent === "claude-code" && owned.has(hit.chatId)) {
-    return { title: `Open in ${app.name}`, url: `claude://resume?session=${hit.chatId}` };
+  if (app?.agent === "claude-code") {
+    // The folder rides along so the app resumes the session where it ran.
+    const folder = hit.project ? `&cwd=${encodeURIComponent(hit.project)}` : "";
+    return {
+      title: owned.has(hit.chatId) ? `Open in ${app.name}` : `Add to ${app.name}`,
+      url: `claude://resume?session=${hit.chatId}${folder}`,
+    };
   }
   return undefined;
 }

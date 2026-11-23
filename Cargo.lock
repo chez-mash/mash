@@ -2209,6 +2209,7 @@ dependencies = [
  "mash-fleet",
  "mash-mcp",
  "mash-model",
+ "mash-silver",
  "regex",
  "reqwest",
  "rusqlite",

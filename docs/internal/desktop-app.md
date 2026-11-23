@@ -136,8 +136,9 @@ which Tauri does not offer, so that is not attempted.
 The window loads only the app's page and the dashboard's own origin. Any
 other address a page tries to open, by link or by a new window, goes to the
 reader's browser through `tauri-plugin-opener`, if it is a web or mail
-address, or to its agent's app, if it is a `codex://` or `claude://` link
-from the chat page's Open in Codex or Claude; other schemes are dropped. The
+address, or to its agent's app, if it is a `codex://`, `claude://` or
+`ghapp://` link from the chat page's Open in Codex, Claude or Copilot; other
+schemes are dropped. The
 one exception is the empty
 window the dashboard writes a chat into for printing to PDF. The dashboard is
 given no Tauri permissions; `withGlobalTauri` is off, and the app's own page

@@ -266,7 +266,10 @@ pub(crate) fn navigate(app: &AppHandle, url: &Url, from_panel: bool) -> bool {
 }
 
 /// Open a web or mail address in the program the reader uses for it, and a
-/// chat's link into its agent's app (the dashboard's Open in Codex or Claude).
+/// chat's link into its agent's app (the dashboard's Open in Codex, Claude or
+/// Copilot). The opener hands the whole link to the system as one value (on
+/// Windows through `Start-Process`, never `cmd /c start`), so a link's `&` and
+/// percent-encoded query arrive intact.
 pub(crate) fn open_outside(app: &AppHandle, url: &Url) {
     if opens_outside(url) {
         let _ = app.opener().open_url(url.as_str(), None::<&str>);
@@ -276,7 +279,7 @@ pub(crate) fn open_outside(app: &AppHandle, url: &Url) {
 fn opens_outside(url: &Url) -> bool {
     matches!(
         url.scheme(),
-        "http" | "https" | "mailto" | "codex" | "claude"
+        "http" | "https" | "mailto" | "codex" | "claude" | "ghapp"
     )
 }
 
@@ -514,7 +517,8 @@ mod tests {
             "https://getmash.io/",
             "mailto:someone@example.com",
             "codex://threads/01a1b649-827e-7692-a5b1-0de415a69df5",
-            "claude://resume?session=586f44fa-8aaa-4587-b69f-b763d3279ef1",
+            "claude://resume?session=586f44fa-8aaa-4587-b69f-b763d3279ef1&cwd=%2Fwork%2Fa%20b",
+            "ghapp://sessions/1e792353-1ec1-4f5a-a285-c73b23bdd829",
         ] {
             assert!(opens_outside(&url(system)), "{system}");
         }

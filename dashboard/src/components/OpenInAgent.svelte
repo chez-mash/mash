@@ -18,8 +18,8 @@ const asked = $derived(local && mayOpenInApp(chat.agent, chat.id));
 const link = createQuery(() => ({
   ...stableRead,
   enabled: asked,
-  queryKey: ["open-in", chat.agent, chat.id],
-  queryFn: ({ signal }) => appLink(chat.agent, chat.id, signal),
+  queryKey: ["open-in", chat.agent, chat.id, chat.project],
+  queryFn: ({ signal }) => appLink(chat, signal),
 }));
 const command = $derived(local ? resumeCommand(chat.agent, chat.id) : undefined);
 // Wait for the answer, so the button does not change under the pointer.
@@ -37,7 +37,13 @@ async function copyCommand(text: string): Promise<void> {
 </script>
 
 {#if asked && link.data}
-  <a class="btn" href={link.data.url} title="Open this session in the {link.data.app} app"><SquareArrowOutUpRight size={15} aria-hidden="true" />Open in {link.data.app}</a>
+  <!-- A session the app does not have yet is added to it as a new one, so
+       the button says so before the click. -->
+  {#if link.data.addsSession}
+    <a class="btn" href={link.data.url} title="Adds this session to the {link.data.app} app as a new session, then opens it"><SquareArrowOutUpRight size={15} aria-hidden="true" />Add to {link.data.app}</a>
+  {:else}
+    <a class="btn" href={link.data.url} title="Open this session in the {link.data.app} app"><SquareArrowOutUpRight size={15} aria-hidden="true" />Open in {link.data.app}</a>
+  {/if}
 {:else if settled && command}
   <button class="btn" type="button" title={command} onclick={() => copyCommand(command)}><Terminal size={15} aria-hidden="true" />Copy resume command</button>
 {/if}

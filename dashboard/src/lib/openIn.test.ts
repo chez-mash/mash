@@ -11,6 +11,9 @@ describe("opening a chat in its agent", () => {
     expect(mayOpenInApp("claude-code", "50cf5623ea898883ead39971")).toBe(false);
     expect(mayOpenInApp("cursor", session)).toBe(false);
     expect(mayOpenInApp("opencode", session)).toBe(false);
+    // The server finds a Copilot chat's session from Mash's own ID.
+    expect(mayOpenInApp("copilot", "0123456789abcdef01234567")).toBe(true);
+    expect(mayOpenInApp("copilot", session)).toBe(false);
   });
 
   it("offers it only for a chat of the machine showing the page", () => {

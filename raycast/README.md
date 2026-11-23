@@ -9,9 +9,10 @@ From a chat you can:
 - **Open Chat in Mash** (↵) — the chat, at that message, in the Mash desktop
   app. Offered only when the app is installed.
 - **Open in Codex** or **Open in Claude** (⇧⌘O) — the session in its agent's
-  own app: a Codex thread in the ChatGPT app, or a Claude Code session the
-  Claude app started (read from the app's own session list). Offered only
-  when that app is installed.
+  own app: a Codex thread in the ChatGPT app, or a Claude Code session in the
+  Claude app, in the folder it ran in. For a session the Claude app doesn't
+  have yet, the action reads **Add to Claude**, since the app adds it as a new
+  session. Offered only when that app is installed.
 - **Read Messages** — the match with a few messages on either side, without
   leaving Raycast. This is the main action when the desktop app is not
   installed.

@@ -6,6 +6,8 @@ import { expect, test } from "@playwright/test";
 const codex = "01a1b649-827e-7692-a5b1-0de415a69df5";
 const claude = "586f44fa-8aaa-4587-b69f-b763d3279ef1";
 const elsewhere = "11111111-2222-3333-4444-555555555555";
+const added = "7d0c2a51-9a3e-4b8e-9f2a-3c1d5e6f7a8b";
+const copilot = "0123456789abcdef01234567";
 
 const row = (chat_id: string, provider: string, node_id: string) => ({
   chat_id,
@@ -17,9 +19,11 @@ const row = (chat_id: string, provider: string, node_id: string) => ({
 });
 
 let asked: string[] = [];
+let folders: (string | null)[] = [];
 
 test.beforeEach(async ({ page }) => {
   asked = [];
+  folders = [];
   await page.route("**/api/records?**", (route) =>
     route.fulfill({ json: { records: [], next_offset: null } }),
   );
@@ -32,6 +36,8 @@ test.beforeEach(async ({ page }) => {
           row(codex, "codex", "laptop"),
           row(claude, "claude-code", "laptop"),
           row(elsewhere, "codex", "desk"),
+          row(added, "claude-code", "laptop"),
+          row(copilot, "copilot", "laptop"),
         ],
       },
     }),
@@ -48,14 +54,25 @@ test.beforeEach(async ({ page }) => {
     const url = new URL(route.request().url());
     const id = url.searchParams.get("id") ?? "";
     asked.push(id);
-    route.fulfill({
-      json: {
-        link:
-          id === codex && url.searchParams.get("agent") === "codex"
-            ? { app: "Codex", url: `codex://threads/${id}` }
-            : null,
-      },
-    });
+    folders.push(url.searchParams.get("cwd"));
+    const agent = url.searchParams.get("agent");
+    const link =
+      id === codex && agent === "codex"
+        ? { app: "Codex", url: `codex://threads/${id}`, addsSession: false }
+        : id === added && agent === "claude-code"
+          ? {
+              app: "Claude",
+              url: `claude://resume?session=${id}&cwd=%2Fwork%2Fproject`,
+              addsSession: true,
+            }
+          : id === copilot && agent === "copilot"
+            ? {
+                app: "Copilot",
+                url: "ghapp://sessions/1e792353-1ec1-4f5a-a285-c73b23bdd829",
+                addsSession: false,
+              }
+            : null;
+    route.fulfill({ json: { link } });
   });
 });
 
@@ -86,4 +103,25 @@ test("a chat of another machine offers neither, and is not asked about", async (
   await expect(page.getByRole("link", { name: /^Open in / })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Copy resume command" })).toHaveCount(0);
   expect(asked).not.toContain(elsewhere);
+});
+
+test("a Claude session the app does not have says the link adds it", async ({ page }) => {
+  await page.goto(`/#/chat/${added}`);
+  const add = page.getByRole("link", { name: "Add to Claude" });
+  await expect(add).toHaveAttribute(
+    "href",
+    `claude://resume?session=${added}&cwd=%2Fwork%2Fproject`,
+  );
+  await expect(add).toHaveAttribute("title", /Adds this session to the Claude app/);
+  await expect(page.getByRole("link", { name: /^Open in / })).toHaveCount(0);
+  // The chat's folder goes along, for the app to resume the session there.
+  expect(folders).toContain("/work/project");
+});
+
+test("a Copilot chat opens its session in the Copilot app", async ({ page }) => {
+  await page.goto(`/#/chat/${copilot}`);
+  await expect(page.getByRole("link", { name: "Open in Copilot" })).toHaveAttribute(
+    "href",
+    "ghapp://sessions/1e792353-1ec1-4f5a-a285-c73b23bdd829",
+  );
 });
