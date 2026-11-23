@@ -11,6 +11,8 @@ test("a skip link is the first stop and lands on the page's content", async ({ p
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/#/projects");
+  // Tab only once the page is drawn, or the key lands before the link exists.
+  await expect(rail(page).getByRole("link", { name: "projects", exact: true })).toBeVisible();
   await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
