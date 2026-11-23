@@ -202,13 +202,10 @@ fn judge(success: bool, output: &str, errors: &str) -> (Outcome, String) {
     };
     let agents: Vec<(String, &serde_json::Value)> = report["agents"]
         .as_array()
-        .map(|agents| {
-            agents
-                .iter()
-                .map(|agent| (name(&agent["agent"]), &agent["plugin"]))
-                .collect()
-        })
-        .unwrap_or_default();
+        .into_iter()
+        .flatten()
+        .map(|agent| (name(&agent["agent"]), &agent["plugin"]))
+        .collect();
     if agents.is_empty() {
         return (
             Outcome::Failed,
