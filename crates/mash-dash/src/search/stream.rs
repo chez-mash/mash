@@ -1,14 +1,16 @@
 //! Federated search as a stream: one line of JSON per update, the merged
 //! ranking so far and every source's state, as each source answers.
 //!
-//! The search runs in its own task, which is aborted when the browser stops
-//! reading (it typed on or left the page), so a cancelled query neither keeps
-//! working nor delivers its results to a newer one.
+//! The response body is the search's own stream, so when the browser stops
+//! reading (it typed on or left the page) the body is dropped and the sources
+//! still running go with it: a cancelled query neither keeps working nor
+//! delivers its results to a newer one.
 use super::{providers, split};
 use crate::core::search::federated::{self, Scope, Spec};
 use crate::{Dash, json_result};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
+use futures_util::StreamExt;
 use mash_model::AppError;
 use std::sync::Arc;
 
@@ -56,15 +58,6 @@ pub(crate) fn spec(params: StreamParams, shared_only: bool) -> Result<Spec, AppE
     })
 }
 
-/// Stops the search when the response body is dropped.
-struct AbortOnDrop(tokio::task::JoinHandle<()>);
-
-impl Drop for AbortOnDrop {
-    fn drop(&mut self) {
-        self.0.abort();
-    }
-}
-
 pub(crate) async fn stream(
     State(state): State<Arc<Dash>>,
     axum::extract::Query(params): axum::extract::Query<StreamParams>,
@@ -73,34 +66,13 @@ pub(crate) async fn stream(
         Ok(spec) => spec,
         Err(error) => return json_result(Err(error)),
     };
-    let (sender, receiver) = tokio::sync::mpsc::unbounded_channel::<Vec<u8>>();
-    let task = tokio::spawn({
-        let state = state.clone();
-        async move {
-            let send = |value: &dyn erased::Line| {
-                let mut line = value.line();
-                line.push(b'\n');
-                sender.send(line).is_ok()
-            };
-            let paths = state.paths.clone();
-            let outcome =
-                federated::search(paths, spec, Some(&state.model_work), |update| send(&update))
-                    .await;
-            // A search that could not start says why, as its only line.
-            if let Err(error) = outcome {
-                send(&error);
-            }
-        }
+    let search = federated::search(state.paths.clone(), spec, Some(state.model_work.clone()));
+    // A search that could not start says why, as its only line.
+    let body = futures_util::stream::once(search).flat_map(|started| match started {
+        Ok(updates) => updates.map(|update| line(&update)).left_stream(),
+        Err(error) => futures_util::stream::iter([line(&error)]).right_stream(),
     });
-    let guard = AbortOnDrop(task);
-    let body =
-        futures_util::stream::unfold((receiver, guard), |(mut receiver, guard)| async move {
-            let line = receiver.recv().await?;
-            Some((
-                Ok::<_, std::convert::Infallible>(axum::body::Bytes::from(line)),
-                (receiver, guard),
-            ))
-        });
+    let body = body.map(Ok::<_, std::convert::Infallible>);
     (
         [
             (axum::http::header::CONTENT_TYPE, "application/x-ndjson"),
@@ -111,21 +83,11 @@ pub(crate) async fn stream(
         .into_response()
 }
 
-/// Updates and errors are each written as one line of JSON.
-mod erased {
-    pub(super) trait Line {
-        fn line(&self) -> Vec<u8>;
-    }
-    impl Line for crate::core::search::federated::Update {
-        fn line(&self) -> Vec<u8> {
-            serde_json::to_vec(self).unwrap_or_default()
-        }
-    }
-    impl Line for mash_model::AppError {
-        fn line(&self) -> Vec<u8> {
-            serde_json::to_vec(self).unwrap_or_default()
-        }
-    }
+/// An update or an error as one line of JSON.
+fn line(value: &impl serde::Serialize) -> axum::body::Bytes {
+    let mut line = serde_json::to_vec(value).unwrap_or_default();
+    line.push(b'\n');
+    axum::body::Bytes::from(line)
 }
 
 #[cfg(test)]

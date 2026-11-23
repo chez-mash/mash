@@ -13,7 +13,7 @@
 //! and never holds back the others.
 use crate::AppError;
 use crate::core::{Operation, Paths, Request, Response};
-use futures_util::stream::{FuturesUnordered, StreamExt};
+use futures_util::stream::{FuturesUnordered, Stream, StreamExt};
 use std::time::{Duration, Instant};
 
 mod fusion;
@@ -128,16 +128,16 @@ const LIVE_LIMIT: usize = 20;
 const FULL_LIMIT: usize = 100;
 const MEANING_MIN_CHARS: usize = 3;
 
-/// Run `spec`, calling `emit` with an update when the search starts and after
-/// each source answers. `emit` returns `false` when nobody is listening any
-/// more (the reader typed on or closed the page); the search then stops and
-/// drops the sources still running.
+/// Run `spec` as a stream of updates: one when the search starts and one after
+/// each source answers. The stream owns its sources, so dropping it (the reader
+/// typed on, closed the page or the pipe) cancels the ones still running. What
+/// stops a search before it starts (an empty query, unreadable configuration)
+/// is returned as the error instead.
 pub async fn search(
     paths: Paths,
     spec: Spec,
-    capacity: Option<&tokio::sync::Semaphore>,
-    emit: impl FnMut(Update) -> bool,
-) -> Result<(), AppError> {
+    capacity: Option<std::sync::Arc<tokio::sync::Semaphore>>,
+) -> Result<impl Stream<Item = Update> + Send + 'static, AppError> {
     let query = spec.query.trim().to_owned();
     if query.is_empty() {
         return Err(AppError::usage("search needs a query"));
@@ -166,24 +166,23 @@ pub async fn search(
             (
                 source,
                 time_limit(source, spec.live),
-                run(request, capacity),
+                run(request, capacity.clone()),
             )
         })
         .collect();
     let answer = Answer {
-        query: &query,
-        local_node: &local_node,
+        query,
+        local_node,
         limit,
         rank_constant: configuration.views.query.fusion.rank_constant,
     };
-    drive(&answer, statuses, jobs, emit).await;
-    Ok(())
+    Ok(drive(answer, statuses, jobs))
 }
 
 /// What every update repeats.
-pub(crate) struct Answer<'a> {
-    pub(crate) query: &'a str,
-    pub(crate) local_node: &'a str,
+pub(crate) struct Answer {
+    pub(crate) query: String,
+    pub(crate) local_node: String,
     pub(crate) limit: usize,
     /// The configured `[views.query.fusion]` constant, as every other merge uses.
     pub(crate) rank_constant: u16,
@@ -191,84 +190,75 @@ pub(crate) struct Answer<'a> {
 
 type Rows = (Vec<serde_json::Value>, Option<String>);
 
-/// Run every source at once, each within its time limit, and emit the merged
-/// ranking after each answers. Stops, dropping the sources still running, as
-/// soon as `emit` says nobody is listening.
-pub(crate) async fn drive<F>(
-    answer: &Answer<'_>,
-    mut statuses: Vec<SourceStatus>,
+/// Run every source at once, each within its time limit, yielding the merged
+/// ranking when the search starts and after each source answers. The sources
+/// live inside the stream, so dropping it drops the ones still running.
+pub(crate) fn drive<F>(
+    answer: Answer,
+    statuses: Vec<SourceStatus>,
     jobs: Vec<(Source, Duration, F)>,
-    mut emit: impl FnMut(Update) -> bool,
-) where
+) -> impl Stream<Item = Update>
+where
     F: std::future::Future<Output = Result<Rows, AppError>>,
 {
-    let Answer {
-        query,
-        local_node,
-        limit,
-        rank_constant,
-    } = *answer;
-    if !emit(update(
-        query,
-        local_node,
-        &[],
-        &statuses,
-        limit,
-        rank_constant,
-    )) {
-        return;
+    async_stream::stream! {
+        let Answer { query, local_node, limit, rank_constant } = answer;
+        let mut statuses = statuses;
+        yield update(&query, &local_node, &[], &statuses, limit, rank_constant);
+        let mut pending = jobs
+            .into_iter()
+            .map(|(source, allowed, job)| async move {
+                let started = Instant::now();
+                let answer = tokio::time::timeout(allowed, job).await;
+                (source, allowed, started.elapsed(), answer)
+            })
+            .collect::<FuturesUnordered<_>>();
+        let mut answered: Vec<(Source, Vec<serde_json::Value>)> = Vec::new();
+        while let Some((source, allowed, elapsed, answer)) = pending.next().await {
+            let state = settle(&mut answered, source, allowed, elapsed, answer);
+            if let Some(status) = statuses.iter_mut().find(|status| status.source == source) {
+                status.state = state;
+            }
+            answered.sort_by_key(|(source, _)| *source);
+            yield update(&query, &local_node, &answered, &statuses, limit, rank_constant);
+        }
     }
-    let mut pending = jobs
-        .into_iter()
-        .map(|(source, limit, job)| async move {
-            let started = Instant::now();
-            let answer = tokio::time::timeout(limit, job).await;
-            (source, limit, started.elapsed(), answer)
-        })
-        .collect::<FuturesUnordered<_>>();
-    let mut answered: Vec<(Source, Vec<serde_json::Value>)> = Vec::new();
-    while let Some((source, allowed, elapsed, answer)) = pending.next().await {
-        let elapsed_ms = u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX);
-        let state = match answer {
-            Err(_) => State::Failed {
-                message: format!("didn't answer in {} s", allowed.as_secs_f32()),
-                elapsed_ms,
-                timed_out: true,
-            },
-            Ok(Err(error)) => State::Failed {
-                message: error.error.message,
+}
+
+/// One source's answer as its state, keeping any rows it brought.
+fn settle(
+    answered: &mut Vec<(Source, Vec<serde_json::Value>)>,
+    source: Source,
+    allowed: Duration,
+    elapsed: Duration,
+    answer: Result<Result<Rows, AppError>, tokio::time::error::Elapsed>,
+) -> State {
+    let elapsed_ms = u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX);
+    match answer {
+        Err(_) => State::Failed {
+            message: format!("didn't answer in {} s", allowed.as_secs_f32()),
+            elapsed_ms,
+            timed_out: true,
+        },
+        Ok(Err(error)) => State::Failed {
+            message: error.error.message,
+            elapsed_ms,
+            timed_out: false,
+        },
+        Ok(Ok((rows, None))) => {
+            let count = rows.len();
+            answered.push((source, rows));
+            State::Done { count, elapsed_ms }
+        }
+        // A shared search that could not reach the server still answers,
+        // with the server's error beside whatever it had.
+        Ok(Ok((rows, Some(message)))) => {
+            answered.push((source, rows));
+            State::Failed {
+                message,
                 elapsed_ms,
                 timed_out: false,
-            },
-            Ok(Ok((rows, None))) => {
-                let count = rows.len();
-                answered.push((source, rows));
-                State::Done { count, elapsed_ms }
             }
-            // A shared search that could not reach the server still answers,
-            // with the server's error beside whatever it had.
-            Ok(Ok((rows, Some(message)))) => {
-                answered.push((source, rows));
-                State::Failed {
-                    message,
-                    elapsed_ms,
-                    timed_out: false,
-                }
-            }
-        };
-        if let Some(status) = statuses.iter_mut().find(|status| status.source == source) {
-            status.state = state;
-        }
-        answered.sort_by_key(|(source, _)| *source);
-        if !emit(update(
-            query,
-            local_node,
-            &answered,
-            &statuses,
-            limit,
-            rank_constant,
-        )) {
-            return;
         }
     }
 }
@@ -276,10 +266,10 @@ pub(crate) async fn drive<F>(
 /// Run one source's search, keeping its chat rows and any shared error.
 async fn run(
     request: Request,
-    capacity: Option<&tokio::sync::Semaphore>,
+    capacity: Option<std::sync::Arc<tokio::sync::Semaphore>>,
 ) -> Result<Rows, AppError> {
     let response = match capacity {
-        Some(capacity) => crate::core::execute_with_model_limit(request, capacity).await?,
+        Some(capacity) => crate::core::execute_with_model_limit(request, &capacity).await?,
         None => crate::core::execute(request).await?,
     };
     let Response::Search(response) = response else {

@@ -130,7 +130,7 @@ async fn fixture(assistant: Option<Script>, access: Option<&str>) -> Fixture {
         loopback: access.is_none(),
         access: super::super::access::Access::new(access),
         shared_only: false,
-        model_work: tokio::sync::Semaphore::new(0),
+        model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(0)),
         services: super::super::services::Services::load(None).unwrap(),
         live: super::super::live::Live::new(None, None),
         questions: Arc::new(tokio::sync::Semaphore::new(super::MAX_QUESTIONS)),

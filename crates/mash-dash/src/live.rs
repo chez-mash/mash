@@ -527,7 +527,7 @@ mod tests {
             loopback: token.is_none(),
             access: super::super::access::Access::new(token),
             shared_only: false,
-            model_work: tokio::sync::Semaphore::new(0),
+            model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(0)),
             services: super::super::services::Services::load(None).unwrap(),
             live,
             questions: std::sync::Arc::new(tokio::sync::Semaphore::new(2)),

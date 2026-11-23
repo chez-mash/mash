@@ -293,14 +293,17 @@ fn federated_fusion_uses_the_configured_constant() {
     );
 }
 
-const ANSWER: Answer<'static> = Answer {
-    query: "invoice",
-    local_node: "laptop",
-    limit: 10,
-    rank_constant: RANK,
-};
+fn answer() -> Answer {
+    Answer {
+        query: "invoice".into(),
+        local_node: "laptop".into(),
+        limit: 10,
+        rank_constant: RANK,
+    }
+}
 
-#[tokio::test]
+// Paused time: the clock advances past the 10 s source without waiting for it.
+#[tokio::test(start_paused = true)]
 async fn a_slow_source_is_reported_without_holding_back_the_others() {
     let statuses = vec![searching(Source::Words), searching(Source::Machines)];
     let jobs: Vec<(Source, Duration, Job)> = vec![
@@ -316,13 +319,8 @@ async fn a_slow_source_is_reported_without_holding_back_the_others() {
             after(10_000, Ok((vec![], None))),
         ),
     ];
-    let mut updates = Vec::new();
-    let started = std::time::Instant::now();
-    drive(&ANSWER, statuses, jobs, |update| {
-        updates.push(update);
-        true
-    })
-    .await;
+    let started = tokio::time::Instant::now();
+    let updates: Vec<Update> = drive(answer(), statuses, jobs).collect().await;
     assert!(
         started.elapsed() < Duration::from_secs(2),
         "the slow source was not waited for"
@@ -340,7 +338,7 @@ async fn a_slow_source_is_reported_without_holding_back_the_others() {
     assert_eq!(last.results.len(), 1, "the words' rows stay");
 }
 
-#[tokio::test]
+#[tokio::test(start_paused = true)]
 async fn a_failing_source_says_why_and_a_shared_error_keeps_its_rows() {
     let statuses = vec![searching(Source::Words), searching(Source::Machines)];
     let jobs: Vec<(Source, Duration, Job)> = vec![
@@ -361,13 +359,8 @@ async fn a_failing_source_says_why_and_a_shared_error_keeps_its_rows() {
             ),
         ),
     ];
-    let mut last = None;
-    drive(&ANSWER, statuses, jobs, |update| {
-        last = Some(update);
-        true
-    })
-    .await;
-    let last = last.unwrap();
+    let updates: Vec<Update> = drive(answer(), statuses, jobs).collect().await;
+    let last = updates.last().unwrap();
     assert!(
         matches!(&last.sources[0].state, State::Failed { message, timed_out: false, .. } if message == "bad words")
     );
@@ -377,14 +370,26 @@ async fn a_failing_source_says_why_and_a_shared_error_keeps_its_rows() {
     assert_eq!(last.results.len(), 1);
 }
 
-#[tokio::test]
+#[tokio::test(start_paused = true)]
 async fn a_reader_who_stops_listening_stops_the_search_and_its_sources() {
-    let finished = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    /// Records that the source it lives in was dropped before it finished.
+    struct Probe(Arc<AtomicBool>);
+    impl Drop for Probe {
+        fn drop(&mut self) {
+            self.0.store(true, Ordering::SeqCst);
+        }
+    }
+    let finished = Arc::new(AtomicBool::new(false));
+    let dropped = Arc::new(AtomicBool::new(false));
     let slow = {
         let finished = finished.clone();
+        let probe = Probe(dropped.clone());
         Box::pin(async move {
+            let _probe = probe;
             tokio::time::sleep(Duration::from_millis(200)).await;
-            finished.store(true, std::sync::atomic::Ordering::SeqCst);
+            finished.store(true, Ordering::SeqCst);
             Ok((vec![], None))
         }) as Job
     };
@@ -397,17 +402,22 @@ async fn a_reader_who_stops_listening_stops_the_search_and_its_sources() {
         ),
         (Source::Meaning, Duration::from_secs(1), slow),
     ];
-    let mut seen = 0;
     // The reader leaves after the first answer (a newer query replaced this one).
-    drive(&ANSWER, statuses, jobs, |_| {
-        seen += 1;
-        seen < 2
-    })
-    .await;
-    assert_eq!(seen, 2);
+    let mut updates = Box::pin(drive(answer(), statuses, jobs));
+    assert!(updates.next().await.is_some(), "the opening update");
+    assert_eq!(updates.next().await.unwrap().results.len(), 1);
+    assert!(
+        !dropped.load(Ordering::SeqCst),
+        "the slow source is still running"
+    );
+    drop(updates);
+    assert!(
+        dropped.load(Ordering::SeqCst),
+        "dropping the stream drops the sources still running"
+    );
     tokio::time::sleep(Duration::from_millis(400)).await;
     assert!(
-        !finished.load(std::sync::atomic::Ordering::SeqCst),
+        !finished.load(Ordering::SeqCst),
         "a cancelled search's sources must not keep working"
     );
 }

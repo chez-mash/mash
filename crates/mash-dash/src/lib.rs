@@ -44,7 +44,7 @@ struct Dash {
     access: access::Access,
     /// Read only the shared index: this machine has no agent history itself.
     shared_only: bool,
-    model_work: tokio::sync::Semaphore,
+    model_work: std::sync::Arc<tokio::sync::Semaphore>,
     services: services::Services,
     console: crate::mcp::console::Console,
     live: live::Live,
@@ -125,7 +125,7 @@ pub async fn run(
         loopback,
         access,
         shared_only,
-        model_work: tokio::sync::Semaphore::new(1),
+        model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(1)),
         services,
     });
     startup::report(address, warn_about_access)?;

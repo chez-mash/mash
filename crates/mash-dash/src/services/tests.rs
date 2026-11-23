@@ -54,7 +54,7 @@ pub(super) async fn app_signed(
         shared_only: false,
         live: super::super::live::Live::new(None, None),
         questions: Arc::new(tokio::sync::Semaphore::new(2)),
-        model_work: tokio::sync::Semaphore::new(1),
+        model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(1)),
         services: Services {
             fleet_path: root
                 .join("fleet.toml")

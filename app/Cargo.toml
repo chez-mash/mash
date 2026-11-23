@@ -30,6 +30,7 @@ reqwest = { version = "0.12", default-features = false, features = ["gzip", "jso
 getrandom = "0.4"
 tracing = "0.1"
 futures-util = "0.3"
+async-stream = "0.3.6"
 tempfile = "3.27.0"
 notify = "8.2.0"
 blake3 = "1.8.5"
@@ -51,6 +52,8 @@ schemars = "1.2"
 qrcode = { version = "0.14", default-features = false }
 
 [dev-dependencies]
+# Paused time, so timeout tests advance the clock instead of sleeping.
+tokio = { version = "1", features = ["test-util"] }
 insta = { version = "1.49.0", features = ["json"] }
 mash-sync = { path = "../crates/mash-sync", features = ["test-support"] }
 mash-search = { path = "../crates/mash-search", features = ["test-support"] }

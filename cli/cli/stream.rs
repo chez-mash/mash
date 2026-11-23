@@ -3,6 +3,7 @@
 use super::{Cli, Command, Paths, Response};
 use crate::AppError;
 use crate::core::search::federated::{self, Scope, Spec};
+use futures_util::StreamExt;
 use std::io::Write;
 
 pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
@@ -39,15 +40,19 @@ pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
         db: cli.db,
         models_dir: cli.models_dir,
     };
+    let mut updates = std::pin::pin!(federated::search(paths, spec, None).await?);
     let stdout = std::io::stdout();
-    federated::search(paths, spec, None, |update| {
+    while let Some(update) = updates.next().await {
         let mut out = stdout.lock();
-        // A reader that has gone (a closed pipe) stops the search.
-        serde_json::to_writer(&mut out, &update).is_ok()
+        let written = serde_json::to_writer(&mut out, &update).is_ok()
             && out.write_all(b"\n").is_ok()
-            && out.flush().is_ok()
-    })
-    .await?;
+            && out.flush().is_ok();
+        // A reader that has gone (a closed pipe) stops the search: leaving
+        // the loop drops the stream and the sources still running.
+        if !written {
+            break;
+        }
+    }
     // Every line is already written; nothing more to print.
     Ok(Response::ServerStopped)
 }
