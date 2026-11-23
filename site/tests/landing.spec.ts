@@ -358,3 +358,24 @@ test("the welcome page fits a phone in every section", async ({ page }) => {
     );
   }
 });
+
+test("every feature tile has an icon, the stack chips have logos, and the close offers two buttons", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const welcome = page.locator(".mash-welcome");
+  const tiles = welcome.locator("#welcome-features article");
+  await expect(tiles).toHaveCount(5);
+  for (const tile of await tiles.all()) await expect(tile.locator(".ico svg")).toBeVisible();
+  const built = welcome.locator(".built li");
+  await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
+  for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
+  // The two closing actions are buttons of one size, each with the same arrow.
+  const actions = welcome.locator(".closing .actions a");
+  await expect(actions).toHaveText(["Get started", "Read the docs"]);
+  await expect(actions.locator("svg")).toHaveCount(2);
+  const heights = await actions.evaluateAll((links) =>
+    links.map((link) => link.getBoundingClientRect().height),
+  );
+  expect(heights[1]).toBe(heights[0]);
+});

@@ -12,12 +12,11 @@ import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
 
-/** The projects Mash is built on, shown under Ferris. Axum has no logo. */
+/** The projects Mash is built on, shown under Ferris, each with its logo. */
 const built = [
   { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)" },
   { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)" },
   { name: "Tokio", svg: tokio, colour: "var(--stack-tokio)" },
-  { name: "Axum", svg: undefined, colour: undefined },
 ];
 
 /** A Simple Icons mark, drawn in the current colour. */
@@ -244,14 +243,17 @@ function mark(svg: string): string {
         </p>
       </article>
       <article>
+        <span class="ico"><Icon name="desktop" /></span>
         <h3>macOS. Linux. Windows.</h3>
         <p>Wherever you work.</p>
       </article>
       <article>
+        <span class="ico"><Icon name="laptop" /></span>
         <h3>Every machine.</h3>
         <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
       </article>
       <article>
+        <span class="ico"><Icon name="document" /></span>
         <h3>Markdown. HTML. PDF.</h3>
         <p>Export any chat.</p>
       </article>
@@ -278,7 +280,7 @@ function mark(svg: string): string {
         <ul class="built" aria-label="Built with">
           {built.map((part) => (
             <li>
-              {part.svg && <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />}
+              <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />
               {part.name}
             </li>
           ))}
@@ -293,7 +295,7 @@ function mark(svg: string): string {
       <h2 id="welcome-close">Give your agents a memory.</h2>
       <p class="actions">
         <a class="button" href="/quick-start/">Get started<Icon name="right-arrow" size="1rem" /></a>
-        <a class="more" href="/guides/">Read the docs ›</a>
+        <a class="button secondary" href="/guides/">Read the docs<Icon name="right-arrow" size="1rem" /></a>
       </p>
     </div>
   </section>

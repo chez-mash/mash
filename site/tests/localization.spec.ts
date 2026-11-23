@@ -737,7 +737,11 @@ for (const locale of [
     await page.keyboard.press("Escape");
 
     const sidebar = page.locator("nav.sidebar");
-    await sidebar.locator("summary").getByText(locale.dashboard, { exact: true }).click();
+    await expect(
+      sidebar
+        .locator(".top-level > li > details > summary")
+        .getByText(locale.dashboard, { exact: true }),
+    ).toBeVisible();
     await sidebar.locator(`a[href="/${locale.path}/services/"]`).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Inspect and manage Mash services",

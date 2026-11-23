@@ -224,7 +224,6 @@ test("the mobile menu still works after navigation", async ({ page }) => {
   await expect(page.locator("h1")).toHaveText("Install Mash");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
   await sidebar.locator('a[href="/synchronization/"]').click();
   await expect(page.locator("h1")).toHaveText("Keep history up to date");
 });
@@ -235,13 +234,14 @@ test("direct links remain usable without JavaScript", async ({ browser }) => {
   await page.goto("http://127.0.0.1:8793/installation/");
   await expect(page.locator("h1")).toHaveText("Install Mash");
   const sidebar = page.locator("nav.sidebar");
-  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
   await sidebar.locator('a[href="/synchronization/"]').click();
   await expect(page.locator("h1")).toHaveText("Keep history up to date");
   await context.close();
 });
 
-test("the sidebar groups related guides under two top-level sections", async ({ page }) => {
+test("the guides page groups guides in two parts, and the sidebar lists each section at the top level", async ({
+  page,
+}) => {
   // The guides directory is a page of cards, one per group, with no sidebar.
   await page.goto("/guides/#find-past-work");
   await expect(page.locator("nav.sidebar")).toHaveCount(0);
@@ -263,14 +263,19 @@ test("the sidebar groups related guides under two top-level sections", async ({ 
   const sidebar = page.locator("nav.sidebar");
   await expect(sidebar.locator(".top-level > li > details > summary")).toHaveText([
     "Start here",
-    "Using Mash",
+    "Dashboard",
+    "Search",
+    "Agents and memory",
+    "Maintenance",
+    "Reference",
   ]);
+  await expect(sidebar.locator(".top-level > li > a")).toHaveText(["Troubleshooting"]);
   const languageSearch = sidebar.getByRole("link", {
     name: "Search in other languages",
     includeHidden: true,
   });
-  await expect(languageSearch).toBeHidden();
-  await sidebar.locator("summary").getByText("Search", { exact: true }).click();
+  // Each section is open, so its guides need no click to find.
+  await expect(languageSearch).toBeVisible();
   await languageSearch.click();
   await expect(page).toHaveURL("/search-languages/");
   await page.reload();

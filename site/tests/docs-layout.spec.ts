@@ -7,7 +7,7 @@ test("a docs page shows where it sits, and its table of contents skips the title
   await page.goto("/tools/");
   await expect(
     page.getByRole("navigation", { name: "Breadcrumb" }).getByRole("listitem"),
-  ).toHaveText(["Using Mash", "Reference", "MCP tool reference"]);
+  ).toHaveText(["Reference", "MCP tool reference"]);
   const contents = page.locator("starlight-toc");
   await expect(contents.getByRole("link", { name: "Overview" })).toBeHidden();
   await expect(contents.getByRole("link", { name: "Search and read chats" })).toBeVisible();

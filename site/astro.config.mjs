@@ -187,217 +187,201 @@ export default defineConfig({
           ],
         },
         {
-          label: "Using Mash",
+          label: "Dashboard",
           translations: {
-            es: "Uso de Mash",
-            fr: "Utiliser Mash",
-            "zh-CN": "使用 Mash",
-            ja: "Mash を使う",
+            es: "Panel web",
+            fr: "Tableau de bord",
+            "zh-CN": "网页面板",
+            ja: "ダッシュボード",
           },
           items: [
             {
-              label: "Dashboard",
+              label: "Use the dashboard",
               translations: {
-                es: "Panel web",
-                fr: "Tableau de bord",
-                "zh-CN": "网页面板",
-                ja: "ダッシュボード",
+                es: "Usar el panel",
+                fr: "Utiliser le tableau de bord",
+                "zh-CN": "使用网页面板",
+                ja: "ダッシュボードを使う",
               },
-              collapsed: true,
-              items: [
-                {
-                  label: "Use the dashboard",
-                  translations: {
-                    es: "Usar el panel",
-                    fr: "Utiliser le tableau de bord",
-                    "zh-CN": "使用网页面板",
-                    ja: "ダッシュボードを使う",
-                  },
-                  slug: "dashboard",
-                },
-                "dashboard-settings",
-                "mashy",
-                "dashboard-access",
-                "services",
-              ],
+              slug: "dashboard",
+            },
+            "dashboard-settings",
+            "mashy",
+            "dashboard-access",
+            "services",
+          ],
+        },
+        {
+          label: "Search",
+          translations: {
+            es: "Búsqueda",
+            fr: "Recherche",
+            "zh-CN": "搜索",
+            ja: "検索",
+          },
+          items: [
+            {
+              label: "Terminal search",
+              translations: {
+                es: "Búsqueda desde el terminal",
+                fr: "Recherche dans le terminal",
+                "zh-CN": "终端搜索",
+              },
+              slug: "search",
+            },
+            "find-missing-chat",
+            {
+              label: "Search in other languages",
+              translations: {
+                es: "Buscar en otros idiomas",
+                fr: "Rechercher dans d’autres langues",
+                "zh-CN": "搜索其他语言的对话",
+                ja: "英語以外のチャットを検索する",
+              },
+              slug: "search-languages",
             },
             {
-              label: "Search",
+              label: "Keep history up to date",
               translations: {
-                es: "Búsqueda",
-                fr: "Recherche",
-                "zh-CN": "搜索",
-                ja: "検索",
+                es: "Mantén el historial al día",
+                fr: "Garder l’historique à jour",
+                "zh-CN": "保持历史记录最新",
               },
-              collapsed: true,
-              items: [
-                {
-                  label: "Terminal search",
-                  translations: {
-                    es: "Búsqueda desde el terminal",
-                    fr: "Recherche dans le terminal",
-                    "zh-CN": "终端搜索",
-                  },
-                  slug: "search",
-                },
-                "find-missing-chat",
-                {
-                  label: "Search in other languages",
-                  translations: {
-                    es: "Buscar en otros idiomas",
-                    fr: "Rechercher dans d’autres langues",
-                    "zh-CN": "搜索其他语言的对话",
-                    ja: "英語以外のチャットを検索する",
-                  },
-                  slug: "search-languages",
-                },
-                {
-                  label: "Keep history up to date",
-                  translations: {
-                    es: "Mantén el historial al día",
-                    fr: "Garder l’historique à jour",
-                    "zh-CN": "保持历史记录最新",
-                  },
-                  slug: "synchronization",
-                },
-                {
-                  label: "Older history and search models",
-                  translations: {
-                    es: "Historial anterior y modelos de búsqueda",
-                    fr: "Historique ancien et modèles de recherche",
-                    "zh-CN": "较早的历史记录和搜索模型",
-                  },
-                  slug: "indexing",
-                },
-                {
-                  label: "Search across your machines",
-                  translations: {
-                    es: "Buscar en varios equipos",
-                    fr: "Rechercher sur plusieurs ordinateurs",
-                    "zh-CN": "跨设备搜索",
-                  },
-                  slug: "search-across-machines",
-                },
-                {
-                  label: "Set up a shared index",
-                  translations: {
-                    es: "Configurar un índice compartido",
-                    fr: "Configurer un index partagé",
-                    "zh-CN": "设置共享索引",
-                    ja: "共有インデックスを設定する",
-                  },
-                  slug: "shared-index",
-                },
-              ],
+              slug: "synchronization",
             },
             {
-              label: "Agents and memory",
+              label: "Older history and search models",
               translations: {
-                es: "Agentes y memoria",
-                fr: "Agents et mémoire",
-                "zh-CN": "代理与记忆",
-                ja: "エージェントと記憶",
+                es: "Historial anterior y modelos de búsqueda",
+                fr: "Historique ancien et modèles de recherche",
+                "zh-CN": "较早的历史记录和搜索模型",
               },
-              collapsed: true,
-              items: [
-                {
-                  label: "Supported agents",
-                  translations: {
-                    es: "Agentes compatibles",
-                    fr: "Agents compatibles",
-                    "zh-CN": "支持的代理",
-                    ja: "対応するエージェント",
-                  },
-                  slug: "supported-agents",
-                },
-                {
-                  label: "Connect an agent",
-                  translations: {
-                    es: "Conectar un agente",
-                    fr: "Connecter un agent",
-                    "zh-CN": "连接代理",
-                    ja: "エージェントを接続する",
-                  },
-                  slug: "agents",
-                },
-                {
-                  label: "Mash plugin",
-                  translations: {
-                    es: "Complemento de Mash",
-                    fr: "Module Mash",
-                    "zh-CN": "Mash 插件",
-                  },
-                  slug: "plugin",
-                },
-                {
-                  label: "Pick up past work",
-                  translations: {
-                    es: "Retomar un trabajo",
-                    fr: "Reprendre un travail",
-                    "zh-CN": "继续之前的工作",
-                  },
-                  slug: "pick-up-work",
-                },
-                {
-                  label: "Memory",
-                  translations: { es: "Memoria", fr: "Mémoire", "zh-CN": "记忆" },
-                  slug: "records",
-                },
-              ],
+              slug: "indexing",
             },
             {
-              label: "Maintenance",
+              label: "Search across your machines",
               translations: {
-                es: "Mantenimiento",
-                fr: "Maintenance",
-                "zh-CN": "维护",
-                ja: "メンテナンス",
+                es: "Buscar en varios equipos",
+                fr: "Rechercher sur plusieurs ordinateurs",
+                "zh-CN": "跨设备搜索",
               },
-              collapsed: true,
-              items: [
-                {
-                  label: "Back up and restore history",
-                  translations: {
-                    es: "Copia y restaura tu historial",
-                    fr: "Sauvegarder et restaurer l’historique",
-                    "zh-CN": "备份和恢复历史记录",
-                  },
-                  slug: "backup",
-                },
-                {
-                  label: "Upgrade Mash",
-                  translations: {
-                    es: "Actualiza Mash",
-                    fr: "Mettre Mash à niveau",
-                    "zh-CN": "升级 Mash",
-                  },
-                  slug: "upgrades",
-                },
-                {
-                  label: "Uninstall Mash",
-                  translations: {
-                    es: "Desinstala Mash",
-                    fr: "Désinstaller Mash",
-                    "zh-CN": "卸载 Mash",
-                    ja: "Mash をアンインストールする",
-                  },
-                  slug: "uninstall",
-                },
-              ],
+              slug: "search-across-machines",
             },
-            "troubleshooting",
             {
-              label: "Reference",
+              label: "Set up a shared index",
               translations: {
-                es: "Referencia",
-                fr: "Référence",
-                "zh-CN": "参考",
-                ja: "リファレンス",
+                es: "Configurar un índice compartido",
+                fr: "Configurer un index partagé",
+                "zh-CN": "设置共享索引",
+                ja: "共有インデックスを設定する",
               },
-              collapsed: true,
-              items: ["architecture", "cli", "configuration", "mcp", "tools", "record-tools"],
+              slug: "shared-index",
             },
           ],
+        },
+        {
+          label: "Agents and memory",
+          translations: {
+            es: "Agentes y memoria",
+            fr: "Agents et mémoire",
+            "zh-CN": "代理与记忆",
+            ja: "エージェントと記憶",
+          },
+          items: [
+            {
+              label: "Supported agents",
+              translations: {
+                es: "Agentes compatibles",
+                fr: "Agents compatibles",
+                "zh-CN": "支持的代理",
+                ja: "対応するエージェント",
+              },
+              slug: "supported-agents",
+            },
+            {
+              label: "Connect an agent",
+              translations: {
+                es: "Conectar un agente",
+                fr: "Connecter un agent",
+                "zh-CN": "连接代理",
+                ja: "エージェントを接続する",
+              },
+              slug: "agents",
+            },
+            {
+              label: "Mash plugin",
+              translations: {
+                es: "Complemento de Mash",
+                fr: "Module Mash",
+                "zh-CN": "Mash 插件",
+              },
+              slug: "plugin",
+            },
+            {
+              label: "Pick up past work",
+              translations: {
+                es: "Retomar un trabajo",
+                fr: "Reprendre un travail",
+                "zh-CN": "继续之前的工作",
+              },
+              slug: "pick-up-work",
+            },
+            {
+              label: "Memory",
+              translations: { es: "Memoria", fr: "Mémoire", "zh-CN": "记忆" },
+              slug: "records",
+            },
+          ],
+        },
+        {
+          label: "Maintenance",
+          translations: {
+            es: "Mantenimiento",
+            fr: "Maintenance",
+            "zh-CN": "维护",
+            ja: "メンテナンス",
+          },
+          items: [
+            {
+              label: "Back up and restore history",
+              translations: {
+                es: "Copia y restaura tu historial",
+                fr: "Sauvegarder et restaurer l’historique",
+                "zh-CN": "备份和恢复历史记录",
+              },
+              slug: "backup",
+            },
+            {
+              label: "Upgrade Mash",
+              translations: {
+                es: "Actualiza Mash",
+                fr: "Mettre Mash à niveau",
+                "zh-CN": "升级 Mash",
+              },
+              slug: "upgrades",
+            },
+            {
+              label: "Uninstall Mash",
+              translations: {
+                es: "Desinstala Mash",
+                fr: "Désinstaller Mash",
+                "zh-CN": "卸载 Mash",
+                ja: "Mash をアンインストールする",
+              },
+              slug: "uninstall",
+            },
+          ],
+        },
+        "troubleshooting",
+        {
+          label: "Reference",
+          translations: {
+            es: "Referencia",
+            fr: "Référence",
+            "zh-CN": "参考",
+            ja: "リファレンス",
+          },
+          items: ["architecture", "cli", "configuration", "mcp", "tools", "record-tools"],
         },
       ],
     }),

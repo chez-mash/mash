@@ -405,10 +405,6 @@
     font-size: 0.8125rem;
     font-weight: 700;
   }
-  /* Axum has no logo, so its chip is the name alone. */
-  .built li:not(:has(.tile)) {
-    padding-inline-start: 0.75rem;
-  }
   .built .tile {
     display: grid;
     place-items: center;
@@ -473,6 +469,15 @@
   }
   .button:hover {
     background: var(--action-hover-bg);
+  }
+  /* The second action: the same button in paper, so the pair reads as one
+     choice between two doors rather than a button and a stray link. */
+  .button.secondary {
+    background: var(--surface-paper);
+    color: var(--text-ink);
+  }
+  .button.secondary:hover {
+    background: var(--surface-cream);
   }
 
   @media (width < 62rem) {

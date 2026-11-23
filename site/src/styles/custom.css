@@ -300,6 +300,75 @@ starlight-toc a[aria-current="true"]:focus {
   font-weight: 700;
 }
 
+/* On a narrow screen the contents fold into a bar under the header: an
+   outlined paper toggle beside the current heading, which opens onto a paper
+   card of ink links, ruled off with dividers, the current one ticked in ink. */
+mobile-starlight-toc nav {
+  border-top: 0;
+  border-bottom: var(--border-outline);
+  background-color: var(--surface-page);
+}
+mobile-starlight-toc summary {
+  border-bottom: 0;
+}
+mobile-starlight-toc .toggle {
+  border: var(--border-outline);
+  border-radius: var(--radius-2);
+  background-color: var(--surface-paper);
+  color: var(--text-ink);
+}
+mobile-starlight-toc details .toggle:hover {
+  border-color: var(--line-outline);
+  background-color: var(--surface-cream);
+  color: var(--text-ink);
+}
+mobile-starlight-toc details[open] .toggle {
+  border-color: var(--line-ink);
+  background-color: var(--fill-butter);
+  color: var(--text-on-fill);
+}
+mobile-starlight-toc .display-current {
+  color: var(--text-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+mobile-starlight-toc .dropdown {
+  margin: 0 0.75rem 0.75rem;
+  border: var(--border-outline);
+  border-radius: var(--radius-3);
+  background-color: var(--surface-paper);
+  box-shadow: var(--shadow-card);
+}
+mobile-starlight-toc .dropdown a {
+  border-top: var(--border-divider);
+  color: var(--text-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+/* The first entry is the hidden "Overview", so the first rule goes on the
+   first two. */
+mobile-starlight-toc .dropdown > ul > li:nth-child(-n + 2) > a {
+  border-top: 0;
+}
+mobile-starlight-toc .dropdown a:hover,
+mobile-starlight-toc .dropdown a:focus-visible {
+  background-color: var(--surface-cream);
+  color: var(--text-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+mobile-starlight-toc .dropdown a[aria-current="true"],
+mobile-starlight-toc .dropdown a[aria-current="true"]:hover,
+mobile-starlight-toc .dropdown a[aria-current="true"]:focus {
+  color: var(--text-ink);
+  font-weight: 700;
+}
+mobile-starlight-toc .dropdown a[aria-current="true"]::after {
+  background-color: var(--text-ink);
+}
+
 /* The article: no band under the title, just the breadcrumb and heading. */
 .content-panel + .content-panel {
   border-top: 0;
