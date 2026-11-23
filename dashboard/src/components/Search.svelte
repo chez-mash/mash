@@ -36,6 +36,7 @@ import {
   sameSearch,
   searchIntents,
   sorts,
+  subagentHitViews,
   subagentViews,
 } from "../lib/search";
 import { withoutCopies } from "../lib/sshCopies";
@@ -70,6 +71,7 @@ const activeFilters = $derived(
     applied.projects.length > 0,
     applied.days !== null,
     !!applied.query && applied.intent !== "default",
+    !!applied.query && applied.subagentHits === "hidden",
   ].filter(Boolean).length,
 );
 let filtersOpen = $state(false);
@@ -118,8 +120,19 @@ const result = createQuery(() => ({
     if (applied.query) {
       const page = await search(applied, data.localNode, signal);
       // A session copied over SSH is shown once, from the machine it ran on.
-      const hits = withoutCopies(page.hits, data.all);
-      return { ...page, hits, total: null, first: applied.offset, folded: 0 };
+      const unique = withoutCopies(page.hits, data.all);
+      // Only this machine records which chats are subagents, so a chat from
+      // another machine stays in the results whatever this choice is.
+      const hits =
+        applied.subagentHits === "hidden" ? unique.filter((hit) => !hit.chat.subagent) : unique;
+      return {
+        ...page,
+        hits,
+        total: null,
+        first: applied.offset,
+        folded: 0,
+        hidden: unique.length - hits.length,
+      };
     }
     const all = browse(data, filtersOf(applied), Date.now(), applied.subagents);
     const ordered = applied.sort === "old" ? [...all.hits].reverse() : all.hits;
@@ -192,6 +205,8 @@ const rangeLabel = $derived.by(() => {
 });
 // "19 chats · 11 subagent chats folded in": the list counts its own rows.
 const foldedLabel = $derived(foldedNote(result.data?.folded ?? 0));
+const remoteHits = $derived(hits.some((hit) => hit.chat.machine !== catalogue.data?.localNode));
+const hiddenHits = $derived(result.data && "hidden" in result.data ? (result.data.hidden ?? 0) : 0);
 const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
 const parentTitle = (chat: ChatSummary): string | undefined =>
   chat.subagent
@@ -237,20 +252,6 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
       {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
-    {#if hasSubagents}
-      <!-- Subagents are chats an agent started for part of a task; the list
-           keeps them with the chat that started them unless asked. -->
-      <FilterMenu
-        label="subagents: {draft.subagents}"
-        active={draft.subagents === "shown"}
-        draft={draft.subagents !== applied.subagents}
-        options={subagentViews}
-        selected={[draft.subagents]}
-        choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
-      >
-        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
-      </FilterMenu>
-    {/if}
   {:else}
     <FilterMenu
       label={resolvedDefaultLabel ? `search: default (${resolvedDefaultLabel})` : `search: ${draftIntentLabel}`}
@@ -273,10 +274,38 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       {#snippet optionIcon(value: string)}{#if value === "recent"}<ClockArrowDown size={15} aria-hidden="true" />{:else}<Sparkles size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
   {/if}
+  {#if hasSubagents && draft.query}
+    <!-- A query finds matches in subagent chats too, unless asked not to. -->
+    <FilterMenu
+      label="subagents: {draft.subagentHits}"
+      active={draft.subagentHits === "hidden"}
+      draft={draft.subagentHits !== applied.subagentHits}
+      options={subagentHitViews}
+      selected={[draft.subagentHits]}
+      choose={(value) => (draft = { ...draft, subagentHits: value === "hidden" ? "hidden" : "included" })}
+    >
+      {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+  {:else if hasSubagents}
+    <!-- Subagents are chats an agent started for part of a task; the list
+         keeps them with the chat that started them unless asked. -->
+    <FilterMenu
+      label="subagents: {draft.subagents}"
+      active={draft.subagents === "shown"}
+      draft={draft.subagents !== applied.subagents}
+      options={subagentViews}
+      selected={[draft.subagents]}
+      choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
+    >
+      {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+  {/if}
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
 {#if !applied.query && result.data && hits.length}
   <p class="meta" role="status" style:margin-top="8px">{rangeLabel}{foldedLabel}</p>
+{:else if applied.query && hiddenHits}
+  <p class="meta" role="status" style:margin-top="8px">{hiddenHits.toLocaleString()} match{hiddenHits === 1 ? "" : "es"} in subagent chats left out on this page.{#if remoteHits} Results from other machines stay in, since only the machine that indexed a chat knows it is a subagent.{/if}</p>
 {/if}
 </div>
 

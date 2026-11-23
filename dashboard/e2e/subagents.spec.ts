@@ -226,6 +226,17 @@ for (const width of [1440, 390]) {
         results.locator("a.card").filter({ hasText: parent.title }).first(),
       ).toBeVisible();
       await shoot(page, "search");
+      // Asked to, a search leaves subagent chats out and says so.
+      await page.goto("/#/search?q=windows+tests&subagent_hits=hidden");
+      await expect(
+        results.locator("a.card").filter({ hasText: parent.title }).first(),
+      ).toBeVisible();
+      await expect(
+        results.locator("a.card").filter({ hasText: windows.subagent.label }),
+      ).toHaveCount(0);
+      await expect(page.getByText(/in subagent chats left out on this page/)).toBeVisible();
+      await expect(page.locator(".chip", { hasText: "subagents: hidden" })).toBeAttached();
+      await shoot(page, "search-hidden");
     });
   });
 }

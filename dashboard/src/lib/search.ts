@@ -50,11 +50,18 @@ export interface Applied {
   readonly offset: number;
   /** Whether a chat list shows subagent chats as rows of their own. */
   readonly subagents: "folded" | "shown";
+  /** Whether a query's results include matches in subagent chats. */
+  readonly subagentHits: "included" | "hidden";
 }
 
 export const subagentViews = [
   { value: "folded", label: "Fold into their parent chat" },
   { value: "shown", label: "Show in the list too" },
+] as const;
+
+export const subagentHitViews = [
+  { value: "included", label: "Include matches in subagent chats" },
+  { value: "hidden", label: "Leave subagent chats out" },
 ] as const;
 
 function list(params: URLSearchParams, name: string): string[] {
@@ -77,6 +84,7 @@ export function parseApplied(params: string): Applied {
     rank: values.get("rank") === "recent" ? "recent" : "relevance",
     offset: Number.isSafeInteger(offset) && offset > 0 ? offset : 0,
     subagents: values.get("subagents") === "shown" ? "shown" : "folded",
+    subagentHits: values.get("subagent_hits") === "hidden" ? "hidden" : "included",
   };
 }
 
@@ -95,6 +103,7 @@ export function appliedHref(applied: Applied, base = "#/search"): string {
   if (applied.rank !== "relevance") params.set("rank", applied.rank);
   if (applied.offset) params.set("offset", String(applied.offset));
   if (applied.subagents === "shown") params.set("subagents", "shown");
+  if (applied.query && applied.subagentHits === "hidden") params.set("subagent_hits", "hidden");
   return params.size ? `${base}?${params}` : base;
 }
 
