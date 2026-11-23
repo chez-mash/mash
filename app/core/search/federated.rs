@@ -174,6 +174,7 @@ pub async fn search(
         query: &query,
         local_node: &local_node,
         limit,
+        rank_constant: configuration.views.query.fusion.rank_constant,
     };
     drive(&answer, statuses, jobs, emit).await;
     Ok(())
@@ -184,6 +185,8 @@ pub(crate) struct Answer<'a> {
     pub(crate) query: &'a str,
     pub(crate) local_node: &'a str,
     pub(crate) limit: usize,
+    /// The configured `[views.query.fusion]` constant, as every other merge uses.
+    pub(crate) rank_constant: u16,
 }
 
 type Rows = (Vec<serde_json::Value>, Option<String>);
@@ -203,8 +206,16 @@ pub(crate) async fn drive<F>(
         query,
         local_node,
         limit,
+        rank_constant,
     } = *answer;
-    if !emit(update(query, local_node, &[], &statuses, limit)) {
+    if !emit(update(
+        query,
+        local_node,
+        &[],
+        &statuses,
+        limit,
+        rank_constant,
+    )) {
         return;
     }
     let mut pending = jobs
@@ -249,7 +260,14 @@ pub(crate) async fn drive<F>(
             status.state = state;
         }
         answered.sort_by_key(|(source, _)| *source);
-        if !emit(update(query, local_node, &answered, &statuses, limit)) {
+        if !emit(update(
+            query,
+            local_node,
+            &answered,
+            &statuses,
+            limit,
+            rank_constant,
+        )) {
             return;
         }
     }
@@ -284,8 +302,9 @@ fn update(
     answered: &[(Source, Vec<serde_json::Value>)],
     sources: &[SourceStatus],
     limit: usize,
+    rank_constant: u16,
 ) -> Update {
-    let mut results = fuse(local_node, answered);
+    let mut results = fuse(local_node, answered, rank_constant);
     results.truncate(limit);
     Update {
         query: query.to_owned(),

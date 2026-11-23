@@ -22,6 +22,16 @@ pub struct Selection {
     pub count: usize,
 }
 
+/// A ranked list's credit for the item at `zero_based_rank`: 1 / (constant +
+/// rank + 1). Every merge of rankings in Mash uses this one formula: words with
+/// meaning inside a search, recency with relevance, and federated search across
+/// sources. `constant` damps the gap between first and second place so one
+/// list's top hit does not drown an item several lists agree on.
+pub fn reciprocal_rank(zero_based_rank: usize, constant: u16) -> f32 {
+    let rank = u16::try_from(zero_based_rank).unwrap_or(u16::MAX);
+    1.0 / (f32::from(constant) + f32::from(rank) + 1.0)
+}
+
 /// Combine the relevance order with recency, by reciprocal rank like
 /// candidate fusion. Newer messages move up among comparably relevant ones,
 /// while a strong old match still outranks a weak new one. Undated messages
@@ -38,10 +48,7 @@ pub fn favour_recent(hits: &mut [SearchHit], fusion: Fusion) {
         recency[index] = hits[index].created_at.map(|_| rank);
     }
     let weight = f32::from(fusion.recency_weight) / 100.0;
-    let reciprocal = |rank: usize| {
-        let rank = u16::try_from(rank).unwrap_or(u16::MAX);
-        1.0 / (f32::from(fusion.rank_constant) + f32::from(rank) + 1.0)
-    };
+    let reciprocal = |rank: usize| reciprocal_rank(rank, fusion.rank_constant);
     let mut order: Vec<(f32, usize)> = (0..hits.len())
         .map(|index| {
             let recent = recency[index].map_or(0.0, |rank| weight * reciprocal(rank));

@@ -278,3 +278,16 @@ async fn a_timed_out_remote_pass_is_reranked_and_ordered_by_cpu_scores_alone() {
     assert_eq!(ordered[0].rerank_score, Some(5.0));
     assert_eq!(ordered[1].rerank_score, Some(-5.0));
 }
+
+#[test]
+fn reciprocal_rank_is_one_over_constant_plus_position() {
+    // The first place earns 1 / (k + 1), and credit falls off with position.
+    assert!((super::reciprocal_rank(0, 60) - 1.0 / 61.0).abs() < f32::EPSILON);
+    assert!((super::reciprocal_rank(9, 60) - 1.0 / 70.0).abs() < f32::EPSILON);
+    assert!(super::reciprocal_rank(0, 60) > super::reciprocal_rank(1, 60));
+    // A smaller constant widens the gap between first and second place.
+    let gap = |k| super::reciprocal_rank(0, k) - super::reciprocal_rank(1, k);
+    assert!(gap(1) > gap(60));
+    // Positions past u16 saturate instead of wrapping.
+    assert!(super::reciprocal_rank(usize::MAX, 60) > 0.0);
+}

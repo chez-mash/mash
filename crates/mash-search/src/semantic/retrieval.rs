@@ -92,7 +92,8 @@ pub fn fuse(
         let id = hit_key(&hit, unit);
         scores.insert(
             id.clone(),
-            reciprocal_rank(rank, fusion.rank_constant) * f32::from(fusion.lexical_weight),
+            crate::search_ranking::reciprocal_rank(rank, fusion.rank_constant)
+                * f32::from(fusion.lexical_weight),
         );
         hits.insert(id, hit);
     }
@@ -102,7 +103,8 @@ pub fn fuse(
     {
         let id = hit_key(&hit, unit);
         *scores.entry(id.clone()).or_default() +=
-            reciprocal_rank(rank, fusion.rank_constant) * f32::from(fusion.semantic_weight);
+            crate::search_ranking::reciprocal_rank(rank, fusion.rank_constant)
+                * f32::from(fusion.semantic_weight);
         if let Some(existing) = hits.get_mut(&id) {
             existing.semantic_score = hit.semantic_score;
             crate::search_results::merge_copies(existing, hit);
@@ -125,11 +127,6 @@ pub fn fuse(
     });
     measured.complete(Some(inputs), Some(fused.len()));
     fused
-}
-
-fn reciprocal_rank(zero_based_rank: usize, constant: u16) -> f32 {
-    let rank = u16::try_from(zero_based_rank).unwrap_or(u16::MAX);
-    1.0 / (f32::from(constant) + f32::from(rank) + 1.0)
 }
 
 pub(super) fn quantize_vector(vector: &[f32]) -> QuantizedVector {

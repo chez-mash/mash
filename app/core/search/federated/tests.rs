@@ -32,7 +32,7 @@ fn a_chat_found_by_several_sources_is_one_row_that_says_which() {
             vec![row("a", Some("laptop")), row("d", Some("xenia"))],
         ),
     ];
-    let fused = fuse("laptop", &answered);
+    let fused = fuse("laptop", &answered, RANK);
     assert_eq!(fused.len(), 4, "{fused:?}");
     let a = fused.iter().find(|row| row["chat_id"] == "a").unwrap();
     // The local copy (no node) is kept: it was listed first.
@@ -54,7 +54,7 @@ fn chats_several_sources_agree_on_rank_above_one_sources_top_hit() {
             vec![row("only-meaning", None), row("both", None)],
         ),
     ];
-    let fused = fuse("laptop", &answered);
+    let fused = fuse("laptop", &answered, RANK);
     assert_eq!(fused[0]["chat_id"], "both");
     // Equal scores keep the fixed source order: words before meaning.
     assert_eq!(ids(&fused[1..]), ["-/only-words", "-/only-meaning"]);
@@ -72,7 +72,7 @@ fn the_ranking_does_not_depend_on_which_source_answered_first() {
     // `search` sorts answered sources before fusing; do the same here.
     first.sort_by_key(|(source, _)| *source);
     second.sort_by_key(|(source, _)| *source);
-    assert_eq!(fuse("laptop", &first), fuse("laptop", &second));
+    assert_eq!(fuse("laptop", &first, RANK), fuse("laptop", &second, RANK));
 }
 
 #[test]
@@ -81,7 +81,7 @@ fn the_same_chat_id_on_two_machines_is_two_chats() {
         Source::Machines,
         vec![row("same", Some("xenia")), row("same", Some("build-box"))],
     )];
-    assert_eq!(fuse("laptop", &answered).len(), 2);
+    assert_eq!(fuse("laptop", &answered, RANK).len(), 2);
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn a_row_without_a_chat_id_is_left_out() {
         Source::Words,
         vec![json!({ "message_id": "m" }), row("a", None)],
     )];
-    assert_eq!(ids(&fuse("laptop", &answered)), ["-/a"]);
+    assert_eq!(ids(&fuse("laptop", &answered, RANK)), ["-/a"]);
 }
 
 fn spec(scope: Scope, query: &str) -> Spec {
@@ -253,6 +253,7 @@ fn updates_serialize_as_one_json_object_per_line() {
             },
         }],
         10,
+        RANK,
     );
     let line = serde_json::to_string(&update).unwrap();
     assert!(!line.contains('\n'));
@@ -280,10 +281,23 @@ fn after(millis: u64, rows: Result<Rows, AppError>) -> Job {
     })
 }
 
+/// The default `[views.query.fusion]` rank constant.
+const RANK: u16 = 60;
+
+#[test]
+fn federated_fusion_uses_the_configured_constant() {
+    assert_eq!(
+        RANK,
+        crate::views::config::Fusion::default().rank_constant,
+        "the tests use the default constant"
+    );
+}
+
 const ANSWER: Answer<'static> = Answer {
     query: "invoice",
     local_node: "laptop",
     limit: 10,
+    rank_constant: RANK,
 };
 
 #[tokio::test]

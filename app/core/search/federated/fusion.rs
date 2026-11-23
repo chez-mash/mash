@@ -2,14 +2,11 @@
 //!
 //! A source's scores mean different things (BM25, cosine similarity after
 //! reranking, another machine's fused score), so only positions are compared:
-//! a chat earns 1 / (K + position) from every source that found it, and the
-//! sum orders the merged list. K damps the gap between first and second place
-//! so one source's top hit does not drown a chat that several sources agree on.
+//! a chat earns `search_ranking::reciprocal_rank` (the formula every merge in
+//! Mash shares, with the configured rank constant) from every source that found
+//! it, and the sum orders the merged list.
 use super::Source;
 use std::collections::HashMap;
-
-/// The usual constant for reciprocal rank fusion.
-const K: f64 = 60.0;
 
 /// One merged row per chat, best first. `answered` must already be in
 /// `Source` order: the first source to list a chat supplies its row (so this
@@ -18,6 +15,7 @@ const K: f64 = 60.0;
 pub fn fuse(
     local_node: &str,
     answered: &[(Source, Vec<serde_json::Value>)],
+    rank_constant: u16,
 ) -> Vec<serde_json::Value> {
     struct Entry {
         row: serde_json::Value,
@@ -32,7 +30,10 @@ pub fn fuse(
             let Some(key) = identity(local_node, row) else {
                 continue;
             };
-            let gain = 1.0 / (K + f64::from(u32::try_from(position).unwrap_or(u32::MAX)) + 1.0);
+            let gain = f64::from(crate::search_ranking::reciprocal_rank(
+                position,
+                rank_constant,
+            ));
             if let Some(&index) = by_chat.get(&key) {
                 let entry = &mut entries[index];
                 entry.score += gain;
