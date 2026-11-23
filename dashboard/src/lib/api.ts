@@ -25,6 +25,8 @@ export interface MessagePage {
   readonly before?: readonly Message[];
   /** Tool output just after this page for calls that end it. */
   readonly after?: readonly Message[];
+  /** How many messages the server sent, including ones with nothing to show. */
+  readonly rows?: number;
 }
 
 export function isAgent(value: string): value is Agent {
@@ -184,6 +186,7 @@ function hasSomethingToShow(row: Answer<"/api/chat">["messages"][number]): boole
 export function parseMessages(body: Answer<"/api/chat">): MessagePage {
   return {
     ...(typeof body.message_count === "number" ? { total: body.message_count } : {}),
+    rows: body.messages.length,
     // Thinking recorded without its text is kept in the index, where later
     // messages name it as their parent, and has nothing to show.
     messages: body.messages.filter(hasSomethingToShow).map((row) => {
@@ -296,24 +299,79 @@ export async function withNeighbours(
     ...(after.length ? { after } : {}),
   };
 }
-/** One page of a chat as the reader sees it, or the messages around `anchor`. */
-export async function transcriptPage(
+/** Where reading a chat starts: its end, a message, or a position in it. */
+export type ChatPlace =
+  | { readonly at: "end" }
+  | { readonly at: "message"; readonly message: string }
+  | { readonly at: "offset"; readonly offset: number; readonly limit?: number };
+
+/** A run of a chat's messages, from position `start` up to `end`. */
+export interface ChatStretch {
+  readonly start: number;
+  readonly end: number;
+  /** Messages in the whole chat, when the server reports it. */
+  readonly total?: number;
+  readonly page: MessagePage;
+}
+
+/**
+ * The stretch of a chat at `place`. Its edges are positions in the chat, so
+ * the stretches before and after it can be read without gaps or overlap. A
+ * tool call cut off from its output by an edge arrives with it.
+ */
+export async function chatStretch(
   id: string,
   node: string,
-  offset: number,
-  anchor: string,
+  place: ChatPlace,
   signal: AbortSignal,
   shared = false,
-): Promise<MessagePage> {
-  const page = anchor
-    ? await context(anchor, node, signal, shared)
-    : await transcript(id, node, offset, signal, shared);
-  // Around a match the page says where it is by its first message's place in the chat.
-  const start = anchor ? page.messages[0]?.ordinal : offset;
-  if (start === undefined) return page;
-  return withNeighbours(
+): Promise<ChatStretch> {
+  const read = (offset: number, limit: number) =>
+    transcript(id, node, offset, signal, shared, limit);
+  let start: number;
+  let end: number;
+  let page: MessagePage;
+  if (place.at === "message") {
+    page = await context(place.message, node, signal, shared);
+    // Around a message the stretch says where it is by its messages' places.
+    const places = page.messages.flatMap((message) =>
+      message.ordinal === undefined ? [] : [message.ordinal],
+    );
+    if (!places.length) return { start: 0, end: 0, page };
+    start = Math.min(...places);
+    end = Math.max(...places) + 1;
+  } else {
+    const limit = place.at === "offset" ? (place.limit ?? PAGE_SIZE) : PAGE_SIZE;
+    start = place.at === "offset" ? place.offset : 0;
+    page = await read(start, limit);
+    // The end of a chat longer than one read is found by its length.
+    if (place.at === "end" && page.total !== undefined && page.total > limit) {
+      start = page.total - limit;
+      page = await read(start, limit);
+    }
+    end = start + (page.rows ?? page.messages.length);
+  }
+  const whole = await withNeighbours(
     page,
     start,
-    async (from, limit) => (await transcript(id, node, from, signal, shared, limit)).messages,
+    async (from, limit) => (await read(from, limit)).messages,
   );
+  return { start, end, ...(page.total !== undefined ? { total: page.total } : {}), page: whole };
+}
+
+/** The stretch just before `first`, or undefined at the start of the chat. */
+export function earlierPlace(first: ChatStretch): ChatPlace | undefined {
+  if (first.start <= 0) return undefined;
+  const offset = Math.max(0, first.start - PAGE_SIZE);
+  return { at: "offset", offset, limit: first.start - offset };
+}
+
+/** The stretch just after `last`, or undefined at the end of the chat as last read. */
+export function laterPlace(last: ChatStretch): ChatPlace | undefined {
+  // An answer that starts before where it was asked to is not the chat
+  // reading on, so reading stops rather than repeat it.
+  const first = last.page.messages[0]?.ordinal;
+  if (first !== undefined && first < last.start) return undefined;
+  const more = last.total === undefined ? last.end > last.start : last.end < last.total;
+  return more ? { at: "offset", offset: last.end } : undefined;
 }

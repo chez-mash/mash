@@ -1802,6 +1802,19 @@ h1:focus {
 .newpill .btn {
   box-shadow: var(--shadow-float);
 }
+/* Jumps to either end of a chat, floating at the screen's corner. */
+.ends {
+  position: fixed;
+  z-index: 20;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ends .btn {
+  box-shadow: var(--shadow-float);
+}
 .pager.start {
   margin-left: auto;
 }

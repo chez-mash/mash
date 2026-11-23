@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import { searchBox } from "./shell";
 
 test.beforeEach(async ({ page }) => {
@@ -200,20 +200,26 @@ test("real API shapes, explicit search, source identity, safe content and stable
       await route.fulfill({ json: { records: [], next_offset: null } });
     } else {
       chatRequests.push(url);
-      // A full first page, so the reader can ask for the next one.
-      const full = url.pathname === "/api/chat" && url.searchParams.get("offset") === "0";
+      // A chat of a hundred messages that does not state its length, so the
+      // reader finds its end by reading past it.
+      const messages = [
+        { id: "match-id", ordinal: 0, role: "assistant", created_at: Date.now(), content },
+        ...Array.from({ length: 99 }, (_, index) => ({
+          id: `later-${index}`,
+          ordinal: index + 1,
+          role: "assistant",
+          content: `Later reply ${index}`,
+        })),
+      ];
+      const offset = Number(url.searchParams.get("offset") ?? 0);
+      const limit = Number(url.searchParams.get("limit") ?? 100);
       await route.fulfill({
         json: {
           id: "same-id",
-          messages: [
-            { id: "match-id", ordinal: 0, role: "assistant", created_at: Date.now(), content },
-            ...Array.from({ length: full ? 99 : 0 }, (_, index) => ({
-              id: `later-${index}`,
-              ordinal: index + 1,
-              role: "assistant",
-              content: `Later reply ${index}`,
-            })),
-          ],
+          messages:
+            url.pathname === "/api/chat"
+              ? messages.slice(offset, offset + limit)
+              : messages.slice(0, 1),
         },
       });
     }
@@ -246,16 +252,15 @@ test("real API shapes, explicit search, source identity, safe content and stable
   await expect(reply.locator("strong")).toHaveText("reply");
   content = "Updated reply";
   await page.getByRole("button", { name: "Check for updates" }).click();
-  await expect(page.getByRole("button", { name: /This page has changed/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /This chat has changed/ })).toBeVisible();
   await expect(page.getByText("Updated reply", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: /This page has changed/ }).click();
+  await page.getByRole("button", { name: /This chat has changed/ }).click();
   await expect(page.getByText("Updated reply", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "First message" }).first().click();
-  await expect.poll(() => chatRequests.at(-1)?.pathname).toBe("/api/chat");
-  expect(chatRequests.at(-1)?.searchParams.get("node")).toBe("remote");
-  await page.getByRole("button", { name: "Next messages" }).first().click();
-  await expect.poll(() => chatRequests.at(-1)?.searchParams.get("offset")).toBe("100");
-  expect(chatRequests.at(-1)?.searchParams.get("node")).toBe("remote");
+  // Reading on past the linked message asks the same machine for the rest.
+  await expect(page.locator("#message-later-98")).toBeAttached();
+  const reads = chatRequests.filter((url) => url.pathname === "/api/chat");
+  expect(reads.map((url) => url.searchParams.get("offset"))).toContain("1");
+  expect(reads.every((url) => url.searchParams.get("node") === "remote")).toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -341,9 +346,9 @@ test("chat navigation retains the sidebar and refresh requires an explicit reque
   await page.clock.runFor(91_000);
   expect(requests).toBe(beforeIdle);
   expect(documents).toBe(1);
-  await expect(page.getByRole("button", { name: /This page has changed/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /This chat has changed/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Check for updates" }).click();
-  await expect(page.getByRole("button", { name: /This page has changed/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /This chat has changed/ })).toBeVisible();
   await expect(page.getByText("Original answer", { exact: true })).toBeVisible();
   await expect(page.getByText("Background replacement", { exact: true })).toHaveCount(0);
   await expect(sidebar).toHaveAttribute("data-retained", "yes");
@@ -390,36 +395,46 @@ test("switching a scrolled chat keeps the top bar and sidebar stationary", async
   });
   await page.goto("/#/chat/chat-0?node=local");
   await page.locator("#message-message-chat-0").waitFor();
+  // Chats open at their end, which can be part of a pixel down, so places
+  // are compared to the whole pixel.
+  const place = async (locator: Locator) => {
+    const box = await locator.boundingBox();
+    return (
+      box && Object.fromEntries(Object.entries(box).map(([key, value]) => [key, Math.round(value)]))
+    );
+  };
   const header = searchBox(page);
   const mainNav = page.getByRole("navigation", { name: "Main" });
   const sidebar = page.getByRole("navigation", { name: "Prompts and sessions" });
   // The sidebar lists the project's six newest sessions.
   await expect(sidebar.getByRole("link", { name: /^Chat \d/ })).toHaveCount(6);
-  const initialHeader = await header.boundingBox();
-  const initialNav = await mainNav.boundingBox();
-  const initialSidebar = await sidebar.boundingBox();
+  // The chat opened at its end; measure from the top of the page.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const initialHeader = await place(header);
+  const initialNav = await place(mainNav);
+  const initialSidebar = await place(sidebar);
   await sidebar.evaluate((element) => element.setAttribute("data-retained", "yes"));
   await page.evaluate(() => window.scrollTo(0, 600));
   expect(await page.evaluate(() => window.scrollY)).toBe(600);
   // Sticky chrome stays where it was while the transcript scrolls under it.
-  expect(await header.boundingBox()).toEqual(initialHeader);
-  expect(await mainNav.boundingBox()).toEqual(initialNav);
+  expect(await place(header)).toEqual(initialHeader);
+  expect(await place(mainNav)).toEqual(initialNav);
   try {
     await sidebar.getByRole("link", { name: /Chat 4/ }).click();
     await expect(page.getByText("Loading messages…", { exact: true })).toBeVisible();
-    expect(await header.boundingBox()).toEqual(initialHeader);
-    expect(await mainNav.boundingBox()).toEqual(initialNav);
+    expect(await place(header)).toEqual(initialHeader);
+    expect(await place(mainNav)).toEqual(initialNav);
     await expect(sidebar).toHaveAttribute("data-retained", "yes");
     // A newly opened chat starts at its top, with the sidebar where it began.
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
-    expect(await sidebar.boundingBox()).toEqual(initialSidebar);
+    expect(await place(sidebar)).toEqual(initialSidebar);
     expect(documents).toBe(1);
   } finally {
     release?.();
   }
   await page.locator("#message-message-chat-4").waitFor();
-  expect(await header.boundingBox()).toEqual(initialHeader);
-  expect(await mainNav.boundingBox()).toEqual(initialNav);
+  expect(await place(header)).toEqual(initialHeader);
+  expect(await place(mainNav)).toEqual(initialNav);
   expect(documents).toBe(1);
 });
 

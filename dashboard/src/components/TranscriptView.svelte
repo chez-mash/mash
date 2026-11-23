@@ -1,12 +1,11 @@
 <script lang="ts">
+import ArrowDownToLine from "@lucide/svelte/icons/arrow-down-to-line";
+import ArrowUpToLine from "@lucide/svelte/icons/arrow-up-to-line";
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import ChevronUp from "@lucide/svelte/icons/chevron-up";
 import ChevronsDown from "@lucide/svelte/icons/chevrons-down";
-import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
-import ChevronsRight from "@lucide/svelte/icons/chevrons-right";
 import Copy from "@lucide/svelte/icons/copy";
 import Download from "@lucide/svelte/icons/download";
 import FileCode from "@lucide/svelte/icons/file-code";
@@ -20,9 +19,18 @@ import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import Search from "@lucide/svelte/icons/search";
 import Terminal from "@lucide/svelte/icons/terminal";
 import X from "@lucide/svelte/icons/x";
-import { createQuery } from "@tanstack/svelte-query";
+import { createInfiniteQuery, createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick, untrack } from "svelte";
-import { type MessagePage, PAGE_SIZE, transcript, transcriptPage } from "../lib/api";
+import {
+  type ChatPlace,
+  type ChatStretch,
+  chatStretch,
+  earlierPlace,
+  laterPlace,
+  type MessagePage,
+  PAGE_SIZE,
+  transcript,
+} from "../lib/api";
 import { projectLabel, whenLabel } from "../lib/browse";
 import {
   collectChat,
@@ -60,8 +68,12 @@ const machine = $derived(node || "");
 const displayMachine = $derived(machine || catalogue.data?.localNode || "Local");
 const sessions = $derived(catalogue.data?.chats ?? []);
 const chat = $derived(sessions.find((chat) => chat.id === id && chat.machine === displayMachine));
-let offset = $state(0);
-let anchor = $state(untrack(() => messageId));
+/** Where the reader asked to start reading; scrolling reads on from there. */
+let place = $state<ChatPlace>(
+  untrack(() => (messageId ? { at: "message", message: messageId } : { at: "end" })),
+);
+/** Counts the reader's requests to go somewhere, so asking again goes again. */
+let arrival = $state(0);
 let showSessions = $state(true);
 // On a phone the list takes the whole screen in place of the transcript when
 // the reader opens it, and closing it returns to where they were reading.
@@ -208,12 +220,12 @@ function go(step: 1 | -1): void {
   findActive = true;
   const target = matches[findIndex];
   if (!target) return;
-  const targetOffset = Math.floor(target.position / PAGE_SIZE) * PAGE_SIZE;
-  if (anchor || offset !== targetOffset) {
+  // A match outside what is loaded is read around its own message.
+  if (loaded?.messages.some((message) => message.id === target.messageId)) void reveal(target);
+  else {
     pendingFind = target;
-    anchor = "";
-    offset = targetOffset;
-  } else void reveal(target);
+    goTo({ at: "message", message: target.messageId });
+  }
 }
 async function reveal(target: FindMatch): Promise<void> {
   await tick();
@@ -255,60 +267,144 @@ $effect(() => () => clearMatches());
 let notice = $state("");
 let exporting = $state(false);
 let exportController: AbortController | undefined;
-let snapshot = $state<{ key: string; page: MessagePage } | null>(null);
 // Keep the sidebar mounted across chat navigation. Only explicit navigation
-// resets the reading page; catalogue updates never touch it.
+// resets where the reader is; catalogue updates never touch it.
 $effect(() => {
   const route = [id, node, messageId, shared] as const;
-  anchor = route[2];
-  offset = 0;
+  place = route[2] ? { at: "message", message: route[2] } : { at: "end" };
+  untrack(() => arrival++);
+  changed = false;
+  held = undefined;
+  added = 0;
   notice = "";
   exportOpen = false;
   sessionsOpen = false;
   window.scrollTo({ top: 0, behavior: "instant" });
   return () => exportController?.abort();
 });
-const key = $derived(JSON.stringify([id, machine, offset, anchor, shared]));
-const live = createQuery(() => ({
-  queryKey: ["transcript", id, machine, offset, anchor, shared],
-  // A tool call cut off from its output by the edge of the page arrives
-  // with it, so the page is whole when it is first shown.
-  queryFn: ({ signal }) => transcriptPage(id, machine, offset, anchor, signal, shared),
+
+// The chat is read in stretches as the reader scrolls: it opens at its end,
+// or around a linked message, and the stretches before and after it load as
+// they come near the screen. At most ten stay loaded; the far ones are let
+// go and read again on the way back.
+const client = useQueryClient();
+const chatKey = $derived(["transcript", id, machine, shared, JSON.stringify(place)]);
+const stretches = createInfiniteQuery(() => ({
   ...stableRead,
+  queryKey: chatKey,
+  initialPageParam: place,
+  queryFn: ({ pageParam, signal }: { pageParam: ChatPlace; signal: AbortSignal }) =>
+    chatStretch(id, machine, pageParam, signal, shared),
+  getPreviousPageParam: earlierPlace,
+  getNextPageParam: laterPlace,
+  maxPages: 10,
 }));
-const loaded = $derived(snapshot?.key === key ? snapshot.page : undefined);
+/** Everything loaded, read as one page. */
+const loaded = $derived.by((): MessagePage | undefined => {
+  const pages = stretches.data?.pages;
+  const first = pages?.[0];
+  const last = pages?.at(-1);
+  if (!pages || !first || !last) return undefined;
+  const seen = new Set<string>();
+  const messages = pages
+    .flatMap((stretch) => stretch.page.messages)
+    .filter((message) => !seen.has(message.id) && seen.add(message.id));
+  const total = last.total ?? first.total;
+  return {
+    messages,
+    ...(total !== undefined ? { total } : {}),
+    ...(first.page.before ? { before: first.page.before } : {}),
+    ...(last.page.after ? { after: last.page.after } : {}),
+  };
+});
 const total = $derived(loaded?.total);
-/** Where the last page starts, when the chat's length is known. */
-const lastOffset = $derived(total ? Math.floor((total - 1) / PAGE_SIZE) * PAGE_SIZE : undefined);
-/** Set when the reader asked for the end, so the last page opens at its bottom. */
-let toEnd = false;
-let rememberedKey = "";
+const atStart = $derived(stretches.data?.pages[0]?.start === 0);
+const atEnd = $derived(stretches.data !== undefined && !stretches.hasNextPage);
+
+/** Read from `next`, or go there again when it is where the reader already started. */
+function goTo(next: ChatPlace): void {
+  place = next;
+  arrival++;
+}
+
+// Puts the reader where they asked to be once that stretch has loaded.
+let arrived = -1;
 $effect(() => {
-  const first = loaded?.messages[0];
-  if (first && catalogue.data && rememberedKey !== key) {
-    rememberedKey = key;
-    currentMessage = anchor || first.id;
+  const ready = loaded !== undefined;
+  const wanted = arrival;
+  if (!ready || arrived === wanted) return;
+  arrived = wanted;
+  const first = untrack(() => loaded?.messages[0]);
+  const linked = place.at === "message" ? place.message : "";
+  if (first && catalogue.data) {
+    currentMessage = linked || first.id;
     const position = { id, node: displayMachine, message: first.id, shared };
     untrack(() => reading.remember(position));
   }
+  void tick().then(async () => {
+    if (pendingFind) {
+      const target = pendingFind;
+      pendingFind = undefined;
+      await reveal(target);
+    } else if (place.at === "end") toBottom();
+    else if (linked)
+      document.getElementById(`message-${linked}`)?.scrollIntoView({ block: "center" });
+    else window.scrollTo({ top: 0, behavior: "instant" });
+    await tick();
+    placed = arrival;
+    fill();
+  });
 });
-// When Mash indexes more of this chat the page is read again. Text already
-// shown never changes by itself: new messages are added at the end only while
-// the reader is at the bottom of the chat, and are otherwise offered.
+
+// Reading on. A stretch that loads above the screen pushes the text down, so
+// the message the reader is looking at is held in place; so is one when a
+// far stretch is let go.
+let placed = -1;
+function onScreen(): { element: HTMLElement; top: number } | undefined {
+  const element = Array.from(
+    transcriptPane?.querySelectorAll<HTMLElement>("[data-message]") ?? [],
+  ).find((element) => element.getBoundingClientRect().bottom > 90);
+  return element ? { element, top: element.getBoundingClientRect().top } : undefined;
+}
+async function readOn(direction: "earlier" | "later"): Promise<void> {
+  const before = onScreen();
+  await (direction === "earlier" ? stretches.fetchPreviousPage() : stretches.fetchNextPage());
+  await tick();
+  if (before?.element.isConnected)
+    window.scrollBy({
+      top: before.element.getBoundingClientRect().top - before.top,
+      behavior: "instant",
+    });
+  fill();
+}
+/** Loads the next stretch on either side once it is within a screen or two. */
+function fill(): void {
+  if (placed !== arrival || sessionsOpen || !transcriptPane) return;
+  if (stretches.isFetching || stretches.isFetchingPreviousPage || stretches.isFetchingNextPage)
+    return;
+  const reach = window.innerHeight * 1.5;
+  const pane = transcriptPane.getBoundingClientRect();
+  if (stretches.hasPreviousPage && pane.top > -reach) void readOn("earlier");
+  else if (stretches.hasNextPage && pane.bottom < window.innerHeight + reach) void readOn("later");
+}
+
+// When Mash indexes more of this chat, the last stretch is read again. Text
+// already shown never changes by itself: new messages are added at the end
+// only while the reader is at the bottom of the chat, and are otherwise
+// offered.
+let changed = $state(false);
+let held = $state<ChatStretch | undefined>();
+let added = $state(0);
+let checking = $state(false);
 $effect(() => {
   const chatId = id;
   const from = displayMachine;
   // The same chat ID may exist on another machine; follow the copy shown.
   const local = !shared && (!machine || machine === catalogue.data?.localNode);
   return onChange((change) => {
-    if (concerns(change, chatId, from, local)) void live.refetch();
+    if (concerns(change, chatId, from, local)) void checkForUpdates();
   });
 });
-const update = $derived(
-  loaded && live.data ? pageUpdate(loaded, live.data) : ({ kind: "same" } as const),
-);
-const changed = $derived(update.kind === "rewritten");
-const added = $derived(update.kind === "appended" ? update.added : 0);
 function atBottom(): boolean {
   const page = document.documentElement;
   return window.innerHeight + window.scrollY >= page.scrollHeight - 120;
@@ -318,49 +414,90 @@ function toBottom(): void {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
   );
 }
-$effect(() => {
-  const next = live.data;
-  if (update.kind !== "appended" || !update.onPage || !next) return;
-  if (anchor || sessionsOpen || snapshot?.key !== key || !untrack(atBottom)) return;
-  snapshot = { key, page: next };
-  toBottom();
-});
-/** Shows the messages that arrived while the reader was elsewhere in the chat. */
-function showNew(): void {
-  const next = live.data;
-  if (!next) return;
-  const last = next.total ? Math.floor((next.total - 1) / PAGE_SIZE) * PAGE_SIZE : offset;
-  if (!anchor && offset === last) {
-    snapshot = { key, page: next };
-    toBottom();
-  } else {
-    toEnd = true;
-    page(last);
+/** Replaces the last loaded stretch with the same stretch read again. */
+function keep(next: ChatStretch): void {
+  client.setQueryData<{ pages: ChatStretch[]; pageParams: ChatPlace[] }>(chatKey, (data) =>
+    data
+      ? {
+          pages: [...data.pages.slice(0, -1), next],
+          pageParams: [
+            ...data.pageParams.slice(0, -1),
+            { at: "offset", offset: next.start, limit: next.end - next.start },
+          ],
+        }
+      : data,
+  );
+}
+/**
+ * Reads the end of what is loaded again, and with `everything`, the rest of
+ * it too, as the Check for updates button does.
+ */
+async function checkForUpdates(everything = false): Promise<void> {
+  const pages = stretches.data?.pages ?? [];
+  const last = pages.at(-1);
+  if (!last || checking) return;
+  checking = true;
+  const key = chatKey;
+  const again = (stretch: ChatStretch, limit: number) =>
+    chatStretch(
+      id,
+      machine,
+      { at: "offset", offset: stretch.start, limit },
+      new AbortController().signal,
+      shared,
+    );
+  try {
+    const earlier = everything
+      ? pages.slice(0, -1).filter((stretch) => stretch.end > stretch.start)
+      : [];
+    const [next, ...reread] = await Promise.all([
+      // Reading past the old end picks up new messages along with it.
+      again(last, Math.max(last.end - last.start, PAGE_SIZE)),
+      ...earlier.map((stretch) => again(stretch, stretch.end - stretch.start)),
+    ]);
+    if (key !== chatKey || !next) return;
+    const same = (a: MessagePage, b: MessagePage): boolean =>
+      JSON.stringify(a.messages) === JSON.stringify(b.messages);
+    if (
+      earlier.some((stretch, index) => !reread[index] || !same(stretch.page, reread[index].page))
+    ) {
+      changed = true;
+      return;
+    }
+    const update = pageUpdate(
+      { messages: last.page.messages, ...(last.total !== undefined ? { total: last.total } : {}) },
+      { messages: next.page.messages, ...(next.total !== undefined ? { total: next.total } : {}) },
+    );
+    if (update.kind === "rewritten") changed = true;
+    if (update.kind !== "appended") return;
+    if (!sessionsOpen && atBottom()) {
+      keep(next);
+      if (!update.onPage) await stretches.fetchNextPage();
+      toBottom();
+    } else {
+      // Off the bottom, only the length is kept, so text on screen stays put.
+      if (!update.onPage) keep(next);
+      else held = next;
+      added += update.added;
+    }
+  } catch {
+    // The stream says again when the chat next changes.
+  } finally {
+    checking = false;
   }
 }
-
-$effect(() => {
-  if (live.data && snapshot?.key !== key) {
-    snapshot = { key, page: live.data };
-    if (pendingFind) {
-      const target = pendingFind;
-      pendingFind = undefined;
-      void reveal(target);
-    } else if (toEnd) {
-      toEnd = false;
-      void tick().then(() =>
-        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
-      );
-    } else if (anchor)
-      tick()
-        .then(() =>
-          document.getElementById(`message-${anchor}`)?.scrollIntoView({ block: "center" }),
-        )
-        .catch(() => {
-          notice = "Use Find to locate the selected message.";
-        });
-  }
-});
+/** Shows the messages that arrived while the reader was elsewhere in the chat. */
+function showNew(): void {
+  if (held) keep(held);
+  held = undefined;
+  added = 0;
+  toEnd();
+}
+function showChanged(): void {
+  changed = false;
+  held = undefined;
+  void stretches.refetch();
+}
 
 function plainText(message: Message): string {
   return messageText(message);
@@ -422,19 +559,13 @@ async function exportChat(format: ExportFormat): Promise<void> {
     exportController = undefined;
   }
 }
-function page(next: number): void {
-  anchor = "";
-  offset = next;
-  window.scrollTo({ top: 0, behavior: "instant" });
+function toStart(): void {
+  if (atStart) window.scrollTo({ top: 0, behavior: "instant" });
+  else goTo({ at: "offset", offset: 0 });
 }
-function latest(): void {
-  if (lastOffset === undefined) return;
-  if (!anchor && offset === lastOffset) {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
-    return;
-  }
-  toEnd = true;
-  page(lastOffset);
+function toEnd(): void {
+  if (atEnd) toBottom();
+  else goTo({ at: "end" });
 }
 async function copySession(): Promise<void> {
   try {
@@ -460,7 +591,10 @@ const prompts = $derived(
 </script>
 
 <svelte:window
-  onscroll={remember}
+  onscroll={() => {
+    remember();
+    fill();
+  }}
   onkeydown={(event) => {
     if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "f") {
       event.preventDefault();
@@ -471,16 +605,11 @@ const prompts = $derived(
     }
   }}
 />
-<!-- The same controls above and below the messages. Around a search match
-     there are no pages to step through, only the two ends. -->
-{#snippet pager(name: string, place: string)}
-  <nav aria-label={name} class="pager {place}">
-    <button class="btn sm icon" type="button" disabled={!anchor && offset === 0} onclick={() => page(0)} aria-label="First message" title="First message"><ChevronsLeft size={14} aria-hidden="true" /></button>
-    {#if !anchor}
-      <button class="btn sm icon" type="button" disabled={offset === 0} onclick={() => page(Math.max(0, offset - PAGE_SIZE))} aria-label="Previous messages" title="Previous messages"><ChevronLeft size={14} aria-hidden="true" /></button>
-      <button class="btn sm icon" type="button" disabled={(loaded?.messages.length ?? 0) < PAGE_SIZE} onclick={() => page(offset + PAGE_SIZE)} aria-label="Next messages" title="Next messages"><ChevronRight size={14} aria-hidden="true" /></button>
-    {/if}
-    {#if lastOffset !== undefined}<button class="btn sm icon" type="button" disabled={!anchor && offset === lastOffset} onclick={latest} aria-label="Latest message" title="Latest message"><ChevronsRight size={14} aria-hidden="true" /></button>{/if}
+<!-- Scrolling reads the rest of the chat; these float beside it and jump to either end. -->
+{#snippet ends()}
+  <nav aria-label="Chat ends" class="ends">
+    <button class="btn icon" type="button" onclick={toStart} aria-label="First message" title="First message"><ArrowUpToLine size={15} aria-hidden="true" /></button>
+    <button class="btn icon" type="button" onclick={toEnd} aria-label="Latest message" title="Latest message"><ArrowDownToLine size={15} aria-hidden="true" /></button>
   </nav>
 {/snippet}
 <div class="chat" class:nosess={!showSessions} class:sessopen={sessionsOpen}>
@@ -488,7 +617,7 @@ const prompts = $derived(
     {#if phone && sessionsOpen}<button class="btn sessclose" type="button" onclick={() => closeSessions(true)}><X size={15} aria-hidden="true" />Back to chat</button>{/if}
     {#if prompts.length >= 2}
       <div class="outl">
-        <h2 class="h2"><ListOrdered size={15} aria-hidden="true" />your prompts on this page</h2>
+        <h2 class="h2"><ListOrdered size={15} aria-hidden="true" />your prompts</h2>
         <div class="outl-l">
           {#each prompts as message, index (message.id)}
             <button type="button" class:on={currentMessage === message.id} aria-current={currentMessage === message.id ? "location" : undefined} onclick={async () => { await closeSessions(false); jump(message.id); }}><small>{index + 1}</small><span>{saidText(message).replace(/\s+/g, " ").slice(0, 80)}</span></button>
@@ -530,12 +659,11 @@ const prompts = $derived(
           </div>
         {/if}
         </span>
-        <button class="btn icon" type="button" aria-label="Check for updates" title="Check for updates" disabled={live.isFetching} onclick={() => live.refetch()}><RefreshCw size={15} /></button>
+        <button class="btn icon" type="button" aria-label="Check for updates" title="Check for updates" disabled={checking} onclick={() => checkForUpdates(true)}><RefreshCw size={15} /></button>
       </div>
       <div class="mts chat-m">
         {#if chat}<MetaChips {chat} agentMark />{:else}<span class="mtx">{displayMachine}</span>{/if}
-        <span class="mtx">{anchor ? "around the selected message" : total ? `messages ${(offset + 1).toLocaleString()}–${Math.min(offset + PAGE_SIZE, total).toLocaleString()} of ${total.toLocaleString()}` : `messages ${(offset + 1).toLocaleString()}–${(offset + PAGE_SIZE).toLocaleString()}`}</span>
-        {#if loaded}{@render pager("Message pages", "start")}{/if}
+        {#if total}<span class="mtx">{total.toLocaleString()} message{total === 1 ? "" : "s"}</span>{/if}
       </div>
     </header>
     {#if findOpen}
@@ -566,18 +694,20 @@ const prompts = $derived(
     {#if exporting}<p class="card tight cream" style:display="flex" style:font-size="12.5px"><button class="a sp" type="button" onclick={() => exportController?.abort()}>Cancel export</button></p>{/if}
     <QueryError title="Couldn’t load the chat list" query={catalogue} retryLabel="Retry catalogue" />
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p role="status" class="meta">{warning}</p>{/each}
-    {#if live.isPending}
+    {#if stretches.isPending}
       <div class="card" role="status">
         <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />Loading messages…</p>
         <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
       </div>
     {/if}
-    <QueryError title="Couldn’t load this conversation" query={live} />
-    {#if changed}<button type="button" class="btn" onclick={() => { if (live.data) snapshot = { key, page: live.data }; }}><RefreshCw size={15} aria-hidden="true" />This page has changed. Show updated messages</button>{/if}
+    <QueryError title="Couldn’t load this conversation" query={stretches} />
+    {#if changed}<button type="button" class="btn" onclick={showChanged}><RefreshCw size={15} aria-hidden="true" />This chat has changed. Show updated messages</button>{/if}
     {#if notice}<p role="status" class="meta">{notice}</p>{/if}
     <div class="newpill" aria-live="polite">{#if added && !sessionsOpen}<button type="button" class="btn p" onclick={showNew}><ChevronsDown size={15} aria-hidden="true" />{added.toLocaleString()} new message{added === 1 ? "" : "s"}</button>{/if}</div>
     {#if loaded}
-      {#if !loaded.messages.length}<p class="card tight cream" style:font-size="13.5px">No messages at this position. The chat may have been removed, or this is the end.</p>{/if}
+      {#if !sessionsOpen}{@render ends()}{/if}
+      {#if !loaded.messages.length}<p class="card tight cream" style:font-size="13.5px">No messages here. The chat may have been removed.</p>{/if}
+      {#if stretches.isFetchingPreviousPage}<p class="meta" role="status">Loading earlier messages…</p>{/if}
       {#snippet saved(message: Message)}
         {#each memories.data?.records ?? [] as record (record.id)}
           {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
@@ -639,7 +769,7 @@ const prompts = $derived(
           </div>
         {/if}
       {/each}
-      {@render pager("Message pages, bottom", "end")}
+      {#if stretches.isFetchingNextPage}<p class="meta" role="status">Loading later messages…</p>{/if}
     {/if}
   </article>
 </div>
