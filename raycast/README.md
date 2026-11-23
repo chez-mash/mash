@@ -57,8 +57,10 @@ the installation guide, or **Set Mash Location**.
 ## Requirements
 
 [Mash](https://getmash.io/installation/), set up with `mash init` and indexed.
-The extension runs `mash list-chats --local`, `mash search --live --stream`
-(stopped as soon as the search text changes) and `mash view`. It finds `mash` in the usual
+The extension runs `mash list-chats --local --exclude-subagents`,
+`mash search --live --stream` (stopped as soon as the search text changes),
+`mash view` and, for Search Memory, `mash memory`, so it needs a Mash release
+that has them. It finds `mash` in the usual
 install locations (the install script, Homebrew, cargo-binstall, mise, or the
 Mash desktop app in `/Applications` or `~/Applications`); set **Mash
 Executable** in the Mash extension's preferences if yours is elsewhere.

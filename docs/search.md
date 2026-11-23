@@ -119,6 +119,11 @@ mash search 'token' --chat CHAT_ID --unit messages
 | The exact spelling | `mash search 'auth_token' --match-mode strict` |
 | The exact phrase | `mash search '"rotate the logs"'` |
 
+Chats your agents started as subagents for their own subtasks are left out,
+so results are your own conversations. Add `--include-subagents` to search
+them too; a search that names chats with `--chat` searches those chats
+whatever they are.
+
 Different filters combine: a result must satisfy all of them. Repeat one flag
 to accept alternatives, such as `--provider codex --provider claude-code`.
 
