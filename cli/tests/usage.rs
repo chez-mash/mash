@@ -57,6 +57,16 @@ fn each_command_is_recorded_once_and_the_log_can_be_turned_off_and_cleared() {
     assert_eq!(surface, "cli");
     assert_eq!(arguments["limit"], "3");
     assert_eq!(arguments["db"], db);
+    // Only flags given, never the group Clap makes for a flattened set of
+    // them, which is named for its Rust struct (here `Request`).
+    let mut keys: Vec<&str> = arguments
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    keys.sort_unstable();
+    assert_eq!(keys, ["config", "db", "limit"], "{arguments}");
 
     // `mash usage` itself is not a call to record.
     let off = mash(directory.path(), &["--db", db, "usage", "off"]);

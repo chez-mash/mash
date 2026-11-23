@@ -699,7 +699,7 @@ async fn console_call(
 
 fn json_result(result: Result<core::Response, AppError>) -> Response {
     match result {
-        Ok(response) => axum::Json(response).into_response(),
+        Ok(response) => usage::counted(response),
         Err(error) => {
             let status = if error.error.retryable {
                 StatusCode::SERVICE_UNAVAILABLE

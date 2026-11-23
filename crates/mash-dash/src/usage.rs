@@ -15,6 +15,21 @@ use mash_app::usage::{self, Outcome, Started, Surface};
 
 use crate::Dash;
 
+/// How many results an answer carries, set where a core answer becomes HTTP.
+#[derive(Clone, Copy)]
+pub(crate) struct ResultCount(pub(crate) u64);
+
+/// A core answer as JSON, carrying how many results it holds: the log
+/// records the HTTP answer and cannot see into it.
+pub(crate) fn counted(response: core::Response) -> Response {
+    let count = usage::result_count(&response);
+    let mut answer = axum::Json(response).into_response();
+    if let Some(count) = count {
+        answer.extensions_mut().insert(ResultCount(count));
+    }
+    answer
+}
+
 /// The largest body kept as arguments; a bigger one is recorded by size.
 const BODY_LIMIT: usize = 64 * 1024;
 
@@ -83,6 +98,10 @@ pub(crate) async fn record(
         serde_json::Value::Object(arguments),
     );
     call.client = client;
+    call.result_count = response
+        .extensions()
+        .get::<ResultCount>()
+        .map(|count| count.0);
     call.response_bytes = response
         .headers()
         .get(header::CONTENT_LENGTH)

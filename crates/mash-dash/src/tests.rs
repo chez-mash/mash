@@ -924,3 +924,29 @@ async fn an_open_network_dashboard_never_joins_or_manages_machines() {
     assert_eq!(view["may_change"], false);
     server.abort();
 }
+
+/// The usage log records the HTTP answer, so the count of what a search or
+/// listing returned has to ride along with it; an error carries none.
+#[test]
+fn a_listing_answer_carries_its_result_count_for_the_usage_log() {
+    let page = mash_app::records::Page {
+        records: Vec::new(),
+        next_offset: None,
+        next_cursor: None,
+    };
+    let answer = super::json_result(Ok(mash_app::core::Response::Records(page)));
+    assert_eq!(
+        answer
+            .extensions()
+            .get::<super::usage::ResultCount>()
+            .map(|count| count.0),
+        Some(0)
+    );
+    let failed = super::json_result(Err(mash_model::AppError::usage("no")));
+    assert!(
+        failed
+            .extensions()
+            .get::<super::usage::ResultCount>()
+            .is_none()
+    );
+}

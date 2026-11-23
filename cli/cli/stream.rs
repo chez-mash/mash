@@ -42,7 +42,9 @@ pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
     };
     let mut updates = std::pin::pin!(federated::search(paths, spec, None).await?);
     let stdout = std::io::stdout();
+    let mut results = 0;
     while let Some(update) = updates.next().await {
+        results = update.results.len();
         let mut out = stdout.lock();
         let written = serde_json::to_writer(&mut out, &update).is_ok()
             && out.write_all(b"\n").is_ok()
@@ -54,5 +56,7 @@ pub(super) async fn run(cli: Cli) -> Result<Response, AppError> {
         }
     }
     // Every line is already written; nothing more to print.
-    Ok(Response::ServerStopped)
+    Ok(Response::Streamed {
+        results: u64::try_from(results).unwrap_or(u64::MAX),
+    })
 }

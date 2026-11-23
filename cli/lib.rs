@@ -175,7 +175,8 @@ fn respond(
 ) -> i32 {
     match result {
         // MCP owns stdout for its entire session, including shutdown.
-        Ok(cli::Response::ServerStopped) => 0,
+        // A stream has already printed every update, one line each.
+        Ok(cli::Response::ServerStopped | cli::Response::Streamed { .. }) => 0,
         // The async runtime and its lease are gone; start the replacement.
         Ok(cli::Response::WatchReplaced { reason, executable }) => {
             let _ = write_json(stderr, &reason);

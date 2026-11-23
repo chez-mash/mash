@@ -123,6 +123,19 @@ fn stream_prints_one_update_per_source_and_merges_into_one_ranking() {
             .unwrap()
             .contains("only this machine")
     );
+    // Each streamed search is in the usage log with how many results its
+    // last update listed, as Raycast's searches, which all stream, need.
+    let usage = rusqlite::Connection::open(directory.path().join("usage.sqlite3")).unwrap();
+    let counts: Vec<Option<i64>> = usage
+        .prepare("SELECT result_count FROM calls WHERE tool = 'search' ORDER BY id")
+        .unwrap()
+        .query_map([], |row| row.get::<_, Option<i64>>(0))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    assert_eq!(counts.len(), 3, "{counts:?}");
+    assert!(counts.iter().all(Option::is_some), "{counts:?}");
+    assert_eq!(counts[0], Some(2));
     cleanup_local_gold(&database, "local");
 }
 

@@ -8,7 +8,6 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use serde::Serialize;
 
 use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
@@ -19,6 +18,8 @@ mod models;
 use models::ModelsCommand;
 mod qdrant;
 use qdrant::QdrantCommand;
+mod response;
+pub(super) use response::Response;
 mod request;
 use request::SearchArguments;
 mod stream;
@@ -423,45 +424,6 @@ enum DashCommand {
         /// Stop serving and remove the service; the token is kept.
         #[arg(long)]
         remove: bool,
-    },
-}
-
-#[derive(Debug, Serialize)]
-#[serde(untagged)]
-pub(super) enum Response {
-    Operation(Box<core::Response>),
-    Setup(Box<core::Response>),
-    Help {
-        help: String,
-    },
-    Usage(usage::Answer),
-    /// The release and the silver schema it opens; deployment compares the
-    /// latter with an existing database's `user_version` before replacing it.
-    Version {
-        version: &'static str,
-        silver_schema: i64,
-        silver_schema_min: i64,
-        /// How `record` evidence may name its source. The plugin hooks read
-        /// this before telling an agent to cite its own session.
-        record_citations: [&'static str; 2],
-        /// The agents whose running session a `session_id` can name before it
-        /// is indexed. The hooks read this before telling one of them to.
-        session_citations: [&'static str; 3],
-    },
-    WatchStopped {
-        watching: bool,
-    },
-    /// The watcher stopped because its executable was replaced; the caller
-    /// starts the replacement in this process once the runtime is gone.
-    #[serde(skip)]
-    WatchReplaced {
-        reason: AppError,
-        executable: PathBuf,
-    },
-    /// `mcp` or `dash` ran until it was stopped.
-    ServerStopped,
-    InitCancelled {
-        cancelled: bool,
     },
 }
 

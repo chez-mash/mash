@@ -93,15 +93,17 @@ pub(crate) struct Pending {
 /// (`mcp`, `dash`) or `usage` itself, or does not parse.
 pub(crate) fn start(arguments: &[OsString]) -> Option<Pending> {
     let started = Started::now();
-    let matches = Cli::command().try_get_matches_from(arguments).ok()?;
+    let mut command = Cli::command();
+    let matches = command.try_get_matches_from_mut(arguments).ok()?;
     let mut names = Vec::new();
     let mut fields = serde_json::Map::new();
     let mut level = &matches;
     loop {
-        collect(level, &mut fields);
+        collect(level, &command, &mut fields);
         match level.subcommand() {
             Some((name, next)) => {
                 names.push(name.to_owned());
+                command = command.find_subcommand(name)?.clone();
                 level = next;
             }
             None => break,
@@ -125,10 +127,19 @@ pub(crate) fn start(arguments: &[OsString]) -> Option<Pending> {
     })
 }
 
-/// Every argument given at one level, by its name, as text.
-fn collect(matches: &ArgMatches, fields: &mut serde_json::Map<String, serde_json::Value>) {
+/// Every argument given at one level, by its name, as text. Clap also lists
+/// the group it makes for each flattened set of arguments, named for its
+/// Rust struct (`SearchArguments`); those are not arguments and are skipped.
+fn collect(
+    matches: &ArgMatches,
+    command: &clap::Command,
+    fields: &mut serde_json::Map<String, serde_json::Value>,
+) {
     for id in matches.ids() {
         let name = id.as_str();
+        if command.get_groups().any(|group| group.get_id() == id) {
+            continue;
+        }
         if matches.value_source(name) != Some(clap::parser::ValueSource::CommandLine) {
             continue;
         }
@@ -164,6 +175,7 @@ impl Pending {
             Ok(Response::Operation(response) | Response::Setup(response)) => {
                 call.answered(response);
             }
+            Ok(Response::Streamed { results }) => call.result_count = Some(*results),
             Ok(_) => {}
             Err(error) => call.fail(error),
         }
