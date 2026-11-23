@@ -109,8 +109,7 @@ fn describe(path: &Path, text: &str, detected: &ProviderRoots) -> Result<View, A
         unshared: document
             .shared
             .as_ref()
-            .map(|shared| shared.unshared.clone())
-            .unwrap_or_default(),
+            .map_or_else(Default::default, |shared| shared.unshared.clone()),
         memory_capture: document.records.enabled,
         hide_credentials: document.redaction,
         assistant: document.assistant.map(|assistant| Assistant {
