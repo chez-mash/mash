@@ -1,0 +1,49 @@
+---
+// The page for a missing address. Starlight's own 404 is a splash page whose
+// hero would be the landing page's (Hero.astro draws the handoff, the stamp
+// and the downloads for every hero), so astro.config.mjs turns that route off
+// and this page says plainly what happened and where to go next.
+import { LinkButton } from "@astrojs/starlight/components";
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+---
+
+<StarlightPage
+  frontmatter={{ title: "Page not found", template: "splash", pagefind: false, editUrl: false }}
+>
+  <div class="mash-missing">
+    <p class="lead">
+      There is no page at this address. It may have moved, or the link may have a typo.
+    </p>
+    <button type="button" class="mash-search-tip" data-mash-search>
+      Search the docs<kbd>Ctrl K</kbd>
+    </button>
+    <div class="actions">
+      <LinkButton href="/" icon="right-arrow">Home</LinkButton>
+      <LinkButton href="/guides/" variant="secondary" icon="open-book" iconPlacement="start">
+        Docs
+      </LinkButton>
+    </div>
+  </div>
+</StarlightPage>
+
+<style>
+  .mash-missing {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+    max-width: 36rem;
+    padding-block: 1rem 3rem;
+  }
+  .mash-missing .lead {
+    margin: 0;
+    font-size: 1.1875rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .actions :global(.sl-link-button) {
+    margin: 0;
+  }
+</style>
