@@ -148,3 +148,74 @@ export function downloadChat(content: string, format: "markdown" | "html"): void
   // Let the browser consume the download before releasing its backing data.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** The chat an export reads, and how to read its pages. */
+export interface ExportSource {
+  readonly id: string;
+  readonly node: string;
+  readonly title: string;
+  /** The machine named in the exported file. */
+  readonly machine: string;
+  readonly readPage: ReadPage;
+}
+
+/**
+ * Exports the entire chat, never only what is loaded, telling the reader how
+ * it goes through `notify`. Call it straight from the click: a PDF opens its
+ * print tab before anything is read, while the browser still counts the
+ * click as the reader's, and a blocked tab is said rather than worked around.
+ */
+export async function exportChat(
+  format: ExportFormat,
+  source: ExportSource,
+  signal: AbortSignal,
+  notify: (notice: string) => void,
+): Promise<void> {
+  const popup = format === "pdf" ? window.open("", "_blank") : null;
+  if (format === "pdf" && !popup) {
+    notify("Allow a new tab to prepare the PDF export.");
+    return;
+  }
+  if (popup) {
+    popup.opener = null;
+    popup.document.body.textContent = "Preparing the entire chat for printing…";
+  }
+  const { title, machine } = source;
+  notify("Preparing export…");
+  try {
+    const messages = await collectChat(
+      source.id,
+      source.node,
+      signal,
+      (count) => notify(`Preparing export: ${count.toLocaleString()} messages…`),
+      source.readPage,
+    );
+    signal.throwIfAborted();
+    if (format === "pdf" && popup) {
+      if (popup.closed) throw new Error("The PDF preview tab was closed.");
+      popup.document.open();
+      popup.document.write(htmlExport(title, machine, messages));
+      popup.document.close();
+      popup.focus();
+      popup.print();
+      notify("Choose Save as PDF in the print dialog. The preview includes the entire chat.");
+    } else {
+      downloadChat(
+        format === "markdown"
+          ? markdownExport(title, machine, messages)
+          : htmlExport(title, machine, messages),
+        format === "markdown" ? "markdown" : "html",
+      );
+      notify(`Exported ${messages.length.toLocaleString()} messages.`);
+    }
+  } catch (error) {
+    popup?.close();
+    notify(
+      signal.aborted
+        ? "Export cancelled."
+        : error instanceof Error
+          ? error.message
+          : "Export failed.",
+    );
+  }
+}

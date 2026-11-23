@@ -1,6 +1,8 @@
 // Paints Find in chat matches on the rendered page with the CSS Custom
 // Highlight API, which marks text without changing the page's markup.
 // Browsers without it still scroll to each match; they only lose the colour.
+import { tick } from "svelte";
+import type { FindMatch } from "./find";
 
 const ALL = "mash-find";
 const CURRENT = "mash-find-current";
@@ -87,4 +89,37 @@ export function bringIntoView(target: Range | Element): void {
   }
   const spot = target.getBoundingClientRect();
   window.scrollTo({ top: window.scrollY + spot.top - window.innerHeight / 2, behavior: "instant" });
+}
+
+/** Opens every fold from `element` outward that `inside` allows. */
+function openFolds(from: Element | null | undefined, inside: (fold: Element) => boolean): void {
+  for (
+    let fold = from?.closest("details");
+    fold && inside(fold);
+    fold = fold.parentElement?.closest("details")
+  )
+    fold.open = true;
+}
+
+/**
+ * Shows the match `target` under `pane`: its message and any collapsed step
+ * around it are opened, every match is painted, and the window scrolls to it.
+ */
+export async function revealMatch(
+  pane: HTMLElement,
+  query: string,
+  target: FindMatch,
+): Promise<void> {
+  const element = pane.querySelector(`[data-message="${CSS.escape(target.messageId)}"]`);
+  if (!element) return;
+  if (element instanceof HTMLDetailsElement) element.open = true;
+  openFolds(element, () => true);
+  await tick();
+  const spot = paintMatches(pane, query, { element, occurrence: target.occurrence });
+  // The match may sit in a fold inside the message, such as its added context.
+  if (spot instanceof Range) {
+    openFolds(spot.startContainer.parentElement, (fold) => element.contains(fold));
+    await tick();
+  }
+  if (spot) bringIntoView(spot);
 }
