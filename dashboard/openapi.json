@@ -439,6 +439,43 @@
         },
         "type": "object"
       },
+      "AttachmentParams": {
+        "additionalProperties": false,
+        "properties": {
+          "attachment": {
+            "description": "The attachment's ID, as the chat page lists it.",
+            "type": "string"
+          },
+          "digest": {
+            "description": "The digest the page was shown. When it still matches, the answer may\nbe kept; when it does not, the attachment changed and is refused.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "description": "The message's ID.",
+            "type": "string"
+          },
+          "node": {
+            "description": "The node the chat page was read with.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "shared": {
+            "default": false,
+            "description": "Whether the chat page was read from the shared index.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message",
+          "attachment"
+        ],
+        "type": "object"
+      },
       "Attachments": {
         "additionalProperties": false,
         "properties": {
@@ -7555,6 +7592,89 @@
           }
         },
         "summary": "The models the configured service offers."
+      }
+    },
+    "/api/attachment": {
+      "get": {
+        "operationId": "getApiAttachment",
+        "parameters": [
+          {
+            "description": "The attachment's ID, as the chat page lists it.",
+            "in": "query",
+            "name": "attachment",
+            "required": true,
+            "schema": {
+              "description": "The attachment's ID, as the chat page lists it.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "The digest the page was shown. When it still matches, the answer may\nbe kept; when it does not, the attachment changed and is refused.",
+            "in": "query",
+            "name": "digest",
+            "schema": {
+              "description": "The digest the page was shown. When it still matches, the answer may\nbe kept; when it does not, the attachment changed and is refused.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "The message's ID.",
+            "in": "query",
+            "name": "message",
+            "required": true,
+            "schema": {
+              "description": "The message's ID.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "The node the chat page was read with.",
+            "in": "query",
+            "name": "node",
+            "schema": {
+              "description": "The node the chat page was read with.",
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Whether the chat page was read from the shared index.",
+            "in": "query",
+            "name": "shared",
+            "schema": {
+              "default": false,
+              "description": "Whether the chat page was read from the shared index.",
+              "type": "boolean"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": ""
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "One retained attachment of a message, as its bytes."
       }
     },
     "/api/chat": {

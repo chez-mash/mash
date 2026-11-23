@@ -39,6 +39,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One retained attachment of a message, as its bytes. */
+        get: operations["getApiAttachment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat": {
         parameters: {
             query?: never;
@@ -742,6 +759,24 @@ export interface components {
             allowed_roots: string[];
             /** @default false */
             share_files: boolean;
+        };
+        AttachmentParams: {
+            /** @description The attachment's ID, as the chat page lists it. */
+            attachment: string;
+            /**
+             * @description The digest the page was shown. When it still matches, the answer may
+             *     be kept; when it does not, the attachment changed and is refused.
+             */
+            digest?: string | null;
+            /** @description The message's ID. */
+            message: string;
+            /** @description The node the chat page was read with. */
+            node?: string | null;
+            /**
+             * @description Whether the chat page was read from the shared index.
+             * @default false
+             */
+            shared: boolean;
         };
         Attachments: {
             message_id: string;
@@ -3043,6 +3078,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Models"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiAttachment: {
+        parameters: {
+            query: {
+                /** @description The attachment's ID, as the chat page lists it. */
+                attachment: string;
+                /**
+                 * @description The digest the page was shown. When it still matches, the answer may
+                 *     be kept; when it does not, the attachment changed and is refused.
+                 */
+                digest?: string;
+                /** @description The message's ID. */
+                message: string;
+                /** @description The node the chat page was read with. */
+                node?: string;
+                /** @description Whether the chat page was read from the shared index. */
+                shared?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

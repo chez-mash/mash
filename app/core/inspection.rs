@@ -227,17 +227,7 @@ pub(super) async fn chat_messages(
         return Err(AppError::usage("chat page limit must be between 1 and 500"));
     }
     let output = configuration.redaction.output();
-    if shared && node.as_ref().is_none_or(String::is_empty) {
-        return Err(AppError::usage("shared chat reads require a source node"));
-    }
-    if let Some(node) = node.filter(|node| {
-        shared
-            || node
-                != configuration
-                    .shared
-                    .as_ref()
-                    .map_or("local", |shared| shared.node_id.as_str())
-    }) {
+    if let Some(node) = source_node(configuration, node, shared)? {
         let mut messages = shared::chat_page(
             required_shared(configuration)?,
             &shared::protocol::ChatPage {
@@ -278,6 +268,47 @@ pub(super) async fn chat_messages(
         })
     })
     .await
+}
+
+/// The node whose published copy a dashboard read names, or `None` to read
+/// this machine's own index: a shared read always names one, and this
+/// machine's own node ID (`local` when unshared) reads locally.
+pub(super) fn source_node(
+    configuration: &ResolvedConfig,
+    node: Option<String>,
+    shared: bool,
+) -> Result<Option<String>, AppError> {
+    if shared && node.as_ref().is_none_or(String::is_empty) {
+        return Err(AppError::usage("shared chat reads require a source node"));
+    }
+    let own = configuration
+        .shared
+        .as_ref()
+        .map_or("local", |shared| shared.node_id.as_str());
+    Ok(node.filter(|node| shared || node != own))
+}
+
+/// One attachment of a message the dashboard shows, from the same source as
+/// its chat page, with its name masked as that page masks it.
+pub(super) async fn chat_attachment(
+    configuration: &ResolvedConfig,
+    database: &Path,
+    read: super::models::ChatAttachment,
+) -> Result<crate::attachments::Retrieved, AppError> {
+    let remote = source_node(configuration, read.node, read.shared)?;
+    let mut file = get_attachment(
+        configuration,
+        database,
+        read.message_id,
+        read.attachment_id,
+        remote,
+    )
+    .await?;
+    configuration
+        .redaction
+        .output()
+        .attachments(std::slice::from_mut(&mut file.attachment));
+    Ok(file)
 }
 
 fn local_view(

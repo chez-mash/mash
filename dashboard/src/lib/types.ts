@@ -99,6 +99,22 @@ export interface Message {
   };
   readonly at: string;
   readonly blocks: readonly Block[];
+  /** Files the message carried, in the order it carried them. */
+  readonly attachments?: readonly Attachment[];
+}
+
+/** A file a message carried, and whether Mash kept a copy to show. */
+export interface Attachment {
+  readonly id: string;
+  readonly name: string;
+  readonly mediaType: string;
+  readonly bytes?: number;
+  /** Where its bytes are read; absent when Mash did not keep them. */
+  readonly url?: string;
+  /** A kept picture the browser can draw, shown rather than downloaded. */
+  readonly image: boolean;
+  /** Why no copy is kept, when none is. */
+  readonly missing?: string;
 }
 
 export interface Transcript {

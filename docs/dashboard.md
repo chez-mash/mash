@@ -165,6 +165,10 @@ each step and its output. The side panel lists your prompts on the current
 page, the [subagents](#subagent-chats) the chat started, other chats from the
 same project and memory saved from this chat.
 
+Pictures attached to a message show as thumbnails under it; select one to see
+it full size. Other attached files download from a card, and a file Mash did
+not keep a copy of shows a card saying why.
+
 Hover over a message to see its copy actions. On a phone they appear below the
 message. Choose **Copy link to message** beside **Copy message** to paste a link
 to the exact message into a note or handoff. Only the URL goes to your clipboard.

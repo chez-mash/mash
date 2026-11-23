@@ -34,6 +34,7 @@ import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/step
 import { childrenOf } from "../lib/subagents";
 import type { Message } from "../lib/types";
 import { updates } from "../lib/updates.svelte";
+import Attachments from "./Attachments.svelte";
 import ChatSidebar from "./ChatSidebar.svelte";
 import FindBar from "./FindBar.svelte";
 import MessageActions from "./MessageActions.svelte";
@@ -426,7 +427,11 @@ const prompts = $derived(
           <summary>{#if context}<FileText size={15} aria-hidden="true" />{:else}<Lightbulb size={15} aria-hidden="true" />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary>
           <div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div>
         </details>
+        {@render files(message)}
         {@render saved(message)}
+      {/snippet}
+      {#snippet files(message: Message)}
+        {#if message.attachments?.length}<Attachments attachments={message.attachments} />{/if}
       {/snippet}
       {#snippet actions(message: Message)}
         <MessageActions {message} href={chatHref(id, machine, message.id, shared)} />
@@ -443,7 +448,7 @@ const prompts = $derived(
                 {#each stepParts(item) as part (part.kind === "call" ? part.call.id : part.message.id)}
                   {#if part.kind === "call"}
                     <ToolStep call={part.call} selected={messageId} />
-                    {#each part.messages as message (message.id)}{@render saved(message)}{/each}
+                    {#each part.messages as message (message.id)}{@render files(message)}{@render saved(message)}{/each}
                   {:else}
                     {@render note(part.message)}
                   {/if}
@@ -458,13 +463,14 @@ const prompts = $derived(
           <div class="hitbox" class:hit={selected} id="message-{message.id}" data-message={message.id} style:scroll-margin-top="80px">
             {#if selected}<span class="hitlabel">Linked message</span>{/if}
             {#if message.role === "user"}
-              <div class="you"><MessageBody text={saidText(message)} own />{@render actions(message)}</div>
+              <div class="you"><MessageBody text={saidText(message)} own />{@render files(message)}{@render actions(message)}</div>
               {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
                 {#each message.blocks as block, i (i)}
                   {#if block.type === "text"}<MessageBody text={block.markdown} />{/if}
                 {/each}
+                {@render files(message)}
                 {@render actions(message)}
               </div>
               {#if message.activity}<details class="fold"><summary><Terminal size={15} aria-hidden="true" />Recorded tool activity<span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}

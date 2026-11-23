@@ -1,3 +1,4 @@
+import { attachments, type Source } from "./attachments";
 import type { Answer, ReadPath, Wire } from "./routes";
 import { liveMachinesSeen } from "./scope.svelte";
 import type { Applied } from "./search";
@@ -254,7 +255,8 @@ function hasSomethingToShow(row: Answer<"/api/chat">["messages"][number]): boole
   return row.role !== "assistant" || row.content.trim() !== "[Thinking]";
 }
 
-export function parseMessages(body: Answer<"/api/chat">): MessagePage {
+/** `source` is where the page was read, so its attachments are read there too. */
+export function parseMessages(body: Answer<"/api/chat">, source: Source = {}): MessagePage {
   return {
     ...(typeof body.message_count === "number" ? { total: body.message_count } : {}),
     rows: body.messages.length,
@@ -301,6 +303,9 @@ export function parseMessages(body: Answer<"/api/chat">): MessagePage {
         },
         // Opaque provider inputs remain text, never interpreted as commands or markup.
         activity: Object.keys(tools).length ? JSON.stringify(tools, null, 2) : "",
+        ...(row.attachments?.length
+          ? { attachments: attachments(row.id, row.attachments, source) }
+          : {}),
       };
     }),
   };
@@ -317,20 +322,16 @@ export async function transcript(
   limit = PAGE_SIZE,
 ): Promise<MessagePage> {
   const page = { offset: String(offset), limit: String(limit) };
-  return parseMessages(
-    await fromOwner(node, signal, (peer) =>
-      read(
-        "/api/chat",
-        new URLSearchParams(
-          peer
-            ? { id, ...page }
-            : { id, ...(node ? { node } : {}), ...(shared ? { shared: "true" } : {}), ...page },
-        ),
-        signal,
-        peer,
-      ),
-    ),
-  );
+  return fromOwner(node, signal, async (peer) => {
+    const source: Source = peer ? { peer } : { node, shared };
+    const params = peer
+      ? { id, ...page }
+      : { id, ...(node ? { node } : {}), ...(shared ? { shared: "true" } : {}), ...page };
+    return parseMessages(
+      await read("/api/chat", new URLSearchParams(params), signal, peer),
+      source,
+    );
+  });
 }
 /**
  * A chat of a machine read live is read on that machine's own dashboard, as
@@ -355,14 +356,13 @@ export async function context(
   signal: AbortSignal,
   shared = false,
 ): Promise<MessagePage> {
-  return parseMessages(
-    await fromOwner(node, signal, (peer) => {
-      const params = new URLSearchParams({ id, context: "25" });
-      if (node && !peer) params.set("node", node);
-      if (shared && !peer) params.set("shared", "true");
-      return read("/api/view", params, signal, peer);
-    }),
-  );
+  return fromOwner(node, signal, async (peer) => {
+    const params = new URLSearchParams({ id, context: "25" });
+    if (node && !peer) params.set("node", node);
+    if (shared && !peer) params.set("shared", "true");
+    const source: Source = peer ? { peer } : { node, shared };
+    return parseMessages(await read("/api/view", params, signal, peer), source);
+  });
 }
 
 /** How far past a page's edge to look for the other half of a tool call. */

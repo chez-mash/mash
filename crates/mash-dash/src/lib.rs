@@ -9,7 +9,7 @@
 
 use axum::Router;
 use axum::extract::State;
-use axum::http::{HeaderValue, StatusCode, Uri, header};
+use axum::http::{StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use mash_app::core::{self, Operation, Paths, Request};
 use mash_app::{
@@ -25,7 +25,9 @@ mod access;
 pub(crate) use access::allowed_hosts;
 mod assets;
 mod assistant;
+mod attachment;
 mod contract;
+mod hardening;
 mod live;
 mod open_in;
 mod search;
@@ -170,7 +172,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
 fn history_routes(router: aide::axum::ApiRouter<Arc<Dash>>) -> aide::axum::ApiRouter<Arc<Dash>> {
     use aide::axum::routing::get_with;
     use contract::reads;
-    services::viewing::routes(open_in::routes(search::routes(router)))
+    services::viewing::routes(open_in::routes(search::routes(attachment::routes(router))))
         .api_route(
             "/api/health",
             get_with(
@@ -291,15 +293,6 @@ async fn trace(request: axum::extract::Request, next: axum::middleware::Next) ->
     response
 }
 
-/// How long a browser may keep a response.
-#[derive(Clone, Copy)]
-enum Cache {
-    Api,
-    Hashed,
-    Image,
-    Page,
-}
-
 async fn guard(
     State(state): State<Arc<Dash>>,
     request: axum::extract::Request,
@@ -372,57 +365,8 @@ async fn guard(
     {
         return StatusCode::METHOD_NOT_ALLOWED.into_response();
     }
-    let cache = Cache::of(request.uri().path());
-    harden(next.run(request).await, cache)
-}
-
-impl Cache {
-    fn of(path: &str) -> Self {
-        if path.starts_with("/api/") {
-            Self::Api
-        } else if path.starts_with("/assets/") {
-            Self::Hashed
-        } else if std::path::Path::new(path)
-            .extension()
-            .is_some_and(|extension| {
-                extension.eq_ignore_ascii_case("svg") || extension.eq_ignore_ascii_case("png")
-            })
-        {
-            Self::Image
-        } else {
-            Self::Page
-        }
-    }
-}
-
-/// The caching and browser-safety headers every response carries.
-fn harden(mut response: Response, cache: Cache) -> Response {
-    let headers = response.headers_mut();
-    // Hashed build assets may be kept for good; images keep their names across
-    // releases, so they are rechecked like the page.
-    headers.insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(match cache {
-            Cache::Api => "no-store",
-            Cache::Hashed => "public, max-age=31536000, immutable",
-            Cache::Image | Cache::Page => "no-cache",
-        }),
-    );
-    headers.insert(
-        header::X_CONTENT_TYPE_OPTIONS,
-        HeaderValue::from_static("nosniff"),
-    );
-    headers.insert(
-        header::REFERRER_POLICY,
-        HeaderValue::from_static("no-referrer"),
-    );
-    headers.insert(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_static(
-            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
-        ),
-    );
-    response
+    let cache = hardening::Cache::of(request.uri().path());
+    hardening::harden(next.run(request).await, cache)
 }
 
 /// Whether this dashboard asks visitors to sign in, and whether this one has.

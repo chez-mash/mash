@@ -187,6 +187,17 @@ pub enum Operation {
         attachment_id: String,
         shared: Option<String>,
     },
+    ChatAttachment(ChatAttachment),
+}
+
+/// One attachment of a message the dashboard shows, read from where
+/// `ChatMessages` with the same `node` and `shared` reads that message.
+#[derive(Debug, Clone)]
+pub struct ChatAttachment {
+    pub message_id: String,
+    pub attachment_id: String,
+    pub node: Option<String>,
+    pub shared: bool,
 }
 
 #[derive(Debug, Serialize)]

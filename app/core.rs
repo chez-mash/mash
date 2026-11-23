@@ -25,8 +25,8 @@ pub use chats::DashboardCatalog;
 pub use chats::Response as ChatList;
 pub(crate) use indexing::watch_targets;
 pub use models::{
-    BackfillSummary, IndexMode, IndexRequest, Operation, Paths, Reading, Request, Response,
-    SearchMode, SearchResponse, StatusResponse, ViewResponse,
+    BackfillSummary, ChatAttachment, IndexMode, IndexRequest, Operation, Paths, Reading, Request,
+    Response, SearchMode, SearchResponse, StatusResponse, ViewResponse,
 };
 pub use setup::{InitPlan, InitReport, InitRequest, MARKETPLACE, join_plan};
 
@@ -462,6 +462,11 @@ async fn dispatch(
         } => inspection::get_attachment(configuration, database, message_id, attachment_id, shared)
             .await
             .map(Response::GetAttachment),
+        Operation::ChatAttachment(read) => {
+            inspection::chat_attachment(configuration, database, read)
+                .await
+                .map(Response::GetAttachment)
+        }
         Operation::DashboardCatalog { shared_only } => {
             chats::dashboard(configuration, database, shared_only)
                 .await
@@ -520,12 +525,7 @@ async fn dispatch(
             .await
             .map(Response::Search),
         Operation::ChatContext { id, context, node } => {
-            let remote = node.filter(|node| {
-                node != configuration
-                    .shared
-                    .as_ref()
-                    .map_or("local", |shared| shared.node_id.as_str())
-            });
+            let remote = inspection::source_node(configuration, node, false)?;
             inspection::view(configuration, database, id, context, remote)
                 .await
                 .map(Response::View)

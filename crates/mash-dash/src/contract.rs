@@ -62,8 +62,12 @@ pub(super) fn document(api: &aide::openapi::OpenApi) -> Value {
     let mut document = serde_json::to_value(api).unwrap_or_default();
     crate::openapi::settle(&mut document, "Scope", &[("after", "CoverageScope")]);
     // The event stream is described by the JSON each event carries, but it is
-    // not answered as JSON.
+    // not answered as JSON; an attachment is answered as its own bytes.
     for (stream, kind) in [
+        (
+            "/paths/~1api~1attachment/get/responses/200/content",
+            "application/octet-stream",
+        ),
         (
             "/paths/~1api~1events/get/responses/200/content",
             "text/event-stream",

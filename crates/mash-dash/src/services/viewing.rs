@@ -28,6 +28,7 @@ const READS: &[&str] = &[
     "/api/record",
     "/api/view",
     "/api/chat",
+    crate::attachment::PATH,
 ];
 
 /// The catalogue of a few thousand chats is a few megabytes; more than this
@@ -151,6 +152,7 @@ async fn forward(
         };
         return refuse(StatusCode::BAD_GATEWAY, message);
     }
+    let headers = response.headers().clone();
     let mut body = Vec::new();
     loop {
         match response.chunk().await {
@@ -177,7 +179,11 @@ async fn forward(
         }
     }
     // Only the body is passed on: the other dashboard's headers say nothing
-    // the browser needs, and this answer carries this dashboard's own.
+    // the browser needs, and this answer carries this dashboard's own. An
+    // attachment's type and digest are chosen again by the same rules.
+    if path == crate::attachment::PATH {
+        return crate::attachment::relay(&headers, body);
+    }
     ([(header::CONTENT_TYPE, "application/json")], body).into_response()
 }
 

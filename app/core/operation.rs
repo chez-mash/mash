@@ -34,7 +34,7 @@ impl Operation {
             Self::ExportSilver { .. } => "export_silver",
             Self::ImportSilver { .. } => "import_silver",
             Self::ListAttachments { .. } => "list_attachments",
-            Self::GetAttachment { .. } => "get_attachment",
+            Self::GetAttachment { .. } | Self::ChatAttachment(_) => "get_attachment",
         }
     }
 
@@ -89,7 +89,8 @@ impl Operation {
             | Self::QueryStructured { .. }
             | Self::QueryShared { .. }
             | Self::ListAttachments { .. }
-            | Self::GetAttachment { .. } => false,
+            | Self::GetAttachment { .. }
+            | Self::ChatAttachment(_) => false,
         }
     }
 }
