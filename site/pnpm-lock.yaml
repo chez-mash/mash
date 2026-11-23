@@ -55,8 +55,8 @@ importers:
         specifier: 1.2.0
         version: 1.2.0
       agentation-review:
-        specifier: github:kojah/agentation-review#4516211546b8aabdad84a4285c14a7f4ff39fcb5
-        version: https://codeload.github.com/kojah/agentation-review/tar.gz/4516211546b8aabdad84a4285c14a7f4ff39fcb5
+        specifier: github:kojah/agentation-review#83c898448be197e8d9eb8539504ee9c522236a40
+        version: https://codeload.github.com/kojah/agentation-review/tar.gz/83c898448be197e8d9eb8539504ee9c522236a40
       github-slugger:
         specifier: 2.0.0
         version: 2.0.0
@@ -1111,8 +1111,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  agentation-review@https://codeload.github.com/kojah/agentation-review/tar.gz/4516211546b8aabdad84a4285c14a7f4ff39fcb5:
-    resolution: {gitHosted: true, integrity: sha512-uMuPcU/ir7ihw0srKU1+3QgIiaDqGsDlZ4HjIOUU/nbQtqzdR/o5XduSxUCFsl5mTzMJ+8EX2Bu7YRlZwajl1w==, tarball: https://codeload.github.com/kojah/agentation-review/tar.gz/4516211546b8aabdad84a4285c14a7f4ff39fcb5}
+  agentation-review@https://codeload.github.com/kojah/agentation-review/tar.gz/83c898448be197e8d9eb8539504ee9c522236a40:
+    resolution: {gitHosted: true, integrity: sha512-nq2QtS2EQYC0N6xwn5X1+1fk1lNg9NjLZWVNKTVjVvOT4o7T14HmIF8FGSunr9JclQZ7/fZvbjaj/za/cZebgA==, tarball: https://codeload.github.com/kojah/agentation-review/tar.gz/83c898448be197e8d9eb8539504ee9c522236a40}
     version: 0.1.0
     engines: {node: '>=20.0.0'}
     hasBin: true
@@ -3484,7 +3484,7 @@ snapshots:
       - '@cfworker/json-schema'
       - supports-color
 
-  agentation-review@https://codeload.github.com/kojah/agentation-review/tar.gz/4516211546b8aabdad84a4285c14a7f4ff39fcb5:
+  agentation-review@https://codeload.github.com/kojah/agentation-review/tar.gz/83c898448be197e8d9eb8539504ee9c522236a40:
     dependencies:
       agentation: 3.0.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       agentation-mcp: 1.2.0

@@ -178,6 +178,29 @@ the published site carry none of it. The ports differ from the Agentation
 defaults (4747 and 4848) so the gohawk site's review can run alongside.
 Starting the review first stops any background Astro dev server of this site.
 
+A worker edits site files while the reviewer may still be typing the next
+note, and Astro answers many edits with a full page reload. Two parts of the
+toolbar keep the note:
+
+- The open note's text, the element it is attached to and the page URL are
+  saved in the browser's `localStorage` on every keystroke. After a reload, a
+  tab crash or a closed tab, the same page opens the note again on the same
+  element with the text intact. The saved draft is cleared when the note is
+  added or cancelled. Notes already added are kept by Agentation itself. Only a
+  note opened by clicking an element is reopened; an edit of an existing note,
+  a multi-select note and an area selection are not saved.
+- While any tab has a note open, the dev server holds full reloads and sends a
+  single one when the last note is added or cancelled, its tab closes, or no
+  one has typed in it for two minutes (`AGENTATION_REVIEW_DRAFT_HOLD_MS`
+  changes this). CSS and script updates still apply while a reload is held.
+
+Both live in `agentation-review`: `site/src/agentation.ts` adds its
+`holdReloadsWhileDrafting()` Vite plugin and mounts the toolbar with
+`import.meta.hot`. `pnpm test:review` in `site/` checks them in Chromium
+against its own dev server on port 4339, with a six-second hold and the
+review services answered in the browser, so it does not disturb a running
+review.
+
 On Xenia the review is also served on the tailnet, for a phone or laptop,
 at `https://xenia.taild75e12.ts.net:8449/`, by this one-time setting:
 
