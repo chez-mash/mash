@@ -42,7 +42,7 @@ installed Mash, such as `brew uninstall mash`, `scoop uninstall mash`,
 `cargo uninstall mash`, or which files to delete.
 
 If you installed the `mash-cli` package through apt, run `sudo apt remove mash-cli`.
-Mash `v0.1.1-alpha` can show the wrong package name in its removal report.
+In `v0.1.1-alpha` and earlier, the removal report can show the wrong package name.
 
 ## Copies that stay in place
 
@@ -70,9 +70,9 @@ Preview with the flag, then use the same flag when you confirm.
 mash uninstall --keep-history
 ```
 
-In `v0.1.1-alpha`, the preview can leave `--keep-history` out of the suggested
-confirmation command. Use the full command below. Confirming with `--yes`
-alone deletes Mash's indexed chats and saved memories.
+Confirming with `--yes` alone deletes Mash's indexed chats and saved memories.
+In `v0.1.1-alpha` and earlier, the preview can leave `--keep-history` out of the
+suggested confirmation command, so type the full command.
 
 ```sh
 mash uninstall --yes --keep-history
@@ -86,7 +86,7 @@ agents, and remove the program as in
 ### Reopen the retained history
 
 1. On the same computer and user account, install the Mash release you noted.
-   Set `MASH_VERSION` to its tag, such as `v0.1.1-alpha`, before running the
+   Set `MASH_VERSION` to its tag, such as `v0.2.0`, before running the
    [basic installer](installation.md#recommended-release-installers).
    To install from an archive, open that tag on
    [GitHub Releases](https://github.com/mashium/mash/releases) and download

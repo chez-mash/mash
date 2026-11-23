@@ -188,7 +188,7 @@ Then either use the wizard or edit the configuration.
 
 **Wizard.** Run `mash init --no-index --no-agents` in a terminal. If you start on
 a review screen, choose **Customize setup** (called **Review and edit settings**
-in v0.1.1-alpha). When asked where to search, choose **Connect to an existing shared server**.
+in v0.1.1-alpha and earlier). When asked where to search, choose **Connect to an existing shared server**.
 Enter the server URL, group ID,
 this computer's node ID, and the name of the token variable. Review the
 history folders and choose **Set up without indexing**. The next step sends

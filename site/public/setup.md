@@ -195,7 +195,7 @@ mash init --yes --no-agents
 If they chose to connect their installed Claude Code, Codex or GitHub Copilot
 CLIs as well, run `mash init --yes`. For specific agents, send them to the
 [interactive setup guide](https://getmash.io/installation/#connect-your-histories).
-If they chose Copilot CLI and installed v0.1.1-alpha, follow the
+If they chose Copilot CLI and installed v0.1.1-alpha or earlier, follow the
 [manual Copilot connection](https://getmash.io/plugin/#github-copilot-cli).
 On a fresh setup, both commands find saved chats in their usual locations and
 use the default range described in the setup review. Both check Qdrant before

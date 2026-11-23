@@ -61,8 +61,8 @@ fragment from the browser address before it signs in.
 If the dashboard host already has a [shared-index connection](shared-index.md),
 the dashboard can use its node token to read chats from other machines.
 If you joined with `mash init --join`, Mash can read the saved token from
-`~/.mash/node.env`. In v0.1.1-alpha, setup can report local-only access even
-when that token works. Open a chat from another computer to check.
+`~/.mash/node.env`. In v0.1.1-alpha and earlier, setup can report local-only
+access even when that token works. Open a chat from another computer to check.
 [Search across your machines](search-across-machines.md)
 
 If you configured sharing by hand, set the node token variable in the shell

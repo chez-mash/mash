@@ -54,7 +54,7 @@ Start a new session. In Claude Code, run `/mash:setup`. In Codex or Copilot,
 say “Use the Mash setup skill to set up Mash on this computer.” The agent
 reviews what will be installed and which chats to index with you, then shows
 you how to open the dashboard. Agent connections are optional. If you choose
-to connect Copilot CLI and use Mash v0.1.1-alpha, [complete the Copilot connection](#github-copilot-cli)
+to connect Copilot CLI with Mash v0.1.1-alpha or earlier, [complete the Copilot connection](#github-copilot-cli)
 after setup.
 
 If you connected an agent, restart it and ask “Use Mash to find an earlier chat
@@ -137,10 +137,11 @@ To remove the search tools too, [disconnect the agent](agents.md#disconnect-an-a
 
 ## GitHub Copilot CLI
 
-Development builds can connect GitHub Copilot CLI from `mash init` when
-`copilot` is on your `PATH`. The v0.1.1-alpha release can read Copilot’s saved
-chats, and you can manually give Copilot access to Mash search. After [setting
-up Mash](../README.md#quick-start), register its tools from a terminal.
+Mash 0.2.0 and later connect GitHub Copilot CLI from `mash init` when
+`copilot` is on your `PATH`. In v0.1.1-alpha and earlier, Mash can read
+Copilot’s saved chats, and you can manually give Copilot access to Mash search.
+After [setting up Mash](../README.md#quick-start), register its tools from a
+terminal.
 
 ```sh
 copilot mcp add mash -- mash mcp
@@ -152,7 +153,7 @@ for skills and hooks. Open a new Copilot session and ask it to use Mash to
 find an earlier chat. `copilot mcp list` shows `mash`, and `copilot plugin list`
 shows `mash@mash` if you installed the plugin.
 
-With v0.1.1-alpha, remove the Copilot connection before uninstalling Mash.
+In v0.1.1-alpha and earlier, remove the Copilot connection before uninstalling Mash.
 If you installed the plugin, run its removal command too.
 
 ```sh
@@ -181,6 +182,6 @@ mash status --installation
 
 Each agent's `connection` is `full` when the tools and plugin are both in
 place, and `mcp-only` when only the tools are connected. `next_action` gives
-the next step when an integration needs attention. For Copilot with v0.1.1-alpha,
-use [Copilot’s own checks](#github-copilot-cli).
+the next step when an integration needs attention. For Copilot in v0.1.1-alpha and
+earlier, use [Copilot’s own checks](#github-copilot-cli).
 [Use Mash with your agent](agents.md#confirm-the-connection)

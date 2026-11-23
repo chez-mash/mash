@@ -15,7 +15,7 @@ search any history you've indexed, including chats from other agents.
 | --- | --- | --- |
 | Claude Code | Local Claude Code conversations | Yes |
 | Codex | Local Codex conversations | Yes, through the Codex CLI |
-| GitHub Copilot CLI | Local command-line sessions | Development builds. [Manual connection in v0.1.1-alpha](plugin.md#github-copilot-cli) |
+| GitHub Copilot CLI | Local command-line sessions | Yes, through the Copilot CLI, in Mash 0.2.0 and later. [Manual connection in v0.1.1-alpha and earlier](plugin.md#github-copilot-cli) |
 | GitHub Copilot Chat in VS Code | Chats saved by VS Code on your computer | — |
 | OpenCode | Conversations in the local OpenCode database | — |
 | Cursor | Command-line chats and supported editor chat formats | — |

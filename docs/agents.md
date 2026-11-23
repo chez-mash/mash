@@ -51,8 +51,8 @@ If the agent is missing from your choices, check whether its command works in
 that terminal, for example with `codex --version`. Install its CLI or add
 it to `PATH`, then rerun the command above.
 
-Development builds include guided GitHub Copilot CLI setup. With v0.1.1-alpha,
-[connect Copilot CLI manually](plugin.md#github-copilot-cli).
+Mash 0.2.0 and later include guided GitHub Copilot CLI setup. In v0.1.1-alpha
+and earlier, [connect Copilot CLI manually](plugin.md#github-copilot-cli).
 
 ### What the connection installs
 
@@ -146,10 +146,11 @@ To check one agent and also launch its MCP server in a fresh process:
 ```bash
 mash status --installation --agent codex --probe
 mash status --installation --agent claude-code --probe
+mash status --installation --agent copilot --probe
 ```
 
-Use `--agent copilot` in builds that offer it. For v0.1.1-alpha,
-[check from Copilot CLI](plugin.md#github-copilot-cli).
+In v0.1.1-alpha and earlier, `--agent copilot` is not available.
+[Check from Copilot CLI](plugin.md#github-copilot-cli) instead.
 
 A successful probe verifies a new process, not the connection in an
 already-open chat. Restart the agent after setup, repairs, or upgrades.
