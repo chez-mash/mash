@@ -297,6 +297,10 @@ const rangeLabel = $derived.by(() => {
 // "19 chats · 11 subagent chats folded in": the list counts its own rows.
 const foldedLabel = $derived(foldedNote(view?.folded ?? 0));
 const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
+// A search that found nothing may have matched only chats agents started as
+// subagents, which are left out unless asked for; the empty page says so.
+const leftOutSubagents = $derived(hasSubagents && !!applied.query && applied.subagentHits === "hidden");
+const withSubagentsHref = $derived(appliedHref({ ...applied, subagentHits: "included", offset: 0 }));
 const parentTitle = (chat: ChatSummary): string | undefined =>
   chat.subagent
     ? catalogue.data
@@ -421,6 +425,7 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
           {:else if view.intent === "related-discussion"}Try a short question in English about the chat.
           {:else}Try one distinctive word you remember from the chat.{/if}
         </p>
+        {#if leftOutSubagents}<p class="meta">Chats your agents started as subagents are left out of search.</p>{/if}
       {/if}
       <div class="acts" style:justify-content="center">
         {#if view.first > 0}
@@ -434,6 +439,7 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
         {#if applied.query && view.first === 0}
           <!-- Two ways on when a search finds nothing: look through the chats
                themselves, or learn why one might not be indexed. -->
+          {#if leftOutSubagents}<a class="btn" href={withSubagentsHref}><GitFork size={15} aria-hidden="true" />Include subagent chats</a>{/if}
           <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
           <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><CircleHelp size={15} aria-hidden="true" />Find a missing chat</a>
         {/if}

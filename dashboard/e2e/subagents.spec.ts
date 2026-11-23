@@ -245,6 +245,41 @@ for (const width of [1440, 390]) {
   });
 }
 
+test("a search that matched only subagent chats says so and offers to include them", async ({
+  page,
+}) => {
+  await mock(page);
+  // Registered last, so it answers first: only the subagent mentions this.
+  await page.route("**/api/search?**", (route) => {
+    const included =
+      new URL(route.request().url()).searchParams.get("include_subagents") === "true";
+    return route.fulfill({
+      json: {
+        results: included
+          ? [
+              {
+                ...windows,
+                score: 1,
+                matches: [{ message_id: "fixed", node_id: "laptop", snippet: "old wording" }],
+              },
+            ]
+          : [],
+        next_offset: null,
+      },
+    });
+  });
+  await streamFromSearch(page);
+  await page.goto("/#/search?q=old+wording");
+  await expect(
+    page.getByText("Chats your agents started as subagents are left out of search."),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Include subagent chats" }).click();
+  await expect(page).toHaveURL(/subagent_hits=included/);
+  await expect(
+    page.locator(".results a.card").filter({ hasText: windows.subagent.label }),
+  ).toContainText(`subagent of ${parent.title}`);
+});
+
 test("a session copied over SSH is listed once, from the machine it ran on", async ({ page }) => {
   const original = {
     chat_id: "remote-session",

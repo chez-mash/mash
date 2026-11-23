@@ -194,14 +194,21 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
           title={isLoading ? "Searching…" : `No chats mention “${query}”`}
-          description={
+          description={[
             hasApp
               ? "Press ⌘↵ to search every machine and by meaning in Mash."
-              : "This searches this machine’s chats by their words. Try other words, or press ⌘↵ to copy a terminal search that also covers your other machines."
-          }
+              : "This searches this machine’s chats by their words. Try other words, or press ⌘↵ to copy a terminal search that also covers your other machines.",
+            // Mash leaves these out unless asked; a search may have matched only them.
+            subagentMatches ? "" : "Chats your agents started as subagents are left out.",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           actions={
             <ActionPanel>
               {fullSearch(query, hasApp)}
+              {subagentMatches ? null : (
+                <Action title="Include Subagent Chats…" icon={Icon.Gear} onAction={openExtensionPreferences} />
+              )}
               <Action.OpenInBrowser
                 title="How to Find a Missing Chat"
                 icon={Icon.QuestionMarkCircle}
