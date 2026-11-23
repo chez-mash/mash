@@ -171,6 +171,14 @@ async fn a_machine_reads_its_own_group_and_no_secret() {
         })
         .collect();
     assert_eq!(names, [("first", "configured"), ("laptop", "waiting")]);
+    // Neither published, so neither has a search state to report.
+    assert!(
+        body["machines"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|machine| machine.get("search").is_none())
+    );
     let text = body.to_string();
     assert!(
         !text.contains("other"),

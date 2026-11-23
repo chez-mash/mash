@@ -34,6 +34,21 @@ export interface ServerMachine {
   readonly stale: boolean;
   /** It was removed from the group. */
   readonly removed: boolean;
+  /** How far the server's search documents for it have caught up, as the
+   * server reports it; null when it never published or wasn't reported. */
+  readonly search: MachineSearch | null;
+}
+
+/** "missing", "stale" or "ready" for words and for meaning; meaning is null
+ * when the server doesn't search by meaning. */
+export interface MachineSearch {
+  readonly words: Readiness;
+  readonly meaning: Readiness | null;
+}
+type Readiness = "missing" | "stale" | "ready";
+
+function readiness(state: "missing" | "stale" | "ready" | "disabled"): Readiness | null {
+  return state === "disabled" ? null : state;
 }
 
 /** The shared server and its group, or why they can't be shown. */
@@ -92,6 +107,12 @@ export function serverReport(view: ServerView | undefined): ServerReport {
       receiving: machine.receiving ?? null,
       stale: publishedAt !== null && status.now - publishedAt > STALE_AFTER_SECONDS,
       removed: machine.state === "removed",
+      search: machine.search
+        ? {
+            words: readiness(machine.search.lexical) ?? "missing",
+            meaning: readiness(machine.search.dense),
+          }
+        : null,
     };
   });
   return {
@@ -136,4 +157,54 @@ export function reported(report: ServerReport, id: string): ServerMachine | unde
   return report.kind === "reported"
     ? report.machines.find((machine) => machine.id === id)
     : undefined;
+}
+
+/** The server's search index as a whole: ready when every machine it reports
+ * is ready; otherwise the machines it hasn't built (missing) or is still
+ * catching up with (stale). Null when the server reports no machine's search
+ * state, so the map keeps saying "not reported". */
+export interface ServerSearch {
+  readonly state: Readiness;
+  /** The machines in that state, for "missing" and "stale". */
+  readonly machines: readonly string[];
+  readonly summary: string;
+}
+
+function worstOf(search: MachineSearch): Readiness {
+  const states = [search.words, ...(search.meaning ? [search.meaning] : [])];
+  return states.includes("missing") ? "missing" : states.includes("stale") ? "stale" : "ready";
+}
+
+function some(ids: readonly string[]): string {
+  const [first, ...rest] = ids;
+  return rest.length ? `${first} and ${rest.length} more` : (first ?? "");
+}
+
+export function serverSearch(report: ServerReport): ServerSearch | null {
+  if (report.kind !== "reported") return null;
+  const searched = report.machines.filter(
+    (machine): machine is ServerMachine & { search: MachineSearch } =>
+      machine.search !== null && !machine.removed,
+  );
+  if (!searched.length) return null;
+  for (const state of ["missing", "stale"] as const) {
+    const machines = searched
+      .filter((machine) => worstOf(machine.search) === state)
+      .map((machine) => machine.id);
+    if (machines.length)
+      return {
+        state,
+        machines,
+        summary:
+          state === "missing"
+            ? `Not built for ${some(machines)} yet`
+            : `Catching up with ${some(machines)}`,
+      };
+  }
+  const count = searched.length;
+  return {
+    state: "ready",
+    machines: [],
+    summary: `Ready · ${count} machine${count === 1 ? "" : "s"}`,
+  };
 }

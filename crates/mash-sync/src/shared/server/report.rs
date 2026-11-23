@@ -45,6 +45,11 @@ pub struct MachineStatus {
     /// Its history is being deleted once its open connections close.
     #[serde(default)]
     pub delete_waiting: bool,
+    /// How far the server's search documents for what it published have
+    /// caught up: missing, stale or ready, for words and for meaning. Absent
+    /// when it never published or the server did not report it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search: Option<crate::views::readiness::Artifacts>,
 }
 
 /// A group as any of its machines may read it.

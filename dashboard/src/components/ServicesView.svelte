@@ -14,7 +14,7 @@ import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agoLabel } from "../lib/browse";
 import { stableRead } from "../lib/queries";
-import { reported, serverReport, serverViewOptions } from "../lib/serverStatus";
+import { reported, serverReport, serverSearch, serverViewOptions } from "../lib/serverStatus";
 import {
   checkedTime,
   type Machine,
@@ -67,7 +67,9 @@ const report = $derived.by(() => {
   return local || reported(whole, selectedId) ? whole : serverReport(undefined);
 });
 // The map of the chosen machine, and the place on it whose details are open.
-const map = $derived(machine ? machineMap(machine, report.kind !== "none") : null);
+const map = $derived(
+  machine ? machineMap(machine, report.kind === "none" ? false : serverSearch(report)) : null,
+);
 const placeId = $derived((selection.get("place") ?? "") as PlaceId | "");
 const place = $derived(placeId ? map?.places.get(placeId) : undefined);
 const others = $derived((fleet.data ?? []).filter((candidate) => candidate.id !== selectedId));

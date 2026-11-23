@@ -68,6 +68,7 @@ fn machine(
         published: node.and_then(|node| node.published.clone()),
         receiving: node.and_then(|node| node.receiving),
         delete_waiting: node.is_some_and(|node| node.delete_waiting),
+        search: None,
     }
 }
 
@@ -76,7 +77,14 @@ pub(crate) async fn read(
     State(app): State<App>,
     Extension(id): Extension<Identity>,
 ) -> Result<Json<GroupStatus>, ApiError> {
-    let (machines, now) = machines(&app, |group| group == id.group_id).await?;
+    let (mut machines, now) = machines(&app, |group| group == id.group_id).await?;
+    // The search state is an extra: a read that fails leaves it unreported
+    // rather than failing the status of the whole group.
+    if let Ok(search) = app.store.search_readiness(&id).await {
+        for machine in &mut machines {
+            machine.search = search.get(&machine.node_id).cloned();
+        }
+    }
     Ok(Json(GroupStatus {
         build: mash_app::BUILD_REVISION.to_owned(),
         started_at: app.live.as_ref().map_or(0, |live| live.started_at),

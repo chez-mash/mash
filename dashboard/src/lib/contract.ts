@@ -2462,6 +2462,12 @@ export interface components {
             published?: components["schemas"]["Published"] | null;
             /** @description A first publish still arriving. */
             receiving?: components["schemas"]["Receiving"] | null;
+            /**
+             * @description How far the server's search documents for what it published have
+             *     caught up: missing, stale or ready, for words and for meaning. Absent
+             *     when it never published or the server did not report it.
+             */
+            search?: components["schemas"]["Artifacts"] | null;
         } & ({
             /** @constant */
             state: "configured";

@@ -3132,6 +3132,17 @@
               }
             ],
             "description": "A first publish still arriving."
+          },
+          "search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Artifacts"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How far the server's search documents for what it published have\ncaught up: missing, stale or ready, for words and for meaning. Absent\nwhen it never published or the server did not report it."
           }
         },
         "required": [

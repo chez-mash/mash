@@ -5,6 +5,7 @@ import {
   reported,
   STALE_AFTER_SECONDS,
   serverReport,
+  serverSearch,
   staleWords,
 } from "./serverStatus";
 import type { Machine, ServerView } from "./shared";
@@ -142,5 +143,59 @@ describe("the shared server's report", () => {
     expect(ago(NOW - 3 * 3600, NOW)).toBe("3h ago");
     expect(ago(NOW - 86_400, NOW)).toBe("1 day ago");
     expect(ago(NOW + 50, NOW)).toBe("just now");
+  });
+});
+
+describe("the server's search index as the map shows it", () => {
+  const ready = { metadata: "ready", lexical: "ready", dense: "ready" } as const;
+  const stale = { metadata: "ready", lexical: "ready", dense: "stale" } as const;
+  const missing = { metadata: "ready", lexical: "missing", dense: "missing" } as const;
+  const with_ = (search: unknown) => ({ search }) as Partial<Machine>;
+  it("is not reported when the server says nothing about it", () => {
+    expect(serverSearch(serverReport(undefined))).toBeNull();
+    expect(serverSearch(serverReport(view([joined("laptop", NOW - 60)])))).toBeNull();
+  });
+  it("is ready when every reported machine is", () => {
+    const report = serverReport(
+      view([joined("laptop", NOW - 60, with_(ready)), joined("studio", NOW - 90, with_(ready))]),
+    );
+    expect(serverSearch(report)).toEqual({
+      state: "ready",
+      machines: [],
+      summary: "Ready · 2 machines",
+    });
+  });
+  it("names the machines it is behind on, missing before stale", () => {
+    const report = serverReport(
+      view([
+        joined("laptop", NOW - 60, with_(ready)),
+        joined("workstation", NOW - 90, with_(stale)),
+        joined("studio", NOW - 30, with_(missing)),
+      ]),
+    );
+    expect(serverSearch(report)).toMatchObject({ state: "missing", machines: ["studio"] });
+    const behind = serverReport(
+      view([joined("workstation", NOW - 90, with_(stale)), joined("box", NOW - 9, with_(stale))]),
+    );
+    expect(serverSearch(behind)?.summary).toBe("Catching up with box and 1 more");
+  });
+  it("counts meaning search only when the server has it", () => {
+    const words = { metadata: "ready", lexical: "ready", dense: "disabled" } as const;
+    const report = serverReport(view([joined("laptop", NOW - 60, with_(words))]));
+    expect(reported(report, "laptop")?.search).toEqual({ words: "ready", meaning: null });
+    expect(serverSearch(report)?.state).toBe("ready");
+  });
+  it("leaves removed machines out", () => {
+    const report = serverReport(
+      view([
+        joined("laptop", NOW - 60, with_(ready)),
+        {
+          ...joined("old", NOW - 600, with_(missing)),
+          state: "removed",
+          delete_requested: false,
+        } as Machine,
+      ]),
+    );
+    expect(serverSearch(report)?.state).toBe("ready");
   });
 });

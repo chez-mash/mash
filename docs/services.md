@@ -24,8 +24,10 @@ machine's box to see its map.
   server's own status gives its address, its group, every machine in the group
   and when each last published; a copy older than two days is marked with its
   age. A machine only the server knows of has a card but no map to open. The
-  server doesn't report its search index's state yet, so that box says so
-  instead of guessing.
+  server's search index box says **Ready** once it has caught up with every
+  machine, or names the machines it is still building for or catching up
+  with. A server running an older Mash doesn't report this, so the box says
+  so instead of guessing.
 - Agent sessions on an older build show as **reconnect to update**, and an
   unsupervised watcher has no verdict. Neither counts against the machine.
 - **Needs attention** lists every machine's faults and what to do, with a

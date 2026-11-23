@@ -9,6 +9,7 @@ use crate::views::qdrant::{self as qdrant_index, NodeViews};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
+mod readiness;
 mod records;
 mod replay;
 mod retire;
@@ -479,30 +480,18 @@ impl Store {
             let mut counts = self.read(&node, silver_store::counts).await?;
             let views = self.views.node_views(&node).await?;
             let silver = head.silver_revision.as_ref();
-            let lexical_current = views
-                .as_ref()
-                .is_some_and(|g| silver.is_some() && g.silver.as_ref() == silver);
-            let views_current = views
-                .as_ref()
-                .is_some_and(|g| g.current(&self.views, &node, silver));
+            let readiness::Readiness {
+                lexical_current,
+                views_current,
+                artifacts,
+            } = self.readiness(&node, views.as_ref(), &head);
             counts.embeddings = views
                 .as_ref()
                 .filter(|g| g.compatible(&self.views, &node))
                 .map_or(0, NodeViews::embeddings);
             let build = self.views.build();
             nodes.push(NodeFreshness {
-                artifacts: Some(crate::views::readiness::Artifacts {
-                    metadata: crate::views::readiness::State::publication(true, true),
-                    lexical: crate::views::readiness::State::publication(
-                        views.is_some(),
-                        lexical_current,
-                    ),
-                    dense: if build.dense_enabled() {
-                        crate::views::readiness::State::publication(views.is_some(), views_current)
-                    } else {
-                        crate::views::readiness::State::Disabled
-                    },
-                }),
+                artifacts: Some(artifacts),
                 lexical_manifest: lexical_current
                     .then(|| silver.cloned())
                     .flatten()

@@ -66,12 +66,13 @@ function publisher(id: string, reachable = true) {
 
 const NOW = 1794140000;
 const iso = (secondsAgo: number) => new Date((NOW - secondsAgo) * 1000).toISOString();
-const publishedAgo = (node: string, secondsAgo: number) => ({
+const publishedAgo = (node: string, secondsAgo: number, documents = "ready") => ({
   group_id: "harbor",
   node_id: node,
   state: "joined",
   delete_waiting: false,
   published: { chats: 40, messages: 900, instance: "i", last_synced_at: iso(secondsAgo) },
+  search: { metadata: "ready", lexical: "ready", dense: documents },
 });
 /** The shared server's own report of laptop's group. `studio` joined but
  * never published, and this dashboard has no services entry for it. */
@@ -90,7 +91,7 @@ const serverView = {
     machines: [
       publishedAgo("laptop", 12 * 60),
       publishedAgo("workstation", 28 * 60),
-      publishedAgo("build-box", 5 * 86_400),
+      publishedAgo("build-box", 5 * 86_400, "stale"),
       { group_id: "harbor", node_id: "studio", state: "joined", delete_waiting: false },
     ],
   },
@@ -229,9 +230,10 @@ test.describe("with the shared server's report", () => {
       await expect(
         map.getByRole("link", { name: /Shared server.*harbor · 4 machines/ }),
       ).toBeVisible();
-      // The server's search index is its own box, but nothing reports its state.
+      // The server's search index is its own box, with the state the server
+      // reports: behind on build-box, so its connection is not yet confirmed.
       await expect(
-        map.getByRole("link", { name: /Search on server.*State not reported/ }),
+        map.getByRole("link", { name: /Search on server.*Catching up with build-box/ }),
       ).toBeVisible();
       await expect(map.getByRole("list", { name: "Connections" })).toContainText(
         "Shared server builds Search on server: not confirmed",

@@ -484,8 +484,13 @@ limit is configurable. Keep the silver database on persistent, backed-up storage
 
 `GET /v1/status` answers any machine's ordinary token with its own group: the
 server's build and start time and each machine's state, credential time,
-four-character fingerprint of the stored hash, and what it published. It
-names no other group and holds no secret.
+four-character fingerprint of the stored hash, and what it published. A
+machine that published also carries `search`: the readiness (`missing`,
+`stale`, `ready`, or `disabled` for meaning search when the recipe has none)
+of the server's word and meaning documents for it, from the same
+`Store::readiness` that `/v1/freshness` reports, so the two never disagree.
+The server records no failure state or build time for views, so neither is
+reported. It names no other group and holds no secret.
 
 `/v1/admin/*` (`machines`, `add`, `replace`, `remove`, `delete`) takes only an
 admin key (`mash-admin.…`), checked by its own gate before the token lookup;

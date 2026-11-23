@@ -133,3 +133,68 @@ fn absent_membership_scope_is_unknown_rather_than_an_empty_report() {
             .contains("unpublished_nodes")
     );
 }
+
+#[tokio::test]
+async fn qdrant_search_readiness_says_which_machines_are_ready_and_which_are_behind() {
+    use crate::views::readiness::State;
+    let service = Service::qdrant(384).await;
+    let first = service
+        .identities
+        .get(&blake3::hash(FIRST.as_bytes()))
+        .unwrap()
+        .clone();
+    let second = service
+        .identities
+        .get(&blake3::hash(SECOND.as_bytes()))
+        .unwrap()
+        .clone();
+    // A machine that never published has no head and is not listed.
+    assert!(
+        service
+            .store
+            .search_readiness(&first)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    service
+        .upload(FIRST, &snapshot(1))
+        .await
+        .error_for_status()
+        .unwrap();
+    let ready = service.store.search_readiness(&first).await.unwrap();
+    assert_eq!(ready.keys().collect::<Vec<_>>(), ["first"]);
+    assert_eq!(ready["first"].lexical, State::Ready);
+    assert_eq!(ready["first"].dense, State::Ready);
+    // A publication whose documents are still being built is behind, not ready.
+    let models = tempfile::tempdir().unwrap();
+    service.store.replay(&second, models.path()).await.unwrap();
+    let empty = service
+        .store
+        .compatible_views(&second)
+        .await
+        .unwrap()
+        .unwrap();
+    service
+        .upload(SECOND, &snapshot(1))
+        .await
+        .error_for_status()
+        .unwrap();
+    service.store.put_views(&second, &empty).await.unwrap();
+    let behind = service.store.search_readiness(&first).await.unwrap();
+    assert_eq!(behind["first"].dense, State::Ready);
+    assert_eq!(behind["second"].lexical, State::Stale);
+    assert_eq!(behind["second"].dense, State::Stale);
+    // The freshness publishing machines read says the same.
+    let freshness = read(&service, FIRST).await;
+    let second_freshness = freshness
+        .nodes
+        .iter()
+        .find(|node| node.node_id == "second")
+        .unwrap();
+    assert_eq!(
+        second_freshness.artifacts.as_ref().unwrap(),
+        &behind["second"]
+    );
+    service.cleanup().await;
+}

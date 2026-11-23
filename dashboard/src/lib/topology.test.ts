@@ -108,7 +108,7 @@ describe("the services map", () => {
 describe("the shared server's search index on the map", () => {
   it("is drawn only beside a shared server, with no state, and its connection is not confirmed", () => {
     const withServer = [...pipeline, service("shared-server", "server")];
-    const map = machineMap(machine(withServer), true);
+    const map = machineMap(machine(withServer), null);
     const search = map.places.get("serverSearch");
     expect(search?.state).toBeNull();
     expect(search?.summary).toBe("State not reported");
@@ -118,8 +118,34 @@ describe("the shared server's search index on the map", () => {
       state: "unconfirmed",
     });
     // Asked for without a shared server on the machine, it is not drawn.
-    expect(machineMap(machine(pipeline), true).places.has("serverSearch")).toBe(false);
+    expect(machineMap(machine(pipeline), null).places.has("serverSearch")).toBe(false);
     // And not drawn when the server reported nothing.
     expect(machineMap(machine(withServer)).places.has("serverSearch")).toBe(false);
+  });
+});
+
+describe("the shared server's search index once the server reports it", () => {
+  const withServer = [...pipeline, service("shared-server", "server")];
+  it("is healthy and confirmed when every machine is ready", () => {
+    const map = machineMap(machine(withServer), {
+      state: "ready",
+      machines: [],
+      summary: "Ready · 3 machines",
+    });
+    expect(map.places.get("serverSearch")).toMatchObject({
+      state: "healthy",
+      summary: "Ready · 3 machines",
+    });
+    expect(map.places.get("serverSearch")?.unreported).toBeUndefined();
+    expect(map.edges.find((edge) => edge.to === "serverSearch")?.state).toBe("ok");
+  });
+  it("is degraded, not broken, while it catches up", () => {
+    const map = machineMap(machine(withServer), {
+      state: "stale",
+      machines: ["workstation"],
+      summary: "Catching up with workstation",
+    });
+    expect(map.places.get("serverSearch")?.state).toBe("degraded");
+    expect(map.edges.find((edge) => edge.to === "serverSearch")?.state).toBe("unconfirmed");
   });
 });

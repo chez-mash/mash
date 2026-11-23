@@ -97,8 +97,10 @@ const about: Record<Place["id"], string> = {
       <p class="meta">Not reported here: the server's address, its machines and when each last published.</p>
     {/if}
   {/if}
-  {#if place.id === "serverSearch"}
-    <p class="meta">Not reported: the server doesn't include its search index's state in its status yet.</p>
+  {#if place.id === "serverSearch" && place.unreported}
+    <p class="meta">Not reported: this server doesn't include its search index's state in its status. Updating it adds this.</p>
+  {:else if place.id === "serverSearch" && place.state === "degraded"}
+    <p class="meta">Until the server catches up with what these machines published, searches can miss their newest chats or leave them out.</p>
   {/if}
   {#if place.id === "histories"}<a class="a" href="#/agents">Agents</a>{/if}
 </aside>

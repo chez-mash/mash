@@ -11,6 +11,7 @@
 // another machine's internals): what nothing reports is shown as not reported.
 // The shared server's own report (lib/serverStatus.ts) supplies its address,
 // its machines and when each last published.
+import type { ServerSearch } from "./serverStatus";
 import { incidental, type Machine, type Service, type ServiceState } from "./services.svelte";
 
 export type PlaceId =
@@ -124,8 +125,14 @@ function edgeState(target: Place | undefined): EdgeState {
 }
 
 /** The map of one machine from its latest service check. `serverSearch` adds
- * the shared server's search index, whose state the server does not report. */
-export function machineMap(machine: Machine, serverSearch = false): MachineMap {
+ * the shared server's search index: `false` when there is no shared server,
+ * `null` when the server doesn't report the index's state, otherwise that
+ * state. Ready is healthy; missing or stale documents are drawn as degraded,
+ * since searching those machines by meaning fails until they catch up. */
+export function machineMap(
+  machine: Machine,
+  serverSearch: ServerSearch | null | false = false,
+): MachineMap {
   const grouped = new Map<PlaceId, Service[]>();
   for (const service of machine.services) {
     const id = kindPlace[service.kind];
@@ -152,16 +159,28 @@ export function machineMap(machine: Machine, serverSearch = false): MachineMap {
       summary: summary(id, services),
       affectedBy: null,
     });
-  if (serverSearch && places.has("server"))
-    places.set("serverSearch", {
-      id: "serverSearch",
-      label: placeLabel.serverSearch,
-      services: [],
-      state: null,
-      summary: "State not reported",
-      affectedBy: null,
-      unreported: true,
-    });
+  if (serverSearch !== false && places.has("server"))
+    places.set(
+      "serverSearch",
+      serverSearch
+        ? {
+            id: "serverSearch",
+            label: placeLabel.serverSearch,
+            services: [],
+            state: serverSearch.state === "ready" ? "healthy" : "degraded",
+            summary: serverSearch.summary,
+            affectedBy: null,
+          }
+        : {
+            id: "serverSearch",
+            label: placeLabel.serverSearch,
+            services: [],
+            state: null,
+            summary: "State not reported",
+            affectedBy: null,
+            unreported: true,
+          },
+    );
   const edges: Edge[] = [];
   for (const link of pipeline) {
     if (!places.has(link.from) || !places.has(link.to)) continue;
