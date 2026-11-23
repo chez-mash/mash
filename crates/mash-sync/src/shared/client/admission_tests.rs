@@ -80,7 +80,15 @@ async fn admission_deadline_expires_without_sending_or_exposing_request_metadata
     .unwrap_err();
     assert_eq!(server.received.load(Ordering::SeqCst), 0);
     assert_eq!(error.error.kind, crate::ErrorKind::SharedIndex);
-    assert_eq!(error.error.message, "shared index HTTP request timed out");
+    assert!(
+        error
+            .error
+            .message
+            .starts_with("the shared index at 127.0.0.1:"),
+        "{}",
+        error.error.message
+    );
+    assert!(error.error.message.contains("did not answer in time"));
     assert!(error.error.retryable);
 }
 
@@ -161,7 +169,11 @@ async fn canceled_or_expired_decoder_keeps_capacity_until_actual_completion() {
                 // still held; it is far shorter than the decoder's hang guard.
                 assert!(Endpoint::Freshness.timeout() < HANG_GUARD / 2);
                 let error = busy.await.unwrap().err().unwrap();
-                assert_eq!(error.error.message, "shared index HTTP request timed out");
+                assert!(
+                    error.error.message.contains("did not answer in time"),
+                    "{}",
+                    error.error.message
+                );
             }
         }
         // Returning from the request is not proof the blocking task finished.

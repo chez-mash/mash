@@ -180,6 +180,27 @@ fn request_with_token(
         .headers(headers)
         .timeout(endpoint.timeout()))
 }
+/// The server a request goes to, as `host:port`, so an error can name it.
+fn server_name(request: &reqwest::RequestBuilder) -> String {
+    let url = request.try_clone().and_then(|copy| copy.build().ok());
+    url.as_ref()
+        .map(reqwest::Request::url)
+        .and_then(|url| {
+            Some(format!(
+                "{}:{}",
+                url.host_str()?,
+                url.port_or_known_default()?
+            ))
+        })
+        .unwrap_or_else(|| "its configured address".to_owned())
+}
+
+fn timed_out(server: &str) -> AppError {
+    AppError::shared(format!(
+        "the shared index at {server} did not answer in time; it may be busy, so try again shortly"
+    ))
+}
+
 pub async fn response<T: serde::de::DeserializeOwned + Send + 'static>(
     request: reqwest::RequestBuilder,
     endpoint: Endpoint,
@@ -193,6 +214,7 @@ async fn response_admitted<T: serde::de::DeserializeOwned + Send + 'static>(
     admission: &'static Admission,
 ) -> Result<T, AppError> {
     use tracing::Instrument;
+    let server = server_name(&request);
     let span = tracing::info_span!(
         "shared_http_request",
         trace_id = tracing::field::Empty,
@@ -226,10 +248,10 @@ async fn response_admitted<T: serde::de::DeserializeOwned + Send + 'static>(
             admitted = true;
             tracing::Span::current().record("queue_ms", crate::progress::milliseconds(started));
             // Keep transport/retry state off the nested CLI/MCP indexing future.
-            Box::pin(response_inner(request, endpoint, permit)).await
+            Box::pin(response_inner(request, endpoint, permit, &server)).await
         })
         .await
-        .unwrap_or_else(|_| Err(AppError::shared("shared index HTTP request timed out")));
+        .unwrap_or_else(|_| Err(timed_out(&server)));
         if !admitted {
             tracing::Span::current().record("queue_ms", crate::progress::milliseconds(started));
         }
@@ -246,6 +268,7 @@ async fn response_inner<T: serde::de::DeserializeOwned + Send + 'static>(
     mut request: reqwest::RequestBuilder,
     endpoint: Endpoint,
     permit: SemaphorePermit<'static>,
+    server: &str,
 ) -> Result<T, AppError> {
     // Negotiation is an idempotent GET and owns no mutation. Busy responses
     // can outlive a newly visible head while the previous writer cleans up.
@@ -267,11 +290,13 @@ async fn response_inner<T: serde::de::DeserializeOwned + Send + 'static>(
             None
         };
         let response = request.send().await.map_err(|error| {
-            AppError::shared(if error.is_timeout() {
-                "shared index HTTP request timed out"
+            if error.is_timeout() {
+                timed_out(server)
             } else {
-                "shared index HTTP request failed; check the API address and network"
-            })
+                AppError::shared(format!(
+                    "could not reach the shared index at {server}; check its address and the network"
+                ))
+            }
         })?;
         tracing::Span::current().record("status", response.status().as_u16());
         let busy = retry && response.status() == reqwest::StatusCode::SERVICE_UNAVAILABLE;
