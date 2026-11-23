@@ -162,6 +162,14 @@ describe("subagent chats", () => {
     ]);
   });
 
+  it("names a subagent chat by its task label, not its prompt", () => {
+    const prompted = { ...chat("sub", fork), title: "<fork-boilerplate> You are a worker fork." };
+    const unlabelled = { ...chat("bare", { parent_chat_id: "p" }), title: "Its own prompt" };
+    const [labelled, bare] = parseChats(JSON.stringify({ chats: [prompted, unlabelled] }));
+    expect(labelled?.title).toBe("Fix the build");
+    expect(bare?.title).toBe("Its own prompt");
+  });
+
   it("does not take a null subagent field for a subagent", () => {
     const [hit] = parseChats(JSON.stringify({ chats: [{ ...chat("mine"), subagent: null }] }));
     expect(hit?.subagent).toBeUndefined();

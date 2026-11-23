@@ -103,6 +103,17 @@ export function ownRecentChats(hits: readonly Hit[]): Hit[] {
 const subagentMark = (row: Record<string, unknown>) =>
   typeof row.subagent === "object" && row.subagent !== null ? { subagent: true } : {};
 
+/**
+ * A chat's name in the list. A subagent chat's own first message is the long
+ * prompt its parent wrote, so it goes by the short task label the parent gave
+ * it, as the dashboard names it.
+ */
+function chatTitle(row: Record<string, unknown>): string {
+  const marker =
+    typeof row.subagent === "object" && row.subagent !== null ? (row.subagent as Record<string, unknown>) : {};
+  return text(marker.label).trim() || text(row.title).trim() || "Untitled chat";
+}
+
 /** The arguments that read a message with a few on either side of it. */
 export function viewArguments(messageId: string): string[] {
   return ["view", messageId, "--context", "3"];
@@ -149,7 +160,7 @@ function hitFromRow(row: Record<string, unknown>): Hit[] {
       chatId,
       messageId,
       matched: true,
-      title: text(row.title).trim() || "Untitled chat",
+      title: chatTitle(row),
       agent: text(row.provider),
       project: text(row.project),
       updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
@@ -246,7 +257,7 @@ export function parseChats(stdout: string): Hit[] {
         chatId,
         messageId,
         matched: false,
-        title: text(row.title).trim() || "Untitled chat",
+        title: chatTitle(row),
         agent: text(row.provider),
         project: text(row.project),
         updatedAt: typeof row.updated_at === "number" ? new Date(row.updated_at) : undefined,
