@@ -6,6 +6,7 @@ fn chat(id: &str, messages: &[&str]) -> crate::silver::Chat {
         provider: Provider::Codex,
         source: crate::silver::SourceIdentity::file(id),
         claude_lineage: None,
+        subagent: None,
         title_origin: None,
         timestamp_origins: None,
         project: None,

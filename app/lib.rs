@@ -12,6 +12,7 @@ pub use mash_storage::chat_catalog;
 pub use mash_storage::search_filter;
 use mash_storage::search_query;
 pub use mash_storage::search_results;
+pub use mash_storage::subagents;
 /// The models and embeddings, with the relevance harness that drives the core.
 pub mod semantic {
     pub use mash_search::semantic::*;

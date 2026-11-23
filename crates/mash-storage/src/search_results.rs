@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub mod lookup;
+mod metadata;
+pub use metadata::ChatMetadata;
 
 #[derive(
     Debug,
@@ -95,39 +97,6 @@ impl Page {
 pub struct Collected {
     pub results: Results,
     pub next_offset: Option<usize>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize, schemars::JsonSchema)]
-pub struct ChatMetadata {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub enrichment: Option<crate::silver::enrichment::Evidence>,
-    pub title: Option<String>,
-    pub project: Option<String>,
-    pub repository: Option<String>,
-    pub created_at: Option<i64>,
-    pub updated_at: Option<i64>,
-}
-
-impl ChatMetadata {
-    /// Masks credentials in the descriptive fields; enrichment derived from a
-    /// masked field is dropped with it.
-    pub fn redact(&mut self, policy: crate::redaction::Policy) {
-        if !policy.enabled() {
-            return;
-        }
-        let mut changed = false;
-        for value in [&mut self.title, &mut self.project, &mut self.repository]
-            .into_iter()
-            .flatten()
-        {
-            let safe = crate::redaction::text(value);
-            changed |= safe != *value;
-            *value = safe;
-        }
-        if changed {
-            self.enrichment = None;
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, schemars::JsonSchema)]

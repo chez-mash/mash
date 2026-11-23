@@ -412,6 +412,23 @@
               "null"
             ]
           },
+          "subagent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatSubagent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set only when the agent marked this chat as a subagent."
+          },
+          "subagents": {
+            "description": "How many indexed chats the agent marked as subagents this chat started.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
           "title": {
             "type": [
               "string",
@@ -626,6 +643,17 @@
               "null"
             ]
           },
+          "subagent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatSubagent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set only when the agent marked this chat as a subagent."
+          },
           "title": {
             "type": [
               "string",
@@ -668,6 +696,62 @@
           "offset",
           "limit"
         ],
+        "type": "object"
+      },
+      "ChatSubagent": {
+        "additionalProperties": false,
+        "properties": {
+          "depth": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "finished": {
+            "description": "Whether the agent recorded it as finished. Absent means not recorded.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "label": {
+            "description": "The agent's name for the task: Claude Code's description, Codex's nickname.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_chat_id": {
+            "description": "The chat that started this one, from the same agent and machine.\nAbsent when the agent named none.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_title": {
+            "description": "The parent's title. Absent when the parent is not indexed here.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "description": "Claude Code's agent type or Codex's agent role.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "spawn_call_id": {
+            "description": "The parent's tool call that started it, when recorded.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
         "type": "object"
       },
       "CollectionSettings": {

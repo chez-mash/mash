@@ -12,6 +12,7 @@ import { groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { catalogOptions } from "../lib/queries";
 import { agentHref, chatHref, machineHref, projectHref, searchHref } from "../lib/route.svelte";
+import { foldedNote } from "../lib/subagents";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
@@ -40,6 +41,9 @@ const catalogue = createQuery(() => catalogOptions);
 const key = (chat: ChatSummary) =>
   field === "agent" ? chat.agent : field === "machine" ? chat.machine : chat.project;
 const chats = $derived((catalogue.data?.chats ?? []).filter((chat) => key(chat) === value));
+const folded = $derived(
+  (catalogue.data?.all ?? []).filter((chat) => key(chat) === value).length - chats.length,
+);
 const group = $derived(groupChats(chats, key)[0]);
 const named = $derived(group ? group.projects.filter(([name]) => name) : []);
 const latest = $derived(
@@ -63,7 +67,7 @@ const now = Date.now();
 {:else}
 <div class="dh">
   {@render icon()}
-  <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}</p></div>
+  <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}{foldedNote(folded)}</p></div>
 </div>
 {/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />

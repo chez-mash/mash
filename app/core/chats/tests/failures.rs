@@ -85,6 +85,7 @@ async fn shared_catalog_deadline_covers_all_pages_and_discards_partial_remote_re
                         collector.push(Chat {
                             chat_id: format!("peer-{number:03}"),
                             first_message_id: None,
+                            subagents: 0,
                             provider: Provider::Codex,
                             node_id: "peer".into(),
                             metadata: ChatMetadata {

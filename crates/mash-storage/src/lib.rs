@@ -25,6 +25,7 @@ pub mod search_query;
 pub mod search_results;
 pub mod silver_query;
 pub mod storage;
+pub mod subagents;
 
 /// Wire types of a publication that storage produces and applies.
 pub mod shared {

@@ -10,6 +10,24 @@ export interface ChatSummary {
   readonly updatedAt: string;
   readonly messageCount?: number;
   readonly updatedMs?: number;
+  readonly createdMs?: number;
+  /** Set when the agent marked this chat as a subagent it started. */
+  readonly subagent?: Subagent;
+  /** Subagent chats folded into this one in lists. */
+  readonly subagents?: number;
+}
+
+/** What the agent recorded about a subagent chat. */
+export interface Subagent {
+  /** The chat that started it, from the same agent and machine. */
+  readonly parentId?: string;
+  /** The parent's title, when the parent is indexed with it. */
+  readonly parentTitle?: string;
+  readonly label?: string;
+  readonly role?: string;
+  readonly finished?: boolean;
+  /** The parent's tool call that started it. */
+  readonly spawnCallId?: string;
 }
 
 export interface Machine {

@@ -19,6 +19,8 @@ pub struct Identity {
     keys: Keys,
     agent: Option<String>,
     conflicting_agents: bool,
+    /// A record named the agent without marking itself as its sidechain.
+    unmarked_agent_record: bool,
     session: Option<String>,
     sessions: BTreeSet<String>,
     transitions: BTreeSet<usize>,
@@ -58,6 +60,7 @@ impl Identity {
                 self.conflicting_agents = true;
             }
             self.agent.get_or_insert_with(|| agent.clone());
+            self.unmarked_agent_record |= record.is_sidechain != Some(true);
         }
         self.replay.observe(record, &mut self.parents)?;
         Ok(())
@@ -88,6 +91,15 @@ impl Identity {
             || session.to_owned(),
             |agent| stable_id("claude-agent", &[session, agent]),
         )
+    }
+
+    /// The session and agent of a subagent transcript: one agent, and every
+    /// record that names it marked as that agent's sidechain.
+    pub fn sidechain(&self) -> Option<(&str, &str)> {
+        if self.conflicting_agents || self.unmarked_agent_record {
+            return None;
+        }
+        Some((self.session.as_deref()?, self.agent.as_deref()?))
     }
 
     pub fn normalize(

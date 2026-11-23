@@ -1,5 +1,4 @@
-//! Shared service storage: SQLite silver is the system of record; Qdrant views are
-//! derived from it and can be rebuilt by replaying silver.
+//! Shared service storage: SQLite silver is the system of record; Qdrant views are derived.
 use super::Identity;
 use super::configuration::{Configuration, env_name};
 use crate::AppError;
@@ -23,9 +22,8 @@ mod sync;
 /// Serializes publications per node while other nodes proceed.
 type NodeLock = Arc<tokio::sync::Mutex<()>>;
 
-/// Runs independent per-node work concurrently. Input order is preserved and
-/// the first error cancels the rest, so one slow or unavailable node cannot
-/// serialize the remaining nodes.
+/// Runs independent per-node work concurrently. Input order is preserved and the first
+/// error cancels the rest, so one slow or unavailable node cannot serialize the others.
 async fn fan_out<T, U, I, F, Fut>(items: I, work: F) -> Result<Vec<U>, AppError>
 where
     I: IntoIterator<Item = T>,
@@ -588,8 +586,10 @@ impl Store {
                     repository: row.repository,
                     created_at: row.created_at,
                     updated_at: row.updated_at,
+                    subagent: None,
                 },
                 first_message_id: thread.first_message_id,
+                subagents: 0,
             });
         }
         Ok(chats)

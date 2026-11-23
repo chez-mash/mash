@@ -137,7 +137,8 @@ what you’re looking for, [check for a missing chat](find-missing-chat.md).
 A transcript shows your messages on the right and the agent's replies on the
 left. Runs of tool calls and reasoning are folded into one line; open it to see
 each step and its output. The side panel lists your prompts on the current
-page, other chats from the same project and memory saved from this chat.
+page, the [subagents](#subagent-chats) the chat started, other chats from the
+same project and memory saved from this chat.
 
 Hover over a message to see its copy actions. On a phone they appear below the
 message. Choose **Copy link to message** beside **Copy message** to paste a link
@@ -153,6 +154,21 @@ chats), **Copy resume command** or **Copy session ID** to
 or [pick up the work in a new session](pick-up-work.md#ask-an-agent-for-a-recap).
 
 Chat and memory views are read-only.
+
+### Subagent chats
+
+Claude Code, Codex and Cursor can start a subagent: a separate chat for part
+of a task. The chat list keeps each subagent with the chat that started it, so
+a parent shows a pill such as **5 subagents**, and the count under the filters
+says how many subagent chats were folded in. To list them as rows of their
+own, choose **subagents: folded** and then **Show in the list too**.
+
+A parent chat's side panel lists its subagents with their task, role, age and
+whether the agent recorded them as done. Where the transcript holds the call
+that started one, a **Started a subagent** line opens it. A subagent's page is
+titled with its task and links back to the chat that started it; one whose
+parent is not indexed here says it is a subagent of a chat not on this machine.
+Search keeps subagent matches and labels them with their parent.
 
 ### Choose a search mode
 

@@ -1,5 +1,5 @@
-//! Facts about a chat that search results show: its title, times and
-//! enrichment. They live once with the chat in silver, never on a message's
+//! Facts about a chat that search results show: its title, times,
+//! enrichment and the subagent marker. They live once with the chat in silver, never on a message's
 //! search document, so a new message leaves every other document untouched.
 use crate::AppError;
 use crate::storage::SearchHit;
@@ -12,6 +12,7 @@ pub struct Facts {
     created_at: Option<i64>,
     updated_at: Option<i64>,
     enrichment: Option<crate::silver::enrichment::Evidence>,
+    subagent: Option<crate::subagents::Subagent>,
 }
 
 /// Read a chat's facts while checking its canonical provider. A document can
@@ -55,6 +56,7 @@ pub fn read(
         enrichment: evidence
             .map(|json| super::enrichment::decode(&json))
             .transpose()?,
+        subagent: super::subagents::read(connection, chat_id)?,
     }))
 }
 
@@ -64,6 +66,7 @@ impl Facts {
         hit.metadata.created_at = self.created_at;
         hit.metadata.updated_at = self.updated_at;
         hit.metadata.enrichment = self.enrichment;
+        hit.metadata.subagent = self.subagent;
     }
 }
 

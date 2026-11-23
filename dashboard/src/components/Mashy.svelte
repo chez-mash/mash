@@ -30,7 +30,7 @@ const route = $derived(router.current);
 const openChat = $derived.by((): OpenChat | undefined => {
   if (route.page !== "chat") return undefined;
   const machine = route.node || catalogue.data?.localNode || "";
-  const title = catalogue.data?.chats.find(
+  const title = catalogue.data?.all.find(
     (chat) => chat.id === route.id && chat.machine === machine,
   )?.title;
   return {
@@ -232,7 +232,7 @@ function chips(node: HTMLElement): { destroy(): void } {
         continue;
       }
       const id = decodeURIComponent(href.slice(7).split("?", 1)[0] ?? "");
-      const chat = catalogue.data?.chats.find((entry) => entry.id === id);
+      const chat = catalogue.data?.all.find((entry) => entry.id === id);
       if (!chat) continue;
       const mark = document.createElement("span");
       paintMark(mark, agents[chat.agent]);

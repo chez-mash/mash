@@ -33,10 +33,9 @@ fn guarded(
     unreadable.rejected().map_or(parsed, Ok)
 }
 
-/// Copilot appends to its logs while a chat runs, so the last line can be a
-/// partial write. Any line that is not JSON leaves the snapshot unprovable:
-/// interpretation stops there, and the source keeps its previous
-/// contribution while the unreadable lines are reported.
+/// Copilot appends to its logs while a chat runs, so the last line can be a partial write.
+/// Any line that is not JSON leaves the snapshot unprovable: interpretation stops there,
+/// and the source keeps its previous contribution while the unreadable lines are reported.
 #[derive(Default)]
 struct Unreadable {
     count: u64,
@@ -567,6 +566,7 @@ fn events(path: &Path, unreadable: &mut Unreadable) -> Result<ParsedFile, AppErr
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: SourceIdentity::file(path),
             project,
             repository,

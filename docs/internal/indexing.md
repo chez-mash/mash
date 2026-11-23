@@ -338,6 +338,43 @@ Claude subagent transcripts share their parent's native session ID. mash uses
 the session and native `agentId` together to index each subagent as an independent
 chat, so it cannot replace the parent's history. Search never indexes history implicitly.
 
+### Subagent markers
+
+A chat is a subagent only when the agent's own marker says so; titles such as
+"Work ONLY in …", file names and prompts are never evidence. The marker is kept
+in `chat_subagents` beside the chat (schema 68), is local only (never published,
+so a shared-only dashboard does not fold), and is replayed by reading the
+history again.
+
+- Claude Code: every record naming an `agentId` has `isSidechain: true`, with
+  one agent per transcript. The parent is the session's own chat (its
+  `sessionId`), or, when the sibling `agent-<id>.meta.json` names a
+  `parentAgentId`, that subagent's chat. The meta file gives the label
+  (`description`), role (`agentType`), `spawnDepth`, `finished` (absent means
+  unknown, not running) and `toolUseId`, the parent's exact spawning call. A
+  record with `agentId` but no sidechain mark makes no subagent. Discovery adds
+  the meta file as an optional dependency of `agent-*.jsonl`, so a change to it
+  rereads the transcript; prefix capture still applies to the transcript.
+- Codex: the rollout's first `session_meta.payload.source` (or `threads.source`
+  in the paginated store) is `{"subagent": …}`. `thread_spawn` names
+  `parent_thread_id`, `depth`, `agent_nickname` (label) and `agent_role`;
+  any other shape (`"review"`, `{"other": "guardian"}`, an unknown kind) is a
+  subagent without a parent. A subagent rollout copies its parent's
+  `session_meta` after its own; only the first counts. `forked_from_id` with a
+  non-subagent source is a fork the person started and stays an ordinary chat.
+  Schema 68 marks Codex checkpoints for rereading so existing rollouts gain
+  their markers. The parent's `SubAgentActivity` events are not linked to a
+  spawning call yet.
+- Cursor: `subagentInfo` names the parent agent; its chat identity is taken in
+  the same workspace folder. `toolCallId` is the spawning call.
+
+Lists fold a subagent into its parent only when that exact parent (same agent,
+machine and identity) is in the catalogue; otherwise it stays a row labelled
+"subagent of a chat not on this machine". Parents carry `subagents`, the count
+of indexed children; search hits and catalogue rows carry `subagent` with the
+parent's title when it is indexed. Memory evidence keeps pointing at the
+subagent chat that holds it.
+
 Claude message UUIDs are scoped to their native session and agent, independent
 of the transcript's physical path. SQLite retains each physical source's
 contribution and derives one logical chat from their union. Event-only workflow

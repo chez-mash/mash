@@ -154,6 +154,17 @@ pub struct Chat {
     /// None when the chat has no retained messages.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub first_message_id: Option<String>,
+    /// How many indexed chats the agent marked as subagents this chat started.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub subagents: u32,
+}
+
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde passes a reference"
+)]
+fn is_zero(value: &u32) -> bool {
+    *value == 0
 }
 
 /// Cuts a title to the line a chat list shows, before secrets are masked.

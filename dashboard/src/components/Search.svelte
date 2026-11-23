@@ -7,6 +7,7 @@ import Clock from "@lucide/svelte/icons/clock";
 import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
 import Folder from "@lucide/svelte/icons/folder";
+import GitFork from "@lucide/svelte/icons/git-fork";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import SearchIcon from "@lucide/svelte/icons/search";
@@ -35,13 +36,17 @@ import {
   sameSearch,
   searchIntents,
   sorts,
+  subagentViews,
 } from "../lib/search";
+import { foldedNote, parentOf } from "../lib/subagents";
+import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import Highlight from "./Highlight.svelte";
 import MetaChips from "./MetaChips.svelte";
 import QueryError from "./QueryError.svelte";
+import SubagentPill from "./SubagentPill.svelte";
 
 // Chats and search are one page: without a query it lists chats, newest
 // first. The address is the applied search; the chips below are a draft
@@ -111,9 +116,9 @@ const result = createQuery(() => ({
     if (!data) throw new Error("The chat list is not loaded yet.");
     if (applied.query) {
       const page = await search(applied, data.localNode, signal);
-      return { ...page, total: null, first: applied.offset };
+      return { ...page, total: null, first: applied.offset, folded: 0 };
     }
-    const all = browse(data, filtersOf(applied), Date.now());
+    const all = browse(data, filtersOf(applied), Date.now(), applied.subagents);
     const ordered = applied.sort === "old" ? [...all.hits].reverse() : all.hits;
     // A link to a page past the end, say after chats were forgotten, shows
     // the last page instead of claiming nothing matched.
@@ -182,6 +187,15 @@ const rangeLabel = $derived.by(() => {
       : `${result.data.total.toLocaleString()} chat${result.data.total === 1 ? "" : "s"}`;
   return `results ${first.toLocaleString()}–${last.toLocaleString()} for “${applied.query}”`;
 });
+// "19 chats · 11 subagent chats folded in": the list counts its own rows.
+const foldedLabel = $derived(foldedNote(result.data?.folded ?? 0));
+const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
+const parentTitle = (chat: ChatSummary): string | undefined =>
+  chat.subagent
+    ? catalogue.data
+      ? parentOf(catalogue.data.all, chat)?.title
+      : undefined
+    : undefined;
 </script>
 
 {#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents and machines.</p></div>{/if}
@@ -220,6 +234,20 @@ const rangeLabel = $derived.by(() => {
       {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
       {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
+    {#if hasSubagents}
+      <!-- Subagents are chats an agent started for part of a task; the list
+           keeps them with the chat that started them unless asked. -->
+      <FilterMenu
+        label="subagents: {draft.subagents}"
+        active={draft.subagents === "shown"}
+        draft={draft.subagents !== applied.subagents}
+        options={subagentViews}
+        selected={[draft.subagents]}
+        choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
+      >
+        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+      </FilterMenu>
+    {/if}
   {:else}
     <FilterMenu
       label={resolvedDefaultLabel ? `search: default (${resolvedDefaultLabel})` : `search: ${draftIntentLabel}`}
@@ -245,7 +273,7 @@ const rangeLabel = $derived.by(() => {
   {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
 </div>
 {#if !applied.query && result.data && hits.length}
-  <p class="meta" role="status" style:margin-top="8px">{rangeLabel}</p>
+  <p class="meta" role="status" style:margin-top="8px">{rangeLabel}{foldedLabel}</p>
 {/if}
 </div>
 
@@ -301,7 +329,7 @@ const rangeLabel = $derived.by(() => {
           {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
             <a class="card pad0" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}>
               <span class="chatrow">
-                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b>{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
+                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b><SubagentPill chat={hit.chat} parentTitle={parentTitle(hit.chat)} />{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
                 {#if hit.before}<span class="snip res-s"><Highlight text={hit.before} query={applied.query} /></span>{/if}
                 <MetaChips chat={hit.chat} />
               </span>

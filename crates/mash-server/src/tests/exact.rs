@@ -321,6 +321,7 @@ fn seed_core(database: &std::path::Path) {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             title: Some("title-only-marker".into()),
             project: Some("/work/mash".into()),
             repository: Some("repo://mash".into()),

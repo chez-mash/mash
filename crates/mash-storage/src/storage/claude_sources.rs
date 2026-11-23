@@ -112,6 +112,7 @@ fn claude_chat_after(
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: Some(lineage),
+        subagent: None,
         title: metadata.title,
         project: metadata.project,
         repository: metadata.repository,

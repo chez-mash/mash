@@ -12,7 +12,7 @@ const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(
   reading.positions.flatMap(
     (position) =>
-      catalogue.data?.chats.find(
+      catalogue.data?.all.find(
         (chat) => chat.id === position.id && chat.machine === position.node,
       ) ?? [],
   ),

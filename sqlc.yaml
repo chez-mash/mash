@@ -8,6 +8,7 @@ sql:
   - engine: sqlite
     schema:
       - crates/mash-storage/src/storage/silver.sql
+      - crates/mash-storage/src/storage/chat_subagents.sql
     queries: queries/sqlite/index.sql
     codegen:
       - plugin: rust

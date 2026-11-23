@@ -41,6 +41,7 @@ impl Fixture {
                 title_origin: None,
                 timestamp_origins: None,
                 claude_lineage: None,
+                subagent: None,
                 source: SourceIdentity::file(self.directory.path().join("provider.jsonl")),
                 project: None,
                 repository: None,

@@ -37,13 +37,6 @@ impl Storage {
             .map_err(AppError::database)
     }
 
-    pub fn replace_chat(&mut self, chat: &Chat) -> Result<ChatChange, AppError> {
-        if chat.provider == Provider::ClaudeCode && chat.claude_lineage.is_some() {
-            return self.replace_claude_source(chat);
-        }
-        self.replace_canonical_chat(chat)
-    }
-
     pub(super) fn replace_canonical_chat(&mut self, chat: &Chat) -> Result<ChatChange, AppError> {
         self.require_writer()?;
         let tombstoned = self

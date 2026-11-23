@@ -21,8 +21,7 @@ pub(in crate::core) fn safe(text: &str) -> String {
     })
 }
 
-/// A Unix-millisecond time as a UTC date and minute, which a reader can
-/// compare at sight; the exact value stays in the structured result.
+/// A Unix-millisecond time as a UTC date and minute; the structured result keeps the value.
 fn time(value: Option<i64>) -> String {
     value
         .and_then(|milliseconds| jiff::Timestamp::from_millisecond(milliseconds).ok())
@@ -32,8 +31,7 @@ fn time(value: Option<i64>) -> String {
         )
 }
 
-/// Characters of a chat title in a result heading. Many titles are a whole
-/// first prompt; the structured result keeps them complete.
+/// Characters of a chat title in a heading; the structured result keeps whole first prompts.
 const TITLE_CHARS: usize = 160;
 
 fn title(value: Option<&str>) -> String {
@@ -55,11 +53,13 @@ fn warning(out: &mut String, name: &str, value: Option<&str>) {
     }
 }
 
-/// Where and when a chat happened. Its title is the result's heading.
+/// Where and when a chat happened, and what started it. Its title is the result's heading.
 fn metadata(out: &mut String, value: &ChatMetadata) {
+    let subagent = crate::subagents::describe(value.subagent.as_ref());
     for (name, value) in [
         ("Project", &value.project),
         ("Repository", &value.repository),
+        ("Subagent", &subagent),
     ] {
         if let Some(value) = value {
             line(out, &format!("  {name}: {}", safe(value)));

@@ -144,6 +144,23 @@ fn session_scope(path: &Path, agent_id: &str) -> String {
         )
 }
 
+/// Cursor names the agent that started a subagent. Its parent lives in the
+/// same workspace folder, so it has the identity `parse_agent` gives it there.
+fn cursor_subagent(path: &Path, child: &models::Subagent, name: &str) -> super::subagent::Subagent {
+    let scope = session_scope(path, child.parent_agent_id.trim());
+    super::subagent::Subagent {
+        parent_chat_id: Some(super::parsers::stable_id(
+            "session",
+            &[Provider::Cursor.as_str(), &scope],
+        )),
+        label: super::subagent::label(Some(name)),
+        role: super::subagent::label(Some(&child.type_name)),
+        depth: None,
+        finished: None,
+        spawn_call_id: Some(child.tool_call_id.trim().to_owned()),
+    }
+}
+
 /// When the store was last written, for chats whose messages carry no times.
 fn modified_ms(path: &Path) -> Option<i64> {
     let modified = std::fs::metadata(path).ok()?.modified().ok()?;
@@ -278,6 +295,10 @@ fn parse_agent(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: metadata
+                .subagent_info
+                .as_ref()
+                .map(|child| cursor_subagent(&source.path, child, &metadata.name)),
             source: source.clone(),
             project,
             repository,

@@ -689,6 +689,7 @@ fn purge_requires_a_complete_provider_scan() {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: SourceIdentity::file(missing_source),
             project: None,
             repository: None,

@@ -32,6 +32,8 @@ struct Metadata {
     updated_field: super::enrichment::TimestampField,
     rollout: PathBuf,
     mode: Mode,
+    /// What started the thread, as Codex records it (`cli`, or subagent JSON).
+    source: String,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -41,13 +43,25 @@ enum Mode {
 }
 
 fn metadata(connection: &Connection, id: &str) -> Result<Metadata, AppError> {
+    // Stores older than Codex's subagents have no `source` column.
+    let has_source: bool = connection
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('threads') WHERE name='source')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(AppError::database)?;
+    let source = if has_source { "source" } else { "NULL" };
     let (bytes, mode): (i64, String) = connection
         .query_row(
-            "SELECT length(CAST(title AS BLOB))+length(CAST(cwd AS BLOB))+
-         COALESCE(length(CAST(git_origin_url AS BLOB)),0)+length(CAST(rollout_path AS BLOB)),history_mode
-         FROM threads WHERE id=?1",
+            &format!(
+                "SELECT length(CAST(title AS BLOB))+length(CAST(cwd AS BLOB))+
+         COALESCE(length(CAST(git_origin_url AS BLOB)),0)+length(CAST(rollout_path AS BLOB))+
+         COALESCE(length(CAST({source} AS BLOB)),0),history_mode
+         FROM threads WHERE id=?1"
+            ),
             [id],
-            |row| Ok((row.get(0)?,row.get(1)?)),
+            |row| Ok((row.get(0)?, row.get(1)?)),
         )
         .optional()
         .map_err(AppError::database)?
@@ -67,14 +81,16 @@ fn metadata(connection: &Connection, id: &str) -> Result<Metadata, AppError> {
         }
     };
     connection.query_row(
-        "SELECT title,cwd,git_origin_url,COALESCE(created_at_ms,created_at*1000),
-         COALESCE(updated_at_ms,updated_at*1000),rollout_path,created_at_ms IS NOT NULL,updated_at_ms IS NOT NULL FROM threads WHERE id=?1",
+        &format!("SELECT title,cwd,git_origin_url,COALESCE(created_at_ms,created_at*1000),
+         COALESCE(updated_at_ms,updated_at*1000),rollout_path,created_at_ms IS NOT NULL,updated_at_ms IS NOT NULL,
+         COALESCE(CAST({source} AS TEXT),'') FROM threads WHERE id=?1"),
         [id], |row| Ok(Metadata {
             title:row.get(0)?, cwd:row.get(1)?, repository:row.get(2)?,
             created:row.get(3)?,updated:row.get(4)?,rollout:PathBuf::from(row.get::<_,String>(5)?),
             created_field: if row.get::<_,bool>(6)? { super::enrichment::TimestampField::ThreadCreatedAtMs } else { super::enrichment::TimestampField::ThreadCreatedAt },
             updated_field: if row.get::<_,bool>(7)? { super::enrichment::TimestampField::ThreadUpdatedAtMs } else { super::enrichment::TimestampField::ThreadUpdatedAt },
             mode,
+            source: row.get(8)?,
         })).map_err(AppError::database)
 }
 
@@ -156,6 +172,7 @@ fn content(stored: &Stored, meta: &Metadata) -> Option<super::SessionContent> {
         meta.cwd.as_bytes(),
         meta.repository.as_deref().unwrap_or_default().as_bytes(),
         meta.rollout.as_os_str().as_encoded_bytes(),
+        meta.source.as_bytes(),
     ] {
         hash.update(&(text.len() as u64).to_le_bytes());
         hash.update(text);
@@ -334,6 +351,9 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             provider: Provider::Codex,
             source: source.clone(),
             claude_lineage: None,
+            subagent: super::subagent::CodexSource::from_column(&meta.source).and_then(|source| {
+                source.subagent(session, &super::subagent::CodexNames::default())
+            }),
             title_origin: (!meta.title.is_empty()).then_some(
                 super::enrichment::Origin::SourceMetadata {
                     field: super::enrichment::SourceField::ThreadTitle,

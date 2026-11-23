@@ -33,6 +33,7 @@ pub fn seed(path: &Path) -> Storage {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: crate::silver::SourceIdentity::file("/tmp/shared-fixture.jsonl"),
             project: None,
             repository: None,

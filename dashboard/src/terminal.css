@@ -4515,3 +4515,70 @@ body:has(#mashy-fab):has(.ends) #main {
 .setup-row.off :is(.mark, .setup-who) {
   opacity: 0.5;
 }
+/* Subagents: a cream pill on a parent's row ("5 subagents") and on a
+   subagent's own row ("subagent of …"), cut short rather than wrapping. */
+.pill.fork {
+  background: var(--surface-muted);
+  max-width: min(45%, 320px);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.pill.fork .fork-t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill.fork svg {
+  flex: none;
+}
+/* A subagent's link back to the chat that started it. */
+.fork-of {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--text-strong);
+}
+.fork-of b {
+  overflow-wrap: anywhere;
+}
+.forks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.forks-n {
+  font-size: 12px;
+}
+/* Where a parent's tool call started a subagent: a closed fold that opens
+   the subagent's own page. */
+.fold.spawn {
+  display: block;
+  text-decoration: none;
+}
+.fold.spawn:hover {
+  background: var(--surface-hover);
+}
+.spawn-h {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  min-height: 36px;
+  padding: 6px 12px;
+  font: 600 12.5px / 1.5 var(--type-mono);
+  color: var(--text-strong);
+}
+.spawn-t {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.spawn-o {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}

@@ -214,5 +214,8 @@ The rendering targets are the Terminal mockup boards.
 
 - Does Codex record reasoning anywhere in silver? It was absent from the sampled
   chat, which is not enough to rule it out.
-- Which subagent records can be linked to a child chat?
+- Which subagent records can be linked to a child chat? Claude Code's
+  `toolUseId` and Cursor's `toolCallId` link a spawning call exactly (see
+  indexing.md, "Subagent markers"); Codex `subAgentActivity` events are not
+  linked yet.
 - Should the MCP `view` tool also expose events, or stay message-based?

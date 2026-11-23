@@ -17,6 +17,7 @@ fn chat(id: &str, provider: Provider) -> Chat {
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
+        subagent: None,
         source: SourceIdentity::file(id),
         title: Some(format!("Authentication {id}")),
         project: None,

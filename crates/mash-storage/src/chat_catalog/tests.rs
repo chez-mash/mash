@@ -23,6 +23,7 @@ fn row(id: &str, time: Option<i64>) -> Chat {
     Chat {
         chat_id: id.into(),
         first_message_id: None,
+        subagents: 0,
         provider: Provider::Codex,
         node_id: "node".into(),
         metadata: ChatMetadata {

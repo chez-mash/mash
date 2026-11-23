@@ -95,6 +95,13 @@ pub struct Record {
     pub session_id: Option<String>,
     #[serde(rename = "agentId")]
     pub agent_id: Option<String>,
+    /// Claude Code marks every record of a subagent's transcript.
+    #[serde(
+        rename = "isSidechain",
+        default,
+        deserialize_with = "crate::subagent::lenient"
+    )]
+    pub is_sidechain: Option<bool>,
     #[serde(rename = "parentUuid", default, deserialize_with = "parent_link")]
     pub parent: ParentLink,
     pub subtype: Option<SystemSubtype>,
@@ -220,6 +227,12 @@ pub struct Payload {
     pub input: Option<Value>,
     #[serde(default, deserialize_with = "opaque")]
     pub output: Option<Value>,
+    /// What started a Codex session, on its `session_meta`.
+    pub source: Option<crate::subagent::CodexSource>,
+    #[serde(default, deserialize_with = "crate::subagent::lenient")]
+    pub agent_nickname: Option<String>,
+    #[serde(default, deserialize_with = "crate::subagent::lenient")]
+    pub agent_role: Option<String>,
     #[serde(flatten)]
     pub metadata: Metadata,
 }

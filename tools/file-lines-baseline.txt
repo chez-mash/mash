@@ -27,8 +27,8 @@
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
 574 crates/mash-storage/src/records.rs
-624 crates/mash-storage/src/search_results.rs
-642 crates/mash-storage/src/storage/indexing.rs
+593 crates/mash-storage/src/search_results.rs
+635 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs
 634 crates/mash-storage/src/storage/records/transfer.rs
 761 crates/mash-sync/src/shared/publication.rs

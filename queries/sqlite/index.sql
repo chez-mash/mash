@@ -10,8 +10,15 @@ WITH scope AS (SELECT
     CAST(sqlc.arg(sort_key) AS TEXT) AS sort_key,
     CAST(sqlc.arg(descending) AS INTEGER) AS descending)
 SELECT c.id,c.provider AS provider,c.title,c.project,c.repository,c.created_at,c.updated_at,e.evidence AS enrichment,
-    f.id AS first_message_id
+    f.id AS first_message_id,
+    a.parent_chat_id,a.label AS subagent_label,a.role AS subagent_role,a.depth AS subagent_depth,
+    a.finished AS subagent_finished,a.spawn_call_id AS subagent_spawn_call_id,
+    CAST(a.chat_id IS NOT NULL AS INTEGER) AS is_subagent,
+    p.title AS parent_title,
+    CAST((SELECT count(*) FROM chat_subagents k WHERE k.parent_chat_id=c.id) AS INTEGER) AS subagent_count
 FROM chats c CROSS JOIN scope s LEFT JOIN chat_enrichment e ON e.chat_id=c.id
+LEFT JOIN chat_subagents a ON a.chat_id=c.id
+LEFT JOIN chats p ON p.id=a.parent_chat_id AND p.provider=c.provider
 LEFT JOIN messages f ON f.chat_id=c.id
     AND f.ordinal=(SELECT MIN(m.ordinal) FROM messages m WHERE m.chat_id=c.id)
 WHERE (s.all_providers = 1 OR c.provider IN (

@@ -93,6 +93,7 @@ fn compact_listing_keeps_pagination_and_view_never_truncates() {
                 node_id: "peer".into(),
                 metadata: ChatMetadata::default(),
                 first_message_id: None,
+                subagents: 0,
             },
             lookup: Some(super::super::chats::Lookup {
                 view: crate::search_results::lookup::View {

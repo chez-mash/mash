@@ -1,12 +1,18 @@
 import type { Answer, ReadPath, Wire } from "./routes";
 import type { Applied } from "./search";
 import { check } from "./session.svelte";
+import { fold } from "./subagents";
 import { callsBefore, resultsAfter, unpaired } from "./toolcalls";
 import { send } from "./transport";
-import type { Agent, ChatSummary, Message, SearchFilters, SearchHit } from "./types";
+import type { Agent, ChatSummary, Message, SearchFilters, SearchHit, Subagent } from "./types";
 
 export interface Catalog {
+  /** The chats lists show, with subagents folded into their parents. */
   readonly chats: readonly ChatSummary[];
+  /** Every chat, subagents included, for lookups and the unfolded list. */
+  readonly all: readonly ChatSummary[];
+  /** How many subagent chats `chats` folds into their parents. */
+  readonly folded: number;
   readonly localNode: string;
   /** The dashboard reads only the shared index: no machine's history is local. */
   readonly sharedOnly: boolean;
@@ -37,16 +43,33 @@ export function isAgent(value: string): value is Agent {
 function date(value: number | undefined): string {
   return value === undefined ? "Time unknown" : new Date(value).toLocaleString();
 }
+function subagent(row: Wire["Chat"] | Wire["ChatHit"]): Subagent | undefined {
+  const marker = row.subagent;
+  if (!marker) return undefined;
+  return {
+    ...(marker.parent_chat_id ? { parentId: marker.parent_chat_id } : {}),
+    ...(marker.parent_title ? { parentTitle: marker.parent_title } : {}),
+    ...(marker.label ? { label: marker.label } : {}),
+    ...(marker.role ? { role: marker.role } : {}),
+    ...(typeof marker.finished === "boolean" ? { finished: marker.finished } : {}),
+    ...(marker.spawn_call_id ? { spawnCallId: marker.spawn_call_id } : {}),
+  };
+}
 function chat(row: Wire["Chat"] | Wire["ChatHit"], localNode: string): ChatSummary {
   const updatedMs = row.updated_at ?? row.created_at ?? undefined;
+  const createdMs = row.created_at ?? undefined;
+  const marker = subagent(row);
   return {
     id: row.chat_id,
-    title: row.title || "Untitled chat",
+    // A subagent is named for its task rather than for the brief it was given.
+    title: marker?.label || row.title || "Untitled chat",
     agent: row.provider,
     machine: row.node_id ?? localNode,
     project: row.project ?? "",
     updatedAt: date(updatedMs),
     ...(updatedMs === undefined ? {} : { updatedMs }),
+    ...(createdMs === undefined ? {} : { createdMs }),
+    ...(marker ? { subagent: marker } : {}),
   };
 }
 export async function read<P extends ReadPath>(
@@ -83,10 +106,11 @@ export async function read<P extends ReadPath>(
   return (await response.json()) as Answer<P>;
 }
 export function parseCatalog(body: Answer<"/api/chats">): Catalog {
+  const all = body.chats.map((row) => chat(row, body.local_node));
   return {
     localNode: body.local_node,
     sharedOnly: body.shared_only,
-    chats: body.chats.map((row) => chat(row, body.local_node)),
+    ...fold(all),
     warnings: [
       ...(body.shared_error ? [`Shared history is unavailable: ${body.shared_error}`] : []),
       ...(body.truncated
@@ -99,18 +123,23 @@ export async function catalog(signal: AbortSignal): Promise<Catalog> {
   return parseCatalog(await read("/api/chats", new URLSearchParams(), signal));
 }
 /** Empty submissions filter one catalogue snapshot; drafts never alter submitted results. */
-export function browse(catalog: Catalog, filters: SearchFilters, now: number): SearchPage {
+export function browse(
+  catalog: Catalog,
+  filters: SearchFilters,
+  now: number,
+  subagents: "folded" | "shown" = "folded",
+): SearchPage & { readonly folded: number } {
+  const kept = (chat: ChatSummary) =>
+    (!filters.agents.length || filters.agents.includes(chat.agent)) &&
+    (!filters.machines.length || filters.machines.includes(chat.machine)) &&
+    (!filters.projects.length || filters.projects.includes(chat.project)) &&
+    (filters.days === null ||
+      (chat.updatedMs !== undefined && chat.updatedMs >= now - filters.days * 86_400_000));
+  const listed = catalog.chats.filter(kept);
+  const shown = subagents === "shown" ? catalog.all.filter(kept) : listed;
   return {
-    hits: catalog.chats
-      .filter(
-        (chat) =>
-          (!filters.agents.length || filters.agents.includes(chat.agent)) &&
-          (!filters.machines.length || filters.machines.includes(chat.machine)) &&
-          (!filters.projects.length || filters.projects.includes(chat.project)) &&
-          (filters.days === null ||
-            (chat.updatedMs !== undefined && chat.updatedMs >= now - filters.days * 86_400_000)),
-      )
-      .map((chat) => ({ chat, messageId: "", before: "", match: "", after: "" })),
+    hits: shown.map((chat) => ({ chat, messageId: "", before: "", match: "", after: "" })),
+    folded: subagents === "shown" ? 0 : catalog.all.filter(kept).length - listed.length,
     nextOffset: null,
     warnings: catalog.warnings,
   };

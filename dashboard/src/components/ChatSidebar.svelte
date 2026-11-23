@@ -12,12 +12,14 @@ import { label, type NativeRecord } from "../lib/records";
 import { chatHref, projectHref, recordHref, recordsHref } from "../lib/route.svelte";
 import type { ChatSummary, Message } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import SubagentList from "./SubagentList.svelte";
 
 let {
   id,
   machine,
   chat,
   sessions,
+  children,
   prompts,
   currentMessage,
   records,
@@ -32,6 +34,8 @@ let {
   machine: string;
   chat: ChatSummary | undefined;
   sessions: readonly ChatSummary[];
+  /** The subagents this chat started. */
+  children: readonly ChatSummary[];
   /** What a person said in the loaded part of the chat, in order. */
   prompts: readonly Message[];
   currentMessage: string;
@@ -48,7 +52,9 @@ const now = Date.now();
 const projectSessions = $derived.by(() => {
   if (!chat) return [];
   const same = sessions.filter((session) => session.project === chat.project).slice(0, 6);
-  return same.includes(chat) ? same : [chat, ...same.slice(0, 5)];
+  // Compared by identity, not by object: the catalogue's two lists are copied apart.
+  const listed = same.some((session) => session.id === chat.id && session.machine === chat.machine);
+  return listed ? same : [chat, ...same.slice(0, 5)];
 });
 </script>
 
@@ -64,6 +70,7 @@ const projectSessions = $derived.by(() => {
       </div>
     </div>
   {/if}
+  <SubagentList {children} />
   {#if chat?.project}<h2 class="h2"><a href={projectHref(chat.project)}><Folder size={15} aria-hidden="true" />{projectLabel(chat.project)} sessions</a></h2>{/if}
   {#if projectSessions.length}
     <div class="card pad0 list sess-l">

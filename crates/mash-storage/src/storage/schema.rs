@@ -7,7 +7,7 @@ use crate::database_error::Operation;
 /// First supported migration baseline. Earlier releases require export/import.
 const BASELINE: i64 = 62;
 pub const MIN_SCHEMA_VERSION: i64 = BASELINE;
-pub const SCHEMA_VERSION: i64 = 67;
+pub const SCHEMA_VERSION: i64 = 68;
 
 /// The one silver schema, shared by local nodes and the shared server.
 pub const SILVER: &str = include_str!("silver.sql");
@@ -18,6 +18,14 @@ const RECORD_PROVENANCE: &str = include_str!("record_provenance.sql");
 const RECORD_EXTRACTIONS: &str = include_str!("record_extractions.sql");
 const RECORD_KINDS: &str = include_str!("record_kinds.sql");
 const PUBLICATION_MESSAGES: &str = include_str!("publication_messages.sql");
+const CHAT_SUBAGENTS: &str = include_str!("chat_subagents.sql");
+/// Codex rollouts already read carry subagent markers silver did not keep;
+/// reading them again fills the new table. Claude Code subagent transcripts
+/// are read again anyway: their metadata file joins their source stamp.
+const CHAT_SUBAGENTS_UPGRADE: &str = concat!(
+    include_str!("chat_subagents.sql"),
+    "UPDATE source_checkpoints SET interpretation_version = 0 WHERE provider = 'codex';"
+);
 /// Writers run in WAL mode with NORMAL sync: commits are atomic and survive a
 /// process crash without an fsync each; only an OS crash or power loss can
 /// drop the latest commits, and the database stays consistent. Per connection.
@@ -88,6 +96,9 @@ pub fn initialize_silver(connection: &mut Connection) -> Result<(), AppError> {
             .execute_batch(PUBLICATION_MESSAGES)
             .map_err(AppError::database)?;
         transaction
+            .execute_batch(CHAT_SUBAGENTS)
+            .map_err(AppError::database)?;
+        transaction
             .pragma_update(None, "user_version", SCHEMA_VERSION)
             .map_err(AppError::database)?;
         transaction.commit().map_err(AppError::database)?;
@@ -102,6 +113,7 @@ pub fn initialize_silver(connection: &mut Connection) -> Result<(), AppError> {
         steps.push(rusqlite_migration::M::up(RECORD_EXTRACTIONS));
         steps.push(rusqlite_migration::M::up(RECORD_KINDS));
         steps.push(rusqlite_migration::M::up(PUBLICATION_MESSAGES));
+        steps.push(rusqlite_migration::M::up(CHAT_SUBAGENTS_UPGRADE));
         connection.set_transaction_behavior(rusqlite::TransactionBehavior::Immediate);
         let result = rusqlite_migration::Migrations::new(steps).to_latest(connection);
         connection.set_transaction_behavior(rusqlite::TransactionBehavior::Deferred);

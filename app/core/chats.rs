@@ -170,12 +170,18 @@ fn finish_dashboard(
         }
         // Redact before the final truncation: cutting a credential could prevent
         // a pattern from recognizing it and expose its prefix in the title.
+        let subagent = chat
+            .metadata
+            .subagent
+            .iter_mut()
+            .flat_map(crate::subagents::Subagent::texts);
         for value in [
             &mut chat.metadata.title,
             &mut chat.metadata.project,
             &mut chat.metadata.repository,
         ]
         .into_iter()
+        .chain(subagent)
         .flatten()
         {
             if let Some(safe) = masked.get(value.as_str()) {

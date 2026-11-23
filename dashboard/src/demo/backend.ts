@@ -35,7 +35,11 @@ function updatedAt(chat: DemoChat, now: number): number {
 function createdAt(chat: DemoChat, now: number): number {
   return updatedAt(chat, now) - chat.messages.length * 2 * MINUTE;
 }
+const callId = (chat: DemoChat, position: number): string => `${chat.id}-call-${position}`;
 function row(chat: DemoChat, now: number): Answer<"/api/chats">["chats"][number] {
+  const marker = chat.subagent;
+  const parent = marker && chats.find((candidate) => candidate.id === marker.parent);
+  const subagents = chats.filter((candidate) => candidate.subagent?.parent === chat.id).length;
   return {
     chat_id: chat.id,
     provider: chat.agent,
@@ -45,10 +49,24 @@ function row(chat: DemoChat, now: number): Answer<"/api/chats">["chats"][number]
     repository: chat.repository,
     created_at: createdAt(chat, now),
     updated_at: updatedAt(chat, now),
+    ...(subagents ? { subagents } : {}),
+    ...(marker
+      ? {
+          subagent: {
+            parent_chat_id: marker.parent,
+            ...(parent ? { parent_title: parent.title } : {}),
+            label: marker.label,
+            role: marker.role,
+            ...(marker.finished === undefined ? {} : { finished: marker.finished }),
+            ...(parent && marker.spawnedAt !== undefined
+              ? { spawn_call_id: callId(parent, marker.spawnedAt) }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 const messageId = (chat: DemoChat, position: number): string => `${chat.id}-${position}`;
-const callId = (chat: DemoChat, position: number): string => `${chat.id}-call-${position}`;
 function message(
   chat: DemoChat,
   entry: DemoMessage,

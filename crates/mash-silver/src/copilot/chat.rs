@@ -95,6 +95,7 @@ fn snapshot(
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             title: session
                 .custom_title
                 .or(session.computed_title)

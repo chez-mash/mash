@@ -25,6 +25,15 @@ pub struct ListChatsRow {
     pub updated_at: Option<i64>,
     pub enrichment: Option<String>,
     pub first_message_id: Option<String>,
+    pub parent_chat_id: Option<String>,
+    pub subagent_label: Option<String>,
+    pub subagent_role: Option<String>,
+    pub subagent_depth: Option<i64>,
+    pub subagent_finished: Option<i64>,
+    pub subagent_spawn_call_id: Option<String>,
+    pub is_subagent: i64,
+    pub parent_title: Option<String>,
+    pub subagent_count: i64,
 }
 impl ListChatsRow {
     pub fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Self> {
@@ -38,6 +47,15 @@ impl ListChatsRow {
             updated_at: row.get(6)?,
             enrichment: row.get(7)?,
             first_message_id: row.get(8)?,
+            parent_chat_id: row.get(9)?,
+            subagent_label: row.get(10)?,
+            subagent_role: row.get(11)?,
+            subagent_depth: row.get(12)?,
+            subagent_finished: row.get(13)?,
+            subagent_spawn_call_id: row.get(14)?,
+            is_subagent: row.get(15)?,
+            parent_title: row.get(16)?,
+            subagent_count: row.get(17)?,
         })
     }
 }
@@ -62,8 +80,15 @@ impl<'a> ListChats<'a> {
     CAST(?8 AS TEXT) AS sort_key,
     CAST(?9 AS INTEGER) AS descending)
 SELECT c.id,c.provider AS provider,c.title,c.project,c.repository,c.created_at,c.updated_at,e.evidence AS enrichment,
-    f.id AS first_message_id
+    f.id AS first_message_id,
+    a.parent_chat_id,a.label AS subagent_label,a.role AS subagent_role,a.depth AS subagent_depth,
+    a.finished AS subagent_finished,a.spawn_call_id AS subagent_spawn_call_id,
+    CAST(a.chat_id IS NOT NULL AS INTEGER) AS is_subagent,
+    p.title AS parent_title,
+    CAST((SELECT count(*) FROM chat_subagents k WHERE k.parent_chat_id=c.id) AS INTEGER) AS subagent_count
 FROM chats c CROSS JOIN scope s LEFT JOIN chat_enrichment e ON e.chat_id=c.id
+LEFT JOIN chat_subagents a ON a.chat_id=c.id
+LEFT JOIN chats p ON p.id=a.parent_chat_id AND p.provider=c.provider
 LEFT JOIN messages f ON f.chat_id=c.id
     AND f.ordinal=(SELECT MIN(m.ordinal) FROM messages m WHERE m.chat_id=c.id)
 WHERE (s.all_providers = 1 OR c.provider IN (

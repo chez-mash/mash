@@ -46,6 +46,7 @@ pub(super) fn seed_readiness_database(path: &Path, dialogue_text: Option<&str>) 
         include_str!("../../crates/mash-storage/src/storage/record_extractions.sql"),
         include_str!("../../crates/mash-storage/src/storage/record_kinds.sql"),
         include_str!("../../crates/mash-storage/src/storage/publication_messages.sql"),
+        include_str!("../../crates/mash-storage/src/storage/chat_subagents.sql"),
     ] {
         connection.execute_batch(schema).unwrap();
     }

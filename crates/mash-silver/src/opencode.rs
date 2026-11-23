@@ -167,9 +167,8 @@ struct Session {
     updated_at: i64,
 }
 
-// Both layouts use typed text, reasoning and tool parts. A tool's arguments and
-// any result shape Mash does not know stay opaque provider-owned JSON; none of
-// it enters the searchable projection.
+// Both layouts use typed text, reasoning and tool parts. Tool arguments and unknown
+// result shapes stay opaque provider-owned JSON; none of it enters the search projection.
 #[derive(Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 enum Part {
@@ -767,6 +766,7 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: source.clone(),
             title: Some(metadata.title),
             project: (!metadata.project.is_empty()).then_some(metadata.project),

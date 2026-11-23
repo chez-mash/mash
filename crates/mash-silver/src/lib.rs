@@ -38,6 +38,7 @@ pub mod revision;
 pub mod snapshot;
 pub mod source;
 pub mod sqlite_source;
+pub mod subagent;
 pub mod turns;
 
 pub use discovery::{SessionContent, SourceStamp, source_stamp_for};
@@ -89,6 +90,8 @@ pub struct Chat {
     pub provider: Provider,
     pub source: SourceIdentity,
     pub claude_lineage: Option<claude::Lineage>,
+    /// Set only when the agent marked this chat as one it started.
+    pub subagent: Option<subagent::Subagent>,
     /// Adapter-selected title provenance before native/fallback choices flatten.
     pub title_origin: Option<enrichment::Origin>,
     /// Adapter-selected timestamp provenance before fallback choices flatten.
@@ -214,8 +217,11 @@ pub fn parse_stable_source(
     stamp.verify(&source.identity)?;
     let parsed = if let Parser::Native(provider @ (Provider::ClaudeCode | Provider::Codex)) = parse
         && source.identity.session.is_none()
-        && source.dependencies.is_empty()
+        && (source.dependencies.is_empty() || provider == Provider::ClaudeCode)
     {
+        // A Claude subagent's metadata file is read beside the captured
+        // transcript. Its stamp was taken before the read, so a change made
+        // while reading only makes the next pass read the source again.
         let (file, proof) = prefix::capture(&source.identity.path, stamp)?;
         stamp.prefix = Some(proof);
         parsers::parse_captured(&source.identity.path, provider, file)

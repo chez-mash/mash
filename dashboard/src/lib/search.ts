@@ -48,7 +48,14 @@ export interface Applied {
   readonly rank: Ranking;
   /** Zero-based position of the first result shown. */
   readonly offset: number;
+  /** Whether a chat list shows subagent chats as rows of their own. */
+  readonly subagents: "folded" | "shown";
 }
+
+export const subagentViews = [
+  { value: "folded", label: "Fold into their parent chat" },
+  { value: "shown", label: "Show in the list too" },
+] as const;
 
 function list(params: URLSearchParams, name: string): string[] {
   return (params.get(name) ?? "").split(",").filter(Boolean);
@@ -69,6 +76,7 @@ export function parseApplied(params: string): Applied {
     sort: values.get("sort") === "old" ? "old" : "new",
     rank: values.get("rank") === "recent" ? "recent" : "relevance",
     offset: Number.isSafeInteger(offset) && offset > 0 ? offset : 0,
+    subagents: values.get("subagents") === "shown" ? "shown" : "folded",
   };
 }
 
@@ -86,6 +94,7 @@ export function appliedHref(applied: Applied, base = "#/search"): string {
   if (applied.sort !== "new") params.set("sort", applied.sort);
   if (applied.rank !== "relevance") params.set("rank", applied.rank);
   if (applied.offset) params.set("offset", String(applied.offset));
+  if (applied.subagents === "shown") params.set("subagents", "shown");
   return params.size ? `${base}?${params}` : base;
 }
 

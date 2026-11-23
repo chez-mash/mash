@@ -357,6 +357,7 @@ mod tests {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             title: Some("qdrant filtering".into()),
             project: Some("/work/project".into()),
             repository: Some("https://example.com/repo".into()),

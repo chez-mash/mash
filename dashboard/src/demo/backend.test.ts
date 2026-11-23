@@ -32,10 +32,29 @@ describe("the demo answers in the shapes mash dash sends", () => {
   it("lists every chat, on more than one machine and agent", () => {
     const catalog = parseCatalog(body("/api/chats"));
     expect(catalog.localNode).toBe(localMachine);
-    expect(catalog.chats).toHaveLength(chats.length);
+    expect(catalog.all).toHaveLength(chats.length);
     expect(new Set(catalog.chats.map((chat) => chat.machine)).size).toBeGreaterThan(1);
     expect(new Set(catalog.chats.map((chat) => chat.agent)).size).toBe(6);
-    expect(new Set(catalog.chats.map((chat) => chat.id)).size).toBe(chats.length);
+    expect(new Set(catalog.all.map((chat) => chat.id)).size).toBe(chats.length);
+  });
+
+  it("folds each agent's subagents into the chat that started them", () => {
+    const catalog = parseCatalog(body("/api/chats"));
+    const subagents = chats.filter((chat) => chat.subagent);
+    expect(subagents.map((chat) => chat.agent).sort()).toEqual([
+      "claude-code",
+      "claude-code",
+      "codex",
+      "codex",
+    ]);
+    expect(catalog.folded).toBe(subagents.length);
+    expect(catalog.chats).toHaveLength(chats.length - subagents.length);
+    const parent = catalog.chats.find((chat) => chat.id === "release-0-2");
+    expect(parent?.subagents).toBe(2);
+    const child = catalog.all.find((chat) => chat.id === "release-windows-tests");
+    // Named for its task, not for the brief it was given.
+    expect(child?.title).toBe("Fix the failing Windows test suite");
+    expect(child?.subagent?.spawnCallId).toBe("release-0-2-call-2");
   });
 
   it("serves each transcript, with tool calls joined to their output", () => {

@@ -46,6 +46,17 @@ impl Storage {
             .into_iter()
             .map(|row| {
                 let provider: crate::provider::Provider = row.provider.parse()?;
+                let subagent = (row.is_subagent != 0).then(|| {
+                    crate::subagents::Subagent::from(crate::subagents::Row {
+                        parent_chat_id: row.parent_chat_id,
+                        parent_title: row.parent_title,
+                        label: row.subagent_label,
+                        role: row.subagent_role,
+                        depth: row.subagent_depth,
+                        finished: row.subagent_finished,
+                        spawn_call_id: row.subagent_spawn_call_id,
+                    })
+                });
                 Ok(Chat {
                     chat_id: row.id,
                     provider,
@@ -60,8 +71,10 @@ impl Storage {
                         repository: row.repository,
                         created_at: row.created_at,
                         updated_at: row.updated_at,
+                        subagent,
                     },
                     first_message_id: row.first_message_id,
+                    subagents: u32::try_from(row.subagent_count).unwrap_or(u32::MAX),
                 })
             })
             .collect()

@@ -59,6 +59,7 @@ pub fn chat(content: &str) -> Chat {
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
+        subagent: None,
         source: crate::silver::SourceIdentity::file(PathBuf::from("/tmp/session-1.jsonl")),
         project: None,
         repository: None,

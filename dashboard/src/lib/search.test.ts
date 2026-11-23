@@ -16,9 +16,13 @@ describe("applied searches", () => {
       sort: "new",
       rank: "relevance",
       offset: 40,
+      subagents: "folded",
     });
     expect(parseApplied(appliedHref(applied).split("?")[1] ?? "")).toEqual(applied);
     expect(appliedHref(parseApplied(""))).toBe("#/search");
+    expect(parseApplied("subagents=shown").subagents).toBe("shown");
+    expect(parseApplied("subagents=sideways").subagents).toBe("folded");
+    expect(appliedHref(parseApplied("subagents=shown"))).toBe("#/search?subagents=shown");
   });
   it("ignores values the controls cannot produce", () => {
     const applied = parseApplied("agent=shell,codex&days=13&sort=sideways&offset=-5");

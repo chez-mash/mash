@@ -13,6 +13,7 @@ async fn dashboard_catalog_preserves_copies_and_partial_failure() {
             Json(vec![Chat {
                 chat_id: "thread-105".into(),
                 first_message_id: None,
+                subagents: 0,
                 provider: Provider::Codex,
                 node_id: "peer".into(),
                 metadata: ChatMetadata {
@@ -71,6 +72,7 @@ fn dashboard_redaction_reuses_values_without_crossing_policy_or_source_changes()
     let make = |value: &str| Chat {
         chat_id: value.into(),
         first_message_id: None,
+        subagents: 0,
         provider: Provider::Codex,
         node_id: "local".into(),
         metadata: ChatMetadata {
@@ -137,6 +139,7 @@ fn database(directory: &Path) -> std::path::PathBuf {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: crate::silver::SourceIdentity::file("local"),
             title: Some("local".into()),
             project: None,
@@ -185,6 +188,7 @@ async fn combined_catalog_merges_before_paging_and_reports_remote_failure() {
                 collector.push(Chat {
                     chat_id: format!("thread-{number:03}"),
                     first_message_id: Some(format!("message-{number:03}")),
+                    subagents: 0,
                     provider: Provider::Codex,
                     node_id: "peer".into(),
                     metadata: ChatMetadata {

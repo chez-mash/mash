@@ -68,6 +68,7 @@ fn chat(id: &str, title: &str, messages: Vec<NormalizedMessage>) -> Chat {
         title_origin: None,
         timestamp_origins: None,
         claude_lineage: None,
+        subagent: None,
         source: SourceIdentity::file(format!("/nonexistent/mash-{id}.jsonl")),
         project: Some("/work/mash".into()),
         repository: None,

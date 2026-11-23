@@ -5,7 +5,7 @@ and full search rebuilds. Use the same migration definitions for local silver
 and each node's shared silver database. Export/import remains for portability,
 recovery and legacy transitions that do not have a tested migration.
 
-`crates/mash-storage/src/storage/schema.rs` supports upgrades from versions 62 through 65 to 66.
+`crates/mash-storage/src/storage/schema.rs` supports upgrades from versions 62 through 67 to 68.
 These are the supported older starting versions. The same initializer creates
 and upgrades local and shared silver. Read-only commands do not migrate.
 
@@ -27,7 +27,9 @@ historical intent. Step 65 adds owner-local extraction batch receipts. Step 66
 retires open questions: it deletes records of that kind and the links that
 resolved them, and adds triggers that refuse the retired kind and relation,
 because SQLite cannot change the checks on those columns in place. It is the
-first step that removes rows. Fresh
+first step that removes rows. Step 67 journals published messages. Step 68
+adds the local `chat_subagents` table and marks Codex source checkpoints as
+read by an earlier release, so the next index reads their subagent markers. Fresh
 creation directly creates the same schema and sets version 66 in its creation
 transaction. Do not reset a
 live database to zero, silently renumber it, or let placeholder migrations make

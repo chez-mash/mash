@@ -108,6 +108,7 @@ fn parse_jsonl(
     let mut project = None;
     let mut repository = None;
     let mut claude_identity = claude::Identity::default();
+    let mut codex_subagent = None;
     let mut named = None;
     for line in lines {
         let (number, line) = line?;
@@ -142,6 +143,13 @@ fn parse_jsonl(
                 .as_ref()
                 .and_then(|payload| payload.id.as_ref().or(payload.session_id.as_ref()))
                 .cloned();
+            // Only the rollout's own first session_meta describes it; a
+            // subagent's rollout goes on to copy its parent's.
+            codex_subagent = raw
+                .payload
+                .as_ref()
+                .zip(session_id.as_deref())
+                .and_then(|(payload, own)| codex::subagent(payload, own));
         }
         let Some(mut extracted) = extract(&raw) else {
             continue;
@@ -187,6 +195,12 @@ fn parse_jsonl(
     let id = session_id
         .unwrap_or_else(|| stable_id("session", &[provider.as_str(), &path.to_string_lossy()]));
     let id = claude_identity.thread_id(&id);
+    let subagent = match provider {
+        Provider::ClaudeCode => claude_identity
+            .sidechain()
+            .map(|(session, agent)| crate::subagent::claude(path, session, agent)),
+        _ => codex_subagent,
+    };
     let mut messages = messages.finish()?;
     if messages.is_empty() {
         return Err(AppError::internal("parser lost normalized messages"));
@@ -207,6 +221,7 @@ fn parse_jsonl(
             id,
             provider,
             claude_lineage,
+            subagent,
             title_origin: None,
             timestamp_origins: None,
             source: super::SourceIdentity::file(path),
@@ -391,3 +406,6 @@ mod timestamps {
         assert_eq!(parse_timestamp(None), None);
     }
 }
+
+#[cfg(test)]
+mod subagent_tests;

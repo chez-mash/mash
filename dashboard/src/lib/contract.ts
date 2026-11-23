@@ -734,6 +734,13 @@ export interface components {
             project?: string | null;
             provider: components["schemas"]["Provider"];
             repository?: string | null;
+            /** @description Set only when the agent marked this chat as a subagent. */
+            subagent?: components["schemas"]["ChatSubagent"] | null;
+            /**
+             * Format: uint32
+             * @description How many indexed chats the agent marked as subagents this chat started.
+             */
+            subagents?: number;
             title?: string | null;
             /** Format: int64 */
             updated_at?: number | null;
@@ -759,6 +766,8 @@ export interface components {
             repository?: string | null;
             /** Format: float */
             score: number;
+            /** @description Set only when the agent marked this chat as a subagent. */
+            subagent?: components["schemas"]["ChatSubagent"] | null;
             title?: string | null;
             /** Format: int64 */
             updated_at?: number | null;
@@ -788,6 +797,8 @@ export interface components {
             enrichment?: components["schemas"]["ChatEvidence"] | null;
             project?: string | null;
             repository?: string | null;
+            /** @description Set only when the agent marked this chat as a subagent. */
+            subagent?: components["schemas"]["ChatSubagent"] | null;
             title?: string | null;
             /** Format: int64 */
             updated_at?: number | null;
@@ -807,6 +818,25 @@ export interface components {
             offset: number;
             /** @default false */
             shared: boolean;
+        };
+        ChatSubagent: {
+            /** Format: uint32 */
+            depth?: number | null;
+            /** @description Whether the agent recorded it as finished. Absent means not recorded. */
+            finished?: boolean | null;
+            /** @description The agent's name for the task: Claude Code's description, Codex's nickname. */
+            label?: string | null;
+            /**
+             * @description The chat that started this one, from the same agent and machine.
+             *     Absent when the agent named none.
+             */
+            parent_chat_id?: string | null;
+            /** @description The parent's title. Absent when the parent is not indexed here. */
+            parent_title?: string | null;
+            /** @description Claude Code's agent type or Codex's agent role. */
+            role?: string | null;
+            /** @description The parent's tool call that started it, when recorded. */
+            spawn_call_id?: string | null;
         };
         ClientSummary: {
             agent: components["schemas"]["SetupAgent"];

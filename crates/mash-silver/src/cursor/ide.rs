@@ -173,6 +173,7 @@ pub fn parse(source: &SourceIdentity) -> Result<ParsedFile, AppError> {
             title_origin: None,
             timestamp_origins: None,
             claude_lineage: None,
+            subagent: None,
             source: source.clone(),
             project,
             repository,

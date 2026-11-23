@@ -238,3 +238,14 @@ fn extract_codex_response_item(raw: &Record) -> Option<ExtractedMessage> {
         session_id: None,
     })
 }
+
+/// The subagent a rollout's own `session_meta` describes, if any.
+pub fn subagent(payload: &json::Payload, own_id: &str) -> Option<crate::subagent::Subagent> {
+    payload.source.as_ref()?.subagent(
+        own_id,
+        &crate::subagent::CodexNames {
+            nickname: payload.agent_nickname.as_deref(),
+            role: payload.agent_role.as_deref(),
+        },
+    )
+}

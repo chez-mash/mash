@@ -1,6 +1,7 @@
 // The demo's history. Every project, machine and conversation here is made
 // up; none of it comes from a real index.
 import type { Agent } from "../lib/types";
+import { type DemoSubagent, subagentChats } from "./subagents";
 
 export interface DemoMessage {
   readonly role: "user" | "assistant" | "tool";
@@ -19,6 +20,8 @@ export interface DemoChat {
   /** How long before the page was opened the chat last changed. */
   readonly daysAgo: number;
   readonly messages: readonly DemoMessage[];
+  /** Set on a chat an agent started as a subagent. */
+  readonly subagent?: DemoSubagent;
 }
 export const localMachine = "laptop";
 
@@ -80,7 +83,7 @@ function chat(
   };
 }
 
-export const chats: readonly DemoChat[] = [
+const ownChats: readonly DemoChat[] = [
   chat(
     "mobile-keychain-follow-up",
     "Pick up mobile sign-in in Codex",
@@ -462,4 +465,8 @@ export const chats: readonly DemoChat[] = [
       agent("テスト用の端末で、更新後もログイン状態が続くか確認しましょう。"),
     ],
   ),
+];
+export const chats: readonly DemoChat[] = [
+  ...subagentChats(projects.storefront, projects.mobile),
+  ...ownChats,
 ];

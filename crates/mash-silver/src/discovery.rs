@@ -239,7 +239,17 @@ pub fn discover_history_files(
         Provider::Opencode => super::opencode::discover,
         Provider::Cursor => super::cursor::discover,
         Provider::Antigravity => super::antigravity::discover,
-        Provider::ClaudeCode | Provider::Codex | Provider::Copilot => {
+        Provider::ClaudeCode => {
+            // A subagent transcript's metadata (its task, and whether it
+            // finished) changes without the transcript changing.
+            for source in &mut discovery.sources {
+                if let Some(meta) = super::subagent::claude_meta_candidate(&source.identity.path) {
+                    source.dependencies.push(Dependency::Optional(meta));
+                }
+            }
+            return Ok(discovery);
+        }
+        Provider::Codex | Provider::Copilot => {
             return Ok(discovery);
         }
     };

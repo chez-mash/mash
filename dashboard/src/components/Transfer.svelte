@@ -42,7 +42,9 @@ const applied = $derived(parseApplied(params));
 const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(catalogue.data?.chats ?? []);
 const matching = $derived(
-  catalogue.data ? browse(catalogue.data, filtersOf(applied), now).hits.map((hit) => hit.chat) : [],
+  catalogue.data
+    ? browse(catalogue.data, filtersOf(applied), now, "shown").hits.map((hit) => hit.chat)
+    : [],
 );
 
 // Everything the filters match is exported unless it was left out by hand.

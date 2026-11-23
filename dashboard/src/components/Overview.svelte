@@ -13,6 +13,7 @@ import { catalogOptions, stableRead } from "../lib/queries";
 import { decisionOptions, decisionsByChat, recordPage } from "../lib/records";
 import { agentHref, machineHref } from "../lib/route.svelte";
 import { statusOptions } from "../lib/status";
+import { foldedNote } from "../lib/subagents";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
 import MemoryRow from "./MemoryRow.svelte";
@@ -48,7 +49,7 @@ const machines = $derived(groupChats(chats, (chat) => chat.machine));
 const providers = $derived(groupChats(chats, (chat) => chat.agent));
 </script>
 
-<div><h1 class="h1">Overview</h1><p class="meta">{catalogue.data ? `${chats.length.toLocaleString()} chat${chats.length === 1 ? "" : "s"} from ${machines.length.toLocaleString()} machine${machines.length === 1 ? "" : "s"}` : ""}</p></div>
+<div><h1 class="h1">Overview</h1><p class="meta">{catalogue.data ? `${chats.length.toLocaleString()} chat${chats.length === 1 ? "" : "s"} from ${machines.length.toLocaleString()} machine${machines.length === 1 ? "" : "s"}${foldedNote(catalogue.data.folded)}` : ""}</p></div>
 {#if status.data && !status.data.configuration.loaded}<p class="card tight warn" style:display="flex" style:gap="10px" style:align-items="flex-start"><TriangleAlert size={17} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</span></p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 <div class="cols">

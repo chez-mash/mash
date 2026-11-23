@@ -31,6 +31,7 @@ import { reading } from "../lib/reading.svelte";
 import { label, recordPage } from "../lib/records";
 import { chatHref, recordHref, recordsHref } from "../lib/route.svelte";
 import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/steps";
+import { childrenOf } from "../lib/subagents";
 import type { Message } from "../lib/types";
 import { updates } from "../lib/updates.svelte";
 import ChatSidebar from "./ChatSidebar.svelte";
@@ -40,6 +41,9 @@ import MessageBody from "./MessageBody.svelte";
 import MetaChips from "./MetaChips.svelte";
 import OpenInAgent from "./OpenInAgent.svelte";
 import QueryError from "./QueryError.svelte";
+import SubagentOrigin from "./SubagentOrigin.svelte";
+import SubagentSpawns from "./SubagentSpawns.svelte";
+import SubagentState from "./SubagentState.svelte";
 import ToolStep from "./ToolStep.svelte";
 
 let {
@@ -51,8 +55,10 @@ let {
 const catalogue = createQuery(() => catalogOptions);
 const machine = $derived(node || "");
 const displayMachine = $derived(machine || catalogue.data?.localNode || "Local");
-const sessions = $derived(catalogue.data?.chats ?? []);
-const chat = $derived(sessions.find((chat) => chat.id === id && chat.machine === displayMachine));
+// Lists fold subagents into their parents; a subagent's own page still finds it.
+const all = $derived(catalogue.data?.all ?? []);
+const chat = $derived(all.find((chat) => chat.id === id && chat.machine === displayMachine));
+const children = $derived(chat ? childrenOf(all, chat) : []);
 // Where the screen is only moderately wide, the list beside the transcript
 // starts hidden, so the transcript has a readable measure; its button shows
 // the list. Crossing that width starts it over.
@@ -361,9 +367,10 @@ const prompts = $derived(
   </nav>
 {/snippet}
 <div class="chat" class:nosess={!showSessions} class:sessopen={sessionsOpen}>
-  <ChatSidebar {id} machine={displayMachine} {chat} {sessions} {prompts} {currentMessage} records={memories.data?.records} recordsError={memories.error} {memoryParams} closable={phone && sessionsOpen} onclose={() => closeSessions(true)} onprompt={async (message) => { await closeSessions(false); jump(message); }} />
+  <ChatSidebar {id} machine={displayMachine} {chat} sessions={catalogue.data?.chats ?? []} {children} {prompts} {currentMessage} records={memories.data?.records} recordsError={memories.error} {memoryParams} closable={phone && sessionsOpen} onclose={() => closeSessions(true)} onprompt={async (message) => { await closeSessions(false); jump(message); }} />
   <article class="log" bind:this={transcriptPane}>
     <header class="chat-h">
+      {#if chat}<SubagentOrigin {chat} {all} />{/if}
       <h1 class="h1">{chat ? plainTitle(chat.title) : `Chat ${id.slice(-8)}`}</h1>
       <div class="acts">
         <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={toggleSessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
@@ -382,7 +389,7 @@ const prompts = $derived(
         </span>
       </div>
       <div class="mts chat-m">
-        {#if chat}<MetaChips {chat} agentMark />{:else}<span class="mtx">{displayMachine}</span>{/if}
+        {#if chat}<MetaChips {chat} agentMark /><SubagentState {chat} />{:else}<span class="mtx">{displayMachine}</span>{/if}
         {#if reader.total}<span class="mtx">{reader.total.toLocaleString()} message{reader.total === 1 ? "" : "s"}</span>{/if}
       </div>
     </header>
@@ -443,6 +450,7 @@ const prompts = $derived(
                 {/each}
               </div>
             </details>
+            <SubagentSpawns messages={item.messages} {children} />
           {/if}
         {:else}
           {@const message = item.message}

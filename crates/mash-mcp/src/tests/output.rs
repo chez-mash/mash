@@ -129,6 +129,7 @@ async fn sdk_compact_and_extended_output_preserve_evidence_and_status() {
             provider: Provider::Codex,
             source: crate::silver::SourceIdentity::file("fixture"),
             claude_lineage: None,
+            subagent: None,
             title_origin: None,
             timestamp_origins: None,
             project: None,

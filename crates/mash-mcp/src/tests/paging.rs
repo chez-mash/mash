@@ -9,6 +9,7 @@ fn seed(database: &std::path::Path) {
             provider: Provider::Codex,
             source: crate::silver::SourceIdentity::file("fixture"),
             claude_lineage: None,
+            subagent: None,
             title_origin: None,
             timestamp_origins: None,
             project: None,
