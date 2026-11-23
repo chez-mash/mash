@@ -4,6 +4,7 @@ pub(super) mod fleet_jobs;
 mod manager;
 mod model;
 mod operations;
+mod plugin;
 mod probe;
 #[cfg(test)]
 mod tests;
@@ -23,6 +24,10 @@ pub(super) struct Services {
     directory: Option<PathBuf>,
     client: reqwest::Client,
     fleet_path: Option<PathBuf>,
+    plugin_runs: plugin::Runs,
+    /// The program a plugin reinstall runs; the executable this dashboard
+    /// started from unless a test supplies a stand-in.
+    init_program: Option<PathBuf>,
 }
 
 #[derive(Clone)]
@@ -99,6 +104,8 @@ impl Services {
             directory,
             client,
             fleet_path: None,
+            plugin_runs: plugin::Runs::default(),
+            init_program: None,
         })
     }
 
@@ -350,6 +357,9 @@ pub(super) async fn action(
             ),
         };
     }
+    if request.action == model::Action::ReinstallPlugin {
+        return plugin::reinstall(&state, request);
+    }
     let Some(service) = state
         .services
         .config
@@ -460,16 +470,20 @@ pub(super) async fn history(
             Err(message) => error(StatusCode::BAD_GATEWAY, &message),
         };
     }
-    let Some(directory) = state.services.directory.clone() else {
-        return axum::Json(Vec::<operations::Operation>::new()).into_response();
-    };
-    match tokio::task::spawn_blocking(move || operations::history(&directory)).await {
-        Ok(Ok(records)) => axum::Json(records).into_response(),
-        _ => error(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Could not read operation history",
-        ),
+    let mut records = state.services.plugin_runs.history();
+    if let Some(directory) = state.services.directory.clone() {
+        match tokio::task::spawn_blocking(move || operations::history(&directory)).await {
+            Ok(Ok(receipts)) => records.extend(receipts),
+            _ => {
+                return error(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Could not read operation history",
+                );
+            }
+        }
     }
+    records.sort_by_key(|record| std::cmp::Reverse(record.requested_at));
+    axum::Json(records).into_response()
 }
 
 /// Adds the service routes, each with what it answers.
@@ -566,7 +580,7 @@ pub(super) fn routes(
                 action,
                 changes::<operations::Operation>(
                     "/api/services/action",
-                    "Start, stop or restart one service.",
+                    "Start, stop or restart one service, or reinstall a machine's agent plugins.",
                 ),
             ),
         )

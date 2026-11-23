@@ -54,6 +54,11 @@ async fn app_named(
             token_hash: Some(blake3::hash(TOKEN.as_bytes())),
             peers,
             directory: Some(root.to_path_buf()),
+            plugin_runs: plugin::Runs::default(),
+            init_program: root
+                .join("fake-init.sh")
+                .exists()
+                .then(|| root.join("fake-init.sh")),
             client: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 // A refused loopback connection, as to the unreachable Qdrant
@@ -573,4 +578,112 @@ async fn services_real_systemd_start_stop_restart_and_receipt_replay() {
             .unwrap()
             .success
     );
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn services_reinstall_plugin_runs_init_once_on_the_named_machine() {
+    use std::os::unix::fs::PermissionsExt;
+    let remote_root = tempfile::tempdir().unwrap();
+    let fake = remote_root.path().join("fake-init.sh");
+    std::fs::write(
+        &fake,
+        "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$(dirname \"$0\")/init-calls\"\nprintf '%s' '{\"agents\":[{\"agent\":\"claude-code\",\"mcp\":{\"state\":\"already-present\"},\"plugin\":{\"state\":\"done\",\"command\":\"claude plugin install mash@mash\"}}]}'\n",
+    )
+    .unwrap();
+    std::fs::set_permissions(&fake, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let (remote_url, remote) = app_named(remote_root.path(), vec![], "remote-node").await;
+    let root = tempfile::tempdir().unwrap();
+    let (url, server) = app(
+        root.path(),
+        vec![Peer {
+            id: "remote-node".into(),
+            url: remote_url,
+            token: Some(TOKEN.into()),
+        }],
+    )
+    .await;
+    let client = reqwest::Client::new();
+    let post = |request: &operations::ActionRequest| {
+        client
+            .post(format!("{url}/api/services/action"))
+            .bearer_auth(TOKEN)
+            .json(request)
+            .send()
+    };
+    let request = operations::ActionRequest {
+        machine: "remote-node".into(),
+        service: plugin::TARGET.into(),
+        action: model::Action::ReinstallPlugin,
+        request_id: "00000000-0000-4000-8000-0000000000a1".into(),
+        control_revision: crate::BUILD_REVISION.into(),
+    };
+    let response = post(&request).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let admitted: operations::Operation = response.json().await.unwrap();
+    assert_eq!(admitted.request, request);
+    let finished = async {
+        loop {
+            let history: Vec<operations::Operation> = client
+                .get(format!("{url}/api/services/operations?machine=remote-node"))
+                .bearer_auth(TOKEN)
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+            if let Some(run) = history
+                .into_iter()
+                .find(|run| run.request == request && run.outcome != operations::Outcome::Pending)
+            {
+                return run;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        }
+    };
+    let run = tokio::time::timeout(std::time::Duration::from_secs(20), finished)
+        .await
+        .unwrap();
+    assert_eq!(
+        run.outcome,
+        operations::Outcome::Succeeded,
+        "{}",
+        run.message
+    );
+    assert!(run.message.contains("Claude Code"), "{}", run.message);
+    // A replayed request reads its record; it does not run init again.
+    let replay: operations::Operation = post(&request).await.unwrap().json().await.unwrap();
+    assert_eq!(replay.outcome, operations::Outcome::Succeeded);
+    let calls = std::fs::read_to_string(remote_root.path().join("init-calls")).unwrap();
+    assert_eq!(calls.lines().count(), 1, "{calls}");
+    assert!(calls.contains("--config"), "{calls}");
+    assert!(
+        calls.trim_end().ends_with("init --yes --no-index"),
+        "{calls}"
+    );
+    // A setup checked by another build, or a target other than the agent
+    // plugins, is refused before anything runs, here or on the peer.
+    for (machine, service, revision) in [
+        ("remote-node", plugin::TARGET, "another-build"),
+        ("remote-node", "managed-watcher", crate::BUILD_REVISION),
+        ("test-node", plugin::TARGET, "another-build"),
+    ] {
+        let refused = operations::ActionRequest {
+            machine: machine.into(),
+            service: service.into(),
+            request_id: "00000000-0000-4000-8000-0000000000a2".into(),
+            control_revision: revision.into(),
+            ..request.clone()
+        };
+        assert_ne!(
+            post(&refused).await.unwrap().status(),
+            StatusCode::OK,
+            "{machine} {service}"
+        );
+    }
+    let calls = std::fs::read_to_string(remote_root.path().join("init-calls")).unwrap();
+    assert_eq!(calls.lines().count(), 1, "{calls}");
+    server.abort();
+    remote.abort();
 }

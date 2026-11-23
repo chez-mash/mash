@@ -198,6 +198,10 @@ async fn launchd_status(service: &Service) -> Result<(State, String), String> {
     Ok((state, detail))
 }
 
+/// Reinstalling the plugin is answered by the service action route before a
+/// supervisor is consulted; reaching one with it is refused, not guessed at.
+const NOT_SUPERVISED: &str = "Reinstalling the plugin is not a service manager action.";
+
 pub(super) async fn action(service: &Service, action: Action) -> Result<Output, String> {
     if !supported(service.manager) || !service.allow_control {
         return Err("Control is not enabled for this service.".into());
@@ -206,6 +210,7 @@ pub(super) async fn action(service: &Service, action: Action) -> Result<Output, 
         Action::Start => "start",
         Action::Stop => "stop",
         Action::Restart => "restart",
+        Action::ReinstallPlugin => return Err(NOT_SUPERVISED.into()),
     };
     match service.manager {
         Manager::SystemdUser | Manager::SystemdSystem => {
@@ -228,6 +233,7 @@ pub(super) async fn action(service: &Service, action: Action) -> Result<Output, 
                 }
                 Action::Stop => vec!["bootout".into(), target],
                 Action::Restart => vec!["kickstart".into(), "-k".into(), target],
+                Action::ReinstallPlugin => return Err(NOT_SUPERVISED.into()),
             };
             run("launchctl", &args).await
         }
@@ -251,6 +257,7 @@ pub(super) async fn action(service: &Service, action: Action) -> Result<Output, 
                     Action::Restart => {
                         return Err("Scheduled tasks support Start and Stop, not Restart.".into());
                     }
+                    Action::ReinstallPlugin => return Err(NOT_SUPERVISED.into()),
                 }
             };
             run(

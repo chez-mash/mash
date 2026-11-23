@@ -5141,7 +5141,8 @@
         "enum": [
           "start",
           "stop",
-          "restart"
+          "restart",
+          "reinstall_plugin"
         ],
         "type": "string"
       },
@@ -7212,7 +7213,7 @@
             "description": "What a failed request answers with, whatever the route."
           }
         },
-        "summary": "Start, stop or restart one service."
+        "summary": "Start, stop or restart one service, or reinstall a machine's agent plugins."
       }
     },
     "/api/services/assistant": {

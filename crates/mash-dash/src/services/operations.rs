@@ -159,6 +159,7 @@ pub(super) async fn execute(
     let allowed = match request.action {
         Action::Start => matches!(state, State::Stopped | State::Failed),
         Action::Stop | Action::Restart => state == State::Healthy,
+        Action::ReinstallPlugin => false,
     };
     if !allowed {
         return Err("Service state changed or is unknown. Check status before acting.".into());

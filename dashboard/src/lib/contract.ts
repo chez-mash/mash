@@ -252,7 +252,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start, stop or restart one service. */
+        /** Start, stop or restart one service, or reinstall a machine's agent plugins. */
         post: operations["postApiServicesAction"];
         delete?: never;
         options?: never;
@@ -2005,7 +2005,7 @@ export interface components {
             running?: boolean | null;
         };
         /** @enum {string} */
-        ServiceAction: "start" | "stop" | "restart";
+        ServiceAction: "start" | "stop" | "restart" | "reinstall_plugin";
         /** @enum {string} */
         ServiceKind: "qdrant" | "watcher" | "mcp" | "server" | "dashboard" | "sqlite";
         ServiceOperation: {

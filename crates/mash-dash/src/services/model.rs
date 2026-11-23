@@ -19,6 +19,11 @@ pub(crate) enum Action {
     Start,
     Stop,
     Restart,
+    // Not a supervisor action: runs `mash init --yes --no-index` on the
+    // machine so its agents get the plugin of the installed Mash. Its target
+    // is the machine's agent plugins, never a configured service. (A doc
+    // comment here would turn the schema's flat enum into a `oneOf`.)
+    ReinstallPlugin,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, schemars::JsonSchema)]

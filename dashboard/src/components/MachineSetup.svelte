@@ -6,9 +6,17 @@ import ListChecks from "@lucide/svelte/icons/list-checks";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents } from "../lib/agents";
+import type { RepairResult } from "../lib/pluginRepair";
 import { fleetHref } from "../lib/route.svelte";
-import { setupChain, setupFix, setupHeadline, setupOptions } from "../lib/services.svelte";
+import {
+  type SetupFix,
+  setupChain,
+  setupFix,
+  setupHeadline,
+  setupOptions,
+} from "../lib/services.svelte";
 import AgentMark from "./AgentMark.svelte";
+import PluginRepair from "./PluginRepair.svelte";
 
 // One machine's agents as rows of the agent setup list: each agent's
 // integration part by part, opening to what to do about a part that needs
@@ -20,6 +28,13 @@ let {
 }: { machineId: string; enabled: boolean; showMachine?: boolean } = $props();
 const setup = createQuery(() => setupOptions(machineId, enabled));
 let copied = $state("");
+// What the plugin fix did, per agent. It stays once a check finds the plugin
+// current, because restarting the agent is still to do.
+let repairs = $state<Record<string, RepairResult>>({});
+function setRepair(agent: string, result: RepairResult | undefined): void {
+  const { [agent]: _, ...rest } = repairs;
+  repairs = result ? { ...rest, [agent]: result } : rest;
+}
 async function copy(agent: string, command: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(command);
@@ -32,6 +47,19 @@ const pill = { ok: "ok", warn: "warn", none: "" } as const;
 const partWord = { ok: "ok", attention: "needs attention", unverified: "not verifiable" } as const;
 </script>
 
+{#snippet steps(fix: SetupFix, agent: string)}
+  <ol>
+    {#each fix.steps as step, index (step)}
+      <li>
+        <span>{step}{#if fix.deploy && index === 0}{" "}<a class="a" href={fleetHref("deploy")}>Deploy it from Fleet manager</a>, or install it there yourself.{/if}</span>
+        {#if fix.command && index === fix.commandStep}
+          <div class="cmd"><code>{fix.command}</code><button type="button" aria-label={copied === agent ? "Copied" : "Copy the command"} title={copied === agent ? "Copied" : "Copy"} onclick={() => copy(agent, fix.command ?? "")}>{#if copied === agent}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
+        {/if}
+      </li>
+    {/each}
+  </ol>
+{/snippet}
+
 {#if setup.isPending && enabled}<p class="meta rw-note" role="status">Checking agent setup on {machineId}…</p>{/if}
 {#if setup.error}<p class="meta rw-note"><span class="warn" role="alert">Agent setup on {machineId} is unavailable: {setup.error.message}</span> A machine running an older Mash cannot report its setup. Update it, then check again.</p>{/if}
 {#each setup.data?.agents ?? [] as agent (agent.agent)}
@@ -40,7 +68,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
   {@const fix = setupFix(agent, agents[agent.agent].name)}
   {@const tone = headline.state === "healthy" ? "ok" : headline.state === "unknown" ? "none" : "warn"}
   {#if agent.expected}
-    <details class="rw-d" open={!!fix}>
+    <details class="rw-d" open={!!fix || !!repairs[agent.agent]}>
       <summary class="rw">
         <span class="rw-n"><AgentMark agent={agent.agent} size="sm" /><strong>{agents[agent.agent].name}</strong></span>
         {#if showMachine}<span>{machineId}</span>{/if}
@@ -65,19 +93,23 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
             </div>
           {/each}
         </div>
+        {#if !fix && repairs[agent.agent]?.ok && setup.data}
+          <div class="fix">
+            <PluginRepair {machineId} build={setup.data.build} agentName={agents[agent.agent].name} result={repairs[agent.agent]} onresult={(result) => setRepair(agent.agent, result)} />
+          </div>
+        {/if}
         {#if fix}
           <div class="fix">
             <p class="why"><TriangleAlert size={16} aria-hidden="true" /><span>{fix.cause}</span></p>
-            <ol>
-              {#each fix.steps as step, index (step)}
-                <li>
-                  <span>{step}{#if fix.deploy && index === 0}{" "}<a class="a" href={fleetHref("deploy")}>Deploy it from Fleet manager</a>, or install it there yourself.{/if}</span>
-                  {#if fix.command && index === fix.commandStep}
-                    <div class="cmd"><code>{fix.command}</code><button type="button" aria-label={copied === agent.agent ? "Copied" : "Copy the command"} title={copied === agent.agent ? "Copied" : "Copy"} onclick={() => copy(agent.agent, fix.command ?? "")}>{#if copied === agent.agent}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
-                  {/if}
-                </li>
-              {/each}
-            </ol>
+            {#if fix.deploy && setup.data}
+              <PluginRepair {machineId} build={setup.data.build} agentName={agents[agent.agent].name} result={repairs[agent.agent]} onresult={(result) => setRepair(agent.agent, result)} />
+              <details class="fold" open={repairs[agent.agent]?.ok === false}>
+                <summary><ListChecks size={15} aria-hidden="true" />Do it by hand</summary>
+                <div>{@render steps(fix, agent.agent)}</div>
+              </details>
+            {:else}
+              {@render steps(fix, agent.agent)}
+            {/if}
           </div>
           <details class="fold" style:margin-top="8px">
             <summary><ListChecks size={15} aria-hidden="true" />{fix.checks === 1 ? "The check behind this" : `The ${fix.checks} checks behind this`}</summary>

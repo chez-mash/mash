@@ -142,10 +142,11 @@ async function act(): Promise<void> {
     pending = false;
   }
 }
-const actionLabel: Record<ServiceAction, string> = {
+const actionLabel: Record<ServiceAction | "reinstall_plugin", string> = {
   start: "Start",
   stop: "Stop",
   restart: "Restart",
+  reinstall_plugin: "Reinstall plugin",
 };
 const actionIcon = { start: Play, stop: Square, restart: RotateCw } as const;
 function consequences({ service, action }: Target): string {

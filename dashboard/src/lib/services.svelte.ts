@@ -40,7 +40,7 @@ export interface Operation {
   request: {
     machine: string;
     service: string;
-    action: ServiceAction;
+    action: ServiceAction | "reinstall_plugin";
     request_id: string;
     control_revision: string;
   };
@@ -53,6 +53,8 @@ export interface Operation {
 function service(row: Wire["Service"]): Service {
   return {
     ...row,
+    // A plugin reinstall is a machine's action, never one a service offers.
+    actions: row.actions.filter((action): action is ServiceAction => action !== "reinstall_plugin"),
     pid: row.pid ?? null,
     control_revision: row.control_revision ?? null,
     compatibility: row.compatibility
@@ -375,6 +377,29 @@ export async function serviceAction(
       action,
       control_revision: controlRevision,
       request_id: serviceRequestId(),
+    }),
+  );
+}
+
+/** The service action route's target for a reinstall: every agent's plugin on the machine. */
+export const pluginTarget = "agent-plugins";
+/**
+ * Starts `mash init --yes --no-index` on a machine, through the same route,
+ * token and forwarding as a service action. It answers at once; the run's
+ * outcome appears in that machine's service history under `requestId`.
+ */
+export async function reinstallPlugin(
+  machine: string,
+  build: string,
+  requestId: string,
+): Promise<Operation> {
+  return operation(
+    await post("/api/services/action", {
+      machine,
+      service: pluginTarget,
+      action: "reinstall_plugin",
+      control_revision: build,
+      request_id: requestId,
     }),
   );
 }
