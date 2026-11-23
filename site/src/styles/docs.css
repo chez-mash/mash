@@ -247,10 +247,14 @@
 }
 /* The tip's button opens search; it names the shortcut only where a keyboard
    is likely. */
+/* A long label, as in Spanish or French, wraps beside the key, and the key
+   itself stays whole. */
 .mash-search-tip {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
+  text-align: start;
   min-height: 2.25rem;
   margin-top: 0.375rem;
   padding: 0.25rem 0.75rem;
@@ -278,6 +282,8 @@
   }
 }
 .mash-mashy kbd {
+  flex: none;
+  white-space: nowrap;
   padding: 0.1875rem 0.3125rem;
   border: var(--stroke-fill) solid var(--line-ink);
   border-radius: var(--radius-key);

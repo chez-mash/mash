@@ -3,7 +3,11 @@
 // other page keeps Starlight's footer.
 import Default from "@astrojs/starlight/components/Footer.astro";
 
-const home = Astro.locals.starlightRoute.entry.data.template === "splash";
+const { entry, locale } = Astro.locals.starlightRoute;
+const home = entry.data.template === "splash";
+// The links lead to the guides in the reader's language. A guide that is not
+// translated yet still has a page there, which shows the English text.
+const base = locale ? `/${locale}/` : "/";
 ---
 
 {
@@ -13,11 +17,11 @@ const home = Astro.locals.starlightRoute.entry.data.template === "splash";
         <img src="/mash-mark.svg" alt="" width="26" height="26" />
         mash
       </span>
-      <nav aria-label="Footer">
-        <a href="/guides/">Docs</a>
+      <nav aria-label={Astro.locals.t("mash.footer.label")}>
+        <a href={`${base}guides/`}>{Astro.locals.t("mash.nav.docs")}</a>
         <a href="/demo/" data-astro-reload>{Astro.locals.t("mash.nav.demo")}</a>
-        <a href="/privacy/">Privacy</a>
-        <a href="/troubleshooting/">Get help</a>
+        <a href={`${base}privacy/`}>{Astro.locals.t("mash.footer.privacy")}</a>
+        <a href={`${base}troubleshooting/`}>{Astro.locals.t("mash.footer.help")}</a>
         <a href="https://github.com/mashium/mash">GitHub</a>
       </nav>
     </footer>

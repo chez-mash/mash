@@ -4,28 +4,91 @@
 // and the downloads for every hero), so astro.config.mjs turns that route off
 // and this page says plainly what happened and where to go next. Its three
 // ways out use the landing page's buttons: Home in peach, the others in paper.
+//
+// GitHub Pages serves this one English page for every missing address, so a
+// script puts it in the language of the address asked for: /ja/… reads in
+// Japanese and leads to the Japanese home and guides.
 import { LinkButton } from "@astrojs/starlight/components";
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { docsLocales } from "../../scripts/locales.ts";
+
+const files = import.meta.glob<Record<string, string>>("../content/i18n/*.json", {
+  eager: true,
+  import: "default",
+});
+const english = files["../content/i18n/en.json"] ?? {};
+const keys = [
+  "mash.missing.title",
+  "mash.missing.lead",
+  "mash.missing.home",
+  "mash.nav.docs",
+  "mash.guides.tipSearch",
+];
+const languages: Readonly<Record<string, { label: string; lang?: string }>> = docsLocales;
+/** Each translated locale's lang and words, keyed by its path segment. */
+const words = Object.fromEntries(
+  Object.entries(languages)
+    .filter(([locale]) => locale !== "root")
+    .map(([locale, { lang = locale }]) => {
+      const strings = { ...english, ...files[`../content/i18n/${lang}.json`] };
+      return [
+        locale,
+        { lang, strings: Object.fromEntries(keys.map((key) => [key, strings[key]])) },
+      ];
+    }),
+);
+const t = (key: string) => english[key] ?? "";
 ---
 
 <StarlightPage
-  frontmatter={{ title: "Page not found", template: "splash", pagefind: false, editUrl: false }}
+  frontmatter={{ title: t("mash.missing.title"), template: "splash", pagefind: false, editUrl: false }}
 >
   <div class="mash-missing">
-    <p class="lead">
-      There is no page at this address. It may have moved, or the link may have a typo.
-    </p>
+    <p class="lead" data-word="mash.missing.lead">{t("mash.missing.lead")}</p>
     <div class="actions">
-      <LinkButton href="/" icon="right-arrow">Home</LinkButton>
-      <LinkButton href="/guides/" variant="secondary" icon="open-book" iconPlacement="start">
-        Docs
+      <LinkButton href="/" icon="right-arrow" data-path="">
+        <span data-word="mash.missing.home">{t("mash.missing.home")}</span>
+      </LinkButton>
+      <LinkButton
+        href="/guides/"
+        variant="secondary"
+        icon="open-book"
+        iconPlacement="start"
+        data-path="guides/"
+      >
+        <span data-word="mash.nav.docs">{t("mash.nav.docs")}</span>
       </LinkButton>
       <button type="button" class="find" data-mash-search>
-        Search the docs<kbd>Ctrl K</kbd>
+        <span data-word="mash.guides.tipSearch">{t("mash.guides.tipSearch")}</span><kbd>Ctrl K</kbd>
       </button>
     </div>
   </div>
 </StarlightPage>
+
+<script is:inline define:vars={{ words }}>
+  // Runs as the page is read, before it is drawn, so English never flashes.
+  const locale = location.pathname.split("/")[1];
+  const entry = Object.hasOwn(words, locale) ? words[locale] : undefined;
+  if (entry) {
+    const say = (key) => entry.strings[key];
+    document.documentElement.lang = entry.lang;
+    const title = document.getElementById("_top");
+    if (title) title.textContent = say("mash.missing.title");
+    document.title = document.title.replace(/^[^|]+/, `${say("mash.missing.title")} `);
+    for (const element of document.querySelectorAll("[data-word]")) {
+      element.textContent = say(element.dataset.word);
+    }
+    for (const link of document.querySelectorAll(".mash-missing [data-path]")) {
+      link.href = `/${locale}/${link.dataset.path}`;
+    }
+    // The header's link to the guides, a word after its icon.
+    for (const link of document.querySelectorAll('header a.mash-nav[href="/guides/"]')) {
+      link.href = `/${locale}/guides/`;
+      const word = [...link.childNodes].findLast((node) => node.nodeType === Node.TEXT_NODE);
+      if (word) word.textContent = say("mash.nav.docs");
+    }
+  }
+</script>
 
 <style>
   .mash-missing {

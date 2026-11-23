@@ -1,7 +1,7 @@
 import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { docsLocales } from "./locales.ts";
-import { readmeQuickStart, renderMarkdown } from "./markdown.ts";
+import { readmeQuickStart, renderMarkdown, spaceFrenchPunctuation } from "./markdown.ts";
 import {
   isTranslationPage,
   readTranslationSource,
@@ -73,8 +73,9 @@ for (const [source, route] of routes) {
   ) {
     console.warn(`${source} needs review because its English source changed.`);
   }
-  const title = source === "README.md" ? "Quick start" : body.match(/^# (.+)$/m)?.[1];
-  if (!title) throw new Error(`Missing title in ${source}`);
+  const heading = source === "README.md" ? "Quick start" : body.match(/^# (.+)$/m)?.[1];
+  if (!heading) throw new Error(`Missing title in ${source}`);
+  const title = source.startsWith("docs/fr/") ? spaceFrenchPunctuation(heading) : heading;
   if (source === "README.md") {
     body = `<span id="quick-start"></span>\n\n${readmeQuickStart(body)}`;
   } else body = body.replace(/^# .+\n/m, "");

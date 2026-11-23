@@ -21,4 +21,12 @@ const { sidebar } = Astro.locals.starlightRoute;
     border-top: 0;
     border-bottom: var(--border-divider);
   }
+  /* The links wrap onto a second line where their words are long, as in
+     Spanish and French on a phone, rather than running off the menu. */
+  .mash-menu-top :global(.social-icons) {
+    flex-wrap: wrap;
+    column-gap: 1.25rem;
+    row-gap: 0;
+    min-width: 0;
+  }
 </style>

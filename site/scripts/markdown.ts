@@ -31,6 +31,15 @@ export function rewriteMarkdownUrls(tree: Root, rewrite: (url: string) => string
   });
 }
 
+/**
+ * French sets a space before ? ! : ; and » and after «, and the space must not
+ * break, or the mark can start a line on its own. Ordinary spaces in those
+ * places become no-break spaces; code is left alone.
+ */
+export function spaceFrenchPunctuation(text: string): string {
+  return text.replace(/ (?=[?!:;»])/g, "\u00a0").replace(/« /g, "«\u00a0");
+}
+
 /** The website layout to apply to a page, named by its route's last part. */
 export interface Layout {
   readonly page: string;
@@ -57,6 +66,11 @@ export function renderMarkdown(
     const route = routes.get(file);
     return route ? `${route}${target.search}${target.hash}` : target.href;
   });
+  if (source.startsWith("docs/fr/")) {
+    visit(tree, "text", (node) => {
+      node.value = spaceFrenchPunctuation(node.value);
+    });
+  }
   if (layout) layoutPage(tree, layout.page, layout.strings);
   return markdown.stringify(tree);
 }

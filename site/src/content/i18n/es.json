@@ -7,5 +7,11 @@
   "mash.menu": "Menú",
   "mash.copy": "Copiar",
   "mash.copied": "Copiado",
-  "mash.copyPrompt": "Copiar la petición para tu agente"
+  "mash.copyPrompt": "Copiar la petición para tu agente",
+  "mash.footer.label": "Pie de página",
+  "mash.footer.privacy": "Privacidad",
+  "mash.footer.help": "Obtener ayuda",
+  "mash.missing.title": "Página no encontrada",
+  "mash.missing.lead": "No hay ninguna página en esta dirección. Puede que se haya movido o que el enlace tenga una errata.",
+  "mash.missing.home": "Inicio"
 }

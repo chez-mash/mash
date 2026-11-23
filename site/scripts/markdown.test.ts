@@ -35,4 +35,17 @@ describe("repository Markdown on the website", () => {
     expect(result).toContain("(#install)");
     expect(result).toContain("(/)");
   });
+  it("keeps French punctuation on the line of the word before it, outside code", () => {
+    const result = renderMarkdown(
+      "Où chercher ? « Mash » : oui ; non !\n\n`a ? b`\n\n```sh\nmash search 'x ?'\n```",
+      "docs/fr/search.md",
+      routes,
+    );
+    expect(result).toContain("Où chercher\u00a0? «\u00a0Mash\u00a0»\u00a0: oui\u00a0; non\u00a0!");
+    expect(result).toContain("`a ? b`");
+    expect(result).toContain("mash search 'x ?'");
+  });
+  it("leaves other languages' spacing alone", () => {
+    expect(renderMarkdown("Where ? Here !", "docs/search.md", routes)).toContain("Where ? Here !");
+  });
 });

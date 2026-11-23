@@ -853,3 +853,85 @@ test("the Japanese dashboard guide keeps setup, search, refresh and private acce
   await openSection("privacy", "open-it-from-your-phone-or-another-computer");
   await expect(guide.locator("pre").filter({ hasText: /^mash dash remote$/ })).toBeVisible();
 });
+
+for (const [locale, menu, demo] of [
+  ["es", "Menú", "Prueba la demo"],
+  ["fr", "Menu", "Essayer la démo"],
+] as const) {
+  test(`on a phone the ${locale} menu's links wrap inside it`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/${locale}/installation/`);
+    await page.getByRole("button", { name: menu, exact: true }).click();
+    const links = page.locator("nav.sidebar .mash-menu-top a.mash-nav");
+    await expect(links.filter({ hasText: demo })).toBeInViewport({ ratio: 1 });
+    for (const link of await links.all()) {
+      const box = await link.boundingBox();
+      expect(box && box.x + box.width).toBeLessThanOrEqual(390);
+    }
+  });
+}
+
+test("the language picker keeps a heading only where the new page has it", async ({ page }) => {
+  const picker = page.getByRole("combobox", { name: "Seleccionar idioma" });
+  // The Spanish heading's own id is not on the French page, but the English
+  // anchor kept beside it is.
+  await page.goto("/es/installation/#qué-cambia-al-configurar-mash");
+  await picker.selectOption({ label: "Français" });
+  await expect(page).toHaveURL("/fr/installation/#what-setup-changes");
+  await expect(page.locator("#what-setup-changes")).toBeAttached();
+
+  // A hash the French page does not have is dropped, so the page opens at its
+  // top without a stray anchor.
+  await page.goto("/es/installation/#no-such-heading");
+  await picker.selectOption({ label: "Français" });
+  await expect(page).toHaveURL((url) => url.pathname === "/fr/installation/" && url.hash === "");
+});
+
+test("search on a translated site finds only pages in its language", async ({ page }) => {
+  // The tools reference is not translated into Japanese, so /ja/tools/ shows
+  // the English text and must not be in the Japanese search.
+  await page.goto("/ja/guides/");
+  await expect(page.locator("main")).toHaveAttribute("lang", "ja");
+  await page.goto("/ja/tools/");
+  await expect(page.locator("main")).toHaveAttribute("lang", "en");
+  await expect(page.locator("main[data-pagefind-body]")).toHaveCount(0);
+  await page.goto("/ja/search/");
+  await expect(page.locator("main[data-pagefind-body]")).toHaveAttribute("lang", "ja");
+
+  await page.getByRole("button", { name: "検索", exact: true }).click();
+  await page.getByRole("dialog").getByRole("textbox").fill("mash");
+  // Wait for the results, then read every page they lead to.
+  await expect(page.locator('dialog a[href^="/ja/"]').first()).toBeVisible();
+  const hrefs = await page
+    .locator('dialog a[href^="/"]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+  expect(hrefs.filter((href) => !href.startsWith("/ja/"))).toEqual([]);
+  expect(hrefs.filter((href) => href.startsWith("/ja/tools/"))).toEqual([]);
+});
+
+test("the footer and the missing page lead to the reader's language", async ({ page }) => {
+  await page.goto("/fr/guides/");
+  const footer = page.getByRole("navigation", { name: "Pied de page" });
+  await expect(footer.getByRole("link", { name: "Documentation" })).toHaveAttribute(
+    "href",
+    "/fr/guides/",
+  );
+  await expect(footer.getByRole("link", { name: "Confidentialité" })).toHaveAttribute(
+    "href",
+    "/fr/privacy/",
+  );
+  await expect(footer.getByRole("link", { name: "Obtenir de l’aide" })).toHaveAttribute(
+    "href",
+    "/fr/troubleshooting/",
+  );
+
+  await page.goto("/ja/no-such-page/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("ページが見つかりません");
+  const actions = page.locator(".mash-missing");
+  await expect(actions.getByRole("link", { name: "ホーム" })).toHaveAttribute("href", "/ja/");
+  await expect(actions.getByRole("link", { name: "ドキュメント" })).toHaveAttribute(
+    "href",
+    "/ja/guides/",
+  );
+});

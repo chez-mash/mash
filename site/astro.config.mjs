@@ -12,6 +12,8 @@ export default defineConfig({
       locales: docsLocales,
       // src/pages/404.astro draws the missing-page screen without the hero.
       disable404Route: true,
+      // src/routeData.ts keeps untranslated pages out of each language's search.
+      routeMiddleware: "./src/routeData.ts",
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
       logo: { src: "./public/mash-mark.svg" },
@@ -78,6 +80,7 @@ export default defineConfig({
         Head: "./src/components/Head.astro",
         Header: "./src/components/Header.astro",
         Hero: "./src/components/Hero.astro",
+        LanguageSelect: "./src/components/LanguageSelect.astro",
         PageTitle: "./src/components/PageTitle.astro",
         Search: "./src/components/Search.astro",
         Sidebar: "./src/components/Sidebar.astro",
@@ -154,6 +157,7 @@ export default defineConfig({
                     es: "Otros métodos de instalación",
                     fr: "Autres méthodes d’installation",
                     "zh-CN": "其他安装方式",
+                    ja: "その他のインストール方法",
                   },
                   slug: "install-methods",
                 },
@@ -163,6 +167,7 @@ export default defineConfig({
                     es: "Servicio de búsqueda local",
                     fr: "Service de recherche local",
                     "zh-CN": "本地搜索服务",
+                    ja: "ローカル検索サービス",
                   },
                   slug: "local-search",
                 },
@@ -230,6 +235,7 @@ export default defineConfig({
                 es: "Búsqueda desde el terminal",
                 fr: "Recherche dans le terminal",
                 "zh-CN": "终端搜索",
+                ja: "ターミナルから検索する",
               },
               slug: "search",
             },
@@ -250,6 +256,7 @@ export default defineConfig({
                 es: "Mantén el historial al día",
                 fr: "Garder l’historique à jour",
                 "zh-CN": "保持历史记录最新",
+                ja: "履歴を最新に保つ",
               },
               slug: "synchronization",
             },
@@ -327,6 +334,7 @@ export default defineConfig({
                 es: "Retomar un trabajo",
                 fr: "Reprendre un travail",
                 "zh-CN": "继续之前的工作",
+                ja: "以前の作業を再開する",
               },
               slug: "pick-up-work",
             },

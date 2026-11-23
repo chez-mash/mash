@@ -1,0 +1,63 @@
+---
+// Starlight's language picker, which keeps the reader's place where it can.
+// Starlight changes the path and keeps the hash, so a heading named in one
+// language (#qué-cambia…) would follow the reader to a page that has no such
+// heading, which then opens at the top with a stray hash. This picker keeps
+// the hash only when the page in the new language has that heading. The
+// translated guides keep each English anchor as an empty span just before its
+// heading, so a heading named in Spanish can still lead to its French twin.
+import Default from "@astrojs/starlight/components/LanguageSelect.astro";
+---
+
+<Default />
+
+<script>
+  /** The heading the hash names, or undefined for an empty hash. */
+  function headingId(hash: string): string | undefined {
+    if (hash.length < 2) return undefined;
+    try {
+      return decodeURIComponent(hash.slice(1));
+    } catch {
+      return hash.slice(1);
+    }
+  }
+
+  /** The heading's own id, then the English anchors kept just before it. */
+  function headingIds(id: string): string[] {
+    const heading = document.getElementById(id);
+    const wrapper = heading?.closest(".sl-heading-wrapper") ?? heading;
+    const before = wrapper?.previousElementSibling;
+    const anchors = before?.matches("p:has(> span[id]:empty)")
+      ? [...before.querySelectorAll(":scope > span[id]:empty")].map((span) => span.id)
+      : [];
+    return [id, ...anchors];
+  }
+
+  /** The first of these ids that the page at this path has, if any. */
+  async function firstHeading(path: string, ids: readonly string[]): Promise<string | undefined> {
+    try {
+      const response = await fetch(path);
+      if (!response.ok) return undefined;
+      const page = new DOMParser().parseFromString(await response.text(), "text/html");
+      return ids.find((id) => page.getElementById(id) !== null);
+    } catch {
+      return undefined;
+    }
+  }
+
+  // This runs before Starlight's own listener on the select, which it stops.
+  // One listener serves every picker and every page change.
+  document.addEventListener(
+    "change",
+    async (event) => {
+      const select = event.target;
+      if (!(select instanceof HTMLSelectElement) || !select.closest("starlight-lang-select")) return;
+      event.stopPropagation();
+      const path = select.value;
+      const id = headingId(location.hash);
+      const found = id === undefined ? undefined : await firstHeading(path, headingIds(id));
+      location.href = found === undefined ? path : `${path}#${encodeURIComponent(found)}`;
+    },
+    { capture: true },
+  );
+</script>

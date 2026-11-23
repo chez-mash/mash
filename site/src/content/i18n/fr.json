@@ -2,10 +2,16 @@
   "mash.nav.docs": "Documentation",
   "mash.nav.demo": "Essayer la démo",
   "mash.crumbs": "Fil d’Ariane",
-  "mash.guides.tip": "Vous ne savez pas où chercher ?",
+  "mash.guides.tip": "Vous ne savez pas où chercher ?",
   "mash.guides.tipSearch": "Chercher dans la documentation",
   "mash.menu": "Menu",
   "mash.copy": "Copier",
   "mash.copied": "Copié",
-  "mash.copyPrompt": "Copier la demande pour votre agent"
+  "mash.copyPrompt": "Copier la demande pour votre agent",
+  "mash.footer.label": "Pied de page",
+  "mash.footer.privacy": "Confidentialité",
+  "mash.footer.help": "Obtenir de l’aide",
+  "mash.missing.title": "Page introuvable",
+  "mash.missing.lead": "Il n’y a aucune page à cette adresse. Elle a peut-être été déplacée, ou le lien contient une faute de frappe.",
+  "mash.missing.home": "Accueil"
 }

@@ -137,6 +137,16 @@
   --radius-large: 0.75rem;
   color-scheme: light;
 }
+/* Space Grotesk has no Japanese or Chinese letters, so those pages name the
+   fonts each system draws them in next, before the generic fallback. */
+:root:lang(ja) {
+  --type-sans:
+    "Space Grotesk", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP",
+    sans-serif;
+}
+:root:lang(zh-CN) {
+  --type-sans: "Space Grotesk", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+}
 
 /* Starlight's variables, set from the roles. Starlight restates its colours
    for its light theme with an attribute selector, so these do too. */

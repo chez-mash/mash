@@ -18,5 +18,11 @@
   "mash.menu": "メニュー",
   "mash.copy": "コピー",
   "mash.copied": "コピーしました",
-  "mash.copyPrompt": "エージェントへの依頼をコピー"
+  "mash.copyPrompt": "エージェントへの依頼をコピー",
+  "mash.footer.label": "フッター",
+  "mash.footer.privacy": "プライバシー",
+  "mash.footer.help": "ヘルプ",
+  "mash.missing.title": "ページが見つかりません",
+  "mash.missing.lead": "このアドレスにはページがありません。移動したか、リンクに誤りがある可能性があります。",
+  "mash.missing.home": "ホーム"
 }

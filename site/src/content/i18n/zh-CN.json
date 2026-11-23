@@ -7,5 +7,11 @@
   "mash.menu": "菜单",
   "mash.copy": "复制",
   "mash.copied": "已复制",
-  "mash.copyPrompt": "复制给代理的提示"
+  "mash.copyPrompt": "复制给代理的提示",
+  "mash.footer.label": "页脚",
+  "mash.footer.privacy": "隐私",
+  "mash.footer.help": "获取帮助",
+  "mash.missing.title": "找不到页面",
+  "mash.missing.lead": "此地址没有页面。它可能已被移动，或者链接有拼写错误。",
+  "mash.missing.home": "首页"
 }

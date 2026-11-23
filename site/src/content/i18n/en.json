@@ -7,5 +7,11 @@
   "mash.menu": "Menu",
   "mash.copy": "Copy",
   "mash.copied": "Copied",
-  "mash.copyPrompt": "Copy the prompt for your agent"
+  "mash.copyPrompt": "Copy the prompt for your agent",
+  "mash.footer.label": "Footer",
+  "mash.footer.privacy": "Privacy",
+  "mash.footer.help": "Get help",
+  "mash.missing.title": "Page not found",
+  "mash.missing.lead": "There is no page at this address. It may have moved, or the link may have a typo.",
+  "mash.missing.home": "Home"
 }
