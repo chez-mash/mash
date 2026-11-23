@@ -52,7 +52,10 @@ test("the guide index opens a sample search that fits a narrow screen", async ({
   await query.press("Enter");
   await expect(page.getByRole("heading", { name: "No results", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Browse chats", exact: true })).toBeVisible();
+  // On a phone the refresh lives in the navigation drawer.
+  await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.getByRole("button", { name: "Check for updates", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   const help = page.getByRole("link", { name: "Find a missing chat", exact: true });
   await expect(help).toHaveAttribute("href", "https://getmash.io/find-missing-chat/");
   await expect(page.getByRole("link", { name: "Troubleshoot search" })).toHaveCount(0);
