@@ -171,8 +171,24 @@ export function parseRecordPage(row: Answer<"/api/records">): RecordPage {
       : null,
   };
 }
+/** How many machines a shared listing may step past before giving up on a page. */
+const EMPTY_MACHINES = 32;
+
+/**
+ * One page of records. The shared index lists records one machine at a time
+ * and a machine with none answers with an empty page and a cursor to the
+ * next machine, so an empty shared page is followed on to the next machine
+ * rather than read as "nothing saved".
+ */
 export async function recordPage(params: string, signal: AbortSignal): Promise<RecordPage> {
-  return parseRecordPage(await read("/api/records", new URLSearchParams(params), signal));
+  const query = new URLSearchParams(params);
+  let page = parseRecordPage(await read("/api/records", query, signal));
+  for (let step = 0; step < EMPTY_MACHINES && !page.records.length && page.nextCursor; step++) {
+    query.set("cursor_node", page.nextCursor.node);
+    query.set("cursor_offset", String(page.nextCursor.offset));
+    page = parseRecordPage(await read("/api/records", query, signal));
+  }
+  return page;
 }
 export async function getRecord(
   id: string,

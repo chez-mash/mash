@@ -23,8 +23,20 @@ const catalogue = createQuery(() => catalogOptions);
 const status = createQuery(() => statusOptions);
 const memories = createQuery(() => ({
   ...stableRead,
-  queryKey: ["records", ""],
-  queryFn: ({ signal }: { signal: AbortSignal }) => recordPage("", signal),
+  queryKey: ["records", "overview"],
+  // A machine whose agents run elsewhere (over SSH, say) saves no memories of
+  // its own; then the memories other machines published are the recent ones.
+  queryFn: async ({ signal }: { signal: AbortSignal }) => {
+    const own = await recordPage("", signal);
+    if (own.records.length) return { page: own, shared: false };
+    try {
+      const shared = await recordPage("shared=true", signal);
+      return shared.records.length ? { page: shared, shared: true } : { page: own, shared: false };
+    } catch {
+      // Without a shared index, this machine's empty list is the answer.
+      return { page: own, shared: false };
+    }
+  },
 }));
 // Both lists follow the index by themselves (see lib/live.ts).
 const chats = $derived(catalogue.data?.chats ?? []);
@@ -62,14 +74,15 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
   </section>
   <div class="c-side">
     <section>
-      <h2 class="h2" style:margin-bottom="14px"><a href="#/records?"><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
+      <h2 class="h2" style:margin-bottom="14px"><a href={memories.data?.shared ? "#/records?shared=true" : "#/records?"}><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
+      {#if memories.data?.shared}<p class="meta" style:margin="-8px 0 10px">From your other machines; none are saved on this one yet.</p>{/if}
       {#if memories.isPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
-      {#if memories.data?.records.length}
+      {#if memories.data?.page.records.length}
         <div class="card pad0 list">
-          {#each memories.data.records.slice(0, 4) as record (record.node + record.id)}<MemoryRow {record} />{/each}
+          {#each memories.data.page.records.slice(0, 4) as record (record.node + record.id)}<MemoryRow {record} />{/each}
         </div>
       {/if}
-      {#if memories.data && !memories.data.records.length}<p class="card tight cream">Nothing saved yet. Agents save decisions and preferences as you state them.</p>{/if}
+      {#if memories.data && !memories.data.page.records.length}<p class="card tight cream">Nothing saved yet. Agents save decisions and preferences as you state them.</p>{/if}
       <QueryError title="Couldn’t load memory" query={memories} />
     </section>
     <div class="g2">

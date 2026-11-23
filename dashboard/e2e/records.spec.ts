@@ -162,7 +162,7 @@ test("records filter on submission, expose history and safe citations, and navig
 });
 
 for (const sourceNode of ["remote/one", "local"]) {
-  test(`shared records on ${sourceNode} continue empty pages, retain node identity, and never refresh unasked`, async ({
+  test(`shared records on ${sourceNode} step past machines with none, retain node identity, and never refresh unasked`, async ({
     page,
   }) => {
     let calls = 0,
@@ -228,9 +228,10 @@ for (const sourceNode of ["remote/one", "local"]) {
     });
     await page.clock.install();
     await page.goto("/#/records?shared=true");
-    await expect(page.getByText(/No matching records on this page/)).toBeVisible();
-    await page.getByRole("button", { name: "Next page" }).click();
+    // The first machine has none, so the page steps on to the next one by
+    // itself instead of saying nothing is saved.
     const shared = records(page).getByRole("link", { name: "Shared fact" });
+    await expect(page.getByText(/No matching records on this page/)).toHaveCount(0);
     await expect(shared).toBeVisible();
     expect(requests.at(-1)?.searchParams.get("shared")).toBe("true");
     expect(requests.at(-1)?.searchParams.get("cursor_node")).toBe(sourceNode);
@@ -255,8 +256,9 @@ for (const sourceNode of ["remote/one", "local"]) {
     await expect(page.getByRole("status").filter({ hasText: "Exported" })).toContainText(
       "Exported 1 messages",
     );
+    const sent = requests.length;
     await page.getByRole("link", { name: "memory from this chat" }).click();
-    await expect(page.getByText(/No matching records on this page/)).toBeVisible();
+    await expect.poll(() => requests.length).toBeGreaterThan(sent);
     expect(requests.at(-1)?.searchParams.get("node")).toBe(sourceNode);
     expect(requests.at(-1)?.searchParams.get("shared")).toBe("true");
   });
@@ -353,4 +355,31 @@ test("a shared-only dashboard names the shared machines and never calls one this
   const options = page.getByRole("group", { name: "all shared" }).getByRole("menuitemradio");
   await expect(options).toHaveText(["all shared machines", "phone (shared)", "desk (shared)"]);
   await expect(page.getByText("this machine")).toHaveCount(0);
+});
+
+test("the overview shows memories from other machines when this one has none", async ({ page }) => {
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({ json: { local_node: "laptop", truncated: false, chats: [] } }),
+  );
+  await page.route("**/api/records?**", (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    if (params.get("shared") !== "true")
+      return route.fulfill({ json: { records: [], next_offset: null } });
+    // The first machine in the shared listing has none of its own.
+    if (!params.has("cursor_node"))
+      return route.fulfill({
+        json: { records: [], next_offset: null, next_cursor: { node_id: "xenia", offset: 0 } },
+      });
+    return route.fulfill({
+      json: { records: [{ ...recordFixture(), node_id: "xenia" }], next_offset: null },
+    });
+  });
+  await page.goto("/#/");
+  const section = page.locator("section").filter({ hasText: "recent memories" });
+  await expect(section.getByText("From your other machines")).toBeVisible();
+  await expect(section.getByText(/Nothing saved yet/)).toHaveCount(0);
+  await expect(section.getByRole("link", { name: "recent memories" })).toHaveAttribute(
+    "href",
+    "#/records?shared=true",
+  );
 });
