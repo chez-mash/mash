@@ -16,7 +16,8 @@ mod records;
 mod retire;
 mod search;
 #[cfg(any(test, feature = "test-support"))]
-pub use retire::{RetireFault, Retired};
+pub use retire::RetireFault;
+pub use retire::Retired;
 mod membership;
 pub use membership::Published;
 mod sync;
