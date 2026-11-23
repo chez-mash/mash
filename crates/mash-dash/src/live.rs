@@ -541,7 +541,11 @@ mod tests {
         let mut body = response.bytes_stream();
         let mut text = String::new();
         tokio::time::timeout(Duration::from_secs(20), async {
-            while !text.contains(wanted) {
+            // A wanted field counts once the blank line that ends its event has arrived.
+            while !text
+                .find(wanted)
+                .is_some_and(|start| text[start..].contains("\n\n"))
+            {
                 let chunk = body.next().await.expect("the stream ended").unwrap();
                 text.push_str(std::str::from_utf8(&chunk).unwrap());
             }
@@ -595,7 +599,8 @@ mod tests {
             &database,
             "INSERT INTO chats(id,provider,source_fingerprint) VALUES('new','codex','a');",
         );
-        let text = read_until(response, "\n\n").await;
+        // Heartbeat comments may come first when the machine is busy; read on to the event.
+        let text = read_until(response, "data:").await;
         let data = text
             .lines()
             .find_map(|line| line.strip_prefix("data:"))
