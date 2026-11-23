@@ -420,8 +420,7 @@ fn harden(mut response: Response, cache: Cache) -> Response {
         HeaderValue::from_static(match cache {
             Cache::Api => "no-store",
             Cache::Hashed => "public, max-age=31536000, immutable",
-            Cache::Image => "no-cache",
-            Cache::Page => "no-cache",
+            Cache::Image | Cache::Page => "no-cache",
         }),
     );
     headers.insert(

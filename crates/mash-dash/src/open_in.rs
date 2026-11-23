@@ -129,13 +129,14 @@ fn has_app(folders: &[PathBuf], names: &[&str], scheme: &str) -> bool {
 fn claude_app_owns(home: &Path, id: &str) -> bool {
     let sessions = home.join("Library/Application Support/Claude/claude-code-sessions");
     let children = |folder: &Path| -> Vec<PathBuf> {
-        std::fs::read_dir(folder)
-            .map(|entries| {
+        std::fs::read_dir(folder).map_or_else(
+            |_| Vec::new(),
+            |entries| {
                 entries
                     .filter_map(|entry| Some(entry.ok()?.path()))
                     .collect()
-            })
-            .unwrap_or_default()
+            },
+        )
     };
     children(&sessions)
         .iter()

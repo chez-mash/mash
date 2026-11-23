@@ -197,7 +197,7 @@ async fn interactive_request_timeout_does_not_inherit_the_upload_budget() {
         .unwrap_err();
     server.abort();
     assert!(started.elapsed() < Endpoint::Search.timeout() + Duration::from_secs(1));
-    assert!(error.error.message.contains("timed out"));
+    assert!(error.error.message.contains("did not answer in time"));
 }
 
 use crate::shared::sync::wire;
