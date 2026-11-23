@@ -16,7 +16,9 @@ use std::time::Duration;
 
 const AGENT_TIMEOUT: Duration = Duration::from_secs(120);
 /// How long the login shell may take to report its PATH.
+#[cfg(unix)]
 const SHELL_TIMEOUT: Duration = Duration::from_secs(5);
+#[cfg(unix)]
 const MARKER: &str = "__MASH_LOGIN_PATH__=";
 
 /// Where a command named `program` is, searched the way a person's shell would.
@@ -187,6 +189,7 @@ fn ask_login_shell() -> Option<OsString> {
     None
 }
 
+#[cfg(unix)]
 fn parse_login_output(output: &str) -> Option<OsString> {
     output
         .lines()
@@ -285,6 +288,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
     fn login_shell_path_is_read_past_whatever_its_startup_files_print() {
         let output = format!("Welcome back!\n\n{MARKER}/opt/homebrew/bin:/usr/bin\n");
         assert_eq!(
