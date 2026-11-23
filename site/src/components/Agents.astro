@@ -73,31 +73,32 @@ const shown = ["claude-code", "codex", "copilot", "cursor", "opencode", "antigra
     width: 1.5rem;
     height: 1.5rem;
   }
-  /* On a phone the six tiles make one row and the names are read, not shown. */
+  /* On a phone the six agents make two rows of three, each name under its
+     tile, so every agent is recognisable by name as well as by mark. */
   @media (width < 40rem) {
     .mash-agents {
-      padding-block: 1.25rem;
+      padding-block: 1.5rem;
     }
     ul {
-      flex-wrap: nowrap;
-      gap: 0.625rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem 0.5rem;
+      width: 100%;
+    }
+    li {
+      flex-direction: column;
+      gap: 0.375rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      line-height: 1.2;
     }
     .tile {
-      width: 1.75rem;
-      height: 1.75rem;
-      border-radius: var(--radius-1);
+      width: 2.25rem;
+      height: 2.25rem;
     }
     .tile :global(.mark) {
-      width: 1rem;
-      height: 1rem;
-    }
-    .name {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
+      width: 1.25rem;
+      height: 1.25rem;
     }
   }
 </style>

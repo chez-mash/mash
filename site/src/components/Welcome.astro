@@ -12,11 +12,12 @@ import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
 
-/** The projects Mash is built on, shown under Ferris, each with its logo. */
+/** The projects Mash is built on, shown under Ferris, each with its logo and
+ * linked to its own site. */
 const built = [
-  { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)" },
-  { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)" },
-  { name: "Tokio", svg: tokio, colour: "var(--stack-tokio)" },
+  { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)", href: "https://tauri.app/" },
+  { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)", href: "https://qdrant.tech/" },
+  { name: "Tokio", svg: tokio, colour: "var(--stack-tokio)", href: "https://tokio.rs/" },
 ];
 
 /** A Simple Icons mark, drawn in the current colour. */
@@ -280,8 +281,10 @@ function mark(svg: string): string {
         <ul class="built" aria-label="Built with">
           {built.map((part) => (
             <li>
-              <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />
-              {part.name}
+              <a href={part.href}>
+                <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />
+                {part.name}
+              </a>
             </li>
           ))}
         </ul>

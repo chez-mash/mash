@@ -319,7 +319,9 @@
   }
 
   /* More about Mash: two large tiles over three small ones, the second
-     large one in butter. */
+     large one in butter. Every tile reads from the top, icon then title,
+     with the same gap, so a large tile is larger by its type, not by an
+     empty band above the title. */
   .tiles {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -327,16 +329,11 @@
   }
   .tiles article {
     grid-column: span 2;
-    justify-content: flex-end;
-    min-height: 9.375rem;
     font-size: 0.875rem;
   }
   .tiles article.big {
     grid-column: span 3;
-    min-height: 12.5rem;
-  }
-  .tiles .ico {
-    margin-bottom: auto;
+    padding-block: 1.25rem 1.5rem;
   }
   .tiles h3 {
     font-size: 1.25rem;
@@ -393,10 +390,13 @@
     list-style: none;
   }
   .built li {
+    margin: 0;
+  }
+  /* Each project is a pill that links to its own site. */
+  .built a {
     display: flex;
     align-items: center;
     gap: 0.4375rem;
-    margin: 0;
     padding: 0.25rem 0.75rem 0.25rem 0.25rem;
     border: var(--border-outline);
     border-radius: var(--radius-pill);
@@ -404,6 +404,14 @@
     color: var(--text-ink);
     font-size: 0.8125rem;
     font-weight: 700;
+    text-decoration: none;
+  }
+  .built a:hover {
+    background: var(--surface-cream);
+  }
+  .built a:focus-visible {
+    outline: var(--stroke-outline) solid var(--line-ink);
+    outline-offset: 2px;
   }
   .built .tile {
     display: grid;
@@ -532,7 +540,6 @@
     .tiles article,
     .tiles article.big {
       grid-column: auto;
-      min-height: 0;
     }
   }
 }
