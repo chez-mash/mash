@@ -1,6 +1,6 @@
 [package]
 name = "mash-desktop"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 description = "The Mash desktop app: the Mash dashboard in its own window"
 license = "MIT OR Apache-2.0"
