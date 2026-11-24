@@ -37,6 +37,9 @@ export interface ServerMachine {
   /** How far the server's search documents for it have caught up, as the
    * server reports it; null when it never published or wasn't reported. */
   readonly search: MachineSearch | null;
+  /** When its watcher last checked in, in seconds since 1970 by the server's
+   * clock; null when it has not since the server started. */
+  readonly lastSeenAt: number | null;
 }
 
 /** "missing", "stale" or "ready" for words and for meaning; meaning is null
@@ -113,6 +116,7 @@ export function serverReport(view: ServerView | undefined): ServerReport {
             meaning: readiness(machine.search.dense),
           }
         : null,
+      lastSeenAt: machine.last_seen_at ?? null,
     };
   });
   return {

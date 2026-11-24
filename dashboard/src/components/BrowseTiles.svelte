@@ -10,6 +10,7 @@ import { scope } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import { statusOptions } from "../lib/status";
 import AgentMark from "./AgentMark.svelte";
+import MachineDot from "./MachineDot.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -60,7 +61,7 @@ function host(url: string): string {
     <a class="card sum" href={field === "agent" ? agentHref(group.key) : machineHref(group.key)}>
       <span class="sum-h">
         {#if field === "agent" && agent}<AgentMark {agent} size="lg" /><b>{agentInfo[agent].name}</b>
-        {:else}<span class="ico lg machines"><Laptop size={20} aria-hidden="true" /></span><b>{group.key}</b>{#if group.key === local}<span class="pill ok"><i class="dot" aria-hidden="true"></i>this machine</span>{/if}{/if}
+        {:else}<span class="ico lg machines"><Laptop size={20} aria-hidden="true" /></span><b>{group.key}</b><MachineDot machine={group.key} />{#if group.key === local}<span class="pill">this machine</span>{/if}{/if}
       </span>
       <span class="big"><b>{group.chats.length.toLocaleString()}</b><span>chat{group.chats.length === 1 ? "" : "s"}</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((group.chats.length / Math.max(1, chats.length)) * 100))}%"></i></span>

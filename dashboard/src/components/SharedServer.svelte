@@ -6,6 +6,7 @@ import { serverViewOptions } from "../lib/serverStatus";
 import { settingsOptions } from "../lib/settings";
 import { machineLine, setAdminKey } from "../lib/shared";
 import JoinShared from "./JoinShared.svelte";
+import MachineDot from "./MachineDot.svelte";
 import ServerAdmin from "./ServerAdmin.svelte";
 import ShareDone from "./ShareDone.svelte";
 import ShareReview from "./ShareReview.svelte";
@@ -69,7 +70,7 @@ async function forgetKey(): Promise<void> {
           {#each data.status.machines as machine (machine.node_id)}
             {@const line = machineLine(machine, now)}
             <li class="chatrow">
-              <span class="ss-name"><strong>{machine.node_id}</strong>{#if machine.node_id === data.node_id}<span class="pill">this machine</span>{/if}</span>
+              <span class="ss-name"><MachineDot machine={machine.node_id} /><strong>{machine.node_id}</strong>{#if machine.node_id === data.node_id}<span class="pill">this machine</span>{/if}</span>
               <span class="meta" title={line.title}>{line.text}</span>
             </li>
           {/each}

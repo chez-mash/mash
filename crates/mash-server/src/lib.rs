@@ -6,11 +6,13 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::extract::{DefaultBodyLimit, Extension, Request, State, rejection::JsonRejection};
+use axum::Json;
+use axum::extract::{Extension, Request, State, rejection::JsonRejection};
 use axum::http::StatusCode;
-use axum::middleware::{self, Next};
+use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
-use axum::{Json, Router};
+#[cfg(test)]
+use axum::{Router, middleware};
 
 mod admin;
 mod admission;
@@ -21,11 +23,12 @@ mod events;
 mod group_status;
 mod join;
 mod machines;
+mod presence;
 mod roster;
 mod routes;
-use routes::api;
 #[cfg(test)]
 use routes::document;
+use routes::router;
 pub mod setup;
 mod sync;
 
@@ -62,6 +65,8 @@ struct App {
     joins: Arc<tokio::sync::Semaphore>,
     uploads: Arc<tokio::sync::Semaphore>,
     waiters: Arc<tokio::sync::Semaphore>,
+    /// When each machine last checked in.
+    presence: presence::Presence,
 }
 
 #[derive(serde::Serialize)]
@@ -189,26 +194,6 @@ async fn authorize_inner(app: App, mut request: Request, next: Next) -> Response
             )
             .into_response()
         })
-}
-fn router(app: App) -> Router {
-    let router = api().0;
-    router
-        .method_not_allowed_fallback(|| async {
-            ApiError(
-                StatusCode::METHOD_NOT_ALLOWED,
-                AppError::usage("unsupported API method"),
-            )
-        })
-        .fallback(|| async {
-            ApiError(StatusCode::NOT_FOUND, AppError::usage("unknown API route"))
-        })
-        .layer(DefaultBodyLimit::max(64 * 1024))
-        .layer(
-            tower_http::compression::CompressionLayer::new()
-                .quality(tower_http::CompressionLevel::Fastest),
-        )
-        .layer(middleware::from_fn_with_state(app.clone(), authorize))
-        .with_state(app)
 }
 async fn fingerprints(
     State(app): State<App>,
@@ -448,6 +433,7 @@ pub async fn run(
         joins: Arc::new(tokio::sync::Semaphore::new(join::CONCURRENT)),
         uploads: Arc::new(tokio::sync::Semaphore::new(config.max_concurrent_uploads)),
         waiters: Arc::new(tokio::sync::Semaphore::new(admission::MAX_WAITERS)),
+        presence: presence::Presence::default(),
     };
     // The first status says the server runs; a file that does not apply
     // keeps the tokens it started with.

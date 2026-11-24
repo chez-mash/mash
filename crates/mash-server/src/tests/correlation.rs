@@ -48,6 +48,7 @@ fn traced_router(dispatcher: tracing::Dispatch) -> Router {
         live: None,
         joins: Arc::new(tokio::sync::Semaphore::new(crate::join::CONCURRENT)),
         uploads: Arc::new(tokio::sync::Semaphore::new(1)),
+        presence: super::super::presence::Presence::default(),
         waiters: Arc::new(tokio::sync::Semaphore::new(
             super::super::admission::MAX_WAITERS,
         )),

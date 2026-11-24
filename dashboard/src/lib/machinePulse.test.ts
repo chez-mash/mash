@@ -19,12 +19,13 @@ function checked(id: string, reachable: boolean, state = "healthy"): Machine {
     warnings: [],
   } as Machine;
 }
-function published(node: string, at?: number): SharedMachine {
+function published(node: string, at?: number, seen?: number): SharedMachine {
   return {
     group_id: "harbor",
     node_id: node,
     state: "joined",
     delete_waiting: false,
+    ...(seen === undefined ? {} : { last_seen_at: seen }),
     ...(at === undefined
       ? {}
       : { published: { chats: 1, messages: 1, instance: "i", last_synced_at: iso(at) } }),
@@ -43,6 +44,8 @@ const report = serverReport({
       published("fresh", NOW - 3600),
       published("old", NOW - 5 * 86_400),
       published("new"),
+      published("beating", NOW - 5 * 86_400, NOW - 50),
+      published("quiet", NOW - 3600, NOW - 2 * 3600),
     ],
     now: NOW,
     restart_needed: false,
@@ -68,17 +71,36 @@ describe("a machine's status dot", () => {
     });
   });
 
-  it("prefers this dashboard's check over the server's publish report", () => {
+  it("prefers this dashboard's check over the server's report", () => {
     expect(machinePulse("old", evidence([checked("old", true)])).tone).toBe("ok");
+    expect(machinePulse("quiet", evidence([checked("quiet", true)])).tone).toBe("ok");
   });
 
-  it("falls back to how recently the server says a machine published", () => {
-    expect(machinePulse("fresh", evidence())).toEqual({ tone: "ok", words: "Published 1h ago" });
-    expect(machinePulse("old", evidence()).tone).toBe("warn");
-    expect(machinePulse("new", evidence())).toEqual({
-      tone: "none",
-      words: "Has not published yet",
+  it("is green while a machine's watcher keeps checking in, however old its copy", () => {
+    expect(machinePulse("beating", evidence())).toEqual({
+      tone: "ok",
+      words: "Running · checked in just now",
     });
+  });
+
+  it("is a hollow ring once check-ins stop, even after a recent publish", () => {
+    expect(machinePulse("quiet", evidence())).toEqual({
+      tone: "none",
+      words: "Quiet · last checked in 2h ago",
+    });
+  });
+
+  it("takes a heartbeat over a check that did not answer", () => {
+    expect(machinePulse("beating", evidence([checked("beating", false)])).tone).toBe("ok");
+  });
+
+  it("is never green on a publish alone, and amber for a stale copy", () => {
+    expect(machinePulse("fresh", evidence())).toEqual({
+      tone: "none",
+      words: "Not checking in · last published 1h ago",
+    });
+    expect(machinePulse("old", evidence()).tone).toBe("warn");
+    expect(machinePulse("new", evidence()).tone).toBe("none");
   });
 
   it("is never green without evidence", () => {

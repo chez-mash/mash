@@ -3,8 +3,8 @@
 //!
 //! `GET /v1/status` answers with a machine's ordinary token: the server's
 //! build and start time, and each machine of the caller's own group with how
-//! it stands, when its credential was made, a short fingerprint of it, and
-//! what it published. It holds no secret and changes nothing, so a machine's
+//! it stands, when its credential was made, a short fingerprint of it, what
+//! it published, and when its watcher last checked in. It holds no secret and changes nothing, so a machine's
 //! token, which can only publish and search, can read it. Other groups are
 //! never named.
 use axum::Json;
@@ -33,7 +33,11 @@ pub(crate) async fn machines(
         if !include(&identity.group_id) {
             continue;
         }
-        machines.push(machine(&identity, added, &nodes, now));
+        let mut status = machine(&identity, added, &nodes, now);
+        status.last_seen_at = app
+            .presence
+            .last_seen(&identity.group_id, &identity.node_id);
+        machines.push(status);
     }
     machines.sort_by(|a, b| (&a.group_id, &a.node_id).cmp(&(&b.group_id, &b.node_id)));
     Ok((machines, now))
@@ -69,6 +73,7 @@ fn machine(
         receiving: node.and_then(|node| node.receiving),
         delete_waiting: node.is_some_and(|node| node.delete_waiting),
         search: None,
+        last_seen_at: None,
     }
 }
 

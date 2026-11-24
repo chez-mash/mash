@@ -101,6 +101,7 @@ async fn service() -> Service {
         live: Some(live.clone()),
         joins: Arc::new(tokio::sync::Semaphore::new(super::super::join::CONCURRENT)),
         uploads: Arc::new(tokio::sync::Semaphore::new(1)),
+        presence: super::super::presence::Presence::default(),
         waiters: Arc::new(tokio::sync::Semaphore::new(
             super::super::admission::MAX_WAITERS,
         )),
@@ -190,6 +191,52 @@ async fn a_machine_reads_its_own_group_and_no_secret() {
         assert!(!text.contains(hash), "status holds no stored hash");
     }
     assert!(!text.contains(&service.admin_key));
+}
+
+#[tokio::test]
+async fn a_machine_checking_in_is_seen_by_its_group_only() {
+    let service = service().await;
+    let seen = |body: &Value, node: &str| {
+        body["machines"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|machine| machine["node_id"] == node)
+            .and_then(|machine| machine.get("last_seen_at"))
+            .and_then(Value::as_u64)
+    };
+    let (_, before) = service
+        .call(reqwest::Method::GET, "status", FIRST, None)
+        .await;
+    assert_eq!(
+        seen(&before, "first"),
+        None,
+        "nothing is seen before a check-in"
+    );
+    let (status, beat) = service
+        .call(reqwest::Method::POST, "heartbeat", FIRST, None)
+        .await;
+    assert_eq!(status, StatusCode::OK, "{beat}");
+    assert_eq!(beat["every_seconds"], 60);
+    let (_, after) = service
+        .call(reqwest::Method::GET, "status", FIRST, None)
+        .await;
+    assert_eq!(seen(&after, "first"), beat["now"].as_u64());
+    // A machine of the same name in another group is a different machine.
+    let (_, other) = service
+        .call(reqwest::Method::GET, "status", OTHER, None)
+        .await;
+    assert_eq!(seen(&other, "first"), None);
+    assert_eq!(
+        seen(&after, "laptop"),
+        None,
+        "a machine that never checked in"
+    );
+    // Checking in takes the machine's own token.
+    let (refused, _) = service
+        .call(reqwest::Method::POST, "heartbeat", "not-a-token", None)
+        .await;
+    assert_eq!(refused, StatusCode::UNAUTHORIZED);
 }
 
 #[tokio::test]

@@ -6,7 +6,7 @@
 //! machine (see [`super::admin_key`]) and never the token, so the server can
 //! tell the two apart; the request also names this machine so the server's
 //! record says where a change came from.
-use super::server::report::{Done, GroupStatus, JoinAnswer, MachineRequest, Overview};
+use super::server::report::{Done, GroupStatus, Heartbeat, JoinAnswer, MachineRequest, Overview};
 use crate::{AppError, config::SharedConfig};
 use serde::de::DeserializeOwned;
 use std::time::Duration;
@@ -76,6 +76,26 @@ pub async fn status(config: &SharedConfig) -> Result<GroupStatus, AppError> {
     let response = client()?
         .get(format!(
             "{}/v1/status",
+            config.api_url.trim_end_matches('/')
+        ))
+        .header(reqwest::header::AUTHORIZATION, bearer(&token)?)
+        .header("x-mash-group", &config.group_id)
+        .header("x-mash-node", &config.node_id)
+        .send()
+        .await
+        .map_err(|_| unreachable(config))?;
+    if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+        return Err(super::client::unauthorized_answer(response).await);
+    }
+    answer(config, response).await
+}
+
+/// Tells the server this machine is running, with this machine's token.
+pub async fn heartbeat(config: &SharedConfig) -> Result<Heartbeat, AppError> {
+    let token = config.required_token()?;
+    let response = client()?
+        .post(format!(
+            "{}/v1/heartbeat",
             config.api_url.trim_end_matches('/')
         ))
         .header(reqwest::header::AUTHORIZATION, bearer(&token)?)

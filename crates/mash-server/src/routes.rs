@@ -2,7 +2,7 @@
 use super::chats::{catalog, list_chats};
 use super::{
     App, admin, attachments, chat_page, contexts, events, fingerprints, freshness, get_record,
-    group_status, join, list_records, query, search, sync, view,
+    group_status, join, list_records, presence, query, search, sync, view,
 };
 use axum::Router;
 
@@ -42,6 +42,7 @@ pub(crate) fn api() -> (Router<App>, aide::openapi::OpenApi) {
         .api_route("/v1/join/check", post(join::check))
         .api_route("/v1/join", post(join::redeem))
         .api_route("/v1/status", get(group_status::read))
+        .api_route("/v1/heartbeat", post(presence::heartbeat))
         .api_route("/v1/admin/machines", get(admin::overview))
         .api_route("/v1/admin/add", post(admin::add))
         .api_route("/v1/admin/replace", post(admin::replace))
@@ -49,6 +50,35 @@ pub(crate) fn api() -> (Router<App>, aide::openapi::OpenApi) {
         .api_route("/v1/admin/delete", post(admin::delete))
         .finish_api(&mut document);
     (router, document)
+}
+
+/// The served application: every route behind node authorization, with the
+/// answers for methods and routes the server does not have.
+pub(crate) fn router(app: App) -> Router {
+    let router = api().0;
+    router
+        .method_not_allowed_fallback(|| async {
+            super::ApiError(
+                axum::http::StatusCode::METHOD_NOT_ALLOWED,
+                mash_model::AppError::usage("unsupported API method"),
+            )
+        })
+        .fallback(|| async {
+            super::ApiError(
+                axum::http::StatusCode::NOT_FOUND,
+                mash_model::AppError::usage("unknown API route"),
+            )
+        })
+        .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
+        .layer(
+            tower_http::compression::CompressionLayer::new()
+                .quality(tower_http::CompressionLevel::Fastest),
+        )
+        .layer(axum::middleware::from_fn_with_state(
+            app.clone(),
+            super::authorize,
+        ))
+        .with_state(app)
 }
 
 /// The contract as JSON, with each schema under a name of its own.

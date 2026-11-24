@@ -43,6 +43,12 @@ pub(super) async fn run(cli: Cli, debounce: u64) -> Result<Response, AppError> {
         }
         let _ = stop.send(true);
     });
+    // Checking in runs beside indexing, so a long pass never makes the
+    // machine look gone.
+    let heartbeat = tokio::spawn(crate::watch::check_in(
+        request.paths.config.clone(),
+        shutdown.clone(),
+    ));
     let role = |role| {
         let _ = crate::write_json(
             &mut std::io::stderr(),
@@ -80,8 +86,10 @@ pub(super) async fn run(cli: Cli, debounce: u64) -> Result<Response, AppError> {
     })
     .await;
     signal.abort();
+    heartbeat.abort();
     // The monitor holds the lease; it must be gone before a restart.
     let _ = signal.await;
+    let _ = heartbeat.await;
     result?;
     let executable = lease.executable().to_path_buf();
     if let Err(reason) = crate::blocking(move || lease.ensure_current()).await {

@@ -11,6 +11,9 @@ use tokio::time::Instant;
 use crate::AppError;
 use mash_model::file_lock::{self, FileLock};
 
+mod heartbeat;
+pub use heartbeat::check_in;
+
 const RETRY: Duration = Duration::from_secs(30);
 const RECONCILE: Duration = Duration::from_secs(300);
 const STANDBY_POLL: Duration = Duration::from_secs(1);

@@ -617,6 +617,7 @@ impl Service {
             joins: Arc::new(tokio::sync::Semaphore::new(super::join::CONCURRENT)),
             uploads: uploads.clone(),
             waiters: waiters.clone(),
+            presence: super::presence::Presence::default(),
         };
         let task = tokio::spawn(async move {
             axum::serve(listener, router(app)).await.unwrap();
@@ -658,6 +659,7 @@ impl Service {
             joins: Arc::new(tokio::sync::Semaphore::new(super::join::CONCURRENT)),
             uploads: self.uploads.clone(),
             waiters: self.waiters.clone(),
+            presence: super::presence::Presence::default(),
         }
     }
 

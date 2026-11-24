@@ -50,6 +50,24 @@ pub struct MachineStatus {
     /// when it never published or the server did not report it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub search: Option<crate::views::readiness::Artifacts>,
+    /// When the machine's watcher last checked in, by the server's clock.
+    /// Absent when it has not since the server started. A watcher checks in
+    /// every [`HEARTBEAT_SECONDS`], so an older time means it has gone quiet.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_seen_at: Option<u64>,
+}
+
+/// How often a machine's watcher checks in with the server while it runs.
+pub const HEARTBEAT_SECONDS: u64 = 60;
+
+/// The server's answer to a machine checking in.
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[schemars(rename = "SharedHeartbeat")]
+pub struct Heartbeat {
+    /// The server's clock, in seconds since 1970.
+    pub now: u64,
+    /// When to check in next, in seconds.
+    pub every_seconds: u64,
 }
 
 /// A group as any of its machines may read it.

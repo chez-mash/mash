@@ -6262,6 +6262,15 @@
           "group_id": {
             "type": "string"
           },
+          "last_seen_at": {
+            "description": "When the machine's watcher last checked in, by the server's clock.\nAbsent when it has not since the server started. A watcher checks in\nevery [`HEARTBEAT_SECONDS`], so an older time means it has gone quiet.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "node_id": {
             "type": "string"
           },

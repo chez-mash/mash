@@ -2529,6 +2529,13 @@ export interface components {
              */
             fingerprint?: string | null;
             group_id: string;
+            /**
+             * Format: uint64
+             * @description When the machine's watcher last checked in, by the server's clock.
+             *     Absent when it has not since the server started. A watcher checks in
+             *     every [`HEARTBEAT_SECONDS`], so an older time means it has gone quiet.
+             */
+            last_seen_at?: number | null;
             node_id: string;
             published?: components["schemas"]["Published"] | null;
             /** @description A first publish still arriving. */
