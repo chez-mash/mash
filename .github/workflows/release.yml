@@ -48,6 +48,22 @@ jobs:
               exit 1
             fi
           done
+      # A tag ahead of the version would publish binaries that call themselves
+      # the release before, and the install checks after publishing would be
+      # the first to notice. Stop before building instead.
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Require the tag to match the version being released
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tagged=${GITHUB_REF_NAME#v}
+          for manifest in Cargo.toml desktop/src-tauri/Cargo.toml; do
+            version=$(sed -n 's/^version = "\(.*\)"$/\1/p' "$manifest")
+            if [ "$version" != "$tagged" ]; then
+              echo "::error::$manifest is version $version, but the tag is $GITHUB_REF_NAME. Commit the version bump (\"Release $tagged\") before tagging."
+              exit 1
+            fi
+          done
 
   build:
     needs: validated
