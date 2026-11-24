@@ -110,7 +110,7 @@ The left rail is the way around. On a phone it opens from the menu button.
 
 The **viewing** switcher in the rail's bottom corner chooses whose history
 the overview, chats, search, memory, projects and agents show. On a phone it
-is the pill beside the search box.
+is in the menu.
 
 - **This machine:** only what this machine indexed, including chats it has
   not published.
@@ -122,14 +122,37 @@ is the pill beside the search box.
   it live, including work it has not published, and labels it **live**.
   Otherwise you see what it published, labelled **published copy**. When a
   machine's dashboard does not answer, its published copy is shown instead,
-  and the page says so. The switcher lists when each machine last published,
-  as the shared server reports it, and marks a copy older than two days with
-  its age.
+  and the page says so. A copy older than two days is marked with its age;
+  point at the mark to see when the machine last published.
 
 Each page names the choice under its title. The desktop app's menu-bar panel
 follows the same choice. Services and Machines always
 show every machine. The choice is remembered in this browser and added to the
 page's address, so a link you share opens the same view.
+
+### See which machines are running
+
+A dot beside each machine's name says how it is doing; point at the dot to
+see why.
+
+- **Green:** the machine is running. Either this dashboard's health check
+  found it healthy, or its Mash checked in with the shared server in the last
+  three minutes. Each machine's watcher checks in every minute.
+- **Amber:** something needs attention, such as a stopped service, or a
+  published copy older than two days from a machine that does not check in.
+- **Red:** a service failed.
+- **Hollow ring:** nothing recent was heard from it. The machine may be asleep
+  or switched off, or its Mash may be older than the version that checks in.
+
+The machines page also shows each machine's system: macOS, Linux or Windows.
+
+### Pin projects
+
+On the **projects** page, select the pin on a project to keep it at the top
+of the page and of the rail's project list. Select it again to unpin. Pins are
+saved by the dashboard, so they are the same in every browser you open it in.
+They can be changed on the machine running the dashboard, or on a dashboard
+set up to manage services.
 
 ### Check if local search is ready
 
