@@ -1,3 +1,4 @@
+use super::availability::start_instruction;
 use super::*;
 
 #[tokio::test]
@@ -21,12 +22,8 @@ async fn unavailable_qdrant_names_endpoint_and_repair_without_exposing_api_key()
         assert_eq!(error.error.kind, crate::ErrorKind::QdrantUnavailable);
         assert!(error.error.retryable);
         assert!(error.error.message.contains(&url));
-        assert!(
-            error
-                .error
-                .message
-                .contains("Start the configured Qdrant service")
-        );
+        // The port is held but silent: Qdrant is busy or stuck, not absent.
+        assert!(error.error.message.contains("did not answer in time"));
         assert!(error.error.recommended_action.is_none());
         let json = serde_json::to_string(&error).unwrap();
         assert!(!json.contains("private-api-key"));
@@ -421,4 +418,35 @@ fn default_local_qdrant_start_instruction_works_offline() {
     let remote = start_instruction(&endpoint("https://qdrant.example:6333").unwrap());
     assert!(!remote.contains("docker"), "{remote}");
     assert!(remote.contains("Start the configured Qdrant service"));
+}
+
+/// A Qdrant that accepts the connection but does not answer in time is busy
+/// or stuck, not unreachable; only a connection that fails says the latter.
+#[tokio::test]
+async fn a_slow_qdrant_is_not_reported_as_unreachable() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let silent = format!("http://{}", listener.local_addr().unwrap());
+    let api = super::Client::new(&silent, None, 1024).unwrap();
+    let timed_out = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_millis(100))
+        .build()
+        .unwrap()
+        .get(&silent)
+        .send()
+        .await
+        .unwrap_err();
+    let slow = api.failed(&timed_out).error.message;
+    assert!(slow.contains("did not answer in time"), "{slow}");
+    drop(listener);
+
+    let refused = reqwest::Client::new()
+        .get("http://127.0.0.1:9/")
+        .send()
+        .await
+        .unwrap_err();
+    let unreachable = api.failed(&refused).error.message;
+    assert!(
+        unreachable.starts_with("Could not reach Qdrant"),
+        "{unreachable}"
+    );
 }
