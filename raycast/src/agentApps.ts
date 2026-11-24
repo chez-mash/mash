@@ -90,12 +90,13 @@ export function isClaudeSessionFile(name: string): boolean {
  * an installed app opens it; `owned` names the sessions the Claude app has.
  */
 export function openInAgentApp(
-  hit: { readonly agent: string; readonly chatId: string; readonly project?: string },
+  hit: { readonly agent: string; readonly chatId: string; readonly project?: string; readonly machine?: string },
   installed: readonly AgentApp[],
   owned: ReadonlySet<string>,
 ): { title: string; url: string } | undefined {
-  // Mash's IDs for subagent chats are not a session either app knows.
-  if (!uuid.test(hit.chatId)) return undefined;
+  // Mash's IDs for subagent chats are not a session either app knows, and a
+  // chat from another machine is a session only that machine's apps hold.
+  if (!uuid.test(hit.chatId) || hit.machine) return undefined;
   const app = installed.find((candidate) => candidate.agent === hit.agent);
   if (app?.agent === "codex") {
     return { title: `Open in ${app.name}`, url: `codex://threads/${hit.chatId}` };

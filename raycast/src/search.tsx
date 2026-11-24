@@ -135,7 +135,8 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
   const shownError = searching ? live.error : recent.error;
   const coming = searching ? stillComing(live.sources) : "";
   const failed = searching ? failures(live.sources) : "";
-  // Results come from this machine only, so its agents' apps can open them.
+  // This machine's agents' apps can open its own chats; another machine's
+  // are withheld (see openInAgentApp).
   const installed = useMemo(() => installedAgentApps(homedir(), readText), []);
   const claudeChats = installed.some((app) => app.agent === "claude-code")
     ? hits.filter((hit) => hit.agent === "claude-code").map((hit) => hit.chatId)

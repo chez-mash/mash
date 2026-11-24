@@ -73,5 +73,7 @@ describe("the link to a chat in its agent's app", () => {
     expect(openInAgentApp({ agent: "codex", chatId: codexThread }, [], new Set())).toBeUndefined();
     expect(openInAgentApp({ agent: "codex", chatId: "50cf5623ea898883ead39971" }, all, new Set())).toBeUndefined();
     expect(openInAgentApp({ agent: "cursor", chatId: codexThread }, all, new Set())).toBeUndefined();
+    // Another machine's session is not in this machine's apps.
+    expect(openInAgentApp({ agent: "codex", chatId: codexThread, machine: "xenia" }, all, new Set())).toBeUndefined();
   });
 });
