@@ -938,10 +938,17 @@ async fn qdrant_startup_recovery_resumes_queued_publications() {
         );
     }
 
-    assert_eq!(service.recover().await, 1, "one durable operation resumed");
-
+    let resumed = service.recover().await;
     let catalog = Catalog::open(&service.silver_dir.path().join("sync")).unwrap();
     let recovered = catalog.select(&operation, &group, "first").unwrap();
+    // Recovery logs why it skips an operation, and tests capture no logs, so
+    // the operation's state says which way it went: still queued means
+    // resuming failed; published means something else had resumed it.
+    assert_eq!(
+        resumed, 1,
+        "one durable operation resumed; it is now {:?}",
+        recovered.state
+    );
     assert_eq!(recovered.state, catalog::State::Published);
     assert!(recovered.revision.unwrap_or_default() >= 1);
     assert!(recovered.receipt_digest.is_some());
