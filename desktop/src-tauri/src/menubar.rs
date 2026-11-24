@@ -196,6 +196,8 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
         ..Default::default()
     });
     let window = builder.build()?;
+    #[cfg(target_os = "macos")]
+    over_full_screen(&window);
     let panel = window.clone();
     window.on_window_event(move |event| {
         if let WindowEvent::Focused(false) = event {
@@ -203,6 +205,30 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
         }
     });
     Ok(())
+}
+
+/// Let the panel show over an app in full screen. macOS gives a full-screen
+/// app a Space of its own, which shows only windows marked as auxiliary to
+/// full screen; on every other desktop is not enough, and without the mark
+/// the panel opened on a desktop the reader could not see. This is what
+/// macOS's own menu bar extras do.
+#[cfg(target_os = "macos")]
+fn over_full_screen(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
+    let target = window.clone();
+    let _ = window.run_on_main_thread(move || {
+        let Ok(pointer) = target.ns_window() else {
+            return;
+        };
+        // SAFETY: Tauri hands out the window's live NSWindow, and this runs
+        // on the main thread, where AppKit may be used.
+        let ns_window = unsafe { &*pointer.cast::<NSWindow>() };
+        ns_window.setCollectionBehavior(
+            ns_window.collectionBehavior()
+                | NSWindowCollectionBehavior::CanJoinAllSpaces
+                | NSWindowCollectionBehavior::FullScreenAuxiliary,
+        );
+    });
 }
 
 /// The corner radius of the panel's material, matching the page's
