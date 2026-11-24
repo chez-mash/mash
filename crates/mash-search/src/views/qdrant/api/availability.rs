@@ -29,7 +29,7 @@ pub(crate) fn start_instruction(url: &reqwest::Url) -> &'static str {
 pub(crate) fn unavailable_message(url: &reqwest::Url, note: Option<&str>, then: &str) -> String {
     let note = note.map_or_default(|note| format!(" {note}"));
     format!(
-        "Could not reach Qdrant at {url}; indexing and every search need it.{note} {} Then {then}. Guide: {START_GUIDE}",
+        "Could not reach Qdrant at {url}; indexing and ranked search need it.{note} {} Then {then}. Guide: {START_GUIDE}",
         start_instruction(url)
     )
 }

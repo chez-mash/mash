@@ -174,10 +174,10 @@ async fn sdk_view_rejects_chat_and_unknown_ids_as_not_found() {
     }
 }
 
-/// B-010: search fails closed without Qdrant, but says the saved history is
-/// still readable through `list_chats` and `view`, which keep working.
+/// Word search without Qdrant scans the saved history and says so; the
+/// other reading tools keep working too.
 #[tokio::test]
-async fn sdk_search_without_qdrant_names_the_saved_history_and_working_tools() {
+async fn sdk_word_search_without_qdrant_scans_the_saved_history() {
     let directory = tempfile::tempdir().unwrap();
     let client = client_with(
         directory.path(),
@@ -189,22 +189,17 @@ async fn sdk_search_without_qdrant_names_the_saved_history_and_working_tools() {
         ),
     )
     .await;
-    let searched = call(&client, "search", json!({"query": "rotation"})).await;
-    assert_eq!(searched.is_error, Some(true), "{searched:?}");
-    let error = searched.structured_content.unwrap();
-    assert_eq!(error["error"]["kind"], "qdrant-unavailable", "{error}");
-    assert_eq!(error["error"]["recommended_action"], "start-qdrant");
-    let message = error["error"]["message"].as_str().unwrap();
-    for part in [
-        "Could not reach Qdrant at http://127.0.0.1:9/",
-        "Your 2 indexed chats are saved on this machine",
-        "MCP `list_chats` and `view`",
-        "Then search again.",
-        "Guide: https://getmash.io/installation/#start-the-local-search-service",
-    ] {
-        assert!(message.contains(part), "{message}");
-    }
-    assert_eq!(message.matches("Then ").count(), 1, "{message}");
+    let searched = call(&client, "search", json!({"query": "second text"})).await;
+    assert_ne!(searched.is_error, Some(true), "{searched:?}");
+    let body = searched.structured_content.unwrap();
+    let chats = body["results"].as_array().unwrap();
+    assert_eq!(chats.len(), 1, "{body}");
+    assert_eq!(chats[0]["chat_id"], "log-rotation", "{body}");
+    let notice = body["notice"].as_str().unwrap();
+    assert!(notice.contains("Qdrant is not running"), "{notice}");
+    assert!(notice.contains("`mash qdrant install`"), "{notice}");
+    let missing = call(&client, "search", json!({"query": "absentword"})).await;
+    assert_ne!(missing.is_error, Some(true), "{missing:?}");
     let listed = call(&client, "list_chats", json!({"local": true})).await;
     assert_ne!(listed.is_error, Some(true), "{listed:?}");
     let viewed = call(&client, "view", json!({"id": "first-message"})).await;

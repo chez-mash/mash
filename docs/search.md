@@ -132,8 +132,12 @@ from the `project` or `repository` field of a `list-chats` or search result.
 
 `--after` and `--before` accept a date (taken as UTC midnight) or an RFC3339
 timestamp. `--after` includes the boundary; `--before` excludes it. On
-`list-chats`, the same two flags instead take Unix seconds and filter by chat
-activity.
+`list-chats`, the same two flags filter by chat activity and also take an age,
+such as `3d` or `12h`.
+
+If the local search service is not running, word search still works: it reads
+the saved messages on this machine directly, newest first, and says so. Start
+the service for ranked results and the other machines in a shared index.
 
 ## Search by meaning
 

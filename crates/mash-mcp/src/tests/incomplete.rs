@@ -58,7 +58,7 @@ async fn qdrant_unavailable_shared_publication_is_a_retryable_mcp_result_with_pe
     assert_eq!(result.is_error, Some(true));
     let text = &result.content[0].as_text().unwrap().text;
     assert!(text.contains("retry required: true"));
-    assert!(text.contains("Shared publication: \"pending\""));
+    assert!(text.contains("Shared publication: pending"));
     let summary: Summary = serde_json::from_value(result.structured_content.unwrap()).unwrap();
     assert_eq!(summary.malformed_records, 0);
     let mut last = None;
@@ -222,7 +222,7 @@ async fn mcp_status_reports_unreachable_qdrant_and_recommends_starting_it() {
     assert_eq!(status["recommended_action"], "start-qdrant");
     let text = &result.content[0].as_text().unwrap().text;
     assert!(
-        text.contains("Local Qdrant: \"unreachable\" at http://127.0.0.1:9"),
+        text.contains("Local Qdrant: unreachable at http://127.0.0.1:9"),
         "{text}"
     );
     assert!(

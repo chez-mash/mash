@@ -22,9 +22,7 @@ async fn scoped_status_reports_scan_facts_without_proving_absence() {
         let readable = &response.content[0].as_text().unwrap().text;
         assert!(readable.contains("Absence proven: false"));
         assert!(readable.contains("historical-scan-scope-unrecorded"));
-        assert!(
-            readable.contains("Recorded scan state (not historical completeness): \"complete\"")
-        );
+        assert!(readable.contains("Recorded scan state (not historical completeness): complete"));
         let data = response.structured_content.unwrap();
         assert_eq!(data["coverage"]["absence_proven"], false);
         let member = &data["coverage"]["members"][0];

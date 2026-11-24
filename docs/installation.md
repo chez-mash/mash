@@ -222,8 +222,9 @@ Reviewing preserves settings outside the wizard and backs up the previous file.
 You can read your history before Qdrant runs: run `mash init --no-index`, then
 `mash index`. Indexing saves your chats on this machine before it needs Qdrant,
 then stops with the commands to start it and says how many chats it saved.
-`mash list-chats` and `mash view` read them meanwhile. Once Qdrant runs, run
-`mash index` again to make search current.
+Meanwhile `mash search` finds them by word, newest first, and `mash list-chats`
+and `mash view` read them. Once Qdrant runs, run `mash index` again for ranked
+search.
 
 ### Read the result
 

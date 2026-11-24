@@ -4,6 +4,10 @@ use crate::search_results::{ChatMetadata, MessageReference, lookup::Lookup};
 use serde::Serialize;
 
 mod operations;
+mod status;
+use status::status;
+#[cfg(test)]
+use status::{coverage, freshness};
 
 fn line(out: &mut String, text: &str) {
     out.push_str(text);
@@ -42,7 +46,38 @@ fn title(value: Option<&str>) -> String {
     }
 }
 
+/// A value as a reader would write it: text without quotes, a flat object
+/// as `key: value` pairs, anything deeper as JSON.
 fn json(out: &mut String, name: &str, value: &impl Serialize) -> Result<(), serde_json::Error> {
+    line(
+        out,
+        &format!("{name}: {}", plain(&serde_json::to_value(value)?)),
+    );
+    Ok(())
+}
+
+fn plain(value: &serde_json::Value) -> String {
+    use serde_json::Value;
+    match value {
+        Value::String(text) => safe(text),
+        Value::Null => "none".to_owned(),
+        Value::Object(fields)
+            if fields
+                .values()
+                .all(|field| !field.is_object() && !field.is_array()) =>
+        {
+            fields
+                .iter()
+                .map(|(key, field)| format!("{key}: {}", plain(field)))
+                .collect::<Vec<_>>()
+                .join(" · ")
+        }
+        other => other.to_string(),
+    }
+}
+
+/// A value exactly as JSON, for arguments an agent copies into a tool call.
+fn exact(out: &mut String, name: &str, value: &impl Serialize) -> Result<(), serde_json::Error> {
     line(out, &format!("{name}: {}", serde_json::to_string(value)?));
     Ok(())
 }
@@ -97,10 +132,10 @@ fn anchors(
 ) -> Result<(), serde_json::Error> {
     // list_attachments takes the same message ID and shared value.
     if let Some(lookup) = lookup {
-        json(out, "  lookup.view", &lookup.view)?;
+        exact(out, "  lookup.view", &lookup.view)?;
     }
     if !copies.is_empty() {
-        json(out, "  Copies", &copies)?;
+        exact(out, "  Copies", &copies)?;
     }
     Ok(())
 }
@@ -139,7 +174,7 @@ fn thread(out: &mut String, number: usize, value: &Chat<'_>) -> Result<(), serde
         line(out, &format!("  Chat score: {score}"));
     }
     if let Some(lookup) = value.lookup {
-        json(out, "  First message view", &lookup.view)?;
+        exact(out, "  First message view", &lookup.view)?;
     }
     for hit in &value.matches {
         // The message ID is in lookup.view below; without one it is given here.
@@ -230,147 +265,6 @@ fn search(out: &mut String, value: &Search<'_>) -> Result<(), serde_json::Error>
     }
     if let Some(diagnostics) = value.diagnostics {
         json(out, "Diagnostics", diagnostics)?;
-    }
-    Ok(())
-}
-
-fn coverage(
-    out: &mut String,
-    value: &crate::core::coverage::Report,
-) -> Result<(), serde_json::Error> {
-    line(out, "\nScoped coverage (retained data and recorded scans):");
-    json(out, "  Requested scope", &value.scope)?;
-    line(out, &format!("  Absence proven: {}", value.absence_proven));
-    json(out, "  Limitations", &value.limitations)?;
-    json(out, "  Unavailable nodes", &value.unavailable_nodes)?;
-    for member in &value.members {
-        line(out, &format!("  Node: {}", safe(&member.node_id)));
-        json(out, "    Index", &member.index)?;
-        match &member.retained {
-            Some(rows) => json(out, "    Retained rows (message bounds in Unix ms)", rows)?,
-            None => line(out, "    Scoped retained rows: unknown/unreported"),
-        }
-        if let Some(certificate) = &member.source_silver {
-            json(out, "    Source silver", certificate)?;
-        }
-        match &member.providers {
-            Some(scans) => {
-                for scan in scans {
-                    line(
-                        out,
-                        &format!(
-                            "    Provider: {} · configured={} · rejected_sources={}",
-                            scan.provider, scan.configured, scan.rejected_sources
-                        ),
-                    );
-                    json(
-                        out,
-                        "      Recorded scan state (not historical completeness)",
-                        &scan.state,
-                    )?;
-                }
-            }
-            None => line(out, "    Provider scan coverage: unknown/unreported"),
-        }
-    }
-    Ok(())
-}
-
-fn status(out: &mut String, value: &Status<'_>) -> Result<(), serde_json::Error> {
-    line(
-        out,
-        &format!("Mash status — local search ready: {}", value.ready),
-    );
-    line(
-        out,
-        &format!(
-            "Local Qdrant: {} at {}",
-            serde_json::to_string(&value.local_qdrant.state)?,
-            safe(&value.local_qdrant.url)
-        ),
-    );
-    warning(out, "local Qdrant", value.local_qdrant.message.as_deref());
-    if let Some(watcher) = value
-        .watcher
-        .filter(|watcher| watcher.running == Some(false))
-    {
-        warning(
-            out,
-            "watcher",
-            Some(&format!(
-                "a watcher service is installed ({}) but no `mash index --watch` runs for this index, so history changes are not indexed automatically. Start it with its service manager (`launchctl kickstart gui/$(id -u)/dev.mash.index-watch` on macOS, `systemctl --user start mash-index-watch.service` on Linux) and check its log.",
-                watcher.definition.display()
-            )),
-        );
-    }
-    json(out, "Artifacts", value.local_artifacts)?;
-    json(out, "Installation", value.installation)?;
-    json(out, "Query models", value.query_models)?;
-    line(
-        out,
-        &format!(
-            "Models installed: {} · dense support: {}",
-            value.models_installed, value.semantic_support
-        ),
-    );
-    line(
-        out,
-        &format!(
-            "Retained: {} chats, {} messages · searchable: {} · embeddings: {}",
-            value.chats, value.messages, value.searchable_messages, value.embeddings
-        ),
-    );
-    json(out, "Mode", value.realized_mode)?;
-    if let Some(action) = value.recommended_action {
-        json(out, "Next action", action)?;
-    }
-    if let Some(silver) = value.silver {
-        json(out, "Silver", silver)?;
-    }
-    line(out, "Readiness does not certify complete provider history.");
-    warning(out, "shared status", value.shared_error);
-    if let Some(publication) = &value.shared {
-        json(out, "Shared publication", &publication.state)?;
-        warning(out, "shared publication", publication.error);
-    }
-    if let Some(shared) = &value.shared_index {
-        freshness(out, shared)?;
-    }
-    if let Some(value) = value.coverage {
-        coverage(out, value)?;
-    }
-    Ok(())
-}
-
-fn freshness(
-    out: &mut String,
-    shared: &crate::shared::FreshnessSummary<'_>,
-) -> Result<(), serde_json::Error> {
-    line(out, &format!("Shared group: {}", safe(shared.group_id)));
-    if let Some(unpublished) = shared.unpublished_nodes {
-        json(out, "Unpublished nodes", &unpublished)?;
-    }
-    for node in &shared.nodes {
-        line(
-            out,
-            &format!(
-                "  Node {} · revision={} · {} chats, {} messages · lexical_current={} · views_current={}",
-                safe(node.node_id),
-                node.revision,
-                node.chats,
-                node.messages,
-                node.lexical_current,
-                node.views_current
-            ),
-        );
-        json(out, "    Last synced", &node.last_synced_at)?;
-        json(out, "    Last updated", &node.last_updated_at)?;
-        if let Some(artifacts) = node.artifacts {
-            json(out, "    Artifacts", artifacts)?;
-        }
-        if let Some(silver) = node.source_silver {
-            json(out, "    Source silver", silver)?;
-        }
     }
     Ok(())
 }
@@ -619,8 +513,8 @@ mod tests {
         assert!(out.contains("missing-peer"));
         assert!(out.contains("revision=4"));
         assert!(out.contains("views_current=false"));
-        assert!(out.contains("Last synced: \"2026-10-08T12:00:00Z\""));
-        assert!(out.contains("Last updated: null"));
+        assert!(out.contains("Last synced: 2026-10-08T12:00:00Z"));
+        assert!(out.contains("Last updated: none"));
     }
 
     #[test]

@@ -24,6 +24,7 @@ mod indexing;
 pub mod packed;
 pub mod publication;
 pub mod records;
+pub mod scan;
 pub mod search_input;
 mod silver_state;
 pub mod subagents;

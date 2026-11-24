@@ -9,6 +9,8 @@ use super::installation::{Agent, Registration};
 use super::models::{IndexMode, IndexRequest, Operation, Paths, Response};
 use crate::AppError;
 mod agents;
+mod guidance;
+use guidance::{BROWSE_NOW, CONNECT_NOW, agent_next_steps, index_later};
 pub(super) mod backfill;
 mod join;
 mod terminal;
@@ -59,6 +61,10 @@ pub struct InitResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(in crate::core) memory: Option<backfill::Outcome>,
     next: Vec<String>,
+    /// How to keep Claude Code from deleting its chats, also in `next`; the
+    /// terminal summary shows it on its own.
+    #[serde(skip)]
+    retention: Option<String>,
 }
 
 #[expect(clippy::ref_option, reason = "serde's serialize_with signature")]
@@ -151,7 +157,7 @@ pub(super) async fn preflight(paths: &Paths, request: &InitRequest) -> Result<()
         error.error.message = match unavailable {
             Some(message) => {
                 error.error.recommended_action = Some(crate::Action::StartQdrant);
-                format!("`mash init` changed nothing. {message}")
+                format!("`mash init` changed nothing. {CONNECT_NOW} {message}")
             }
             None => format!(
                 "`mash init` changed nothing: indexing needs the local Qdrant service. {} Then {rerun}.",
@@ -160,41 +166,6 @@ pub(super) async fn preflight(paths: &Paths, request: &InitRequest) -> Result<()
         };
         error
     })
-}
-
-/// How to read history before Qdrant runs: indexing saves it first.
-const BROWSE_NOW: &str = "To read your chats before Qdrant runs, run `mash init --no-index`, then `mash index`: indexing saves your history before it needs Qdrant, and `mash list-chats` and `mash view <message id>` read it without Qdrant.";
-
-/// The same route after `--no-index` has saved the configuration.
-const INDEX_SAVES_HISTORY: &str = "To read your chats now, run `mash index`: it saves your history before it needs Qdrant, and `mash list-chats` and `mash view <message id>` read it without Qdrant.";
-
-/// The `--no-index` step: index now, or start Qdrant first.
-fn index_later(observed: Option<crate::views::qdrant::ServiceStatus>) -> String {
-    use crate::views::qdrant::Reachability;
-    match observed {
-        Some(observed) if observed.state == Reachability::Reachable => {
-            "Index your history: mash index".to_owned()
-        }
-        Some(observed) => {
-            let unreachable = (observed.state == Reachability::Unreachable)
-                .then(|| {
-                    crate::views::qdrant::unavailable_message(
-                        &observed.url,
-                        Some(INDEX_SAVES_HISTORY),
-                        "run `mash index` to make search current",
-                    )
-                })
-                .flatten();
-            unreachable.unwrap_or_else(|| {
-                format!(
-                    "Index your history with `mash index` once Qdrant answers at {}; indexing and every search need it. {}",
-                    observed.url,
-                    observed.message.unwrap_or_default()
-                )
-            })
-        }
-        None => "Index your history: mash index".to_owned(),
-    }
 }
 
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -327,6 +298,10 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
         next.push("No Claude Code, Codex or GitHub Copilot CLI was found on this machine. CLI search and the dashboard still work; to connect an agent, see https://getmash.io/agents/".to_owned());
     }
     record_agents(&mut config, &agents, &mut next).await;
+    let retention = crate::blocking(|| Ok(super::doctor::claude_cleanup_advice()))
+        .await
+        .unwrap_or_default();
+    next.extend(retention.clone());
     if !request.index {
         // Indexing reports an unreadable configuration itself.
         let path = config.path.clone();
@@ -343,6 +318,7 @@ pub(super) async fn init(paths: Paths, request: InitRequest) -> Result<InitRespo
         index_error: None,
         memory: None,
         next,
+        retention,
     })
 }
 
@@ -423,34 +399,6 @@ fn write_configuration(
     Ok((providers, previous))
 }
 
-/// What each agent still needs after registration, and whether to restart.
-fn agent_next_steps(agents: &[AgentOutcome]) -> Vec<String> {
-    let mut steps = Vec::new();
-    for agent in agents {
-        let name = agent.agent.as_str();
-        if let Step::Failed { command, .. } = &agent.mcp {
-            steps.push(format!(
-                "{name}: the Mash MCP server was not registered, so this agent cannot search history yet; fix the error above, then rerun `mash init` or run `{command}`."
-            ));
-        } else if let Step::Stale { stale, command, .. } = &agent.mcp {
-            steps.push(format!(
-                "{name}: the Mash MCP registration runs {stale}, which is missing or is not this Mash binary, and could not be replaced (see the error above). Run `{command}`, then restart the agent."
-            ));
-        } else if let Step::Failed { command, .. } = &agent.plugin {
-            steps.push(format!(
-                "{name}: the Mash MCP server is registered, but the mash@mash plugin (history skill and session hooks) was not installed; when online, rerun `mash init` or run `{command}`."
-            ));
-        }
-    }
-    if agents
-        .iter()
-        .any(|agent| !matches!(agent.mcp, Step::Failed { .. } | Step::Stale { .. }))
-    {
-        steps.push("Restart your agents so they load Mash.".to_owned());
-    }
-    steps
-}
-
 /// The first index: `mash index` with the configured defaults.
 pub(super) fn first_index() -> Operation {
     Operation::Index(IndexRequest {
@@ -519,14 +467,22 @@ async fn register(
             )
             .await
             {
-                Step::Failed { command, message } => Step::Failed {
-                    command,
-                    message: match added {
-                        Err(cause) => format!(
+                // When adding the marketplace failed too, the retry repeats
+                // both steps: installing alone fails without it.
+                Step::Failed { command, message } => match added {
+                    Err(cause) => Step::Failed {
+                        command: format!(
+                            "{} && {command}",
+                            display(
+                                program,
+                                &["plugin", "marketplace", "add", marketplace].map(OsString::from)
+                            )
+                        ),
+                        message: format!(
                             "{message} (adding the {marketplace} marketplace failed first: {cause})"
                         ),
-                        Ok(()) => message,
                     },
+                    Ok(()) => Step::Failed { command, message },
                 },
                 done => done,
             }

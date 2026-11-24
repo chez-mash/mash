@@ -84,6 +84,9 @@ impl InitResponse {
         if let Some(memory) = &self.memory {
             let _ = writeln!(output, "{}", safe(&memory.message));
         }
+        if let Some(retention) = &self.retention {
+            let _ = writeln!(output, "{}", safe(retention));
+        }
         if searchable {
             output.push_str(if dashboard_available {
                 "Start the browser dashboard with `mash dash` and open the address it prints.\n"

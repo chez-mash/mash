@@ -93,7 +93,7 @@ fn failure(file: &str, mirror: Option<&str>, error: &str) -> String {
         ),
     };
     format!(
-        "{source}. Semantic models need about 177 MB; word-exact search does not need them, only the local Qdrant service that every search uses"
+        "{source}. Semantic models need about 177 MB; word-exact search does not need them, only the local Qdrant service for ranked results"
     )
 }
 

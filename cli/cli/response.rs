@@ -1,6 +1,7 @@
 //! What a command answered, which `lib.rs` prints or acts on.
 use super::{AppError, core, usage};
 use serde::Serialize;
+use std::ffi::OsString;
 use std::path::PathBuf;
 
 #[derive(Debug, Serialize)]
@@ -46,4 +47,14 @@ pub(crate) enum Response {
     InitCancelled {
         cancelled: bool,
     },
+}
+
+/// Whether the command line asks for JSON at a terminal: `--json` before any
+/// `--`, after which an argument is a value such as a search query.
+pub(crate) fn asks_for_json(arguments: &[OsString]) -> bool {
+    arguments
+        .iter()
+        .skip(1)
+        .take_while(|argument| *argument != "--")
+        .any(|argument| argument == "--json")
 }

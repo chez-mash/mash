@@ -75,7 +75,7 @@ pub(crate) enum Component {
     Probe,
     Index,
     Runtime,
-    /// The local Qdrant search service that indexing and every search use.
+    /// The local Qdrant search service that indexing and ranked search use.
     Qdrant,
 }
 

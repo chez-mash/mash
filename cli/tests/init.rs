@@ -186,6 +186,13 @@ fn init_reports_why_a_plugin_could_not_be_installed() {
         );
     }
     assert!(next.contains("Restart your agents"), "{next}");
+    // The retry repeats adding the marketplace, which installing needs.
+    for retry in [
+        "claude plugin marketplace add chez-mash/mash && ",
+        "codex plugin marketplace add chez-mash/mash && ",
+    ] {
+        assert!(next.contains(retry), "{next}");
+    }
 }
 
 #[test]
@@ -368,12 +375,18 @@ fn init_without_qdrant_changes_nothing_and_status_says_to_start_it() {
     assert_eq!(error["error"]["kind"], "qdrant-unavailable", "{error}");
     assert_eq!(error["error"]["recommended_action"], "start-qdrant");
     let message = error["error"]["message"].as_str().unwrap();
+    assert!(
+        message.starts_with(
+            "`mash init` changed nothing. To connect your agents now and index later, run `mash init --no-index`."
+        ),
+        "{message}"
+    );
     for part in [
         "changed nothing",
         "http://127.0.0.1:9/",
         // R2 S-002: the route to reading history before Qdrant runs.
         "To read your chats before Qdrant runs, run `mash init --no-index`, then `mash index`",
-        "`mash list-chats` and `mash view <message id>` read it without Qdrant.",
+        "word search with `mash search`, `mash list-chats` and `mash view <message id>` read it without Qdrant.",
         "Then rerun `mash init`.",
         "Guide: https://getmash.io/installation/#start-the-local-search-service",
     ] {
@@ -421,7 +434,7 @@ fn init_without_qdrant_changes_nothing_and_status_says_to_start_it() {
         .unwrap_or_else(|| panic!("{next:?}"));
     for part in [
         "To read your chats now, run `mash index`: it saves your history before it needs Qdrant",
-        "`mash list-chats` and `mash view <message id>` read it without Qdrant.",
+        "word search with `mash search`, `mash list-chats` and `mash view <message id>` read it without Qdrant.",
         "Then run `mash index` to make search current.",
     ] {
         assert!(step.contains(part), "{step}");
@@ -463,27 +476,19 @@ fn reads_before_and_after_a_failed_index(env: &[(&str, String)]) {
     for part in [
         "Could not reach Qdrant at http://127.0.0.1:9/",
         "Your 1 indexed chat is saved on this machine",
-        "`mash list-chats` and `mash view <message id>` (MCP `list_chats` and `view`) read it without Qdrant.",
+        "Word search with `mash search`, `mash list-chats` and `mash view <message id>` (MCP `search`, `list_chats` and `view`) read it without Qdrant.",
         "Then run `mash index` again to make search current.",
     ] {
         assert!(message.contains(part), "{message}");
     }
     assert_eq!(message.matches("Then ").count(), 1, "{message}");
 
-    // B-010: search still fails closed but names the saved chats too.
-    let (code, stdout, error) = mash(env, &["search", "initneedle"]);
-    assert_eq!(code, 11, "{error}");
-    assert!(stdout.is_null(), "{stdout}");
-    assert_eq!(error["error"]["kind"], "qdrant-unavailable", "{error}");
-    assert_eq!(error["error"]["recommended_action"], "start-qdrant");
-    let message = error["error"]["message"].as_str().unwrap();
-    for part in [
-        "Your 1 indexed chat is saved on this machine",
-        "`mash list-chats` and `mash view <message id>`",
-        "Then search again.",
-    ] {
-        assert!(message.contains(part), "{message}");
-    }
+    // Word search scans the saved chats while Qdrant is down, and says so.
+    let (code, found, error) = mash(env, &["search", "initneedle"]);
+    assert_eq!(code, 0, "{error}");
+    assert_eq!(found["results"].as_array().unwrap().len(), 1, "{found}");
+    let notice = found["notice"].as_str().unwrap();
+    assert!(notice.contains("Qdrant is not running"), "{notice}");
     let (code, listed, error) = mash(env, &["list-chats"]);
     assert_eq!(code, 0, "{error}");
     assert_eq!(listed["chats"].as_array().unwrap().len(), 1, "{listed}");

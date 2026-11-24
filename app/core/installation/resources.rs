@@ -36,7 +36,7 @@ struct Scan {
 
 impl Report {
     /// Whether the configured local Qdrant answered; without it, setup and
-    /// every search fail, so its remedy names what to run afterward.
+    /// ranked search fail, so its remedy names what to run afterward.
     pub(super) fn add_qdrant(&mut self, observed: &crate::views::qdrant::ServiceStatus) {
         use crate::views::qdrant::Reachability;
         let then = if self.configuration_loaded {
@@ -57,7 +57,7 @@ impl Report {
                 State::Missing,
                 observed.message.clone().unwrap_or_default(),
                 Some(format!(
-                    "Start Qdrant at {} (see the qdrant finding under resources for the commands), then run `{then}`. Until then, every search fails.",
+                    "Start Qdrant at {} (see the qdrant finding under resources for the commands), then run `{then}`. Until then, search scans saved messages by word only.",
                     observed.url
                 )),
             ),

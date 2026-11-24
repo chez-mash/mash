@@ -93,15 +93,13 @@ pub(super) async fn qdrant_unavailable(
             ("chats are", "them")
         };
         format!(
-            "Your {chats} indexed {noun} saved on this machine, and `mash list-chats` and `mash view <message id>` (MCP `list_chats` and `view`) read {them} without Qdrant."
+            "Your {chats} indexed {noun} saved on this machine. Word search with `mash search`, `mash list-chats` and `mash view <message id>` (MCP `search`, `list_chats` and `view`) read {them} without Qdrant."
         )
     });
-    if let Some(message) = crate::views::qdrant::unavailable_message(
-        &configuration.qdrant.url,
-        note.as_deref(),
-        next_step,
-    ) {
-        error.error.message = message;
+    // What was saved comes first: it is what the reader can use right now.
+    let url = &configuration.qdrant.url;
+    if let Some(message) = crate::views::qdrant::unavailable_message(url, None, next_step) {
+        error.error.message = note.map_or_else(String::new, |note| note + " ") + &message;
     }
     error.error.recommended_action = Some(crate::Action::StartQdrant);
     error

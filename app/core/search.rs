@@ -1,6 +1,9 @@
 //! Local and combined retrieval; validation precedes inference and HTTP.
 pub mod federated;
 mod freshness;
+mod notice;
+use notice::empty_notice;
+mod offline;
 mod words;
 
 pub(super) use words::{lexical, live};
@@ -194,16 +197,23 @@ pub(super) async fn run(
     } else {
         None
     };
+    let retry = offline::Retry::new(&input, configuration);
     let mut response = match run_inner(configuration, database, models, input).await {
         Err(error) if !shared_only && error.error.kind == crate::ErrorKind::QdrantUnavailable => {
-            // Search still fails closed, but history already in silver stays readable.
-            return Err(super::inspection::qdrant_unavailable(
-                configuration,
-                database,
-                error,
-                "search again",
-            )
-            .await);
+            // A word search scans the saved history instead; search by
+            // meaning still fails closed, and says what stays readable.
+            match retry {
+                Some(retry) => offline::search(configuration, database, retry).await?,
+                None => {
+                    return Err(super::inspection::qdrant_unavailable(
+                        configuration,
+                        database,
+                        error,
+                        "search again",
+                    )
+                    .await);
+                }
+            }
         }
         result => result?,
     };
@@ -212,7 +222,7 @@ pub(super) async fn run(
         response.freshness_warnings =
             crate::blocking(move || Ok(freshness::scan_warnings(&database, &providers))).await?;
     }
-    if page.offset == 0 {
+    if page.offset == 0 && response.notice.is_none() {
         response.notice = empty_notice(&response, configuration, local);
     }
     // Only the page's results are reordered: pages still partition the
@@ -605,41 +615,4 @@ fn search_mode(failed: bool, shared_only: bool) -> SearchMode {
     } else {
         SearchMode::MergedHybrid
     }
-}
-
-fn empty_notice(
-    search: &SearchResponse,
-    configuration: &ResolvedConfig,
-    local: bool,
-) -> Option<String> {
-    let empty = match &search.results {
-        crate::search_results::Results::Chats(chats) => chats.is_empty(),
-        crate::search_results::Results::Messages(messages) => messages.is_empty(),
-    };
-    if !empty {
-        return None;
-    }
-    let refresh = "For a recent chat on this computer, run `mash index` and search again.";
-    if search.intent != crate::views::exact::Intent::ExactMention {
-        return local.then(|| refresh.to_owned());
-    }
-    // The query itself stays out of the notice: it is redacted separately.
-    let query = search.query.trim();
-    let words = crate::views::matching::tokens(query).len();
-    let mut notice = if words > 1 && crate::views::exact::quoted(query) {
-        "No indexed match for this phrase. Remove the quotes to match the words in any order."
-    } else if words > 1 {
-        "No indexed message contains all of these words. Try fewer words or the most distinctive one."
-    } else {
-        "No indexed match for this text. Word search checks message text. Use `--project` for paths or `mash list-chats` for chat IDs."
-    }
-    .to_owned();
-    if local {
-        notice.push(' ');
-        notice.push_str(refresh);
-        if !configuration.views.build.dense_enabled() {
-            notice.push_str(" To search by meaning, run `mash models install` and follow https://getmash.io/indexing/#enable-semantic-search");
-        }
-    }
-    Some(notice)
 }

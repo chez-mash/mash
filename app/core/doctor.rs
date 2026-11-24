@@ -9,22 +9,19 @@ use crate::runtime;
 use crate::silver::certificate::Completeness;
 use crate::storage::{SourceCount, Storage};
 use crate::views::qdrant::Reachability;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::fmt::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
+mod retention;
+pub(in crate::core) use retention::claude_cleanup_advice;
+use retention::{claude_settings, retention};
 mod shared_copy;
 #[cfg(test)]
 use shared_copy::refused;
 use shared_copy::shared_copy;
 #[cfg(test)]
 mod tests;
-
-/// Below this, Claude Code's own cleanup removes transcripts Mash would
-/// otherwise still hold a year on.
-const RETENTION_DAYS: u64 = 365;
-/// Claude Code's retention when its settings name none.
-const DEFAULT_RETENTION_DAYS: u64 = 30;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -559,48 +556,4 @@ fn integrations(status: &StatusResponse) -> Finding {
             None => finding,
         }
     }
-}
-
-/// The part of Claude Code's settings that decides how long its transcripts,
-/// which are Mash's source for that agent, are kept.
-#[derive(Deserialize)]
-struct ClaudeSettings {
-    #[serde(rename = "cleanupPeriodDays")]
-    cleanup_period_days: Option<u64>,
-}
-
-fn claude_settings() -> Option<PathBuf> {
-    let directory = std::env::var_os("CLAUDE_CONFIG_DIR")
-        .map(PathBuf::from)
-        .filter(|path| path.is_absolute())
-        .or_else(|| directories::BaseDirs::new().map(|base| base.home_dir().join(".claude")))?;
-    directory.is_dir().then(|| directory.join("settings.json"))
-}
-
-/// Claude Code deletes old transcripts itself; Mash then drops those chats,
-/// because a source that is gone is treated as deleted history.
-fn retention(settings: Option<&Path>) -> Option<Finding> {
-    let path = settings?;
-    let days = std::fs::read(path)
-        .ok()
-        .and_then(|bytes| serde_json::from_slice::<ClaudeSettings>(&bytes).ok())
-        .and_then(|settings| settings.cleanup_period_days)
-        .unwrap_or(DEFAULT_RETENTION_DAYS);
-    Some(if days >= RETENTION_DAYS {
-        Finding::ok(
-            Check::Retention,
-            format!("Claude Code keeps its transcripts for {days} days."),
-        )
-    } else {
-        Finding::found(
-            Check::Retention,
-            State::Warning,
-            format!("Claude Code deletes transcripts {days} days after their last write."),
-        )
-        .cause("Sessions not started from the desktop app are removed by Claude Code's own cleanup, and Mash then removes those chats from the index and the shared copy.")
-        .repair(format!(
-            "Set \"cleanupPeriodDays\": 3650 in {}.",
-            path.display()
-        ))
-    })
 }

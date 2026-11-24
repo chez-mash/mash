@@ -152,3 +152,19 @@ fn headline_keeps_the_first_non_empty_line_within_its_cap() {
         assert_eq!(title, unchanged);
     }
 }
+
+#[test]
+fn command_line_cutoffs_take_dates_ages_and_unix_seconds() {
+    assert_eq!(cutoff("1793178000"), Ok(1_793_178_000));
+    assert_eq!(cutoff("2026-10-28"), Ok(1_793_145_600));
+    assert_eq!(cutoff("2026-10-28T09:00:00Z"), Ok(1_793_178_000));
+    let now = jiff::Timestamp::now().as_second();
+    let three_days = cutoff("3d").unwrap();
+    assert!((now - 3 * 86_400 - three_days).abs() <= 5, "{three_days}");
+    assert_eq!(age_seconds("12h"), Some(43_200));
+    assert_eq!(age_seconds("90m"), Some(5_400));
+    assert_eq!(age_seconds("2w"), Some(1_209_600));
+    for wrong in ["yesterday", "3x", "d", "-2d", "2026-13-01"] {
+        assert!(cutoff(wrong).is_err(), "{wrong}");
+    }
+}

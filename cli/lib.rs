@@ -113,6 +113,8 @@ where
     T: Into<OsString> + Clone,
 {
     let arguments: Vec<OsString> = args.into_iter().map(Into::into).collect();
+    // A person at a terminal reads text; `--json`, a pipe or a script gets JSON.
+    let terminal = terminal && !cli::asks_for_json(&arguments);
     let recording = cli::usage::start(&arguments);
     let result = cli::run(arguments.clone());
     let mut counted = Counted {
@@ -202,11 +204,13 @@ fn respond(
         }
         Ok(cli::Response::InitCancelled { .. }) if terminal => 0,
         Ok(response) => {
-            if terminal
-                && let cli::Response::Operation(value) = &response
-                && let core::Response::Uninstall(report) = value.as_ref()
-            {
-                return write_summary(stdout, stderr, value, &report.terminal_summary());
+            if terminal && let cli::Response::Operation(value) = &response {
+                if let core::Response::Uninstall(report) = value.as_ref() {
+                    return write_summary(stdout, stderr, value, &report.terminal_summary());
+                }
+                if let Some(text) = readable(value) {
+                    return write_summary(stdout, stderr, value, &text);
+                }
             }
             match write_json(stdout, &response) {
                 // A reader that stopped early (`mash ... | head`) is not a failure.
@@ -224,11 +228,50 @@ fn respond(
             }
         }
         Err(error) if error.code == BROKEN_PIPE => 0,
+        // Usage errors already read as clap writes them, help included.
+        Err(error) if terminal => {
+            let message = error.error.message.trim_end();
+            let _ = if error.error.kind == mash_model::ErrorKind::Usage {
+                writeln!(stderr, "{message}")
+            } else {
+                writeln!(stderr, "Error: {message}")
+            };
+            error.code
+        }
         Err(error) => {
             let _ = write_json(stderr, &error);
             error.code
         }
     }
+}
+
+/// The text a person at a terminal reads for a command's answer, rendered
+/// from the same compact result the MCP tools return. Commands whose answer
+/// is data for another program, such as `query` or `status --installation`,
+/// keep printing JSON.
+fn readable(value: &core::Response) -> Option<String> {
+    use core::Response as R;
+    let shown = matches!(
+        value,
+        R::Search(_)
+            | R::ListChats(_)
+            | R::View(_)
+            | R::Status(_)
+            | R::Doctor(_)
+            | R::Index(_)
+            | R::Forget(_)
+            | R::ModelsInstall(_)
+            | R::ExportSilver(_)
+            | R::ImportSilver(_)
+            | R::ListAttachments(_)
+            | R::Records(_)
+    );
+    if !shown {
+        return None;
+    }
+    let detail = core::output::Detail::Compact;
+    let structured = core::output::serialize(value, detail).ok()?;
+    core::output::text::render(value, detail, &structured).ok()
 }
 
 fn write_summary(

@@ -34,10 +34,13 @@ pub enum Direction {
 #[derive(Debug, Clone, Deserialize, Serialize, clap::Args, rmcp::schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Request {
-    #[arg(long)]
+    #[arg(long, help = "Only chats from this agent (repeatable)")]
     #[serde(deserialize_with = "crate::search_filter::one_or_many")]
     pub provider: Vec<Provider>,
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Only chats from this machine of the shared index, by node ID (repeatable)"
+    )]
     #[serde(deserialize_with = "crate::search_filter::one_or_many")]
     pub node: Vec<String>,
     /// Literal substring, ASCII case insensitive; no wildcard syntax. Omit when unused;
@@ -46,10 +49,19 @@ pub struct Request {
     #[arg(long)]
     pub title_contains: Option<String>,
     /// Inclusive thread activity cutoff in Unix seconds.
-    #[arg(long)]
+    #[arg(
+        long,
+        value_parser = cutoff,
+        help = "Only chats active since this time: a date (2026-11-20), a timestamp, \
+                an age such as 3d or 12h, or Unix seconds"
+    )]
     pub after: Option<i64>,
     /// Exclusive thread activity cutoff in Unix seconds.
-    #[arg(long)]
+    #[arg(
+        long,
+        value_parser = cutoff,
+        help = "Only chats last active before this time, written as for --after"
+    )]
     pub before: Option<i64>,
     #[arg(long, value_enum, default_value = "updated-at")]
     pub sort: Sort,
@@ -71,6 +83,37 @@ pub struct Request {
     /// Exclude the caller's published copy, for combined local/shared discovery.
     #[arg(skip)]
     pub exclude_self: bool,
+}
+
+/// A command-line time for `--after` and `--before`, in Unix seconds: a date
+/// or RFC3339 timestamp, an age back from now (`90m`, `12h`, `3d`, `2w`), or
+/// Unix seconds as the MCP tool takes them.
+fn cutoff(value: &str) -> Result<i64, String> {
+    if let Ok(seconds) = value.parse::<i64>() {
+        return Ok(seconds);
+    }
+    if let Some(age) = age_seconds(value) {
+        let now = jiff::Timestamp::now().as_second();
+        return Ok(now.saturating_sub(age));
+    }
+    crate::search_filter::timestamp(value).map_err(|_| {
+        "use a date (2026-11-20), an RFC3339 timestamp, an age such as 3d or 12h, or Unix seconds"
+            .to_owned()
+    })
+}
+
+/// `3d` and the like as seconds; None for anything else.
+fn age_seconds(value: &str) -> Option<i64> {
+    let unit = value.chars().last()?;
+    let count: i64 = value[..value.len() - unit.len_utf8()].parse().ok()?;
+    let seconds = match unit {
+        'm' => 60,
+        'h' => 3_600,
+        'd' => 86_400,
+        'w' => 604_800,
+        _ => return None,
+    };
+    (count >= 0).then(|| count.saturating_mul(seconds))
 }
 
 impl Default for Request {

@@ -13,13 +13,15 @@ use crate::AppError;
 use crate::core::{self, IndexRequest, Operation, Paths, Request};
 
 mod help;
-use help::{help_paths, version_info};
+use help::version_info;
+mod dashboard;
+use dashboard::dash;
 mod models;
 use models::ModelsCommand;
 mod qdrant;
 use qdrant::QdrantCommand;
 mod response;
-pub(super) use response::Response;
+pub(super) use response::{Response, asks_for_json};
 mod request;
 use request::SearchArguments;
 mod stream;
@@ -53,6 +55,13 @@ pub(crate) struct Cli {
     #[arg(long, global = true, value_name = "PATH")]
     models_dir: Option<PathBuf>,
 
+    /// Print JSON even at a terminal. Output to a pipe or file is always JSON.
+    // Read from the raw arguments by `asks_for_json`, so that a parse error
+    // follows it too.
+    #[allow(dead_code)]
+    #[arg(long, global = true)]
+    json: bool,
+
     #[command(subcommand)]
     command: Command,
 }
@@ -61,9 +70,10 @@ pub(crate) struct Cli {
 enum Command {
     /// Set up Mash with a terminal wizard, or accept defaults with --yes.
     ///
-    /// Indexing and every search need a running local Qdrant service (by
+    /// Indexing and ranked search need a running local Qdrant service (by
     /// default on this machine's port 6333); init checks it before changing
-    /// anything. Use --no-index to configure without it.
+    /// anything. Use --no-index to connect agents and save settings without
+    /// it; word search still works on what `mash index` saves.
     ///
     /// Agents are connected through their own CLIs, which edit their user
     /// settings: ~/.claude.json, ~/.claude/settings.json and ~/.claude/plugins
@@ -105,8 +115,10 @@ enum Command {
     ListChats {
         #[command(flatten)]
         input: Box<crate::chat_catalog::Request>,
+        /// List only this machine's chats, without contacting the shared index.
         #[arg(long, conflicts_with = "shared")]
         local: bool,
+        /// List only the shared index's chats, from every machine in the group.
         #[arg(long)]
         shared: bool,
         /// Include metadata source outcomes and listing/merge timings.
@@ -427,67 +439,6 @@ enum DashCommand {
     },
 }
 
-/// Serve the dashboard, or set up its remote access.
-fn dash(runtime: &tokio::runtime::Runtime, paths: Paths, command: Command) -> Result<(), AppError> {
-    match command {
-        Command::Dash {
-            command:
-                Some(DashCommand::Remote {
-                    port,
-                    shared_only,
-                    public,
-                    code,
-                    qr,
-                    remove,
-                }),
-            ..
-        } => runtime.block_on(crate::remote::run(
-            paths,
-            crate::remote::Options {
-                port,
-                shared_only,
-                public,
-            },
-            remote_action(code, qr, remove),
-        )),
-        Command::Dash {
-            command: None,
-            listen,
-            allow_host,
-            access_token_env,
-            shared_only,
-            services_config,
-            fleet_config,
-            fleet_node,
-        } => runtime.block_on(crate::dash::run(
-            paths,
-            crate::dash::Reach {
-                listen,
-                hosts: allow_host,
-                access_token_env,
-                shared_only,
-            },
-            services_config,
-            fleet_config,
-            fleet_node,
-        )),
-        _ => Err(AppError::internal("not a dashboard command")),
-    }
-}
-
-fn remote_action(code: bool, qr: bool, remove: bool) -> crate::remote::Action {
-    use crate::remote::Action as RemoteAction;
-    if remove {
-        RemoteAction::Remove
-    } else if code {
-        RemoteAction::Code
-    } else if qr {
-        RemoteAction::Qr
-    } else {
-        RemoteAction::Setup
-    }
-}
-
 pub(super) fn run<I, T>(args: I) -> Result<Response, AppError>
 where
     I: IntoIterator<Item = T>,
@@ -499,26 +450,7 @@ where
     }
     let cli = match Cli::try_parse_from(&arguments) {
         Ok(cli) => cli,
-        Err(error) => match error.kind() {
-            clap::error::ErrorKind::DisplayHelp => {
-                let mut help = error.to_string();
-                if let Some(notice) =
-                    crate::core::installation::help_notice(&help_paths(&arguments))
-                {
-                    help.push('\n');
-                    help.push_str(notice);
-                    help.push('\n');
-                }
-                return Ok(Response::Help { help });
-            }
-            // The short version is for a person, like help.
-            clap::error::ErrorKind::DisplayVersion => {
-                return Ok(Response::Help {
-                    help: concat!("mash ", env!("CARGO_PKG_VERSION")).to_owned(),
-                });
-            }
-            _ => return Err(AppError::usage(error.to_string())),
-        },
+        Err(error) => return help::parse_failure(&error, &arguments),
     };
     let long_lived = matches!(
         cli.command,
