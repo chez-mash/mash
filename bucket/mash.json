@@ -1,11 +1,11 @@
 {
     "version": "0.2.0",
     "description": "Search past coding-agent chats from your browser, terminal, or agents",
-    "homepage": "https://github.com/mashium/mash",
+    "homepage": "https://github.com/grep-stack/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/mashium/mash/releases/download/v0.2.0/mash-x86_64-pc-windows-msvc.zip",
+            "url": "https://github.com/grep-stack/mash/releases/download/v0.2.0/mash-x86_64-pc-windows-msvc.zip",
             "hash": "fe9edf9f39bc5da771062ef9dc694b5ab6ea73d13d88ac44ab3f305e92dd0986"
         }
     },
@@ -15,7 +15,7 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/mashium/mash/releases/download/v$version/mash-x86_64-pc-windows-msvc.zip"
+                "url": "https://github.com/grep-stack/mash/releases/download/v$version/mash-x86_64-pc-windows-msvc.zip"
             }
         },
         "hash": {

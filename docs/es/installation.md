@@ -66,7 +66,7 @@ musl quedan fuera de las plataformas compatibles.
 #### macOS o Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh
 ```
 
 Usa el mismo comando en WSL.
@@ -74,7 +74,7 @@ Usa el mismo comando en WSL.
 #### Windows x64
 
 ```powershell
-irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1 | iex
 ```
 
 Ambos scripts comprueban la suma de verificación e instalan Mash en

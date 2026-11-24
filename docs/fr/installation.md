@@ -69,7 +69,7 @@ Alpine et les autres systèmes utilisant musl ne sont pas pris en charge.
 #### macOS ou Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh
 ```
 
 Utilisez la même commande sous WSL.
@@ -77,7 +77,7 @@ Utilisez la même commande sous WSL.
 #### Windows x64
 
 ```powershell
-irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1 | iex
 ```
 
 Les deux scripts vérifient la somme de contrôle et installent Mash dans

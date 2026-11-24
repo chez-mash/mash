@@ -1,6 +1,6 @@
 #!/bin/sh
 # Install the latest Mash release binary:
-#   curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh
 # Add `-s -- --dashboard` after `sh` for browser setup, or `-s -- --setup` for terminal setup.
 set -eu
 
@@ -41,7 +41,7 @@ if [ "$mode" = init ]; then
   fi
 fi
 
-repository=mashium/mash
+repository=grep-stack/mash
 directory=${MASH_INSTALL_DIR:-$HOME/.local/bin}
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64) target=x86_64-unknown-linux-gnu ;;

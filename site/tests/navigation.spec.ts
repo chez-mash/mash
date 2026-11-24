@@ -14,11 +14,11 @@ test("the home page leads to troubleshooting and the right GitHub report forms",
   await expect(page).toHaveURL(/\/troubleshooting\/#get-help$/);
   await expect(guide.getByRole("link", { name: "Open a bug report" })).toHaveAttribute(
     "href",
-    "https://github.com/mashium/mash/issues/new?template=bug_report.yml",
+    "https://github.com/grep-stack/mash/issues/new?template=bug_report.yml",
   );
   await expect(
     guide.getByRole("link", { name: "GitHub’s private reporting form" }),
-  ).toHaveAttribute("href", "https://github.com/mashium/mash/security/advisories/new");
+  ).toHaveAttribute("href", "https://github.com/grep-stack/mash/security/advisories/new");
 });
 
 test("visitors can check which histories Mash reads and which agents it connects", async ({
@@ -146,7 +146,7 @@ test("the release check bookmark leads to the right archives and checksum steps"
   const archives = await guide
     .locator("table tbody a")
     .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-  const base = "https://github.com/mashium/mash/releases/latest/download/";
+  const base = "https://github.com/grep-stack/mash/releases/latest/download/";
   expect(archives).toEqual(
     [
       "mash-desktop-macos-arm64.dmg",

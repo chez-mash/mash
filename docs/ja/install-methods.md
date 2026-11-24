@@ -13,17 +13,17 @@
 ブラウザーで使うダッシュボード、端末での検索、接続したエージェントが使うツールが含まれます。
 ローカル検索サービスを起動したら、[ブラウザーでセットアップを完了できます](installation.md#set-up-in-your-browser)。
 インストールの前に、[公開済みのダウンロード](downloads.md)や、
-[各リリースで検証に通ったインストーラー](https://github.com/mashium/mash/actions/workflows/release-check.yml)を確認できます。
+[各リリースで検証に通ったインストーラー](https://github.com/grep-stack/mash/actions/workflows/release-check.yml)を確認できます。
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew（macOS または Linux）
 
-Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[Mashium の Homebrew フォーミュラ](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
+Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[Mashium の Homebrew フォーミュラ](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
 下のようにリポジトリを含めた名前を指定すると、Homebrew が使用するリポジトリを特定でき、[tap の信頼設定（英語）](https://docs.brew.sh/Tap-Trust)の対象をこのフォーミュラに絞れます。
 
 ```sh
-brew install mashium/tap/mash
+brew install grep-stack/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -50,21 +50,21 @@ Debian と Ubuntu には別の `mash` パッケージがあるため、Mash の�
 ### Scoop（Windows）
 
 Windows x64 で Scoop をインストールしたら、PowerShell を開き、Mashium の bucket を追加して、
-[Mash パッケージ](https://github.com/mashium/mash/blob/main/bucket/mash.json)をインストールします。
+[Mash パッケージ](https://github.com/grep-stack/mash/blob/main/bucket/mash.json)をインストールします。
 マニフェストには、Windows 用アーカイブとその SHA-256 ハッシュが記載されています。
 
 ```powershell
-scoop bucket add mashium https://github.com/mashium/mash
-scoop install mashium/mash
+scoop bucket add grep-stack https://github.com/grep-stack/mash
+scoop install grep-stack/mash
 ```
 
 ### mise
 
 mise をインストール済みなら、GitHub バックエンドを使って
-[Mashium のリリースアーカイブ](https://github.com/mashium/mash/releases)からインストールできます。
+[Mashium のリリースアーカイブ](https://github.com/grep-stack/mash/releases)からインストールできます。
 
 ```sh
-mise use -g github:mashium/mash
+mise use -g github:grep-stack/mash
 ```
 
 ### cargo-binstall
@@ -72,7 +72,7 @@ mise use -g github:mashium/mash
 cargo-binstall をインストール済みなら、GitHub のプロジェクトを指定して Mashium のリリースアーカイブを選びます。
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash
 ```
 
 お使いの環境向けのリリースアーカイブがなければ、[ソースからビルドする](#build-from-source)手順をご覧ください。
@@ -93,7 +93,7 @@ Mash をコンパイルする前に、ダッシュボードの Web ファイル�
 Git、[Node.js 24 以降（英語）](https://nodejs.org/en/download)、安定版の Rust ツールチェーンを用意し、端末で次のコマンドを実行します。
 
 ```sh
-git clone https://github.com/mashium/mash.git
+git clone https://github.com/grep-stack/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -112,7 +112,7 @@ cargo +stable install --locked --path .
 ブラウザーで使うダッシュボードも必要なら、上のビルド手順を使ってください。
 
 ```sh
-cargo +stable install --locked --git https://github.com/mashium/mash mash
+cargo +stable install --locked --git https://github.com/grep-stack/mash mash
 mash --version
 ```
 

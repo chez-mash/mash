@@ -13,17 +13,17 @@ Les paquets ci-dessous utilisent les versions précompilées de Mash. Ils inclue
 le tableau de bord, la recherche dans le terminal et les outils utilisables par un
 agent connecté. Une fois la recherche locale démarrée, vous pouvez [terminer la configuration dans le navigateur](installation.md#set-up-in-your-browser).
 Avant l’installation, vous pouvez [vérifier les téléchargements publiés](downloads.md)
-et [voir quels programmes d’installation ont passé les vérifications de chaque version](https://github.com/mashium/mash/actions/workflows/release-check.yml).
+et [voir quels programmes d’installation ont passé les vérifications de chaque version](https://github.com/grep-stack/mash/actions/workflows/release-check.yml).
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew sous macOS ou Linux
 
 Sous macOS sur une puce Apple ou sous Linux sur x86-64 ou ARM64, installez Mash avec la
-[formule Homebrew de Mashium](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb). Le nom complet indique à Homebrew quel dépôt utiliser et désigne la formule pour les [règles de confiance des taps Homebrew](https://docs.brew.sh/Tap-Trust).
+[formule Homebrew de Mashium](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb). Le nom complet indique à Homebrew quel dépôt utiliser et désigne la formule pour les [règles de confiance des taps Homebrew](https://docs.brew.sh/Tap-Trust).
 
 ```sh
-brew install mashium/tap/mash
+brew install grep-stack/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -49,20 +49,20 @@ Le paquet s’appelle `mash-cli` car Debian et Ubuntu proposent déjà un autre 
 ### Scoop sous Windows
 
 Sous Windows x64, une fois Scoop installé, ouvrez PowerShell, ajoutez le dépôt de Mashium et installez son
-[paquet Mash](https://github.com/mashium/mash/blob/main/bucket/mash.json). Le manifeste indique l’archive Windows et son empreinte SHA-256.
+[paquet Mash](https://github.com/grep-stack/mash/blob/main/bucket/mash.json). Le manifeste indique l’archive Windows et son empreinte SHA-256.
 
 ```powershell
-scoop bucket add mashium https://github.com/mashium/mash
-scoop install mashium/mash
+scoop bucket add grep-stack https://github.com/grep-stack/mash
+scoop install grep-stack/mash
 ```
 
 ### mise
 
 Une fois mise installé, utilisez son intégration GitHub pour installer Mash à partir des
-[archives des versions de Mashium](https://github.com/mashium/mash/releases).
+[archives des versions de Mashium](https://github.com/grep-stack/mash/releases).
 
 ```sh
-mise use -g github:mashium/mash
+mise use -g github:grep-stack/mash
 ```
 
 ### cargo-binstall
@@ -70,7 +70,7 @@ mise use -g github:mashium/mash
 Une fois cargo-binstall installé, indiquez le projet GitHub pour utiliser l’archive publiée par Mashium.
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash
 ```
 
 Si aucune archive n’est disponible pour votre plateforme, consultez la
@@ -92,7 +92,7 @@ Avec Git, [Node.js 24 ou supérieur](https://nodejs.org/en/download) et une vers
 Rust, exécutez ces commandes dans un terminal.
 
 ```sh
-git clone https://github.com/mashium/mash.git
+git clone https://github.com/grep-stack/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -109,7 +109,7 @@ et ouvrez l’adresse affichée.
 Cette commande compile la recherche dans le terminal et les outils utilisables par un agent connecté. Pour inclure le tableau de bord, suivez les étapes de compilation ci-dessus.
 
 ```sh
-cargo +stable install --locked --git https://github.com/mashium/mash mash
+cargo +stable install --locked --git https://github.com/grep-stack/mash mash
 mash --version
 ```
 

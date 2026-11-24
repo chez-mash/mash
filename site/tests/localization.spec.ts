@@ -282,7 +282,7 @@ for (const [locale, lang] of [
     await expect(guide.getByText("sudo apt remove mash-cli", { exact: true })).toBeVisible();
     await expect(guide.getByText("mash --version", { exact: true })).toBeVisible();
     await expect(guide.getByText("MASH_VERSION", { exact: true })).toBeVisible();
-    await expect(guide.locator('a[href="https://github.com/mashium/mash/releases"]')).toBeVisible();
+    await expect(guide.locator('a[href="https://github.com/grep-stack/mash/releases"]')).toBeVisible();
     await guide.locator(`a[href="${locale}/downloads/#verify-the-checksum"]`).click();
     await expect(page).toHaveURL(`${locale}/downloads/#verify-the-checksum`);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
@@ -308,7 +308,7 @@ for (const [locale, lang, title] of [
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
     await expect(guide.locator("#install-with-a-package-manager")).toBeAttached();
     await expect(
-      guide.locator("pre").filter({ hasText: /^brew install mashium\/tap\/mash$/ }),
+      guide.locator("pre").filter({ hasText: /^brew install grep-stack\/tap\/mash$/ }),
     ).toBeVisible();
     await expect(
       guide.locator("pre").filter({ hasText: "sudo apt install mash-cli" }),
@@ -510,7 +510,7 @@ for (const [locale, lang, title, help] of [
     await expect(guide.locator("#get-help")).toBeAttached();
     await expect(guide.getByRole("heading", { name: help, exact: true })).toBeVisible();
     await expect(
-      guide.locator('a[href="https://github.com/mashium/mash/security/advisories/new"]'),
+      guide.locator('a[href="https://github.com/grep-stack/mash/security/advisories/new"]'),
     ).toBeVisible();
 
     await page.goto(`/${locale}/dashboard/#find-and-read-a-chat`);

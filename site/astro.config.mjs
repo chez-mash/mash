@@ -29,7 +29,7 @@ export default defineConfig({
       // The header is the project logo drawn live: the mark, the name and its
       // cursor, in the dark colouring or the light one to suit the theme.
       logo: { src: "./public/mash-mark.svg" },
-      social: [{ icon: "github", label: "GitHub", href: "https://github.com/mashium/mash" }],
+      social: [{ icon: "github", label: "GitHub", href: "https://github.com/grep-stack/mash" }],
       // The fonts are bundled with the site, as they are with the dashboard.
       customCss: [
         "@fontsource/space-grotesk/latin-400.css",

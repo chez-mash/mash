@@ -13,17 +13,17 @@ Los paquetes de esta sección usan las versiones precompiladas de Mash. Incluyen
 panel web, la búsqueda en la terminal y las herramientas que puede usar un agente
 conectado. Cuando la búsqueda local esté en marcha, puedes [terminar la configuración en el navegador](installation.md#set-up-in-your-browser).
 Antes de instalar, puedes [verificar las descargas publicadas](downloads.md)
-y [ver qué instaladores pasaron las comprobaciones de cada versión](https://github.com/mashium/mash/actions/workflows/release-check.yml).
+y [ver qué instaladores pasaron las comprobaciones de cada versión](https://github.com/grep-stack/mash/actions/workflows/release-check.yml).
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew en macOS o Linux
 
 En macOS con Apple silicon o en Linux x86-64 o ARM64, instala Mash con la
-[fórmula de Homebrew de Mashium](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb). El nombre completo indica a Homebrew qué repositorio usar y selecciona esa fórmula para el [sistema de confianza de taps de Homebrew](https://docs.brew.sh/Tap-Trust).
+[fórmula de Homebrew de Mashium](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb). El nombre completo indica a Homebrew qué repositorio usar y selecciona esa fórmula para el [sistema de confianza de taps de Homebrew](https://docs.brew.sh/Tap-Trust).
 
 ```sh
-brew install mashium/tap/mash
+brew install grep-stack/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -49,20 +49,20 @@ El paquete se llama `mash-cli` porque Debian y Ubuntu ya ofrecen otro paquete ll
 ### Scoop en Windows
 
 En Windows x64, con Scoop ya instalado, abre PowerShell, añade el repositorio de Mashium e instala su
-[paquete de Mash](https://github.com/mashium/mash/blob/main/bucket/mash.json). El manifiesto indica el archivo de Windows y su suma SHA-256.
+[paquete de Mash](https://github.com/grep-stack/mash/blob/main/bucket/mash.json). El manifiesto indica el archivo de Windows y su suma SHA-256.
 
 ```powershell
-scoop bucket add mashium https://github.com/mashium/mash
-scoop install mashium/mash
+scoop bucket add grep-stack https://github.com/grep-stack/mash
+scoop install grep-stack/mash
 ```
 
 ### mise
 
 Con mise instalado, usa su integración con GitHub para instalar Mash a partir de los
-[archivos de las versiones de Mashium](https://github.com/mashium/mash/releases).
+[archivos de las versiones de Mashium](https://github.com/grep-stack/mash/releases).
 
 ```sh
-mise use -g github:mashium/mash
+mise use -g github:grep-stack/mash
 ```
 
 ### cargo-binstall
@@ -70,7 +70,7 @@ mise use -g github:mashium/mash
 Con cargo-binstall instalado, indica el proyecto de GitHub para usar el archivo publicado por Mashium.
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash
 ```
 
 Si no hay un archivo para tu plataforma, consulta cómo
@@ -92,7 +92,7 @@ Para incluir el panel, genera sus archivos web antes de compilar Mash. Con Git,
 ejecuta estos comandos en la terminal.
 
 ```sh
-git clone https://github.com/mashium/mash.git
+git clone https://github.com/grep-stack/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -109,7 +109,7 @@ y abre la dirección que muestra.
 Este comando compila la búsqueda en la terminal y las herramientas que puede usar un agente conectado. Para incluir el panel web, sigue los pasos de compilación anteriores.
 
 ```sh
-cargo +stable install --locked --git https://github.com/mashium/mash mash
+cargo +stable install --locked --git https://github.com/grep-stack/mash mash
 mash --version
 ```
 

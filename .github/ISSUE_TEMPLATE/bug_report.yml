@@ -7,7 +7,7 @@ body:
       value: |
         This report is public. Remove private paths, addresses, chat text and
         credentials before sharing output. Use a made-up example if needed.
-        [Report suspected vulnerabilities privately](https://github.com/mashium/mash/security/advisories/new).
+        [Report suspected vulnerabilities privately](https://github.com/grep-stack/mash/security/advisories/new).
   - type: textarea
     id: what
     attributes:

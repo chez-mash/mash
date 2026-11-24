@@ -17,13 +17,13 @@ en el navegador. Necesitas al menos una conversación guardada con un
 En Linux o WSL necesitas una [sesión de usuario de systemd](local-search.md#linux-without-a-systemd-user-session).
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh -s -- --dashboard
+curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 **Windows x64 (PowerShell)**
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1))) -Dashboard
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1))) -Dashboard
 ```
 
 Abre el enlace que te muestra el instalador y deja el terminal abierto.

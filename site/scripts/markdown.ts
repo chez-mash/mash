@@ -59,7 +59,7 @@ export function renderMarkdown(
   const tree = markdown.parse(body);
   rewriteMarkdownUrls(tree, (url) => {
     if (/^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(url)) return url;
-    const target = new URL(url, `https://github.com/mashium/mash/blob/main/${source}`);
+    const target = new URL(url, `https://github.com/grep-stack/mash/blob/main/${source}`);
     const file = path.posix.normalize(
       path.posix.join(path.posix.dirname(source), url.split(/[?#]/)[0] ?? ""),
     );

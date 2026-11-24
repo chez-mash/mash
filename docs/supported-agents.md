@@ -57,9 +57,9 @@ These are the histories Mash has indexed and searched so far.
 - **Recorded history only** means tests use records in the agent's format.
   Verification against an installed copy on that system is still pending.
 
-[Linux CI](https://github.com/mashium/mash/actions/workflows/ci.yml) and
-[Windows CI](https://github.com/mashium/mash/actions/workflows/windows.yml) run
-on pushes. [Apple Silicon build and smoke checks](https://github.com/mashium/mash/actions/workflows/macos-build.yml)
+[Linux CI](https://github.com/grep-stack/mash/actions/workflows/ci.yml) and
+[Windows CI](https://github.com/grep-stack/mash/actions/workflows/windows.yml) run
+on pushes. [Apple Silicon build and smoke checks](https://github.com/grep-stack/mash/actions/workflows/macos-build.yml)
 run on demand. If your chats are missing or look wrong, you can
-[open an issue](https://github.com/mashium/mash/issues) with the agent name,
+[open an issue](https://github.com/grep-stack/mash/issues) with the agent name,
 version, and operating system.

@@ -13,12 +13,12 @@
 
 | コンピューター | ダウンロード |
 | --- | --- |
-| Apple シリコン搭載 Mac | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
-| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
-| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/mashium/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
-| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
+| Apple シリコン搭載 Mac | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
+| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
+| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
+| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
 
-アーカイブと `SHA256SUMS` は同じ [GitHub リリースページ](https://github.com/mashium/mash/releases/latest)から取得してください。
+アーカイブと `SHA256SUMS` は同じ [GitHub リリースページ](https://github.com/grep-stack/mash/releases/latest)から取得してください。
 Linux の動作要件は [対応環境](installation.md#recommended-release-installers)をご覧ください。
 Intel Mac などでは [ソースからビルド](install-methods.md#build-from-source)できます。
 
@@ -85,8 +85,8 @@ Mash が読み込むチャットと期間を確認します。自分で検索す
 
 ## インストーラーを確認する
 
-実行前に [macOS と Linux 用のスクリプト](https://github.com/mashium/mash/blob/main/install.sh)や
-[Windows 用のスクリプト](https://github.com/mashium/mash/blob/main/install.ps1)を確認できます。
+実行前に [macOS と Linux 用のスクリプト](https://github.com/grep-stack/mash/blob/main/install.sh)や
+[Windows 用のスクリプト](https://github.com/grep-stack/mash/blob/main/install.ps1)を確認できます。
 スクリプトはチェックサムを検証し、管理者権限を使わずに Mash をユーザーフォルダーに配置します。
 [セットアップで変わること](installation.md#what-setup-changes)
 
@@ -94,16 +94,16 @@ Mash が読み込むチャットと期間を確認します。自分で検索す
 
 ## ビルドの出所を確認する
 
-[公開リリースワークフロー](https://github.com/mashium/mash/actions/workflows/release.yml)は、
+[公開リリースワークフロー](https://github.com/grep-stack/mash/actions/workflows/release.yml)は、
 対象のコミットで Linux と Windows の CI が通ったことを確認してからアーカイブを作成します。
-[インストール確認の実行結果](https://github.com/mashium/mash/actions/workflows/release-check.yml)では、
+[インストール確認の実行結果](https://github.com/grep-stack/mash/actions/workflows/release-check.yml)では、
 どのインストーラーを実行し、配布バージョンを確認したかを見ることができます。
 
 ビルド証明書が付いたリリースは、GitHub CLI で生成元のワークフローとソースタグを検証できます。
 GitHub CLI にログインし、`ARCHIVE` をダウンロードしたファイルのパスに、`RELEASE_TAG` を先頭の `v` を含むタグに置き換えます。
 
 ```sh
-gh attestation verify "ARCHIVE" --repo mashium/mash --signer-workflow mashium/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+gh attestation verify "ARCHIVE" --repo grep-stack/mash --signer-workflow grep-stack/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
 ```
 
 リリースワークフローでもアーカイブの公開前に証明書を検証します。

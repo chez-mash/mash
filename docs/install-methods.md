@@ -12,17 +12,17 @@ The packages below use Mash's prebuilt releases. They include the browser
 dashboard, terminal search, and the tools a connected agent can use. After
 installing a package, [start the local search service and finish setup](installation.md#start-the-local-search-service).
 Before installing, you can [check the published release downloads](downloads.md)
-and [see which installers passed for each release](https://github.com/mashium/mash/actions/workflows/release-check.yml).
+and [see which installers passed for each release](https://github.com/grep-stack/mash/actions/workflows/release-check.yml).
 
 ### Homebrew, macOS or Linux
 
 On Apple silicon macOS or Linux x86-64 or ARM64, install from
-[Mashium's Homebrew formula](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb).
+[Mashium's Homebrew formula](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb).
 The full name tells Homebrew which repository to use and selects the
 individual formula for [Homebrew's tap trust](https://docs.brew.sh/Tap-Trust).
 
 ```sh
-brew install mashium/tap/mash
+brew install grep-stack/tap/mash
 ```
 
 ### apt, Debian or Ubuntu
@@ -46,21 +46,21 @@ be installed together, and apt offers to remove the other one.
 ### Scoop, Windows
 
 On Windows x64 or ARM64 with Scoop installed, open PowerShell, add Mashium's bucket
-and install its [Mash package](https://github.com/mashium/mash/blob/main/bucket/mash.json).
+and install its [Mash package](https://github.com/grep-stack/mash/blob/main/bucket/mash.json).
 The manifest lists the Windows archive and its SHA-256 hash.
 
 ```powershell
-scoop bucket add mashium https://github.com/mashium/mash
-scoop install mashium/mash
+scoop bucket add grep-stack https://github.com/grep-stack/mash
+scoop install grep-stack/mash
 ```
 
 ### mise
 
 With mise installed, use its GitHub backend to install from the
-[Mashium release archives](https://github.com/mashium/mash/releases).
+[Mashium release archives](https://github.com/grep-stack/mash/releases).
 
 ```sh
-mise use -g github:mashium/mash
+mise use -g github:grep-stack/mash
 ```
 
 ### cargo-binstall
@@ -69,7 +69,7 @@ With cargo-binstall installed, specify the GitHub project to select Mashium's
 release archive.
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash
 ```
 
 To try a revision that isn't released yet, see
@@ -90,7 +90,7 @@ Git, [Node.js 24+](https://nodejs.org/en/download), and a stable Rust toolchain,
 run these commands in a terminal.
 
 ```sh
-git clone https://github.com/mashium/mash.git
+git clone https://github.com/grep-stack/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -107,7 +107,7 @@ This command builds terminal search and the tools that a connected agent can
 use. For the browser dashboard, follow the build steps above.
 
 ```sh
-cargo +stable install --locked --git https://github.com/mashium/mash mash
+cargo +stable install --locked --git https://github.com/grep-stack/mash mash
 mash --version
 ```
 

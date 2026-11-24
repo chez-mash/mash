@@ -4,7 +4,7 @@
  * without an installer get none, and the button keeps pointing at the
  * downloads page.
  */
-const latest = "https://github.com/mashium/mash/releases/latest/download/";
+const latest = "https://github.com/grep-stack/mash/releases/latest/download/";
 
 export interface Download {
   readonly system: string;

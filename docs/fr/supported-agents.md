@@ -64,12 +64,12 @@ Voici comment l’indexation et la recherche ont été testées pour ces histori
 - **Fichiers de test seuls** signifie que les tests utilisent des données au format
   de l’agent. La vérification sur une véritable installation reste à faire sur ce système.
 
-Les tests [Linux](https://github.com/mashium/mash/actions/workflows/ci.yml) et
-[Windows](https://github.com/mashium/mash/actions/workflows/windows.yml) sont
+Les tests [Linux](https://github.com/grep-stack/mash/actions/workflows/ci.yml) et
+[Windows](https://github.com/grep-stack/mash/actions/workflows/windows.yml) sont
 exécutés à chaque envoi de changements. Les
-[vérifications de compilation et de démarrage sur les Mac à puce Apple](https://github.com/mashium/mash/actions/workflows/macos-build.yml)
+[vérifications de compilation et de démarrage sur les Mac à puce Apple](https://github.com/grep-stack/mash/actions/workflows/macos-build.yml)
 sont lancées à la demande. Si certaines conversations manquent ou s’affichent
-mal, vous pouvez [signaler le problème](https://github.com/mashium/mash/issues)
+mal, vous pouvez [signaler le problème](https://github.com/grep-stack/mash/issues)
 en indiquant le nom de l’agent, sa version et le système d’exploitation.
 
 <!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

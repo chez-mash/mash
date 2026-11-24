@@ -90,7 +90,7 @@ agents, and remove the program as in
    Set `MASH_VERSION` to its tag, such as `v0.2.0`, before running the
    [basic installer](installation.md#recommended-release-installers).
    To install from an archive, open that tag on
-   [GitHub Releases](https://github.com/mashium/mash/releases) and download
+   [GitHub Releases](https://github.com/grep-stack/mash/releases) and download
    the archive for your system and `SHA256SUMS` from that release.
    [Verify the archive](downloads.md#verify-the-checksum) before extracting it.
    To install a newer release, follow the

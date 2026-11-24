@@ -30,21 +30,21 @@ marketplace, use the second command.
 #### Claude Code
 
 ```sh
-claude plugin marketplace add mashium/mash
+claude plugin marketplace add grep-stack/mash
 claude plugin install mash@mash
 ```
 
 #### Codex
 
 ```sh
-codex plugin marketplace add mashium/mash
+codex plugin marketplace add grep-stack/mash
 codex plugin add mash@mash
 ```
 
 #### Install in GitHub Copilot CLI
 
 ```sh
-copilot plugin marketplace add mashium/mash
+copilot plugin marketplace add grep-stack/mash
 copilot plugin install mash@mash
 ```
 

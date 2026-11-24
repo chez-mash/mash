@@ -404,7 +404,7 @@ fn installation_claude_directory_marketplace_is_inspected_in_place() {
     assert_ne!(
         known(
             "directory",
-            serde_json::json!({"source":"github","repo":"mashium/mash"})
+            serde_json::json!({"source":"github","repo":"grep-stack/mash"})
         ),
         0
     );
@@ -603,7 +603,7 @@ fn installation_mcp_without_the_plugin_is_mcp_only_with_the_plugin_commands() {
     );
     assert!(
         action.contains(
-            "claude plugin marketplace add mashium/mash && claude plugin install mash@mash"
+            "claude plugin marketplace add grep-stack/mash && claude plugin install mash@mash"
         ),
         "{action}"
     );
@@ -629,7 +629,7 @@ fn write_copilot_settings(environment: &Environment, plugin: &Path, enabled: boo
                 "marketplace": "mash",
                 "version": expected_stamp().plugin_version,
                 "cache_path": plugin,
-                "installed_source": {"source": "github", "repo": "mashium/mash"},
+                "installed_source": {"source": "github", "repo": "grep-stack/mash"},
                 "enabled": enabled
             }
         ]
@@ -761,7 +761,7 @@ fn installation_copilot_without_the_plugin_is_mcp_only_with_its_plugin_commands(
     let action = summary.next_action.as_deref().unwrap();
     assert!(
         action.contains(
-            "copilot plugin marketplace add mashium/mash && copilot plugin install mash@mash"
+            "copilot plugin marketplace add grep-stack/mash && copilot plugin install mash@mash"
         ),
         "{action}"
     );

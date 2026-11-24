@@ -441,9 +441,9 @@ jobs:
             printf '%s\n' "$TAP_KEY" > "$RUNNER_TEMP/tap-ssh/key"
             chmod 600 "$RUNNER_TEMP/tap-ssh/key"
             export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/tap-ssh/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-            remote=git@github.com:mashium/homebrew-tap.git
+            remote=git@github.com:grep-stack/homebrew-tap.git
           elif [ -n "$TAP_TOKEN" ]; then
-            remote="https://x-access-token:${TAP_TOKEN}@github.com/mashium/homebrew-tap.git"
+            remote="https://x-access-token:${TAP_TOKEN}@github.com/grep-stack/homebrew-tap.git"
           else
             echo "Neither HOMEBREW_TAP_DEPLOY_KEY nor HOMEBREW_TAP_TOKEN is set; skipping the tap update."
             exit 0

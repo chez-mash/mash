@@ -9,17 +9,17 @@
 
 以下软件包使用 Mash 的预编译版本，包含网页面板、终端搜索，以及已连接的代理可使用的工具。
 本地搜索服务启动后，可以[在浏览器中完成设置](installation.md#set-up-in-your-browser)。安装前，你可以[校验已发布的下载文件](downloads.md)，
-也可以[查看每个版本有哪些安装方式通过了检查](https://github.com/mashium/mash/actions/workflows/release-check.yml)。
+也可以[查看每个版本有哪些安装方式通过了检查](https://github.com/grep-stack/mash/actions/workflows/release-check.yml)。
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew，适用于 macOS 或 Linux
 
 在搭载 Apple 芯片的 macOS 或 x86-64、ARM64 架构的 Linux 上，请使用
-[Mashium 的 Homebrew 配方](https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb)安装。完整名称告诉 Homebrew 使用哪个仓库，也让 [Homebrew 的 tap 信任机制](https://docs.brew.sh/Tap-Trust)只针对这个配方。
+[Mashium 的 Homebrew 配方](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)安装。完整名称告诉 Homebrew 使用哪个仓库，也让 [Homebrew 的 tap 信任机制](https://docs.brew.sh/Tap-Trust)只针对这个配方。
 
 ```sh
-brew install mashium/tap/mash
+brew install grep-stack/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -45,20 +45,20 @@ sudo apt update && sudo apt install mash-cli
 ### Scoop，适用于 Windows
 
 在 Windows x64 上安装 Scoop 后，打开 PowerShell，添加 Mashium 的软件包仓库，再安装
-[Mash 软件包](https://github.com/mashium/mash/blob/main/bucket/mash.json)。清单列出了 Windows 压缩包及其 SHA-256 哈希值。
+[Mash 软件包](https://github.com/grep-stack/mash/blob/main/bucket/mash.json)。清单列出了 Windows 压缩包及其 SHA-256 哈希值。
 
 ```powershell
-scoop bucket add mashium https://github.com/mashium/mash
-scoop install mashium/mash
+scoop bucket add grep-stack https://github.com/grep-stack/mash
+scoop install grep-stack/mash
 ```
 
 ### mise
 
 安装 mise 后，可以通过它的 GitHub 后端从
-[Mashium 的发布压缩包](https://github.com/mashium/mash/releases)安装 Mash。
+[Mashium 的发布压缩包](https://github.com/grep-stack/mash/releases)安装 Mash。
 
 ```sh
-mise use -g github:mashium/mash
+mise use -g github:grep-stack/mash
 ```
 
 ### cargo-binstall
@@ -66,7 +66,7 @@ mise use -g github:mashium/mash
 安装 cargo-binstall 后，指定 GitHub 项目即可使用 Mashium 的发布压缩包。
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash
 ```
 
 如果你的平台没有发布压缩包，请参阅
@@ -88,7 +88,7 @@ cargo binstall --strategies crate-meta-data --git https://github.com/mashium/mas
 和稳定版 Rust 工具链后，在终端中运行以下命令。
 
 ```sh
-git clone https://github.com/mashium/mash.git
+git clone https://github.com/grep-stack/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -105,7 +105,7 @@ cargo +stable install --locked --path .
 以下命令会构建终端搜索，以及已连接的代理可使用的工具。要在浏览器中搜索，请按上面的步骤构建。
 
 ```sh
-cargo +stable install --locked --git https://github.com/mashium/mash mash
+cargo +stable install --locked --git https://github.com/grep-stack/mash mash
 mash --version
 ```
 

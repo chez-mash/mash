@@ -74,7 +74,7 @@ test("the hero leads with the app download, beside its other actions", async ({ 
   await expect(download).toHaveText(/Download for (Linux|macOS|Windows)/);
   await expect(download).toHaveAttribute(
     "href",
-    /^https:\/\/github\.com\/mashium\/mash\/releases\/latest\/download\/mash-desktop-/,
+    /^https:\/\/github\.com\/grep-stack\/mash\/releases\/latest\/download\/mash-desktop-/,
   );
   await expect(page.locator(".mash-install")).toHaveCount(0);
   // One quiet link for every other system; terminal installs live in the docs.
@@ -127,7 +127,7 @@ test("a Homebrew visitor can review the package source and see what to do next",
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByRole("link", { name: "Mashium’s Homebrew formula" })).toHaveAttribute(
     "href",
-    "https://github.com/mashium/homebrew-tap/blob/main/Formula/mash.rb",
+    "https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb",
   );
   await expect(
     page.getByRole("link", { name: "see which installers passed for each release" }),

@@ -19,7 +19,7 @@ pub use join::join_plan;
 pub(super) use join::preflight_with_join;
 
 /// The plugin marketplace that `init` adds to agents unless told otherwise.
-pub const MARKETPLACE: &str = "mashium/mash";
+pub const MARKETPLACE: &str = "grep-stack/mash";
 
 #[derive(Debug, Clone)]
 pub struct InitRequest {

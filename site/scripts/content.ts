@@ -84,7 +84,7 @@ for (const [source, route] of routes) {
   const filename = source.endsWith("/index.md") ? `${route.slice(1)}index` : route.slice(1, -1);
   // The guides directory is a page of cards across the full width.
   const template = page === "guides" ? "template: splash\n" : "";
-  const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/mashium/mash/edit/main/${source}`)}\n${template}---\n`;
+  const frontmatter = `---\ntitle: ${JSON.stringify(title)}\neditUrl: ${JSON.stringify(`https://github.com/grep-stack/mash/edit/main/${source}`)}\n${template}---\n`;
   const locale = route.split("/")[1];
   const layout = {
     page: page ?? "",

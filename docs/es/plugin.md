@@ -26,14 +26,14 @@ Ejecuta los dos comandos de terminal para tu agente. Si ya añadiste el catálog
 #### Claude Code
 
 ```sh
-claude plugin marketplace add mashium/mash
+claude plugin marketplace add grep-stack/mash
 claude plugin install mash@mash
 ```
 
 #### Codex
 
 ```sh
-codex plugin marketplace add mashium/mash
+codex plugin marketplace add grep-stack/mash
 codex plugin add mash@mash
 ```
 
@@ -42,7 +42,7 @@ codex plugin add mash@mash
 #### Instala el complemento en GitHub Copilot CLI
 
 ```sh
-copilot plugin marketplace add mashium/mash
+copilot plugin marketplace add grep-stack/mash
 copilot plugin install mash@mash
 ```
 

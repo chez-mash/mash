@@ -4,7 +4,7 @@ version.workspace = true
 edition = "2024"
 description = "Multi-Agent Search History for local agent conversations"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/mashium/mash"
+repository = "https://github.com/grep-stack/mash"
 # "mash" on crates.io is another crate; this one is installed from its releases.
 publish = false
 default-run = "mash"
@@ -13,7 +13,7 @@ autotests = false
 autoexamples = false
 autobenches = false
 
-# `cargo binstall --git https://github.com/mashium/mash mash` downloads the
+# `cargo binstall --git https://github.com/grep-stack/mash mash` downloads the
 # release archive instead of compiling ("mash" on crates.io is another crate).
 [package.metadata.binstall]
 pkg-url = "{ repo }/releases/download/v{ version }/mash-{ target }{ archive-suffix }"

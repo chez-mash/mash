@@ -139,7 +139,7 @@ and Intel Macs, aren’t supported.
 #### macOS or Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mashium/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh
 ```
 
 WSL uses this command too.
@@ -147,7 +147,7 @@ WSL uses this command too.
 #### Windows
 
 ```powershell
-irm https://raw.githubusercontent.com/mashium/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1 | iex
 ```
 
 Both scripts check the release checksum, install to `.local/bin` in your home

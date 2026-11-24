@@ -82,7 +82,7 @@ Mash のプログラム本体を削除する前に `mash --version` を実行し
 
 1. 同じコンピューターで同じユーザーアカウントを使い、控えておいたバージョンの Mash をインストールします。
    [リリースのインストーラー](installation.md#recommended-release-installers)を実行する前に、`MASH_VERSION` に `v0.1.1-alpha` などのリリースタグを指定します。
-   アーカイブからインストールする場合は、[GitHub リリース](https://github.com/mashium/mash/releases)で控えておいたタグを開き、同じリリースからお使いの環境向けのアーカイブと `SHA256SUMS` をダウンロードしてください。
+   アーカイブからインストールする場合は、[GitHub リリース](https://github.com/grep-stack/mash/releases)で控えておいたタグを開き、同じリリースからお使いの環境向けのアーカイブと `SHA256SUMS` をダウンロードしてください。
    展開する前に、[アーカイブのチェックサムを確認](downloads.md#verify-the-checksum)します。
    より新しいバージョンを入れる場合は、[アップグレードガイド（英語）](../upgrades.md#upgrade-an-existing-installation)に従ってください。
 2. Mash が検索サービスをインストールしていた場合は、`mash qdrant install` を実行してサービスを入れ直します。以前の検索データが再利用されます。

@@ -40,7 +40,7 @@ const messages = [
     new_string: "const limit = 20;\nexport { limit };",
   }),
   result("edit", 4, "The file was updated."),
-  call("json", 5, "Bash", { command: "gh api repos/mashium/mash" }),
+  call("json", 5, "Bash", { command: "gh api repos/grep-stack/mash" }),
   result("json", 6, '{"name": "mash"}\n{"name": "mash-dash"}'),
   call("log", 7, "Bash", { command: "cargo test -p mash-dash" }),
   result("log", 8, "running 3 tests\ntest live::a ... ok\ntest result: ok. 3 passed"),

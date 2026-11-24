@@ -60,7 +60,7 @@ try {
     Assert-Equal ($output -contains 'The setup wizard lets you choose which coding agents can search your chats.') $true 'optional agent connections'
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'fresh install'
     Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'mash-server.exe') -Raw) 'new server' 'server install'
-    Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/download/v0.8.0/mash-x86_64-pc-windows-msvc.zip' 'pinned release URL'
+    Assert-Equal $script:requests[0] 'https://github.com/grep-stack/mash/releases/download/v0.8.0/mash-x86_64-pc-windows-msvc.zip' 'pinned release URL'
 
     Set-Content -LiteralPath $installed -Value 'previous binary' -NoNewline
     Set-Content -LiteralPath $checksums -Value (('0' * 64) + '  mash-x86_64-pc-windows-msvc.zip')
@@ -81,7 +81,7 @@ try {
     $script:requests = @()
     Install-Mash -Directory $destination -Version ''
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'replacement install'
-    Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip' 'latest release URL'
+    Assert-Equal $script:requests[0] 'https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip' 'latest release URL'
     Assert-Equal @(Get-ChildItem -LiteralPath $destination -Force -Filter '.mash-incoming-*').Count 0 'staging cleanup'
 
     $setupSteps = Join-Path $root 'setup-steps.txt'
@@ -157,7 +157,7 @@ printf 'ran %s\n' "$*"
     # The fixture checksums name only the x64 archive, so the ARM64 install
     # stops at verification, after asking for its own archive.
     Assert-Fails { Install-Mash -Directory $destination } 'exactly one entry'
-    Assert-Equal $script:requests[0] 'https://github.com/mashium/mash/releases/latest/download/mash-aarch64-pc-windows-msvc.zip' 'ARM64 archive URL'
+    Assert-Equal $script:requests[0] 'https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-pc-windows-msvc.zip' 'ARM64 archive URL'
     $env:PROCESSOR_ARCHITECTURE = 'x86'
     Assert-Fails { Install-Mash -Directory $destination } 'No prebuilt Mash binary'
     $env:OS = 'Unix'
