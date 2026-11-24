@@ -2122,7 +2122,7 @@ checksum = "fc04a4c58212d57930a24bf47d3fa87485264a3a054e9c10e042eb373573ad3c"
 
 [[package]]
 name = "mash"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "assert_cmd",
  "axum",
@@ -2155,7 +2155,7 @@ dependencies = [
 
 [[package]]
 name = "mash-app"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "async-stream",
  "axum",
@@ -2245,7 +2245,7 @@ dependencies = [
 
 [[package]]
 name = "mash-mcp"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -2299,7 +2299,7 @@ dependencies = [
 
 [[package]]
 name = "mash-search"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "axum",
  "blake3",
@@ -2339,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "mash-server"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aide",
  "assert_cmd",
@@ -2394,7 +2394,7 @@ dependencies = [
 
 [[package]]
 name = "mash-storage"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aho-corasick",
  "base64 0.22.1",
@@ -2420,7 +2420,7 @@ dependencies = [
 
 [[package]]
 name = "mash-sync"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "axum",
  "base64 0.22.1",
