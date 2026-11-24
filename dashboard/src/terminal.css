@@ -1502,10 +1502,12 @@ h1:focus {
   font-size: 12.5px;
   color: var(--text-muted);
 }
-/* What the reader said: a full-width cream card. The message a link led to
-   is butter instead. */
+/* What the reader said: a cream bubble on the right, as wide as its words
+   up to most of the column. The message a link led to is butter instead. */
 .log > .you,
 .log .hitbox > .you {
+  align-self: flex-end;
+  max-width: min(85%, 720px);
   padding: 12px 14px;
   border-radius: var(--radius-7);
   border: var(--border-you);
@@ -1522,7 +1524,6 @@ h1:focus {
 }
 /* Inside the cream bubble everything takes the bubble's ink; code and quotes
    sit on a slightly deeper cream instead of the page's dark fills. */
-.log .you .prose :not(pre) > code,
 .log .you .prose pre {
   background: var(--you-inset);
   color: inherit;
@@ -1958,21 +1959,13 @@ h1:focus {
   color: var(--text-muted);
   font-weight: 400;
 }
+/* Inline code is set apart by its typeface alone: a box around it breaks
+   the line it sits in, most of all where it wraps. */
 .log code {
-  padding: 1px 6px;
-  border: var(--border-fill);
-  border-radius: var(--radius-tile-sm);
-  background: var(--surface-page);
-  font-size: 0.84em;
+  font-size: 0.88em;
   overflow-wrap: anywhere;
 }
-/* Inside a block the block draws the box; the inline chip would paint each
-   line separately. */
 .log pre code {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
   font-size: inherit;
   overflow-wrap: normal;
 }

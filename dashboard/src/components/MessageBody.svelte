@@ -73,9 +73,11 @@ $effect(() => {
 .prose :global(ol) { list-style: decimal; padding-left: 1.5rem; margin-bottom: .8rem; }
 .prose :global(li) { margin: .3rem 0; }
 .prose :global(blockquote) { border-left: 3px solid var(--line-outline); padding-left: 1rem; color: var(--text-muted); }
-.prose :global(pre) { white-space: pre; overflow-x: auto; padding: 12px; background: var(--surface-raised); border-radius: var(--radius-5); font-size: 12px; }
+/* A code block is framed like the page's other panels, so it reads as a block
+   of its own rather than loose text on a lighter patch. */
+.prose :global(pre) { white-space: pre; overflow-x: auto; padding: 12px 14px; border: var(--border-outline); background: var(--surface-raised); border-radius: var(--radius-5); font-size: 12px; scrollbar-width: thin; }
 .prose :global(code) { font-size: 12.5px; }
-.prose :global(:not(pre) > code) { padding: 1px 5px; border-radius: var(--radius-3); background: var(--surface-muted); }
+.prose :global(:not(pre) > code) { padding: 0; border: 0; background: none; }
 .prose :global(p:last-child) { margin-bottom: 0; }
 .prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .prose :global(table) { display: block; overflow-x: auto; border-collapse: collapse; }

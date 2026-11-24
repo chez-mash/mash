@@ -128,11 +128,12 @@
   --mashy-dot: #cfc4ff;
   --mashy-surface: #cfc4ff;
   --mashy-surface-text: #16150f;
-  /* The reader's own messages, set on the mash of the logo. */
-  --you-bg: #efe4cc;
-  --you-text: #16150f;
-  --you-inset: #e4d6b8;
-  --you-rule: #cdbf9f;
+  /* The reader's own messages, on the blue of the logo's tile: light text,
+     with code, buttons and rules a shade deeper or lighter than the blue. */
+  --you-bg: #2f6bc4;
+  --you-text: #fffdf7;
+  --you-inset: #275aa6;
+  --you-rule: #7fa3db;
   --border-you: var(--stroke-outline) solid var(--line-outline);
   /* The demo banner at the top of getmash.io/demo. */
   --banner-bg: #ffd34e;
