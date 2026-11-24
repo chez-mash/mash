@@ -4,7 +4,7 @@ import Server from "@lucide/svelte/icons/server";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { serverViewOptions } from "../lib/serverStatus";
 import { settingsOptions } from "../lib/settings";
-import { lastPublish, machineState, setAdminKey } from "../lib/shared";
+import { machineLine, setAdminKey } from "../lib/shared";
 import JoinShared from "./JoinShared.svelte";
 import ServerAdmin from "./ServerAdmin.svelte";
 import ShareDone from "./ShareDone.svelte";
@@ -52,7 +52,7 @@ async function forgetKey(): Promise<void> {
 {#if view.data}
   {@const data = view.data}
   {#if data.server}
-    <section class="card" aria-label="Shared server" style:margin-top="18px">
+    <section class="card ss" aria-label="Shared server" style:margin-top="18px">
       <h2 class="h2"><Server size={15} aria-hidden="true" />Shared server</h2>
       <dl class="kvs">
         <dt>Address</dt><dd><code class="i">{data.server}</code></dd>
@@ -67,9 +67,10 @@ async function forgetKey(): Promise<void> {
         {#if data.status.restart_needed}<p class="warn" role="status">The server needs a restart before it accepts machines of this group.</p>{/if}
         <ul class="card pad0 list" aria-label="Machines in {data.group_id}">
           {#each data.status.machines as machine (machine.node_id)}
+            {@const line = machineLine(machine, now)}
             <li class="chatrow">
-              <span><strong>{machine.node_id}</strong>{#if machine.node_id === data.node_id} <span class="pill">this machine</span>{/if}</span>
-              <span class="meta">{machineState(machine, now)} · {lastPublish(machine)}</span>
+              <span class="ss-name"><strong>{machine.node_id}</strong>{#if machine.node_id === data.node_id}<span class="pill">this machine</span>{/if}</span>
+              <span class="meta" title={line.title}>{line.text}</span>
             </li>
           {/each}
         </ul>
@@ -107,3 +108,24 @@ async function forgetKey(): Promise<void> {
 {:else if view.error}
   <p class="meta" role="status">The shared server’s state could not be read: {view.error.message}</p>
 {/if}
+
+<style>
+  /* The card's parts sit apart evenly; its buttons keep their own width. */
+  .ss {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ss > :global(*) {
+    margin: 0;
+  }
+  .ss > :global(button) {
+    align-self: flex-start;
+  }
+  .ss-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+</style>

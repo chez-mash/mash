@@ -2408,9 +2408,10 @@ button:disabled {
   flex: none;
 }
 
+/* The mark matches the menu button's height, so the pair reads as one control. */
 #burger img {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
 }
 /* Mashy's link to its settings lands with the section below the top bar. */
 #assistant {

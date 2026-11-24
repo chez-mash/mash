@@ -2,6 +2,7 @@
 // admin key saved on this machine, and joining one with a join string. Join
 // strings and admin keys travel only in request bodies and are never kept in
 // the page beyond the form that holds them.
+import { agoLabel } from "./browse";
 import type { components } from "./contract";
 import { send } from "./transport";
 
@@ -82,6 +83,21 @@ export function machineState(machine: Machine, now: number): string {
 }
 
 /** When a machine last published, in words. */
+/** A machine of the group in one short line: its standing only when it is
+ * unusual, then what it published and how long ago. The exact time goes in
+ * `title`. */
+export function machineLine(machine: Machine, now: number): { text: string; title?: string } {
+  const at = machine.published?.last_synced_at;
+  const usual = machine.state === "configured" || (machine.state === "joined" && at);
+  const parts = usual ? [] : [machineState(machine, now)];
+  if (!at || !machine.published) return { text: [...parts, lastPublish(machine)].join(" · ") };
+  parts.push(
+    `${machine.published.chats.toLocaleString()} chats`,
+    `published ${agoLabel(Date.parse(at), now * 1000)}`,
+  );
+  return { text: parts.join(" · "), title: new Date(at).toLocaleString() };
+}
+
 export function lastPublish(machine: Machine): string {
   const at = machine.published?.last_synced_at;
   if (!at)
