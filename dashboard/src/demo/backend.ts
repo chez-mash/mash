@@ -379,7 +379,7 @@ const reads: { readonly [P in ReadPath]: Read<P> } = {
   "/api/services": (_, now) => ({ machines: [machine(now)] }),
   "/api/services/local": (_, now) => machine(now),
   "/api/services/settings": settings,
-  "/api/pins": () => ({ projects: [], editable: false }), // the demo changes nothing
+  "/api/projects/choices": () => ({ pinned: [], hidden: [], editable: false }), // the demo changes nothing
   "/api/services/setup": firstRun,
   "/api/services/fleet": fleet,
   "/api/services/fleet/jobs": fleetJobs,

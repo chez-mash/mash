@@ -10,6 +10,7 @@ import type { Snippet } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
+import { createProjectChoices } from "../lib/projectChoices.svelte";
 import { catalogOptions } from "../lib/queries";
 import { agentHref, chatHref, machineHref, projectHref, searchHref } from "../lib/route.svelte";
 import { scope } from "../lib/scope.svelte";
@@ -53,6 +54,10 @@ const folded = $derived(
 );
 const group = $derived(groupChats(chats, key)[0]);
 const named = $derived(group ? group.projects.filter(([name]) => name) : []);
+// The list of this page's projects leaves out the ones the reader hid; the
+// count above it still counts them.
+const choices = createProjectChoices();
+const listed = $derived(named.filter(([name]) => !choices.isHidden(name)));
 const latest = $derived(
   chats.reduce<ChatSummary | undefined>(
     (best, chat) => (best && (best.updatedMs ?? 0) >= (chat.updatedMs ?? 0) ? best : chat),
@@ -113,10 +118,10 @@ const now = Date.now();
           </div>
         </section>
       {/if}
-      {#if field !== "project" && named.length}
+      {#if field !== "project" && listed.length}
         <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />projects</h2>
           <div class="card tight tally">
-            {#each named.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+            {#each listed.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}

@@ -146,13 +146,18 @@ see why.
 
 The machines page also shows each machine's system: macOS, Linux or Windows.
 
-### Pin projects
+### Pin and hide projects
 
 On the **projects** page, select the pin on a project to keep it at the top
-of the page and of the rail's project list. Select it again to unpin. Pins are
-saved by the dashboard, so they are the same in every browser you open it in.
-They can be changed on the machine running the dashboard, or on a dashboard
-set up to manage services.
+of the page and of the rail's project list, or the eye to hide it from both
+and from the project lists on agent and machine pages. A hidden project's
+chats stay in search and in every chat list. A button beside the filters
+says how many projects are hidden and brings them back into view, so you can
+show one again. Select the pin or the eye again to undo either choice.
+
+The dashboard saves these choices, so they are the same in every browser you
+open it in. They can be changed on the machine running the dashboard, or on
+a dashboard set up to manage services.
 
 ### Check if local search is ready
 

@@ -30,7 +30,7 @@ mod contract;
 mod hardening;
 mod live;
 mod open_in;
-mod pins;
+mod project_choices;
 mod search;
 mod services;
 mod settings;
@@ -160,7 +160,7 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
         },
         ..Default::default()
     };
-    let router = pins::routes(settings::routes(history_routes(setup::routes(
+    let router = project_choices::routes(settings::routes(history_routes(setup::routes(
         assistant::routes(live::routes(services::routes(shared_server::routes(
             aide::axum::ApiRouter::new(),
         )))),

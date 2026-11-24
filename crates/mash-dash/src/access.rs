@@ -181,7 +181,7 @@ pub(super) fn takes_post(path: &str) -> bool {
             | "/api/services/assistant"
             | "/api/services/setup"
             | "/api/assistant"
-            | "/api/pins"
+            | "/api/projects/choices"
             | "/api/shared/join"
             | "/api/shared/admin/key"
             | "/api/shared/admin/change"

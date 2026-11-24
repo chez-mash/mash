@@ -1432,6 +1432,28 @@
         ],
         "type": "object"
       },
+      "Choices": {
+        "description": "The pinned and hidden projects, each in the order the reader chose them.",
+        "properties": {
+          "hidden": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "pinned": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "pinned",
+          "hidden"
+        ],
+        "type": "object"
+      },
       "ClientSummary": {
         "properties": {
           "agent": {
@@ -4357,41 +4379,6 @@
         ],
         "type": "string"
       },
-      "PinChange": {
-        "description": "A new list of pinned projects, replacing the old one.",
-        "properties": {
-          "projects": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "projects"
-        ],
-        "type": "object"
-      },
-      "Pins": {
-        "description": "The pinned projects, in the order the reader pinned them.",
-        "properties": {
-          "editable": {
-            "default": false,
-            "description": "Whether this dashboard accepts a change to them.",
-            "type": "boolean"
-          },
-          "projects": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "projects"
-        ],
-        "type": "object"
-      },
       "Policy": {
         "additionalProperties": false,
         "properties": {
@@ -4435,6 +4422,32 @@
         },
         "required": [
           "progress"
+        ],
+        "type": "object"
+      },
+      "ProjectChoices": {
+        "description": "The choices, and whether this dashboard accepts a change to them.",
+        "properties": {
+          "editable": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "pinned": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "pinned",
+          "hidden",
+          "editable"
         ],
         "type": "object"
       },
@@ -8056,19 +8069,19 @@
         "summary": "The link that opens a chat of this machine in its agent's desktop app, if any."
       }
     },
-    "/api/pins": {
+    "/api/projects/choices": {
       "get": {
-        "operationId": "getApiPins",
+        "operationId": "getApiProjectsChoices",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pins"
+                  "$ref": "#/components/schemas/ProjectChoices"
                 }
               }
             },
-            "description": "The pinned projects, in the order the reader pinned them."
+            "description": "The choices, and whether this dashboard accepts a change to them."
           },
           "default": {
             "content": {
@@ -8081,19 +8094,19 @@
             "description": "What a failed request answers with, whatever the route."
           }
         },
-        "summary": "The projects pinned on this dashboard."
+        "summary": "The projects pinned and hidden on this dashboard."
       },
       "post": {
-        "operationId": "postApiPins",
+        "operationId": "postApiProjectsChoices",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PinChange"
+                "$ref": "#/components/schemas/Choices"
               }
             }
           },
-          "description": "A new list of pinned projects, replacing the old one.",
+          "description": "The pinned and hidden projects, each in the order the reader chose them.",
           "required": true
         },
         "responses": {
@@ -8101,11 +8114,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pins"
+                  "$ref": "#/components/schemas/ProjectChoices"
                 }
               }
             },
-            "description": "The pinned projects, in the order the reader pinned them."
+            "description": "The choices, and whether this dashboard accepts a change to them."
           },
           "400": {
             "content": {
@@ -8148,7 +8161,7 @@
             "description": "What a failed request answers with, whatever the route."
           }
         },
-        "summary": "Replace the pinned projects."
+        "summary": "Replace the pinned and hidden projects."
       }
     },
     "/api/record": {

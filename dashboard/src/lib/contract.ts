@@ -175,18 +175,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/pins": {
+    "/api/projects/choices": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** The projects pinned on this dashboard. */
-        get: operations["getApiPins"];
+        /** The projects pinned and hidden on this dashboard. */
+        get: operations["getApiProjectsChoices"];
         put?: never;
-        /** Replace the pinned projects. */
-        post: operations["postApiPins"];
+        /** Replace the pinned and hidden projects. */
+        post: operations["postApiProjectsChoices"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1094,6 +1094,11 @@ export interface components {
             published?: components["schemas"]["Published2"] | null;
             status: components["schemas"]["JoinStatus"];
         };
+        /** @description The pinned and hidden projects, each in the order the reader chose them. */
+        Choices: {
+            hidden: string[];
+            pinned: string[];
+        };
         ClientSummary: {
             agent: components["schemas"]["SetupAgent"];
             /** Format: uint */
@@ -1967,19 +1972,6 @@ export interface components {
         };
         /** @enum {string} */
         Phase: "waiting_for_capacity" | "receiving" | "waiting_for_node" | "checking_views" | "applying_silver" | "finalizing_silver" | "committing_silver" | "writing_views" | "certifying_views" | "optimizing_views" | "checking_search" | "attachment";
-        /** @description A new list of pinned projects, replacing the old one. */
-        PinChange: {
-            projects: string[];
-        };
-        /** @description The pinned projects, in the order the reader pinned them. */
-        Pins: {
-            /**
-             * @description Whether this dashboard accepts a change to them.
-             * @default false
-             */
-            editable: boolean;
-            projects: string[];
-        };
         Policy: {
             /**
              * Format: int64
@@ -1997,6 +1989,12 @@ export interface components {
             progress: number;
             /** Format: double */
             total?: number | null;
+        };
+        /** @description The choices, and whether this dashboard accepts a change to them. */
+        ProjectChoices: {
+            editable: boolean;
+            hidden: string[];
+            pinned: string[];
         };
         /** @description Half-open Unicode-scalar character offsets, not bytes or canonical offsets. */
         ProjectionSpan: {
@@ -3414,7 +3412,7 @@ export interface operations {
             };
         };
     };
-    getApiPins: {
+    getApiProjectsChoices: {
         parameters: {
             query?: never;
             header?: never;
@@ -3423,13 +3421,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The pinned projects, in the order the reader pinned them. */
+            /** @description The choices, and whether this dashboard accepts a change to them. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Pins"];
+                    "application/json": components["schemas"]["ProjectChoices"];
                 };
             };
             /** @description What a failed request answers with, whatever the route. */
@@ -3443,27 +3441,27 @@ export interface operations {
             };
         };
     };
-    postApiPins: {
+    postApiProjectsChoices: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description A new list of pinned projects, replacing the old one. */
+        /** @description The pinned and hidden projects, each in the order the reader chose them. */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PinChange"];
+                "application/json": components["schemas"]["Choices"];
             };
         };
         responses: {
-            /** @description The pinned projects, in the order the reader pinned them. */
+            /** @description The choices, and whether this dashboard accepts a change to them. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Pins"];
+                    "application/json": components["schemas"]["ProjectChoices"];
                 };
             };
             /** @description Failed to parse the request body as JSON */

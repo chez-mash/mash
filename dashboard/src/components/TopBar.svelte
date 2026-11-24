@@ -12,6 +12,7 @@ import { groupChats, projectLabel } from "../lib/browse";
 import { askAfresh } from "../lib/federatedSearch.svelte";
 import { createLiveSearch } from "../lib/liveSearch.svelte";
 import { navigate } from "../lib/navigation";
+import { createProjectChoices } from "../lib/projectChoices.svelte";
 import { searchQueryKey } from "../lib/queries";
 import { chatHref, router, searchHref } from "../lib/route.svelte";
 import { scope } from "../lib/scope.svelte";
@@ -23,6 +24,8 @@ let { railOpen, toggleRail }: { railOpen: boolean; toggleRail: () => void } = $p
 const client = useQueryClient();
 // Suggestions follow the viewing scope, as the results page does.
 const catalogue = createScoped();
+// Projects the reader hid are not suggested.
+const choices = createProjectChoices();
 let text = $state("");
 let focused = $state(false);
 let root: HTMLDivElement;
@@ -74,7 +77,7 @@ const suggestions = $derived.by(() => {
       .filter((group) => has(group.key))
       .map((group) => ({ kind: "machine", value: group.key, label: group.key })),
     ...groupChats(
-      chats.filter((chat) => chat.project),
+      chats.filter((chat) => chat.project && !choices.isHidden(chat.project)),
       (chat) => chat.project,
     )
       .filter((group) => has(projectLabel(group.key)))

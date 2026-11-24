@@ -1,17 +1,19 @@
-// The projects the reader pinned. They are kept by the dashboard, beside its
-// index, so they follow the reader between browsers; see crates/mash-dash's
-// pins.rs. Pinned projects come first wherever projects are listed.
+// The reader's choices about projects: pinned ones come first wherever
+// projects are listed, and hidden ones are left out of those lists. Their
+// chats stay in search and in every chat list. The choices are kept by the
+// dashboard, beside its index, so they follow the reader between browsers;
+// see crates/mash-dash's project_choices.rs.
 import { createQuery, queryOptions, useQueryClient } from "@tanstack/svelte-query";
 import { stableRead } from "./queries";
 import type { Answer } from "./routes";
 import { get, post } from "./services.svelte";
 
-type Pins = Answer<"/api/pins">;
+type Choices = Answer<"/api/projects/choices">;
 
-export const pinsOptions = queryOptions({
+export const projectChoicesOptions = queryOptions({
   ...stableRead,
-  queryKey: ["pins"],
-  queryFn: ({ signal }) => get("/api/pins", signal),
+  queryKey: ["project-choices"],
+  queryFn: ({ signal }) => get("/api/projects/choices", signal),
 });
 
 /** `projects` with the pinned ones first, in the order they were pinned,
@@ -26,46 +28,71 @@ export function pinnedFirst<T extends { readonly key: string }>(
   return [...first, ...rest];
 }
 
+/** `projects` without the hidden ones. */
+export function withoutHidden<T extends { readonly key: string }>(
+  projects: readonly T[],
+  hidden: readonly string[],
+): T[] {
+  return projects.filter((project) => !hidden.includes(project.key));
+}
+
 /** The sidebar's short list: every pinned project, then the most recent
- * others while there is room for `room` in all. */
+ * others that are not hidden, while there is room for `room` in all. */
 export function sidebarProjects<T extends { readonly key: string }>(
   recent: readonly T[],
-  pinned: readonly string[],
+  choices: { readonly pinned: readonly string[]; readonly hidden: readonly string[] },
   room: number,
 ): T[] {
-  const ordered = pinnedFirst(recent, pinned);
-  const pinnedShown = ordered.filter((project) => pinned.includes(project.key)).length;
+  const ordered = pinnedFirst(withoutHidden(recent, choices.hidden), choices.pinned);
+  const pinnedShown = ordered.filter((project) => choices.pinned.includes(project.key)).length;
   return ordered.slice(0, Math.max(room, pinnedShown));
 }
 
-/** The pins, and pinning or unpinning a project. The list changes on screen at
- * once and goes back if the dashboard refuses the change. */
-export function createPins() {
+/** The choices, and pinning or hiding a project. A project is pinned or hidden,
+ * never both: hiding unpins it and pinning shows it again. The lists change on
+ * screen at once and go back if the dashboard refuses the change. */
+export function createProjectChoices() {
   const client = useQueryClient();
-  const pins = createQuery(() => pinsOptions);
-  const list = (): readonly string[] => pins.data?.projects ?? [];
+  const choices = createQuery(() => projectChoicesOptions);
+  const pinned = (): readonly string[] => choices.data?.pinned ?? [];
+  const hidden = (): readonly string[] => choices.data?.hidden ?? [];
+  async function save(next: { pinned: string[]; hidden: string[] }): Promise<void> {
+    const before = choices.data;
+    client.setQueryData<Choices>(["project-choices"], { ...next, editable: true });
+    try {
+      client.setQueryData<Choices>(["project-choices"], await post("/api/projects/choices", next));
+    } catch {
+      client.setQueryData<Choices | undefined>(["project-choices"], before);
+    }
+  }
+  const without = (list: readonly string[], project: string) =>
+    list.filter((key) => key !== project);
   return {
-    get projects(): readonly string[] {
-      return list();
+    get pinned(): readonly string[] {
+      return pinned();
     },
-    /** Whether this dashboard accepts a change to the pins. */
+    get hidden(): readonly string[] {
+      return hidden();
+    },
+    /** Whether this dashboard accepts a change to the choices. */
     get editable(): boolean {
-      return pins.data?.editable ?? false;
+      return choices.data?.editable ?? false;
     },
-    has(project: string): boolean {
-      return list().includes(project);
+    isPinned: (project: string): boolean => pinned().includes(project),
+    isHidden: (project: string): boolean => hidden().includes(project),
+    togglePin(project: string): Promise<void> {
+      return save(
+        pinned().includes(project)
+          ? { pinned: without(pinned(), project), hidden: [...hidden()] }
+          : { pinned: [...pinned(), project], hidden: without(hidden(), project) },
+      );
     },
-    async toggle(project: string): Promise<void> {
-      const before = pins.data;
-      const projects = list().includes(project)
-        ? list().filter((key) => key !== project)
-        : [...list(), project];
-      client.setQueryData<Pins>(["pins"], { projects, editable: true });
-      try {
-        client.setQueryData<Pins>(["pins"], await post("/api/pins", { projects }));
-      } catch {
-        client.setQueryData<Pins | undefined>(["pins"], before);
-      }
+    toggleHidden(project: string): Promise<void> {
+      return save(
+        hidden().includes(project)
+          ? { pinned: [...pinned()], hidden: without(hidden(), project) }
+          : { pinned: without(pinned(), project), hidden: [...hidden(), project] },
+      );
     },
   };
 }

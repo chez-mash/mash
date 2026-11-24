@@ -9,6 +9,8 @@ const view: ProjectView = $state({ find: "", agent: "", machine: "", sort: "rece
 import ArrowDownAZ from "@lucide/svelte/icons/arrow-down-a-z";
 import Bot from "@lucide/svelte/icons/bot";
 import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
+import Eye from "@lucide/svelte/icons/eye";
+import EyeOff from "@lucide/svelte/icons/eye-off";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
@@ -21,7 +23,7 @@ import { isAgent } from "../lib/api";
 import { arrangeProjects, groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { createScoped } from "../lib/scoped.svelte";
 import { scope } from "../lib/scope.svelte";
-import { createPins, pinnedFirst } from "../lib/pins.svelte";
+import { createProjectChoices, pinnedFirst, withoutHidden } from "../lib/projectChoices.svelte";
 import { projectHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
 import EmptyState from "./EmptyState.svelte";
@@ -39,8 +41,16 @@ const projects = $derived(
     (chat) => chat.project,
   ),
 );
-const pins = createPins();
-const shown = $derived(pinnedFirst(arrangeProjects(projects, view), pins.projects));
+const choices = createProjectChoices();
+// Hidden projects stay out of the page until the reader asks to see them.
+let showHidden = $state(false);
+const hiddenHere = $derived(projects.filter((project) => choices.isHidden(project.key)).length);
+const shown = $derived(
+  pinnedFirst(
+    arrangeProjects(showHidden ? projects : withoutHidden(projects, choices.hidden), view),
+    choices.pinned,
+  ),
+);
 const largest = $derived(projects[0]?.chats.length ?? 1);
 const agentChoices = $derived([...new Set(chats.map((chat) => chat.agent))].sort());
 const machineChoices = $derived([...new Set(chats.map((chat) => chat.machine))].sort());
@@ -87,14 +97,16 @@ const now = Date.now();
       {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
       {#snippet optionIcon(value: string)}{#if value === "chats"}<MessagesSquare size={15} aria-hidden="true" />{:else if value === "name"}<ArrowDownAZ size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
+    {#if hiddenHere}<button class="a" type="button" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px" aria-pressed={showHidden} onclick={() => (showHidden = !showHidden)}>{showHidden ? "Leave out hidden" : `Show ${hiddenHere} hidden`}</button>{/if}
     {#if narrowed}<button class="a" type="button" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px" onclick={() => { view.find = ""; view.agent = ""; view.machine = ""; }}>Show all</button>{/if}
   </div>
 {/if}
 {#if projects.length && !shown.length}<EmptyState card>No project matches. Change the name, agent or machine above.</EmptyState>{/if}
 <div class="sums g2">
   {#each shown.slice(0, limit) as project (project.key)}
-    {@const pinned = pins.has(project.key)}
-    <div class="pinned-card">
+    {@const pinned = choices.isPinned(project.key)}
+    {@const hidden = choices.isHidden(project.key)}
+    <div class="pinned-card" class:hidden>
     <a class="card sum" href={projectHref(project.key)} title={project.key}>
       <span class="sum-h"><span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
       <span class="big"><b>{project.chats.length.toLocaleString()}</b><span>chat{project.chats.length === 1 ? "" : "s"}</span></span>
@@ -106,10 +118,13 @@ const now = Date.now();
       </span>
     </a>
     <!-- Beside the link rather than in it: a button cannot sit inside a link. -->
-    {#if pins.editable}
-      <button class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" title={pinned ? "Unpin" : "Pin to the top"} onclick={() => void pins.toggle(project.key)}><Pin size={16} aria-hidden="true" /></button>
+    {#if choices.editable}
+      <span class="acts">
+        {#if !hidden}<button class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" title={pinned ? "Unpin" : "Pin to the top"} onclick={() => void choices.togglePin(project.key)}><Pin size={16} aria-hidden="true" /></button>{/if}
+        <button class="pin" class:on={hidden} type="button" aria-pressed={hidden} aria-label="{hidden ? 'Show' : 'Hide'} {projectLabel(project.key)}" title={hidden ? "Show in project lists again" : "Hide from project lists"} onclick={() => void choices.toggleHidden(project.key)}>{#if hidden}<Eye size={16} aria-hidden="true" />{:else}<EyeOff size={16} aria-hidden="true" />{/if}</button>
+      </span>
     {:else if pinned}
-      <span class="pin on" role="img" aria-label="Pinned" title="Pinned"><Pin size={16} aria-hidden="true" /></span>
+      <span class="acts"><span class="pin on" role="img" aria-label="Pinned" title="Pinned"><Pin size={16} aria-hidden="true" /></span></span>
     {/if}
     </div>
   {/each}
@@ -126,10 +141,18 @@ const now = Date.now();
     flex: 1;
     min-width: 0;
   }
-  .pin {
+  .acts {
     position: absolute;
     top: 14px;
     right: 14px;
+    display: flex;
+    gap: 2px;
+  }
+  /* A hidden project, shown on request, reads as set aside. */
+  .pinned-card.hidden > :global(.card) {
+    opacity: 0.55;
+  }
+  .pin {
     display: grid;
     place-items: center;
     width: 32px;
@@ -150,7 +173,7 @@ const now = Date.now();
   /* With a mouse, an unpinned project's pin waits until the card is pointed
      at or the button is reached by keyboard; a touch screen always shows it. */
   @media (hover: hover) and (pointer: fine) {
-    button.pin:not(.on) {
+    .pinned-card:not(.hidden) button.pin:not(.on) {
       opacity: 0;
     }
     .pinned-card:hover button.pin,
@@ -160,6 +183,6 @@ const now = Date.now();
   }
   /* Room for the pin, so a long name never runs under it. */
   .pinned-card :global(.sum-h) {
-    padding-right: 36px;
+    padding-right: 70px;
   }
 </style>

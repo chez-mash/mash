@@ -876,7 +876,7 @@ async fn settings_are_changed_only_where_the_dashboard_is_private() {
 }
 
 #[tokio::test]
-async fn pins_are_kept_beside_the_index_and_changed_only_where_the_dashboard_is_private() {
+async fn project_choices_are_kept_beside_the_index_and_changed_only_where_private() {
     let directory = tempfile::tempdir().unwrap();
     let paths = crate::core::Paths {
         db: Some(directory.path().join("index.sqlite3")),
@@ -902,8 +902,8 @@ async fn pins_are_kept_beside_the_index_and_changed_only_where_the_dashboard_is_
         addresses.push(address);
     }
     let client = reqwest::Client::new();
-    let private = format!("http://{}/api/pins", addresses[0]);
-    let open = format!("http://{}/api/pins", addresses[1]);
+    let private = format!("http://{}/api/projects/choices", addresses[0]);
+    let open = format!("http://{}/api/projects/choices", addresses[1]);
     let read = |url: String| {
         let client = client.clone();
         async move {
@@ -920,9 +920,9 @@ async fn pins_are_kept_beside_the_index_and_changed_only_where_the_dashboard_is_
     let none = read(private.clone()).await;
     assert_eq!(
         none,
-        serde_json::json!({ "projects": [], "editable": true })
+        serde_json::json!({ "pinned": [], "hidden": [], "editable": true })
     );
-    let pins = serde_json::json!({ "projects": ["/srv/web", "/srv/api", "/srv/web"] });
+    let pins = serde_json::json!({ "pinned": ["/srv/web", "/srv/api", "/srv/web"], "hidden": ["/tmp/scratch"] });
     // Another site cannot change them through the reader's browser.
     let foreign = client
         .post(&private)
@@ -944,25 +944,25 @@ async fn pins_are_kept_beside_the_index_and_changed_only_where_the_dashboard_is_
         .json()
         .await
         .unwrap();
-    assert_eq!(
-        saved["projects"],
-        serde_json::json!(["/srv/web", "/srv/api"])
-    );
+    assert_eq!(saved["pinned"], serde_json::json!(["/srv/web", "/srv/api"]));
+    assert_eq!(saved["hidden"], serde_json::json!(["/tmp/scratch"]));
     // Kept beside the index, and shown, read-only, by the open dashboard.
-    assert!(directory.path().join("dashboard-pins.json").exists());
+    assert!(directory.path().join("dashboard-projects.json").exists());
     let shown = read(open).await;
-    assert_eq!(shown["projects"], saved["projects"]);
+    assert_eq!(shown["pinned"], saved["pinned"]);
+    assert_eq!(shown["hidden"], saved["hidden"]);
     assert_eq!(shown["editable"], false);
     let unpinned: serde_json::Value = client
         .post(&private)
-        .json(&serde_json::json!({ "projects": [] }))
+        .json(&serde_json::json!({ "pinned": [], "hidden": [] }))
         .send()
         .await
         .unwrap()
         .json()
         .await
         .unwrap();
-    assert_eq!(unpinned["projects"], serde_json::json!([]));
+    assert_eq!(unpinned["pinned"], serde_json::json!([]));
+    assert_eq!(unpinned["hidden"], serde_json::json!([]));
 }
 
 #[tokio::test]

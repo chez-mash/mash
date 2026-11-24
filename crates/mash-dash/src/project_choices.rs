@@ -1,14 +1,17 @@
-//! The projects the reader pinned, so the dashboard lists them first.
+//! The reader's choices about projects: which are pinned to the top of the
+//! dashboard's project lists, and which are hidden from them.
 //!
-//! Pins belong to the dashboard, not to a browser: they are kept in a small
-//! file beside the index this dashboard reads, so they follow the reader from
-//! a laptop to a phone. Like the settings, they can be changed on the machine
-//! itself, or from a dashboard started with a services configuration and
-//! therefore behind its access token; anyone else who can open the dashboard
-//! sees them but cannot change them.
+//! The choices belong to the dashboard, not to a browser: they are kept in a
+//! small file beside the index this dashboard reads, so they follow the reader
+//! from a laptop to a phone. Like the settings, they can be changed on the
+//! machine itself, or from a dashboard started with a services configuration
+//! and therefore behind its access token; anyone else who can open the
+//! dashboard sees them but cannot change them.
 //!
-//! The file is replaced whole through a temporary file, so a reader never sees
-//! half of it, and is readable only by the user. A missing file is no pins.
+//! Hiding a project only takes it out of the lists of projects; its chats stay
+//! in search and in every chat list. The file is replaced whole through a
+//! temporary file, so a reader never sees half of it, and is readable only by
+//! the user. A missing file is no choices.
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -22,38 +25,40 @@ use serde::{Deserialize, Serialize};
 
 use super::Dash;
 
-/// More pins than this is no longer a short list to look at first.
+const PATH: &str = "/api/projects/choices";
+/// More than this in either list is no longer a short list of exceptions.
 const MOST: usize = 50;
-/// Longer than any project path; a guard against a file that is not pins.
+/// Longer than any project path; a guard against a file that is not choices.
 const LONGEST: usize = 4096;
 
-/// The pinned projects, in the order the reader pinned them.
+/// The pinned and hidden projects, each in the order the reader chose them.
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
-pub(super) struct Pins {
-    pub(super) projects: Vec<String>,
-    /// Whether this dashboard accepts a change to them.
-    #[serde(default)]
-    pub(super) editable: bool,
+pub(super) struct Choices {
+    pub(super) pinned: Vec<String>,
+    pub(super) hidden: Vec<String>,
 }
 
-/// A new list of pinned projects, replacing the old one.
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-pub(super) struct PinChange {
-    pub(super) projects: Vec<String>,
+/// The choices, and whether this dashboard accepts a change to them.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[schemars(rename = "ProjectChoices")]
+pub(super) struct Answer {
+    #[serde(flatten)]
+    choices: Choices,
+    editable: bool,
 }
 
 pub(super) fn routes(router: ApiRouter<Arc<Dash>>) -> ApiRouter<Arc<Dash>> {
     use super::contract::{changes, reads};
     use aide::axum::routing::get_with;
     router.api_route(
-        "/api/pins",
+        PATH,
         get_with(
             read,
-            reads::<Pins>("/api/pins", "The projects pinned on this dashboard."),
+            reads::<Answer>(PATH, "The projects pinned and hidden on this dashboard."),
         )
         .post_with(
             change,
-            changes::<Pins>("/api/pins", "Replace the pinned projects."),
+            changes::<Answer>(PATH, "Replace the pinned and hidden projects."),
         ),
     )
 }
@@ -62,14 +67,14 @@ fn editable(state: &Dash) -> bool {
     state.loopback || state.services.managed()
 }
 
-/// The file the pins live in: beside the index this dashboard reads.
+/// The file the choices live in: beside the index this dashboard reads.
 fn file(state: &Dash) -> PathBuf {
     let database = state
         .paths
         .db
         .clone()
         .unwrap_or_else(mash_app::core::default_database_path);
-    database.with_file_name("dashboard-pins.json")
+    database.with_file_name("dashboard-projects.json")
 }
 
 async fn read(State(state): State<Arc<Dash>>) -> Response {
@@ -78,42 +83,45 @@ async fn read(State(state): State<Arc<Dash>>) -> Response {
     answer(
         tokio::task::spawn_blocking(move || load(&path))
             .await
-            .unwrap_or_else(|_| Err(AppError::internal("read pins"))),
+            .unwrap_or_else(|_| Err(AppError::internal("read project choices"))),
         editable,
     )
 }
 
 async fn change(
     State(state): State<Arc<Dash>>,
-    input: Result<axum::Json<PinChange>, JsonRejection>,
+    input: Result<axum::Json<Choices>, JsonRejection>,
 ) -> Response {
     if !editable(&state) {
         return failure(
             StatusCode::FORBIDDEN,
             &AppError::configuration(
-                "pins can be changed on the machine itself, or from a dashboard started with a services configuration",
+                "project choices can be changed on the machine itself, or from a dashboard started with a services configuration",
             ),
         );
     }
-    let Ok(axum::Json(change)) = input else {
-        return failure(StatusCode::BAD_REQUEST, &AppError::usage("invalid pins"));
+    let Ok(axum::Json(choices)) = input else {
+        return failure(
+            StatusCode::BAD_REQUEST,
+            &AppError::usage("invalid project choices"),
+        );
     };
     let path = file(&state);
     answer(
         tokio::task::spawn_blocking(move || {
-            let projects = settle(change.projects)?;
-            save(&path, &projects)?;
-            Ok(projects)
+            let choices = settle(choices)?;
+            save(&path, &choices)?;
+            Ok(choices)
         })
         .await
-        .unwrap_or_else(|_| Err(AppError::internal("save pins"))),
+        .unwrap_or_else(|_| Err(AppError::internal("save project choices"))),
         true,
     )
 }
 
-fn answer(projects: Result<Vec<String>, AppError>, editable: bool) -> Response {
-    match projects {
-        Ok(projects) => axum::Json(Pins { projects, editable }).into_response(),
+fn answer(choices: Result<Choices, AppError>, editable: bool) -> Response {
+    match choices {
+        Ok(choices) => axum::Json(Answer { choices, editable }).into_response(),
         Err(error) => failure(StatusCode::BAD_REQUEST, &error),
     }
 }
@@ -126,13 +134,25 @@ fn failure(status: StatusCode, error: &AppError) -> Response {
         .into_response()
 }
 
-/// The pins as given, each once, in their first place; or why they are not pins.
-fn settle(projects: Vec<String>) -> Result<Vec<String>, AppError> {
+/// Each list with every project once, in its first place; or why the choices
+/// cannot be kept. A project is pinned or hidden, never both.
+fn settle(choices: Choices) -> Result<Choices, AppError> {
+    let pinned = settle_list(choices.pinned)?;
+    let hidden = settle_list(choices.hidden)?;
+    if pinned.iter().any(|project| hidden.contains(project)) {
+        return Err(AppError::usage(
+            "a project is either pinned or hidden, not both",
+        ));
+    }
+    Ok(Choices { pinned, hidden })
+}
+
+fn settle_list(projects: Vec<String>) -> Result<Vec<String>, AppError> {
     let mut settled: Vec<String> = Vec::new();
     for project in projects {
         if project.trim().is_empty() || project.len() > LONGEST {
             return Err(AppError::usage(
-                "a pinned project needs a name of a usual length",
+                "a chosen project needs a name of a usual length",
             ));
         }
         if !settled.contains(&project) {
@@ -141,42 +161,37 @@ fn settle(projects: Vec<String>) -> Result<Vec<String>, AppError> {
     }
     if settled.len() > MOST {
         return Err(AppError::usage(format!(
-            "at most {MOST} projects can be pinned"
+            "at most {MOST} projects can be pinned, and at most {MOST} hidden"
         )));
     }
     Ok(settled)
 }
 
-#[derive(Serialize, Deserialize)]
-struct Stored {
-    projects: Vec<String>,
-}
-
-fn load(path: &Path) -> Result<Vec<String>, AppError> {
+fn load(path: &Path) -> Result<Choices, AppError> {
     let text = match std::fs::read_to_string(path) {
         Ok(text) => text,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(Choices::default());
+        }
         Err(_) => {
             return Err(AppError::configuration(
-                "the pinned projects could not be read",
+                "the project choices could not be read",
             ));
         }
     };
-    let stored: Stored = serde_json::from_str(&text).map_err(|_| {
+    let stored: Choices = serde_json::from_str(&text).map_err(|_| {
         AppError::configuration(format!(
-            "{} is not a list of pinned projects; remove it to start again",
+            "{} is not a list of project choices; remove it to start again",
             path.display()
         ))
     })?;
-    settle(stored.projects)
+    settle(stored)
 }
 
-fn save(path: &Path, projects: &[String]) -> Result<(), AppError> {
-    let failed = |_| AppError::configuration("the pinned projects could not be saved");
-    let text = serde_json::to_string_pretty(&Stored {
-        projects: projects.to_vec(),
-    })
-    .map_err(|_| AppError::internal("encode pins"))?;
+fn save(path: &Path, choices: &Choices) -> Result<(), AppError> {
+    let failed = |_| AppError::configuration("the project choices could not be saved");
+    let text =
+        serde_json::to_string_pretty(choices).map_err(|_| AppError::internal("encode choices"))?;
     let temporary = path.with_extension("json.tmp");
     mash_model::platform::write_private(&temporary, &text, 0o600).map_err(failed)?;
     std::fs::rename(&temporary, path).map_err(failed)
@@ -186,18 +201,28 @@ fn save(path: &Path, projects: &[String]) -> Result<(), AppError> {
 mod tests {
     use super::*;
 
+    fn choices(pinned: &[&str], hidden: &[&str]) -> Choices {
+        Choices {
+            pinned: pinned.iter().map(|&p| p.to_owned()).collect(),
+            hidden: hidden.iter().map(|&p| p.to_owned()).collect(),
+        }
+    }
+
     #[test]
-    fn pins_keep_their_order_once_each_and_survive_a_reload() {
+    fn choices_keep_their_order_once_each_and_survive_a_reload() {
         let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("dashboard-pins.json");
+        let path = directory.path().join("dashboard-projects.json");
         assert_eq!(
             load(&path).unwrap(),
-            Vec::<String>::new(),
-            "no file is no pins"
+            Choices::default(),
+            "no file is no choices"
         );
-        let projects = settle(vec!["/srv/b".into(), "/srv/a".into(), "/srv/b".into()]).unwrap();
-        save(&path, &projects).unwrap();
-        assert_eq!(load(&path).unwrap(), ["/srv/b", "/srv/a"]);
+        let settled = settle(choices(&["/srv/b", "/srv/a", "/srv/b"], &["/tmp/x"])).unwrap();
+        save(&path, &settled).unwrap();
+        assert_eq!(
+            load(&path).unwrap(),
+            choices(&["/srv/b", "/srv/a"], &["/tmp/x"])
+        );
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -208,11 +233,17 @@ mod tests {
 
     #[test]
     fn what_is_not_a_short_list_of_projects_is_refused() {
-        assert!(settle(vec![" ".into()]).is_err());
-        assert!(settle(vec!["x".repeat(LONGEST + 1)]).is_err());
-        assert!(settle((0..=MOST).map(|n| format!("/p{n}")).collect()).is_err());
+        assert!(settle(choices(&[" "], &[])).is_err());
+        assert!(settle(choices(&[], &[&"x".repeat(LONGEST + 1)])).is_err());
+        let many: Vec<String> = (0..=MOST).map(|n| format!("/p{n}")).collect();
+        let many: Vec<&str> = many.iter().map(String::as_str).collect();
+        assert!(settle(choices(&[], &many)).is_err());
+        assert!(
+            settle(choices(&["/srv/a"], &["/srv/a"])).is_err(),
+            "pinned and hidden at once"
+        );
         let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("dashboard-pins.json");
+        let path = directory.path().join("dashboard-projects.json");
         std::fs::write(&path, "not json").unwrap();
         assert!(
             load(&path).is_err(),

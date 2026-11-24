@@ -19,7 +19,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
-import { createPins, sidebarProjects } from "../lib/pins.svelte";
+import { createProjectChoices, sidebarProjects } from "../lib/projectChoices.svelte";
 import { catalogOptions } from "../lib/queries";
 import { agentHref, machineHref, projectHref, router } from "../lib/route.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
@@ -33,15 +33,15 @@ let { open, close }: { open: boolean; close: () => void } = $props();
 const client = useQueryClient();
 const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(catalogue.data?.chats ?? []);
-const pins = createPins();
-// Every pinned project, then the most recent others while there is room.
+const choices = createProjectChoices();
+// Every pinned project, then the most recent others not hidden, while there is room.
 const projects = $derived(
   sidebarProjects(
     groupChats(
       chats.filter((chat) => chat.project),
       (chat) => chat.project,
     ).sort((a, b) => (b.latestMs ?? 0) - (a.latestMs ?? 0)),
-    pins.projects,
+    choices,
     6,
   ),
 );
@@ -309,7 +309,7 @@ function arrows(event: KeyboardEvent, id: Section): void {
           {/each}
         {:else if section.id === "projects"}
           {#each projects as project (project.key)}
-            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}>{#if pins.has(project.key)}<Pin size={14} aria-label="Pinned" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span>{projectLabel(project.key)}</span></a>
+            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}>{#if choices.isPinned(project.key)}<Pin size={14} aria-label="Pinned" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span>{projectLabel(project.key)}</span></a>
           {/each}
         {/if}
         </div>
