@@ -162,7 +162,13 @@ MCP mutations while permitting read concurrency. Add a dependency only when it
 is smaller and clearer than a local implementation of the required behavior.
 Keep handwritten production files within 500 lines (`tools/check_file_lines.py`;
 the files in its baseline may only shrink) and suppress long-function lints with
-`#[expect]`, never `#[allow]`. Drive user services through `app/service.rs` and
+`#[expect]`, never `#[allow]`. Treat 450 lines as the point to reorganize, not
+the limit as a target: a file that grows to 450 or more needs a growth review in
+`tools/file-reviews/` (`--review-template PATH` starts one), so split it instead
+along a real responsibility, into parts near half the limit, and write a review
+only for a file that is one cohesive responsibility and would read worse split.
+Never trim a file just under a threshold. The check's headroom line shows how
+much room a change spent. Drive user services through `app/service.rs` and
 put file, path and process plumbing in `mash-model`'s `platform` module.
 
 Use typed Rust models for known serialized schemas throughout the application.

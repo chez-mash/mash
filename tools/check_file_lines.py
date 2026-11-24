@@ -8,6 +8,10 @@ when the limit was introduced are listed in `file-lines-baseline.txt` with
 their length then; each may shrink but not grow, and its entry must be
 lowered as it shrinks, so the list only gets shorter. `--update` lowers or
 drops entries; it never raises one or adds a file.
+
+A file that grows to 450 lines or more since `--against` (HEAD by default)
+needs a growth review, and every run reports how much room the files have
+left; see `file_growth.py`.
 """
 
 from __future__ import annotations
@@ -18,6 +22,8 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+import file_growth
 
 LINE_LIMIT = 500
 BASELINE = Path("tools/file-lines-baseline.txt")
@@ -160,6 +166,68 @@ def tracked_sources(root: Path) -> dict[str, str]:
     return sources
 
 
+def changed_paths(root: Path, revision: str) -> list[str]:
+    """Tracked files that differ from `revision` in the working tree."""
+    listed = subprocess.run(
+        ["git", "diff", "--name-only", "-z", revision, "--"],
+        cwd=root,
+        capture_output=True,
+    )
+    return [path for path in listed.stdout.decode().split("\0") if path]
+
+
+def review_growth(
+    root: Path,
+    revision: str,
+    sources: dict[str, str],
+    measured: dict[str, int],
+    debt: dict[str, int],
+) -> tuple[list[Finding], str]:
+    """Growth-review failures since `revision`, and the headroom report."""
+    near = [path for path, lines in measured.items() if lines >= file_growth.REVIEW_AT]
+    changed = [path for path in changed_paths(root, revision) if path in measured]
+    texts = file_growth.base_texts(root, revision, sorted(set(near) | set(changed)))
+    total = file_growth.headroom(measured, LINE_LIMIT, debt)
+    tightest = sorted(
+        (path for path in near if path not in debt), key=lambda path: -measured[path]
+    )
+    listed = ", ".join(f"{path} {measured[path]}" for path in tightest[:5])
+    summary = (
+        f"Headroom: {total:.1f}; {len(tightest)} file{'' if len(tightest) == 1 else 's'} at "
+        f"{file_growth.REVIEW_AT}+ lines"
+        + (f", tightest: {listed}" if listed else "")
+    )
+    if texts is None:
+        return [], f"{summary}\nGrowth reviews skipped: cannot read revision {revision}"
+    before = {path: counted_lines(path, text) for path, text in texts.items()}
+    spent = sum(
+        file_growth.barrier(measured[path], LINE_LIMIT)
+        - (file_growth.barrier(before[path], LINE_LIMIT) if path in before else 0.0)
+        for path in changed
+        if path not in debt and measured[path] < LINE_LIMIT
+    )
+    summary = summary.replace(
+        f"Headroom: {total:.1f};", f"Headroom: {total:.1f} ({spent:+.2f} since {revision});"
+    )
+    failures = []
+    for path in file_growth.grown(measured, before, debt):
+        review = root / file_growth.review_path(path)
+        problem = file_growth.review_problem(
+            sources[path], review.read_text() if review.exists() else None
+        )
+        if problem:
+            failures.append(
+                Finding(
+                    path,
+                    measured[path],
+                    f"grew to {file_growth.REVIEW_AT}+ lines and {problem}; split it into "
+                    f"parts near half the limit, or write {review.relative_to(root)} "
+                    f"(--review-template {path})",
+                )
+            )
+    return failures, summary
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -170,16 +238,34 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="lower or drop baseline entries that shrank",
     )
+    parser.add_argument(
+        "--against",
+        default="HEAD",
+        help="the revision growth is measured from (default HEAD)",
+    )
+    parser.add_argument(
+        "--review-template",
+        metavar="PATH",
+        help="print a growth review to fill in for PATH as it is now",
+    )
     args = parser.parse_args(argv)
     baseline_file = args.root / BASELINE
     try:
         baseline = (
             read_baseline(baseline_file.read_text()) if baseline_file.exists() else {}
         )
-        measured = measure(tracked_sources(args.root))
+        sources = tracked_sources(args.root)
+        measured = measure(sources)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"file-lines: cannot inspect sources: {error}", file=sys.stderr)
         return 2
+    if args.review_template:
+        path = args.review_template
+        if path not in measured:
+            print(f"file-lines: {path} is not a handwritten source file", file=sys.stderr)
+            return 2
+        print(file_growth.template(path, sources[path], measured[path]), end="")
+        return 0
     failures, lowered = check(measured, baseline)
     growth = [finding for finding in failures if "shrank" not in finding.message]
     if args.update:
@@ -191,11 +277,15 @@ def main(argv: list[str] | None = None) -> int:
         baseline_file.write_text(render_baseline(lowered))
         print(f"Updated {BASELINE}: {len(lowered)} files above the limit remain")
         return 0
+    reviewed, summary = review_growth(args.root, args.against, sources, measured, baseline)
+    failures += reviewed
     for finding in failures:
         print(f"FAIL: {finding.path}: {finding.lines} lines, {finding.message}")
+    print(summary)
     if failures:
         print(
-            f"FAIL: {len(failures)} files break the {LINE_LIMIT}-line limit or its baseline"
+            f"FAIL: {len(failures)} file{'' if len(failures) == 1 else 's'} break the "
+            f"{LINE_LIMIT}-line limit, its baseline or the growth review"
         )
         return 1
     print(

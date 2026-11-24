@@ -136,8 +136,19 @@ jobs:
           TMPDIR="$RUNNER_TEMP" bash tools/test-ansible.sh
       - name: Verify offline search evaluation and benchmark witnesses
         run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
-      - name: Keep source files within the 500-line limit
-        run: python3 tools/check_file_lines.py
+      - name: Keep source files within the 500-line limit and review growth past 450
+        env:
+          # Growth is measured from what the branch was before this push, or
+          # from a pull request's base. The checkout holds one commit, so the
+          # base is fetched; a first push has none and skips the review.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE" ] && [ "$BASE" != 0000000000000000000000000000000000000000 ]; then
+            git fetch --quiet --depth=1 origin "$BASE" || true
+            python3 tools/check_file_lines.py --against "$BASE"
+          else
+            python3 tools/check_file_lines.py
+          fi
       - name: Install pinned sqlc release
         run: |
           mkdir -p "$RUNNER_TEMP/mash-sqlc"
