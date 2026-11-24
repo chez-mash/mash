@@ -81,9 +81,13 @@ pnpm lint
 
 ## Before submitting to the Store
 
-- **`author`**: `package.json` says `mashium` for now. Replace it with the
-  Raycast username of the account that publishes the extension (the handle on
-  its raycast.com profile); the Store rejects an author it does not know.
+- **`author`** and **`owner`**: `author` must be a person's Raycast
+  username (the handle on their raycast.com profile); `package.json` says
+  `grepstack` for now, which the Store rejects. To publish under GrepStack
+  rather than a person, create a GrepStack organization in Raycast, add
+  `"owner": "<its handle>"` and `"access": "public"` (an `owner` alone
+  publishes to the organization's private store), and keep a member's
+  username as `author`.
 - **Screenshots**: none exist yet. TODO: add them to `metadata/` as
   `mash-1.png`, `mash-2.png` and so on, 2000 × 1250 PNG, taken with Raycast's
   Window Capture while `pnpm dev` runs. They are needed for:

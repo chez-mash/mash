@@ -1,6 +1,6 @@
 # winget
 
-The Mash CLI is published to the Windows Package Manager as `Mashium.Mash`.
+The Mash CLI is published to the Windows Package Manager as `GrepStack.Mash`.
 Each release fills these templates from its `SHA256SUMS` (the release
 workflow's `winget` job uploads the result as the `winget-manifests`
 artifact), and the manifests are then submitted to

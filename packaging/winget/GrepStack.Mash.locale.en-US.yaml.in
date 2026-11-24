@@ -1,9 +1,9 @@
 # winget default locale manifest for the Mash CLI, filled by packaging/render.py.
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
-PackageIdentifier: Mashium.Mash
+PackageIdentifier: GrepStack.Mash
 PackageVersion: @VERSION@
 PackageLocale: en-US
-Publisher: Mashium
+Publisher: GrepStack
 PublisherUrl: https://github.com/grep-stack
 PublisherSupportUrl: https://github.com/grep-stack/mash/issues
 PackageName: Mash

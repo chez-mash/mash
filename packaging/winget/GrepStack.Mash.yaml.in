@@ -1,6 +1,6 @@
 # winget version manifest for the Mash CLI, filled by packaging/render.py.
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.10.0.schema.json
-PackageIdentifier: Mashium.Mash
+PackageIdentifier: GrepStack.Mash
 PackageVersion: @VERSION@
 DefaultLocale: en-US
 ManifestType: version

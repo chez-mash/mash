@@ -19,7 +19,7 @@
 
 ### Homebrew（macOS または Linux）
 
-Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[Mashium の Homebrew フォーミュラ](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
+Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[GrepStack の Homebrew フォーミュラ](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
 下のようにリポジトリを含めた名前を指定すると、Homebrew が使用するリポジトリを特定でき、[tap の信頼設定（英語）](https://docs.brew.sh/Tap-Trust)の対象をこのフォーミュラに絞れます。
 
 ```sh
@@ -31,8 +31,8 @@ brew install grep-stack/tap/mash
 ### apt（Debian または Ubuntu）
 
 x86-64 または ARM64 の Debian 12 以降、または Ubuntu 22.04 以降で使えます。
-Mashium の apt リポジトリでは、署名済みのパッケージメタデータを公開しています。
-`signed-by` で、このリポジトリの検証に使う [Mashium の署名鍵](https://getmash.io/apt/mash-archive-keyring.gpg)を指定します。
+GrepStack の apt リポジトリでは、署名済みのパッケージメタデータを公開しています。
+`signed-by` で、このリポジトリの検証に使う [GrepStack の署名鍵](https://getmash.io/apt/mash-archive-keyring.gpg)を指定します。
 リポジトリを追加する前に、[署名済みのメタデータ](https://getmash.io/apt/dists/stable/InRelease)を確認できます。
 
 ```sh
@@ -49,7 +49,7 @@ Debian と Ubuntu には別の `mash` パッケージがあるため、Mash の�
 
 ### Scoop（Windows）
 
-Windows x64 で Scoop をインストールしたら、PowerShell を開き、Mashium の bucket を追加して、
+Windows x64 で Scoop をインストールしたら、PowerShell を開き、GrepStack の bucket を追加して、
 [Mash パッケージ](https://github.com/grep-stack/mash/blob/main/bucket/mash.json)をインストールします。
 マニフェストには、Windows 用アーカイブとその SHA-256 ハッシュが記載されています。
 
@@ -61,7 +61,7 @@ scoop install grep-stack/mash
 ### mise
 
 mise をインストール済みなら、GitHub バックエンドを使って
-[Mashium のリリースアーカイブ](https://github.com/grep-stack/mash/releases)からインストールできます。
+[GrepStack のリリースアーカイブ](https://github.com/grep-stack/mash/releases)からインストールできます。
 
 ```sh
 mise use -g github:grep-stack/mash
@@ -69,7 +69,7 @@ mise use -g github:grep-stack/mash
 
 ### cargo-binstall
 
-cargo-binstall をインストール済みなら、GitHub のプロジェクトを指定して Mashium のリリースアーカイブを選びます。
+cargo-binstall をインストール済みなら、GitHub のプロジェクトを指定して GrepStack のリリースアーカイブを選びます。
 
 ```sh
 cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash

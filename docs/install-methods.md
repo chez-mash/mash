@@ -17,7 +17,7 @@ and [see which installers passed for each release](https://github.com/grep-stack
 ### Homebrew, macOS or Linux
 
 On Apple silicon macOS or Linux x86-64 or ARM64, install from
-[Mashium's Homebrew formula](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb).
+[GrepStack's Homebrew formula](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb).
 The full name tells Homebrew which repository to use and selects the
 individual formula for [Homebrew's tap trust](https://docs.brew.sh/Tap-Trust).
 
@@ -28,8 +28,8 @@ brew install grep-stack/tap/mash
 ### apt, Debian or Ubuntu
 
 Use this on Debian 12+ or Ubuntu 22.04+ on x86-64 or ARM64.
-The Mashium apt repository publishes signed package metadata. The
-`signed-by` setting uses [Mashium's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
+The GrepStack apt repository publishes signed package metadata. The
+`signed-by` setting uses [GrepStack's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
 for this repository. You can [inspect the signed metadata](https://getmash.io/apt/dists/stable/InRelease)
 before adding it.
 
@@ -45,7 +45,7 @@ be installed together, and apt offers to remove the other one.
 
 ### Scoop, Windows
 
-On Windows x64 or ARM64 with Scoop installed, open PowerShell, add Mashium's bucket
+On Windows x64 or ARM64 with Scoop installed, open PowerShell, add GrepStack's bucket
 and install its [Mash package](https://github.com/grep-stack/mash/blob/main/bucket/mash.json).
 The manifest lists the Windows archive and its SHA-256 hash.
 
@@ -57,7 +57,7 @@ scoop install grep-stack/mash
 ### mise
 
 With mise installed, use its GitHub backend to install from the
-[Mashium release archives](https://github.com/grep-stack/mash/releases).
+[GrepStack release archives](https://github.com/grep-stack/mash/releases).
 
 ```sh
 mise use -g github:grep-stack/mash
@@ -65,7 +65,7 @@ mise use -g github:grep-stack/mash
 
 ### cargo-binstall
 
-With cargo-binstall installed, specify the GitHub project to select Mashium's
+With cargo-binstall installed, specify the GitHub project to select GrepStack's
 release archive.
 
 ```sh

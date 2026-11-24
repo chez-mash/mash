@@ -16,7 +16,7 @@
 ### Homebrew，适用于 macOS 或 Linux
 
 在搭载 Apple 芯片的 macOS 或 x86-64、ARM64 架构的 Linux 上，请使用
-[Mashium 的 Homebrew 配方](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)安装。完整名称告诉 Homebrew 使用哪个仓库，也让 [Homebrew 的 tap 信任机制](https://docs.brew.sh/Tap-Trust)只针对这个配方。
+[GrepStack 的 Homebrew 配方](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb)安装。完整名称告诉 Homebrew 使用哪个仓库，也让 [Homebrew 的 tap 信任机制](https://docs.brew.sh/Tap-Trust)只针对这个配方。
 
 ```sh
 brew install grep-stack/tap/mash
@@ -27,8 +27,8 @@ brew install grep-stack/tap/mash
 ### apt，适用于 Debian 或 Ubuntu
 
 此方法适用于 x86-64 或 ARM64 上的 Debian 12 及以上版本或 Ubuntu 22.04 及以上版本。
-Mashium 的 apt 仓库发布带有签名的软件包元数据。选项 `signed-by` 为此仓库指定
-[Mashium 的签名密钥](https://getmash.io/apt/mash-archive-keyring.gpg)。
+GrepStack 的 apt 仓库发布带有签名的软件包元数据。选项 `signed-by` 为此仓库指定
+[GrepStack 的签名密钥](https://getmash.io/apt/mash-archive-keyring.gpg)。
 添加仓库前，可以[查看签名后的元数据](https://getmash.io/apt/dists/stable/InRelease)。
 
 ```sh
@@ -44,7 +44,7 @@ sudo apt update && sudo apt install mash-cli
 
 ### Scoop，适用于 Windows
 
-在 Windows x64 上安装 Scoop 后，打开 PowerShell，添加 Mashium 的软件包仓库，再安装
+在 Windows x64 上安装 Scoop 后，打开 PowerShell，添加 GrepStack 的软件包仓库，再安装
 [Mash 软件包](https://github.com/grep-stack/mash/blob/main/bucket/mash.json)。清单列出了 Windows 压缩包及其 SHA-256 哈希值。
 
 ```powershell
@@ -55,7 +55,7 @@ scoop install grep-stack/mash
 ### mise
 
 安装 mise 后，可以通过它的 GitHub 后端从
-[Mashium 的发布压缩包](https://github.com/grep-stack/mash/releases)安装 Mash。
+[GrepStack 的发布压缩包](https://github.com/grep-stack/mash/releases)安装 Mash。
 
 ```sh
 mise use -g github:grep-stack/mash
@@ -63,7 +63,7 @@ mise use -g github:grep-stack/mash
 
 ### cargo-binstall
 
-安装 cargo-binstall 后，指定 GitHub 项目即可使用 Mashium 的发布压缩包。
+安装 cargo-binstall 后，指定 GitHub 项目即可使用 GrepStack 的发布压缩包。
 
 ```sh
 cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash

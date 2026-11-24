@@ -20,7 +20,7 @@ et [voir quels programmes d’installation ont passé les vérifications de chaq
 ### Homebrew sous macOS ou Linux
 
 Sous macOS sur une puce Apple ou sous Linux sur x86-64 ou ARM64, installez Mash avec la
-[formule Homebrew de Mashium](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb). Le nom complet indique à Homebrew quel dépôt utiliser et désigne la formule pour les [règles de confiance des taps Homebrew](https://docs.brew.sh/Tap-Trust).
+[formule Homebrew de GrepStack](https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb). Le nom complet indique à Homebrew quel dépôt utiliser et désigne la formule pour les [règles de confiance des taps Homebrew](https://docs.brew.sh/Tap-Trust).
 
 ```sh
 brew install grep-stack/tap/mash
@@ -31,8 +31,8 @@ brew install grep-stack/tap/mash
 ### apt sous Debian ou Ubuntu
 
 Cette méthode fonctionne sous Debian 12 ou ultérieur et Ubuntu 22.04 ou ultérieur, sur x86-64 ou ARM64.
-Le dépôt apt de Mashium publie des métadonnées de paquets signées. L’option
-`signed-by` utilise la [clé de signature de Mashium](https://getmash.io/apt/mash-archive-keyring.gpg)
+Le dépôt apt de GrepStack publie des métadonnées de paquets signées. L’option
+`signed-by` utilise la [clé de signature de GrepStack](https://getmash.io/apt/mash-archive-keyring.gpg)
 pour ce dépôt. Vous pouvez [examiner les métadonnées signées](https://getmash.io/apt/dists/stable/InRelease)
 avant d’ajouter le dépôt.
 
@@ -48,7 +48,7 @@ Le paquet s’appelle `mash-cli` car Debian et Ubuntu proposent déjà un autre 
 
 ### Scoop sous Windows
 
-Sous Windows x64, une fois Scoop installé, ouvrez PowerShell, ajoutez le dépôt de Mashium et installez son
+Sous Windows x64, une fois Scoop installé, ouvrez PowerShell, ajoutez le dépôt de GrepStack et installez son
 [paquet Mash](https://github.com/grep-stack/mash/blob/main/bucket/mash.json). Le manifeste indique l’archive Windows et son empreinte SHA-256.
 
 ```powershell
@@ -59,7 +59,7 @@ scoop install grep-stack/mash
 ### mise
 
 Une fois mise installé, utilisez son intégration GitHub pour installer Mash à partir des
-[archives des versions de Mashium](https://github.com/grep-stack/mash/releases).
+[archives des versions de GrepStack](https://github.com/grep-stack/mash/releases).
 
 ```sh
 mise use -g github:grep-stack/mash
@@ -67,7 +67,7 @@ mise use -g github:grep-stack/mash
 
 ### cargo-binstall
 
-Une fois cargo-binstall installé, indiquez le projet GitHub pour utiliser l’archive publiée par Mashium.
+Une fois cargo-binstall installé, indiquez le projet GitHub pour utiliser l’archive publiée par GrepStack.
 
 ```sh
 cargo binstall --strategies crate-meta-data --git https://github.com/grep-stack/mash mash

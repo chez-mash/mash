@@ -125,7 +125,7 @@ test("a Homebrew visitor can review the package source and see what to do next",
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/install-methods/#install-with-a-package-manager");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expect(page.getByRole("link", { name: "Mashium’s Homebrew formula" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "GrepStack’s Homebrew formula" })).toHaveAttribute(
     "href",
     "https://github.com/grep-stack/homebrew-tap/blob/main/Formula/mash.rb",
   );

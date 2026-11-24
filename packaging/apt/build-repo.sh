@@ -43,7 +43,7 @@ Architecture: $arch
 Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
 Conflicts: mash
 Replaces: mash
-Maintainer: Mashium <mash-release@users.noreply.github.com>
+Maintainer: GrepStack <mash-release@users.noreply.github.com>
 Homepage: https://github.com/grep-stack/mash
 Section: utils
 Priority: optional
