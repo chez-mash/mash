@@ -55,9 +55,11 @@ fn export_imports_history_offline_and_requires_explicit_views_rebuild() {
         "{exported:?}"
     );
     std::fs::remove_dir_all(provider).unwrap();
+    // The source index's arguments, so the import's usage entry stays in this
+    // test's directory rather than reaching the developer's ~/.mash.
     let result = run_json(
         &[
-            base.as_slice(),
+            original_args.as_slice(),
             &[
                 "import",
                 export.to_str().unwrap(),

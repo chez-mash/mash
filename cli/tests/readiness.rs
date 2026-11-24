@@ -181,6 +181,9 @@ fn concurrent_models_install_returns_a_retryable_error_before_changing_assets() 
         .args([
             "--config",
             config.to_str().unwrap(),
+            // An index of its own, so nothing reaches the developer's ~/.mash.
+            "--db",
+            directory.path().join("index.sqlite3").to_str().unwrap(),
             "--models-dir",
             models.to_str().unwrap(),
             "models",

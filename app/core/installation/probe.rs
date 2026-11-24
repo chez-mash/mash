@@ -63,6 +63,10 @@ pub(super) async fn check(client: &mut Client, contract: &str) {
     command
         .args(&launch.server.args)
         .envs(&launch.server.env)
+        // This is Mash checking itself, not an agent's tool call: keep it out
+        // of the usage log. A wrapper that runs Mash elsewhere (over SSH)
+        // does not pass this on, and that Mash still records the check.
+        .env("MASH_USAGE", "0")
         .current_dir(&launch.cwd)
         .stderr(Stdio::null())
         .kill_on_drop(true);

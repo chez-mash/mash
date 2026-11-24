@@ -141,15 +141,27 @@ fn stream_prints_one_update_per_source_and_merges_into_one_ranking() {
 
 #[test]
 fn stream_rejects_an_unknown_scope_and_needs_stream_for_scope() {
+    // An index of its own, so nothing reaches the developer's ~/.mash.
+    let directory = tempfile::tempdir().unwrap();
+    let db = directory.path().join("index.sqlite3");
+    let db = db.to_str().unwrap();
     Command::cargo_bin("mash")
         .unwrap()
-        .args(["search", "x", "--stream", "--scope", "everywhere"])
+        .args([
+            "--db",
+            db,
+            "search",
+            "x",
+            "--stream",
+            "--scope",
+            "everywhere",
+        ])
         .assert()
         .failure()
         .stderr(predicate::str::contains("local, all or node:"));
     Command::cargo_bin("mash")
         .unwrap()
-        .args(["search", "x", "--scope", "local"])
+        .args(["--db", db, "search", "x", "--scope", "local"])
         .assert()
         .failure();
 }

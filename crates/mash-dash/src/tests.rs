@@ -659,8 +659,10 @@ fn known_assets_get_their_media_types() {
 async fn setup_runs_only_where_the_dashboard_is_private_and_against_the_file_it_showed() {
     let directory = tempfile::tempdir().unwrap();
     let config = directory.path().join("config.toml");
+    // An index of its own, so its usage log stays in this test's directory.
     let paths = crate::core::Paths {
         config: Some(config.clone()),
+        db: Some(directory.path().join("index.sqlite3")),
         ..crate::core::Paths::default()
     };
     let mut addresses = Vec::new();
@@ -775,8 +777,10 @@ async fn settings_are_changed_only_where_the_dashboard_is_private() {
         ),
     )
     .unwrap();
+    // An index of its own, so its usage log stays in this test's directory.
     let paths = crate::core::Paths {
         config: Some(config.clone()),
+        db: Some(directory.path().join("index.sqlite3")),
         ..crate::core::Paths::default()
     };
     let mut addresses = Vec::new();

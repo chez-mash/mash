@@ -273,6 +273,8 @@ fn ssh_options_are_rejected_and_shared_access_requires_configuration() {
         let output = Command::cargo_bin("mash")
             .expect("binary")
             .args(["--config", config.to_str().unwrap()])
+            // An index of its own, so nothing reaches the developer's ~/.mash.
+            .args(["--db", dir.path().join("index.sqlite3").to_str().unwrap()])
             .args(args)
             .output()
             .expect("run");
