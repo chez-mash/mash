@@ -175,6 +175,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The projects pinned on this dashboard. */
+        get: operations["getApiPins"];
+        put?: never;
+        /** Replace the pinned projects. */
+        post: operations["postApiPins"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/record": {
         parameters: {
             query?: never;
@@ -1949,6 +1967,19 @@ export interface components {
         };
         /** @enum {string} */
         Phase: "waiting_for_capacity" | "receiving" | "waiting_for_node" | "checking_views" | "applying_silver" | "finalizing_silver" | "committing_silver" | "writing_views" | "certifying_views" | "optimizing_views" | "checking_search" | "attachment";
+        /** @description A new list of pinned projects, replacing the old one. */
+        PinChange: {
+            projects: string[];
+        };
+        /** @description The pinned projects, in the order the reader pinned them. */
+        Pins: {
+            /**
+             * @description Whether this dashboard accepts a change to them.
+             * @default false
+             */
+            editable: boolean;
+            projects: string[];
+        };
         Policy: {
             /**
              * Format: int64
@@ -3370,6 +3401,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OpenIn"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    getApiPins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pinned projects, in the order the reader pinned them. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pins"];
+                };
+            };
+            /** @description What a failed request answers with, whatever the route. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Failure"];
+                };
+            };
+        };
+    };
+    postApiPins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description A new list of pinned projects, replacing the old one. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinChange"];
+            };
+        };
+        responses: {
+            /** @description The pinned projects, in the order the reader pinned them. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pins"];
+                };
+            };
+            /** @description Failed to parse the request body as JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Expected request with `Content-Type: application/json` */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Failed to deserialize the JSON body into the target type */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
                 };
             };
             /** @description What a failed request answers with, whatever the route. */

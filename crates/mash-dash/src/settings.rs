@@ -13,7 +13,8 @@ use axum::response::{IntoResponse, Response};
 use mash_app::config;
 use mash_model::AppError;
 
-use super::{Dash, configuration_path};
+use super::Dash;
+use mash_app::core::Paths;
 
 /// The configuration file's settings, and setting Mashy up.
 pub(super) fn routes(router: ApiRouter<Arc<Dash>>) -> ApiRouter<Arc<Dash>> {
@@ -44,6 +45,14 @@ pub(super) fn routes(router: ApiRouter<Arc<Dash>>) -> ApiRouter<Arc<Dash>> {
                 ),
             ),
         )
+}
+
+/// The configuration file this dashboard's Mash reads.
+pub(super) fn configuration_path(paths: &Paths) -> Result<std::path::PathBuf, AppError> {
+    match &paths.config {
+        Some(path) => Ok(path.clone()),
+        None => config::default_path(),
+    }
 }
 
 async fn settings(State(state): State<Arc<Dash>>) -> Response {

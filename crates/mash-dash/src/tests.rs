@@ -876,6 +876,96 @@ async fn settings_are_changed_only_where_the_dashboard_is_private() {
 }
 
 #[tokio::test]
+async fn pins_are_kept_beside_the_index_and_changed_only_where_the_dashboard_is_private() {
+    let directory = tempfile::tempdir().unwrap();
+    let paths = crate::core::Paths {
+        db: Some(directory.path().join("index.sqlite3")),
+        ..crate::core::Paths::default()
+    };
+    let mut addresses = Vec::new();
+    for loopback in [true, false] {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let app = super::router(std::sync::Arc::new(super::Dash {
+            console: crate::mcp::console::Console::new(crate::core::Paths::default()),
+            paths: paths.clone(),
+            hosts: allowed_hosts(address),
+            loopback,
+            access: super::access::Access::new(None),
+            shared_only: false,
+            model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(0)),
+            services: super::services::Services::load(None).unwrap(),
+            live: super::live::Live::new(None, None),
+            questions: std::sync::Arc::new(tokio::sync::Semaphore::new(2)),
+        }));
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        addresses.push(address);
+    }
+    let client = reqwest::Client::new();
+    let private = format!("http://{}/api/pins", addresses[0]);
+    let open = format!("http://{}/api/pins", addresses[1]);
+    let read = |url: String| {
+        let client = client.clone();
+        async move {
+            client
+                .get(url)
+                .send()
+                .await
+                .unwrap()
+                .json::<serde_json::Value>()
+                .await
+                .unwrap()
+        }
+    };
+    let none = read(private.clone()).await;
+    assert_eq!(
+        none,
+        serde_json::json!({ "projects": [], "editable": true })
+    );
+    let pins = serde_json::json!({ "projects": ["/srv/web", "/srv/api", "/srv/web"] });
+    // Another site cannot change them through the reader's browser.
+    let foreign = client
+        .post(&private)
+        .header("Origin", "http://evil.invalid")
+        .json(&pins)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(foreign.status(), reqwest::StatusCode::FORBIDDEN);
+    // A dashboard other machines can reach, without the services opt-in, refuses.
+    let refused = client.post(&open).json(&pins).send().await.unwrap();
+    assert_eq!(refused.status(), reqwest::StatusCode::FORBIDDEN);
+    let saved: serde_json::Value = client
+        .post(&private)
+        .json(&pins)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(
+        saved["projects"],
+        serde_json::json!(["/srv/web", "/srv/api"])
+    );
+    // Kept beside the index, and shown, read-only, by the open dashboard.
+    assert!(directory.path().join("dashboard-pins.json").exists());
+    let shown = read(open).await;
+    assert_eq!(shown["projects"], saved["projects"]);
+    assert_eq!(shown["editable"], false);
+    let unpinned: serde_json::Value = client
+        .post(&private)
+        .json(&serde_json::json!({ "projects": [] }))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(unpinned["projects"], serde_json::json!([]));
+}
+
+#[tokio::test]
 async fn an_open_network_dashboard_never_joins_or_manages_machines() {
     // Reachable by its network and signed in to by nobody: it may read the
     // shared server's state, but joining, saving an admin key and changing

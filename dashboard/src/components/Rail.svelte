@@ -9,6 +9,7 @@ import History from "@lucide/svelte/icons/history";
 import House from "@lucide/svelte/icons/house";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
+import Pin from "@lucide/svelte/icons/pin";
 import Server from "@lucide/svelte/icons/server";
 import Settings from "@lucide/svelte/icons/settings";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
@@ -18,6 +19,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
+import { createPins, sidebarProjects } from "../lib/pins.svelte";
 import { catalogOptions } from "../lib/queries";
 import { agentHref, machineHref, projectHref, router } from "../lib/route.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
@@ -31,13 +33,17 @@ let { open, close }: { open: boolean; close: () => void } = $props();
 const client = useQueryClient();
 const catalogue = createQuery(() => catalogOptions);
 const chats = $derived(catalogue.data?.chats ?? []);
+const pins = createPins();
+// Every pinned project, then the most recent others while there is room.
 const projects = $derived(
-  groupChats(
-    chats.filter((chat) => chat.project),
-    (chat) => chat.project,
-  )
-    .sort((a, b) => (b.latestMs ?? 0) - (a.latestMs ?? 0))
-    .slice(0, 6),
+  sidebarProjects(
+    groupChats(
+      chats.filter((chat) => chat.project),
+      (chat) => chat.project,
+    ).sort((a, b) => (b.latestMs ?? 0) - (a.latestMs ?? 0)),
+    pins.projects,
+    6,
+  ),
 );
 const providers = $derived(groupChats(chats, (chat) => chat.agent));
 const machines = $derived(groupChats(chats, (chat) => chat.machine));
@@ -303,7 +309,7 @@ function arrows(event: KeyboardEvent, id: Section): void {
           {/each}
         {:else if section.id === "projects"}
           {#each projects as project (project.key)}
-            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}><Folder size={14} aria-hidden="true" /><span>{projectLabel(project.key)}</span></a>
+            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}>{#if pins.has(project.key)}<Pin size={14} aria-label="Pinned" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span>{projectLabel(project.key)}</span></a>
           {/each}
         {/if}
         </div>

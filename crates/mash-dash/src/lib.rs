@@ -30,6 +30,7 @@ mod contract;
 mod hardening;
 mod live;
 mod open_in;
+mod pins;
 mod search;
 mod services;
 mod settings;
@@ -159,10 +160,10 @@ fn api() -> (Router<Arc<Dash>>, aide::openapi::OpenApi) {
         },
         ..Default::default()
     };
-    let router = settings::routes(history_routes(setup::routes(assistant::routes(
-        live::routes(services::routes(shared_server::routes(
+    let router = pins::routes(settings::routes(history_routes(setup::routes(
+        assistant::routes(live::routes(services::routes(shared_server::routes(
             aide::axum::ApiRouter::new(),
-        ))),
+        )))),
     ))))
     .finish_api(&mut document);
     (router, document)
@@ -479,14 +480,6 @@ async fn status(State(state): State<Arc<Dash>>) -> Response {
         },
     };
     json_result(core::execute(request).await)
-}
-
-/// The configuration file this dashboard's Mash reads.
-fn configuration_path(paths: &Paths) -> Result<std::path::PathBuf, AppError> {
-    match &paths.config {
-        Some(path) => Ok(path.clone()),
-        None => crate::config::default_path(),
-    }
 }
 
 async fn list_chats(State(state): State<Arc<Dash>>) -> Response {

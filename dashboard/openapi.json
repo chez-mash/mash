@@ -4357,6 +4357,41 @@
         ],
         "type": "string"
       },
+      "PinChange": {
+        "description": "A new list of pinned projects, replacing the old one.",
+        "properties": {
+          "projects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "projects"
+        ],
+        "type": "object"
+      },
+      "Pins": {
+        "description": "The pinned projects, in the order the reader pinned them.",
+        "properties": {
+          "editable": {
+            "default": false,
+            "description": "Whether this dashboard accepts a change to them.",
+            "type": "boolean"
+          },
+          "projects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "projects"
+        ],
+        "type": "object"
+      },
       "Policy": {
         "additionalProperties": false,
         "properties": {
@@ -8019,6 +8054,101 @@
           }
         },
         "summary": "The link that opens a chat of this machine in its agent's desktop app, if any."
+      }
+    },
+    "/api/pins": {
+      "get": {
+        "operationId": "getApiPins",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pins"
+                }
+              }
+            },
+            "description": "The pinned projects, in the order the reader pinned them."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "The projects pinned on this dashboard."
+      },
+      "post": {
+        "operationId": "postApiPins",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinChange"
+              }
+            }
+          },
+          "description": "A new list of pinned projects, replacing the old one.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pins"
+                }
+              }
+            },
+            "description": "The pinned projects, in the order the reader pinned them."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "What a failed request answers with, whatever the route."
+          }
+        },
+        "summary": "Replace the pinned projects."
       }
     },
     "/api/record": {

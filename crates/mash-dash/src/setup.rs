@@ -153,7 +153,7 @@ fn editable(state: &Dash) -> bool {
 async fn describe(state: &Dash) -> Result<Setup, AppError> {
     let paths = state.paths.clone();
     let (file, current, models_installed) = tokio::task::spawn_blocking(move || {
-        let path = super::configuration_path(&paths)?;
+        let path = super::settings::configuration_path(&paths)?;
         let models = paths
             .models_dir
             .clone()
@@ -237,7 +237,7 @@ async fn run(state: &Dash, choice: Choice) -> Result<Done, AppError> {
         since_days: choice.since_days,
     };
     let (choices, previous) = tokio::task::spawn_blocking(move || {
-        config::setup::plan(&super::configuration_path(&paths)?, &chosen)
+        config::setup::plan(&super::settings::configuration_path(&paths)?, &chosen)
     })
     .await
     .unwrap_or_else(|_| Err(AppError::internal("plan setup")))?;
@@ -279,7 +279,8 @@ async fn start_index(state: &Dash) {
     }
     let paths = state.paths.clone();
     let qdrant = tokio::task::spawn_blocking(move || {
-        config::setup::current(&super::configuration_path(&paths)?).map(|current| current.qdrant)
+        config::setup::current(&super::settings::configuration_path(&paths)?)
+            .map(|current| current.qdrant)
     })
     .await
     .unwrap_or_else(|_| Err(AppError::internal("read setup")));

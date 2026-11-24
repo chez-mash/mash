@@ -12,6 +12,7 @@ import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
+import Pin from "@lucide/svelte/icons/pin";
 import SearchIcon from "@lucide/svelte/icons/search";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import { createQuery } from "@tanstack/svelte-query";
@@ -20,6 +21,7 @@ import { isAgent } from "../lib/api";
 import { arrangeProjects, groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { createScoped } from "../lib/scoped.svelte";
 import { scope } from "../lib/scope.svelte";
+import { createPins, pinnedFirst } from "../lib/pins.svelte";
 import { projectHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
 import EmptyState from "./EmptyState.svelte";
@@ -37,7 +39,8 @@ const projects = $derived(
     (chat) => chat.project,
   ),
 );
-const shown = $derived(arrangeProjects(projects, view));
+const pins = createPins();
+const shown = $derived(pinnedFirst(arrangeProjects(projects, view), pins.projects));
 const largest = $derived(projects[0]?.chats.length ?? 1);
 const agentChoices = $derived([...new Set(chats.map((chat) => chat.agent))].sort());
 const machineChoices = $derived([...new Set(chats.map((chat) => chat.machine))].sort());
@@ -90,6 +93,8 @@ const now = Date.now();
 {#if projects.length && !shown.length}<EmptyState card>No project matches. Change the name, agent or machine above.</EmptyState>{/if}
 <div class="sums g2">
   {#each shown.slice(0, limit) as project (project.key)}
+    {@const pinned = pins.has(project.key)}
+    <div class="pinned-card">
     <a class="card sum" href={projectHref(project.key)} title={project.key}>
       <span class="sum-h"><span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
       <span class="big"><b>{project.chats.length.toLocaleString()}</b><span>chat{project.chats.length === 1 ? "" : "s"}</span></span>
@@ -100,6 +105,50 @@ const now = Date.now();
         <span class="sp">{whenLabel(project.latestMs, now)}</span>
       </span>
     </a>
+    <!-- Beside the link rather than in it: a button cannot sit inside a link. -->
+    {#if pins.editable}
+      <button class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" title={pinned ? "Unpin" : "Pin to the top"} onclick={() => void pins.toggle(project.key)}><Pin size={16} aria-hidden="true" /></button>
+    {:else if pinned}
+      <span class="pin on" role="img" aria-label="Pinned" title="Pinned"><Pin size={16} aria-hidden="true" /></span>
+    {/if}
+    </div>
   {/each}
 </div>
 {#if shown.length > limit}{#key limit}<div bind:this={more} aria-hidden="true" style:height="1px"></div>{/key}{/if}
+
+<style>
+  /* The card fills its grid cell; the pin sits in its top corner. */
+  .pinned-card {
+    position: relative;
+    display: flex;
+  }
+  .pinned-card > :global(.card) {
+    flex: 1;
+    min-width: 0;
+  }
+  .pin {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-pill);
+    color: var(--text-muted);
+  }
+  button.pin:hover {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+  .pin.on {
+    color: var(--text-strong);
+  }
+  .pin.on :global(svg) {
+    fill: currentColor;
+  }
+  /* Room for the pin, so a long name never runs under it. */
+  .pinned-card :global(.sum-h) {
+    padding-right: 36px;
+  }
+</style>
