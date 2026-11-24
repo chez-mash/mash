@@ -214,7 +214,12 @@ async fn a_machine_checking_in_is_seen_by_its_group_only() {
         "nothing is seen before a check-in"
     );
     let (status, beat) = service
-        .call(reqwest::Method::POST, "heartbeat", FIRST, None)
+        .call(
+            reqwest::Method::POST,
+            "heartbeat",
+            FIRST,
+            Some(serde_json::json!({ "os": "linux" })),
+        )
         .await;
     assert_eq!(status, StatusCode::OK, "{beat}");
     assert_eq!(beat["every_seconds"], 60);
@@ -222,6 +227,13 @@ async fn a_machine_checking_in_is_seen_by_its_group_only() {
         .call(reqwest::Method::GET, "status", FIRST, None)
         .await;
     assert_eq!(seen(&after, "first"), beat["now"].as_u64());
+    let first = after["machines"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|machine| machine["node_id"] == "first")
+        .unwrap();
+    assert_eq!(first["os"], "linux", "the system it said it runs");
     // A machine of the same name in another group is a different machine.
     let (_, other) = service
         .call(reqwest::Method::GET, "status", OTHER, None)
@@ -234,7 +246,12 @@ async fn a_machine_checking_in_is_seen_by_its_group_only() {
     );
     // Checking in takes the machine's own token.
     let (refused, _) = service
-        .call(reqwest::Method::POST, "heartbeat", "not-a-token", None)
+        .call(
+            reqwest::Method::POST,
+            "heartbeat",
+            "not-a-token",
+            Some(serde_json::json!({})),
+        )
         .await;
     assert_eq!(refused, StatusCode::UNAUTHORIZED);
 }

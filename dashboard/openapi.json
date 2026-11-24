@@ -4299,6 +4299,15 @@
           }
         ]
       },
+      "Os": {
+        "description": "An operating system Mash runs on.",
+        "enum": [
+          "macos",
+          "linux",
+          "windows"
+        ],
+        "type": "string"
+      },
       "Page": {
         "properties": {
           "next_cursor": {
@@ -6273,6 +6282,17 @@
           },
           "node_id": {
             "type": "string"
+          },
+          "os": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Os"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The operating system the machine said it runs when it last checked in."
           },
           "published": {
             "anyOf": [

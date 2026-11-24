@@ -1936,6 +1936,11 @@ export interface components {
             /** Format: uint32 */
             rule_version: number;
         };
+        /**
+         * @description An operating system Mash runs on.
+         * @enum {string}
+         */
+        Os: "macos" | "linux" | "windows";
         Page: {
             next_cursor?: components["schemas"]["Cursor"] | null;
             /** Format: uint */
@@ -2537,6 +2542,8 @@ export interface components {
              */
             last_seen_at?: number | null;
             node_id: string;
+            /** @description The operating system the machine said it runs when it last checked in. */
+            os?: components["schemas"]["Os"] | null;
             published?: components["schemas"]["Published"] | null;
             /** @description A first publish still arriving. */
             receiving?: components["schemas"]["Receiving"] | null;

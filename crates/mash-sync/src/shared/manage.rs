@@ -6,7 +6,9 @@
 //! machine (see [`super::admin_key`]) and never the token, so the server can
 //! tell the two apart; the request also names this machine so the server's
 //! record says where a change came from.
-use super::server::report::{Done, GroupStatus, Heartbeat, JoinAnswer, MachineRequest, Overview};
+use super::server::report::{
+    CheckIn, Done, GroupStatus, Heartbeat, JoinAnswer, MachineRequest, Os, Overview,
+};
 use crate::{AppError, config::SharedConfig};
 use serde::de::DeserializeOwned;
 use std::time::Duration;
@@ -90,7 +92,8 @@ pub async fn status(config: &SharedConfig) -> Result<GroupStatus, AppError> {
     answer(config, response).await
 }
 
-/// Tells the server this machine is running, with this machine's token.
+/// Tells the server this machine is running, and on which system, with this
+/// machine's token.
 pub async fn heartbeat(config: &SharedConfig) -> Result<Heartbeat, AppError> {
     let token = config.required_token()?;
     let response = client()?
@@ -101,6 +104,7 @@ pub async fn heartbeat(config: &SharedConfig) -> Result<Heartbeat, AppError> {
         .header(reqwest::header::AUTHORIZATION, bearer(&token)?)
         .header("x-mash-group", &config.group_id)
         .header("x-mash-node", &config.node_id)
+        .json(&CheckIn { os: Os::current() })
         .send()
         .await
         .map_err(|_| unreachable(config))?;

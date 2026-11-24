@@ -1,6 +1,5 @@
 <script lang="ts">
 import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
 import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import AgentMark from "./components/AgentMark.svelte";
@@ -10,6 +9,7 @@ import Console from "./components/Console.svelte";
 import Fleet from "./components/Fleet.svelte";
 import History from "./components/History.svelte";
 import MachineExtras from "./components/MachineExtras.svelte";
+import MachineIcon from "./components/MachineIcon.svelte";
 import Mashy from "./components/Mashy.svelte";
 import Missing from "./components/Missing.svelte";
 import Overview from "./components/Overview.svelte";
@@ -238,7 +238,7 @@ function skip(event: MouseEvent): void {
         {@const id = route.id}
         {#key id}
           <BrowseDetail field="machine" value={id} title={id} back={{ href: "#/machines", label: "machines" }}>
-            {#snippet icon()}<span class="ico lg machines"><Laptop size={20} aria-hidden="true" /></span>{/snippet}
+            {#snippet icon()}<span class="ico lg machines"><MachineIcon machine={id} /></span>{/snippet}
             {#snippet extra()}<MachineExtras machineId={id} />{/snippet}
           </BrowseDetail>
         {/key}

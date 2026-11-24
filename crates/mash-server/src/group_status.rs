@@ -34,9 +34,13 @@ pub(crate) async fn machines(
             continue;
         }
         let mut status = machine(&identity, added, &nodes, now);
-        status.last_seen_at = app
+        if let Some(seen) = app
             .presence
-            .last_seen(&identity.group_id, &identity.node_id);
+            .last_seen(&identity.group_id, &identity.node_id)
+        {
+            status.last_seen_at = Some(seen.at);
+            status.os = seen.os;
+        }
         machines.push(status);
     }
     machines.sort_by(|a, b| (&a.group_id, &a.node_id).cmp(&(&b.group_id, &b.node_id)));
@@ -74,6 +78,7 @@ fn machine(
         delete_waiting: node.is_some_and(|node| node.delete_waiting),
         search: None,
         last_seen_at: None,
+        os: None,
     }
 }
 

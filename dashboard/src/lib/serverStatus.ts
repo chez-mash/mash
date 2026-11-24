@@ -40,7 +40,12 @@ export interface ServerMachine {
   /** When its watcher last checked in, in seconds since 1970 by the server's
    * clock; null when it has not since the server started. */
   readonly lastSeenAt: number | null;
+  /** The system it said it runs when it last checked in. */
+  readonly os: Os | null;
 }
+
+/** An operating system Mash runs on. */
+export type Os = "macos" | "linux" | "windows";
 
 /** "missing", "stale" or "ready" for words and for meaning; meaning is null
  * when the server doesn't search by meaning. */
@@ -117,6 +122,7 @@ export function serverReport(view: ServerView | undefined): ServerReport {
           }
         : null,
       lastSeenAt: machine.last_seen_at ?? null,
+      os: machine.os ?? null,
     };
   });
   return {

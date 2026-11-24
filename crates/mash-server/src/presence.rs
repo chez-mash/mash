@@ -12,26 +12,33 @@
 //! so the map holds at most one entry per machine the server accepts.
 use axum::Json;
 use axum::extract::{Extension, State};
-use mash_app::shared::server::report::{HEARTBEAT_SECONDS, Heartbeat};
+use mash_app::shared::server::report::{CheckIn, HEARTBEAT_SECONDS, Heartbeat, Os};
 use mash_app::shared::server::{Identity, enrollment};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
 
 use super::App;
 
+/// A machine's last check-in: when, and the system it said it runs.
+#[derive(Clone, Copy)]
+pub(crate) struct Seen {
+    pub(crate) at: u64,
+    pub(crate) os: Option<Os>,
+}
+
 #[derive(Clone, Default)]
-pub(crate) struct Presence(Arc<Mutex<HashMap<(String, String), u64>>>);
+pub(crate) struct Presence(Arc<Mutex<HashMap<(String, String), Seen>>>);
 
 impl Presence {
-    fn beat(&self, id: &Identity, now: u64) {
+    fn beat(&self, id: &Identity, seen: Seen) {
         self.0
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
-            .insert((id.group_id.clone(), id.node_id.clone()), now);
+            .insert((id.group_id.clone(), id.node_id.clone()), seen);
     }
 
-    /// When `node` of `group` last checked in, if it has since the server started.
-    pub(crate) fn last_seen(&self, group: &str, node: &str) -> Option<u64> {
+    /// `node` of `group`'s last check-in, if it has checked in since the server started.
+    pub(crate) fn last_seen(&self, group: &str, node: &str) -> Option<Seen> {
         self.0
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
@@ -40,14 +47,21 @@ impl Presence {
     }
 }
 
-/// `POST /v1/heartbeat`: the calling machine is running. It changes nothing
-/// but the time the server last heard from it.
+/// `POST /v1/heartbeat`: the calling machine is running, on the system it
+/// names. It changes nothing but what the server last heard from it.
 pub(crate) async fn heartbeat(
     State(app): State<App>,
     Extension(id): Extension<Identity>,
+    Json(check_in): Json<CheckIn>,
 ) -> Json<Heartbeat> {
     let now = enrollment::now();
-    app.presence.beat(&id, now);
+    app.presence.beat(
+        &id,
+        Seen {
+            at: now,
+            os: check_in.os,
+        },
+    );
     Json(Heartbeat {
         now,
         every_seconds: HEARTBEAT_SECONDS,

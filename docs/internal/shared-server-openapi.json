@@ -2146,6 +2146,15 @@
           }
         ]
       },
+      "Os": {
+        "description": "An operating system Mash runs on.",
+        "enum": [
+          "macos",
+          "linux",
+          "windows"
+        ],
+        "type": "string"
+      },
       "Page": {
         "properties": {
           "next_cursor": {
@@ -2968,6 +2977,22 @@
         ],
         "type": "string"
       },
+      "SharedCheckIn": {
+        "description": "What a machine says when it checks in.",
+        "properties": {
+          "os": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Os"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "SharedGroupStatus": {
         "description": "A group as any of its machines may read it.",
         "properties": {
@@ -3146,6 +3171,17 @@
           },
           "node_id": {
             "type": "string"
+          },
+          "os": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Os"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The operating system the machine said it runs when it last checked in."
           },
           "published": {
             "anyOf": [
@@ -4099,6 +4135,17 @@
     },
     "/v1/heartbeat": {
       "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedCheckIn"
+              }
+            }
+          },
+          "description": "What a machine says when it checks in.",
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -4109,6 +4156,36 @@
               }
             },
             "description": "The server's answer to a machine checking in."
+          },
+          "400": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to parse the request body as JSON"
+          },
+          "415": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Expected request with `Content-Type: application/json`"
+          },
+          "422": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Failed to deserialize the JSON body into the target type"
           }
         }
       }

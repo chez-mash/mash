@@ -55,6 +55,41 @@ pub struct MachineStatus {
     /// every [`HEARTBEAT_SECONDS`], so an older time means it has gone quiet.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_seen_at: Option<u64>,
+    /// The operating system the machine said it runs when it last checked in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub os: Option<Os>,
+}
+
+/// An operating system Mash runs on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum Os {
+    Macos,
+    Linux,
+    Windows,
+}
+
+impl Os {
+    /// The system this build of Mash runs on.
+    pub const fn current() -> Option<Self> {
+        if cfg!(target_os = "macos") {
+            Some(Self::Macos)
+        } else if cfg!(target_os = "linux") {
+            Some(Self::Linux)
+        } else if cfg!(target_os = "windows") {
+            Some(Self::Windows)
+        } else {
+            None
+        }
+    }
+}
+
+/// What a machine says when it checks in.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, schemars::JsonSchema)]
+#[schemars(rename = "SharedCheckIn")]
+pub struct CheckIn {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub os: Option<Os>,
 }
 
 /// How often a machine's watcher checks in with the server while it runs.
