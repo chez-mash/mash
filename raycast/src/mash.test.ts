@@ -16,6 +16,7 @@ import {
   parseStreamLine,
   resumeCommand,
   rows,
+  viewArguments,
   viewChoice,
   parseView,
   recentChatsArguments,
@@ -336,5 +337,19 @@ describe("the environment mash runs in", () => {
       HOME: "/Users/me",
       MASH_CLIENT: "raycast",
     });
+  });
+});
+
+describe("reading a chat's messages", () => {
+  it("reads another machine's message from the shared index, by that machine", () => {
+    expect(viewArguments({ messageId: "m1" })).toEqual(["view", "m1", "--context", "3"]);
+    expect(viewArguments({ messageId: "m1", machine: "dev-macbook" })).toEqual([
+      "view",
+      "m1",
+      "--context",
+      "3",
+      "--shared",
+      "dev-macbook",
+    ]);
   });
 });

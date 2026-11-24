@@ -208,6 +208,8 @@ function MemoryItem({
     project: "",
     updatedAt: undefined,
     passage: source.quote,
+    // A record from another machine cites that machine's chat.
+    ...(memory.machine ? { machine: memory.machine } : {}),
   };
   return (
     <List.Item

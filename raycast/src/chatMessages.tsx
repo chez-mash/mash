@@ -20,7 +20,7 @@ export function read<T>(parse: (stdout: string) => T) {
 
 /** A chat's messages around one of them; `children` are the actions offered. */
 export function ChatMessages({ hit, mash, children }: { hit: Hit; mash: string; children?: ReactNode }) {
-  const { data, isLoading, error } = useExec(mash, viewArguments(hit.messageId), {
+  const { data, isLoading, error } = useExec(mash, viewArguments(hit), {
     env: mashEnvironment(),
     parseOutput: read(parseView),
     failureToastOptions: { title: "Mash couldn’t read the chat" },

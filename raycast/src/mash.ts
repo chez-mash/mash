@@ -154,8 +154,11 @@ function chatTitle(row: Record<string, unknown>): string {
 }
 
 /** The arguments that read a message with a few on either side of it. */
-export function viewArguments(messageId: string): string[] {
-  return ["view", messageId, "--context", "3"];
+export function viewArguments(hit: Pick<Hit, "messageId" | "machine">): string[] {
+  const read = ["view", hit.messageId, "--context", "3"];
+  // A message from another machine is read from the shared index, by that
+  // machine; this machine's index does not hold it.
+  return hit.machine ? [...read, "--shared", hit.machine] : read;
 }
 
 /** Mash answers with JSON even when it fails; its message says what to do. */
