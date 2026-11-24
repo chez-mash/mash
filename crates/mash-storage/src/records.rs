@@ -32,7 +32,6 @@ pub enum Review {
 pub enum Kind {
     Decision,
     Preference,
-    Fact,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema)]
@@ -41,10 +40,8 @@ pub enum Lifecycle {
     Proposed,
     Accepted,
     Active,
-    Current,
     Superseded,
     Withdrawn,
-    Retracted,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -82,13 +79,6 @@ pub enum PreferenceState {
     Superseded,
     Withdrawn,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum FactState {
-    Current,
-    Superseded,
-    Retracted,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
@@ -108,11 +98,6 @@ pub enum Details {
         #[serde(default)]
         conditions: Vec<String>,
     },
-    Fact {
-        state: FactState,
-        reported_by: String,
-        valid_until: Option<i64>,
-    },
 }
 
 impl Details {
@@ -120,7 +105,6 @@ impl Details {
         match self {
             Self::Decision { .. } => "decision",
             Self::Preference { .. } => "preference",
-            Self::Fact { .. } => "fact",
         }
     }
 
@@ -133,9 +117,6 @@ impl Details {
             } | Self::Preference {
                 state: PreferenceState::Active,
                 ..
-            } | Self::Fact {
-                state: FactState::Current,
-                ..
             }
         )
     }
@@ -147,7 +128,6 @@ impl Details {
         match self {
             Self::Decision { state, .. } => *state = DecisionState::Superseded,
             Self::Preference { state, .. } => *state = PreferenceState::Superseded,
-            Self::Fact { state, .. } => *state = FactState::Superseded,
         }
         Ok(())
     }
@@ -172,9 +152,6 @@ impl Details {
             } | Self::Preference {
                 state: PreferenceState::Superseded,
                 ..
-            } | Self::Fact {
-                state: FactState::Superseded,
-                ..
             }
         )
     }
@@ -183,7 +160,7 @@ impl Details {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Body {
-    /// The decision, preference or fact itself, in a sentence or two.
+    /// The decision or preference itself, in a sentence or two.
     pub statement: String,
     /// Why, when known.
     #[serde(default)]
@@ -192,7 +169,7 @@ pub struct Body {
     pub review: Review,
     /// Its kind and state, with that kind's own fields and nothing else.
     pub details: Details,
-    /// When the choice/claim applied, in Unix milliseconds; unknown stays null.
+    /// When the choice applied, in Unix milliseconds; unknown stays null.
     pub effective_at: Option<i64>,
     /// Who is recording, such as the agent's name; in `body`, not in `details`.
     /// Attribution supplied by the caller, not authenticated human identity.
@@ -201,9 +178,7 @@ pub struct Body {
 
 impl Body {
     pub fn applies_at(&self, timestamp: i64) -> bool {
-        self.details.current()
-            && self.effective_at.is_none_or(|start| start <= timestamp)
-            && !matches!(&self.details, Details::Fact { valid_until: Some(end), .. } if *end < timestamp)
+        self.details.current() && self.effective_at.is_none_or(|start| start <= timestamp)
     }
 
     pub fn validate(&self) -> Result<(), AppError> {
@@ -211,20 +186,6 @@ impl Body {
         bounded(&self.recorded_by, 256, "recorded_by")?;
         if self.rationale.len() > 8192 {
             return Err(AppError::usage("rationale exceeds 8192 bytes"));
-        }
-        if let Details::Fact {
-            reported_by,
-            valid_until,
-            ..
-        } = &self.details
-        {
-            bounded(reported_by, 256, "reported_by")?;
-            if valid_until
-                .zip(self.effective_at)
-                .is_some_and(|(end, start)| end < start)
-            {
-                return Err(AppError::usage("fact validity ends before it starts"));
-            }
         }
         let encoded = encode(self)?;
         if encoded.len() > 16384 {
@@ -472,7 +433,6 @@ impl Body {
                     *text = policy.text(text);
                 }
             }
-            Details::Fact { reported_by, .. } => *reported_by = policy.text(reported_by),
         }
     }
 }

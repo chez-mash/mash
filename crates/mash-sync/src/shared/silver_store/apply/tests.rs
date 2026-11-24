@@ -92,7 +92,7 @@ fn retained(store: &SilverStore) -> Retained {
 
 fn with_recall(statement: &str, revision: i64) -> tempfile::NamedTempFile {
     use crate::records::{
-        Body, Details, Evidence, FactState, Review, Scope, transfer::Kind, transfer::Row,
+        Body, Details, Evidence, PreferenceState, Review, Scope, transfer::Kind, transfer::Row,
     };
     let input = file(Some("original"), revision);
     let lines = std::fs::read_to_string(input.path()).unwrap();
@@ -103,15 +103,15 @@ fn with_recall(statement: &str, revision: i64) -> tempfile::NamedTempFile {
             let rows = vec![
                 Row::Owner { id: "owner".into() },
                 Row::Header {
-                    id: "fact".into(),
+                    id: "preference".into(),
                     owner: "owner".into(),
-                    kind: Kind::Fact,
+                    kind: Kind::Preference,
                     scope: Some(Scope::Personal),
                     revision: 1,
                     forgotten: false,
                 },
                 Row::Revision {
-                    id: "fact".into(),
+                    id: "preference".into(),
                     revision: 1,
                     recorded_at: 1,
                     body: Body {
@@ -120,15 +120,14 @@ fn with_recall(statement: &str, revision: i64) -> tempfile::NamedTempFile {
                         recorded_by: "test".into(),
                         review: Review::Candidate,
                         effective_at: None,
-                        details: Details::Fact {
-                            state: FactState::Current,
-                            reported_by: "user".into(),
-                            valid_until: None,
+                        details: Details::Preference {
+                            state: PreferenceState::Active,
+                            conditions: Vec::new(),
                         },
                     },
                 },
                 Row::Evidence {
-                    id: "fact".into(),
+                    id: "preference".into(),
                     revision: 1,
                     position: 0,
                     source: Evidence {

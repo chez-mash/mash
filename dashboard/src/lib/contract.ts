@@ -827,7 +827,7 @@ export interface components {
             details: components["schemas"]["Details"];
             /**
              * Format: int64
-             * @description When the choice/claim applied, in Unix milliseconds; unknown stays null.
+             * @description When the choice applied, in Unix milliseconds; unknown stays null.
              */
             effective_at?: number | null;
             /**
@@ -842,7 +842,7 @@ export interface components {
             recorded_by: string;
             /** @default candidate */
             review: components["schemas"]["Review"];
-            /** @description The decision, preference or fact itself, in a sentence or two. */
+            /** @description The decision or preference itself, in a sentence or two. */
             statement: string;
         };
         /** @enum {string} */
@@ -1254,13 +1254,6 @@ export interface components {
             /** @constant */
             kind: "preference";
             state: components["schemas"]["PreferenceState"];
-        } | {
-            /** @constant */
-            kind: "fact";
-            reported_by: string;
-            state: components["schemas"]["FactState"];
-            /** Format: int64 */
-            valid_until?: number | null;
         };
         Diagnostic: {
             label: string;
@@ -1365,8 +1358,6 @@ export interface components {
             type: "failed";
         };
         EvidenceUse: ("context" | "report") | "endorsement";
-        /** @enum {string} */
-        FactState: "current" | "superseded" | "retracted";
         /** @description What a failed request answers with, whatever the route. */
         Failure: {
             error: components["schemas"]["ErrorBody"];
@@ -1712,7 +1703,7 @@ export interface components {
             admin_key: boolean;
         };
         /** @enum {string} */
-        Kind: "decision" | "preference" | "fact";
+        Kind: "decision" | "preference";
         LexicalManifest: {
             /**
              * Format: uint32
@@ -1726,7 +1717,7 @@ export interface components {
             silver: components["schemas"]["Certificate"];
         };
         /** @enum {string} */
-        Lifecycle: "proposed" | "accepted" | "active" | "current" | "superseded" | "withdrawn" | "retracted";
+        Lifecycle: "proposed" | "accepted" | "active" | "superseded" | "withdrawn";
         /** @enum {string} */
         Limitation: "source-freshness-not-checked" | "historical-scan-scope-unrecorded" | "shared-provider-scan-state-unreported";
         Link: {

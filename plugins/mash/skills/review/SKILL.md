@@ -49,8 +49,7 @@ Ask what to do with each, and act only on the person's answer:
   person's answer here is why you are keeping it, not its evidence.
 - **Fix it:** `revise` with the corrected statement, on the same terms.
 - **It changed:** `supersede` with the new choice.
-- **No longer true:** revise its state to withdrawn, or retracted for a
-  fact.
+- **No longer true:** revise its state to withdrawn.
 - **Remove it:** only when they say remove or delete. Follow the `forget`
   skill for that one record: show it, say it is permanent, and get a yes.
 - **Stale evidence** (the cited message changed or is gone): `revise` with

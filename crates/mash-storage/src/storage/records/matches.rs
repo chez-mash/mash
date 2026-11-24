@@ -22,7 +22,6 @@ pub(super) fn duplicate(
     connection: &Connection,
     scope: &Scope,
     body: &Body,
-    timestamp: i64,
 ) -> Result<Option<Receipt>, AppError> {
     let mut query = connection.prepare("SELECT r.id FROM records r JOIN record_revisions v ON v.record_id=r.id AND v.revision=r.revision WHERE r.forgotten=0 AND r.owner=?1 AND r.scope=?2 AND r.kind=?3 AND json_extract(v.body,'$.statement')=?4 ORDER BY r.id").map_err(AppError::database)?;
     let rows = query
@@ -49,8 +48,7 @@ pub(super) fn duplicate(
                     ..
                 }
             );
-        let expired = matches!(&revision.body.details, Details::Fact { valid_until: Some(end), .. } if *end < timestamp);
-        if live_state && !expired && revision.evidence_current && exact(&revision.body, body) {
+        if live_state && revision.evidence_current && exact(&revision.body, body) {
             return Ok(Some(Receipt {
                 record_id: record.id,
                 revision: record.current_revision,

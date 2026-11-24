@@ -443,9 +443,9 @@ mod tests {
             &json!({"type": "object", "properties": {"details": {"oneOf": [
                 {"type": "object", "required": ["kind", "state"], "properties": {
                     "kind": {"type": "string", "const": "decision"}, "state": {"type": "string", "enum": ["accepted", "superseded"]}}},
-                {"type": "object", "required": ["kind", "state", "reported_by"], "properties": {
-                    "kind": {"type": "string", "const": "fact"}, "reported_by": {"type": "string"},
-                    "state": {"type": "string", "enum": ["current", "superseded"]}}}
+                {"type": "object", "required": ["kind", "state", "conditions"], "properties": {
+                    "kind": {"type": "string", "const": "preference"}, "conditions": {"type": "string"},
+                    "state": {"type": "string", "enum": ["active", "superseded"]}}}
             ]}}}),
         );
         assert_eq!(
@@ -453,11 +453,11 @@ mod tests {
             json!({
                 "type": "object",
                 "required": ["kind"],
-                "description": "decision needs state. fact needs state, reported_by. decision state: accepted, superseded. fact state: current, superseded.",
+                "description": "decision needs state. preference needs state, conditions. decision state: accepted, superseded. preference state: active, superseded.",
                 "properties": {
-                    "kind": {"type": "string", "enum": ["decision", "fact"]},
-                    "state": {"type": "string", "enum": ["accepted", "superseded", "current"]},
-                    "reported_by": {"type": "string"}
+                    "kind": {"type": "string", "enum": ["decision", "preference"]},
+                    "state": {"type": "string", "enum": ["accepted", "superseded", "active"]},
+                    "conditions": {"type": "string"}
                 }
             })
         );

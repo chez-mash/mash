@@ -1,4 +1,3 @@
-import BadgeCheck from "@lucide/svelte/icons/badge-check";
 import Folder from "@lucide/svelte/icons/folder";
 import FolderGit2 from "@lucide/svelte/icons/folder-git-2";
 import Gavel from "@lucide/svelte/icons/gavel";
@@ -10,7 +9,6 @@ import User from "@lucide/svelte/icons/user";
 export const kindIcons = {
   decision: Gavel,
   preference: SlidersHorizontal,
-  fact: BadgeCheck,
 } as const;
 
 /** The icon for what a memory applies to. */

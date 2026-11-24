@@ -137,7 +137,7 @@ history.
 ## Save and recall records
 
 <details class="mash-tool write" id="tool-record">
-<summary><span class="badge">WRITE</span><code>record</code><span class="about">Create, revise, supersede, confirm, link or forget a local record: a decision, preference or fact.</span></summary>
+<summary><span class="badge">WRITE</span><code>record</code><span class="about">Create, revise, supersede, confirm, link or forget a local record: a decision or preference.</span></summary>
 <ul>
 <li>Cite evidence by message_id, or your own session by session_id with an exact quote, which needs no indexing.</li>
 <li>An established decision or preference needs a citation of the user endorsing it, and that is your reading, not proof of approval; keep unclear interpretations as candidates.</li>
@@ -157,21 +157,19 @@ history.
 <div class="param"><span class="name"><code>conditions</code><small>list of text</small></span><span class="about">For a preference: when it applies.</span></div>
 <div class="param"><span class="name"><code>consequences</code><small>list of text</small></span><span class="about">For a decision: what follows from it.</span></div>
 <div class="param"><span class="name"><code>decided_by</code><small>one of <code>user</code>, <code>agent</code></small></span><span class="about">For a decision: omit for the person's decision; agent for a choice the agent made.</span></div>
-<div class="param"><span class="name"><code>effective_at</code><small>whole number</small></span><span class="about">When the choice or claim applied, in Unix milliseconds, when known.</span></div>
+<div class="param"><span class="name"><code>effective_at</code><small>whole number</small></span><span class="about">When the choice applied, in Unix milliseconds, when known.</span></div>
 <div class="param"><span class="name"><code>evidence</code><small>list of object</small></span><span class="about">The messages that support it: each a quote with <code>message_id</code>, or with <code>session_id</code> for your own session.</span></div>
 <div class="param"><span class="name"><code>expected</code><small>object</small></span><span class="about">The record and revision being changed, for every action but create.</span></div>
-<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code>, <code>fact</code></small></span><span class="about">decision, preference or fact.</span></div>
+<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code></small></span><span class="about">decision or preference.</span></div>
 <div class="param"><span class="name"><code>on_duplicate</code><small>one of <code>report</code>, <code>reuse</code></small></span><span class="about">For create: report (default) an identical live record, or reuse it.</span></div>
 <div class="param"><span class="name"><code>rationale</code><small>text</small></span><span class="about">Why, when known.</span></div>
 <div class="param"><span class="name"><code>recorded_by</code><small>text</small></span><span class="about">Who is recording, such as the agent's name. Attribution supplied by the caller, not authenticated human identity.</span></div>
 <div class="param"><span class="name"><code>relation</code><small>one of <code>supports</code>, <code>contradicts</code></small></span><span class="about">For link. Your explicit reading; never inferred from similar wording.</span></div>
-<div class="param"><span class="name"><code>reported_by</code><small>text</small></span><span class="about">For a fact: who reported it.</span></div>
 <div class="param"><span class="name"><code>review</code><small>one of <code>candidate</code>, <code>established</code></small></span><span class="about">candidate (default) or established.</span></div>
 <div class="param"><span class="name"><code>scope</code><small>object</small></span><span class="about">Where a new record applies: {kind: personal}, {kind: repository, identity}, {kind: <code>local_project</code>, path} or {kind: chat, id}.</span></div>
-<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>current</code>, <code>superseded</code>, <code>withdrawn</code>, <code>retracted</code></small></span><span class="about">decision: proposed, accepted, superseded, withdrawn. preference: active, superseded, withdrawn. fact: current, superseded, retracted.</span></div>
-<div class="param"><span class="name"><code>statement</code><small>text</small></span><span class="about">The decision, preference or fact itself, in a sentence or two.</span></div>
+<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>superseded</code>, <code>withdrawn</code></small></span><span class="about">decision: proposed, accepted, superseded, withdrawn. preference: active, superseded, withdrawn.</span></div>
+<div class="param"><span class="name"><code>statement</code><small>text</small></span><span class="about">The decision or preference itself, in a sentence or two.</span></div>
 <div class="param"><span class="name"><code>target</code><small>object</small></span><span class="about">For link: the other record and its revision.</span></div>
-<div class="param"><span class="name"><code>valid_until</code><small>whole number</small></span><span class="about">For a fact: when it stops holding, in Unix milliseconds.</span></div>
 </div>
 </details>
 
@@ -194,7 +192,7 @@ history.
 </details>
 
 <details class="mash-tool read" id="tool-list_records">
-<summary><span class="badge">READ</span><code>list_records</code><span class="about">List saved records (decisions, preferences, facts) without models.</span></summary>
+<summary><span class="badge">READ</span><code>list_records</code><span class="about">List saved records (decisions and preferences) without models.</span></summary>
 <ul>
 <li>Filter by kind, scope, chat or words in the statement; scope identity is exact.</li>
 <li>Each is its current statement, reason, scope and source messages; detail=extended or get_record gives quotes, history and links. include_inactive adds candidates and retired or stale records. shared=true reads the group; continue with offset=next_offset, or cursor=next_cursor for shared pages, even after an empty page.</li>
@@ -205,7 +203,7 @@ history.
 <div class="param"><span class="name"><code>cursor</code><small>object</small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>detail</code><small>one of <code>compact</code>, <code>extended</code></small></span><span class="about">compact (default) gives each record's current statement, reason, scope and sources; extended includes quotes, fingerprints, confirmations and links. <small>Default <code>compact</code>.</small></span></div>
 <div class="param"><span class="name"><code>include_inactive</code><small>true or false</small></span><span class="about"></span></div>
-<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code>, <code>fact</code></small></span><span class="about"></span></div>
+<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code></small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>limit</code><small>whole number</small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>node_id</code><small>text</small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>offset</code><small>whole number</small></span><span class="about"><small>Default <code>0</code>.</small></span></div>
@@ -213,7 +211,7 @@ history.
 <div class="param"><span class="name"><code>review</code><small>one of <code>candidate</code>, <code>established</code></small></span><span class="about"></span></div>
 <div class="param"><span class="name"><code>scope</code><small>object</small></span><span class="about">repository needs identity. local_project needs path. chat needs id.</span></div>
 <div class="param"><span class="name"><code>shared</code><small>true or false</small></span><span class="about"></span></div>
-<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>current</code>, <code>superseded</code>, <code>withdrawn</code>, <code>retracted</code></small></span><span class="about"></span></div>
+<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>superseded</code>, <code>withdrawn</code></small></span><span class="about"></span></div>
 </div>
 </details>
 
@@ -221,7 +219,7 @@ history.
 <summary><span class="badge">READ</span><code>get_record</code><span class="about">Read one record with its evidence quotes, confirmations and links.</span></summary>
 <ul>
 <li>Pass node_id from a shared list result for a published copy. history=true pages through revisions newest first (before_revision=next_before_revision); links page with link_offset=next_link_offset; follow cursors until null.</li>
-<li>Reading never confirms a record, and facts are reported claims.</li>
+<li>Reading never confirms a record.</li>
 </ul>
 <h4>Parameters</h4>
 <div class="params">
@@ -247,15 +245,13 @@ history.
 <div class="param"><span class="name"><code>conditions</code><small>list of text</small></span><span class="about">For a preference: when it applies.</span></div>
 <div class="param"><span class="name"><code>consequences</code><small>list of text</small></span><span class="about">For a decision: what follows from it.</span></div>
 <div class="param"><span class="name"><code>decided_by</code><small>one of <code>user</code>, <code>agent</code></small></span><span class="about">For a decision: omit for the person's decision; agent for a choice the agent made.</span></div>
-<div class="param"><span class="name"><code>effective_at</code><small>whole number</small></span><span class="about">When the choice or claim applied, in Unix milliseconds, when known.</span></div>
-<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code>, <code>fact</code></small></span><span class="about">decision, preference or fact.</span></div>
+<div class="param"><span class="name"><code>effective_at</code><small>whole number</small></span><span class="about">When the choice applied, in Unix milliseconds, when known.</span></div>
+<div class="param"><span class="name"><code>kind</code><small>one of <code>decision</code>, <code>preference</code></small></span><span class="about">decision or preference.</span></div>
 <div class="param"><span class="name"><code>rationale</code><small>text</small></span><span class="about">Why, when known.</span></div>
 <div class="param"><span class="name"><code>recorded_by</code><small>text</small></span><span class="about">Who is recording, such as the agent's name. Attribution supplied by the caller, not authenticated human identity.</span></div>
-<div class="param"><span class="name"><code>reported_by</code><small>text</small></span><span class="about">For a fact: who reported it.</span></div>
 <div class="param"><span class="name"><code>review</code><small>one of <code>candidate</code>, <code>established</code></small></span><span class="about">candidate (default) or established.</span></div>
-<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>current</code>, <code>superseded</code>, <code>withdrawn</code>, <code>retracted</code></small></span><span class="about">decision: proposed, accepted, superseded, withdrawn. preference: active, superseded, withdrawn. fact: current, superseded, retracted.</span></div>
-<div class="param"><span class="name"><code>statement</code><small>text</small></span><span class="about">The decision, preference or fact itself, in a sentence or two.</span></div>
-<div class="param"><span class="name"><code>valid_until</code><small>whole number</small></span><span class="about">For a fact: when it stops holding, in Unix milliseconds.</span></div>
+<div class="param"><span class="name"><code>state</code><small>one of <code>proposed</code>, <code>accepted</code>, <code>active</code>, <code>superseded</code>, <code>withdrawn</code></small></span><span class="about">decision: proposed, accepted, superseded, withdrawn. preference: active, superseded, withdrawn.</span></div>
+<div class="param"><span class="name"><code>statement</code><small>text</small></span><span class="about">The decision or preference itself, in a sentence or two.</span></div>
 </div>
 </details>
 

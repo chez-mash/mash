@@ -42,7 +42,7 @@ From a chat you can:
   that does the same in a terminal.
 - **Open Mash** (⌘O) — the desktop app's main window.
 
-**Search Memory** lists the decisions, preferences and facts Mash remembers
+**Search Memory** lists the decisions and preferences Mash remembers
 from your chats on every machine (through the shared index, or this
 machine's alone when it has not joined one), grouped by the repository or
 project they apply to, newest first. Choose a kind beside the search field. Each shows why it was recorded,

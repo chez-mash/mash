@@ -19,7 +19,6 @@ test("memory categories work from the page's tabs even when chat history is unav
   for (const [label, kind] of [
     ["decisions", "decision"],
     ["preferences", "preference"],
-    ["facts", "fact"],
   ] as const) {
     await followRail(page, "memory");
     await kindNav(page).getByRole("link", { name: label, exact: true }).click();
@@ -43,15 +42,15 @@ test("records filter on submission, expose history and safe citations, and navig
     requests: URL[] = [];
   const documents = documentLoads(page);
   page.on("pageerror", (error) => errors.push(error.message));
-  const fact = recordFixture();
-  const revision = fact.revisions[0];
+  const memory = recordFixture();
+  const revision = memory.revisions[0];
   const statement = "Port 8080 <script>window.recordPwned=true</script>";
   const current = {
-    ...fact,
+    ...memory,
     current_revision: 9,
     revisions: [{ ...revision, revision: 9, body: { ...revision?.body, statement } }],
     next_before_revision: 9,
-    links: [{ source_id: fact.id, target_id: "decision-1", relation: "supports" }],
+    links: [{ source_id: memory.id, target_id: "decision-1", relation: "supports" }],
     next_link_offset: 128,
   };
   await page.route("**/api/**", (route) => {
@@ -69,11 +68,11 @@ test("records filter on submission, expose history and safe citations, and navig
     if (url.pathname === "/api/records") {
       requests.push(url);
       const records = url.searchParams.has("kind")
-        ? [fact]
+        ? [memory]
         : [
-            fact,
+            memory,
             recordFixture("decision-1", "decision"),
-            recordFixture("preference-1", "preference"),
+            recordFixture("decision-2", "decision"),
           ];
       return route.fulfill({ json: { records, next_offset: null } });
     }
@@ -104,7 +103,7 @@ test("records filter on submission, expose history and safe citations, and navig
   await followRail(page, "memory");
   await expect(page.getByRole("heading", { name: "Memory", exact: true })).toBeVisible();
   await expect(records(page)).toHaveCount(3);
-  await kindNav(page).getByRole("link", { name: "facts", exact: true }).click();
+  await kindNav(page).getByRole("link", { name: "preferences", exact: true }).click();
   await expect(records(page)).toHaveCount(1);
   const apply = page.getByRole("button", { name: "Apply filters" });
   await expect(apply).toHaveCount(0);
@@ -115,10 +114,12 @@ test("records filter on submission, expose history and safe citations, and navig
   await expect(page).toHaveURL(/q=port/);
   await expect(records(page)).toHaveCount(1);
   expect(requests).toHaveLength(beforeDraft + 1);
-  expect(requests.at(-1)?.searchParams.get("kind")).toBe("fact");
+  expect(requests.at(-1)?.searchParams.get("kind")).toBe("preference");
   expect(requests.at(-1)?.searchParams.get("q")).toBe("port");
-  const factLink = page.getByRole("main").getByRole("link", { name: /fact fixture on port/ });
-  await factLink.click();
+  const memoryLink = page
+    .getByRole("main")
+    .getByRole("link", { name: /preference fixture on port/ });
+  await memoryLink.click();
   await expect(page.getByRole("heading", { name: statement, exact: true })).toBeVisible();
   expect(await page.evaluate(() => "recordPwned" in window)).toBe(false);
   for (const name of ["evidence", "revision history", "related records"])
@@ -139,12 +140,11 @@ test("records filter on submission, expose history and safe citations, and navig
   await related.click();
   await expect(page.getByText("Keep the old port", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Back to memory" }).click();
-  await expect(kindNav(page).getByRole("link", { name: "facts", exact: true })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(
+    kindNav(page).getByRole("link", { name: "preferences", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(page.getByLabel("Search statements")).toHaveValue("port");
-  await factLink.click();
+  await memoryLink.click();
   await page.getByRole("link", { name: /open the message/ }).click();
   await expect(
     page.locator("#message-message-1").getByText("The service uses port 8080.", { exact: true }),
@@ -160,7 +160,7 @@ for (const sourceNode of ["remote/one", "local"]) {
     page,
   }) => {
     let calls = 0,
-      title = "Shared fact";
+      title = "Shared preference";
     const requests: URL[] = [];
     // This machine reads a shared index, so a link to its records can name it.
     await page.route("**/api/chats**", (route) =>
@@ -225,7 +225,7 @@ for (const sourceNode of ["remote/one", "local"]) {
     await page.goto("/#/records?shared=true");
     // The first machine has none, so the page steps on to the next one by
     // itself instead of saying nothing is saved.
-    const shared = records(page).getByRole("link", { name: "Shared fact" });
+    const shared = records(page).getByRole("link", { name: "Shared preference" });
     await expect(page.getByText(/No matching records on this page/)).toHaveCount(0);
     await expect(shared).toBeVisible();
     expect(requests.at(-1)?.searchParams.get("shared")).toBe("true");
@@ -277,15 +277,15 @@ test("unavailable or forgotten records show an error instead of a cached conclus
         })
       : route.fulfill({ json: recordFixture() }),
   );
-  await page.goto("/#/record/fact-1");
+  await page.goto("/#/record/preference-1");
   await expect(
-    page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
+    page.getByRole("heading", { name: "preference fixture on port 8080", exact: true }),
   ).toBeVisible();
   forgotten = true;
   await page.locator("#rail").getByRole("button", { name: "Check for updates" }).click();
   await expect(page.getByRole("alert")).toContainText("forgotten");
   await expect(
-    page.getByRole("heading", { name: "fact fixture on port 8080", exact: true }),
+    page.getByRole("heading", { name: "preference fixture on port 8080", exact: true }),
   ).toHaveCount(0);
 });
 

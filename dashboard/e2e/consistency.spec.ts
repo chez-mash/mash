@@ -48,7 +48,13 @@ test("every screen has exactly one Check for updates, at the foot of the rail", 
     page
       .getByRole("button", { name: "Check for updates", exact: true })
       .evaluateAll((buttons) => buttons.filter((button) => button.checkVisibility()).length);
-  for (const address of ["/#/", "/#/search", "/#/records?", "/#/record/fact-1", "/#/console"]) {
+  for (const address of [
+    "/#/",
+    "/#/search",
+    "/#/records?",
+    "/#/record/preference-1",
+    "/#/console",
+  ]) {
     await page.goto(address);
     await expect(
       page.locator("#rail").getByRole("button", { name: "Check for updates" }),
@@ -187,7 +193,7 @@ test("a memory shows its project and dates as the lists do and explains how to c
     ],
   };
   await mockDashboard(page, unconfirmed);
-  await page.goto("/#/record/fact-1");
+  await page.goto("/#/record/preference-1");
   const header = page.locator(".rec-h");
   await expect(header.getByText("harbor/billing", { exact: true })).toHaveAttribute(
     "title",
@@ -206,8 +212,10 @@ test("a memory shows its project and dates as the lists do and explains how to c
 
 test("an established memory has no confirmation note", async ({ page }) => {
   await mockDashboard(page);
-  await page.goto("/#/record/fact-1");
-  await expect(page.getByRole("heading", { name: "fact fixture on port 8080" })).toBeVisible();
+  await page.goto("/#/record/preference-1");
+  await expect(
+    page.getByRole("heading", { name: "preference fixture on port 8080" }),
+  ).toBeVisible();
   await expect(page.getByRole("note")).toHaveCount(0);
 });
 

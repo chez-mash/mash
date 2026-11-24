@@ -23,9 +23,7 @@ export function record(entry: Entry, now: number, shared: boolean): Answer<"/api
           alternatives: [...(entry.alternatives ?? [])],
           consequences: [...(entry.consequences ?? [])],
         }
-      : entry.kind === "preference"
-        ? { kind: entry.kind, state: "active" as const, conditions: [] }
-        : { kind: entry.kind, state: "current" as const, reported_by: "Sam", valid_until: null };
+      : { kind: entry.kind, state: "active" as const, conditions: [] };
   return {
     id: entry.id,
     owner: "sam",

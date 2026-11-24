@@ -287,14 +287,14 @@ impl Cli {
     }
 }
 
-/// List the decisions, preferences and facts Mash remembers, newest first.
+/// List the decisions and preferences Mash remembers, newest first.
 #[derive(Debug, Clone, clap::Args)]
 pub(super) struct MemoryArguments {
     /// Literal text the record must contain.
     #[arg(long)]
     query: Option<String>,
     /// Only this kind of record.
-    #[arg(long, value_parser = ["decision", "preference", "fact"])]
+    #[arg(long, value_parser = ["decision", "preference"])]
     kind: Option<String>,
     /// Also list records that were superseded or withdrawn.
     #[arg(long)]

@@ -15,10 +15,9 @@ fn record_fixture() -> (tempfile::TempDir, crate::core::Paths, String) {
         statement: "Fixture uses port 8080".into(),
         rationale: "Reported in chat".into(),
         review: crate::records::Review::Established,
-        details: crate::records::Details::Fact {
-            state: crate::records::FactState::Current,
-            reported_by: "fixture user".into(),
-            valid_until: None,
+        details: crate::records::Details::Preference {
+            state: crate::records::PreferenceState::Active,
+            conditions: Vec::new(),
         },
         effective_at: None,
         recorded_by: "HTTP test".into(),
@@ -34,7 +33,7 @@ fn record_fixture() -> (tempfile::TempDir, crate::core::Paths, String) {
                     message_id: "source".into(),
                     session_id: None,
                     quote: "port 8080".into(),
-                    purpose: crate::records::EvidenceUse::Report,
+                    purpose: crate::records::EvidenceUse::Endorsement,
                     expected_fingerprint: None,
                 }],
                 on_duplicate: crate::records::DuplicatePolicy::Report,
@@ -285,7 +284,7 @@ async fn dashboard_records_expose_real_filtered_history_without_mutation() {
     let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
     let client = reqwest::Client::new();
     let list = format!(
-        "http://{address}/api/records?kind=fact&state=current&review=established&chat=fixture&q=8080"
+        "http://{address}/api/records?kind=preference&state=active&review=established&chat=fixture&q=8080"
     );
     let response = client.get(&list).send().await.unwrap();
     assert_eq!(response.status(), reqwest::StatusCode::OK);

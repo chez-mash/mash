@@ -76,12 +76,10 @@ pub(super) fn conflicted(
          JOIN record_revisions bv ON bv.record_id=b.id AND bv.revision=b.revision
          WHERE l.relation='contradicts' AND (a.id=?1 OR b.id=?1) AND a.forgotten=0 AND b.forgotten=0
          AND json_extract(av.body,'$.review')='established' AND json_extract(bv.body,'$.review')='established'
-         AND json_extract(av.body,'$.details.state') IN ('accepted','active','current','open')
-         AND json_extract(bv.body,'$.details.state') IN ('accepted','active','current','open')
+         AND json_extract(av.body,'$.details.state') IN ('accepted','active')
+         AND json_extract(bv.body,'$.details.state') IN ('accepted','active')
          AND coalesce(json_extract(av.body,'$.effective_at'),?2)<=?2
-         AND coalesce(json_extract(bv.body,'$.effective_at'),?2)<=?2
-         AND coalesce(json_extract(av.body,'$.details.valid_until'),?2)>=?2
-         AND coalesce(json_extract(bv.body,'$.details.valid_until'),?2)>=?2)",
+         AND coalesce(json_extract(bv.body,'$.effective_at'),?2)<=?2)",
         params![id, timestamp], |row| row.get(0),
     ).map_err(AppError::database)
 }

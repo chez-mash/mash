@@ -1,5 +1,5 @@
 /**
- * Search Memory: the decisions, preferences and facts Mash remembers from your
+ * Search Memory: the decisions and preferences Mash remembers from your
  * chats, grouped by where they apply, each with the quotes behind it.
  */
 import {
@@ -38,7 +38,6 @@ type Choice = "all" | MemoryKind;
 const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon: Icon; readonly tint: Color }[] = [
   { value: "decision", title: "Decisions", icon: Icon.CheckCircle, tint: Color.Blue },
   { value: "preference", title: "Preferences", icon: Icon.Heart, tint: Color.Magenta },
-  { value: "fact", title: "Facts", icon: Icon.Info, tint: Color.Green },
 ];
 
 /** One page of `mash memory`. Mash answers with JSON even when it fails, so its message is kept. */
@@ -167,7 +166,7 @@ export default function Command() {
           icon={Icon.Bookmark}
           title={isLoading ? "Reading what Mash remembers…" : "Nothing remembered yet"}
           description={[
-            "Mash keeps the decisions, preferences and facts your agents record from your chats.",
+            "Mash keeps the decisions and preferences your agents record from your chats.",
             data?.onlyHere ? `This lists only this machine's: ${data.onlyHere}` : "",
           ]
             .filter(Boolean)

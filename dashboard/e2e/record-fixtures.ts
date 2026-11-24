@@ -1,6 +1,6 @@
 import type { Kind } from "../src/lib/records";
 
-export function recordFixture(id = "fact-1", kind: Kind = "fact") {
+export function recordFixture(id = "preference-1", kind: Kind = "preference") {
   const details = {
     decision: {
       kind: "decision",
@@ -9,7 +9,6 @@ export function recordFixture(id = "fact-1", kind: Kind = "fact") {
       consequences: ["Update the clients"],
     },
     preference: { kind: "preference", state: "active", conditions: ["Incident reports"] },
-    fact: { kind: "fact", state: "current", reported_by: "Fixture user", valid_until: null },
   }[kind];
   return {
     id,

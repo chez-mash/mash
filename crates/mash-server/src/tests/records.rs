@@ -19,12 +19,12 @@ fn seed(service: &Service, token: &str) -> String {
     let request = serde_json::from_value(json!({
         "operation_id":"claim", "change": {"action":"create", "scope":{"kind":"personal"},
         "body":{"statement":"same claim", "recorded_by":"test", "review":"established",
-        "details":{"kind":"fact", "state":"current", "reported_by":"user"}},
-        "evidence":[{"message_id":"message", "quote":"yes", "purpose":"report"}]}
+        "details":{"kind":"preference","state":"active"}},
+        "evidence":[{"message_id":"message", "quote":"yes", "purpose":"endorsement"}]}
     }))
     .unwrap();
     let receipt = storage.mutate_record(&request).unwrap();
-    let confirm = serde_json::from_value(json!({"operation_id":"confirm", "change":{"action":"confirm", "expected":{"id":receipt.record_id,"revision":receipt.revision},"evidence":[{"message_id":"confirmation","quote":"still true","purpose":"report"}]}})).unwrap();
+    let confirm = serde_json::from_value(json!({"operation_id":"confirm", "change":{"action":"confirm", "expected":{"id":receipt.record_id,"revision":receipt.revision},"evidence":[{"message_id":"confirmation","quote":"still true","purpose":"endorsement"}]}})).unwrap();
     storage.mutate_record(&confirm).unwrap();
     receipt.record_id
 }
@@ -44,7 +44,7 @@ async fn native_records_shared_history_cursor_returns_older_revision() {
     let body = storage.record(&id, false).unwrap().revisions[0]
         .body
         .clone();
-    let mutation = serde_json::from_value(json!({"operation_id":"correct", "change":{"action":"revise","expected":{"id":id,"revision":1},"body":body,"evidence":[{"message_id":"message","quote":"yes","purpose":"report"}]}})).unwrap();
+    let mutation = serde_json::from_value(json!({"operation_id":"correct", "change":{"action":"revise","expected":{"id":id,"revision":1},"body":body,"evidence":[{"message_id":"message","quote":"yes","purpose":"endorsement"}]}})).unwrap();
     storage.mutate_record(&mutation).unwrap();
     drop(storage);
     let first: Value = service
@@ -78,7 +78,7 @@ async fn native_records_shared_http_pages_preserve_owners_and_group_boundaries_w
     assert_ne!(first, second);
     let page: Value = service
         .request("records", FIRST)
-        .json(&json!({"shared":true,"include_inactive":true,"kind":"fact","state":"current","review":"established","chat":"chat","query":"claim"}))
+        .json(&json!({"shared":true,"include_inactive":true,"kind":"preference","state":"active","review":"established","chat":"chat","query":"claim"}))
         .send()
         .await
         .unwrap()
@@ -91,7 +91,7 @@ async fn native_records_shared_http_pages_preserve_owners_and_group_boundaries_w
     assert_eq!(page["records"][0]["node_id"], "first");
     let next: Value = service
         .request("records", FIRST)
-        .json(&json!({"shared":true,"include_inactive":true,"kind":"fact","state":"current","review":"established","chat":"chat","query":"claim","cursor":page["next_cursor"]}))
+        .json(&json!({"shared":true,"include_inactive":true,"kind":"preference","state":"active","review":"established","chat":"chat","query":"claim","cursor":page["next_cursor"]}))
         .send()
         .await
         .unwrap()
@@ -177,7 +177,7 @@ async fn native_records_shared_http_applies_dashboard_filters() {
     seed(&service, FIRST);
     for (selector, value) in [
         ("kind", "decision"),
-        ("state", "retracted"),
+        ("state", "withdrawn"),
         ("review", "candidate"),
         ("chat", "other-chat"),
     ] {

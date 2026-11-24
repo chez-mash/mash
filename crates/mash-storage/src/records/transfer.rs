@@ -77,7 +77,6 @@ impl Row {
 pub enum Kind {
     Decision,
     Preference,
-    Fact,
 }
 
 impl Kind {
@@ -85,7 +84,6 @@ impl Kind {
         match self {
             Self::Decision => "decision",
             Self::Preference => "preference",
-            Self::Fact => "fact",
         }
     }
 }

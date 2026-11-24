@@ -104,11 +104,9 @@ Pass **kind and state** at the top level of the tool call:
 | --- | --- | --- |
 | `decision` | `proposed`, `accepted`, `superseded`, `withdrawn` | optional alternatives and consequences |
 | `preference` | `active`, `superseded`, `withdrawn` | optional conditions |
-| `fact` | `current`, `superseded`, `retracted` | required `reported_by`, optional `valid_until` |
 
-A current fact is an attributed claim, not independent verification. Optional
-`effective_at` and `valid_until` use Unix milliseconds; omit unknown dates.
-Expired facts and choices not yet in effect are left out of the default list.
+Optional `effective_at` uses Unix milliseconds; omit an unknown date. Choices
+not yet in effect are left out of the default list.
 
 **Review** is `candidate` (the default) or `established`. Keep uncertain
 interpretations as candidates. An established decision or preference requires

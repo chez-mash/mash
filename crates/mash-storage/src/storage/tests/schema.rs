@@ -117,6 +117,68 @@ fn retiring_open_questions_removes_them_and_refuses_new_ones() {
 }
 
 #[test]
+fn retiring_facts_removes_them_and_refuses_new_ones() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("index.sqlite3");
+    // A database at schema 69: this release's schema without the triggers
+    // step 70 adds, holding a fact linked to a decision.
+    drop(Storage::open(&path).unwrap());
+    let connection = Connection::open(&path).unwrap();
+    connection
+        .execute_batch(
+            "PRAGMA foreign_keys=ON;
+             DROP TRIGGER records_retired_fact_insert; DROP TRIGGER records_retired_fact_update;
+             PRAGMA user_version=69;
+             INSERT INTO records(id,owner,kind,scope,revision) VALUES
+               ('kept','me','decision','{\"kind\":\"personal\"}',1),
+               ('claim','me','fact','{\"kind\":\"personal\"}',1);
+             INSERT INTO record_revisions(record_id,revision,body,recorded_at) VALUES
+               ('kept',1,'{}',1),('claim',1,'{}',1);
+             INSERT INTO record_evidence(record_id,revision,position,chat_id,message_id,fingerprint,quote)
+               VALUES('claim',1,0,'chat','message','fingerprint','a claim');
+             INSERT INTO record_links(source_id,target_id,relation) VALUES('kept','claim','supports');
+             INSERT INTO record_changes VALUES('claim',3),('kept',3);",
+        )
+        .unwrap();
+    drop(connection);
+    let storage = Storage::open(&path).unwrap();
+    assert_eq!(user_version(&path), SCHEMA_VERSION);
+    let count = |sql: &str| {
+        storage
+            .connection
+            .query_row(sql, [], |row| row.get::<_, i64>(0))
+            .unwrap()
+    };
+    // The fact goes with its revisions, evidence, link and pending change.
+    assert_eq!(count("SELECT count(*) FROM records WHERE id='kept'"), 1);
+    assert_eq!(count("SELECT count(*) FROM records"), 1);
+    assert_eq!(count("SELECT count(*) FROM record_revisions"), 1);
+    assert_eq!(count("SELECT count(*) FROM record_evidence"), 0);
+    assert_eq!(count("SELECT count(*) FROM record_links"), 0);
+    assert_eq!(count("SELECT count(*) FROM record_changes"), 1);
+    for refused in [
+        "INSERT INTO records(id,owner,kind,scope,revision) VALUES('new','me','fact','{}',1)",
+        "UPDATE records SET kind='fact' WHERE id='kept'",
+    ] {
+        assert!(
+            storage.connection.execute(refused, []).is_err(),
+            "{refused}"
+        );
+    }
+    // A database created at this release refuses them the same way.
+    let fresh = Storage::open(&directory.path().join("fresh.sqlite3")).unwrap();
+    assert!(
+        fresh
+            .connection
+            .execute(
+                "INSERT INTO records(id,owner,kind,scope,revision) VALUES('new','me','fact','{}',1)",
+                [],
+            )
+            .is_err()
+    );
+}
+
+#[test]
 fn message_journal_migration_keeps_pending_chats_whole() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("index.sqlite3");
@@ -286,7 +348,7 @@ fn record_provenance_migration_keeps_unknown_historical_attribution() {
         .execute_batch(include_str!("../records.sql"))
         .unwrap();
     connection.execute_batch("PRAGMA user_version=63;
-        INSERT INTO records VALUES('record','owner','fact','null',1,0);
+        INSERT INTO records VALUES('record','owner','decision','null',1,0);
         INSERT INTO record_revisions VALUES('record',1,'{}',0);
         INSERT INTO record_evidence VALUES('record',1,0,'kept','message','fingerprint','retain this history');").unwrap();
     drop(connection);

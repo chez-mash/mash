@@ -1,4 +1,4 @@
-"""How often memory surfaced decisions, preferences and facts, by month and tool."""
+"""How often memory surfaced decisions and preferences, by month and tool."""
 
 import sqlite3
 import sys

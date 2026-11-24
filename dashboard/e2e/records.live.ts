@@ -24,18 +24,17 @@ test("live records browse, filter, expose revisions and open the real source cha
   });
   await page
     .getByRole("navigation", { name: "Memory kind" })
-    .getByRole("link", { name: "facts", exact: true })
+    .getByRole("link", { name: "preferences", exact: true })
     .click();
   await expect(records).toHaveCount(1);
   // Filters apply only on request, and the button appears once a draft differs.
-  await page.getByLabel("Search statements").fill("Dashboard fact");
+  await page.getByLabel("Search statements").fill("Dashboard preference");
   await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page).toHaveURL(/q=Dashboard/);
   await expect(records).toHaveCount(1);
-  await records.getByRole("link", { name: /Dashboard fact revised/ }).click();
+  await records.getByRole("link", { name: /Dashboard preference revised/ }).click();
   await expect(page.getByText(/^Revision 2 \(current\)/)).toBeVisible();
   await expect(page.getByText(/^Revision 1:/)).toBeVisible();
-  await expect(page.getByText("Expired", { exact: false }).first()).toBeVisible();
   await page.screenshot({
     path: "../../mash-artifacts/dashboard-records-live/detail.png",
     fullPage: true,

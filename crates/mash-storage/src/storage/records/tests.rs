@@ -1,5 +1,5 @@
 use super::*;
-use crate::records::{DecidedBy, DecisionState, FactState, PreferenceState};
+use crate::records::{DecidedBy, DecisionState, PreferenceState};
 mod authorship;
 mod capture;
 mod dashboard;
@@ -86,18 +86,13 @@ fn expected(receipt: &Receipt) -> Expected {
 }
 
 #[test]
-fn native_records_all_three_kinds_have_typed_states_and_short_approval_evidence() {
+fn native_records_both_kinds_have_typed_states_and_short_approval_evidence() {
     let (_directory, mut storage) = database();
     let variants = [
         decision(),
         body(Details::Preference {
             state: PreferenceState::Active,
             conditions: vec!["local queries".into()],
-        }),
-        body(Details::Fact {
-            state: FactState::Current,
-            reported_by: "user".into(),
-            valid_until: None,
         }),
     ];
     for (index, body) in variants.into_iter().enumerate() {
@@ -120,10 +115,11 @@ fn native_records_all_three_kinds_have_typed_states_and_short_approval_evidence(
         );
         assert_eq!(record.revisions[0].evidence[1].quote, "yes");
     }
-    assert_eq!(storage.records(&List::default()).unwrap().records.len(), 3);
+    assert_eq!(storage.records(&List::default()).unwrap().records.len(), 2);
+    // Facts are no longer a kind of record.
     assert!(
         serde_json::from_str::<Details>(
-            r#"{"kind":"fact","state":"accepted","reported_by":"user","valid_until":null}"#
+            r#"{"kind":"fact","state":"current","reported_by":"user","valid_until":null}"#
         )
         .is_err()
     );

@@ -354,7 +354,7 @@ fn change(
                 live,
             )?;
             agent_authored(body, &sources)?;
-            if let Some(receipt) = matches::duplicate(connection, scope, body, timestamp)? {
+            if let Some(receipt) = matches::duplicate(connection, scope, body)? {
                 if matches!(on_duplicate, records::DuplicatePolicy::Report) {
                     return Err(conflict(&format!(
                         "exact live record already exists: {} at revision {}; inspect it or explicitly set on_duplicate=reuse",

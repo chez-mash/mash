@@ -32,10 +32,8 @@ pub(crate) enum State {
     Proposed,
     Accepted,
     Active,
-    Current,
     Superseded,
     Withdrawn,
-    Retracted,
 }
 
 /// An optional field written as nothing, an empty string or an empty list is
@@ -64,7 +62,7 @@ macro_rules! with_record_fields {
         #[serde(deny_unknown_fields)]
         pub(crate) struct $name {
             $($(#[$field_meta])* $field: $kind,)*
-            /// decision, preference or fact.
+            /// decision or preference.
             #[serde(
                 default,
                 deserialize_with = "given",
@@ -72,14 +70,14 @@ macro_rules! with_record_fields {
             )]
             kind: Option<Kind>,
             /// decision: proposed, accepted, superseded, withdrawn. preference:
-            /// active, superseded, withdrawn. fact: current, superseded, retracted.
+            /// active, superseded, withdrawn.
             #[serde(
                 default,
                 deserialize_with = "given",
                 skip_serializing_if = "Option::is_none"
             )]
             state: Option<State>,
-            /// The decision, preference or fact itself, in a sentence or two.
+            /// The decision or preference itself, in a sentence or two.
             #[serde(
                 default,
                 deserialize_with = "given",
@@ -136,21 +134,7 @@ macro_rules! with_record_fields {
                 skip_serializing_if = "Option::is_none"
             )]
             conditions: Option<Vec<String>>,
-            /// For a fact: who reported it.
-            #[serde(
-                default,
-                deserialize_with = "given",
-                skip_serializing_if = "Option::is_none"
-            )]
-            reported_by: Option<String>,
-            /// For a fact: when it stops holding, in Unix milliseconds.
-            #[serde(
-                default,
-                deserialize_with = "given",
-                skip_serializing_if = "Option::is_none"
-            )]
-            valid_until: Option<i64>,
-            /// When the choice or claim applied, in Unix milliseconds, when known.
+            /// When the choice applied, in Unix milliseconds, when known.
             #[serde(
                 default,
                 deserialize_with = "given",
@@ -271,15 +255,13 @@ const BODY: [&str; 5] = [
     "recorded_by",
     "effective_at",
 ];
-const DETAILS: [&str; 8] = [
+const DETAILS: [&str; 6] = [
     "kind",
     "state",
     "decided_by",
     "alternatives",
     "consequences",
     "conditions",
-    "reported_by",
-    "valid_until",
 ];
 
 fn invalid(tool: &str, error: &serde_json::Error) -> AppError {
@@ -467,7 +449,7 @@ mod tests {
         // A state belongs to its kind, and a field to its kind's details.
         let mut wrong = create.clone();
         wrong["scope"] = json!({"kind": "personal"});
-        wrong["state"] = json!("retracted");
+        wrong["state"] = json!("active");
         assert!(change(wrong.clone()).is_err());
         wrong["state"] = json!("accepted");
         wrong["conditions"] = json!(["at night"]);
@@ -488,8 +470,8 @@ mod tests {
             "operation_id": "one", "action": "create", "scope": {"kind": "personal"},
             "kind": "decision", "state": "accepted", "statement": "Use SSE", "recorded_by": "agent",
             "evidence": [{"message_id": "m1", "quote": "use SSE"}],
-            "decided_by": "", "alternatives": [], "conditions": [], "reported_by": "",
-            "effective_at": "", "valid_until": null, "expected": null, "rationale": ""
+            "decided_by": "", "alternatives": [], "conditions": [],
+            "effective_at": "", "expected": null, "rationale": ""
         }))
         .unwrap();
         assert!(matches!(mutation.change, Change::Create { .. }));

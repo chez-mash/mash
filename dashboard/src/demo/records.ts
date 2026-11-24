@@ -2,7 +2,7 @@ import { projects } from "./history";
 
 interface DemoRecord {
   readonly id: string;
-  readonly kind: "decision" | "preference" | "fact";
+  readonly kind: "decision" | "preference";
   readonly statement: string;
   readonly rationale: string;
   readonly review: "candidate" | "established";
@@ -67,7 +67,7 @@ export const records: readonly DemoRecord[] = [
   },
   {
     id: "record-refund-cents",
-    kind: "fact",
+    kind: "decision",
     statement: "Refunds are calculated in whole cents, and the last part takes the remainder.",
     rationale: "Rounding each part on its own refunded more than the order total.",
     review: "candidate",

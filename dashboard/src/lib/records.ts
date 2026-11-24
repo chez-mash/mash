@@ -3,16 +3,8 @@ import { stableRead } from "./queries";
 import type { Answer, Wire } from "./routes";
 import type { Reach, Scope as Viewing } from "./scope.svelte";
 
-export const kinds = ["decision", "preference", "fact"] as const;
-export const states = [
-  "proposed",
-  "accepted",
-  "active",
-  "current",
-  "superseded",
-  "withdrawn",
-  "retracted",
-] as const;
+export const kinds = ["decision", "preference"] as const;
+export const states = ["proposed", "accepted", "active", "superseded", "withdrawn"] as const;
 export type Kind = (typeof kinds)[number];
 export type Lifecycle = (typeof states)[number];
 export type Scope =
@@ -40,12 +32,6 @@ export type Details =
       kind: "preference";
       state: "active" | "superseded" | "withdrawn";
       conditions: readonly string[];
-    }
-  | {
-      kind: "fact";
-      state: "current" | "superseded" | "retracted";
-      reportedBy: string;
-      validUntil: number | null;
     };
 export interface Revision {
   revision: number;
@@ -78,12 +64,6 @@ export interface NativeRecord {
 }
 export function timingLabel(revision: Revision, now: number): string | null {
   if (revision.effectiveAt !== null && revision.effectiveAt > now) return "Not yet effective";
-  if (
-    revision.details.kind === "fact" &&
-    revision.details.validUntil !== null &&
-    revision.details.validUntil < now
-  )
-    return "Expired";
   return null;
 }
 export interface RecordPage {
@@ -106,13 +86,6 @@ function details(row: Wire["Details"]): Details {
       };
     case "preference":
       return { kind: row.kind, state: row.state, conditions: row.conditions };
-    case "fact":
-      return {
-        kind: row.kind,
-        state: row.state,
-        reportedBy: row.reported_by,
-        validUntil: row.valid_until ?? null,
-      };
   }
 }
 function revision(row: Wire["RecordRevision"]): Revision {
@@ -296,14 +269,14 @@ export function standing(revision: { review: string; details: Details }): string
 }
 
 /** The fill of the pill that names a kind of memory (see .pill): a decision
- * is butter, a fact mint, a preference plain paper. */
-export function kindPill(kind: Kind): "decision" | "ok" | "" {
-  return kind === "decision" ? "decision" : kind === "fact" ? "ok" : "";
+ * is butter, a preference plain paper. */
+export function kindPill(kind: Kind): "decision" | "" {
+  return kind === "decision" ? "decision" : "";
 }
 /** The fill of a pill for a lifecycle state: in force is mint, replaced or
  * taken back is red, proposed is plain. */
 export function statePill(state: Lifecycle): "ok" | "bad" | "" {
-  if (state === "accepted" || state === "active" || state === "current") return "ok";
+  if (state === "accepted" || state === "active") return "ok";
   if (state === "proposed") return "";
   return "bad";
 }

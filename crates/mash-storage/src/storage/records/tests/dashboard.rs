@@ -5,10 +5,9 @@ fn native_records_filters_precede_pagination_and_find_historical_chat_evidence()
     let (_directory, mut storage) = database();
     let mut expected_ids = Vec::new();
     for index in 0..6 {
-        let mut body = body(Details::Fact {
-            state: FactState::Current,
-            reported_by: "fixture".into(),
-            valid_until: None,
+        let mut body = body(Details::Preference {
+            state: PreferenceState::Active,
+            conditions: Vec::new(),
         });
         body.statement = format!("Filter fixture {index}");
         if index % 2 == 0 {
@@ -25,8 +24,8 @@ fn native_records_filters_precede_pagination_and_find_historical_chat_evidence()
         .mutate_record(&create_request("decision", decision()))
         .unwrap();
     let mut input = List {
-        kind: Some(records::Kind::Fact),
-        state: Some(records::Lifecycle::Current),
+        kind: Some(records::Kind::Preference),
+        state: Some(records::Lifecycle::Active),
         review: Some(Review::Candidate),
         query: Some("Filter fixture".into()),
         chat: Some("chat".into()),
@@ -48,16 +47,15 @@ fn native_records_filters_precede_pagination_and_find_historical_chat_evidence()
     actual.sort();
     assert_eq!(actual, expected_ids);
     input.offset = 0;
-    input.state = Some(records::Lifecycle::Retracted);
+    input.state = Some(records::Lifecycle::Withdrawn);
     assert!(storage.records(&input).unwrap().records.is_empty());
 
-    let mut fact = body(Details::Fact {
-        state: FactState::Current,
-        reported_by: "fixture".into(),
-        valid_until: None,
+    let mut preference = body(Details::Preference {
+        state: PreferenceState::Active,
+        conditions: Vec::new(),
     });
-    fact.statement = "Historical citation fixture".into();
-    let mut request = create_request("historical", fact.clone());
+    preference.statement = "Historical citation fixture".into();
+    let mut request = create_request("historical", preference.clone());
     if let Change::Create { scope, .. } = &mut request.change {
         *scope = Scope::Personal;
     }
@@ -67,7 +65,7 @@ fn native_records_filters_precede_pagination_and_find_historical_chat_evidence()
             operation_id: "correct-historical".into(),
             change: Change::Revise {
                 expected: expected(&receipt),
-                body: fact,
+                body: preference,
                 evidence: vec![citation("other-message", "another project")],
             },
         })

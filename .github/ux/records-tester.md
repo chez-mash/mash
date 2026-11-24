@@ -6,11 +6,11 @@ binaries, not a downloaded release. Read the user docs and visible help to learn
 how to use them. This is a development build; do not treat timings as release
 performance measurements.
 
-Your goal: preserve the decision, preference and fact in the
+Your goal: preserve the decision and preference in the
 synthetic harbor conversation, with evidence pointing back to that chat. Recall
 the useful records and inspect their sources. Check that retrying an identical
-write does not create another record. Then correct the fact, inspect the retained history, and forget the fact. Verify that recall
-no longer returns the forgotten fact while the other records remain available.
+write does not create another record. Then correct the preference, inspect the retained history, and forget the preference. Verify that recall
+no longer returns the forgotten preference while the decision remains available.
 
 Only synthetic history is present. You may append clearly labeled synthetic user
 messages to that chat when you need evidence for a correction or resolution.

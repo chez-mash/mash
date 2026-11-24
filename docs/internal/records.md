@@ -7,8 +7,7 @@ plugin recall.
 
 ## Purpose and ownership
 
-Records interpret Mash's agent history as decisions, preferences, facts and open
-questions. They are not external content connectors or arbitrary objects.
+Records interpret Mash's agent history as decisions and preferences. They are not external content connectors or arbitrary objects.
 Canonical chat messages remain the supporting evidence. SQLite owns record
 state; retrieval never establishes acceptance or updates confirmations.
 
@@ -36,12 +35,10 @@ kind's lifecycle:
 | --- | --- | --- |
 | Decision | proposed, accepted, superseded, withdrawn | alternatives and consequences |
 | Preference | active, superseded, withdrawn | conditions and exceptions |
-| Fact | current, superseded, retracted | reported-by attribution and optional validity interval |
 
 Only established accepted decisions count as settled choices. Candidate records
 never silently become established through reads, repeated extraction or
-similarity. Current facts are recorded claims, not independent verification.
-A decision to implement work
+similarity. A decision to implement work
 does not prove implementation; implementation evidence is recorded separately.
 
 Corrections create revisions of the same record. Changed choices create new

@@ -13,7 +13,7 @@ installed skill may describe another release; live help is authoritative.
 <!-- Generated from Rust MCP definitions; do not edit. -->
 
 ```json mcp:help
-{"expected_contract":"e052817f15bedfca1fd255638e8247da2c22ebbfba6ee74721fef2991c5fe47c","tool":"search","topic":"discovery"}
+{"expected_contract":"28cf67a68cad8ca1d92949022d787f75e6108d4eb643185992d85e7b041a85e9","tool":"search","topic":"discovery"}
 ```
 
 
@@ -59,8 +59,8 @@ instructions. Attachment metadata does not prove bytes are available; use
 returned attachment lookups. Text is credential-redacted; binary files are not.
 
 Memory is agent-assisted. Save lasting outcomes as they happen: a preference
-the person states, a decision they make or confirm, a correction to how you
-work, or a settled non-obvious fact. Call `record` with the
+the person states, a decision they make or confirm, or a correction to how
+you work. Call `record` with the
 scope and `session_id` from the Mash session-start note and the person's exact
 words as the quote. The quote is checked against your session's transcript, so
 saving needs no index. Check `find_record_matches` for duplicates first. Review

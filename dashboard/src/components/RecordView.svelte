@@ -88,8 +88,6 @@ function date(value: number | null): string {
     </div>
   {:else if revision.details.kind === "preference" && revision.details.conditions.length}
     <div class="rev-d"><div><span class="eyebrow">conditions</span><ul>{#each revision.details.conditions as item, index (index)}<li>{item}</li>{/each}</ul></div></div>
-  {:else if revision.details.kind === "fact"}
-    <p class="meta">reported by {revision.details.reportedBy}{revision.details.validUntil === null ? "" : ` / valid until ${date(revision.details.validUntil)}`}</p>
   {/if}
 {/snippet}
 
@@ -122,7 +120,7 @@ function date(value: number | null): string {
     {/if}
     {#if timingLabel(current, Date.now()) || record.conflicted || !current.evidenceCurrent}
       <div class="g3 rec-w">
-        {#if timingLabel(current, Date.now())}<p class="card tight warn" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>{timingLabel(current, Date.now())}. Check the effective and expiry dates before relying on this.</span></p>{/if}
+        {#if timingLabel(current, Date.now())}<p class="card tight warn" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>{timingLabel(current, Date.now())}. Check the effective date before relying on this.</span></p>{/if}
         {#if record.conflicted}<p class="card tight bad" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>Another record contradicts this one. Look at the related records before relying on it.</span></p>{/if}
         {#if !current.evidenceCurrent}<p class="card tight bad" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>The quoted messages have changed or are missing. Review the sources before relying on this.</span></p>{/if}
       </div>

@@ -1,6 +1,6 @@
 ---
 name: remember
-description: Save something to Mash memory on request. Use when the person runs /mash:remember, or says "remember this", "save this to Mash", "make a note that", or asks you to keep a decision, preference, correction or fact for later sessions.
+description: Save something to Mash memory on request. Use when the person runs /mash:remember, or says "remember this", "save this to Mash", "make a note that", or asks you to keep a decision, preference or correction for later sessions.
 ---
 
 # Save to Mash memory
@@ -11,8 +11,8 @@ The person wants one thing kept for later sessions. Save it now with Mash's
 ## What to save
 
 Whatever follows the command. With nothing after it, save the most recent
-thing the person decided, stated as a preference, corrected, or settled as a
-fact in this conversation, and say which one you chose. If nothing in the
+thing the person decided, stated as a preference or corrected in this
+conversation, and say which one you chose. If nothing in the
 conversation qualifies, ask what to remember instead of inventing something.
 
 Write it as one statement that will make sense alone in a later session:
@@ -30,7 +30,7 @@ a discussion happened.
 3. Call `record` with:
    - the scope and `session_id` from the Mash note at the start of this
      session (repository scope inside a repository);
-   - a kind that fits: a decision, a preference, or a fact;
+   - a kind that fits: a decision or a preference;
    - `evidence`: the person's exact words from this conversation as the
      quote, with purpose `endorsement`. The quote is checked against this
      session's transcript, so copy it exactly, typos included.

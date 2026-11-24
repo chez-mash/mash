@@ -1,6 +1,6 @@
 # Use Mash memory
 
-Mash can save a decision, preference, or fact with a quote from the chat
+Mash can save a decision or preference with a quote from the chat
 where it came up. Open the quote whenever you want to check the context.
 
 ## Inspect existing records
@@ -9,7 +9,7 @@ where it came up. Open the quote whenever you want to check the context.
 and select **open the message** below its quote. The demo jumps to the
 message about keeping the refresh token in the device keychain.
 
-![The memory page lists saved decisions, preferences and facts with their project, machine and agent](../assets/screenshots/memory.webp)
+![The memory page lists saved decisions and preferences with their project, machine and agent](../assets/screenshots/memory.webp)
 
 For your own history, run `mash dash`, open the address it prints, and choose
 **memory**. Open a record to see its source, revisions, and related records.

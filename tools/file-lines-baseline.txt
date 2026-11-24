@@ -25,7 +25,7 @@
 1534 crates/mash-server/src/sync.rs
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs
-574 crates/mash-storage/src/records.rs
+534 crates/mash-storage/src/records.rs
 564 crates/mash-storage/src/search_results.rs
 635 crates/mash-storage/src/storage/indexing.rs
 787 crates/mash-storage/src/storage/records.rs

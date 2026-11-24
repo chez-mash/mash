@@ -94,9 +94,14 @@ old executable.
 
 **Saved open questions are deleted.** Upgrading an index written before open
 questions were retired as a kind of saved record removes them, with their
-revisions and the links that resolved them. Decisions, preferences and facts
-stay available. Your export still contains those open questions. Keep the
-version that wrote it if you need to read them later.
+revisions and the links that resolved them. Your export still contains those
+open questions. Keep the version that wrote it if you need to read them later.
+
+**Saved facts are deleted.** Mash memory keeps decisions and preferences.
+Upgrading an index written before facts were retired removes them, with their
+revisions, evidence and links; decisions and preferences stay. An export from an earlier version
+that holds facts can no longer be imported. Upgrade the shared server and every
+machine together: an older machine's facts are refused.
 
 ### Upgrade a shared index
 

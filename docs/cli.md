@@ -23,7 +23,7 @@ the [dashboard](dashboard.md) with `mash dash` or ask a
 | `mash init` | Sets up Mash for the histories it finds, optionally [connects agents](agents.md), and indexes. | `--yes` accepts the defaults without prompts. `--no-index` configures without the search service running. `--no-agents` leaves agent settings unchanged. `--force` replaces an existing configuration, kept as `config.toml.previous`. |
 | `mash search 'QUERY'` | Searches indexed chats or messages. | `--intent exact-mention` or `--intent related-discussion`, `--unit messages`, `--days N`, `--provider PROVIDER`, `--limit N`. Subagent chats are left out unless you add `--include-subagents`. See [search filters](search.md). |
 | `mash list-chats` | Lists chats, most recently active first. | `--title-contains 'part of the title'`, `--provider PROVIDER`, `--after 3d` or `--after 2026-11-01`, `--limit N`. `--exclude-subagents` leaves out chats agents started for their own subtasks. |
-| `mash memory` | Lists the decisions, preferences and facts Mash remembers, newest first. `mash mem` for short. | `--query 'text'`, `--kind decision`, `--include-inactive`, `--limit N`. `--shared` lists every machine's, a machine at a time; pass a page's `next_cursor` back as `--cursor NODE:OFFSET` for the next. |
+| `mash memory` | Lists the decisions and preferences Mash remembers, newest first. `mash mem` for short. | `--query 'text'`, `--kind decision`, `--include-inactive`, `--limit N`. `--shared` lists every machine's, a machine at a time; pass a page's `next_cursor` back as `--cursor NODE:OFFSET` for the next. |
 | `mash view MESSAGE_ID` | Returns one message. | `--context N` adds up to N messages before and after. |
 | `mash dash` | Serves the [dashboard](dashboard.md) at `http://127.0.0.1:8790`. | `--listen ADDRESS`. `--services-config PATH` enables [service management](services.md). |
 | `mash index` | Reads new or changed history into the index. See [keep history up to date](synchronization.md). | `--watch` keeps refreshing until interrupted. `--all-history` or `--since-days DAYS` includes older history. `--provider PROVIDER` limits the run to one agent. `--reread` reads every chat again after an upgrade that reads an agent's history differently. `--rebuild-local-views --full` recreates local search data from the chats Mash already stored. |
@@ -94,14 +94,14 @@ references rather than content:
 | `call_id` | The call, `calls.id`. |
 | `position` | Its place in the answer, from 0. |
 | `kind` | `record`, `chat`, `message` or `attachment`. |
-| `record_kind` | For a memory: `decision`, `preference` or `fact`. |
+| `record_kind` | For a memory: `decision` or `preference`. |
 | `id` | The record, chat, message or attachment ID. |
 | `node` | The machine it came from, for shared results. |
 
-How often memory surfaced decisions, preferences and facts, by month and tool:
+How often memory surfaced decisions and preferences, by month and tool:
 
 ```python title="memory_kinds.py"
-"""How often memory surfaced decisions, preferences and facts, by month and tool."""
+"""How often memory surfaced decisions and preferences, by month and tool."""
 
 import sqlite3
 import sys

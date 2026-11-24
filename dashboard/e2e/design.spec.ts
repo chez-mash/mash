@@ -59,7 +59,7 @@ for (const width of [1440, 390]) {
     await expect(recentChat).toBeVisible();
     for (const name of ["recent chats", "recent memories", "machines", "agents"])
       await expect(main.getByRole("heading", { name, exact: true })).toBeVisible();
-    await expect(main.getByRole("link", { name: /fact fixture on port 8080/ })).toBeVisible();
+    await expect(main.getByRole("link", { name: /preference fixture on port 8080/ })).toBeVisible();
     const section = (name: string) =>
       main.locator("section").filter({ has: page.getByRole("heading", { name, exact: true }) });
     await section("agents").getByRole("link", { name: /Codex/ }).click();
@@ -146,12 +146,12 @@ for (const width of [1440, 390]) {
     await followRail(page, "memory");
     await page
       .getByRole("navigation", { name: "Memory kind" })
-      .getByRole("link", { name: "facts", exact: true })
+      .getByRole("link", { name: "preferences", exact: true })
       .click();
     await expect(
       page
         .getByRole("navigation", { name: "Memory kind" })
-        .getByRole("link", { name: "facts", exact: true }),
+        .getByRole("link", { name: "preferences", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     expect(await fitsViewport(page)).toBe(true);
     expect(documents()).toBe(1);

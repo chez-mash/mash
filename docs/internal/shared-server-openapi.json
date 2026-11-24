@@ -264,7 +264,7 @@
             "description": "Its kind and state, with that kind's own fields and nothing else."
           },
           "effective_at": {
-            "description": "When the choice/claim applied, in Unix milliseconds; unknown stays null.",
+            "description": "When the choice applied, in Unix milliseconds; unknown stays null.",
             "format": "int64",
             "type": [
               "integer",
@@ -289,7 +289,7 @@
             "default": "candidate"
           },
           "statement": {
-            "description": "The decision, preference or fact itself, in a sentence or two.",
+            "description": "The decision or preference itself, in a sentence or two.",
             "type": "string"
           }
         },
@@ -1039,34 +1039,6 @@
               "state"
             ],
             "type": "object"
-          },
-          {
-            "additionalProperties": false,
-            "properties": {
-              "kind": {
-                "const": "fact",
-                "type": "string"
-              },
-              "reported_by": {
-                "type": "string"
-              },
-              "state": {
-                "$ref": "#/components/schemas/FactState"
-              },
-              "valid_until": {
-                "format": "int64",
-                "type": [
-                  "integer",
-                  "null"
-                ]
-              }
-            },
-            "required": [
-              "kind",
-              "state",
-              "reported_by"
-            ],
-            "type": "object"
           }
         ]
       },
@@ -1134,14 +1106,6 @@
             "type": "string"
           }
         ]
-      },
-      "FactState": {
-        "enum": [
-          "current",
-          "superseded",
-          "retracted"
-        ],
-        "type": "string"
       },
       "Filter": {
         "description": "Values within one field are alternatives. Compose fields with all, any, and not.",
@@ -1575,8 +1539,7 @@
       "Kind": {
         "enum": [
           "decision",
-          "preference",
-          "fact"
+          "preference"
         ],
         "type": "string"
       },
@@ -1585,10 +1548,8 @@
           "proposed",
           "accepted",
           "active",
-          "current",
           "superseded",
-          "withdrawn",
-          "retracted"
+          "withdrawn"
         ],
         "type": "string"
       },

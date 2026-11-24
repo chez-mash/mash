@@ -17,7 +17,7 @@ describe("routes", () => {
     const back = recordsHref(
       new URLSearchParams({
         q: "port & timeout",
-        kind: "fact",
+        kind: "preference",
         shared: "true",
         cursor_node: "node/a",
         cursor_offset: "20",

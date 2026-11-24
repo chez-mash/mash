@@ -134,9 +134,9 @@ message where you said it. Just ask:
 
 > Remember that this project keeps its refresh tokens in the device keychain.
 
-Open **memory** to see every decision, preference and fact your agents saved.
+Open **memory** to see every decision and preference your agents saved.
 
-![The memory page lists saved decisions, preferences and facts with their project, machine and agent](assets/screenshots/memory.webp)
+![The memory page lists saved decisions and preferences with their project, machine and agent](assets/screenshots/memory.webp)
 
 Each one keeps its evidence. Choose **open the message** to read the exact
 words it came from. A later session can ask Mash what was decided and why.

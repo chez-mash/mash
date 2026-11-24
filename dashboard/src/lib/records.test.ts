@@ -8,22 +8,12 @@ const parseRecord = (row: unknown) => wire.parseRecord(trimmed(row));
 const parseRecordPage = (page: unknown) => wire.parseRecordPage(trimmed(page));
 
 describe("record API boundary", () => {
-  it("marks future and expired conclusions at their time boundaries", () => {
+  it("marks conclusions that are not yet effective", () => {
     const revision = parseRecord(recordFixture()).revisions[0];
-    if (revision?.details.kind !== "fact") throw new Error("Missing fixture fact");
+    if (!revision) throw new Error("Missing fixture revision");
     expect(timingLabel({ ...revision, effectiveAt: 101 }, 100)).toBe("Not yet effective");
-    expect(
-      timingLabel(
-        { ...revision, effectiveAt: 100, details: { ...revision.details, validUntil: 100 } },
-        100,
-      ),
-    ).toBeNull();
-    expect(
-      timingLabel(
-        { ...revision, effectiveAt: null, details: { ...revision.details, validUntil: 99 } },
-        100,
-      ),
-    ).toBe("Expired");
+    expect(timingLabel({ ...revision, effectiveAt: 100 }, 100)).toBeNull();
+    expect(timingLabel({ ...revision, effectiveAt: null }, 100)).toBeNull();
   });
   it("tells a choice the agent made from the person's and from a candidate", () => {
     const fixture = recordFixture("id", "decision");
@@ -98,7 +88,7 @@ describe("decisions by chat", () => {
     const counts = wire.decisionsByChat([
       decision("a", ["chat-1", "chat-1"]),
       decision("b", ["chat-1", "chat-2"]),
-      parseRecord(recordFixture("c", "fact")),
+      parseRecord(recordFixture("c", "preference")),
     ]);
     expect(Object.fromEntries(counts)).toEqual({ "chat-1": 2, "chat-2": 1 });
   });

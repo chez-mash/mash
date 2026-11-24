@@ -30,7 +30,7 @@ and offer the gentler change first:
 
 - wrong wording or detail: `record` with `action: "revise"`
 - the choice changed: `record` with `action: "supersede"`
-- no longer holds: revise its state to withdrawn (or retracted for a fact)
+- no longer holds: revise its state to withdrawn
 
 These keep the history. Delete only when the person wants no trace, or the
 record should never have been saved.

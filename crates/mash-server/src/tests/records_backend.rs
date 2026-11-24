@@ -40,8 +40,8 @@ fn contradict(storage: &mut crate::storage::Storage, first: &crate::records::Rec
     let create = serde_json::from_value(json!({"operation_id":"other-claim", "change":{
         "action":"create","scope":{"kind":"personal"},
         "body":{"statement":"Shared history is unavailable","review":"established","recorded_by":"test agent",
-        "details":{"kind":"fact","state":"current","reported_by":"user"}},
-        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"report"}]
+        "details":{"kind":"preference","state":"active"}},
+        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"endorsement"}]
     }})).unwrap();
     let other = storage.mutate_record(&create).unwrap();
     let link = serde_json::from_value(json!({"operation_id":"contradiction", "change":{
@@ -69,8 +69,8 @@ async fn native_records_qdrant_publication_retry_preserves_chat_certificate() {
     let create = serde_json::from_value(json!({
         "operation_id":"create", "change":{"action":"create","scope":{"kind":"personal"},
         "body":{"statement":"Shared history is available", "review":"established", "recorded_by":"test agent",
-        "details":{"kind":"fact","state":"current","reported_by":"user"}},
-        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"report"}]}
+        "details":{"kind":"preference","state":"active"}},
+        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"endorsement"}]}
     })).unwrap();
     let receipt = storage.mutate_record(&create).unwrap();
     let other = contradict(&mut storage, &receipt);
@@ -91,7 +91,7 @@ async fn native_records_qdrant_publication_retry_preserves_chat_certificate() {
     body.statement = "Shared history remains available".into();
     let revise = serde_json::from_value(json!({"operation_id":"revise", "change":{
         "action":"revise","expected":{"id":receipt.record_id,"revision":1},"body":body,
-        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"report"}]
+        "evidence":[{"message_id":"searchable","quote":"hello shared history","purpose":"endorsement"}]
     }}))
     .unwrap();
     storage.mutate_record(&revise).unwrap();

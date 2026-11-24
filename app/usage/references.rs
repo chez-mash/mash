@@ -14,7 +14,7 @@ pub(super) const CAP: usize = 100;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Reference {
     pub(super) kind: &'static str,
-    /// For a record: decision, preference or fact.
+    /// For a record: decision or preference.
     pub(super) record_kind: Option<String>,
     pub(super) id: String,
     /// The machine the item came from, when the response says.
@@ -115,7 +115,7 @@ mod tests {
             {"id": "record/a/1", "current_revision": 2, "revisions": [
                 {"revision": 2, "body": {"details": {"kind": "decision"}},
                  "evidence": [{"chat_id": "cited", "message_id": "m"}]},
-                {"revision": 1, "body": {"details": {"kind": "fact"}}}
+                {"revision": 1, "body": {"details": {"kind": "preference"}}}
             ]},
             {"id": "record/a/2", "node_id": "xenia", "kind": "preference"}
         ]});
