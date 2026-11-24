@@ -648,6 +648,37 @@ mod tests {
     }
 
     #[test]
+    fn memory_reads_every_machine_by_the_shared_cursor() {
+        let list = |arguments: &[&str]| {
+            let request = Cli::try_parse_from([&["mash", "memory"], arguments].concat())
+                .unwrap()
+                .into_request()
+                .unwrap();
+            let Operation::Records(list) = request.operation else {
+                panic!("memory lists records")
+            };
+            list
+        };
+        let shared = list(&["--shared", "--cursor", "dev:mac:7"]);
+        assert!(shared.shared);
+        let cursor = shared.cursor.unwrap();
+        assert_eq!((cursor.node_id.as_str(), cursor.offset), ("dev:mac", 7));
+        assert!(!list(&[]).shared);
+        // A cursor belongs to the shared listing and replaces the offset.
+        assert!(Cli::try_parse_from(["mash", "memory", "--cursor", "a:0"]).is_err());
+        assert!(
+            Cli::try_parse_from([
+                "mash", "memory", "--shared", "--cursor", "a:0", "--offset", "5"
+            ])
+            .is_err()
+        );
+        let malformed = Cli::try_parse_from(["mash", "memory", "--shared", "--cursor", "a"])
+            .unwrap()
+            .into_request();
+        assert!(malformed.is_err());
+    }
+
+    #[test]
     fn mcp_rejects_retired_watch_options() {
         assert!(Cli::try_parse_from(["mash", "mcp", "--watch"]).is_err());
         assert!(Cli::try_parse_from(["mash", "mcp", "--debounce-ms", "500"]).is_err());

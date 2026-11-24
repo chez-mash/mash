@@ -304,6 +304,13 @@ pub(super) struct MemoryArguments {
     limit: Option<usize>,
     #[arg(long, default_value_t = 0)]
     offset: usize,
+    /// Every machine's records, from the shared index, a machine at a time.
+    #[arg(long)]
+    shared: bool,
+    /// With --shared, where to go on: the `next_cursor` of the page before,
+    /// as NODE:OFFSET.
+    #[arg(long, requires = "shared", conflicts_with = "offset")]
+    cursor: Option<String>,
 }
 
 impl MemoryArguments {
@@ -318,9 +325,26 @@ impl MemoryArguments {
             include_inactive: self.include_inactive,
             limit: self.limit,
             offset: self.offset,
+            shared: self.shared,
+            cursor: self.cursor.as_deref().map(cursor).transpose()?,
             ..crate::records::List::default()
         })
     }
+}
+
+/// A shared records cursor from `NODE:OFFSET`. Node IDs may hold colons, so
+/// the offset is what follows the last one.
+fn cursor(text: &str) -> Result<crate::records::Cursor, AppError> {
+    let invalid =
+        || AppError::usage("--cursor takes NODE:OFFSET, as a page's next_cursor names them");
+    let (node, offset) = text.rsplit_once(':').ok_or_else(invalid)?;
+    if node.is_empty() {
+        return Err(invalid());
+    }
+    Ok(crate::records::Cursor {
+        node_id: node.to_owned(),
+        offset: offset.parse().map_err(|_| invalid())?,
+    })
 }
 
 /// The filters `mash search` takes, shared by full and live search.

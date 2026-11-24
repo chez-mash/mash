@@ -43,8 +43,9 @@ From a chat you can:
 - **Open Mash** (⌘O) — the desktop app's main window.
 
 **Search Memory** lists the decisions, preferences and facts Mash remembers
-from your chats, grouped by the repository or project they apply to, newest
-first. Choose a kind beside the search field. Each shows why it was recorded,
+from your chats on every machine (through the shared index, or this
+machine's alone when it has not joined one), grouped by the repository or
+project they apply to, newest first. Choose a kind beside the search field. Each shows why it was recorded,
 when it applies, and the quotes from the chat behind it; **Open Source Chat in
 Mash** or **Read Source Messages** (⌘O) goes to the message it came from, and
 **Copy Statement** (↵) copies it. A record an agent proposed that you haven't

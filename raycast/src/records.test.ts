@@ -31,8 +31,28 @@ const record = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe("reading what Mash remembers", () => {
-  it("asks for one page of records", () => {
-    expect(recordsArguments(100)).toEqual(["memory", "--limit", "100", "--offset", "100"]);
+  it("asks for a page of this machine's records, or of every machine's by the shared cursor", () => {
+    expect(recordsArguments({ shared: false, offset: 100 })).toEqual(["memory", "--limit", "100", "--offset", "100"]);
+    expect(recordsArguments({ shared: true })).toEqual(["memory", "--limit", "100", "--shared"]);
+    expect(recordsArguments({ shared: true, cursor: "dev:mac:0" })).toEqual([
+      "memory",
+      "--limit",
+      "100",
+      "--shared",
+      "--cursor",
+      "dev:mac:0",
+    ]);
+  });
+
+  it("reads the machine each shared record came from, and the cursor to the next page", () => {
+    const answer = parseRecords(
+      JSON.stringify({ records: [record({ node_id: "xenia" })], next_cursor: { node_id: "dev-macbook", offset: 0 } }),
+    );
+    expect(answer.memories[0]?.machine).toBe("xenia");
+    expect(answer.cursor).toBe("dev-macbook:0");
+    // A machine with no records still points on to the next.
+    expect(parseRecords(JSON.stringify({ records: [], next_cursor: { node_id: "a", offset: 0 } })).cursor).toBe("a:0");
+    expect(parseRecords(JSON.stringify({ records: [] })).cursor).toBeNull();
   });
 
   it("reads each record at its current revision, with its supporting quotes", () => {

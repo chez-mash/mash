@@ -22,7 +22,7 @@ open the [dashboard](dashboard.md) with `mash dash` or ask a
 | `mash init` | Sets up Mash for the histories it finds, optionally [connects agents](agents.md), and indexes. | `--yes` accepts the defaults without prompts. `--no-index` configures without the search service running. `--no-agents` leaves agent settings unchanged. `--force` replaces an existing configuration, kept as `config.toml.previous`. |
 | `mash search 'QUERY'` | Searches indexed chats or messages. | `--intent exact-mention` or `--intent related-discussion`, `--unit messages`, `--days N`, `--provider PROVIDER`, `--limit N`. Subagent chats are left out unless you add `--include-subagents`. See [search filters](search.md). |
 | `mash list-chats` | Lists chats, most recently active first. | `--title-contains 'part of the title'`, `--provider PROVIDER`, `--limit N`. `--exclude-subagents` leaves out chats agents started for their own subtasks. |
-| `mash memory` | Lists the decisions, preferences and facts Mash remembers, newest first. `mash mem` for short. | `--query 'text'`, `--kind decision`, `--include-inactive`, `--limit N`. |
+| `mash memory` | Lists the decisions, preferences and facts Mash remembers, newest first. `mash mem` for short. | `--query 'text'`, `--kind decision`, `--include-inactive`, `--limit N`. `--shared` lists every machine's, a machine at a time; pass a page's `next_cursor` back as `--cursor NODE:OFFSET` for the next. |
 | `mash view MESSAGE_ID` | Returns one message. | `--context N` adds up to N messages before and after. |
 | `mash dash` | Serves the [dashboard](dashboard.md) at `http://127.0.0.1:8790`. | `--listen ADDRESS`. `--services-config PATH` enables [service management](services.md). |
 | `mash index` | Reads new or changed history into the index. See [keep history up to date](synchronization.md). | `--watch` keeps refreshing until interrupted. `--all-history` or `--since-days DAYS` includes older history. `--provider PROVIDER` limits the run to one agent. `--reread` reads every chat again after an upgrade that reads an agent's history differently. `--rebuild-local-views --full` recreates local search data from the chats Mash already stored. |
@@ -78,9 +78,9 @@ them may change.
 | `outcome` | `ok`, `error`, or `incomplete` (answered, but asked to retry). |
 | `error_kind`, `error_message` | Why a call failed. |
 | `duration_ms` | How long it took. |
-| `result_count` | How many results a listing returned. |
+| `result_count` | How many results a search or listing returned, counted the same way on every surface. A streamed search (`--stream`, as Raycast uses) counts its last update. Empty for calls that list nothing, for errors, and for the dashboard's live streaming search. |
 | `response_bytes` | The size of the answer. |
-| `results_total`, `results_truncated` | How many items `call_results` found, and whether more than the 100 it keeps. |
+| `results_total`, `results_truncated` | How many items `call_results` found, and whether more than the 100 it keeps. Empty for dashboard calls, whose answers the log does not read. |
 | `session` | One MCP connection's calls. |
 | `pid`, `build` | The Mash process and the build that served it. |
 | `project` | The working directory a command ran in. |

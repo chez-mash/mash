@@ -19,7 +19,15 @@ import { homedir } from "node:os";
 import { useMemo } from "react";
 import { ChatMessages } from "./chatMessages";
 import { chatLink, findMash, type Hit, hasDesktopApp, MashError, mashEnvironment } from "./mash";
-import { type Memory, type MemoryKind, memoryMarkdown, parseRecords, RECORD_PAGE, recordsArguments } from "./records";
+import {
+  type Memory,
+  type MemoryKind,
+  memoryMarkdown,
+  parseRecords,
+  RECORD_PAGE,
+  type RecordPage,
+  recordsArguments,
+} from "./records";
 
 interface Preferences {
   readonly mashPath?: string;
@@ -34,11 +42,11 @@ const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon
 ];
 
 /** One page of `mash memory`. Mash answers with JSON even when it fails, so its message is kept. */
-function page(mash: string, offset: number): Promise<{ memories: Memory[]; next: number | null }> {
+function page(mash: string, where: RecordPage): Promise<ReturnType<typeof parseRecords>> {
   return new Promise((resolve, reject) => {
     execFile(
       mash,
-      recordsArguments(offset),
+      recordsArguments(where),
       { maxBuffer: 64 * 1024 * 1024, env: mashEnvironment() },
       (error, stdout) => {
         if (stdout.trim()) {
@@ -55,16 +63,40 @@ function page(mash: string, offset: number): Promise<{ memories: Memory[]; next:
   });
 }
 
-/** Every current record, newest first. Ten pages is far more than a person keeps. */
-async function everything(mash: string): Promise<Memory[]> {
+/** What Search Memory lists, and whether it reaches every machine. */
+interface Remembered {
+  readonly memories: Memory[];
+  /** Why only this machine's records are listed, when they are. */
+  readonly onlyHere?: string;
+}
+
+/**
+ * Every machine's current records, from the shared index, so a decision made
+ * in a chat on another machine is found here too. A machine that has not
+ * joined one, or cannot reach it, lists its own and says so. Fifty pages is
+ * far more than a group of machines keeps.
+ */
+async function everything(mash: string): Promise<Remembered> {
   const all: Memory[] = [];
-  let offset: number | null = 0;
-  for (let pages = 0; offset !== null && pages < 10; pages += 1) {
-    const answer = await page(mash, offset);
-    all.push(...answer.memories);
-    offset = answer.memories.length < RECORD_PAGE ? null : answer.next;
+  try {
+    let cursor: string | undefined;
+    for (let pages = 0; pages < 50; pages += 1) {
+      const answer = await page(mash, cursor ? { shared: true, cursor } : { shared: true });
+      all.push(...answer.memories);
+      if (!answer.cursor) return { memories: all };
+      cursor = answer.cursor;
+    }
+    return { memories: all };
+  } catch (error) {
+    const here: Memory[] = [];
+    let offset: number | null = 0;
+    for (let pages = 0; offset !== null && pages < 10; pages += 1) {
+      const answer = await page(mash, { shared: false, offset });
+      here.push(...answer.memories);
+      offset = answer.memories.length < RECORD_PAGE ? null : answer.next;
+    }
+    return { memories: here, onlyHere: error instanceof Error ? error.message : String(error) };
   }
-  return all;
 }
 
 export default function Command() {
@@ -93,7 +125,7 @@ export default function Command() {
     );
   }
 
-  const shown = (data ?? []).filter((memory) => choice === "all" || memory.kind === choice);
+  const shown = (data?.memories ?? []).filter((memory) => choice === "all" || memory.kind === choice);
   // Sections in the order their newest record appears, so recent work leads.
   const sections = new Map<string, Memory[]>();
   for (const memory of shown) sections.set(memory.scope, [...(sections.get(memory.scope) ?? []), memory]);
@@ -102,7 +134,9 @@ export default function Command() {
     <List
       isLoading={isLoading}
       isShowingDetail={shown.length > 0}
-      searchBarPlaceholder="Search what Mash remembers"
+      searchBarPlaceholder={
+        data?.onlyHere ? "Search what Mash remembers on this machine" : "Search what Mash remembers, on every machine"
+      }
       searchBarAccessory={
         <List.Dropdown tooltip="Kind of record" value={choice} onChange={(value) => setChoice(value as Choice)}>
           <List.Dropdown.Item title="Everything" value="all" icon={Icon.Bookmark} />
@@ -132,7 +166,12 @@ export default function Command() {
         <List.EmptyView
           icon={Icon.Bookmark}
           title={isLoading ? "Reading what Mash remembers…" : "Nothing remembered yet"}
-          description="Mash keeps the decisions, preferences and facts your agents record from your chats."
+          description={[
+            "Mash keeps the decisions, preferences and facts your agents record from your chats.",
+            data?.onlyHere ? `This lists only this machine's: ${data.onlyHere}` : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         />
       )}
       {[...sections].map(([scope, memories]) => (
@@ -185,6 +224,7 @@ function MemoryItem({
                 <List.Item.Detail.Metadata.TagList.Item text={kind.title.slice(0, -1)} color={kind.tint} />
               </List.Item.Detail.Metadata.TagList>
               <List.Item.Detail.Metadata.Label title="Applies to" text={memory.scope} />
+              {memory.machine ? <List.Item.Detail.Metadata.Label title="Machine" text={memory.machine} /> : null}
               {memory.recordedAt ? (
                 <List.Item.Detail.Metadata.Label title="Recorded" text={memory.recordedAt.toLocaleString()} />
               ) : null}

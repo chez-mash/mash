@@ -17,6 +17,8 @@ export interface Memory {
   readonly conditions: readonly string[];
   /** Where the record applies, short enough for a section title. */
   readonly scope: string;
+  /** The machine it was recorded on, when read from the shared index. */
+  readonly machine?: string;
   /** Not yet confirmed by the person: proposed by an agent from a chat. */
   readonly candidate: boolean;
   readonly recordedAt: Date | undefined;
@@ -35,17 +37,31 @@ export interface Evidence {
 /** The most records one page holds; Mash lists at most 100 at a time. */
 export const RECORD_PAGE = 100;
 
+/**
+ * Where a page of records starts: an offset among this machine's records, or
+ * a cursor through every machine's, which the shared index lists a machine at
+ * a time.
+ */
+export type RecordPage =
+  { readonly shared: false; readonly offset: number } | { readonly shared: true; readonly cursor?: string };
+
 /** The arguments that list one page of current records, newest first. */
-export function recordsArguments(offset: number): string[] {
-  return ["memory", "--limit", String(RECORD_PAGE), "--offset", String(offset)];
+export function recordsArguments(page: RecordPage): string[] {
+  const asked = ["memory", "--limit", String(RECORD_PAGE)];
+  if (!page.shared) return [...asked, "--offset", String(page.offset)];
+  return page.cursor ? [...asked, "--shared", "--cursor", page.cursor] : [...asked, "--shared"];
 }
 
 const text = (value: unknown): string => (typeof value === "string" ? value : "");
 const object = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 
-/** One page of `mash memory`: its records and where the next page starts. */
-export function parseRecords(stdout: string): { memories: Memory[]; next: number | null } {
+/**
+ * One page of `mash memory`: its records and where the next page starts, as
+ * an offset on this machine or, from the shared index, a cursor (which can
+ * follow a page with no records, when a machine has none).
+ */
+export function parseRecords(stdout: string): { memories: Memory[]; next: number | null; cursor: string | null } {
   let body: Record<string, unknown>;
   try {
     body = object(JSON.parse(stdout));
@@ -58,7 +74,13 @@ export function parseRecords(stdout: string): { memories: Memory[]; next: number
   return {
     memories: records.flatMap((record) => memory(object(record))),
     next: typeof body.next_offset === "number" ? body.next_offset : null,
+    cursor: nextCursor(object(body.next_cursor)),
   };
+}
+
+function nextCursor(cursor: Record<string, unknown>): string | null {
+  const node = text(cursor.node_id);
+  return node && typeof cursor.offset === "number" ? `${node}:${cursor.offset}` : null;
 }
 
 function memory(record: Record<string, unknown>): Memory[] {
@@ -78,6 +100,7 @@ function memory(record: Record<string, unknown>): Memory[] {
       rationale: text(body.rationale).trim(),
       conditions: Array.isArray(details.conditions) ? details.conditions.map(text).filter(Boolean) : [],
       scope: scopeLabel(object(record.scope)),
+      ...(text(record.node_id) ? { machine: text(record.node_id) } : {}),
       candidate: text(body.review) === "candidate",
       recordedAt: typeof current.recorded_at === "number" ? new Date(current.recorded_at) : undefined,
       evidence: (Array.isArray(current.evidence) ? current.evidence.map(object) : [])
