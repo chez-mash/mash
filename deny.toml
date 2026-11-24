@@ -25,6 +25,10 @@ ignore = [
     # `console-subscriber`, behind the optional `console` debugging feature,
     # and is in no release build. 0.5.0, the latest, still depends on it.
     { id = "RUSTSEC-2026-0542", reason = "debug-only, through console-subscriber; revisit when it drops humantime" },
+    # `astral-tokio-tar` is flagged as unmaintained. It arrives only with
+    # `testcontainers`, behind the `test-support` features that only dev
+    # dependencies enable, and is in no release build.
+    { id = "RUSTSEC-2026-0440", reason = "test-only, through testcontainers; revisit when testcontainers drops it" },
 ]
 
 [licenses]

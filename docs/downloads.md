@@ -20,11 +20,10 @@ bar, and includes everything the archives below do.
 
 The Linux app needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36 and later) and WebKitGTK 4.1.
 
-The app is not signed yet, so your system asks before opening it the first
-time. On a Mac, open the app, then choose **Open Anyway** in **System
-Settings › Privacy & Security**. On Windows, choose **More info**, then
-**Run anyway**. On Linux, make the AppImage executable
-(`chmod +x mash-desktop-linux-x86_64.AppImage`) and run it.
+The Mac app is signed and notarized by Apple, so it opens like any other app.
+The Windows app is not signed yet, so Windows asks before opening it the first
+time: choose **More info**, then **Run anyway**. On Linux, make the AppImage
+executable (`chmod +x mash-desktop-linux-x86_64.AppImage`) and run it.
 
 ## Choose your download
 
