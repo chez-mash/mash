@@ -26,14 +26,14 @@ Exécutez les deux commandes correspondant à votre agent dans un terminal. Si v
 #### Claude Code
 
 ```sh
-claude plugin marketplace add grep-stack/mash
+claude plugin marketplace add chez-mash/mash
 claude plugin install mash@mash
 ```
 
 #### Codex
 
 ```sh
-codex plugin marketplace add grep-stack/mash
+codex plugin marketplace add chez-mash/mash
 codex plugin add mash@mash
 ```
 
@@ -42,7 +42,7 @@ codex plugin add mash@mash
 #### Installer dans GitHub Copilot CLI
 
 ```sh
-copilot plugin marketplace add grep-stack/mash
+copilot plugin marketplace add chez-mash/mash
 copilot plugin install mash@mash
 ```
 

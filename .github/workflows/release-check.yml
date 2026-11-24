@@ -85,7 +85,7 @@ jobs:
       - name: Install from the tap and run it
         run: |
           [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install grep-stack/tap/mash
+          brew install chez-mash/tap/mash
           [ "$(mash --version)" = "mash ${TAG#v}" ]
 
   apt:
@@ -132,7 +132,7 @@ jobs:
         run: |
           iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
           $env:PATH = "$HOME\scoop\shims;$env:PATH"
-          scoop bucket add grep-stack "https://github.com/$env:GITHUB_REPOSITORY"
-          scoop install grep-stack/mash
+          scoop bucket add chez-mash "https://github.com/$env:GITHUB_REPOSITORY"
+          scoop install chez-mash/mash
           $version = (mash --version).Trim()
           if ($version -ne "mash $($env:TAG.TrimStart('v'))") { throw "unexpected version: $version" }

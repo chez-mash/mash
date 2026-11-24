@@ -64,13 +64,13 @@ impl Agent {
     pub const fn install_plugin(self) -> &'static str {
         match self {
             Self::ClaudeCode => {
-                "claude plugin marketplace add grep-stack/mash && claude plugin install mash@mash"
+                "claude plugin marketplace add chez-mash/mash && claude plugin install mash@mash"
             }
             Self::Codex => {
-                "codex plugin marketplace add grep-stack/mash && codex plugin add mash@mash"
+                "codex plugin marketplace add chez-mash/mash && codex plugin add mash@mash"
             }
             Self::Copilot => {
-                "copilot plugin marketplace add grep-stack/mash && copilot plugin install mash@mash"
+                "copilot plugin marketplace add chez-mash/mash && copilot plugin install mash@mash"
             }
         }
     }
@@ -102,7 +102,7 @@ mod tests {
         assert_eq!(agent.remove_mcp(), "copilot mcp remove mash");
         assert_eq!(
             agent.install_plugin(),
-            "copilot plugin marketplace add grep-stack/mash && copilot plugin install mash@mash"
+            "copilot plugin marketplace add chez-mash/mash && copilot plugin install mash@mash"
         );
         assert_eq!(agent.remove_plugin(), "copilot plugin uninstall mash@mash");
         assert_eq!(

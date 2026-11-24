@@ -1,7 +1,7 @@
 # Upgrade Mash
 
 Updating Mash keeps your settings and indexed chats. Check the
-[release notes](https://github.com/grep-stack/mash/releases), save a backup,
+[release notes](https://github.com/chez-mash/mash/releases), save a backup,
 and use your usual install method to update. If you just need to back up
 or recover a chat, go to
 [Make a portable backup](backup.md#make-a-portable-backup) or
@@ -65,10 +65,10 @@ the release you want.
 
 | Installed with | Update command |
 | --- | --- |
-| Homebrew | `brew update && brew upgrade grep-stack/tap/mash` |
+| Homebrew | `brew update && brew upgrade chez-mash/tap/mash` |
 | apt | `sudo apt update && sudo apt install --only-upgrade mash-cli` |
 | Scoop | Run `scoop update`, then `scoop update mash`. |
-| mise | `mise upgrade github:grep-stack/mash` |
+| mise | `mise upgrade github:chez-mash/mash` |
 | cargo-binstall | Rerun the [prebuilt install](install-methods.md#cargo-binstall). |
 | Source | [Build the revision you want](install-methods.md#build-from-source), including the web files if you use the dashboard. |
 

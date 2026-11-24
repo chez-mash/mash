@@ -16,13 +16,13 @@
 Linux または WSL では [systemd のユーザーセッション](local-search.md#linux-without-a-systemd-user-session)が必要です。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh -s -- --dashboard
+curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 **Windows x64（PowerShell）**
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1))) -Dashboard
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1))) -Dashboard
 ```
 
 インストーラーに表示されたリンクを開き、端末は開いたままにしてください。

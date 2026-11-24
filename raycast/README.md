@@ -83,8 +83,8 @@ pnpm lint
 
 - **`author`** and **`owner`**: `author` must be a person's Raycast
   username (the handle on their raycast.com profile); `package.json` says
-  `grepstack` for now, which the Store rejects. To publish under GrepStack
-  rather than a person, create a GrepStack organization in Raycast, add
+  `chez-mash` for now, which the Store rejects. To publish under Chez Mash
+  rather than a person, create a Chez Mash organization in Raycast, add
   `"owner": "<its handle>"` and `"access": "public"` (an `owner` alone
   publishes to the organization's private store), and keep a member's
   username as `author`.

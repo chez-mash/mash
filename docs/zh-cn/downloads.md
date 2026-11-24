@@ -10,12 +10,12 @@
 
 | 电脑 | 下载文件 |
 | --- | --- |
-| 搭载 Apple 芯片的 Mac | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
-| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
-| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
-| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
+| 搭载 Apple 芯片的 Mac | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
+| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
+| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
+| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/chez-mash/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
 
-可以在 GitHub 上查看[版本说明和校验文件](https://github.com/grep-stack/mash/releases/latest)。校验下载文件时，请使用同一版本发布页的安装包和 `SHA256SUMS`。使用 Linux 时，请先查看[系统要求](installation.md#recommended-release-installers)。Intel Mac 等平台可以[从源码构建](install-methods.md#build-from-source)。
+可以在 GitHub 上查看[版本说明和校验文件](https://github.com/chez-mash/mash/releases/latest)。校验下载文件时，请使用同一版本发布页的安装包和 `SHA256SUMS`。使用 Linux 时，请先查看[系统要求](installation.md#recommended-release-installers)。Intel Mac 等平台可以[从源码构建](install-methods.md#build-from-source)。
 
 <span id="verify-the-checksum"></span>
 
@@ -75,18 +75,18 @@ Get-FileHash -Algorithm SHA256 .\mash-x86_64-pc-windows-msvc.zip
 
 ## 查看安装脚本
 
-运行前可以先阅读 [macOS 和 Linux 安装脚本](https://github.com/grep-stack/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/grep-stack/mash/blob/main/install.ps1)。脚本会校验安装包并把 Mash 放到你的用户目录，无需管理员权限。[设置会更改什么](installation.md#what-setup-changes)
+运行前可以先阅读 [macOS 和 Linux 安装脚本](https://github.com/chez-mash/mash/blob/main/install.sh)或 [Windows 安装脚本](https://github.com/chez-mash/mash/blob/main/install.ps1)。脚本会校验安装包并把 Mash 放到你的用户目录，无需管理员权限。[设置会更改什么](installation.md#what-setup-changes)
 
 <span id="check-how-it-was-built"></span>
 
 ## 核对构建来源
 
-[公开的发布流程](https://github.com/grep-stack/mash/actions/workflows/release.yml)先确认该版本源码的 Linux 和 Windows 测试通过，再构建各平台的安装包。[公开的安装检查](https://github.com/grep-stack/mash/actions/workflows/release-check.yml)会显示运行了哪些安装程序，以及它们是否安装了预期版本。
+[公开的发布流程](https://github.com/chez-mash/mash/actions/workflows/release.yml)先确认该版本源码的 Linux 和 Windows 测试通过，再构建各平台的安装包。[公开的安装检查](https://github.com/chez-mash/mash/actions/workflows/release-check.yml)会显示运行了哪些安装程序，以及它们是否安装了预期版本。
 
 如果版本提供了构建证明，GitHub CLI 可以验证安装包来自哪个工作流和源码标签。登录 GitHub CLI 后，把 `ARCHIVE` 换成下载文件的路径，把 `RELEASE_TAG` 换成包括前导 `v` 的版本标签。
 
 ```sh
-gh attestation verify "ARCHIVE" --repo grep-stack/mash --signer-workflow grep-stack/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+gh attestation verify "ARCHIVE" --repo chez-mash/mash --signer-workflow chez-mash/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
 ```
 
 发布流程会在发布这些安装包之前核验构建证明。`v0.1.1-alpha` 及更早的版本使用上面的校验值核对步骤。

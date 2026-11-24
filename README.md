@@ -80,13 +80,13 @@ See [what setup changes](docs/installation.md#what-setup-changes) and
 Linux and WSL require a [systemd user session](docs/local-search.md#linux-without-a-systemd-user-session).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grep-stack/mash/main/install.sh | sh -s -- --dashboard
+curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 **Windows x64 or ARM64 (PowerShell)**
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/grep-stack/mash/main/install.ps1))) -Dashboard
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1))) -Dashboard
 ```
 
 Open the link the installer shows you and leave the terminal open.
@@ -203,7 +203,7 @@ it receives become part of that agent's context. [Privacy and redaction →](doc
 ## Tested with
 
 See [how each agent's history has been tested on Linux, macOS, and Windows](docs/supported-agents.md#tested-with).
-[Linux CI](https://github.com/grep-stack/mash/actions/workflows/ci.yml) · [Windows CI](https://github.com/grep-stack/mash/actions/workflows/windows.yml) · [Docs checks](https://github.com/grep-stack/mash/actions/workflows/docs.yml)
+[Linux CI](https://github.com/chez-mash/mash/actions/workflows/ci.yml) · [Windows CI](https://github.com/chez-mash/mash/actions/workflows/windows.yml) · [Docs checks](https://github.com/chez-mash/mash/actions/workflows/docs.yml)
 
 ## Documentation and contributions
 

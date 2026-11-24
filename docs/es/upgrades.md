@@ -1,7 +1,7 @@
 # Actualiza Mash
 
 Al actualizar Mash se conservan la configuración y las conversaciones
-indexadas. Consulta las [notas de la versión (en inglés)](https://github.com/grep-stack/mash/releases),
+indexadas. Consulta las [notas de la versión (en inglés)](https://github.com/chez-mash/mash/releases),
 haz una copia de seguridad y usa tu método habitual de instalación. Si solo
 quieres guardar o recuperar una conversación, consulta
 [cómo hacer una copia portátil](backup.md#make-a-portable-backup) o
@@ -74,10 +74,10 @@ cámbialo a la versión que quieras.
 
 | Método de instalación | Cómo actualizar |
 | --- | --- |
-| Homebrew | `brew update && brew upgrade grep-stack/tap/mash` |
+| Homebrew | `brew update && brew upgrade chez-mash/tap/mash` |
 | apt | `sudo apt update && sudo apt install --only-upgrade mash-cli` |
 | Scoop | Ejecuta `scoop update` y después `scoop update mash`. |
-| mise | `mise upgrade github:grep-stack/mash` |
+| mise | `mise upgrade github:chez-mash/mash` |
 | cargo-binstall | Repite la [instalación del archivo precompilado](install-methods.md#cargo-binstall). |
 | Código fuente | [Compila la revisión que quieras](install-methods.md#build-from-source) e incluye los archivos web si usas el panel. |
 

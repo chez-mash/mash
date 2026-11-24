@@ -1,6 +1,6 @@
 # 升级 Mash
 
-升级 Mash 会保留设置和已建立索引的对话。先查看[版本说明（英文）](https://github.com/grep-stack/mash/releases)，做好备份，再用原来的安装方式升级。如果只想备份或找回某条对话，请参阅[创建可移植备份](backup.md#make-a-portable-backup)或[将备份恢复到单独的数据库](backup.md#restore-without-replacing-your-current-history)。
+升级 Mash 会保留设置和已建立索引的对话。先查看[版本说明（英文）](https://github.com/chez-mash/mash/releases)，做好备份，再用原来的安装方式升级。如果只想备份或找回某条对话，请参阅[创建可移植备份](backup.md#make-a-portable-backup)或[将备份恢复到单独的数据库](backup.md#restore-without-replacing-your-current-history)。
 
 <span id="upgrade-an-existing-installation"></span>
 
@@ -43,10 +43,10 @@ Mash 会保留对话和消息的 ID，并复用兼容的搜索数据。索引更
 
 | 安装方式 | 升级方法 |
 | --- | --- |
-| Homebrew | `brew update && brew upgrade grep-stack/tap/mash` |
+| Homebrew | `brew update && brew upgrade chez-mash/tap/mash` |
 | apt | `sudo apt update && sudo apt install --only-upgrade mash-cli` |
 | Scoop | 先运行 `scoop update`，再运行 `scoop update mash`。 |
-| mise | `mise upgrade github:grep-stack/mash` |
+| mise | `mise upgrade github:chez-mash/mash` |
 | cargo-binstall | 重新[安装预编译发布包](install-methods.md#cargo-binstall)。 |
 | 源码 | [构建所需版本](install-methods.md#build-from-source)。如果使用网页面板，请一并构建网页文件。 |
 

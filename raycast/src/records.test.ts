@@ -5,7 +5,7 @@ import { memoryMarkdown, parseRecords, recordsArguments, scopeLabel } from "./re
 const record = (overrides: Record<string, unknown> = {}) => ({
   id: "record/o/1",
   owner: "o",
-  scope: { kind: "repository", identity: "https://github.com/grep-stack/mash.git" },
+  scope: { kind: "repository", identity: "https://github.com/chez-mash/mash.git" },
   current_revision: 2,
   revisions: [
     {
@@ -65,7 +65,7 @@ describe("reading what Mash remembers", () => {
         statement: "Ship signed Mac builds only",
         rationale: "Gatekeeper blocks unsigned apps",
         conditions: [],
-        scope: "grep-stack/mash",
+        scope: "chez-mash/mash",
         candidate: false,
         recordedAt: new Date(1_795_402_046_418),
         evidence: [{ chatId: "c1", messageId: "m1", quote: "only ship signed builds", role: "user" }],
@@ -81,7 +81,7 @@ describe("reading what Mash remembers", () => {
   });
 
   it("names where a record applies the way a reader would", () => {
-    expect(scopeLabel({ kind: "repository", identity: "git@github.com:grep-stack/mash.git" })).toBe("grep-stack/mash");
+    expect(scopeLabel({ kind: "repository", identity: "git@github.com:chez-mash/mash.git" })).toBe("chez-mash/mash");
     expect(scopeLabel({ kind: "local_project", path: "/home/me/work/site/" })).toBe("site");
     expect(scopeLabel({ kind: "personal" })).toBe("Personal");
     expect(scopeLabel({ kind: "chat", id: "c1" })).toBe("One chat");

@@ -106,7 +106,7 @@ fn init_configures_registers_and_indexes_detected_history() {
         "{calls}"
     );
     assert!(
-        calls.contains("claude plugin marketplace add grep-stack/mash"),
+        calls.contains("claude plugin marketplace add chez-mash/mash"),
         "{calls}"
     );
     assert!(calls.contains("claude plugin install mash@mash"), "{calls}");
@@ -756,7 +756,7 @@ fn init_connects_github_copilot_through_its_own_cli() {
     assert_eq!(
         copilot[2..],
         [
-            "copilot plugin marketplace add grep-stack/mash",
+            "copilot plugin marketplace add chez-mash/mash",
             "copilot plugin install mash@mash"
         ],
         "{calls}"

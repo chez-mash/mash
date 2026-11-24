@@ -290,7 +290,7 @@ relying on results from all machines.
 
 ## Get help
 
-[Open a bug report](https://github.com/grep-stack/mash/issues/new?template=bug_report.yml)
+[Open a bug report](https://github.com/chez-mash/mash/issues/new?template=bug_report.yml)
 for problems with installation, setup, or everyday use. Include your operating
 system, how you tried to install Mash, the step that failed, and what you
 expected to happen. If `mash --version` works, include its output. An installer
@@ -301,5 +301,5 @@ GitHub issues are public. Share just the relevant error or a short excerpt from
 chat text, or credentials. Use made-up chat text if an example is needed.
 
 If you think Mash exposed private history, bypassed sign-in, or shipped a
-package with the wrong checksum, use [GitHub's private reporting form](https://github.com/grep-stack/mash/security/advisories/new).
+package with the wrong checksum, use [GitHub's private reporting form](https://github.com/chez-mash/mash/security/advisories/new).
 See [what to include in a security report](../SECURITY.md#report-a-vulnerability).

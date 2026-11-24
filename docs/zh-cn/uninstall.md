@@ -69,7 +69,7 @@ mash uninstall --yes --keep-history
 
 1. 在同一台电脑上使用同一个用户账号，安装先前记下的 Mash 版本。
    运行[基础安装脚本](installation.md#recommended-release-installers)前，将 `MASH_VERSION` 设为对应的版本标签，例如 `v0.1.1-alpha`。
-   如果想用压缩包安装，请在 [GitHub 发布页面](https://github.com/grep-stack/mash/releases)打开该版本标签，
+   如果想用压缩包安装，请在 [GitHub 发布页面](https://github.com/chez-mash/mash/releases)打开该版本标签，
    下载适用于你的系统的压缩包，以及同一版本的 `SHA256SUMS`。
    解压前先[校验压缩包](downloads.md#verify-the-checksum)。如果要安装更新的版本，请参阅[升级指南](upgrades.md#upgrade-an-existing-installation)。
 2. 如果搜索服务原先由 Mash 安装，请运行 `mash qdrant install` 重新安装服务并复用保留的数据。如果原先是[自行运行 Qdrant](local-search.md#run-qdrant-yourself)，请按原来的方式启动它。

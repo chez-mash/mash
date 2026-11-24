@@ -103,7 +103,7 @@ pour reprendre les étapes en échec, redémarrer les agents et retirer le progr
    son tag, par exemple `v0.1.1-alpha`, avant de lancer
    [l’installateur de base](installation.md#recommended-release-installers).
    Pour installer depuis une archive, ouvrez ce tag dans les
-   [versions publiées sur GitHub](https://github.com/grep-stack/mash/releases).
+   [versions publiées sur GitHub](https://github.com/chez-mash/mash/releases).
    Téléchargez l’archive de votre système et le fichier `SHA256SUMS` de cette
    même version. [Vérifiez l’archive](downloads.md#verify-the-checksum) avant
    de l’extraire. Pour installer une version plus récente, consultez le

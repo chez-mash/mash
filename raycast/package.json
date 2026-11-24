@@ -4,7 +4,7 @@
   "title": "Mash",
   "description": "Search the history of your coding agents as you type, and open a chat in Mash.",
   "icon": "mash.png",
-  "author": "grepstack",
+  "author": "chez-mash",
   "categories": [
     "Developer Tools",
     "Productivity"

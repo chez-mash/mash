@@ -13,7 +13,7 @@ Bug reports, fixes, translations and documentation improvements are welcome.
   Run `pnpm --silent translate-docs --status` from `site/` to see which
   guides need review.
   [Translation workflow](docs/internal/documentation-site.md#translate-a-guide)
-- **Fix a bug.** Check the [open issues](https://github.com/grep-stack/mash/issues)
+- **Fix a bug.** Check the [open issues](https://github.com/chez-mash/mash/issues)
   for a problem you can reproduce. A short example with made-up chat text is
   enough to get started.
 

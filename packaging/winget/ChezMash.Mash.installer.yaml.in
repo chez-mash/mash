@@ -1,7 +1,7 @@
 # winget installer manifest for the Mash CLI, filled by packaging/render.py.
 # The release zip holds two programs; winget puts each on PATH by its alias.
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
-PackageIdentifier: GrepStack.Mash
+PackageIdentifier: ChezMash.Mash
 PackageVersion: @VERSION@
 InstallerType: zip
 NestedInstallerType: portable
@@ -16,13 +16,13 @@ Commands:
 # The programs are built against the Visual C++ runtime for their architecture.
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/grep-stack/mash/releases/download/v@VERSION@/mash-x86_64-pc-windows-msvc.zip
+    InstallerUrl: https://github.com/chez-mash/mash/releases/download/v@VERSION@/mash-x86_64-pc-windows-msvc.zip
     InstallerSha256: @SHA256_UPPER:mash-x86_64-pc-windows-msvc.zip@
     Dependencies:
       PackageDependencies:
         - PackageIdentifier: Microsoft.VCRedist.2015+.x64
   - Architecture: arm64
-    InstallerUrl: https://github.com/grep-stack/mash/releases/download/v@VERSION@/mash-aarch64-pc-windows-msvc.zip
+    InstallerUrl: https://github.com/chez-mash/mash/releases/download/v@VERSION@/mash-aarch64-pc-windows-msvc.zip
     InstallerSha256: @SHA256_UPPER:mash-aarch64-pc-windows-msvc.zip@
     Dependencies:
       PackageDependencies:

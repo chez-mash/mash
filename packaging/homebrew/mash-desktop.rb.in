@@ -2,7 +2,7 @@ cask "mash-desktop" do
   version "@VERSION@"
   sha256 "@SHA256:mash-desktop-macos-arm64.dmg@"
 
-  url "https://github.com/grep-stack/mash/releases/download/v#{version}/mash-desktop-macos-arm64.dmg"
+  url "https://github.com/chez-mash/mash/releases/download/v#{version}/mash-desktop-macos-arm64.dmg"
   name "Mash"
   desc "Search past coding-agent chats in a desktop app"
   homepage "https://getmash.io/"

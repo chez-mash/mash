@@ -355,7 +355,7 @@ repara la conexión compartida antes de basarte en los resultados de toda la red
 
 ## Pide ayuda
 
-[Abre un informe de error](https://github.com/grep-stack/mash/issues/new?template=bug_report.yml)
+[Abre un informe de error](https://github.com/chez-mash/mash/issues/new?template=bug_report.yml)
 si tienes problemas al instalar, configurar o usar Mash. Indica tu sistema
 operativo, cómo intentaste instalar Mash, qué paso falló y qué esperabas que
 ocurriera. Si `mash --version` funciona, incluye el resultado. Si Mash no
@@ -368,7 +368,7 @@ un ejemplo, usa una conversación inventada.
 
 Si crees que Mash expuso un historial privado, permitió saltarse el inicio de
 sesión o publicó un paquete con una suma de comprobación incorrecta, usa el
-[formulario privado de GitHub](https://github.com/grep-stack/mash/security/advisories/new).
+[formulario privado de GitHub](https://github.com/chez-mash/mash/security/advisories/new).
 Consulta [qué incluir al informar de un problema de seguridad](../../SECURITY.md#report-a-vulnerability) (en inglés).
 
 <!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

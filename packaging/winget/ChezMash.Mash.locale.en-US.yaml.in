@@ -1,15 +1,15 @@
 # winget default locale manifest for the Mash CLI, filled by packaging/render.py.
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
-PackageIdentifier: GrepStack.Mash
+PackageIdentifier: ChezMash.Mash
 PackageVersion: @VERSION@
 PackageLocale: en-US
-Publisher: GrepStack
-PublisherUrl: https://github.com/grep-stack
-PublisherSupportUrl: https://github.com/grep-stack/mash/issues
+Publisher: Chez Mash
+PublisherUrl: https://github.com/chez-mash
+PublisherSupportUrl: https://github.com/chez-mash/mash/issues
 PackageName: Mash
 PackageUrl: https://getmash.io/
 License: MIT OR Apache-2.0
-LicenseUrl: https://github.com/grep-stack/mash/blob/v@VERSION@/LICENSE-MIT
+LicenseUrl: https://github.com/chez-mash/mash/blob/v@VERSION@/LICENSE-MIT
 ShortDescription: Search past coding-agent chats from your browser, terminal, or agents
 Description: |-
   Mash indexes the chat histories of your coding agents and finds past chats,
@@ -22,7 +22,7 @@ Tags:
   - history
   - mcp
   - cli
-ReleaseNotesUrl: https://github.com/grep-stack/mash/releases/tag/v@VERSION@
+ReleaseNotesUrl: https://github.com/chez-mash/mash/releases/tag/v@VERSION@
 InstallationNotes: Run mash qdrant install, then mash init to choose which histories to read. Run mash dash and open the address it prints to search in your browser.
 ManifestType: defaultLocale
 ManifestVersion: 1.10.0

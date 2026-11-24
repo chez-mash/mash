@@ -101,7 +101,7 @@ que fallen, reiniciar los agentes y quitar el programa.
    `MASH_VERSION` antes de ejecutar el
    [instalador básico](installation.md#recommended-release-installers).
    Si prefieres instalar desde un archivo, abre esa etiqueta en
-   [GitHub Releases](https://github.com/grep-stack/mash/releases) y descarga
+   [GitHub Releases](https://github.com/chez-mash/mash/releases) y descarga
    el archivo para tu sistema y el fichero `SHA256SUMS` de esa misma versión.
    [Verifica el archivo](downloads.md#verify-the-checksum) antes de extraerlo.
    Para instalar una versión más reciente, consulta la

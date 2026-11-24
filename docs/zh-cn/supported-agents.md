@@ -55,10 +55,10 @@
 - **部分验证**表示 Mash 已读取实际安装的 Cursor CLI 的对话。编辑器的部分旧格式尚不受支持。
 - **仅用记录测试**表示使用符合代理格式的记录进行测试，还没有在该系统上用实际安装的代理验证。
 
-每次推送代码都会运行 [Linux 测试](https://github.com/grep-stack/mash/actions/workflows/ci.yml)和
-[Windows 测试](https://github.com/grep-stack/mash/actions/workflows/windows.yml)。
-[Apple 芯片上的构建和基本运行检查](https://github.com/grep-stack/mash/actions/workflows/macos-build.yml)按需运行。
-如果找不到对话，或显示内容有误，可以[提交问题](https://github.com/grep-stack/mash/issues)，
+每次推送代码都会运行 [Linux 测试](https://github.com/chez-mash/mash/actions/workflows/ci.yml)和
+[Windows 测试](https://github.com/chez-mash/mash/actions/workflows/windows.yml)。
+[Apple 芯片上的构建和基本运行检查](https://github.com/chez-mash/mash/actions/workflows/macos-build.yml)按需运行。
+如果找不到对话，或显示内容有误，可以[提交问题](https://github.com/chez-mash/mash/issues)，
 并注明代理名称、版本和操作系统。
 
 <!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

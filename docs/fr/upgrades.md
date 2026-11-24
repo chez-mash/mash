@@ -1,7 +1,7 @@
 # Mettre Mash à niveau
 
 Une mise à niveau conserve vos réglages et vos conversations indexées.
-Consultez les [notes de version (en anglais)](https://github.com/grep-stack/mash/releases),
+Consultez les [notes de version (en anglais)](https://github.com/chez-mash/mash/releases),
 faites une sauvegarde et utilisez votre méthode d’installation habituelle.
 Pour sauvegarder ou récupérer une conversation, voyez
 [comment créer une sauvegarde portable](backup.md#make-a-portable-backup) ou
@@ -72,10 +72,10 @@ indiquez la version voulue.
 
 | Méthode d’installation | Comment mettre à niveau |
 | --- | --- |
-| Homebrew | `brew update && brew upgrade grep-stack/tap/mash` |
+| Homebrew | `brew update && brew upgrade chez-mash/tap/mash` |
 | apt | `sudo apt update && sudo apt install --only-upgrade mash-cli` |
 | Scoop | Lancez `scoop update`, puis `scoop update mash`. |
-| mise | `mise upgrade github:grep-stack/mash` |
+| mise | `mise upgrade github:chez-mash/mash` |
 | cargo-binstall | Reprenez [l’installation de l’archive précompilée](install-methods.md#cargo-binstall). |
 | Code source | [Compilez la révision voulue](install-methods.md#build-from-source) avec les fichiers web si vous utilisez le tableau de bord. |
 

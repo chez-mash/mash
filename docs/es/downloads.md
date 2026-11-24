@@ -14,12 +14,12 @@ archivo incluye el programa de terminal y el panel web.
 
 | Equipo | Descarga |
 | --- | --- |
-| Mac con Apple silicon | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
-| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
-| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/grep-stack/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
-| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/grep-stack/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
+| Mac con Apple silicon | [`mash-aarch64-apple-darwin.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-aarch64-apple-darwin.tar.gz) |
+| Linux x86-64 | [`mash-x86_64-unknown-linux-gnu.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-x86_64-unknown-linux-gnu.tar.gz) |
+| Linux ARM64 | [`mash-aarch64-unknown-linux-gnu.tar.gz`](https://github.com/chez-mash/mash/releases/latest/download/mash-aarch64-unknown-linux-gnu.tar.gz) |
+| Windows x64 | [`mash-x86_64-pc-windows-msvc.zip`](https://github.com/chez-mash/mash/releases/latest/download/mash-x86_64-pc-windows-msvc.zip) |
 
-Consulta las [notas de la versión y el archivo de sumas en GitHub](https://github.com/grep-stack/mash/releases/latest).
+Consulta las [notas de la versión y el archivo de sumas en GitHub](https://github.com/chez-mash/mash/releases/latest).
 Para comprobar una descarga, usa el archivo y el `SHA256SUMS` de la misma
 versión. Consulta los [requisitos de Linux](installation.md#recommended-release-installers).
 En plataformas como Mac con Intel, puedes [compilar desde el código fuente](install-methods.md#build-from-source).
@@ -92,8 +92,8 @@ Si prefieres buscar por tu cuenta, deja los agentes sin conectar y elige
 
 ## Revisa el instalador
 
-Puedes leer el [instalador de macOS y Linux](https://github.com/grep-stack/mash/blob/main/install.sh)
-o el [instalador de Windows](https://github.com/grep-stack/mash/blob/main/install.ps1)
+Puedes leer el [instalador de macOS y Linux](https://github.com/chez-mash/mash/blob/main/install.sh)
+o el [instalador de Windows](https://github.com/chez-mash/mash/blob/main/install.ps1)
 antes de ejecutarlo. Los scripts comprueban la suma del archivo y colocan
 Mash en tu carpeta de usuario sin privilegios de administrador.
 [Qué cambia al configurar Mash](installation.md#what-setup-changes)
@@ -102,10 +102,10 @@ Mash en tu carpeta de usuario sin privilegios de administrador.
 
 ## Comprueba cómo se compiló
 
-El [proceso público de publicación](https://github.com/grep-stack/mash/actions/workflows/release.yml)
+El [proceso público de publicación](https://github.com/chez-mash/mash/actions/workflows/release.yml)
 prepara los archivos tras comprobar que las pruebas de Linux y Windows
 pasaron para el código de la versión. Las
-[pruebas públicas de instalación](https://github.com/grep-stack/mash/actions/workflows/release-check.yml)
+[pruebas públicas de instalación](https://github.com/chez-mash/mash/actions/workflows/release-check.yml)
 muestran qué instaladores se ejecutaron y confirmaron la versión esperada.
 
 Para las versiones que incluyen una certificación de compilación, GitHub
@@ -114,7 +114,7 @@ Inicia sesión en GitHub CLI y sustituye `ARCHIVE` por la ruta de la descarga
 y `RELEASE_TAG` por su etiqueta, incluida la `v` inicial.
 
 ```sh
-gh attestation verify "ARCHIVE" --repo grep-stack/mash --signer-workflow grep-stack/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
+gh attestation verify "ARCHIVE" --repo chez-mash/mash --signer-workflow chez-mash/mash/.github/workflows/release.yml --source-ref refs/tags/RELEASE_TAG --deny-self-hosted-runners
 ```
 
 El proceso de publicación comprueba las certificaciones antes de publicar
