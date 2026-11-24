@@ -18,6 +18,7 @@ import { statusOptions } from "../lib/status";
 import { foldedNote } from "../lib/subagents";
 import AgentMark from "./AgentMark.svelte";
 import ChatRow from "./ChatRow.svelte";
+import MachineDot from "./MachineDot.svelte";
 import MemoryRow from "./MemoryRow.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
@@ -89,7 +90,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
         {#if machines.length}
           <div class="card tight tally">
             {#each machines as machine (machine.key)}
-              <a class="li" href={machineHref(machine.key)}><i class="dot"></i><b class="g">{machine.key}</b><span class="num">{machine.chats.length.toLocaleString()}</span></a>
+              <a class="li" href={machineHref(machine.key)}><MachineDot machine={machine.key} /><b class="g">{machine.key}</b><span class="num">{machine.chats.length.toLocaleString()}</span></a>
             {/each}
           </div>
         {/if}

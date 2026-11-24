@@ -24,6 +24,7 @@ import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelt
 import { updates } from "../lib/updates.svelte";
 import AgentMark from "./AgentMark.svelte";
 import CheckUpdates from "./CheckUpdates.svelte";
+import MachineDot from "./MachineDot.svelte";
 import ViewingSwitcher from "./ViewingSwitcher.svelte";
 
 let { open, close }: { open: boolean; close: () => void } = $props();
@@ -298,7 +299,7 @@ function arrows(event: KeyboardEvent, id: Section): void {
           {/each}
         {:else if section.id === "machines"}
           {#each machines as machine (machine.key)}
-            <a class="sub" class:on={child === machine.key} href={machineHref(machine.key)} onclick={close}><i class="dot"></i><span>{machine.key}</span></a>
+            <a class="sub" class:on={child === machine.key} href={machineHref(machine.key)} onclick={close}><MachineDot machine={machine.key} /><span>{machine.key}</span></a>
           {/each}
         {:else if section.id === "projects"}
           {#each projects as project (project.key)}
