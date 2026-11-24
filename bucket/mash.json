@@ -1,16 +1,16 @@
 {
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Search past coding-agent chats from your browser, terminal, or agents",
     "homepage": "https://github.com/grep-stack/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/grep-stack/mash/releases/download/v0.2.1/mash-x86_64-pc-windows-msvc.zip",
-            "hash": "be1b6a86e66cf51d02ca6d776d6723ee0a28bd02d7ad07512fa80a1f9eb6ec6f"
+            "url": "https://github.com/grep-stack/mash/releases/download/v0.2.2/mash-x86_64-pc-windows-msvc.zip",
+            "hash": "c887d98f016265f806d96b2277dfd6f89e30a8e9b49a500453582b772506eeaa"
         },
         "arm64": {
-            "url": "https://github.com/grep-stack/mash/releases/download/v0.2.1/mash-aarch64-pc-windows-msvc.zip",
-            "hash": "da439038c109c4787b2231b8e6c56a2e0332919a8bd60c02b863d1ebfa31d985"
+            "url": "https://github.com/grep-stack/mash/releases/download/v0.2.2/mash-aarch64-pc-windows-msvc.zip",
+            "hash": "b32bb59376e16500c7bc511488b5ed02f1b9bc7690c33d78901fdc3278a6ab8b"
         }
     },
     "bin": ["mash.exe", "mash-server.exe"],
