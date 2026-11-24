@@ -20,17 +20,30 @@ const titles: Record<string, string> = {
   failed: "Mashy couldn’t answer",
 };
 
+/** A turn as the panel shows it: a question keeps the passage it was about. */
+export interface ShownTurn extends Turn {
+  readonly passage?: string;
+}
+
 class Conversation {
   open = $state(false);
-  turns = $state<readonly Turn[]>([]);
+  turns = $state<readonly ShownTurn[]>([]);
   /** The answer being written, before it joins `turns`. */
   answer = $state("");
   phase = $state<"idle" | "searching" | "answering">("idle");
   note = $state<Note | null>(null);
   /** An answer arrived while the chat was closed. */
   unread = $state(false);
-  /** Text the reader selected and is asking about, until they let it go. */
+  /** Text the reader selected and is asking about, until they let it go. It
+   * goes with every question until the conversation starts over. */
   passage = $state("");
+
+  /** A passage the reader picked but has not asked about yet. */
+  get pendingPassage(): string {
+    if (!this.passage) return "";
+    const asked = this.turns.findLast((turn) => turn.role === "user")?.passage;
+    return asked === this.passage ? "" : this.passage;
+  }
   private controller: AbortController | undefined;
   private context: OpenChat | undefined;
 
@@ -49,7 +62,10 @@ class Conversation {
     if (!text || this.busy) return;
     // A question that never got an answer is replaced by the new one.
     const kept = this.turns.at(-1)?.role === "user" ? this.turns.slice(0, -1) : this.turns;
-    this.turns = [...kept, { role: "user", content: text }];
+    this.turns = [
+      ...kept,
+      { role: "user", content: text, ...(this.passage ? { passage: this.passage } : {}) },
+    ];
     this.context = openChat;
     await this.answerLast();
   }
@@ -118,9 +134,10 @@ class Conversation {
     };
     try {
       // Mashy's suggested next questions are for the reader, not for Mashy.
-      const said = this.turns.map((turn) =>
-        turn.role === "assistant" ? { ...turn, content: answer(turn.content).body } : turn,
-      );
+      const said = this.turns.map((turn) => ({
+        role: turn.role,
+        content: turn.role === "assistant" ? answer(turn.content).body : turn.content,
+      }));
       await ask(said, this.context, controller.signal, heard, this.passage);
       if (!finished && !this.note)
         this.note = {

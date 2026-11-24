@@ -372,7 +372,30 @@ test("selected text in a transcript can be asked about", async ({ page }) => {
   await mashy.getByRole("button", { name: "Explain this in plain words" }).click();
   await expect(mashy.getByText("It asks which port to use.")).toBeVisible();
   expect(asked[0]?.passage).toBe("Which port?");
+  // Once asked, the passage is quoted on the question instead of waiting.
+  await expect(mashy.locator(".mashy-passage")).toHaveCount(0);
+  await expect(mashy.locator(".mashy-quoted")).toContainText("Which port?");
+  // Picked again in the middle of the conversation, it waits at the end, where
+  // the next question goes, with questions to ask about it.
+  await mashy.getByRole("button", { name: "Start over" }).click();
+  await mashy.getByRole("button", { name: "Summarise this chat" }).click();
+  await expect(mashy.getByText("It asks which port to use.")).toBeVisible();
+  expect(asked[1]?.passage).toBeUndefined();
+  await said.evaluate((node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    document.getSelection()?.removeAllRanges();
+    document.getSelection()?.addRange(range);
+  });
+  await page.getByRole("button", { name: "Ask Mashy" }).click();
+  const log = mashy.locator(".mashy-log > *");
+  await expect(log.last()).toContainText("Was this changed later?");
+  await expect(log.nth(-2)).toContainText("Which port?");
+  await expect(mashy.locator(".mashy-sugg")).toHaveCount(1);
   // Letting the passage go stops sending it.
   await mashy.getByRole("button", { name: "Stop asking about this passage" }).click();
   await expect(mashy.locator(".mashy-passage")).toHaveCount(0);
+  await mashy.getByRole("button", { name: "Summarise this chat" }).click();
+  await expect.poll(() => asked.length).toBe(3);
+  expect(asked[2]?.passage).toBeUndefined();
 });

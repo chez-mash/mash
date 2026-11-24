@@ -4583,3 +4583,14 @@ body:has(#mashy-fab):has(.ends) #main {
   gap: 2px;
   margin-left: auto;
 }
+/* The passage a question to Mashy was about, quoted above the question. */
+.mashy-quoted {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: 0 0 -4px;
+  padding: 2px 0 2px 10px;
+  border-left: 3px solid var(--linked-line);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}

@@ -55,6 +55,9 @@ const aboutPassage = [
   "Where else did this come up?",
   "Was this changed later?",
 ];
+/** A passage as the panel quotes it. */
+const clipped = (passage: string): string =>
+  passage.length > 160 ? `${passage.slice(0, 160)}…` : passage;
 const suggestions = $derived(
   mashy.passage
     ? aboutPassage
@@ -399,26 +402,23 @@ function followed(event: MouseEvent): void {
     </header>
     <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
       {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
-      {#if mashy.passage}
-        <div class="mashy-passage">
-          <span>About this passage</span>
-          <p>“{mashy.passage.length > 160 ? `${mashy.passage.slice(0, 160)}…` : mashy.passage}”</p>
-          <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
-        </div>
-      {/if}
       {#if empty && unset}
         <MashyUnset leave={() => void close()} />
       {:else if empty}
         <div class="mashy-hello">
           <img src={asset("mashy.png")} alt="" />
           <p>Hi, I’m Mashy. Ask me about anything in your past chats{openChat ? ", or about the chat you have open" : ""}.</p>
-          <div class="mashy-sugg">
+          {#if !mashy.pendingPassage}<div class="mashy-sugg">
             {#each suggestions as suggestion (suggestion)}<button type="button" onclick={() => void submit(suggestion)}>{suggestion}</button>{/each}
-          </div>
+          </div>{/if}
         </div>
       {/if}
       {#each mashy.turns as turn, index (index)}
         {#if turn.role === "user"}
+          <!-- A question shows its passage when it is the first about it. -->
+          {#if turn.passage && turn.passage !== mashy.turns.findLast((earlier, at) => at < index && earlier.role === "user")?.passage}
+            <blockquote class="mashy-quoted">“{clipped(turn.passage)}”</blockquote>
+          {/if}
           <div class="mashy-q">{turn.content}</div>
         {:else}
           {@const said = answer(turn.content)}
@@ -426,7 +426,7 @@ function followed(event: MouseEvent): void {
           <!-- An answer that offers nothing to ask next, a greeting say, is
                followed by the questions the chat started with. -->
           {@const next = said.next.length ? said.next : suggestions}
-          {#if index === mashy.turns.length - 1 && !mashy.busy && !mashy.note}
+          {#if index === mashy.turns.length - 1 && !mashy.busy && !mashy.note && !mashy.pendingPassage}
             <div class="mashy-sugg next">
               {#each next as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
             </div>
@@ -448,6 +448,20 @@ function followed(event: MouseEvent): void {
           {#if mashy.note.link}<a class="btn" href={mashy.note.link.href} onclick={() => void close()}>{mashy.note.link.label}</a>{/if}
           {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><RotateCw size={14} aria-hidden="true" />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
         </div>
+      {/if}
+      <!-- A passage picked but not yet asked about waits where the next
+           question goes, with the questions to ask about it. -->
+      {#if mashy.pendingPassage}
+        <div class="mashy-passage">
+          <span>About this passage</span>
+          <p>“{clipped(mashy.pendingPassage)}”</p>
+          <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
+        </div>
+        {#if !mashy.busy}
+          <div class="mashy-sugg next">
+            {#each aboutPassage as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
+          </div>
+        {/if}
       {/if}
     </div>
     <form onsubmit={(event) => { event.preventDefault(); void submit(draft); }}>
