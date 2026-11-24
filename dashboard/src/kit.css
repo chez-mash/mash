@@ -407,7 +407,8 @@ input.radio:checked {
   border-color: var(--line-strong);
 }
 /* The agent named on an outlined chip, as in a chat's header. */
-.mt.agent {
+/* A chat header's agent, machine and project: one outlined chip each. */
+.mt.chip {
   gap: 6px;
   height: 28px;
   padding: 0 12px 0 9px;
@@ -416,6 +417,10 @@ input.radio:checked {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-weight: 600;
+  text-decoration: none;
+}
+a.mt.chip:hover {
+  background: var(--surface-hover);
 }
 
 /* A chat: the title on its own line, then its buttons, then a meta line
