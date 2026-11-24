@@ -282,7 +282,9 @@ for (const [locale, lang] of [
     await expect(guide.getByText("sudo apt remove mash-cli", { exact: true })).toBeVisible();
     await expect(guide.getByText("mash --version", { exact: true })).toBeVisible();
     await expect(guide.getByText("MASH_VERSION", { exact: true })).toBeVisible();
-    await expect(guide.locator('a[href="https://github.com/grep-stack/mash/releases"]')).toBeVisible();
+    await expect(
+      guide.locator('a[href="https://github.com/grep-stack/mash/releases"]'),
+    ).toBeVisible();
     await guide.locator(`a[href="${locale}/downloads/#verify-the-checksum"]`).click();
     await expect(page).toHaveURL(`${locale}/downloads/#verify-the-checksum`);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
