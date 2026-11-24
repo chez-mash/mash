@@ -67,3 +67,27 @@ Description: Search your coding agents' past conversations
  machines. Run "mash qdrant install", then "mash init", after installing.
  Run "mash dash" and open the address it prints to use the dashboard.
 
+Package: mash-cli
+Architecture: arm64
+Version: 0.2.2
+Priority: optional
+Section: utils
+Maintainer: GrepStack <mash-release@users.noreply.github.com>
+Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
+Conflicts: mash
+Replaces: mash
+Filename: pool/main/m/mash-cli/mash-cli_0.2.2_arm64.deb
+Size: 37752154
+MD5sum: 6362240ccc4121b07187c8d6108ffe61
+SHA1: ad3d2cebdd6c21b9f95055d94dada706dc3fcbb1
+SHA256: 2887dd566a25fd784f85fa1a9ac1c6949cdf04b87a53fb26b48d9706bc06f721
+SHA512: 2509f3b6acfcece4d106f5b10315c9aa3f83e8ca550e0809dbe5c62433681724cc14b41eed438380478731ab42a7862be02f9c206e4b6f4b3432a9c02b48847a
+Homepage: https://github.com/grep-stack/mash
+Description: Search your coding agents' past conversations
+ Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
+ chat histories locally. Search them from the browser dashboard, the
+ terminal, or a connected agent.
+ Also installs mash-server, the optional service for sharing an index between
+ machines. Run "mash qdrant install", then "mash init", after installing.
+ Run "mash dash" and open the address it prints to use the dashboard.
+
