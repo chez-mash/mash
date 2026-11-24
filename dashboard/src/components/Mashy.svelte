@@ -11,11 +11,12 @@ import { agents, paintMark } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
 import { plainTitle } from "../lib/markdown";
-import { mashy } from "../lib/mashy.svelte";
+import { clipPassage, mashy, PASSAGE_QUESTIONS } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
 import { router } from "../lib/route.svelte";
 import { watchScrolling } from "../lib/tuck";
 import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
+import MashyPassage from "./MashyPassage.svelte";
 import MashyUnset from "./MashyUnset.svelte";
 import MessageBody from "./MessageBody.svelte";
 
@@ -50,17 +51,9 @@ $effect(() => {
   }, WAITING_INTERVAL);
   return () => clearInterval(timer);
 });
-const aboutPassage = [
-  "Explain this in plain words",
-  "Where else did this come up?",
-  "Was this changed later?",
-];
-/** A passage as the panel quotes it. */
-const clipped = (passage: string): string =>
-  passage.length > 160 ? `${passage.slice(0, 160)}…` : passage;
 const suggestions = $derived(
   mashy.passage
-    ? aboutPassage
+    ? PASSAGE_QUESTIONS
     : openChat
       ? ["Summarise this chat", "What was decided here?", "What was left unfinished?"]
       : [
@@ -417,7 +410,7 @@ function followed(event: MouseEvent): void {
         {#if turn.role === "user"}
           <!-- A question shows its passage when it is the first about it. -->
           {#if turn.passage && turn.passage !== mashy.turns.findLast((earlier, at) => at < index && earlier.role === "user")?.passage}
-            <blockquote class="mashy-quoted">“{clipped(turn.passage)}”</blockquote>
+            <blockquote class="mashy-quoted">“{clipPassage(turn.passage)}”</blockquote>
           {/if}
           <div class="mashy-q">{turn.content}</div>
         {:else}
@@ -449,20 +442,7 @@ function followed(event: MouseEvent): void {
           {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><RotateCw size={14} aria-hidden="true" />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
         </div>
       {/if}
-      <!-- A passage picked but not yet asked about waits where the next
-           question goes, with the questions to ask about it. -->
-      {#if mashy.pendingPassage}
-        <div class="mashy-passage">
-          <span>About this passage</span>
-          <p>“{clipped(mashy.pendingPassage)}”</p>
-          <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
-        </div>
-        {#if !mashy.busy}
-          <div class="mashy-sugg next">
-            {#each aboutPassage as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
-          </div>
-        {/if}
-      {/if}
+      <MashyPassage ask={(question) => void submit(question)} />
     </div>
     <form onsubmit={(event) => { event.preventDefault(); void submit(draft); }}>
       <label class="sr-only" for="mashy-question">Ask Mashy about your past chats</label>

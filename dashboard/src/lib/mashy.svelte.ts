@@ -25,6 +25,17 @@ export interface ShownTurn extends Turn {
   readonly passage?: string;
 }
 
+/** What to ask Mashy about a passage the reader selected. */
+export const PASSAGE_QUESTIONS = [
+  "Explain this in plain words",
+  "Where else did this come up?",
+  "Was this changed later?",
+];
+
+/** A passage as the panel quotes it. */
+export const clipPassage = (passage: string): string =>
+  passage.length > 160 ? `${passage.slice(0, 160)}…` : passage;
+
 class Conversation {
   open = $state(false);
   turns = $state<readonly ShownTurn[]>([]);
