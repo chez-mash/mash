@@ -5,7 +5,7 @@
 import { ActionPanel, Detail } from "@raycast/api";
 import { useExec } from "@raycast/utils";
 import type { ReactNode } from "react";
-import { type Hit, literal, MashError, parseView, rendered, viewArguments } from "./mash";
+import { type Hit, literal, MashError, mashEnvironment, parseView, rendered, viewArguments } from "./mash";
 
 export type Run = { stdout: string; exitCode: number | null; error?: Error };
 
@@ -21,6 +21,7 @@ export function read<T>(parse: (stdout: string) => T) {
 /** A chat's messages around one of them; `children` are the actions offered. */
 export function ChatMessages({ hit, mash, children }: { hit: Hit; mash: string; children?: ReactNode }) {
   const { data, isLoading, error } = useExec(mash, viewArguments(hit.messageId), {
+    env: mashEnvironment(),
     parseOutput: read(parseView),
     failureToastOptions: { title: "Mash couldn’t read the chat" },
   });

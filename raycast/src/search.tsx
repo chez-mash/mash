@@ -43,6 +43,7 @@ import {
   type ViewChoice,
   viewChoice,
   stillComing,
+  mashEnvironment,
 } from "./mash";
 import { ChatMessages, read } from "./chatMessages";
 import { useStreamSearch } from "./stream";
@@ -102,6 +103,7 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
   // desktop panel shows. Listing reads metadata only, so it is quick. A
   // failure is shown in the list, not also as a toast on opening.
   const recent = useExec(mash ?? "mash", recentChatsArguments(), {
+    env: mashEnvironment(),
     execute: mash !== undefined,
     parseOutput: read(parseChats),
     onError: () => undefined,

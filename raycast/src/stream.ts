@@ -13,6 +13,7 @@ import {
   parseStreamLine,
   settle,
   streamArguments,
+  mashEnvironment,
 } from "./mash";
 
 const SETTLE_MS = 500;
@@ -53,7 +54,7 @@ export function useStreamSearch(
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let stopped = false;
     setState((previous) => ({ ...previous, done: false, error: undefined }));
-    child = spawn(mash, streamArguments(query, scope, includeSubagents));
+    child = spawn(mash, streamArguments(query, scope, includeSubagents), { env: mashEnvironment() });
     let pending = "";
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {

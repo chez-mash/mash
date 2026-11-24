@@ -115,6 +115,15 @@ export function findMash(
   return installLocations(home).find(exists);
 }
 
+/**
+ * The environment every `mash` the extension runs gets: Mash names the caller
+ * of each command in its usage log from `MASH_CLIENT`, so Raycast's searches
+ * and reads are told apart from ones typed in a terminal.
+ */
+export function mashEnvironment(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return { ...base, MASH_CLIENT: "raycast" };
+}
+
 /** The arguments for a live search: this machine, by words, a short list. */
 export function liveSearchArguments(query: string): string[] {
   return ["search", query, "--live", "--limit", "20"];

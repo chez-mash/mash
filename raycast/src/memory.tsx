@@ -18,7 +18,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { useMemo } from "react";
 import { ChatMessages } from "./chatMessages";
-import { chatLink, findMash, type Hit, hasDesktopApp, MashError } from "./mash";
+import { chatLink, findMash, type Hit, hasDesktopApp, MashError, mashEnvironment } from "./mash";
 import { type Memory, type MemoryKind, memoryMarkdown, parseRecords, RECORD_PAGE, recordsArguments } from "./records";
 
 interface Preferences {
@@ -36,17 +36,22 @@ const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon
 /** One page of `mash memory`. Mash answers with JSON even when it fails, so its message is kept. */
 function page(mash: string, offset: number): Promise<{ memories: Memory[]; next: number | null }> {
   return new Promise((resolve, reject) => {
-    execFile(mash, recordsArguments(offset), { maxBuffer: 64 * 1024 * 1024 }, (error, stdout) => {
-      if (stdout.trim()) {
-        try {
-          resolve(parseRecords(stdout));
-        } catch (parseError) {
-          reject(parseError);
+    execFile(
+      mash,
+      recordsArguments(offset),
+      { maxBuffer: 64 * 1024 * 1024, env: mashEnvironment() },
+      (error, stdout) => {
+        if (stdout.trim()) {
+          try {
+            resolve(parseRecords(stdout));
+          } catch (parseError) {
+            reject(parseError);
+          }
+          return;
         }
-        return;
-      }
-      reject(error ?? new MashError("Mash stopped without an answer."));
-    });
+        reject(error ?? new MashError("Mash stopped without an answer."));
+      },
+    );
   });
 }
 

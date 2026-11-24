@@ -12,6 +12,7 @@ import {
   MashError,
   parseChats,
   parseSearch,
+  mashEnvironment,
   parseStreamLine,
   resumeCommand,
   rows,
@@ -325,5 +326,15 @@ describe("resuming a chat in its agent", () => {
     expect(resumeCommand({ ...chat, machine: "xenia" })).toBeUndefined();
     expect(resumeCommand({ ...chat, agent: "cursor" })).toBeUndefined();
     expect(resumeCommand({ ...chat, chatId: "x; rm -rf ~" })).toBeUndefined();
+  });
+});
+
+describe("the environment mash runs in", () => {
+  it("names Raycast as the caller for Mash's usage log, keeping the rest", () => {
+    expect(mashEnvironment({ PATH: "/usr/bin", HOME: "/Users/me" })).toEqual({
+      PATH: "/usr/bin",
+      HOME: "/Users/me",
+      MASH_CLIENT: "raycast",
+    });
   });
 });
