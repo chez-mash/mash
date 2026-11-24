@@ -18,7 +18,6 @@ import { scope } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
-import ViewingSwitcher from "./ViewingSwitcher.svelte";
 
 let { railOpen, toggleRail }: { railOpen: boolean; toggleRail: () => void } = $props();
 const client = useQueryClient();
@@ -181,8 +180,6 @@ function submit(event: SubmitEvent): void {
       </div>
     {/if}
   </div>
-  <!-- On a phone the sidebar is a drawer, so the viewing scope sits here. -->
-  <div class="top-scope"><ViewingSwitcher variant="top" /></div>
 </header>
 
 <style>
@@ -191,19 +188,5 @@ function submit(event: SubmitEvent): void {
   }
   .by-meaning {
     flex: none;
-  }
-  .top-scope {
-    display: none;
-  }
-  @media (max-width: 800px) {
-    .top-scope {
-      display: block;
-      flex: none;
-    }
-    /* With the scope beside it, the box's text field may be narrow before
-       the search button wraps under it. */
-    #top :global(.box input) {
-      flex-basis: 40px;
-    }
   }
 </style>

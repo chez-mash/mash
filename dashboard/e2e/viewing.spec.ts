@@ -142,8 +142,10 @@ async function shoot(page: Page, name: string): Promise<void> {
 const menu = (page: Page) => page.getByRole("group", { name: "Show chats and memory from" });
 const option = (page: Page, name: RegExp) => menu(page).getByRole("menuitemradio", { name });
 async function openSwitcher(page: Page): Promise<void> {
-  const wide = (page.viewportSize()?.width ?? 0) > 800;
-  await page.locator(wide ? "#rail .vw-b" : ".top-scope .vw-b").click();
+  // On a phone the sidebar is a drawer behind the menu button.
+  if ((page.viewportSize()?.width ?? 0) <= 800)
+    await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.locator("#rail .vw-b").click();
   await expect(menu(page)).toBeVisible();
 }
 
@@ -167,7 +169,6 @@ for (const width of [1440, 390]) {
         /^\s*workstation.*2$/,
       ]);
       await expect(option(page, /^\s*All machines/)).toHaveAttribute("aria-checked", "true");
-      await expect(menu(page)).toContainText("Services and Machines always show every machine.");
       await shoot(page, "menu");
     });
 
@@ -260,7 +261,7 @@ test("a machine read live shows its own chats and says it is live", async ({ pag
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/#/search");
   await openSwitcher(page);
-  await expect(option(page, /^\s*xenia/)).toContainText("Live from its own dashboard");
+  await expect(option(page, /^\s*xenia/).getByText("live", { exact: true })).toBeVisible();
   await option(page, /^\s*xenia/).click();
   const main = page.getByRole("main");
   await expect(main.getByText("xenia · live", { exact: true })).toBeVisible();
@@ -306,16 +307,16 @@ test("a shared-only dashboard has no this-machine choice", async ({ page }) => {
 });
 
 for (const width of [1440, 390]) {
-  test(`the switcher says when each machine published and warns of a stale copy at ${width}px`, async ({
-    page,
-  }) => {
+  test(`the switcher warns of a stale copy and nothing more at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: width > 500 ? 1000 : 844 });
     await mock(page, { report: true });
     await page.goto("/#/");
     await openSwitcher(page);
-    await expect(option(page, /workstation/)).toContainText("Published 28m ago");
-    await expect(option(page, /build-box/)).toContainText("Published 5 days ago");
-    await expect(option(page, /build-box/)).toContainText("5 days old");
+    await expect(option(page, /build-box/).getByText("5 days old")).toHaveAttribute(
+      "title",
+      "Published 5 days ago",
+    );
+    await expect(option(page, /workstation/)).not.toContainText("ago");
     await expect(option(page, /workstation/)).not.toContainText("days old");
     await shoot(page, "menu-published");
     await option(page, /build-box/).click();
