@@ -334,9 +334,14 @@ export function parseView(stdout: string): Message[] {
  * The mash:// link that opens a chat in the desktop app: at the matching
  * message for a match, or at the chat itself for a recent chat.
  */
-export function chatLink(hit: Pick<Hit, "chatId" | "messageId" | "matched">): string {
+export function chatLink(hit: Pick<Hit, "chatId" | "messageId" | "matched" | "machine">): string {
   const chat = `mash://chat/${encodeURIComponent(hit.chatId)}`;
-  return hit.matched ? `${chat}?${new URLSearchParams({ message: hit.messageId })}` : chat;
+  // Another machine's chat opens by that machine, as the dashboard names it.
+  const params = new URLSearchParams({
+    ...(hit.machine ? { node: hit.machine } : {}),
+    ...(hit.matched ? { message: hit.messageId } : {}),
+  });
+  return params.size ? `${chat}?${params}` : chat;
 }
 
 /**

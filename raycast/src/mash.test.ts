@@ -176,6 +176,13 @@ describe("links and untrusted text", () => {
   it("opens a chat or the full search in the desktop app", () => {
     expect(chatLink({ chatId: "a/b", messageId: "m 1", matched: true })).toBe("mash://chat/a%2Fb?message=m+1");
     expect(chatLink({ chatId: "a/b", messageId: "first", matched: false })).toBe("mash://chat/a%2Fb");
+    // Another machine's chat names it, as the desktop app's links do.
+    expect(chatLink({ chatId: "c", messageId: "m", matched: true, machine: "build box" })).toBe(
+      "mash://chat/c?node=build+box&message=m",
+    );
+    expect(chatLink({ chatId: "c", messageId: "first", matched: false, machine: "xenia" })).toBe(
+      "mash://chat/c?node=xenia",
+    );
     expect(searchLink(" checkout outage ")).toBe("mash://search?q=checkout+outage");
   });
 
