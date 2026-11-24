@@ -63,6 +63,7 @@ where
                 row.outcome = Outcome::Error;
                 failed(&mut row, first);
             } else {
+                row.result_count = result.structured_content.as_ref().and_then(listed);
                 // The writer reads what the call returned from this, off the
                 // client's path; the text itself is never stored.
                 row.response = result.structured_content.clone().map(usage::Returned::Json);
@@ -98,4 +99,32 @@ fn failed(row: &mut usage::Call, text: Option<&str>) {
             .unwrap_or(text)
             .to_owned(),
     );
+}
+
+/// How many results a tool's answer lists, counted as the CLI and the
+/// dashboard count them: the length of its `results`, `chats` or `records`.
+/// Other tools list nothing and have no count.
+fn listed(answer: &serde_json::Value) -> Option<u64> {
+    ["results", "chats", "records"]
+        .iter()
+        .find_map(|key| answer.get(key)?.as_array())
+        .and_then(|list| u64::try_from(list.len()).ok())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn a_listing_answer_is_counted_like_the_cli_counts_it() {
+        let count = |answer| super::listed(&answer);
+        assert_eq!(count(serde_json::json!({"results": [1, 2, 3]})), Some(3));
+        assert_eq!(
+            count(serde_json::json!({"chats": [], "next_offset": null})),
+            Some(0)
+        );
+        assert_eq!(
+            count(serde_json::json!({"records": [{"id": "r"}]})),
+            Some(1)
+        );
+        assert_eq!(count(serde_json::json!({"status": "ready"})), None);
+    }
 }
