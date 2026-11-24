@@ -11,7 +11,6 @@ let {
   scoped,
   fallback = undefined,
 }: { scoped: Scoped | undefined; fallback?: string | undefined } = $props();
-const machines = $derived(new Set(scoped?.all.map((chat) => chat.machine) ?? []).size);
 const why = $derived(fallback ?? scoped?.fallback);
 </script>
 
@@ -19,7 +18,7 @@ const why = $derived(fallback ?? scoped?.fallback);
   <p class="scope-n" data-scope={scoped.scope.kind}>
     <span class="pill plain">
       {#if scoped.scope.kind === "all"}<Globe size={13} aria-hidden="true" />{:else if scoped.live}<Radio size={13} aria-hidden="true" />{:else}<Laptop size={13} aria-hidden="true" />{/if}
-      {scopeName(scoped.scope, { ...scoped.reach, live: scoped.live ? scoped.reach.live : [] }, machines)}
+      {scopeName(scoped.scope, { ...scoped.reach, live: scoped.live ? scoped.reach.live : [] })}
     </span>
     <span class="meta">{scopeSentence(scoped.scope, scoped.reach, scoped.live)}</span>
   </p>

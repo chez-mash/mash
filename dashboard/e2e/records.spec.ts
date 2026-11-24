@@ -389,7 +389,7 @@ test("once joined, the overview shows every machine's memories and says whose", 
   const section = page.locator("section").filter({ hasText: "recent memories" });
   await expect(section.locator("a").nth(1)).toBeVisible();
   await expect(section.getByText(/Nothing saved yet/)).toHaveCount(0);
-  await expect(page.getByRole("main").getByText("All machines · 0")).toBeVisible();
+  await expect(page.getByRole("main").getByText("All machines")).toBeVisible();
 });
 
 test("the memory page reads the scope's index on every page", async ({ page }) => {

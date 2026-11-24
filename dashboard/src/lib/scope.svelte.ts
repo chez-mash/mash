@@ -91,10 +91,10 @@ export function scopeCatalog(catalog: Catalog, scope: Scope): Catalog {
   };
 }
 
-/** The menu's and pill's name for a scope, such as "All machines · 3". */
-export function scopeName(scope: Scope, reach: Reach, machines: number): string {
+/** The menu's and pill's name for a scope, such as "All machines". */
+export function scopeName(scope: Scope, reach: Reach): string {
   if (scope.kind === "local") return `This machine · ${reach.localNode}`;
-  if (scope.kind === "all") return `All machines · ${machines}`;
+  if (scope.kind === "all") return "All machines";
   return `${scope.node} · ${isLive(scope, reach) ? "live" : "published copy"}`;
 }
 

@@ -74,9 +74,9 @@ describe("viewing scope", () => {
   });
 
   it("always says which copy a machine's view is", () => {
-    expect(scopeName({ kind: "node", node: "xenia" }, joined, 3)).toBe("xenia · live");
-    expect(scopeName({ kind: "node", node: "desk" }, joined, 3)).toBe("desk · published copy");
-    expect(scopeName({ kind: "all" }, joined, 3)).toBe("All machines · 3");
+    expect(scopeName({ kind: "node", node: "xenia" }, joined)).toBe("xenia · live");
+    expect(scopeName({ kind: "node", node: "desk" }, joined)).toBe("desk · published copy");
+    expect(scopeName({ kind: "all" }, joined)).toBe("All machines");
     expect(scopeSentence({ kind: "node", node: "desk" }, joined, false)).toMatch(
       /hasn't published isn't here/,
     );

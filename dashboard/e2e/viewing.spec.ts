@@ -159,7 +159,7 @@ for (const width of [1440, 390]) {
       await mock(page);
       await page.goto("/#/");
       await expect(
-        page.getByRole("main").getByText("All machines · 3", { exact: true }),
+        page.getByRole("main").getByText("All machines", { exact: true }),
       ).toBeVisible();
       await openSwitcher(page);
       await expect(menu(page).getByRole("menuitemradio")).toHaveText([
@@ -176,7 +176,7 @@ for (const width of [1440, 390]) {
       await mock(page);
       await page.goto("/#/search");
       await expect(
-        page.getByRole("main").getByText("All machines · 3", { exact: true }),
+        page.getByRole("main").getByText("All machines", { exact: true }),
       ).toBeVisible();
       const list = page.locator("#reslist");
       for (const id of ["sign-in", "checkout", "queue", "staging"])
@@ -301,7 +301,7 @@ test("a shared-only dashboard has no this-machine choice", async ({ page }) => {
   await mock(page, { sharedOnly: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/#/search?scope=local");
-  await expect(page.getByRole("main").getByText("All machines · 3", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("All machines", { exact: true })).toBeVisible();
   await openSwitcher(page);
   await expect(option(page, /^\s*This machine/)).toHaveCount(0);
 });

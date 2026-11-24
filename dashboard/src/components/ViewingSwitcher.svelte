@@ -56,15 +56,13 @@ const others = $derived.by(() => {
   if (!reach.sharedOnly) names.delete(reach.localNode);
   return [...names].sort((a, b) => a.localeCompare(b));
 });
-const machineCount = $derived(new Set(whole.data?.chats.map((chat) => chat.machine) ?? []).size);
 const current = $derived(scoped.data?.scope);
 const name = $derived(
   scoped.data
-    ? scopeName(
-        scoped.data.scope,
-        { ...scoped.data.reach, live: scoped.data.live ? scoped.data.reach.live : [] },
-        machineCount,
-      )
+    ? scopeName(scoped.data.scope, {
+        ...scoped.data.reach,
+        live: scoped.data.live ? scoped.data.reach.live : [],
+      })
     : "loading…",
 );
 /** The button names the machine in full; whether it is this machine, read
