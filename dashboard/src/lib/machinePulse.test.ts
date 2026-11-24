@@ -90,6 +90,15 @@ describe("a machine's status dot", () => {
     });
   });
 
+  it("takes a heartbeat over a check that could not tell", () => {
+    expect(machinePulse("beating", evidence([checked("beating", true, "unknown")])).tone).toBe(
+      "ok",
+    );
+    expect(machinePulse("stranger", evidence([checked("stranger", true, "unknown")])).tone).toBe(
+      "none",
+    );
+  });
+
   it("takes a heartbeat over a check that did not answer", () => {
     expect(machinePulse("beating", evidence([checked("beating", false)])).tone).toBe("ok");
   });

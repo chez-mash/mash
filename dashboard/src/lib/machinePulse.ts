@@ -3,7 +3,8 @@
 // A dot is only as good as its evidence, so it says what was observed and how:
 //
 // 1. This dashboard's own service check, which asks the machine's dashboard
-//    directly. An answer shows the health the machine reported.
+//    directly. An answer shows the health the machine reported, unless the
+//    check could not tell, when the heartbeat below says more.
 // 2. Otherwise, the machine's heartbeat: its watcher checks in with the shared
 //    server every minute while it runs. A recent check-in is green; an old
 //    one is a hollow ring, since a machine asleep or away is not a fault.
@@ -38,10 +39,12 @@ export const QUIET_AFTER_SECONDS = 3 * 60;
 
 export function machinePulse(name: string, evidence: PulseEvidence): Pulse {
   const checked = evidence.fleet?.find((machine) => machine.id === name);
-  if (checked?.reachable) return checkedPulse(checked, evidence.now);
+  const told = checked?.reachable && machineState(checked) !== "unknown";
+  if (checked && told) return checkedPulse(checked, evidence.now);
   const entry = reported(evidence.report, name);
   const serverNow = evidence.report.kind === "reported" ? evidence.report.now : 0;
   if (entry?.lastSeenAt != null) return heartbeatPulse(entry.lastSeenAt, serverNow);
+  if (checked?.reachable) return checkedPulse(checked, evidence.now);
   if (checked) {
     const when = agoLabel(checked.checked_at * 1000, evidence.now);
     return { tone: "none", words: `Did not answer · checked ${when}` };

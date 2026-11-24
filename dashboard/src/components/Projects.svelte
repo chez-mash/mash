@@ -147,6 +147,17 @@ const now = Date.now();
   .pin.on :global(svg) {
     fill: currentColor;
   }
+  /* With a mouse, an unpinned project's pin waits until the card is pointed
+     at or the button is reached by keyboard; a touch screen always shows it. */
+  @media (hover: hover) and (pointer: fine) {
+    button.pin:not(.on) {
+      opacity: 0;
+    }
+    .pinned-card:hover button.pin,
+    button.pin:focus-visible {
+      opacity: 1;
+    }
+  }
   /* Room for the pin, so a long name never runs under it. */
   .pinned-card :global(.sum-h) {
     padding-right: 36px;
