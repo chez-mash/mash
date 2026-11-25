@@ -81,13 +81,12 @@ pnpm lint
 
 ## Before submitting to the Store
 
-- **`author`** and **`owner`**: `author` must be a person's Raycast
-  username (the handle on their raycast.com profile); `package.json` says
-  `mashhq` for now, which the Store rejects. To publish under MashHQ
-  rather than a person, create a MashHQ organization in Raycast, add
-  `"owner": "<its handle>"` and `"access": "public"` (an `owner` alone
-  publishes to the organization's private store), and keep a member's
-  username as `author`.
+- **`author`** and **`owner`**: `author` is James's Raycast username,
+  `james_ko`. To publish under the MashHQ organization, add
+  `"owner": "<organization handle>"` and `"access": "public"` (an `owner`
+  alone publishes to the organization's private store). Copy the handle from
+  Raycast's **Manage Organization** command (**Copy Organization Handle**);
+  `pnpm lint` checks it against Raycast's API.
 - **Screenshots**: none exist yet. TODO: add them to `metadata/` as
   `mash-1.png`, `mash-2.png` and so on, 2000 × 1250 PNG, taken with Raycast's
   Window Capture while `pnpm dev` runs. They are needed for:
