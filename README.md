@@ -4,6 +4,8 @@
 
 # Mash: The Multi-Agent Search History Tool
 
+[![Discord](https://img.shields.io/badge/Discord-join%20the%20chat-5865F2?logo=discord&logoColor=white)](https://discord.gg/jsxVgVn36)
+
 [Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
 
 Search the chats your coding agents already saved, find the message behind a
