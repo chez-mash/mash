@@ -104,7 +104,7 @@ session recall and prompt hints, and start a throttled
 background indexing pass on session start. `MASH_AUTO_INDEX=off` disables that
 pass. The plugin never downloads models.
 
-`mash init` installs the plugin from the `chez-mash/mash` marketplace. From a
+`mash init` installs the plugin from the `mashhq/mash` marketplace. From a
 clone of this repository, install the local plugin instead:
 
 ```bash

@@ -116,7 +116,7 @@ The corresponding MCP drill-down request is:
 ```bash
 mash search 'database migration' --provider codex --provider claude-code \
   --role user --role assistant --after 2026-09-01 --before 2026-10-01
-mash search 'deployment' --repository https://github.com/chez-mash/mash.git \
+mash search 'deployment' --repository https://github.com/mashhq/mash.git \
   --node dev-macbook --node xenia
 ```
 
@@ -146,7 +146,7 @@ An MCP request can select either repository while excluding tool messages:
     "all": [
       {"provider": ["codex", "claude-code"]},
       {"any": [
-        {"repository": ["https://github.com/chez-mash/mash.git"]},
+        {"repository": ["https://github.com/mashhq/mash.git"]},
         {"project": ["/home/james/scratch/mash"]}
       ]},
       {"not": {"role": ["tool"]}}
@@ -217,7 +217,7 @@ For resolved policy and retrieval outcomes, use CLI `search --diagnostics` or
 MCP `search` with `"diagnostics":true`. The optional report includes selected
 artifacts, completed retrieval sources, fallback, result count and core time.
 It does not run indexing or change search results.
-See [silver enrichment and views configuration](https://github.com/chez-mash/mash/blob/a49210157b990b23c5ef9f90d5d1d13fd3ce9f11/docs/silver-gold-configuration.md)
+See [silver enrichment and views configuration](https://github.com/mashhq/mash/blob/a49210157b990b23c5ef9f90d5d1d13fd3ce9f11/docs/silver-gold-configuration.md)
 for the layer contract and current configuration scope.
 
 ## Qdrant views groups and their owners

@@ -331,7 +331,7 @@ mash index --rebuild-local-views --full
 
 ## サポートを受ける
 
-インストール、セットアップ、日常の使用で問題が起きたら、[GitHub で不具合を報告します](https://github.com/chez-mash/mash/issues/new?template=bug_report.yml)。
+インストール、セットアップ、日常の使用で問題が起きたら、[GitHub で不具合を報告します](https://github.com/mashhq/mash/issues/new?template=bug_report.yml)。
 OS、インストール方法、失敗した手順、期待していた動作を記載してください。
 `mash --version` が実行できる場合は、その出力も添えます。
 インストールできなかった場合は、インストーラーのエラーが分かれば報告できます。
@@ -341,7 +341,7 @@ GitHub Issues の内容は公開されます。関係のあるエラーか、[`m
 [Mash が履歴をどう扱うか](privacy.md)も確認できます。
 
 非公開の履歴が見える、サインインなしでアクセスできる、配布パッケージのチェックサムが一致しないなどの問題が疑われる場合は、
-[GitHub の非公開の報告フォーム](https://github.com/chez-mash/mash/security/advisories/new)を使ってください。
+[GitHub の非公開の報告フォーム](https://github.com/mashhq/mash/security/advisories/new)を使ってください。
 [セキュリティ報告に含める内容（英語）](../../SECURITY.md#report-a-vulnerability)をご覧ください。
 
 <!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

@@ -4,7 +4,7 @@ version = "0.2.3"
 edition = "2024"
 description = "The Mash desktop app: the Mash dashboard in its own window"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/chez-mash/mash"
+repository = "https://github.com/mashhq/mash"
 publish = false
 
 # The app builds on its own, outside the Mash workspace, so the CLI's build,

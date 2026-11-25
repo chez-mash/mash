@@ -12,24 +12,24 @@ The packages below use Mash's prebuilt releases. They include the browser
 dashboard, terminal search, and the tools a connected agent can use. After
 installing a package, [start the local search service and finish setup](installation.md#start-the-local-search-service).
 Before installing, you can [check the published release downloads](downloads.md)
-and [see which installers passed for each release](https://github.com/chez-mash/mash/actions/workflows/release-check.yml).
+and [see which installers passed for each release](https://github.com/mashhq/mash/actions/workflows/release-check.yml).
 
 ### Homebrew, macOS or Linux
 
 On Apple silicon macOS or Linux x86-64 or ARM64, install from
-[Chez Mash's Homebrew formula](https://github.com/chez-mash/homebrew-tap/blob/main/Formula/mash.rb).
+[MashHQ's Homebrew formula](https://github.com/mashhq/homebrew-tap/blob/main/Formula/mash.rb).
 The full name tells Homebrew which repository to use and selects the
 individual formula for [Homebrew's tap trust](https://docs.brew.sh/Tap-Trust).
 
 ```sh
-brew install chez-mash/tap/mash
+brew install mashhq/tap/mash
 ```
 
 ### apt, Debian or Ubuntu
 
 Use this on Debian 12+ or Ubuntu 22.04+ on x86-64 or ARM64.
-The Chez Mash apt repository publishes signed package metadata. The
-`signed-by` setting uses [Chez Mash's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
+The MashHQ apt repository publishes signed package metadata. The
+`signed-by` setting uses [MashHQ's signing key](https://getmash.io/apt/mash-archive-keyring.gpg)
 for this repository. You can [inspect the signed metadata](https://getmash.io/apt/dists/stable/InRelease)
 before adding it.
 
@@ -45,31 +45,31 @@ be installed together, and apt offers to remove the other one.
 
 ### Scoop, Windows
 
-On Windows x64 or ARM64 with Scoop installed, open PowerShell, add Chez Mash's bucket
-and install its [Mash package](https://github.com/chez-mash/mash/blob/main/bucket/mash.json).
+On Windows x64 or ARM64 with Scoop installed, open PowerShell, add MashHQ's bucket
+and install its [Mash package](https://github.com/mashhq/mash/blob/main/bucket/mash.json).
 The manifest lists the Windows archive and its SHA-256 hash.
 
 ```powershell
-scoop bucket add chez-mash https://github.com/chez-mash/mash
-scoop install chez-mash/mash
+scoop bucket add mashhq https://github.com/mashhq/mash
+scoop install mashhq/mash
 ```
 
 ### mise
 
 With mise installed, use its GitHub backend to install from the
-[Chez Mash release archives](https://github.com/chez-mash/mash/releases).
+[MashHQ release archives](https://github.com/mashhq/mash/releases).
 
 ```sh
-mise use -g github:chez-mash/mash
+mise use -g github:mashhq/mash
 ```
 
 ### cargo-binstall
 
-With cargo-binstall installed, specify the GitHub project to select Chez Mash's
+With cargo-binstall installed, specify the GitHub project to select MashHQ's
 release archive.
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/chez-mash/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/mashhq/mash mash
 ```
 
 To try a revision that isn't released yet, see
@@ -90,7 +90,7 @@ Git, [Node.js 24+](https://nodejs.org/en/download), and a stable Rust toolchain,
 run these commands in a terminal.
 
 ```sh
-git clone https://github.com/chez-mash/mash.git
+git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -107,7 +107,7 @@ This command builds terminal search and the tools that a connected agent can
 use. For the browser dashboard, follow the build steps above.
 
 ```sh
-cargo +stable install --locked --git https://github.com/chez-mash/mash mash
+cargo +stable install --locked --git https://github.com/mashhq/mash mash
 mash --version
 ```
 

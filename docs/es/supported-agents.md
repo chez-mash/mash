@@ -63,12 +63,12 @@ Así se han probado hasta ahora la indexación y la búsqueda de estos historial
 - **Solo registros de prueba** indica que las pruebas usan registros con el formato
   del agente. Sigue pendiente verificar una instalación real en ese sistema.
 
-Las pruebas de [Linux](https://github.com/chez-mash/mash/actions/workflows/ci.yml)
-y [Windows](https://github.com/chez-mash/mash/actions/workflows/windows.yml) se
+Las pruebas de [Linux](https://github.com/mashhq/mash/actions/workflows/ci.yml)
+y [Windows](https://github.com/mashhq/mash/actions/workflows/windows.yml) se
 ejecutan con cada envío de cambios. La
-[compilación y las comprobaciones básicas en Apple Silicon](https://github.com/chez-mash/mash/actions/workflows/macos-build.yml)
+[compilación y las comprobaciones básicas en Apple Silicon](https://github.com/mashhq/mash/actions/workflows/macos-build.yml)
 se ejecutan bajo demanda. Si faltan conversaciones o se muestran mal, puedes
-[abrir una incidencia](https://github.com/chez-mash/mash/issues) con el nombre
+[abrir una incidencia](https://github.com/mashhq/mash/issues) con el nombre
 del agente, la versión y el sistema operativo.
 
 <!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

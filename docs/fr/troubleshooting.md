@@ -364,7 +364,7 @@ aux résultats de tous les ordinateurs.
 
 ## Obtenir de l’aide
 
-[Signalez le problème sur GitHub](https://github.com/chez-mash/mash/issues/new?template=bug_report.yml)
+[Signalez le problème sur GitHub](https://github.com/mashhq/mash/issues/new?template=bug_report.yml)
 si vous rencontrez une difficulté à l’installation, à la configuration ou à
 l’utilisation. Indiquez votre système d’exploitation, la méthode d’installation,
 l’étape qui a échoué et le résultat attendu. Si `mash --version` fonctionne, ajoutez
@@ -378,7 +378,7 @@ est nécessaire, utilisez une conversation fictive.
 
 Si vous pensez que Mash a exposé un historique privé, permis de contourner
 l’authentification ou publié un paquet dont la somme de contrôle est incorrecte,
-utilisez le [formulaire privé de GitHub](https://github.com/chez-mash/mash/security/advisories/new).
+utilisez le [formulaire privé de GitHub](https://github.com/mashhq/mash/security/advisories/new).
 Consultez les [informations à joindre à un signalement de sécurité](../../SECURITY.md#report-a-vulnerability) (en anglais).
 
 <!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

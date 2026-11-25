@@ -21,7 +21,7 @@ pub use join::join_plan;
 pub(super) use join::preflight_with_join;
 
 /// The plugin marketplace that `init` adds to agents unless told otherwise.
-pub const MARKETPLACE: &str = "chez-mash/mash";
+pub const MARKETPLACE: &str = "mashhq/mash";
 
 #[derive(Debug, Clone)]
 pub struct InitRequest {

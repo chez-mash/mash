@@ -106,7 +106,7 @@ fn init_configures_registers_and_indexes_detected_history() {
         "{calls}"
     );
     assert!(
-        calls.contains("claude plugin marketplace add chez-mash/mash"),
+        calls.contains("claude plugin marketplace add mashhq/mash"),
         "{calls}"
     );
     assert!(calls.contains("claude plugin install mash@mash"), "{calls}");
@@ -188,8 +188,8 @@ fn init_reports_why_a_plugin_could_not_be_installed() {
     assert!(next.contains("Restart your agents"), "{next}");
     // The retry repeats adding the marketplace, which installing needs.
     for retry in [
-        "claude plugin marketplace add chez-mash/mash && ",
-        "codex plugin marketplace add chez-mash/mash && ",
+        "claude plugin marketplace add mashhq/mash && ",
+        "codex plugin marketplace add mashhq/mash && ",
     ] {
         assert!(next.contains(retry), "{next}");
     }
@@ -761,7 +761,7 @@ fn init_connects_github_copilot_through_its_own_cli() {
     assert_eq!(
         copilot[2..],
         [
-            "copilot plugin marketplace add chez-mash/mash",
+            "copilot plugin marketplace add mashhq/mash",
             "copilot plugin install mash@mash"
         ],
         "{calls}"

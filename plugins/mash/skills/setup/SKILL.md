@@ -13,4 +13,4 @@ Explain what setup will change and wait for approval as described there.
 Finish with the guide's readiness check and dashboard instructions. Open a
 message only if the person asks you to run their first search. Tell them to
 start a new session in any agents they connected. If you cannot reach the guide, point
-them to https://github.com/chez-mash/mash#quick-start.
+them to https://github.com/mashhq/mash#quick-start.

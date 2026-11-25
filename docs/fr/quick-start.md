@@ -17,13 +17,13 @@ et [comment vérifier le téléchargement](downloads.md#verify-the-checksum).
 Sous Linux ou WSL, une [session utilisateur systemd](local-search.md#linux-without-a-systemd-user-session) est nécessaire.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh -s -- --dashboard
+curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 **Windows x64 (PowerShell)**
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1))) -Dashboard
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashhq/mash/main/install.ps1))) -Dashboard
 ```
 
 Ouvrez le lien affiché par l’installateur et laissez le terminal ouvert.

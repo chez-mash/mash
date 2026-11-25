@@ -53,10 +53,10 @@
 - **一部**は、インストールした Cursor CLI のチャットを確認したものです。エディターの古い形式の一部には対応していません。
 - **履歴データのみ**では、エージェントの形式に沿った記録でテストしています。その環境にインストールしたエージェントでの確認は今後の課題です。
 
-[Linux CI](https://github.com/chez-mash/mash/actions/workflows/ci.yml)と
-[Windows CI](https://github.com/chez-mash/mash/actions/workflows/windows.yml)はプッシュ時に実行します。
-[Apple シリコンのビルドと基本動作の確認](https://github.com/chez-mash/mash/actions/workflows/macos-build.yml)は必要に応じて実行します。
+[Linux CI](https://github.com/mashhq/mash/actions/workflows/ci.yml)と
+[Windows CI](https://github.com/mashhq/mash/actions/workflows/windows.yml)はプッシュ時に実行します。
+[Apple シリコンのビルドと基本動作の確認](https://github.com/mashhq/mash/actions/workflows/macos-build.yml)は必要に応じて実行します。
 チャットが表示されない場合や内容に問題がある場合は、エージェント名、バージョン、OS を添えて
-[問題を報告](https://github.com/chez-mash/mash/issues)できます。
+[問題を報告](https://github.com/mashhq/mash/issues)できます。
 
 <!-- mash-docs-source: 103ac8fd4f6f882272bc1d643a5e8f893430be72a0b0625ebac257e648edca39 -->

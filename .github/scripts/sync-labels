@@ -4,7 +4,7 @@
 #
 # Usage: .github/scripts/sync-labels [OWNER/REPO]
 set -euo pipefail
-repo=${1:-chez-mash/mash}
+repo=${1:-mashhq/mash}
 while IFS=$'\t' read -r name colour description; do
 	[[ -n $name ]] || continue
 	gh label create "$name" --repo "$repo" --color "$colour" --description "$description" --force

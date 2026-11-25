@@ -39,7 +39,7 @@ Linux 可执行文件需要 glibc 2.34 或更高版本。Ubuntu 22.04、Debian 1
 #### macOS 或 Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh
 ```
 
 WSL 也使用这条命令。
@@ -47,7 +47,7 @@ WSL 也使用这条命令。
 #### Windows x64
 
 ```powershell
-irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/mashhq/mash/main/install.ps1 | iex
 ```
 
 两个脚本都会校验下载文件，并将 Mash 安装到用户目录下的 `.local/bin`。脚本会显示后续命令和可执行文件的完整路径，即使目录尚未加入 `PATH` 也能运行。通过 `MASH_VERSION` 可以指定已发布的版本标签，通过 `MASH_INSTALL_DIR` 可以选择安装目录。脚本会保留你的终端配置。如果终端找不到 `mash`，请参阅[如何找到命令](troubleshooting.md#mash-command-not-found)。

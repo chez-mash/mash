@@ -48,7 +48,7 @@ Alpine など、musl を使う環境には対応していません。
 #### macOS または Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh
 ```
 
 WSL でもこのコマンドを使います。
@@ -56,7 +56,7 @@ WSL でもこのコマンドを使います。
 #### Windows x64
 
 ```powershell
-irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/mashhq/mash/main/install.ps1 | iex
 ```
 
 どちらのスクリプトもリリースのチェックサムを検証し、ユーザーの `.local/bin` にインストールします。

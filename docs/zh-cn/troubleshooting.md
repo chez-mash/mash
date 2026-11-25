@@ -238,10 +238,10 @@ mash index --rebuild-local-views --full
 
 ## 获取帮助
 
-安装、配置或日常使用遇到问题时，可以[在 GitHub 上报告问题](https://github.com/chez-mash/mash/issues/new?template=bug_report.yml)。请说明你的操作系统、尝试过的安装方式、出错的步骤以及预期结果。如果 `mash --version` 能运行，请附上它的输出。如果 Mash 没有安装成功，提供安装程序的报错就可以提交报告。
+安装、配置或日常使用遇到问题时，可以[在 GitHub 上报告问题](https://github.com/mashhq/mash/issues/new?template=bug_report.yml)。请说明你的操作系统、尝试过的安装方式、出错的步骤以及预期结果。如果 `mash --version` 能运行，请附上它的输出。如果 Mash 没有安装成功，提供安装程序的报错就可以提交报告。
 
 GitHub 上的问题报告是公开的。只需分享相关的报错或 [`mash doctor`](#check-what-mash-sees) 的一小段输出。请删去私人路径和地址、对话内容及凭据。如果需要举例，请用虚构的对话。
 
-如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/chez-mash/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
+如果你怀疑 Mash 泄露了私人历史记录、允许绕过登录，或者发布了校验和不匹配的软件包，请使用 [GitHub 私密报告表单](https://github.com/mashhq/mash/security/advisories/new)。请参阅[安全报告应包含哪些信息](../../SECURITY.md#report-a-vulnerability)（英文）。
 
 <!-- mash-docs-source: a73203b99483a5a34c28c3271033920105964cfdc7a39ddc01fb5d725de247fb -->

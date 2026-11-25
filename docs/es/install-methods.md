@@ -13,17 +13,17 @@ Los paquetes de esta sección usan las versiones precompiladas de Mash. Incluyen
 panel web, la búsqueda en la terminal y las herramientas que puede usar un agente
 conectado. Cuando la búsqueda local esté en marcha, puedes [terminar la configuración en el navegador](installation.md#set-up-in-your-browser).
 Antes de instalar, puedes [verificar las descargas publicadas](downloads.md)
-y [ver qué instaladores pasaron las comprobaciones de cada versión](https://github.com/chez-mash/mash/actions/workflows/release-check.yml).
+y [ver qué instaladores pasaron las comprobaciones de cada versión](https://github.com/mashhq/mash/actions/workflows/release-check.yml).
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew en macOS o Linux
 
 En macOS con Apple silicon o en Linux x86-64 o ARM64, instala Mash con la
-[fórmula de Homebrew de Chez Mash](https://github.com/chez-mash/homebrew-tap/blob/main/Formula/mash.rb). El nombre completo indica a Homebrew qué repositorio usar y selecciona esa fórmula para el [sistema de confianza de taps de Homebrew](https://docs.brew.sh/Tap-Trust).
+[fórmula de Homebrew de MashHQ](https://github.com/mashhq/homebrew-tap/blob/main/Formula/mash.rb). El nombre completo indica a Homebrew qué repositorio usar y selecciona esa fórmula para el [sistema de confianza de taps de Homebrew](https://docs.brew.sh/Tap-Trust).
 
 ```sh
-brew install chez-mash/tap/mash
+brew install mashhq/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -31,8 +31,8 @@ brew install chez-mash/tap/mash
 ### apt en Debian o Ubuntu
 
 Usa este método en Debian 12 o posterior, o Ubuntu 22.04 o posterior, en x86-64 o ARM64.
-El repositorio apt de Chez Mash publica metadatos firmados de sus paquetes. La opción
-`signed-by` usa la [clave de firma de Chez Mash](https://getmash.io/apt/mash-archive-keyring.gpg)
+El repositorio apt de MashHQ publica metadatos firmados de sus paquetes. La opción
+`signed-by` usa la [clave de firma de MashHQ](https://getmash.io/apt/mash-archive-keyring.gpg)
 para este repositorio. Puedes [revisar los metadatos firmados](https://getmash.io/apt/dists/stable/InRelease)
 antes de añadir el repositorio.
 
@@ -48,29 +48,29 @@ El paquete se llama `mash-cli` porque Debian y Ubuntu ya ofrecen otro paquete ll
 
 ### Scoop en Windows
 
-En Windows x64, con Scoop ya instalado, abre PowerShell, añade el repositorio de Chez Mash e instala su
-[paquete de Mash](https://github.com/chez-mash/mash/blob/main/bucket/mash.json). El manifiesto indica el archivo de Windows y su suma SHA-256.
+En Windows x64, con Scoop ya instalado, abre PowerShell, añade el repositorio de MashHQ e instala su
+[paquete de Mash](https://github.com/mashhq/mash/blob/main/bucket/mash.json). El manifiesto indica el archivo de Windows y su suma SHA-256.
 
 ```powershell
-scoop bucket add chez-mash https://github.com/chez-mash/mash
-scoop install chez-mash/mash
+scoop bucket add mashhq https://github.com/mashhq/mash
+scoop install mashhq/mash
 ```
 
 ### mise
 
 Con mise instalado, usa su integración con GitHub para instalar Mash a partir de los
-[archivos de las versiones de Chez Mash](https://github.com/chez-mash/mash/releases).
+[archivos de las versiones de MashHQ](https://github.com/mashhq/mash/releases).
 
 ```sh
-mise use -g github:chez-mash/mash
+mise use -g github:mashhq/mash
 ```
 
 ### cargo-binstall
 
-Con cargo-binstall instalado, indica el proyecto de GitHub para usar el archivo publicado por Chez Mash.
+Con cargo-binstall instalado, indica el proyecto de GitHub para usar el archivo publicado por MashHQ.
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/chez-mash/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/mashhq/mash mash
 ```
 
 Si no hay un archivo para tu plataforma, consulta cómo
@@ -92,7 +92,7 @@ Para incluir el panel, genera sus archivos web antes de compilar Mash. Con Git,
 ejecuta estos comandos en la terminal.
 
 ```sh
-git clone https://github.com/chez-mash/mash.git
+git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -109,7 +109,7 @@ y abre la dirección que muestra.
 Este comando compila la búsqueda en la terminal y las herramientas que puede usar un agente conectado. Para incluir el panel web, sigue los pasos de compilación anteriores.
 
 ```sh
-cargo +stable install --locked --git https://github.com/chez-mash/mash mash
+cargo +stable install --locked --git https://github.com/mashhq/mash mash
 mash --version
 ```
 

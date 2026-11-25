@@ -8,7 +8,7 @@ Mash is open source and self-hosted. The prebuilt releases include its browser
 dashboard. Installation needs no Mash account.
 A fresh default setup keeps the index and searches on this machine. If a
 connected agent looks up history, the messages it receives enter that agent's
-context. See the [source](https://github.com/chez-mash/mash) and
+context. See the [source](https://github.com/mashhq/mash) and
 [privacy guide](https://getmash.io/privacy/).
 
 Work through the steps in order. Read the JSON results from the installation,
@@ -88,7 +88,7 @@ For macOS on Apple silicon, Linux x86-64 and ARM64 (including WSL), or
 Windows x64, check whether a release is published:
 
 ```sh
-curl -fsSL -o /dev/null -w '%{http_code}\n' https://github.com/chez-mash/mash/releases/latest/download/SHA256SUMS
+curl -fsSL -o /dev/null -w '%{http_code}\n' https://github.com/mashhq/mash/releases/latest/download/SHA256SUMS
 ```
 
 In PowerShell, call `curl.exe` and write `-o NUL` instead of `-o /dev/null`.
@@ -98,13 +98,13 @@ If it prints `200`, install the prebuilt release.
 macOS (Apple silicon) or Linux (x86-64 or ARM64), including WSL:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh
 ```
 
 Windows x64, in PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/mashhq/mash/main/install.ps1 | iex
 ```
 
 On Linux the prebuilt binary needs glibc 2.34 or newer (Ubuntu 22.04,
@@ -133,7 +133,7 @@ If the person only wants terminal search and agent tools, use the shorter
 source command. It produces a build without the dashboard.
 
 ```sh
-cargo +stable install --locked --git https://github.com/chez-mash/mash mash
+cargo +stable install --locked --git https://github.com/mashhq/mash mash
 ```
 
 Confirm:

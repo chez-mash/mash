@@ -13,17 +13,17 @@
 ブラウザーで使うダッシュボード、端末での検索、接続したエージェントが使うツールが含まれます。
 ローカル検索サービスを起動したら、[ブラウザーでセットアップを完了できます](installation.md#set-up-in-your-browser)。
 インストールの前に、[公開済みのダウンロード](downloads.md)や、
-[各リリースで検証に通ったインストーラー](https://github.com/chez-mash/mash/actions/workflows/release-check.yml)を確認できます。
+[各リリースで検証に通ったインストーラー](https://github.com/mashhq/mash/actions/workflows/release-check.yml)を確認できます。
 
 <span id="homebrew-macos-or-linux"></span>
 
 ### Homebrew（macOS または Linux）
 
-Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[Chez Mash の Homebrew フォーミュラ](https://github.com/chez-mash/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
+Apple シリコン搭載 Mac、または Linux の x86-64 と ARM64 では、[MashHQ の Homebrew フォーミュラ](https://github.com/mashhq/homebrew-tap/blob/main/Formula/mash.rb)からインストールできます。
 下のようにリポジトリを含めた名前を指定すると、Homebrew が使用するリポジトリを特定でき、[tap の信頼設定（英語）](https://docs.brew.sh/Tap-Trust)の対象をこのフォーミュラに絞れます。
 
 ```sh
-brew install chez-mash/tap/mash
+brew install mashhq/tap/mash
 ```
 
 <span id="apt-debian-or-ubuntu"></span>
@@ -31,8 +31,8 @@ brew install chez-mash/tap/mash
 ### apt（Debian または Ubuntu）
 
 x86-64 または ARM64 の Debian 12 以降、または Ubuntu 22.04 以降で使えます。
-Chez Mash の apt リポジトリでは、署名済みのパッケージメタデータを公開しています。
-`signed-by` で、このリポジトリの検証に使う [Chez Mash の署名鍵](https://getmash.io/apt/mash-archive-keyring.gpg)を指定します。
+MashHQ の apt リポジトリでは、署名済みのパッケージメタデータを公開しています。
+`signed-by` で、このリポジトリの検証に使う [MashHQ の署名鍵](https://getmash.io/apt/mash-archive-keyring.gpg)を指定します。
 リポジトリを追加する前に、[署名済みのメタデータ](https://getmash.io/apt/dists/stable/InRelease)を確認できます。
 
 ```sh
@@ -49,30 +49,30 @@ Debian と Ubuntu には別の `mash` パッケージがあるため、Mash の�
 
 ### Scoop（Windows）
 
-Windows x64 で Scoop をインストールしたら、PowerShell を開き、Chez Mash の bucket を追加して、
-[Mash パッケージ](https://github.com/chez-mash/mash/blob/main/bucket/mash.json)をインストールします。
+Windows x64 で Scoop をインストールしたら、PowerShell を開き、MashHQ の bucket を追加して、
+[Mash パッケージ](https://github.com/mashhq/mash/blob/main/bucket/mash.json)をインストールします。
 マニフェストには、Windows 用アーカイブとその SHA-256 ハッシュが記載されています。
 
 ```powershell
-scoop bucket add chez-mash https://github.com/chez-mash/mash
-scoop install chez-mash/mash
+scoop bucket add mashhq https://github.com/mashhq/mash
+scoop install mashhq/mash
 ```
 
 ### mise
 
 mise をインストール済みなら、GitHub バックエンドを使って
-[Chez Mash のリリースアーカイブ](https://github.com/chez-mash/mash/releases)からインストールできます。
+[MashHQ のリリースアーカイブ](https://github.com/mashhq/mash/releases)からインストールできます。
 
 ```sh
-mise use -g github:chez-mash/mash
+mise use -g github:mashhq/mash
 ```
 
 ### cargo-binstall
 
-cargo-binstall をインストール済みなら、GitHub のプロジェクトを指定して Chez Mash のリリースアーカイブを選びます。
+cargo-binstall をインストール済みなら、GitHub のプロジェクトを指定して MashHQ のリリースアーカイブを選びます。
 
 ```sh
-cargo binstall --strategies crate-meta-data --git https://github.com/chez-mash/mash mash
+cargo binstall --strategies crate-meta-data --git https://github.com/mashhq/mash mash
 ```
 
 お使いの環境向けのリリースアーカイブがなければ、[ソースからビルドする](#build-from-source)手順をご覧ください。
@@ -93,7 +93,7 @@ Mash をコンパイルする前に、ダッシュボードの Web ファイル�
 Git、[Node.js 24 以降（英語）](https://nodejs.org/en/download)、安定版の Rust ツールチェーンを用意し、端末で次のコマンドを実行します。
 
 ```sh
-git clone https://github.com/chez-mash/mash.git
+git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
@@ -112,7 +112,7 @@ cargo +stable install --locked --path .
 ブラウザーで使うダッシュボードも必要なら、上のビルド手順を使ってください。
 
 ```sh
-cargo +stable install --locked --git https://github.com/chez-mash/mash mash
+cargo +stable install --locked --git https://github.com/mashhq/mash mash
 mash --version
 ```
 

@@ -1,15 +1,15 @@
 {
     "version": "0.2.3",
     "description": "Search past coding-agent chats from your browser, terminal, or agents",
-    "homepage": "https://github.com/chez-mash/mash",
+    "homepage": "https://github.com/mashhq/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/chez-mash/mash/releases/download/v0.2.3/mash-x86_64-pc-windows-msvc.zip",
+            "url": "https://github.com/mashhq/mash/releases/download/v0.2.3/mash-x86_64-pc-windows-msvc.zip",
             "hash": "0081d06831741e154f365ecd24a8f82d5f516f92dacb9ecd6a21a04249e6628b"
         },
         "arm64": {
-            "url": "https://github.com/chez-mash/mash/releases/download/v0.2.3/mash-aarch64-pc-windows-msvc.zip",
+            "url": "https://github.com/mashhq/mash/releases/download/v0.2.3/mash-aarch64-pc-windows-msvc.zip",
             "hash": "2c25cc229fb4b4bd0a39014725f1bdda93daa8d1661a788703d6cb98d4eceba2"
         }
     },
@@ -19,10 +19,10 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/chez-mash/mash/releases/download/v$version/mash-x86_64-pc-windows-msvc.zip"
+                "url": "https://github.com/mashhq/mash/releases/download/v$version/mash-x86_64-pc-windows-msvc.zip"
             },
             "arm64": {
-                "url": "https://github.com/chez-mash/mash/releases/download/v$version/mash-aarch64-pc-windows-msvc.zip"
+                "url": "https://github.com/mashhq/mash/releases/download/v$version/mash-aarch64-pc-windows-msvc.zip"
             }
         },
         "hash": {

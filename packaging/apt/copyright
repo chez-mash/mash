@@ -1,8 +1,8 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: mash
-Source: https://github.com/chez-mash/mash
+Source: https://github.com/mashhq/mash
 
 Files: *
 License: MIT or Apache-2.0
- See https://github.com/chez-mash/mash/blob/main/LICENSE-MIT
- and https://github.com/chez-mash/mash/blob/main/LICENSE-APACHE
+ See https://github.com/mashhq/mash/blob/main/LICENSE-MIT
+ and https://github.com/mashhq/mash/blob/main/LICENSE-APACHE

@@ -6,7 +6,7 @@ describe("the desktop download for a visitor's computer", () => {
     expect(desktopDownload({ platform: "MacIntel", userAgent: "Mozilla/5.0 (Macintosh)" })).toEqual(
       {
         system: "macOS",
-        href: "https://github.com/chez-mash/mash/releases/latest/download/mash-desktop-macos-arm64.dmg",
+        href: "https://github.com/mashhq/mash/releases/latest/download/mash-desktop-macos-arm64.dmg",
       },
     );
     expect(

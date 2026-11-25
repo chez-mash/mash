@@ -13,13 +13,13 @@
 Linux 和 WSL 上需要 [systemd 用户会话](local-search.md#linux-without-a-systemd-user-session)。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chez-mash/mash/main/install.sh | sh -s -- --dashboard
+curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh -s -- --dashboard
 ```
 
 **Windows x64（PowerShell）**
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/chez-mash/mash/main/install.ps1))) -Dashboard
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/mashhq/mash/main/install.ps1))) -Dashboard
 ```
 
 打开安装程序显示的链接，保持终端窗口打开。按浏览器中的提示操作，然后选择 **Set up and index**。你可以跳过连接代理的步骤，或取消勾选已选中的代理。[查看网页面板的设置步骤](dashboard.md#set-up-mash-from-the-dashboard)

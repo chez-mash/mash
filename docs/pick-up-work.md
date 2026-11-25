@@ -37,7 +37,7 @@ agent's app:
 Mash shows these only when the app is installed and the dashboard is on that
 computer. Cursor, Antigravity, OpenCode and VS Code have no link to one chat,
 so they get none. The Codex and Claude actions, and **Copy Resume Command**,
-are also in the [Raycast extension](https://github.com/chez-mash/mash/tree/main/raycast).
+are also in the [Raycast extension](https://github.com/mashhq/mash/tree/main/raycast).
 
 Otherwise, choose **Copy resume command** in the transcript, or **Copy session
 ID** for one of your Codex or Claude Code chats.
