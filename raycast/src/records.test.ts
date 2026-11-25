@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MashError } from "./mash";
-import { memoryMarkdown, parseRecords, recordedAgent, recordsArguments, scopeLabel } from "./records";
+import { memoryMarkdown, parseRecords, recordedAgent, recordsArguments, scopeKind, scopeLabel } from "./records";
 
 const record = (overrides: Record<string, unknown> = {}) => ({
   id: "record/o/1",
@@ -67,6 +67,7 @@ describe("reading what Mash remembers", () => {
         rationale: "Gatekeeper blocks unsigned apps",
         conditions: [],
         scope: "mashhq/mash",
+        scopeKind: "repository",
         recordedBy: "claude-code",
         candidate: false,
         recordedAt: new Date(1_795_402_046_418),
@@ -106,6 +107,14 @@ describe("reading what Mash remembers", () => {
     expect(scopeLabel({ kind: "local_project", path: "/home/me/work/site/" })).toBe("site");
     expect(scopeLabel({ kind: "personal" })).toBe("Personal");
     expect(scopeLabel({ kind: "chat", id: "c1" })).toBe("One chat");
+  });
+
+  it("tells which kind of place a record applies to, and reads an unknown one as personal", () => {
+    expect(scopeKind({ kind: "repository", identity: "x" })).toBe("repository");
+    expect(scopeKind({ kind: "local_project", path: "/p" })).toBe("local_project");
+    expect(scopeKind({ kind: "chat", id: "c1" })).toBe("chat");
+    expect(scopeKind({ kind: "personal" })).toBe("personal");
+    expect(scopeKind({ kind: "team" })).toBe("personal");
   });
 
   it("shows a record's text safely: an image in a quote is escaped, so nothing loads", () => {

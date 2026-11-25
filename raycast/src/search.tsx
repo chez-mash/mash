@@ -25,6 +25,7 @@ import {
 import { agentIcon } from "./agentIcon";
 import {
   type Hit,
+  agentName,
   appLink,
   byActivity,
   chatLink,
@@ -132,7 +133,11 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
           description="Install Mash, or set where it is in the Mash extension’s preferences."
           actions={
             <ActionPanel>
-              <Action.OpenInBrowser title="How to Install Mash" url="https://getmash.io/installation/" />
+              <Action.OpenInBrowser
+                title="How to Install Mash"
+                icon={Icon.Download}
+                url="https://getmash.io/installation/"
+              />
               <Action title="Set Mash Location" icon={Icon.Gear} onAction={openExtensionPreferences} />
             </ActionPanel>
           }
@@ -225,14 +230,10 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
           {group.hits.map((hit) => (
             <List.Item
               key={`${hit.machine ?? ""}/${hit.chatId}${byMessage ? `/${hit.messageId}` : ""}`}
-              icon={agentIcon(hit.agent)}
+              icon={{ value: agentIcon(hit.agent), tooltip: agentName(hit.agent) }}
               title={byMessage ? hit.passage.replace(/\s+/g, " ") || hit.title : hit.title}
               subtitle={projectName(hit.project)}
-              accessories={[
-                ...(hit.byMeaning ? [{ tag: "by meaning" }] : []),
-                ...(hit.machine ? [{ text: hit.machine }] : []),
-                ...(hit.updatedAt ? [{ date: hit.updatedAt }] : []),
-              ]}
+              accessories={hitAccessories(hit)}
               actions={
                 <HitActions hit={hit} mash={mash} hasApp={hasApp} links={links}>
                   {searching ? (
@@ -269,6 +270,21 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
   );
 }
 
+/**
+ * A row's accessories: the tag for a match found only by meaning, the machine
+ * a chat came from (none for this one) and when it was last active. Each icon
+ * keeps its word, and each tooltip says what the value is.
+ */
+function hitAccessories(hit: Hit): List.Item.Accessory[] {
+  return [
+    ...(hit.byMeaning
+      ? [{ tag: "by meaning", icon: Icon.Stars, tooltip: "Found by meaning, not by its exact words" }]
+      : []),
+    ...(hit.machine ? [{ icon: Icon.Monitor, text: hit.machine, tooltip: `Machine: ${hit.machine}` }] : []),
+    ...(hit.updatedAt ? [{ date: hit.updatedAt, tooltip: `Last active ${hit.updatedAt.toLocaleString()}` }] : []),
+  ];
+}
+
 /** The last folder of a chat's project, short enough for a list row. */
 function projectName(project: string): string | undefined {
   return project ? basename(project) : undefined;
@@ -285,7 +301,7 @@ function Trouble({ retry, hasApp }: { retry: () => void; hasApp: boolean }) {
         url="https://getmash.io/troubleshooting/"
       />
       {hasApp ? openApp : null}
-      <Action.OpenInBrowser title="How to Install Mash" url="https://getmash.io/installation/" />
+      <Action.OpenInBrowser title="How to Install Mash" icon={Icon.Download} url="https://getmash.io/installation/" />
       <Action title="Set Mash Location" icon={Icon.Gear} onAction={openExtensionPreferences} />
     </ActionPanel>
   );
@@ -420,11 +436,14 @@ function CopyActions({ hit, hasApp }: { hit: Hit; hasApp: boolean }) {
       ) : (
         <Action.CopyToClipboard
           title="Copy Message ID"
+          icon={Icon.Hashtag}
           content={hit.messageId}
           shortcut={Keyboard.Shortcut.Common.Copy}
         />
       )}
-      {hit.passage ? <Action.CopyToClipboard title="Copy Passage" content={hit.passage} /> : null}
+      {hit.passage ? (
+        <Action.CopyToClipboard title="Copy Passage" icon={Icon.QuoteBlock} content={hit.passage} />
+      ) : null}
     </ActionPanel.Section>
   );
 }

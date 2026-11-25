@@ -7,6 +7,9 @@ import { AGENTS, agentName, MashError, rendered } from "./mash";
 
 export type MemoryKind = "decision" | "preference" | "note";
 
+/** Where a record applies: one of Mash's scope kinds; anything else reads as personal. */
+export type ScopeKind = "repository" | "local_project" | "chat" | "personal";
+
 /** One remembered record at its current revision. */
 export interface Memory {
   readonly id: string;
@@ -17,6 +20,8 @@ export interface Memory {
   readonly conditions: readonly string[];
   /** Where the record applies, short enough for a section title. */
   readonly scope: string;
+  /** What kind of place `scope` names, so it can be shown with its icon. */
+  readonly scopeKind: ScopeKind;
   /** The machine it was recorded on, when read from the shared index. */
   readonly machine?: string;
   /** Who recorded it, as the recording agent named itself; not authenticated. */
@@ -102,6 +107,7 @@ function memory(record: Record<string, unknown>): Memory[] {
       rationale: text(body.rationale).trim(),
       conditions: Array.isArray(details.conditions) ? details.conditions.map(text).filter(Boolean) : [],
       scope: scopeLabel(object(record.scope)),
+      scopeKind: scopeKind(object(record.scope)),
       ...(text(record.node_id) ? { machine: text(record.node_id) } : {}),
       recordedBy: text(body.recorded_by).trim(),
       candidate: text(body.review) === "candidate",
@@ -116,6 +122,12 @@ function memory(record: Record<string, unknown>): Memory[] {
         .filter((entry) => entry.chatId && entry.messageId),
     },
   ];
+}
+
+/** The kind of place a record applies to, as `scopeLabel` reads it. */
+export function scopeKind(scope: Record<string, unknown>): ScopeKind {
+  const kind = scope.kind;
+  return kind === "repository" || kind === "local_project" || kind === "chat" ? kind : "personal";
 }
 
 /**

@@ -2,7 +2,7 @@
  * Reading a chat's messages with `mash view`, shared by the commands that
  * open one: around a match, or from the start of a chat.
  */
-import { ActionPanel, Detail } from "@raycast/api";
+import { ActionPanel, Detail, Icon } from "@raycast/api";
 import { useExec } from "@raycast/utils";
 import type { ReactNode } from "react";
 import { agentIcon } from "./agentIcon";
@@ -92,13 +92,13 @@ function ChatFacts({ hit, position }: { hit: Hit; position: ChatPosition }) {
       {hit.agent ? (
         <Detail.Metadata.Label title="Agent" text={agentName(hit.agent)} icon={agentIcon(hit.agent)} />
       ) : null}
-      {hit.project ? <Detail.Metadata.Label title="Project" text={hit.project} /> : null}
+      {hit.project ? <Detail.Metadata.Label title="Project" text={hit.project} icon={Icon.Folder} /> : null}
       {/* Mash names another machine's chats by that machine; the rest are this one's. */}
-      <Detail.Metadata.Label title="Machine" text={hit.machine ?? "This machine"} />
+      <Detail.Metadata.Label title="Machine" text={hit.machine ?? "This machine"} icon={Icon.Monitor} />
       {hit.updatedAt ? (
-        <Detail.Metadata.Label title="Last active" text={lastActive(hit.updatedAt, new Date())} />
+        <Detail.Metadata.Label title="Last active" text={lastActive(hit.updatedAt, new Date())} icon={Icon.Clock} />
       ) : null}
-      {count ? <Detail.Metadata.Label title="Messages" text={count} /> : null}
+      {count ? <Detail.Metadata.Label title="Messages" text={count} icon={Icon.Bubble} /> : null}
     </Detail.Metadata>
   );
 }
