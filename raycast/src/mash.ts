@@ -75,6 +75,14 @@ export interface Message {
   readonly content: string;
   /** Work between what was said: a tool call, tool output, thinking or injected context. */
   readonly step?: boolean;
+  /** Its place in the whole chat, counting from 0, when Mash gives it. */
+  readonly ordinal?: number;
+}
+
+/** A `mash view` answer: some of a chat's messages, and how many it has in all when Mash says. */
+export interface ChatView {
+  readonly messages: Message[];
+  readonly total?: number;
 }
 
 /** What a chat reads as around one message: what was said, with the work between counted. */
@@ -331,19 +339,65 @@ export function parseChats(stdout: string): Hit[] {
   });
 }
 
-/** The messages in a `mash view` answer, oldest first. */
-export function parseView(stdout: string): Message[] {
-  const messages = answer(stdout).messages;
-  if (!Array.isArray(messages)) return [];
-  return messages.map((row: Record<string, unknown>) => {
+/** The messages in a `mash view` answer, oldest first, with the chat's message count. */
+export function parseView(stdout: string): ChatView {
+  const body = answer(stdout);
+  const rows = Array.isArray(body.messages) ? body.messages : [];
+  const messages = rows.map((row: Record<string, unknown>): Message => {
     // Mash gives `dialogue` only when it differs from the content: the
     // person's own words inside agent-added context, or empty for a message
     // where nobody said anything (a tool call, tool output, thinking).
     const said = typeof row.dialogue === "string" ? row.dialogue : undefined;
-    const message = { id: text(row.id), role: text(row.role) || "message", content: text(row.content) };
+    const message = {
+      id: text(row.id),
+      role: text(row.role) || "message",
+      content: text(row.content),
+      ...(count(row.ordinal) !== undefined ? { ordinal: count(row.ordinal) } : {}),
+    };
     if (said === undefined) return row.tools ? { ...message, step: true } : message;
     return said.trim() ? { ...message, content: said } : { ...message, step: true };
   });
+  const total = count(body.message_count);
+  return total === undefined ? { messages } : { messages, total };
+}
+
+/** A whole number Mash reported, or nothing. */
+const count = (value: unknown): number | undefined =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+
+/**
+ * Where the shown passages sit in the whole chat: how many messages come
+ * before and after them, and the match's place. Each is known only when Mash
+ * gave the chat's message count and the messages' places in it.
+ */
+export interface ChatPosition {
+  readonly total?: number;
+  /** The match's place, counting from 1. */
+  readonly match?: number;
+  readonly earlier?: number;
+  readonly later?: number;
+}
+
+export function chatPosition(view: ChatView, passages: readonly Passage[]): ChatPosition {
+  const shown = passages.flatMap((passage) => (passage.kind === "message" ? [passage] : []));
+  const first = shown[0]?.message.ordinal;
+  const last = shown[shown.length - 1]?.message.ordinal;
+  const match = shown.find((passage) => passage.match)?.message.ordinal;
+  const { total } = view;
+  return {
+    ...(total !== undefined ? { total } : {}),
+    ...(match !== undefined ? { match: match + 1 } : {}),
+    ...(first !== undefined ? { earlier: first } : {}),
+    ...(total !== undefined && last !== undefined && last < total ? { later: total - 1 - last } : {}),
+  };
+}
+
+/** The message count as the reading view's sidebar says it: "14 · match is message 4". */
+export function messageCount(position: ChatPosition): string | undefined {
+  if (position.total === undefined) return undefined;
+  return position.match === undefined
+    ? String(position.total)
+    : `${position.total} · match is message ${position.match}`;
 }
 
 /**
@@ -442,17 +496,59 @@ export function searchCommand(query: string): string {
 
 export { literal, rendered } from "./markdown";
 
+/** How the list groups chats by when they were last active. */
+export type Activity = "Today" | "This week" | "Earlier";
+
+/** One group of rows, in the order they were ranked; undated rows have no title. */
+export interface ActivityGroup {
+  readonly title: Activity | undefined;
+  readonly hits: Hit[];
+}
+
+/**
+ * The rows grouped Today, This week (the six days before today) and Earlier
+ * by each chat's last activity, in local time. Rows keep their ranked order
+ * within a group, so a group's rows do not move as later results arrive. A row
+ * Mash gave no time for is listed last, under no heading, rather than guessed.
+ */
+export function byActivity(hits: readonly Hit[], now: Date): ActivityGroup[] {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
+  const activity = (hit: Hit): Activity | undefined => {
+    if (!hit.updatedAt) return undefined;
+    const at = hit.updatedAt.getTime();
+    return at >= today ? "Today" : at >= weekStart ? "This week" : "Earlier";
+  };
+  const order: (Activity | undefined)[] = ["Today", "This week", "Earlier", undefined];
+  return order
+    .map((title) => ({ title, hits: hits.filter((hit) => activity(hit) === title) }))
+    .filter((group) => group.hits.length > 0);
+}
+
+/** When a chat was last active, as the reading view's sidebar says it: "Today, 10:12". */
+export function lastActive(at: Date, now: Date): string {
+  const sameDay = at.toDateString() === now.toDateString();
+  return sameDay
+    ? `Today, ${at.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
+    : at.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+/** The agents Mash reads, by the IDs Mash gives them, with the names Mash shows. */
+const AGENT_NAMES: Readonly<Record<string, string>> = {
+  "claude-code": "Claude Code",
+  codex: "Codex",
+  copilot: "GitHub Copilot",
+  cursor: "Cursor",
+  opencode: "OpenCode",
+  antigravity: "Antigravity",
+};
+
+/** Every agent ID Mash reads. */
+export const AGENTS: readonly string[] = Object.keys(AGENT_NAMES);
+
 /** Names agents the way Mash does. */
 export function agentName(agent: string): string {
-  const names: Record<string, string> = {
-    "claude-code": "Claude Code",
-    codex: "Codex",
-    copilot: "GitHub Copilot",
-    cursor: "Cursor",
-    opencode: "OpenCode",
-    antigravity: "Antigravity",
-  };
-  return names[agent] ?? agent;
+  return AGENT_NAMES[agent] ?? agent;
 }
 
 /** The logo file under assets/agents for each agent Mash reads, and its brand colour.

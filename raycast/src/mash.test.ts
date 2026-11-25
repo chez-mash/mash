@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   agentLogo,
+  byActivity,
+  chatPosition,
+  type Hit,
+  lastActive,
+  messageCount,
   appLocations,
   chatLink,
   failures,
@@ -141,7 +146,7 @@ describe("reading Mash's answers", () => {
         { id: "a1", role: "assistant", content: "Shipped." },
       ],
     });
-    expect(parseView(view)).toEqual([
+    expect(parseView(view).messages).toEqual([
       { id: "t1", role: "assistant", content: 'Tool Bash: {"command":"ls"}', step: true },
       { id: "t2", role: "user", content: "(Bash completed with no output)", step: true },
       { id: "w1", role: "user", content: "ship it" },
@@ -151,10 +156,31 @@ describe("reading Mash's answers", () => {
 
   it("reads the messages around a match", () => {
     const view = JSON.stringify({ messages: [{ id: "m2", role: "user", content: "why?" }, { id: "m3" }] });
-    expect(parseView(view)).toEqual([
-      { id: "m2", role: "user", content: "why?" },
-      { id: "m3", role: "message", content: "" },
-    ]);
+    expect(parseView(view)).toEqual({
+      messages: [
+        { id: "m2", role: "user", content: "why?" },
+        { id: "m3", role: "message", content: "" },
+      ],
+    });
+  });
+
+  it("reads the chat's message count and each message's place in it", () => {
+    const view = JSON.stringify({
+      message_count: 14,
+      messages: [
+        { id: "m3", role: "user", content: "why?", ordinal: 2 },
+        { id: "m4", role: "assistant", content: "because", ordinal: 3 },
+        { id: "bad", role: "user", content: "x", ordinal: -1 },
+      ],
+    });
+    expect(parseView(view)).toEqual({
+      total: 14,
+      messages: [
+        { id: "m3", role: "user", content: "why?", ordinal: 2 },
+        { id: "m4", role: "assistant", content: "because", ordinal: 3 },
+        { id: "bad", role: "user", content: "x" },
+      ],
+    });
   });
 });
 
@@ -431,5 +457,82 @@ describe("reading a chat's messages", () => {
       "--shared",
       "dev-macbook",
     ]);
+  });
+});
+
+describe("where the shown messages sit in a chat", () => {
+  const at = (id: string, ordinal?: number, step = false) => ({
+    id,
+    role: "assistant",
+    content: id,
+    ...(ordinal === undefined ? {} : { ordinal }),
+    ...(step ? { step: true } : {}),
+  });
+
+  it("counts the messages before and after those shown, and the match's place", () => {
+    const messages = [at("s", 1, true), at("q", 2), at("m", 3), at("a", 4), at("t", 5, true)];
+    const view = { total: 14, messages };
+    const position = chatPosition(view, conversation(messages, "m", 1));
+    expect(position).toEqual({ total: 14, match: 4, earlier: 2, later: 9 });
+    expect(messageCount(position)).toBe("14 · match is message 4");
+  });
+
+  it("says nothing it was not told", () => {
+    const messages = [at("q"), at("m")];
+    expect(chatPosition({ messages }, conversation(messages, "m"))).toEqual({});
+    expect(messageCount({})).toBeUndefined();
+    // A count without the match's place is just the count.
+    expect(messageCount({ total: 3 })).toBe("3");
+    // A chat's first message has nothing before it.
+    const first = [at("m", 0), at("a", 1)];
+    expect(chatPosition({ total: 2, messages: first }, conversation(first, "m"))).toEqual({
+      total: 2,
+      match: 1,
+      earlier: 0,
+      later: 0,
+    });
+  });
+});
+
+describe("grouping rows by last activity", () => {
+  // Wednesday 25 November 2026, 15:00 local time.
+  const now = new Date(2026, 10, 25, 15, 0);
+  const hit = (chatId: string, updatedAt?: Date): Hit => ({
+    chatId,
+    messageId: `${chatId}-m`,
+    matched: true,
+    title: chatId,
+    agent: "codex",
+    project: "",
+    updatedAt,
+    passage: "",
+  });
+
+  it("groups Today, This week and Earlier, keeping the ranked order within each", () => {
+    const hits = [
+      hit("old", new Date(2026, 10, 12, 9, 0)),
+      hit("morning", new Date(2026, 10, 25, 0, 5)),
+      hit("thursday", new Date(2026, 10, 19, 8, 0)),
+      hit("monday", new Date(2026, 10, 23, 18, 0)),
+      hit("last-night", new Date(2026, 10, 24, 23, 59)),
+      hit("week-ago", new Date(2026, 10, 18, 23, 59)),
+    ];
+    expect(byActivity(hits, now).map((group) => [group.title, group.hits.map((h) => h.chatId)])).toEqual([
+      ["Today", ["morning"]],
+      ["This week", ["thursday", "monday", "last-night"]],
+      ["Earlier", ["old", "week-ago"]],
+    ]);
+  });
+
+  it("lists a row without a time last, under no heading, and leaves out empty groups", () => {
+    const groups = byActivity([hit("undated"), hit("today", new Date(2026, 10, 25, 14, 0))], now);
+    expect(groups.map((group) => group.title)).toEqual(["Today", undefined]);
+    expect(groups[1]?.hits.map((h) => h.chatId)).toEqual(["undated"]);
+    expect(byActivity([], now)).toEqual([]);
+  });
+
+  it("says a time today as Today, and any other day in full", () => {
+    expect(lastActive(new Date(2026, 10, 25, 10, 12), now)).toMatch(/^Today, /);
+    expect(lastActive(new Date(2026, 10, 24, 10, 12), now)).not.toMatch(/^Today/);
   });
 });

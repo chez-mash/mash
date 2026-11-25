@@ -18,23 +18,30 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { useMemo } from "react";
 import { ChatMessages } from "./chatMessages";
-import { chatLink, findMash, type Hit, hasDesktopApp, MashError, mashEnvironment } from "./mash";
+import { agentIcon } from "./agentIcon";
+import { agentName, chatLink, findMash, type Hit, hasDesktopApp, MashError, mashEnvironment } from "./mash";
 import {
   type Memory,
   type MemoryKind,
   memoryMarkdown,
   parseRecords,
   type RecordPage,
+  recordedAgent,
   recordsArguments,
 } from "./records";
 
 type Choice = "all" | MemoryKind;
 
-const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon: Icon; readonly tint: Color }[] = [
-  { value: "decision", title: "Decisions", icon: Icon.CheckCircle, tint: Color.Blue },
-  { value: "preference", title: "Preferences", icon: Icon.Heart, tint: Color.Magenta },
-  { value: "note", title: "Notes", icon: Icon.Document, tint: Color.Yellow },
+// Neutral icons, one shape per kind, so the kind reads without colour
+// competing with the agent tiles. Raycast has no sliders icon, so a
+// preference is the switch.
+const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon: Icon }[] = [
+  { value: "decision", title: "Decisions", icon: Icon.Bookmark },
+  { value: "preference", title: "Preferences", icon: Icon.Switch },
+  { value: "note", title: "Notes", icon: Icon.Document },
 ];
+
+const kindIcon = (icon: Icon) => ({ source: icon, tintColor: Color.SecondaryText });
 
 /** One page of `mash memory`. Mash answers with JSON even when it fails, so its message is kept. */
 function page(mash: string, where: RecordPage): Promise<ReturnType<typeof parseRecords>> {
@@ -136,14 +143,9 @@ export default function Command() {
       }
       searchBarAccessory={
         <List.Dropdown tooltip="Kind of record" value={choice} onChange={(value) => setChoice(value as Choice)}>
-          <List.Dropdown.Item title="Everything" value="all" icon={Icon.Bookmark} />
+          <List.Dropdown.Item title="Everything" value="all" icon={kindIcon(Icon.Tray)} />
           {kinds.map((kind) => (
-            <List.Dropdown.Item
-              key={kind.value}
-              title={kind.title}
-              value={kind.value}
-              icon={{ source: kind.icon, tintColor: kind.tint }}
-            />
+            <List.Dropdown.Item key={kind.value} title={kind.title} value={kind.value} icon={kindIcon(kind.icon)} />
           ))}
         </List.Dropdown>
       }
@@ -195,6 +197,7 @@ function MemoryItem({
 }) {
   const kind = kinds.find((entry) => entry.value === memory.kind) ?? kinds[0];
   const source = memory.evidence[0];
+  const recorder = recordedAgent(memory.recordedBy);
   // The chat a record came from, at the message it quotes.
   const hit: Hit | undefined = source && {
     chatId: source.chatId,
@@ -210,7 +213,7 @@ function MemoryItem({
   };
   return (
     <List.Item
-      icon={{ source: kind.icon, tintColor: kind.tint }}
+      icon={kindIcon(kind.icon)}
       title={memory.statement}
       keywords={[memory.scope, memory.kind, ...memory.conditions]}
       accessories={memory.candidate ? [{ tag: { value: "unconfirmed", color: Color.Orange } }] : []}
@@ -219,14 +222,22 @@ function MemoryItem({
           markdown={memoryMarkdown(memory)}
           metadata={
             <List.Item.Detail.Metadata>
-              <List.Item.Detail.Metadata.TagList title="Kind">
-                <List.Item.Detail.Metadata.TagList.Item text={kind.title.slice(0, -1)} color={kind.tint} />
-              </List.Item.Detail.Metadata.TagList>
+              <List.Item.Detail.Metadata.Label title="Kind" text={kind.title.slice(0, -1)} icon={kindIcon(kind.icon)} />
               <List.Item.Detail.Metadata.Label title="Applies to" text={memory.scope} />
               {memory.machine ? <List.Item.Detail.Metadata.Label title="Machine" text={memory.machine} /> : null}
+              {/* The recorder names itself; its tile is shown only for a name that is exactly one of Mash's agents. */}
+              {memory.recordedBy ? (
+                <List.Item.Detail.Metadata.Label
+                  title="Agent"
+                  text={recorder ? agentName(recorder) : memory.recordedBy}
+                  icon={recorder ? agentIcon(recorder) : undefined}
+                />
+              ) : null}
               {memory.recordedAt ? (
                 <List.Item.Detail.Metadata.Label title="Recorded" text={memory.recordedAt.toLocaleString()} />
               ) : null}
+              {/* Mash keeps who recorded a record, not who established it, so
+                  this does not claim the person confirmed it. */}
               <List.Item.Detail.Metadata.Label
                 title="Confirmed"
                 text={memory.candidate ? "Not yet: an agent proposed it" : "Yes"}
@@ -237,15 +248,10 @@ function MemoryItem({
       }
       actions={
         <ActionPanel>
-          <Action.CopyToClipboard title="Copy Statement" content={memory.statement} />
-          {hit && hasApp ? (
-            <Action.Open title="Open Source Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />
-          ) : null}
           {hit ? (
             <Action.Push
               title="Read Source Messages"
               icon={Icon.Text}
-              shortcut={Keyboard.Shortcut.Common.Open}
               target={
                 <ChatMessages hit={hit} mash={mash}>
                   {hasApp ? (
@@ -256,6 +262,10 @@ function MemoryItem({
               }
             />
           ) : null}
+          {hit && hasApp ? (
+            <Action.Open title="Open Source Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />
+          ) : null}
+          <Action.CopyToClipboard title="Copy Statement" content={memory.statement} />
           <ActionPanel.Section>
             <Action.CopyToClipboard
               title="Copy Record ID"

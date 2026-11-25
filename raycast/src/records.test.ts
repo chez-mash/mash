@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MashError } from "./mash";
-import { memoryMarkdown, parseRecords, recordsArguments, scopeLabel } from "./records";
+import { memoryMarkdown, parseRecords, recordedAgent, recordsArguments, scopeLabel } from "./records";
 
 const record = (overrides: Record<string, unknown> = {}) => ({
   id: "record/o/1",
@@ -19,6 +19,7 @@ const record = (overrides: Record<string, unknown> = {}) => ({
         rationale: "Gatekeeper blocks unsigned apps",
         review: "established",
         details: { kind: "decision", state: "accepted" },
+        recorded_by: "claude-code",
       },
       recorded_at: 1_795_402_046_418,
       evidence: [
@@ -66,6 +67,7 @@ describe("reading what Mash remembers", () => {
         rationale: "Gatekeeper blocks unsigned apps",
         conditions: [],
         scope: "mashhq/mash",
+        recordedBy: "claude-code",
         candidate: false,
         recordedAt: new Date(1_795_402_046_418),
         evidence: [{ chatId: "c1", messageId: "m1", quote: "only ship signed builds", role: "user" }],
@@ -87,6 +89,16 @@ describe("reading what Mash remembers", () => {
     expect(parseRecords(JSON.stringify({ records: [unknown] })).memories).toEqual([]);
     expect(() => parseRecords(JSON.stringify({ error: { message: "run mash init" } }))).toThrow("run mash init");
     expect(() => parseRecords("not json")).toThrow(MashError);
+  });
+
+  it("names the recording agent only when it is exactly one of Mash's agents", () => {
+    expect(recordedAgent("claude-code")).toBe("claude-code");
+    expect(recordedAgent("Codex")).toBe("codex");
+    expect(recordedAgent(" GitHub Copilot ")).toBe("copilot");
+    // An agent's own wording is shown as written, not matched by guesswork.
+    expect(recordedAgent("claude")).toBeUndefined();
+    expect(recordedAgent("Claude Code (unverified attribution)")).toBeUndefined();
+    expect(recordedAgent("")).toBeUndefined();
   });
 
   it("names where a record applies the way a reader would", () => {

@@ -2,7 +2,6 @@ import {
   Action,
   ActionPanel,
   Icon,
-  type Image,
   Keyboard,
   LaunchProps,
   List,
@@ -23,11 +22,11 @@ import {
   isClaudeSessionFile,
   openInAgentApp,
 } from "./agentApps";
+import { agentIcon } from "./agentIcon";
 import {
   type Hit,
-  agentLogo,
-  agentName,
   appLink,
+  byActivity,
   chatLink,
   findMash,
   hasDesktopApp,
@@ -37,7 +36,6 @@ import {
   resumeCommand,
   rows,
   type Show,
-  rendered,
   searchCommand,
   searchLink,
   type ViewChoice,
@@ -173,7 +171,6 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
         </List.Dropdown>
       }
       searchBarPlaceholder="Search your coding-agent history"
-      isShowingDetail={searching && hits.length > 0}
     >
       {shownError && hits.length === 0 ? (
         <List.EmptyView
@@ -217,30 +214,44 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
           }
         />
       )}
-      <List.Section
-        title={searching ? (byMessage ? "Messages" : "Chats") : "Recent Chats"}
-        subtitle={coming || undefined}
-      >
-        {hits.map((hit) => (
-          <List.Item
-            key={`${hit.machine ?? ""}/${hit.chatId}${byMessage ? `/${hit.messageId}` : ""}`}
-            icon={agentIcon(hit.agent)}
-            title={byMessage ? hit.passage.replace(/\s+/g, " ") || hit.title : hit.title}
-            subtitle={searching ? undefined : projectName(hit.project)}
-            accessories={[
-              ...(hit.byMeaning ? [{ tag: "by meaning" }] : []),
-              ...(searching && hit.machine ? [{ text: hit.machine }] : []),
-              ...(hit.updatedAt ? [{ date: hit.updatedAt }] : []),
-            ]}
-            detail={<HitDetail hit={hit} />}
-            actions={
-              <HitActions hit={hit} mash={mash} query={searching ? query : ""} hasApp={hasApp} links={links}>
-                {searching ? <ShowActions show={show} choose={showing} /> : null}
-              </HitActions>
-            }
-          />
-        ))}
-        {failed ? (
+      {/* Grouped by last activity, as the panel groups them; the first
+          heading also says which sources are still answering. */}
+      {byActivity(hits, new Date()).map((group, index) => (
+        <List.Section
+          key={group.title ?? "undated"}
+          title={group.title}
+          subtitle={(index === 0 && coming) || undefined}
+        >
+          {group.hits.map((hit) => (
+            <List.Item
+              key={`${hit.machine ?? ""}/${hit.chatId}${byMessage ? `/${hit.messageId}` : ""}`}
+              icon={agentIcon(hit.agent)}
+              title={byMessage ? hit.passage.replace(/\s+/g, " ") || hit.title : hit.title}
+              subtitle={projectName(hit.project)}
+              accessories={[
+                ...(hit.byMeaning ? [{ tag: "by meaning" }] : []),
+                ...(hit.machine ? [{ text: hit.machine }] : []),
+                ...(hit.updatedAt ? [{ date: hit.updatedAt }] : []),
+              ]}
+              actions={
+                <HitActions hit={hit} mash={mash} hasApp={hasApp} links={links}>
+                  {searching ? (
+                    <ShowActions
+                      show={show}
+                      choose={showing}
+                      query={query}
+                      hasApp={hasApp}
+                      subagents={subagentMatches}
+                    />
+                  ) : null}
+                </HitActions>
+              }
+            />
+          ))}
+        </List.Section>
+      ))}
+      {failed ? (
+        <List.Section>
           <List.Item
             key="failed"
             icon={Icon.Warning}
@@ -252,8 +263,8 @@ export default function Command(props: LaunchProps<{ arguments: Arguments.Search
               </ActionPanel>
             }
           />
-        ) : null}
-      </List.Section>
+        </List.Section>
+      ) : null}
     </List>
   );
 }
@@ -285,37 +296,26 @@ const openApp = (
   <Action.Open title="Open Mash" icon={Icon.AppWindow} target={appLink} shortcut={Keyboard.Shortcut.Common.Open} />
 );
 
-/** The agent's own logo, in its colour; ink logos follow Raycast's theme. */
-/** The agent's logo on a tile in its colour, as the Mash dashboard draws it:
- * assets/agent-tiles holds a light and a dark version of each. */
-function agentIcon(agent: string): Image.ImageLike {
-  const logo = agentLogo(agent);
-  if (!logo) return Icon.Message;
-  const name = logo.file.replace(/\.svg$/, "");
-  return { source: { light: `agent-tiles/${name}-light.svg`, dark: `agent-tiles/${name}-dark.svg` } };
-}
-
-function HitDetail({ hit }: { hit: Hit }) {
+/**
+ * What a search shows next: ⌘1 and ⌘2 switch between listing chats and
+ * messages without the dropdown, then Mash's full search for the same words
+ * and, while subagent chats are left out, the way to include them.
+ */
+function ShowActions({
+  show,
+  choose,
+  query,
+  hasApp,
+  subagents,
+}: {
+  show: Show;
+  choose: (show: Show) => void;
+  query: string;
+  hasApp: boolean;
+  subagents: boolean;
+}) {
   return (
-    <List.Item.Detail
-      markdown={hit.passage ? rendered(hit.passage) : "_This chat matched by its title._"}
-      metadata={
-        <List.Item.Detail.Metadata>
-          <List.Item.Detail.Metadata.Label title="Agent" text={agentName(hit.agent)} />
-          {hit.project ? <List.Item.Detail.Metadata.Label title="Project" text={hit.project} /> : null}
-          {hit.updatedAt ? (
-            <List.Item.Detail.Metadata.Label title="Last active" text={hit.updatedAt.toLocaleString()} />
-          ) : null}
-        </List.Item.Detail.Metadata>
-      }
-    />
-  );
-}
-
-/** ⌘1 and ⌘2 switch between listing chats and messages without the dropdown. */
-function ShowActions({ show, choose }: { show: Show; choose: (show: Show) => void }) {
-  return (
-    <ActionPanel.Section>
+    <ActionPanel.Section title="Show">
       {show === "messages" ? (
         <Action
           title="List Chats"
@@ -331,48 +331,50 @@ function ShowActions({ show, choose }: { show: Show; choose: (show: Show) => voi
           onAction={() => choose("messages")}
         />
       )}
+      {fullSearch(query, hasApp)}
+      {subagents ? null : (
+        <Action title="Include Subagent Chats…" icon={Icon.Gear} onAction={openExtensionPreferences} />
+      )}
     </ActionPanel.Section>
   );
 }
 
+/**
+ * A row's actions, in the panel's order: read the messages here, open the chat
+ * in Mash (⌘↵, with the desktop app) or in its agent's own app (⌘O), then what
+ * can be copied and, while searching, what to show (`children`).
+ */
 function HitActions({
   hit,
   mash,
-  query,
   hasApp,
   links,
   children,
 }: {
   hit: Hit;
   mash: string;
-  query: string;
   hasApp: boolean;
   links: AgentLinks;
   children?: React.ReactNode;
 }) {
   const inAgent = openInAgent(hit, links);
-  const read = (
-    <Action.Push
-      title="Read Messages"
-      icon={Icon.Text}
-      target={
-        <ChatMessages hit={hit} mash={mash}>
-          {hasApp ? <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} /> : null}
-          {inAgent}
-          <CopyActions hit={hit} hasApp={hasApp} />
-        </ChatMessages>
-      }
-    />
-  );
-  const open = <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} />;
+  const open = hasApp ? <Action.Open title="Open Chat in Mash" icon={Icon.AppWindow} target={chatLink(hit)} /> : null;
   return (
     <ActionPanel>
-      {hasApp ? open : read}
-      {hasApp ? read : null}
+      <Action.Push
+        title="Read Messages"
+        icon={Icon.Text}
+        target={
+          <ChatMessages hit={hit} mash={mash}>
+            {open}
+            {inAgent}
+            <CopyActions hit={hit} hasApp={hasApp} />
+          </ChatMessages>
+        }
+      />
+      {open}
       {inAgent}
       <CopyActions hit={hit} hasApp={hasApp} />
-      {query ? fullSearch(query, hasApp) : null}
-      {hasApp ? openApp : null}
       {children}
     </ActionPanel>
   );
@@ -386,20 +388,20 @@ function openInAgent(hit: Hit, links: AgentLinks) {
       title={link.title}
       icon={agentIcon(hit.agent)}
       target={link.url}
-      shortcut={Keyboard.Shortcut.Common.OpenWith}
+      shortcut={Keyboard.Shortcut.Common.Open}
     />
   ) : null;
 }
 
 /**
  * What can be copied from a chat. A mash:// link opens only in the desktop
- * app, so without it the message ID is offered instead: `mash view` and an
- * agent's Mash tools read the message by it.
+ * app, so without it the message ID takes the link's place: `mash view` and
+ * an agent's Mash tools read the message by it.
  */
 function CopyActions({ hit, hasApp }: { hit: Hit; hasApp: boolean }) {
   const resume = resumeCommand(hit);
   return (
-    <ActionPanel.Section>
+    <ActionPanel.Section title="Copy">
       {resume ? (
         <Action.CopyToClipboard
           title="Copy Resume Command"
@@ -409,20 +411,20 @@ function CopyActions({ hit, hasApp }: { hit: Hit; hasApp: boolean }) {
         />
       ) : null}
       {hasApp ? (
-        <Action.CopyToClipboard title="Copy Link" content={chatLink(hit)} shortcut={Keyboard.Shortcut.Common.Copy} />
-      ) : null}
-      <Action.CopyToClipboard
-        title="Copy Message ID"
-        content={hit.messageId}
-        shortcut={hasApp ? undefined : Keyboard.Shortcut.Common.Copy}
-      />
-      {hit.passage ? (
         <Action.CopyToClipboard
-          title="Copy Passage"
-          content={hit.passage}
-          shortcut={Keyboard.Shortcut.Common.CopyName}
+          title="Copy Link"
+          icon={Icon.Link}
+          content={chatLink(hit)}
+          shortcut={Keyboard.Shortcut.Common.Copy}
         />
-      ) : null}
+      ) : (
+        <Action.CopyToClipboard
+          title="Copy Message ID"
+          content={hit.messageId}
+          shortcut={Keyboard.Shortcut.Common.Copy}
+        />
+      )}
+      {hit.passage ? <Action.CopyToClipboard title="Copy Passage" content={hit.passage} /> : null}
     </ActionPanel.Section>
   );
 }
@@ -432,7 +434,7 @@ function CopyActions({ hit, hasApp }: { hit: Hit; hasApp: boolean }) {
  * the desktop app when it is installed, else as a command to run.
  */
 function fullSearch(query: string, hasApp: boolean) {
-  // ⌘↵ belongs to the second action, Read Messages, so full search takes ⇧⌘F.
+  // ⌘↵ belongs to the second action, Open Chat in Mash, so full search takes ⇧⌘F.
   const shortcut: Keyboard.Shortcut = { modifiers: ["cmd", "shift"], key: "f" };
   return hasApp ? (
     <Action.Open title="Search Everywhere" icon={Icon.MagnifyingGlass} target={searchLink(query)} shortcut={shortcut} />
