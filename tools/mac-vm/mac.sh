@@ -4,11 +4,12 @@
 # guest-run.sh. Nothing here changes the host beyond its own working directory
 # and Lume's VM store.
 #
-# Usage: mac.sh build-image | push-image | run | list | clean
-# Reads MAC_VM_KEEP=1 (run: leave the clone running) from the environment.
-# push-image and run read GHCR credentials from standard input, a user name
-# line and a token line, so the token never appears on a command line; run
-# needs them only to pull an image this Mac does not have.
+# Usage: mac.sh build-image | push-image | run | store-shots | list | clean
+# Reads MAC_VM_KEEP=1 (run, store-shots: leave the clone running) from the
+# environment. push-image, run and store-shots read GHCR credentials from
+# standard input, a user name line and a token line, so the token never
+# appears on a command line; runs need them only to pull an image this Mac
+# does not have.
 set -euo pipefail
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
 WORK=$(cd "$(dirname "$0")/../.." && pwd) # the synced copy: WORK/tools/mac-vm, WORK/raycast
@@ -214,7 +215,7 @@ scenario() {
   appearance false
 }
 
-run() {
+start_clone() { # start_clone [DISPLAY]: a running clone with the build under test and Raycast ready
   local golden
   golden=${MAC_VM_GOLDEN:-$(latest_golden)}
   if [ -z "$golden" ]; then
@@ -223,6 +224,7 @@ run() {
   fi
   VM="mash-run-$(date +%H%M%S)"
   clone "$golden" "$VM"
+  [ -z "${1:-}" ] || lume set "$VM" --display "$1" >/dev/null
   trap '[ "${MAC_VM_KEEP:-}" = 1 ] || { lume stop "$VM" >/dev/null 2>&1; lume delete "$VM" --force >/dev/null 2>&1; }' EXIT
   echo "booting $VM from $golden"
   boot
@@ -237,20 +239,77 @@ run() {
   [ -d cache/models ] || rsync -a -e "ssh ${SSH_OPTS[*]}" "lume@$(info "$VM" ipAddress):.mash/models/" cache/models/
   prime_deeplinks
   dismiss_notices
+}
+kept() { [ "${MAC_VM_KEEP:-}" != 1 ] || echo "kept $VM running at $(info "$VM" ipAddress); VNC on 127.0.0.1:$VNC_PORT (password mashvm)"; }
+
+run() {
+  start_clone
   scenario
-  [ "${MAC_VM_KEEP:-}" = 1 ] && echo "kept $VM running at $(info "$VM" ipAddress); VNC on 127.0.0.1:$VNC_PORT (password mashvm)"
+  kept
   echo "screenshots in $STATE/shots"
+}
+
+# Raycast Store screenshots: 2000x1250 PNGs of the light Raycast window centred
+# on a plain neutral background, as Raycast's own Window Capture frames them.
+# The guest draws at 2x (1440x900 points on 2880x1800 pixels) and macOS's
+# screencapture takes each frame inside it, so nothing is upscaled and no VNC
+# encoding touches the pixels; VNC only types the keys.
+STORE_BACKGROUND=(222 224 229)
+store_shots() {
+  start_clone 2880x1800
+  rm -rf store && mkdir store
+  venv/bin/python3 -c 'import sys; from PIL import Image; Image.new("RGB", (2880, 1800), tuple(map(int, sys.argv[1:4]))).save(sys.argv[4])' \
+    "${STORE_BACKGROUND[@]}" store/background.png
+  to_guest store/background.png mac-vm/background.png
+  guest "~/mac-vm/tools/guest-store.sh setup /Users/lume/mac-vm/background.png"
+  close() { for _ in 1 2 3 4; do v key esc pause 0.3; done; }
+  capture() { guest "~/mac-vm/tools/guest-store.sh capture $1"; }
+  # The VNC framebuffer is 2880x1800 from here on. After the first capture
+  # macOS asks once whether SSH may bypass its window picker; answer Allow
+  # (the dialog sits in the middle of the empty desktop). A dialog left
+  # standing makes store_frame.py fail rather than frame it.
+  capture warm-up
+  sleep 3
+  v move 1440 890 pause 0.5 click 1 pause 1
+  # Park the pointer on the desktop, where it highlights nothing;
+  # screencapture leaves it out anyway.
+  v move 2800 1500
+  close
+  # "customers" finds a chat from today and two from earlier this week, so
+  # the list shows its date groups.
+  guest "open raycast://extensions/james_ko/mash/search"
+  sleep 2
+  v type customers pause 4
+  capture 1-search
+  v key enter pause 3
+  capture 2-read-messages
+  v key alt-k pause 1.5
+  capture 3-actions
+  close
+  guest "open raycast://extensions/james_ko/mash/memory"
+  sleep 3
+  capture 4-memory
+  close
+  guest "open raycast://extensions/james_ko/mash/search"
+  sleep 3
+  capture 5-recent
+  close
+  rsync -a -e "ssh ${SSH_OPTS[*]}" "lume@$(info "$VM" ipAddress):mac-vm/store/" store/screen/
+  venv/bin/python3 "$WORK/tools/mac-vm/store_frame.py" store/screen store "${STORE_BACKGROUND[@]}"
+  kept
+  echo "store screenshots in $STATE/store"
 }
 
 case "${1:-}" in
   build-image) build_image ;;
   push-image) push_image ;;
   run) run ;;
+  store-shots) store_shots ;;
   list) lume ls ;;
   clean) # stop and delete leftover run clones
     for vm in $(lume ls | awk '{print $1}' | grep '^mash-run-' || true); do
       lume stop "$vm" >/dev/null 2>&1 || true
       lume delete "$vm" --force
     done ;;
-  *) sed -n '2,9p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,12p' "$0" >&2; exit 2 ;;
 esac

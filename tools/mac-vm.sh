@@ -3,7 +3,7 @@
 # SSH, and fetch the screenshots back here. See docs/internal/mac-vm.md.
 #
 # Usage: tools/mac-vm.sh build-image | push-image
-#        tools/mac-vm.sh run [--mash PATH] [--keep]
+#        tools/mac-vm.sh run | store-shots [--mash PATH] [--keep]
 #        tools/mac-vm.sh list | clean
 #
 #   build-image  build mash-golden-<yyyymmdd> on the Mac from the Cua macOS
@@ -19,6 +19,9 @@
 #                raycast/ from this working tree, take the Search Mash, Read
 #                Messages, Actions and Search Memory screenshots in light and
 #                dark, then delete the clone (--keep leaves it running)
+#   store-shots  like run, but draw the guest at 2x and write the Raycast Store
+#                screenshots raycast/metadata/mash-1.png ... mash-5.png:
+#                2000x1250, light, the window centred on a plain background
 #   list         list the Mac's VMs
 #   clean        delete run clones left behind by --keep or an interrupted run
 #
@@ -95,17 +98,25 @@ case "$command" in
     fi
     echo "ghcr.io/mashhq/mash-golden is private"
     ;;
-  run)
+  run | store-shots)
     sync_sources
     if ssh "$MAC" "~/.local/bin/lume ls" | grep -q '^mash-golden-'; then
-      on_mac run
+      on_mac "$command"
     else
-      with_credentials read:packages run
+      with_credentials read:packages "$command"
     fi
-    mkdir -p "$OUT"
-    rsync -a --delete "$MAC:$DIR/shots/" "$OUT/"
-    echo "screenshots in $OUT"
+    if [ "$command" = run ]; then
+      mkdir -p "$OUT"
+      rsync -a --delete "$MAC:$DIR/shots/" "$OUT/"
+      echo "screenshots in $OUT"
+    else
+      # The full-screen captures stay beside the run's other output for review.
+      mkdir -p "$OUT/store"
+      rsync -a --delete "$MAC:$DIR/store/" "$OUT/store/"
+      cp "$OUT"/store/mash-[0-9].png "$ROOT/raycast/metadata/"
+      echo "Store screenshots in $ROOT/raycast/metadata; full screens in $OUT/store/screen"
+    fi
     ;;
   list | clean) on_mac "$command" ;;
-  *) sed -n '2,29p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,32p' "$0" >&2; exit 2 ;;
 esac

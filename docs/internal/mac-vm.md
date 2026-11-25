@@ -21,6 +21,7 @@ tools/mac-vm.sh push-image             # store it as a private GHCR package
 tools/mac-vm.sh run                    # screenshots of the latest Mash release
 tools/mac-vm.sh run --mash mash-aarch64-apple-darwin.tar.gz   # of a build
 tools/mac-vm.sh run --keep             # leave the clone running to look around
+tools/mac-vm.sh store-shots            # Raycast Store screenshots into raycast/metadata/
 tools/mac-vm.sh clean                  # delete clones left by --keep
 ```
 
@@ -28,6 +29,24 @@ Screenshots land in `target/mac-vm/`: `light-` and `dark-` versions of
 `1-search` (Search Mash, "checkout"), `2-read-messages`, `3-actions` (⌘K) and
 `4-memory` (Search Memory), each as the Raycast window and as the full
 1440x900 screen (`-screen.png`). A run takes about two and a half minutes.
+
+## Store screenshots
+
+`store-shots` boots the same kind of clone with a 2880x1800 display, switches
+macOS to its scaled 1440x900 mode (installing `displayplacer` in the guest),
+lets SSH capture the screen, sets a plain grey wallpaper and light mode, and
+captures five scenes with the guest's own `screencapture`: Search Mash for
+"customers" (date groups), Read Messages with its sidebar, ⌘K, Search Memory
+with a decision selected, and the latest chats. `tools/mac-vm/store_frame.py`
+then places each window, at its native 2x pixels, in the middle of a
+2000x1250 canvas of the wallpaper colour, as Raycast's Window Capture does,
+and writes `raycast/metadata/mash-1.png` … `mash-5.png`. It fails instead of
+framing a capture where it does not find exactly one Raycast-sized window.
+The full screens stay in `target/mac-vm/store/screen/`; look at every image
+at full size before committing it.
+
+The first capture makes macOS ask whether SSH may bypass its window picker;
+the run clicks Allow over VNC, so the guest must stay at its default layout.
 
 ## Golden image
 
