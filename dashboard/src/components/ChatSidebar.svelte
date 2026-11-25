@@ -209,6 +209,10 @@ const projectSessions = $derived.by(() => {
     width: 16px;
     height: 16px;
   }
+  /* In the narrow list a subagent's pill takes a line of its own, whole. */
+  .cs-m :global(.pill.fork) {
+    max-width: 100%;
+  }
   .cs-mem {
     display: flex;
     flex-direction: column;

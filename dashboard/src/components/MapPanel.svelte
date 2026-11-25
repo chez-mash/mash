@@ -146,6 +146,12 @@ const about: Record<Place["id"], string> = {
     justify-content: space-between;
     gap: 6px 10px;
   }
+  /* A long status stays inside the panel, cut short with its words in the
+     pill's title, rather than running past the screen's edge. */
+  .mp-row > :global(span) {
+    min-width: 0;
+    max-width: 100%;
+  }
   .mp-s .a {
     display: inline-flex;
     align-items: center;

@@ -105,6 +105,9 @@ let trigger: HTMLButtonElement;
   .fwrap > :global(.chip > svg:last-child) {
     color: var(--text-muted);
   }
+  /* While a menu is open the page behind it dims, its chip staying bright
+     above the dimming. The dimming is the menu's own shadow, so a click
+     anywhere still reaches the page and closes the menu. */
   .fmenu {
     top: calc(100% + 6px);
     padding: 5px;
@@ -112,7 +115,15 @@ let trigger: HTMLButtonElement;
     border-radius: var(--radius-7);
     box-shadow:
       0 0 0 var(--stroke-outline) var(--line-outline),
-      var(--shadow-float);
+      var(--shadow-float),
+      0 0 0 100vmax var(--scrim);
+  }
+  .fwrap:has(> .fmenu) {
+    z-index: 16;
+  }
+  .fwrap:has(> .fmenu) > :global(.chip) {
+    position: relative;
+    z-index: 16;
   }
   .fmenu button {
     min-height: 32px;

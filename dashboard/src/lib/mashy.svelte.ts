@@ -202,3 +202,6 @@ class Conversation {
 }
 
 export const mashy = new Conversation();
+
+/** Asked of the window by Mashy's circle in the top bar: open Mashy, or close it. */
+export const MASHY_TOGGLE = "mash:mashy-toggle";

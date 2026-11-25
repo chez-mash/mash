@@ -283,8 +283,7 @@ function step(event: KeyboardEvent): void {
 <div class="sx" class:shown class:split>
 <section class="sx-l" aria-label={applied.query ? "Results" : undefined}>
   <header class="sx-h">
-    {#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents.</p></div>{/if}
-    <ScopeNote scoped={catalogue.data} />
+    {#if applied.query}<h1 class="sr-only">Search results</h1><p class="meta sx-scope"><ScopeNote scoped={catalogue.data} /></p>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents.<ScopeNote scoped={catalogue.data} /></p></div>{/if}
     <SearchFilters {applied} bind:draft {options} {hasSubagents} resolvedIntent={view?.intent} />
     {#if view && hits.length}
       <div class="sx-count">
@@ -397,17 +396,8 @@ function step(event: KeyboardEvent): void {
   :global(#app #main:has(> * > .sx.shown)) {
     max-width: none;
     padding-block: 0;
-    padding-left: 0;
+    padding-inline: 0;
     gap: 0;
-  }
-  /* Beside Mashy's corner the panes keep its column clear, as other pages do. */
-  @media (min-width: 801px) {
-    :global(#app #main:has(> * > .sx.shown)) {
-      padding-right: calc(env(safe-area-inset-right, 0px) + 96px);
-    }
-  }
-  :global(body:not(:has(#mashy-fab)) #main:has(> * > .sx.shown)) {
-    padding-right: 0;
   }
   .sx {
     display: flex;
@@ -430,6 +420,9 @@ function step(event: KeyboardEvent): void {
     gap: 12px;
     padding: 18px 20px 12px;
     border-bottom: var(--border-divider);
+  }
+  .sx-scope :global(.scope-n) {
+    margin-inline-start: 0;
   }
   .sx-count {
     display: flex;

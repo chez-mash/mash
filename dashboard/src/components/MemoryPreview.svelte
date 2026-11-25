@@ -61,13 +61,12 @@ const EVIDENCE = 2;
 {/if}
 
 <style>
+  /* It fills the memory page's side panel, which draws the edge and fill. */
   .pv {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 24px;
-    border-radius: var(--radius-7);
-    background: var(--surface-rail);
+    padding: 20px 24px 32px;
     color: var(--text-body);
   }
   .pv-h {

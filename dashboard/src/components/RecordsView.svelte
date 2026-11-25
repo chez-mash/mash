@@ -120,9 +120,10 @@ const previewed = $derived(
 const localNode = $derived(scoped.data?.reach.localNode ?? "");
 </script>
 
+<div class="mem-page">
+<div class="mem-main">
 <header class="mem-h">
-  <div class="mem-t"><h1 class="h1">Memory</h1><p class="meta">What your agents saved, with the messages behind it</p></div>
-  <ScopeNote scoped={scoped.data} fallback={result.data?.fallback} />
+  <div class="mem-t"><h1 class="h1">Memory</h1><p class="meta">What your agents saved, with the messages behind it<ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></p></div>
 </header>
 <div class="mem-bar">
   <nav class="mem-seg" aria-label="Memory kind">
@@ -161,9 +162,6 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
           </div>
         {/each}
       </section>
-      {#if previewed}
-        <div class="mem-p">{#key recordKey(previewed)}<MemoryPreview record={previewed} {back} {now} chats={scoped.data?.chats} />{/key}</div>
-      {/if}
     </div>
   {/if}
   {#if initial.has("offset") || initial.has("cursor_node") || hasNext}
@@ -176,8 +174,47 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     </nav>
   {/if}
 {/if}
+</div>
+<!-- The memory pointed at, in a full-height panel at the page's right edge. -->
+{#if page.data?.records.length && !page.error && previewed}
+  <div class="mem-p">{#key recordKey(previewed)}<MemoryPreview record={previewed} {back} {now} chats={scoped.data?.chats} />{/key}</div>
+{/if}
+</div>
 
 <style>
+  /* The page fills the column beside the rail: the list on the left, under
+     a header that ends in a hairline, and the memory pointed at in a panel
+     reaching from the top bar to the foot of the screen at the right. */
+  :global(#app #main:has(> .mem-page)) {
+    max-width: none;
+    padding: 0;
+    gap: 0;
+  }
+  .mem-page {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    min-height: calc(100dvh - var(--top-h, 52px));
+  }
+  .mem-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 24px 56px 32px;
+  }
+  .mem-p {
+    flex: 0 0 340px;
+    position: sticky;
+    top: var(--top-h, 52px);
+    align-self: flex-start;
+    height: calc(100dvh - var(--top-h, 52px));
+    overflow-y: auto;
+    border-left: var(--border-divider);
+    background: var(--surface-rail);
+    scrollbar-width: thin;
+  }
   .mem-h {
     display: flex;
     flex-direction: column;
@@ -194,6 +231,9 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
+    margin: 0 -24px 0 -32px;
+    padding: 0 24px 16px 32px;
+    border-bottom: var(--border-divider);
   }
   /* The kinds as a segmented control: a muted track, the current kind raised. */
   .mem-seg {
@@ -239,12 +279,9 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     border: var(--border-outline);
     border-radius: var(--radius-5);
   }
-  /* The list and, on a wide page, the memory pointed at beside it. */
   .mem-split {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    gap: 24px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
   }
   .mem-l {
     display: flex;
@@ -266,17 +303,18 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   .mem-c + .mem-g {
     padding-top: 14px;
   }
-  .mem-p {
-    position: sticky;
-    top: 16px;
-    min-width: 0;
-  }
   @container (max-width: 860px) {
-    .mem-split {
-      grid-template-columns: minmax(0, 1fr);
-    }
     .mem-p {
       display: none;
+    }
+  }
+  @media (max-width: 800px) {
+    .mem-main {
+      padding: 20px 16px 48px;
+    }
+    .mem-bar {
+      margin-inline: -16px;
+      padding-inline: 16px;
     }
   }
   /* On a phone each group is a card of rows. */

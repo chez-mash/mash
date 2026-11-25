@@ -1,7 +1,10 @@
 <script lang="ts">
 // The overview's side column: memories waiting for a review (or, when none
 // are, the latest ones), then the machines and agents the history comes from.
+import Bookmark from "@lucide/svelte/icons/bookmark";
+import Bot from "@lucide/svelte/icons/bot";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import Laptop from "@lucide/svelte/icons/laptop";
 import { agents as agentInfo, agentNamed } from "../lib/agents";
 import type { Group } from "../lib/browse";
 import { whenLabel } from "../lib/browse";
@@ -57,7 +60,7 @@ function state(machine: string): { words: string; title: string } {
 <div class="os">
   {#if unconfirmed.length}
     <section class="os-sec">
-      <div class="os-h"><h2>Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Bookmark size={15} aria-hidden="true" />Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
       {#each unconfirmed.slice(0, 3) as record (record.node + record.id)}
         {@const revision = current(record)}
         {#if revision}
@@ -68,7 +71,7 @@ function state(machine: string): { words: string; title: string } {
     </section>
   {:else}
     <section class="os-sec">
-      <div class="os-h"><h2>Recent memories</h2><a href="#/records?">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Bookmark size={15} aria-hidden="true" />Recent memories</h2><a href="#/records?">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
       {#if memoriesPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
       {#if recent?.length}
         <div class="card pad0 list">
@@ -81,23 +84,23 @@ function state(machine: string): { words: string; title: string } {
   {/if}
   {#if machines.length}
     <section class="os-sec">
-      <div class="os-h"><h2>Machines</h2><a href="#/machines">Manage<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Laptop size={15} aria-hidden="true" />Machines</h2><a href="#/machines">Manage<ChevronRight size={13} aria-hidden="true" /></a></div>
       <div class="os-card os-tally">
         {#each machines as machine (machine.key)}
           {@const said = state(machine.key)}
           {@const pulse = machinePulse(machine.key, evidence)}
-          <a class="os-li" href={machineHref(machine.key)}><i class="dot {pulse.tone}" aria-hidden="true" title={pulse.words}></i><b>{machine.key}</b><span class="os-q" title={said.title}>{said.words}</span><span class="os-n">{machine.chats.length.toLocaleString()}</span></a>
+          <a class="os-li" href={machineHref(machine.key)}><i class="dot {pulse.tone}" aria-hidden="true" title={pulse.words}></i><span class="os-mt"><b>{machine.key}</b><span class="os-q" title={said.title}>{said.words}</span></span><span class="os-n">{machine.chats.length.toLocaleString()}<span class="os-u">{" chats"}</span></span></a>
         {/each}
       </div>
     </section>
   {/if}
   {#if providers.length}
     <section class="os-sec">
-      <div class="os-h"><h2>Agents</h2></div>
+      <div class="os-h"><h2><Bot size={15} aria-hidden="true" />Agents</h2></div>
       <div class="os-agents">
         {#each providers as provider (provider.key)}
           {@const agent = provider.chats[0]?.agent}
-          {#if agent}<a class="os-card os-agent" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b>{agentInfo[agent].name}</b><span class="os-n">{provider.chats.length.toLocaleString()}</span></a>{/if}
+          {#if agent}<a class="os-card os-agent" href={agentHref(agent)}><AgentMark {agent} size="sm" /><span class="os-at"><b>{agentInfo[agent].name}</b><span class="os-u">{provider.chats.length.toLocaleString()} chats</span></span><span class="os-n">{provider.chats.length.toLocaleString()}</span></a>{/if}
         {/each}
       </div>
     </section>
@@ -123,6 +126,9 @@ function state(machine: string): { words: string; title: string } {
     gap: 12px;
   }
   .os-h h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
     font-size: 14px;
     font-weight: 600;
@@ -189,6 +195,15 @@ function state(machine: string): { words: string; title: string } {
   .os-li + .os-li {
     border-top: var(--border-divider);
   }
+  /* A machine's name and its state share a line beside the rail; on a
+     phone the state goes under the name. */
+  .os-mt {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   .os-li b {
     flex: 1;
     min-width: 0;
@@ -225,18 +240,59 @@ function state(machine: string): { words: string; title: string } {
     color: var(--text-strong);
     background: var(--surface-hover);
   }
-  .os-agent b {
+  /* An agent's name is never cut short; a long one wraps. */
+  .os-at {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .os-agent b {
     font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+  }
+  .os-u {
+    display: none;
+  }
+  /* Section icons show only on a phone, as the phone wireframe draws them. */
+  .os-h h2 :global(svg) {
+    display: none;
+    color: var(--text-muted);
   }
   @media (max-width: 640px) {
+    .os-h h2 :global(svg) {
+      display: block;
+    }
     .os-li {
-      min-height: 52px;
+      min-height: 54px;
       font-size: 15px;
+    }
+    .os-mt {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .os-li b {
+      flex: none;
+      max-width: 100%;
+    }
+    .os-n {
+      font: 12.5px var(--type-sans);
+    }
+    .os-u {
+      display: inline;
+    }
+    .os-agent {
+      min-height: 56px;
+      font-size: 14px;
+    }
+    .os-agent > .os-n {
+      display: none;
+    }
+    .os-at .os-u {
+      font-size: 12px;
+      color: var(--text-muted);
     }
   }
 </style>

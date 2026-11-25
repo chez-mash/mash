@@ -12,7 +12,7 @@ import Radio from "@lucide/svelte/icons/radio";
 import { createQuery } from "@tanstack/svelte-query";
 import { groupChats } from "../lib/browse";
 import { catalogOptions, liveOptions, reachOf } from "../lib/queries";
-import { type Scope, sameScope, scope, scopeName } from "../lib/scope.svelte";
+import { type Scope, sameScope, scope, scopeName, scopeSentence } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import {
   publishWords,
@@ -79,6 +79,11 @@ const label = $derived.by((): { text: string; pill: string } => {
   return { text: name, pill: "" };
 });
 const total = $derived(whole.data?.chats.length ?? 0);
+// What the current choice includes, said at the top of the menu; pages name
+// the scope only briefly beside their subtitle.
+const sentence = $derived(
+  scoped.data ? scopeSentence(scoped.data.scope, scoped.data.reach, scoped.data.live) : "",
+);
 
 function choose(next: Scope): void {
   scope.choose(next);
@@ -107,6 +112,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   </button>
   {#if open && reach}
     <div class="vw-m" role="group" aria-label="Show chats and memory from">
+      {#if sentence}<p class="vw-d">{sentence}</p>{/if}
       {#if !reach.sharedOnly}
         <button type="button" role="menuitemradio" aria-checked={on({ kind: "local" })} onclick={() => choose({ kind: "local" })}>
           <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<Laptop size={14} aria-hidden="true" />{/if}</span>
@@ -235,7 +241,17 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     border: var(--border-outline);
     border-radius: var(--radius-box);
     background: var(--surface-raised);
-    box-shadow: var(--shadow-float);
+    /* The page behind the open menu dims; the button stays bright above. */
+    box-shadow:
+      var(--shadow-float),
+      0 0 0 100vmax var(--scrim);
+  }
+  .vw:has(> .vw-m) > .vw-b {
+    position: relative;
+    z-index: 31;
+  }
+  .vw.vw-bar:has(> .vw-m) > .vw-b {
+    background: var(--surface-raised);
   }
   .vw.vw-sheet .vw-m {
     left: 0;
@@ -280,6 +296,14 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     flex: none;
     font-size: 12px;
     font-variant-numeric: tabular-nums;
+  }
+  .vw-d {
+    margin: 4px 10px 8px;
+    padding-bottom: 10px;
+    border-bottom: var(--border-divider);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    line-height: 1.45;
   }
   .vw-s {
     margin: 10px 10px 4px;

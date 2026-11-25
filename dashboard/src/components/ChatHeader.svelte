@@ -5,6 +5,7 @@ import Copy from "@lucide/svelte/icons/copy";
 import Download from "@lucide/svelte/icons/download";
 import FileCode from "@lucide/svelte/icons/file-code";
 import FileText from "@lucide/svelte/icons/file-text";
+import Link2 from "@lucide/svelte/icons/link-2";
 import PanelLeft from "@lucide/svelte/icons/panel-left";
 import Printer from "@lucide/svelte/icons/printer";
 import Search from "@lucide/svelte/icons/search";
@@ -13,17 +14,21 @@ import { whenLabel } from "../lib/browse";
 import type { ExportFormat } from "../lib/export";
 import { plainTitle } from "../lib/markdown";
 import { agentHref, machineHref, projectHref } from "../lib/route.svelte";
+import { shareLink } from "../lib/shareLink";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPhoneBar from "./ChatPhoneBar.svelte";
 import OpenInAgent from "./OpenInAgent.svelte";
 import SubagentOrigin from "./SubagentOrigin.svelte";
 import SubagentState from "./SubagentState.svelte";
 
 // A chat's header: where it came from when it is a subagent, its title, a
 // quiet line naming its agent, machine, project folder, length and age, and
-// the actions on the whole chat.
+// the actions on the whole chat. On a phone a bar of its own leads it, with
+// the way back and a menu, and two wide buttons follow the title.
 let {
   id,
+  href,
   chat,
   all,
   machine,
@@ -41,6 +46,8 @@ let {
   onnotice,
 }: {
   id: string;
+  /** The chat's own address in the dashboard, which Copy link shares. */
+  href: string;
   chat: ChatSummary | undefined;
   all: readonly ChatSummary[];
   /** The machine the chat is read from, named when the chat is not listed. */
@@ -69,6 +76,14 @@ const folder = $derived(
     "~",
   ),
 );
+async function copyLink(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(shareLink(href, `${location.origin}${location.pathname}`));
+    onnotice("Copied the link to this chat.");
+  } catch {
+    onnotice("Couldn’t copy the link to this chat.");
+  }
+}
 const age = $derived.by(() => {
   const label = whenLabel(chat?.updatedMs, now);
   return /^\d+[mhd]$/.test(label) ? `${label} ago` : label;
@@ -76,6 +91,7 @@ const age = $derived.by(() => {
 </script>
 
 <header class="chat-h">
+  {#if phone}<ChatPhoneBar {sessionsShown} {findOpen} {canExport} {ontogglesessions} {onfind} {oncopy} {onexport} />{/if}
   {#if chat}<SubagentOrigin {chat} {all} />{/if}
   <div class="ch-top">
     <div class="ch-id">
@@ -91,6 +107,12 @@ const age = $derived.by(() => {
         {#if chat?.updatedMs !== undefined}<span class="mtx" class:ch-age={!!total}>{age}</span>{/if}
       </div>
     </div>
+    {#if phone}
+      <div class="ch-two">
+        <button class="btn" type="button" onclick={copyLink}><Link2 size={15} aria-hidden="true" />Copy link</button>
+        {#if chat}<OpenInAgent {chat} {local} {onnotice} />{/if}
+      </div>
+    {:else}
     <div class="acts ch-acts">
       <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={ontogglesessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
       <button class="btn" type="button" aria-expanded={findOpen} onclick={onfind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
@@ -107,6 +129,7 @@ const age = $derived.by(() => {
         {/if}
       </span>
     </div>
+    {/if}
   </div>
 </header>
 
@@ -172,6 +195,23 @@ const age = $derived.by(() => {
   }
   .ch-x {
     position: relative;
+  }
+  /* Two buttons side by side across the width; one alone takes all of it. */
+  .ch-two {
+    flex: 1 1 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .ch-two > :global(.btn) {
+    justify-content: center;
+    min-height: 42px;
+    border-radius: var(--radius-pill);
+  }
+  .ch-two > :global(.btn:last-child:not(:first-child)) {
+    background: var(--action-bg);
+    color: var(--action-text);
+    border-color: transparent;
   }
   @media (max-width: 700px) {
     .chat-h {

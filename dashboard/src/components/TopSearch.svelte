@@ -187,6 +187,31 @@ function submit(event: SubmitEvent): void {
 </div>
 
 <style>
+  /* While suggestions are open the page behind them dims, as the wireframes
+     draw it, and the field stays bright above the dimming. The dimming is
+     the list's own shadow, so a click anywhere still reaches the page. */
+  .drop {
+    z-index: 1;
+    box-shadow:
+      0 0 0 100vmax var(--scrim),
+      var(--shadow-float);
+  }
+  .box.open {
+    position: relative;
+    z-index: 2;
+  }
+  .drop h4 {
+    margin: 4px 10px 2px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-faint);
+    text-transform: lowercase;
+  }
+  .opt + .said-list {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: var(--border-divider);
+  }
   .drop-status {
     padding: 6px 12px 2px;
   }

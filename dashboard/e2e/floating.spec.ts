@@ -1,5 +1,6 @@
-// On a phone the controls floating in the corner step aside while the reader
-// scrolls down, and come back when they scroll up, stop or reach the end.
+// Mashy's circle sits in the top bar, so it never covers the page. Beside the
+// rail a chat's jumps to either end float in a lane of their own; a phone
+// shows none, so nothing floats over the words.
 import { expect, type Page, type Route, test } from "@playwright/test";
 
 /** Whether each control takes taps right after the page scrolls by `by`. */
@@ -18,7 +19,6 @@ function scrollBy(page: Page, by: number): Promise<{ fab: string; ends: string }
   }, by);
 }
 const shown = { fab: "auto", ends: "auto" };
-const tucked = { fab: "none", ends: "none" };
 
 /**
  * Answers for one long chat, and holds each change stream open; `grow` adds
@@ -82,59 +82,15 @@ async function midChat(page: Page, width: number, height: number) {
   return chat;
 }
 
-test("on a phone the floating controls step aside while scrolling down", async ({ page }) => {
+test("on a phone nothing floats over a chat", async ({ page }) => {
   await midChat(page, 390, 844);
-  const fab = page.locator("#mashy-fab");
-  const ends = page.getByRole("navigation", { name: "Chat ends" });
-
-  expect(await scrollBy(page, 120)).toEqual(tucked);
-  await expect(fab).toHaveCSS("opacity", "0");
-  await expect(ends).toHaveCSS("opacity", "0");
-  // Still there for a screen reader while out of sight.
-  await expect(page.getByRole("button", { name: "Open Mashy" })).toHaveCount(1);
-  await expect(ends.getByRole("button")).toHaveCount(2);
-
-  // Scrolling back up brings them back at once.
-  expect(await scrollBy(page, -40)).toEqual(shown);
-  await expect(fab).toHaveCSS("opacity", "1");
-
-  // So does resting a moment.
-  expect(await scrollBy(page, 120)).toEqual(tucked);
-  await expect(fab).toHaveCSS("opacity", "1");
-  await expect(ends).toHaveCSS("opacity", "1");
-  await fab.click();
-  await expect(page.locator("#mashy")).toBeVisible();
-});
-
-test("on a phone the floating controls come back at the end of the page", async ({ page }) => {
-  await midChat(page, 390, 844);
-  // Near the end, waiting for the page to say it moved there.
-  await page.evaluate(async () => {
-    const moved = new Promise((done) => addEventListener("scroll", done, { once: true }));
-    window.scrollTo({
-      top: document.documentElement.scrollHeight - innerHeight - 300,
-      behavior: "instant",
-    });
-    await moved;
-  });
-  expect(await scrollBy(page, 100)).toEqual(tucked);
-  expect(await scrollBy(page, 400)).toEqual(shown);
-});
-
-test("a tucked control comes back when the keyboard reaches it", async ({ page }) => {
-  await midChat(page, 390, 844);
-  const latest = page.getByRole("button", { name: "Latest message" });
-  const first = page.getByRole("button", { name: "First message" });
-  await first.focus();
-  await page.keyboard.press("Shift+Tab");
-  expect(await scrollBy(page, 120)).toEqual(tucked);
-  await page.keyboard.press("Tab");
-  await expect(first).toBeFocused();
-  await expect(page.locator(".ends")).toHaveCSS("opacity", "1");
-  await expect(page.locator(".ends")).toHaveCSS("pointer-events", "auto");
-  await page.keyboard.press("Tab");
-  await expect(latest).toBeFocused();
-  await expect(page.locator(".ends")).toHaveCSS("opacity", "1");
+  await expect(page.getByRole("navigation", { name: "Chat ends" })).toBeHidden();
+  const fab = await page.locator("#mashy-fab").boundingBox();
+  const bar = await page.locator("#top").boundingBox();
+  expect(fab && bar && fab.y + fab.height <= bar.y + bar.height).toBe(true);
+  // Scrolling changes nothing about it.
+  expect((await scrollBy(page, 120)).fab).toBe("auto");
+  await expect(page.locator("#mashy-fab")).toHaveCSS("opacity", "1");
 });
 
 test("the circle stays while Mashy is open beside the page", async ({ page }) => {
@@ -152,20 +108,4 @@ test("on a wide screen scrolling leaves the floating controls alone", async ({ p
   expect(await scrollBy(page, 120)).toEqual(shown);
   await expect(page.locator("#mashy-fab")).toHaveCSS("opacity", "1");
   await expect(page.locator(".ends")).toHaveCSS("opacity", "1");
-});
-
-test("on a phone the floating controls stay while new messages are offered", async ({ page }) => {
-  const chat = await midChat(page, 390, 844);
-  expect(await scrollBy(page, 120)).toEqual(tucked);
-  await chat.grow();
-  await expect(page.getByRole("button", { name: "1 new message" })).toBeVisible();
-  expect(await scrollBy(page, 120)).toEqual(shown);
-});
-
-test("with reduced motion the controls fade where they are", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await midChat(page, 390, 844);
-  expect(await scrollBy(page, 120)).toEqual(tucked);
-  await expect(page.locator("#mashy-fab")).toHaveCSS("opacity", "0");
-  await expect(page.locator("#mashy-fab")).toHaveCSS("translate", "0px");
 });

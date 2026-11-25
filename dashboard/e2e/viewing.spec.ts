@@ -196,8 +196,12 @@ for (const width of [1440, 390]) {
       await expect(page).toHaveURL(/scope=node%3Aworkstation/);
       const main = page.getByRole("main");
       await expect(main.getByText("workstation · published copy", { exact: true })).toBeVisible();
-      if (width > 800)
-        await expect(main.getByText(/Work it hasn't published isn't here/)).toBeVisible();
+      // What the scope leaves out is said where it is chosen.
+      if (width > 800) {
+        await openSwitcher(page);
+        await expect(menu(page).getByText(/Work it hasn't published isn't here/)).toBeVisible();
+        await page.keyboard.press("Escape");
+      }
       await expect
         .poll(() => asked.filter((url) => url.pathname === "/api/records").at(-1)?.search)
         .toContain("node=workstation");
@@ -262,7 +266,9 @@ test("a machine read live shows its own chats and says it is live", async ({ pag
   await option(page, /^\s*xenia/).click();
   const main = page.getByRole("main");
   await expect(main.getByText("xenia · live", { exact: true })).toBeVisible();
-  await expect(main.getByText(/read live from its dashboard/)).toBeVisible();
+  await openSwitcher(page);
+  await expect(menu(page).getByText(/read live from its dashboard/)).toBeVisible();
+  await page.keyboard.press("Escape");
   const list = page.locator("#reslist");
   await expect(list.getByText(/^live-one on xenia/)).toBeVisible();
   // What xenia reads from the shared index is not xenia's own.

@@ -141,10 +141,15 @@ export function recordHref(id: string, node = "", back = "#/records"): string {
 
 class Router {
   current = $state<Route>(parseRoute(globalThis.location?.hash ?? ""));
+  /** The page shown before this one in this visit, if any: what a phone's
+   * back button in a chat's header names. */
+  previous = $state<Route | undefined>(undefined);
 
   constructor() {
     const update = () => {
-      this.current = parseRoute(location.hash);
+      const next = parseRoute(location.hash);
+      if (JSON.stringify(next) !== JSON.stringify(this.current)) this.previous = this.current;
+      this.current = next;
     };
     globalThis.addEventListener?.("mash:navigate", update);
     globalThis.addEventListener?.("popstate", update);

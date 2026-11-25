@@ -6,21 +6,13 @@
  * role from src/theme/tokens.css.
  */
 
-/* The chat takes the whole column beside the rail, as the wireframes draw it.
-   Mashy's corner keeps its own column clear where Mashy is offered. */
+/* The chat takes the whole column beside the rail, edge to edge, as the
+   wireframes draw it. */
 html body #app #main:has(> .chat) {
   max-width: none;
   padding-block: 0;
-  padding-left: 0;
+  padding-inline: 0;
   gap: 0;
-}
-html body:not(:has(#mashy-fab)) #main:has(> .chat) {
-  padding-right: 0;
-}
-@media (min-width: 801px) {
-  html body:has(#mashy-fab) #main:has(> .chat) {
-    padding-right: calc(env(safe-area-inset-right, 0px) + 96px);
-  }
 }
 #main > .chat {
   flex: 1;
@@ -51,11 +43,13 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
 .log > .findbar {
   margin: 0;
 }
+/* Its right edge is a lane for the jumps to either end, which float in the
+   screen's corner, so they never cover a message or the subagents. */
 .tv-body {
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  padding: 28px 44px 96px 32px;
+  padding: 28px 72px 96px 32px;
 }
 .tv-msgs {
   flex: 1 1 0;
@@ -132,6 +126,9 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
   display: none;
 }
 .tv-files .atts {
+  align-items: flex-end;
+}
+.tv-files .pics {
   justify-content: flex-end;
 }
 
@@ -219,16 +216,22 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
   box-shadow: var(--find-glow);
 }
 
-/* Without room beside the messages, the subagents come first, above them,
-   and the match map steps aside. The column beside the rail (#main) is the
-   container; the project's list takes 280px of it while shown. */
-@container (max-width: 1179px) {
+/* The subagents a chat started are a panel of their own at its right, as
+   the wireframes draw it. Without room beside the messages they come first,
+   above them, and the match map steps aside. The column beside the rail
+   (#main) is the container; the project's list takes 280px of it while
+   shown. */
+.tv-side:has(.forks) {
+  flex: 0 0 232px;
+  max-width: 232px;
+}
+@container (max-width: 1039px) {
   .chat:not(.nosess) .tv-body:has(.forks) {
     flex-direction: column-reverse;
     align-items: stretch;
   }
 }
-@container (max-width: 899px) {
+@container (max-width: 759px) {
   .tv-body:has(.forks) {
     flex-direction: column-reverse;
     align-items: stretch;
@@ -246,9 +249,10 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
     align-items: stretch;
   }
 }
-@container (max-width: 1179px) {
+@container (max-width: 1039px) {
   .chat:not(.nosess) .tv-side:has(.forks) {
     position: static;
+    flex-basis: auto;
     max-width: none;
   }
   .chat:not(.nosess) .tv-side:has(.forks) .hm {
@@ -256,8 +260,18 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
   }
 }
 @container (max-width: 899px) {
+  .tv-side:not(:has(.forks)) {
+    position: static;
+    max-width: none;
+  }
+  .tv-side:not(:has(.forks)) .hm {
+    display: none;
+  }
+}
+@container (max-width: 759px) {
   .tv-side {
     position: static;
+    flex-basis: auto;
     max-width: none;
   }
   .tv-side .hm {
@@ -271,6 +285,12 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
   }
   .chat:not(.nosess) .tv-side .hm {
     display: none;
+  }
+}
+/* Where the jumps to either end are not shown, nor is their lane. */
+@media (max-width: 800px) {
+  .tv-body {
+    padding-right: 32px;
   }
 }
 @container (max-width: 640px) {
@@ -323,14 +343,18 @@ html body:not(:has(#mashy-fab)) #main:has(> .chat) {
   }
 }
 
-/* On a phone the chat runs edge to edge; Mashy's circle steps aside as the
-   reader scrolls (lib/tuck.ts) rather than keeping a column. */
-@media (max-width: 800px) {
-  html body #app #main:has(> .chat) {
-    padding-right: 0;
+/* On a phone or a touch screen the copy buttons stay under the message, but
+   quietly: small, without a fill, so the words are what the eye meets. */
+@media (max-width: 700px), (pointer: coarse) {
+  .tv-msgs .cp-buttons {
+    gap: 0;
+    margin: -2px -8px -6px 0;
   }
-  /* The last message scrolls clear of Mashy's circle and the jumps above it. */
-  .tv-body {
-    padding-bottom: 204px;
+  .tv-msgs .cp,
+  .tv-msgs .you .cp {
+    width: 36px;
+    height: 32px;
+    background: none;
+    color: var(--text-faint);
   }
 }

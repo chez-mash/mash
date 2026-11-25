@@ -4,6 +4,7 @@
 // memory and where the history comes from. Every number is counted from what
 // the dashboard has read; nothing here is estimated.
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import Clock from "@lucide/svelte/icons/clock";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
@@ -120,8 +121,7 @@ const tiles = $derived([
 
 <div class="ov-head">
   <h1 class="h1 ov-h1">{greeting}</h1>
-  <p class="ov-sum">{summary}</p>
-  <ScopeNote scoped={catalogue.data} />
+  <p class="ov-sum">{summary}<ScopeNote scoped={catalogue.data} /></p>
 </div>
 {#if status.data && !status.data.configuration.loaded}<p class="card tight warn" style:display="flex" style:gap="10px" style:align-items="flex-start"><TriangleAlert size={17} aria-hidden="true" style="flex:none;margin-top:2px" /><span>Mash is not set up on this machine yet. <a class="a" href="#/setup">Set it up here</a>: choose which agent histories to index and connect your agents.</span></p>{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
@@ -138,7 +138,7 @@ const tiles = $derived([
 <div class="ov-cols">
   <section class="ov-main" aria-labelledby="ov-recent">
     <div class="ov-h">
-      <h2 id="ov-recent">Recent chats</h2>
+      <h2 id="ov-recent"><Clock size={15} aria-hidden="true" />Recent chats</h2>
       {#if chats.length}<a href="#/search">All chats<ChevronRight size={13} aria-hidden="true" /></a>{/if}
     </div>
     {#if catalogue.isPending}<div class="card pad0"><Skeleton rows={7} /></div>{/if}
@@ -237,6 +237,9 @@ const tiles = $derived([
     gap: 12px;
   }
   .ov-h h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
     font-size: 14px;
     font-weight: 600;
@@ -251,6 +254,16 @@ const tiles = $derived([
   }
   .ov-h a:hover {
     color: var(--text-strong);
+  }
+  /* The section's icon shows only on a phone, as the phone wireframe draws it. */
+  .ov-h h2 :global(svg) {
+    display: none;
+    color: var(--text-muted);
+  }
+  @media (max-width: 640px) {
+    .ov-h h2 :global(svg) {
+      display: block;
+    }
   }
   @media (max-width: 800px) {
     .ov-tiles {

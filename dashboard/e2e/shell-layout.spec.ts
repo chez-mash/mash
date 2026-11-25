@@ -105,7 +105,8 @@ for (const [width, height] of [
         ).map(box),
       )),
     ];
-    expect(floating.length).toBe(3);
+    // A phone shows no jumps to either end; Mashy's circle is in the top bar.
+    expect(floating.length).toBe(width > 800 ? 3 : 1);
     const actions = await last.locator(".cp").all();
     expect(actions.length).toBeGreaterThan(0);
     for (const target of [last, ...actions]) {
@@ -115,20 +116,22 @@ for (const [width, height] of [
   });
 }
 
-test("on a wide screen page content keeps clear of Mashy's button at any scroll", async ({
+test("on a wide screen pages fill the width and Mashy's button stays in the top bar", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
-  await page.goto("/#/search");
-  await expect(page.getByText("Fixture chat 0").first()).toBeVisible();
+  await page.goto("/#/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const fab = await box(page.locator("#mashy-fab"));
-  const main = await page.locator("#main").evaluate((element) => {
+  const bar = await box(page.locator("#top"));
+  expect(fab.y + fab.height).toBeLessThanOrEqual(bar.y + bar.height);
+  // The page runs to the screen's edge but for its padding, as the boards draw it.
+  const right = await page.locator("#main").evaluate((element) => {
     const style = getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-    return rect.right - Number.parseFloat(style.paddingRight);
+    return element.getBoundingClientRect().right - Number.parseFloat(style.paddingRight);
   });
-  expect(main).toBeLessThanOrEqual(fab.x);
+  expect(right).toBeGreaterThanOrEqual(1440 - 40);
 });
 
 // The floating controls' column must not crowd the transcript out: at a

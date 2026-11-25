@@ -550,7 +550,9 @@ a.nav-group[aria-current="page"] {
   container-type: inline-size;
   flex: 1;
   width: 100%;
-  max-width: 1188px;
+  /* Pages fill the column beside the rail, as the wireframes draw them, up
+     to a measure that still reads on a very wide screen. */
+  max-width: 1680px;
   margin: 0 auto;
   padding-block: 26px 56px;
   padding-left: max(32px, env(safe-area-inset-left, 0px));
@@ -2039,13 +2041,14 @@ h1:focus {
 .newpill .btn {
   box-shadow: var(--shadow-float);
 }
-/* Jumps to either end of a chat, floating in the screen's corner above
-   Mashy's button (60px across, 24px in from the corner). */
+/* Jumps to either end of a chat, floating in the screen's corner, in a lane
+   the transcript keeps clear for them (reading.css). A phone has none: it
+   scrolls to the top by itself, and the buttons would cover the words. */
 .ends {
   position: fixed;
   z-index: 20;
-  right: calc(max(24px, env(safe-area-inset-right, 0px)) + 12px);
-  bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 72px);
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2334,10 +2337,10 @@ h1:focus {
     font-size: 16px;
   }
   .nav-link {
-    min-height: 46px;
-    gap: 14px;
+    min-height: 40px;
+    gap: 12px;
     padding-inline: 12px;
-    font-size: 16px;
+    font-size: 15px;
   }
   .nav-ico {
     width: 18px;
@@ -2358,7 +2361,9 @@ h1:focus {
     right: 0;
     top: 0;
     width: auto;
-    max-height: 100dvh;
+    /* A sheet from the top, short of the foot of the screen, so the dimmed
+       page shows under it. */
+    max-height: calc(100dvh - 56px);
     border-right: 0;
     border-radius: 0 0 var(--radius-9) var(--radius-9);
     background: var(--surface-rail);
@@ -2370,7 +2375,8 @@ h1:focus {
   .rail-in {
     position: static;
     height: auto;
-    max-height: 100dvh;
+    max-height: calc(100dvh - 56px);
+    overflow-y: auto;
     padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
       14px max(12px, env(safe-area-inset-left, 0px));
   }
@@ -4278,17 +4284,15 @@ summary.rw::-webkit-details-marker {
   text-decoration: underline 2px var(--find-current-line);
 }
 
-/* Mashy, the assistant: a circle in the corner that opens a chat. */
+/* Mashy, the assistant: a circle at the right of the top bar that opens a
+   chat. It sits in the bar so it never covers the page. */
 #mashy-fab {
-  position: fixed;
-  /* Under the navigation drawer and its scrim. */
-  z-index: 28;
-  right: max(24px, env(safe-area-inset-right, 0px));
-  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  position: relative;
+  flex: none;
   display: grid;
   place-items: center;
-  width: 60px;
-  height: 60px;
+  width: 36px;
+  height: 36px;
   border: var(--stroke-strong) solid var(--line-ink);
   border-radius: var(--radius-round);
   background: var(--mashy-surface);
@@ -4298,16 +4302,16 @@ summary.rw::-webkit-details-marker {
   background: var(--mashy-pick-bg);
 }
 #mashy-fab img {
-  width: 42px;
-  height: 38px;
+  width: 26px;
+  height: 24px;
   object-fit: contain;
 }
 #mashy-fab .dot {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
+  top: -2px;
+  right: -2px;
+  width: 11px;
+  height: 11px;
   border: 2px solid var(--surface-page);
   border-radius: var(--radius-round);
   background: var(--notify);
@@ -4816,63 +4820,13 @@ summary.rw::-webkit-details-marker {
   color: var(--text-faint);
   cursor: default;
 }
-/* Content never rests under the floating controls in the corner: Mashy's
-   circle (60px, 24px in) and, on a chat, the jumps to either end above it.
-   The page ends with room for the whole stack, so its last rows scroll
-   clear of it. */
-body:has(#mashy-fab) #main {
-  padding-bottom: 96px;
-}
-body:has(#mashy-fab):has(.ends) #main {
-  padding-bottom: 188px;
-}
-/* Beside the rail, the controls get a column of their own, so nothing
-   passes under them while scrolling either. The column is only as wide as
-   the content would otherwise reach into it: where the page is centred with
-   room on its right, that room is the column. (Container units here are the
-   column beside the rail, #col.) */
-@media (min-width: 801px) {
-  body:has(#mashy-fab) #main {
-    padding-right: max(
-      clamp(32px, calc(96px - (100cqw - 1188px) / 2), 96px),
-      calc(env(safe-area-inset-right, 0px) + 72px)
-    );
-  }
-}
 @media (max-width: 800px) {
-  /* Buttons are taller here, so the jumps reach higher. */
-  body:has(#mashy-fab):has(.ends) #main {
-    padding-bottom: 204px;
-  }
-}
-/* Without that column, on a phone, the controls step aside while the reader
-   scrolls down through what they cover, and come back once they scroll up,
-   stop or reach the end (see lib/tuck.ts). They stay in the accessibility
-   tree and come back for keyboard focus, and they never step aside while
-   Mashy is open or new messages are offered. Fading away for good, or
-   shrinking into a smaller pill, would still cover the line being read. */
-@media (max-width: 800px) {
-  #mashy-fab,
   .ends {
-    transition:
-      translate 160ms ease-out,
-      opacity 160ms ease-out;
+    display: none;
   }
-  :root[data-scrolling="down"]:not(:has(#mashy, .newpill .btn))
-    :is(#mashy-fab:not(:focus-visible), .ends:not(:has(:focus-visible))) {
-    translate: 0 var(--tuck-drop, 24px);
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-@media (max-width: 800px) and (prefers-reduced-motion: reduce) {
-  #mashy-fab,
-  .ends {
-    transition: opacity 120ms linear;
-  }
-  /* They fade where they are rather than sliding. */
-  :root {
-    --tuck-drop: 0px;
+  #mashy-fab {
+    width: 40px;
+    height: 40px;
   }
 }
 /* On a phone, upright or on its side, the chat is a sheet over the page, and
@@ -4949,9 +4903,6 @@ body:has(#mashy-fab):has(.ends) #main {
   #mashy .go {
     width: 36px;
     height: 36px;
-  }
-  #mashy ~ #mashy-fab {
-    display: none;
   }
 }
 @media print {

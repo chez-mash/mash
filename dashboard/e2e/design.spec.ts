@@ -125,6 +125,8 @@ for (const width of [1440, 390]) {
     const showSessions = page.getByRole("button", { name: "Show session list" });
     if (width <= 700) {
       await expect(sessions).toBeHidden();
+      // On a phone the list is in the chat's menu.
+      await page.getByRole("button", { name: "More chat actions" }).click();
       await showSessions.click();
       await expect(sessions).toBeVisible();
       await sessions.getByRole("button", { name: "Back to chat" }).click();
