@@ -17,6 +17,8 @@ import {
   resumeCommand,
   rows,
   viewArguments,
+  conversation,
+  speaker,
   viewChoice,
   parseView,
   recentChatsArguments,
@@ -124,6 +126,29 @@ describe("reading Mash's answers", () => {
     expect(() => parseSearch("not json")).toThrow(MashError);
   });
 
+  it("marks tool calls, output and thinking as steps, and keeps the person's own words", () => {
+    const view = JSON.stringify({
+      messages: [
+        {
+          id: "t1",
+          role: "assistant",
+          content: 'Tool Bash: {"command":"ls"}',
+          dialogue: "",
+          tools: { tool_calls: [] },
+        },
+        { id: "t2", role: "user", content: "(Bash completed with no output)", tools: { tool_results: [] } },
+        { id: "w1", role: "user", content: "<context>…</context>\nship it", dialogue: "ship it" },
+        { id: "a1", role: "assistant", content: "Shipped." },
+      ],
+    });
+    expect(parseView(view)).toEqual([
+      { id: "t1", role: "assistant", content: 'Tool Bash: {"command":"ls"}', step: true },
+      { id: "t2", role: "user", content: "(Bash completed with no output)", step: true },
+      { id: "w1", role: "user", content: "ship it" },
+      { id: "a1", role: "assistant", content: "Shipped." },
+    ]);
+  });
+
   it("reads the messages around a match", () => {
     const view = JSON.stringify({ messages: [{ id: "m2", role: "user", content: "why?" }, { id: "m3" }] });
     expect(parseView(view)).toEqual([
@@ -206,6 +231,9 @@ describe("links and untrusted text", () => {
     );
     expect(rendered("```html\n<img src=x>\n```\n<b>")).toBe("```html\n<img src=x>\n```\n&lt;b>");
     expect(rendered("abcdef", 3)).toBe("abc…");
+    // An unmatched backtick is text, so the image after it is still defused.
+    expect(rendered("a ` then ![x](https://example.com/p.png)")).toBe("a ` then \\![x](https://example.com/p.png)");
+    expect(rendered("``a` ![x](u)`` ![y](v)")).toBe("``a` ![x](u)`` \\![y](v)");
   });
 
   it("knows each agent's logo, and nothing for an unknown one", () => {
@@ -348,13 +376,57 @@ describe("the environment mash runs in", () => {
 });
 
 describe("reading a chat's messages", () => {
+  const said = (id: string, role = "assistant") => ({ id, role, content: id });
+  const step = (id: string) => ({ id, role: "assistant", content: `Tool ${id}`, step: true });
+
+  it("shows what was said around the match and counts the steps between", () => {
+    const messages = [
+      said("q0", "user"),
+      step("s1"),
+      said("q1", "user"),
+      step("s2"),
+      step("s3"),
+      said("m"),
+      step("s4"),
+      said("q2", "user"),
+      said("a2"),
+      said("q3", "user"),
+    ];
+    expect(conversation(messages, "m")).toEqual([
+      { kind: "message", message: messages[0], match: false },
+      { kind: "steps", count: 1 },
+      { kind: "message", message: messages[2], match: false },
+      { kind: "steps", count: 2 },
+      { kind: "message", message: messages[5], match: true },
+      { kind: "steps", count: 1 },
+      { kind: "message", message: messages[7], match: false },
+      { kind: "message", message: messages[8], match: false },
+    ]);
+  });
+
+  it("still shows a match that is itself a step, and leaves out steps at the edges", () => {
+    const messages = [step("s0"), said("q", "user"), step("m"), step("s1"), said("a")];
+    expect(conversation(messages, "m", 1)).toEqual([
+      { kind: "message", message: messages[1], match: false },
+      { kind: "message", message: messages[2], match: true },
+      { kind: "steps", count: 1 },
+      { kind: "message", message: messages[4], match: false },
+    ]);
+  });
+
+  it("names who spoke", () => {
+    expect(speaker("user", "codex")).toBe("You");
+    expect(speaker("assistant", "claude-code")).toBe("Claude Code");
+    expect(speaker("system", "codex")).toBe("System");
+  });
+
   it("reads another machine's message from the shared index, by that machine", () => {
-    expect(viewArguments({ messageId: "m1" })).toEqual(["view", "m1", "--context", "3"]);
+    expect(viewArguments({ messageId: "m1" })).toEqual(["view", "m1", "--context", "12"]);
     expect(viewArguments({ messageId: "m1", machine: "dev-macbook" })).toEqual([
       "view",
       "m1",
       "--context",
-      "3",
+      "12",
       "--shared",
       "dev-macbook",
     ]);
