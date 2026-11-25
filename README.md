@@ -40,6 +40,8 @@ By default, indexing and search stay on your machine and require no account.
   [Open the saved sign-in decision](https://getmash.io/demo/#/record/record-sign-in-tokens?node=laptop)
 - **Export a whole conversation.** Save it from the dashboard as Markdown,
   HTML, or PDF. [Export a transcript](docs/dashboard.md#save-a-transcript)
+- **Search from Raycast.** Find a past chat from Raycast as you type, read
+  it there, or open it in its agent. [Mash for Raycast](#mash-for-raycast)
 - <img src="dashboard/public/mashy.png" alt="" width="20"> **Mashy, an optional dashboard assistant.**
   Bring your own model service and API key to ask questions about your history
   and get links to chats and saved decisions.
@@ -190,6 +192,17 @@ For package managers, source builds, or terminal setup, see the
 follow the [local trial guide](docs/privacy.md#try-a-small-local-setup).
 
 <!-- quick-start-end -->
+
+## Mash for Raycast
+
+On a Mac, the Raycast extension searches your chats as you type, shows the
+passage that matched, and opens a chat in Mash, Claude or Codex. A second
+command lists the decisions and notes Mash remembers.
+
+![Searching past coding agent chats from Raycast, with the matching passage under each chat](raycast/metadata/mash-2.png)
+
+The extension is waiting for review in the Raycast Store. Until it is
+listed, you can [run it from this repository](raycast/README.md#development).
 
 ## Privacy
 
