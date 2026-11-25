@@ -61,17 +61,16 @@
 .card.cream {
   background: var(--surface-muted);
 }
-/* A colour fill carries ink in both themes, and so does anything on it. */
-.card:is(.butter, .bad, .warn, .ok) > * {
-  --line-ink: var(--line-on-accent);
+/* Status cards are soft tints of their colour, so they keep the page's own
+   text colours in both themes; the hairline takes the status colour. */
+.card.bad {
+  border-color: var(--status-bad-bg);
 }
-.card:is(.butter, .bad, .warn, .ok) {
-  --text-strong: var(--text-on-accent);
-  --text-body: var(--text-on-accent);
-  --text-muted: var(--text-on-accent);
-  --surface-raised: var(--agent-tile-bg);
-  border-color: var(--line-ink);
-  color: var(--text-on-accent);
+.card.warn {
+  border-color: var(--status-warn-bg);
+}
+.card.ok {
+  border-color: var(--status-ok-bg);
 }
 .card.butter {
   background: var(--selected-bg);
@@ -294,11 +293,10 @@ input.radio:checked {
 .loaderr .ico {
   background: var(--surface-raised);
 }
-/* A plain box on a colour fill stays light, like a sticker on coloured paper. */
+/* A plain box on a tinted card is raised, like any other control. */
 .card:is(.butter, .bad, .warn, .ok) :is(.btn:not(.p), .ico) {
-  background: var(--agent-tile-bg);
-  border-color: var(--line-on-accent);
-  color: var(--text-on-accent);
+  background: var(--surface-raised);
+  color: var(--text-strong);
 }
 .card:is(.butter, .bad, .warn, .ok) .btn[disabled] {
   opacity: 0.6;
@@ -556,11 +554,11 @@ a.stats > *:hover,
 }
 .check.on {
   background: var(--status-ok-bg);
-  color: var(--text-on-accent);
+  color: var(--status-ok-text);
 }
 .check.warn {
   background: var(--status-warn-bg);
-  color: var(--text-on-accent);
+  color: var(--status-warn-text);
 }
 .check > svg {
   width: 12px;
@@ -1003,8 +1001,8 @@ a.lrow:hover {
   width: 20px;
   height: 20px;
   border-radius: var(--radius-tile-sm);
-  background: var(--text-on-accent);
-  color: var(--agent-tile-bg);
+  background: var(--text-strong);
+  color: var(--surface-page);
   font-size: 9px;
   font-weight: 700;
 }

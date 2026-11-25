@@ -3485,26 +3485,30 @@ summary.rw::-webkit-details-marker {
   font-size: 12.5px;
   color: var(--status-warn);
 }
+/* A segmented control: a muted track with the chosen option raised on it. */
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  border: var(--border-strong);
-  border-radius: var(--radius-4);
-  overflow: hidden;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-5);
+  background: var(--surface-muted);
 }
 .seg button {
-  min-height: 36px;
+  min-height: 32px;
   padding: 0 12px;
-  font-size: 13.5px;
+  border-radius: var(--radius-4);
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
 }
-.seg button + button {
-  border-left: var(--border-strong);
+.seg button:hover {
+  color: var(--text-strong);
 }
 .seg button[aria-pressed="true"] {
   background: var(--selected-bg);
-  color: var(--text-on-accent);
+  box-shadow: var(--shadow-pick);
+  color: var(--selected-text);
 }
 .set-bar {
   position: sticky;
