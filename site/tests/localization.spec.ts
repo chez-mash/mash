@@ -24,7 +24,7 @@ test("the Spanish quickstart links to privacy and can search the Spanish guides"
   await page.keyboard.press("Escape");
 
   await expect(guide.getByRole("link", { name: "Privacy in English", exact: true })).toHaveCount(0);
-  await page.getByRole("combobox").selectOption({ label: "English" });
+  await page.locator("header starlight-lang-select select").selectOption({ label: "English" });
   await expect(page).toHaveURL((url) => url.pathname === "/privacy/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("button", { name: "Search", exact: true })).toBeVisible();

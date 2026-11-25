@@ -1,0 +1,35 @@
+---
+import { agents } from "../../../dashboard/src/lib/agents.ts";
+// One agent's logo on a small tile in the agent's colour, as the dashboard
+// draws it (dashboard/src/lib/agents.ts). Always an illustration: the agent's
+// name is written beside it.
+import type { Agent } from "../../../dashboard/src/lib/types";
+
+interface Props {
+  agent: Agent;
+}
+const info = agents[Astro.props.agent];
+---
+
+<span
+  class="agent-tile"
+  aria-hidden="true"
+  style={`background: ${info.tint}; color: ${info.ink}`}
+  set:html={info.logo}
+/>
+
+<style>
+  .agent-tile {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-2);
+    box-shadow: var(--shadow-tile);
+  }
+  .agent-tile :global(svg) {
+    width: 60%;
+    height: 60%;
+  }
+</style>

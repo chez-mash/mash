@@ -1,6 +1,6 @@
 ---
-// The landing page ends with the project's name and a few ways onward; every
-// other page keeps Starlight's footer.
+// The landing page and the guides directory end with a quiet line: the project, then a few ways
+// onward. Every other page keeps Starlight's footer.
 import Default from "@astrojs/starlight/components/Footer.astro";
 
 const { entry, locale } = Astro.locals.starlightRoute;
@@ -13,10 +13,7 @@ const base = locale ? `/${locale}/` : "/";
 {
   home ? (
     <footer class="mash-footer">
-      <span class="name">
-        <img src="/mash-mark.svg" alt="" width="26" height="26" />
-        mash
-      </span>
+      <span class="name">Mash · open source</span>
       <nav aria-label={Astro.locals.t("mash.footer.label")}>
         <a href={`${base}guides/`}>{Astro.locals.t("mash.nav.docs")}</a>
         <a href="/demo/" data-astro-reload>{Astro.locals.t("mash.nav.demo")}</a>
@@ -31,43 +28,17 @@ const base = locale ? `/${locale}/` : "/";
 }
 
 <style>
-  /* A band in the sidebar's deeper beige, ruled off in ink: the brand, then
-     the ways onward in bold ink. */
   .mash-footer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1.5rem;
-    padding: 2.75rem max(var(--mash-gutter), calc((100% - var(--mash-wrapper)) / 2)) 2.25rem;
-    background: var(--surface-side);
-  }
-  :global(.sl-container) > .mash-footer {
-    margin-top: 4rem;
-    border-top: var(--border-outline);
-  }
-  :global(main:has(.mash-hero)) .mash-footer {
-    margin-top: 0;
-    border-top: 0;
-  }
-  .name {
-    display: flex;
-    align-items: center;
-    gap: 0.5625rem;
-    color: var(--brand-name);
-    font-size: 1.4375rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-  .name img {
-    width: 1.875rem;
-    height: 1.875rem;
-  }
-  /* As in the header: the name is followed by the cursor, in peach. */
-  .name::after {
-    content: "_";
-    margin-inline-start: -0.5em;
-    color: var(--brand-cursor);
+    gap: 0.75rem 1.5rem;
+    max-width: 75rem;
+    margin-inline: auto;
+    padding: 4.5rem var(--mash-gutter) 3rem;
+    color: var(--text-faint);
+    font-size: 0.8125rem;
   }
   nav {
     display: flex;
@@ -78,14 +49,10 @@ const base = locale ? `/${locale}/` : "/";
     display: flex;
     align-items: center;
     min-height: 2.75rem;
-    color: var(--text-ink);
-    font-weight: 700;
+    color: var(--text-faint);
     text-decoration: none;
   }
   nav a:hover {
-    text-decoration: underline;
-    text-decoration-color: var(--link-underline);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
+    color: var(--text-strong);
   }
 </style>

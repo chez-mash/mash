@@ -4,25 +4,31 @@ const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", 
 
 test("the landing page says what Mash is and which agents it reads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toHaveText("Your agents forget. Mash doesn't.");
-  await expect(page).toHaveTitle(/Your agents forget\. Mash doesn't\./);
+  await expect(page.locator("h1")).toHaveText("Supercharged context for your agents.");
+  await expect(page).toHaveTitle("Mash: Supercharged context for your agents.");
+  // The old headline is gone from the page.
+  await expect(page.getByText("Your agents forget", { exact: false })).toHaveCount(0);
   const marks = page.locator(".mash-agents li");
   await expect(marks).toHaveCount(agents.length);
   await expect(marks).toHaveText(agents);
-  // Every mark is drawn from a file the site actually serves.
-  for (const mark of await page.locator(".mash-agents .mark").all()) {
-    const file = await mark.evaluate((node) => getComputedStyle(node).maskImage.slice(5, -2));
-    expect((await page.request.get(file)).ok()).toBe(true);
+  // Every mark is drawn: each tile holds its agent's logo.
+  for (const mark of await page.locator(".mash-agents .tile").all()) {
+    await expect(mark.locator("svg path").first()).toBeAttached();
   }
   const blurb =
     "Mash supercharges your agents so that they can search and remember from each others' chats. Leave off with Claude and pick up with Codex, without having to re-explain yourself. 100% self-hosted and open-source.";
   await expect(page.locator(".hero .tagline")).toHaveText(blurb);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
-  await expect(page.locator(".hero .actions a")).toHaveText([
-    /^Download (Mash|for \w+)$/,
-    "Try the demo",
-  ]);
+  // Link previews carry the tagline.
+  const tagline = "Supercharged context for your agents.";
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", tagline);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    "content",
+    `Mash: ${tagline}`,
+  );
+  await expect(page.locator(".hero .actions a")).toHaveText([/^\s*Download for \w+$/]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
+    "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
     "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
@@ -30,11 +36,11 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Self-hosted, end to end. No cloud. No account.",
     "Fits the way you work.",
     "Written with <3 in Rust.",
-    "Give your agents a memory.",
+    "Give your agents their history back.",
   ]);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
-  await expect(illustrations).toHaveCount(3);
+  await expect(illustrations).toHaveCount(4);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAccessibleName(/\w/);
   }
@@ -67,57 +73,64 @@ test("the landing page fits a phone", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("the hero leads with the app download, beside its other actions", async ({ page }) => {
+test("the hero leads with the app download, then the other systems and ways in", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
   // A Linux x86-64 browser here, so the download is the Linux app.
   const download = page.locator(".hero .actions a").first();
-  await expect(download).toHaveText(/Download for (Linux|macOS|Windows)/);
+  await expect(download).toHaveText(/Download for (Linux|Mac|Windows)/);
   await expect(download).toHaveAttribute(
     "href",
     /^https:\/\/github\.com\/mashhq\/mash\/releases\/latest\/download\/mash-desktop-/,
   );
-  await expect(page.locator(".mash-install")).toHaveCount(0);
-  // One quiet link for every other system; terminal installs live in the docs.
+  // "Also on" names the two other systems and leads to every download.
   const note = page.locator(".hero .download-note");
-  await expect(note.getByRole("link")).toHaveText(["Other systems"]);
-  await expect(note.getByRole("link")).toHaveAttribute("href", "/downloads/#desktop-app");
-  const [first, second] = await page
-    .locator(".hero .actions a")
-    .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().top));
-  expect(second).toBe(first);
+  const also = note.locator("a[data-also]");
+  await expect(also).toHaveAttribute("href", "/downloads/#desktop-app");
+  await expect(also).toHaveText(/^(macOS|Windows) and\s+(Windows|Linux)$/, {
+    useInnerText: true,
+  });
+  await expect(note.locator(".ways a")).toHaveText([
+    "Install with curl",
+    "Raycast extension",
+    "Try the demo",
+  ]);
+  // The header offers the Mac app beside the docs and the source.
+  const header = page.locator("header.header");
+  await expect(header.getByRole("link", { name: "Download for Mac" })).toBeVisible();
+  await expect(header.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
+  await expect(header.getByRole("link", { name: "GitHub", exact: true })).toBeVisible();
 });
 
-test("the hero leads with its stamp and headline, beside the handoff cards", async ({ page }) => {
+test("the install tabs show each system's command, and copy it", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
-  await expect(page.locator(".mash-hero .mash-stamp")).toHaveText("Open source · self-hosted");
-  // The answer is ink under a butter highlighter stroke, not a coloured word.
-  const answer = page.locator(".hero h1 .mash-turn");
-  const [colour, heading] = await Promise.all([
-    answer.evaluate((node) => getComputedStyle(node).color),
-    page.locator(".hero h1").evaluate((node) => getComputedStyle(node).color),
-  ]);
-  expect(colour).toBe(heading);
-  expect(await answer.evaluate((node) => getComputedStyle(node).backgroundImage)).toMatch(
-    /linear-gradient/,
+  const install = page.locator("#install");
+  const tabs = install.getByRole("tab");
+  await expect(tabs).toHaveText(["Linux", "macOS", "Windows"]);
+  await install.getByRole("tab", { name: "Windows" }).click();
+  await expect(install.getByRole("tab", { name: "Windows" })).toHaveAttribute(
+    "aria-selected",
+    "true",
   );
-  // The cards are an illustration beside the words, hidden from assistive technology.
-  const cards = page.locator(".mash-hero .handoff");
-  await expect(cards).toHaveAttribute("aria-hidden", "true");
-  const [words, art] = await Promise.all([
-    page.locator(".hero .copy").boundingBox(),
-    cards.boundingBox(),
-  ]);
-  if (!words || !art) throw new Error("Missing hero bounds");
-  expect(words.x + words.width).toBeLessThan(art.x);
-  // On a phone the words stand alone and the two actions take the full width.
+  const panel = install.getByRole("tabpanel");
+  await expect(panel).toHaveCount(1);
+  await expect(panel).toContainText("install.ps1");
+  // The arrow keys move between the tabs.
+  await page.keyboard.press("ArrowLeft");
+  await expect(install.getByRole("tab", { name: "macOS" })).toBeFocused();
+  await expect(install.getByRole("tabpanel")).toContainText("install.sh | sh -s -- --dashboard");
+  await install.getByRole("tabpanel").getByRole("button").click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    "curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh -s -- --dashboard",
+  );
+  // On a phone the headline and the download still lead.
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(cards).toBeHidden();
-  const widths = await page
-    .locator(".hero .actions a")
-    .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().width));
-  for (const width of widths) expect(width).toBeGreaterThan(340);
+  await expect(page.locator(".hero h1")).toBeInViewport();
+  await expect(page.locator(".hero .actions a")).toBeVisible();
 });
 
 test("a Homebrew visitor can review the package source and see what to do next", async ({
@@ -212,8 +225,8 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
   const windows = welcome.locator("[role=img]");
-  await expect(windows).toHaveCount(3);
-  await expect(windows.first()).toHaveAccessibleName(/Why does checkout keep failing/);
+  await expect(windows).toHaveCount(4);
+  await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
   const mashy = welcome.getByRole("img", { name: "Mashy, the Mash mascot" });
@@ -226,8 +239,12 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect(
     welcome.locator(".measured").getByText("66 ms and 103k", { exact: true }),
   ).toBeVisible();
+  // Without scripting every system's install command shows.
+  await expect(page.locator("#install [role=tabpanel]")).toHaveCount(3);
+  for (const panel of await page.locator("#install [role=tabpanel]").all())
+    await expect(panel).toBeVisible();
   // Without scripting the download button cannot tell the system, so it opens the downloads.
-  await page.getByRole("link", { name: "Download Mash" }).click();
+  await page.locator(".hero .actions").getByRole("link", { name: "Download for Mac" }).click();
   await expect(page).toHaveURL(/\/downloads\/#desktop-app$/);
   await expect(page.getByRole("heading", { name: "Desktop app" })).toBeVisible();
   await context.close();
@@ -252,17 +269,14 @@ test("every feature tile has an icon, the stack chips have logos, and the close 
   const welcome = page.locator(".mash-welcome");
   const tiles = welcome.locator("#welcome-features article");
   await expect(tiles).toHaveCount(5);
-  for (const tile of await tiles.all()) await expect(tile.locator(".ico").first()).toBeVisible();
-  // Every tile is paper; the colour lives in the icon stickers.
-  await expect(tiles.locator(".butter")).toHaveCount(0);
-  // The three small tiles each show their three subjects: systems, machines, formats.
-  for (const index of [2, 3, 4])
-    await expect(tiles.nth(index).locator(".icos .ico")).toHaveCount(3);
-  await expect(tiles.nth(4).locator(".icos .ico")).toHaveText(["MD", "</>", "PDF"]);
+  for (const tile of await tiles.all())
+    await expect(tile.locator(".ico svg, .systems svg").first()).toBeVisible();
+  // The systems' tile shows their three marks.
+  await expect(tiles.nth(2).locator(".systems svg")).toHaveCount(3);
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
-  // The two closing actions are buttons of one size, each with the same arrow.
+  // The two closing actions are buttons of one size, each led by its icon.
   const actions = welcome.locator(".closing .actions a");
   await expect(actions).toHaveText(["Get started", "Read the docs"]);
   await expect(actions.locator("svg")).toHaveCount(2);

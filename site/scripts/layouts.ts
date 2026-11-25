@@ -284,6 +284,37 @@ function agentTables(tree: Root): void {
   }
 }
 
+/** The operating system a table row names first, by the words it starts with. */
+const systemMarks: readonly [RegExp, string][] = [
+  [/^(Mac|macOS)\b/, "macos"],
+  [/^Windows\b/, "windows"],
+  [/^Linux\b/, "linux"],
+];
+
+/**
+ * Downloads and verification: a table row that starts with a system's name,
+ * such as "Mac with Apple silicon" or "Linux ARM64", starts with that
+ * system's mark. Rows in other languages that name the system later keep
+ * their words alone.
+ */
+export function systemTables(tree: Root): void {
+  for (const table of tree.children.filter((node): node is Table => node.type === "table")) {
+    for (const row of table.children.slice(1)) {
+      const cell = row.children[0];
+      if (!cell) continue;
+      const system = systemMarks.find(([name]) => name.test(text(cell).trim()))?.[1];
+      if (!system) continue;
+      cell.children = [
+        html(
+          `<span class="mash-system"><span class="mash-os" data-system="${system}" aria-hidden="true"></span><span>`,
+        ),
+        ...cell.children,
+        html("</span></span>"),
+      ];
+    }
+  }
+}
+
 /**
  * The quick start: the lead line is a cream callout; the closing paragraph
  * of the first-chat section is a tip beside Mashy; the prompt to paste into
@@ -341,5 +372,6 @@ export function layoutPage(tree: Root, page: string, strings: LayoutStrings): vo
   if (page === "guides") guideCards(tree, strings);
   if (page === "tools") toolStacks(tree);
   if (page === "supported-agents") agentTables(tree);
+  systemTables(tree);
   if (page === "quick-start") quickStart(tree, strings);
 }

@@ -1,101 +1,116 @@
 /*
  * The blocks inside a docs page, drawn as the dashboard draws its own: code
- * windows, boxed tables, callouts, Mashy's tips, the tool reference's rows,
- * the guides' cards and the agents' tiles and pills. scripts/layouts.ts adds
- * the classes this file names to the generated pages. Every colour, line,
- * corner and typeface comes from a role in theme.css.
+ * windows, ringed tables, callouts with a pat of butter light, Mashy's tips,
+ * the tool reference's rows, the guides' cards, and the agents' and systems'
+ * marks. scripts/layouts.ts adds the classes this file names to the
+ * generated pages. Every colour, line, corner and typeface comes from a role
+ * in theme.css.
  */
 
-/* Inline code is a small outlined chip. */
+/* Inline code is a small chip on the muted surface. */
 .sl-markdown-content :not(pre, .mash-tool summary, .mash-tool .param .name) > code {
-  padding: 0.0625rem 0.375rem;
-  border: var(--stroke-fill) solid var(--line-outline);
-  border-radius: var(--radius-1);
-  background: var(--surface-paper);
-  color: var(--text-ink);
-  font-size: 0.875em;
+  padding: 0.125rem 0.3125rem;
+  border: 0;
+  border-radius: var(--radius-2);
+  background: var(--surface-inline-code);
+  color: var(--text-strong);
+  font-size: 0.8125rem;
 }
 
-/* Code windows: the title bar's three dots, a left-aligned mono title, and
-   an outlined copy button that is always there. A titled block and a
-   terminal share one bar height, so the button sits inside the bar, centred
-   on it, rather than across its bottom border. */
+/* Code windows: a raised window whose bar shows the systems the commands are
+   for (scripts/systems.ts) beside the title, as a selected tab does, and a
+   quiet copy button that is always there. */
+.expressive-code .frame {
+  overflow: hidden;
+  border-radius: var(--radius-7);
+}
 .expressive-code .frame :is(.header, figcaption.header) {
   justify-content: flex-start;
   gap: 0.5rem;
   /* Room for the copy button, so a long title wraps before reaching it. */
-  padding-inline: 0.75rem 5.5rem;
+  padding-inline: 0.5rem 5.5rem;
 }
 .expressive-code .frame:is(.is-terminal, .has-title) .header {
-  min-height: 2.5rem;
-}
-.expressive-code .frame.is-terminal .header::before,
-.expressive-code .frame.has-title:not(.is-terminal) .header::before {
-  content: "";
-  position: static;
-  flex: none;
-  width: 2.875rem;
-  height: 0.6875rem;
-  mask: none;
-  opacity: 1;
-  background:
-    radial-gradient(
-      circle at 0.34375rem 50%,
-      var(--fill-peach) 0 0.25rem,
-      var(--line-outline) 0.26rem 0.34rem,
-      transparent 0.35rem
-    ),
-    radial-gradient(
-      circle at 1.4375rem 50%,
-      var(--fill-butter) 0 0.25rem,
-      var(--line-outline) 0.26rem 0.34rem,
-      transparent 0.35rem
-    ),
-    radial-gradient(
-      circle at 2.53125rem 50%,
-      var(--fill-mint) 0 0.25rem,
-      var(--line-outline) 0.26rem 0.34rem,
-      transparent 0.35rem
-    );
-}
-/* The dots are a Mac's window controls, so a Windows shell's window has none,
-   not even Expressive Code's own faint ones. */
-.expressive-code
-  .frame:is(.is-terminal, .has-title):has(pre[data-language="powershell"])
-  .header::before {
-  display: none;
-}
-.expressive-code .frame.has-title:not(.is-terminal) .header {
   display: flex;
   align-items: center;
-  background: var(--surface-cream);
-  border-bottom: var(--border-outline);
+  min-height: 2.75rem;
+  border-bottom: var(--border-divider);
+  background: var(--surface-code);
 }
-.expressive-code .frame.has-title:not(.is-terminal) .title {
-  padding: 0;
-  border: 0;
-  background: none;
+/* Expressive Code's own window dots and tab lines are not drawn. */
+.expressive-code .frame.is-terminal .header::before {
+  display: none;
 }
 .expressive-code .frame.has-title:not(.is-terminal) .title::after {
   display: none;
 }
-.expressive-code .frame .title {
+.expressive-code .frame .title,
+.expressive-code .frame.has-title:not(.is-terminal) .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  min-height: 1.75rem;
   margin: 0;
-  color: var(--text-ink);
+  padding: 0.25rem 0.6875rem;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: var(--surface-muted);
+  color: var(--text-strong);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: normal;
+}
+/* A terminal without a title needs no bar: its copy button sits in the
+   corner of the code, as in any untitled window. */
+.expressive-code .frame.is-terminal:not(.has-title) .header {
+  display: none;
+}
+.expressive-code .frame pre {
+  background: var(--surface-code);
+}
+/* The systems' marks before the title, one mask layer each. */
+.expressive-code .frame[data-systems] .title::before {
+  content: "";
+  flex: none;
+  width: 0.8125rem;
+  height: 0.8125rem;
+  background: currentColor;
+  opacity: 0.8;
+  mask: var(--mash-systems) left center / auto 100% no-repeat;
+}
+.expressive-code .frame[data-systems="macos"] {
+  --mash-systems: url("/os/apple.svg");
+}
+.expressive-code .frame[data-systems="linux"] {
+  --mash-systems: url("/os/linux.svg");
+}
+.expressive-code .frame[data-systems="windows"] {
+  --mash-systems: url("/os/windows.svg");
+}
+.expressive-code .frame[data-systems~="macos"][data-systems~="linux"] .title::before {
+  width: 1.875rem;
+  mask:
+    url("/os/apple.svg") left center / 0.8125rem 0.8125rem no-repeat,
+    url("/os/linux.svg") right center / 0.8125rem 0.8125rem no-repeat;
 }
 .expressive-code .copy button {
   opacity: 1;
-  border: var(--border-outline);
-  border-radius: var(--radius-1);
+  border: 0;
+  border-radius: var(--radius-4);
 }
-.expressive-code .frame:is(.is-terminal, .has-title) .copy {
-  inset-block-start: 0.3125rem;
+.expressive-code .frame.has-title .copy {
+  inset-block-start: 0.4375rem;
 }
-/* The button names itself, as the wireframe's does: the icon (Expressive
-   Code's ::after), then "Copy" in the page's language (set by
-   components/Header.astro) in ::before, which Expressive Code otherwise uses
-   only for a border the button already has. Every copy button on the site,
-   such as the prompt card's below, has this shape. */
+/* With its bar hidden, an untitled terminal's button would keep the bar's
+   offset and hang below a one-line command; pin it to the code's corner. */
+.expressive-code .frame.is-terminal:not(.has-title) .copy {
+  inset-block-start: 0.75rem;
+}
+/* The button names itself: the icon (Expressive Code's ::after), then "Copy"
+   in the page's language (set by components/Header.astro) in ::before, which
+   Expressive Code otherwise uses only for a border. Every copy button on the
+   site, such as the prompt card's below, has this shape. */
 .expressive-code .frame .copy button {
   display: flex;
   align-items: center;
@@ -103,38 +118,43 @@
   height: 1.875rem;
   padding-inline: 1.625rem 0.625rem;
 }
+.expressive-code .frame .copy button:hover {
+  background: var(--surface-hover);
+}
 .expressive-code .frame .copy button::before {
   content: var(--mash-copy-label, "Copy");
   position: relative;
   z-index: 1;
   border: 0;
   opacity: 1;
-  color: var(--text-ink);
-  font: 600 0.75rem / 1 var(--type-sans);
+  color: var(--text-secondary);
+  font: 500 0.75rem / 1 var(--type-sans);
 }
 .expressive-code .frame .copy button::after {
   inset: 0 auto 0 0.5rem;
   width: 0.875rem;
   margin: auto 0;
   height: 0.875rem;
+  background-color: var(--text-secondary);
   mask-size: contain;
   -webkit-mask-size: contain;
 }
-
 /* A short note moved under the code block it qualifies. */
 .sl-markdown-content .mash-note {
   color: var(--text-muted);
   font-size: 0.8125rem;
 }
 
-/* Tables sit in an outlined card: a cream header row of small labels, and
+/* Tables sit in a raised card: a muted header row of small labels, and
    hairlines between the rows. */
 .sl-markdown-content table {
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-7);
   border-collapse: separate;
   border-spacing: 0;
-  background: var(--surface-paper);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-float);
   font-size: 0.875rem;
 }
 @media (min-width: 50rem) {
@@ -151,16 +171,11 @@
 }
 .sl-markdown-content th {
   border-top: 0;
-  border-bottom: var(--border-outline);
-  background: var(--surface-cream);
+  border-bottom: var(--border-divider);
+  background: var(--surface-muted);
   color: var(--text-muted);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.sl-markdown-content th code {
-  text-transform: none;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 .sl-markdown-content tr:nth-child(1) > td {
   border-top: 0;
@@ -168,68 +183,124 @@
 .sl-markdown-content tr:nth-child(2n) {
   background: none;
 }
-.sl-markdown-content thead th:first-child {
-  border-start-start-radius: var(--radius-2);
+/* A file to download: a download icon before its name. */
+.sl-markdown-content td a[href*="/releases/latest/download/"]::before {
+  content: "";
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-inline-end: 0.5rem;
+  background: var(--text-faint);
+  vertical-align: -0.125rem;
+  mask: url("/icons/download.svg") center / contain no-repeat;
 }
-.sl-markdown-content thead th:last-child {
-  border-start-end-radius: var(--radius-2);
+.sl-markdown-content td a[href*="/releases/latest/download/"] {
+  white-space: nowrap;
+}
+.sl-markdown-content td a[href*="/releases/latest/download/"] code {
+  background: none;
+  padding: 0;
 }
 
-/* Callouts: Starlight's asides and the quick start's lead line, on cream. */
+/* A system's mark before its name in a table row. */
+.mash-system {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.mash-os {
+  flex: none;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  background: var(--text-strong);
+  mask: var(--mash-os) center / contain no-repeat;
+}
+.mash-os[data-system="macos"] {
+  --mash-os: url("/os/apple.svg");
+}
+.mash-os[data-system="linux"] {
+  --mash-os: url("/os/linux.svg");
+}
+.mash-os[data-system="windows"] {
+  --mash-os: url("/os/windows.svg");
+}
+
+/* Callouts: Starlight's asides and the quick start's lead line, a raised
+   card ringed in butter light, with a pat of butter for its icon. */
 .starlight-aside,
 .sl-markdown-content .mash-callout {
   display: flex;
   gap: 0.75rem;
-  padding: 0.8125rem 0.9375rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-large);
-  background: var(--surface-cream);
-  color: var(--text-ink);
+  padding: 0.875rem 1rem;
+  border: 0;
+  border-radius: var(--radius-6);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-butter);
+  color: var(--text-body);
+  font-size: 0.875rem;
+  line-height: 1.65;
 }
 .starlight-aside {
   flex-direction: column;
   gap: 0.375rem;
 }
 .starlight-aside__title {
-  color: var(--text-ink);
+  gap: 0.5rem;
+  color: var(--text-strong);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.starlight-aside__icon {
+  width: 1.375rem;
+  height: 1.375rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-4);
+  background: radial-gradient(circle at 35% 30%, var(--butter-pale) 0%, var(--butter) 70%);
+  color: var(--text-on-butter);
 }
 .sl-markdown-content .mash-callout > p {
   margin: 0;
 }
 .sl-markdown-content .mash-callout .mash-ico {
-  width: auto;
-  height: auto;
-  border: 0;
-  background: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-top: 0.125rem;
+  border-radius: var(--radius-4);
+  background: radial-gradient(circle at 35% 30%, var(--butter-pale) 0%, var(--butter) 70%);
+  color: var(--text-on-butter);
+}
+.sl-markdown-content .mash-callout .mash-ico svg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
-/* Icon tiles: an outlined square on cream. */
+/* Icon tiles: butter light behind a deep butter line icon. */
 .mash-ico {
   display: grid;
   flex: none;
   place-items: center;
   width: 2.125rem;
   height: 2.125rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-icon);
-  background: var(--surface-cream);
-  color: var(--text-ink);
+  border-radius: var(--radius-5);
+  background: var(--butter-soft);
+  color: var(--butter-icon);
 }
 .mash-ico svg {
   width: 1.0625rem;
   height: 1.0625rem;
 }
 
-/* Mashy beside a tip, on paper or, in the guides, on butter. */
+/* Mashy beside a tip, on a raised card. */
 .sl-markdown-content .mash-mashy,
 .mash-mashy {
   display: flex;
   align-items: center;
   gap: 0.875rem;
   padding: 1rem 1.125rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
-  background: var(--surface-paper);
+  border: 0;
+  border-radius: var(--radius-7);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-float);
   color: var(--text-body);
 }
 .mash-mashy > div > p,
@@ -242,13 +313,12 @@
   height: auto;
 }
 .mash-mashy.butter {
-  background: var(--fill-butter);
-  color: var(--text-on-fill);
+  background: var(--surface-mashy);
+  box-shadow: var(--shadow-ring);
 }
 /* The tip's button opens search; it names the shortcut only where a keyboard
-   is likely. */
-/* A long label, as in Spanish or French, wraps beside the key, and the key
-   itself stays whole. */
+   is likely. A long label, as in Spanish or French, wraps beside the key,
+   and the key itself stays whole. */
 .mash-search-tip {
   display: inline-flex;
   align-items: center;
@@ -256,25 +326,28 @@
   max-width: 100%;
   text-align: start;
   min-height: 2.25rem;
-  margin-top: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-pill);
-  background: var(--fill-sticker);
-  color: var(--text-ink);
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-5);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-ring);
+  color: var(--text-strong);
   font: inherit;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
 }
-.mash-search-tip:hover {
-  background: var(--surface-paper);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
+.mash-search-tip::before {
+  content: "";
+  flex: none;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  background: var(--text-faint);
+  mask: url("/icons/search.svg") center / contain no-repeat;
 }
-.mash-search-tip:focus-visible {
-  outline: var(--stroke-outline) solid var(--line-ink);
-  outline-offset: 2px;
+.mash-search-tip:hover {
+  background: var(--surface-muted);
 }
 @media (hover: none), (pointer: coarse) {
   .mash-search-tip kbd {
@@ -285,36 +358,38 @@
   flex: none;
   white-space: nowrap;
   padding: 0.1875rem 0.3125rem;
-  border: var(--stroke-fill) solid var(--line-ink);
-  border-radius: var(--radius-key);
-  background: var(--fill-sticker);
-  color: var(--text-on-fill);
+  border: 0;
+  border-radius: var(--radius-2);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-kbd);
+  color: var(--text-secondary);
   font-family: var(--type-mono);
   font-size: 0.6875rem;
 }
 
-/* The prompt to paste into an agent: a butter card with its copy button. */
+/* The prompt to paste into an agent: a raised card ringed in butter light,
+   with its copy button. */
 .sl-markdown-content .mash-ask {
   display: flex;
   align-items: center;
   gap: 0.875rem;
   padding: 1rem 1.125rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
-  background: var(--fill-butter);
-  color: var(--text-on-fill);
+  border: 0;
+  border-radius: var(--radius-7);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-butter);
+  color: var(--text-strong);
 }
 .sl-markdown-content .mash-ask > p {
   flex: 1;
   min-width: 0;
   margin: 0;
   font-family: var(--type-mono);
-  font-size: 0.84375rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-/* Its button is a code window's copy button: an outlined key with the copy
-   icon and the word. */
+/* Its button is a code window's copy button: the copy icon and the word. */
 .sl-markdown-content .mash-ask > button {
   display: inline-flex;
   flex: none;
@@ -323,12 +398,15 @@
   height: 1.875rem;
   margin: 0;
   padding: 0 0.625rem 0 0.5rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-1);
-  background: var(--surface-paper);
-  color: var(--text-ink);
-  font: 600 0.75rem / 1 var(--type-sans);
+  border: 0;
+  border-radius: var(--radius-4);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font: 500 0.75rem / 1 var(--type-sans);
   cursor: pointer;
+}
+.sl-markdown-content .mash-ask > button:hover {
+  color: var(--text-strong);
 }
 @media (width < 36rem) {
   .sl-markdown-content .mash-ask {
@@ -344,51 +422,45 @@
   align-items: center;
   height: 1.375rem;
   padding: 0 0.5625rem;
-  border: var(--stroke-fill) solid var(--line-outline);
-  border-radius: var(--radius-pill);
-  background: var(--surface-paper);
-  color: var(--text-ink);
-  font-size: 0.71875rem;
-  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-5);
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.75rem;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   vertical-align: middle;
 }
 .mash-badge.write,
-.mash-tool.write .mash-badge {
-  border-color: var(--line-ink);
-  background: var(--fill-mustard);
-  color: var(--text-on-fill);
+.mash-tool.write .mash-badge,
+.mash-pill.warn {
+  background: var(--pill-warn-bg);
+  color: var(--pill-warn-text);
 }
 .mash-pill.ok {
-  border-color: var(--line-ink);
-  background: var(--fill-mint);
-  color: var(--text-on-fill);
-}
-.mash-pill.warn {
-  border-color: var(--line-ink);
-  background: var(--fill-mustard);
-  color: var(--text-on-fill);
+  background: var(--pill-ok-bg);
+  color: var(--pill-ok-text);
 }
 
-/* The agents' marks, each on a light tile in both themes. */
+/* The agents' marks, each logo on a tile in the agent's colour. */
 .mash-agent-tile {
   position: relative;
   display: inline-block;
   flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-inline-end: 0.625rem;
-  border: var(--stroke-fill) solid var(--line-outline);
-  border-radius: var(--radius-2);
-  background: var(--fill-sticker);
+  border-radius: var(--radius-3);
+  background: var(--mark);
+  box-shadow: var(--shadow-tile);
   vertical-align: middle;
 }
 .mash-agent-tile::after {
   content: "";
   position: absolute;
-  inset: 18%;
-  background: var(--mark);
+  inset: 22%;
+  background: var(--on, var(--agent-on));
   -webkit-mask: var(--logo) center / contain no-repeat;
   mask: var(--logo) center / contain no-repeat;
 }
@@ -398,6 +470,7 @@
 }
 [data-agent="codex"] {
   --mark: var(--agent-codex);
+  --on: var(--agent-on-neutral);
   --logo: url("/agents/openai.svg");
 }
 [data-agent="copilot"] {
@@ -406,6 +479,7 @@
 }
 [data-agent="cursor"] {
   --mark: var(--agent-cursor);
+  --on: var(--agent-on-neutral);
   --logo: url("/agents/cursor.svg");
 }
 [data-agent="opencode"] {
@@ -419,26 +493,8 @@
 .mash-agent {
   display: inline-flex;
   align-items: center;
-  color: var(--text-ink);
-  font-weight: 700;
-}
-
-/* The guides' section icons are coloured stickers with ink icons, cycling
-   through the palette by position so neighbouring cards differ. The colours
-   mark no state: they only help the eye tell the items apart. */
-.mash-guide .mash-guide-head .mash-ico {
-  border-color: var(--line-ink);
-  background: var(--fill-peach);
-  color: var(--text-on-fill);
-}
-.mash-guide:nth-of-type(4n + 2) .mash-guide-head .mash-ico {
-  background: var(--fill-mint);
-}
-.mash-guide:nth-of-type(4n + 3) .mash-guide-head .mash-ico {
-  background: var(--fill-lilac);
-}
-.mash-guide:nth-of-type(4n + 4) .mash-guide-head .mash-ico {
-  background: var(--fill-butter);
+  color: var(--text-strong);
+  font-weight: 500;
 }
 
 /* The guides directory: the lead beside a tip, then a grid of cards. */
@@ -450,11 +506,12 @@
 }
 .mash-guides-intro .lead {
   flex: 1 1 24rem;
-  font-size: 1.1875rem;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
 }
 .mash-guides-intro .mash-mashy {
   flex: 0 1 18rem;
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.4;
 }
@@ -508,16 +565,18 @@
 .sl-markdown-content .mash-guide {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.75rem;
   margin: 0;
-  padding: 1rem 1.125rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
-  background: var(--surface-paper);
+  padding: 1.25rem 1.375rem;
+  border: 0;
+  border-radius: var(--radius-8);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
 }
 .sl-markdown-content .mash-guide.wide {
   grid-column: 1 / -1;
-  background: var(--surface-cream);
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-ring-inset);
 }
 .sl-markdown-content .mash-guide > * {
   margin: 0;
@@ -525,17 +584,18 @@
 .sl-markdown-content .mash-guide-head {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.75rem;
 }
 .sl-markdown-content .mash-guide-head > * {
   margin: 0;
 }
 .sl-markdown-content .mash-guide ul {
   display: grid;
-  gap: 0.625rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  font-size: 0.875rem;
 }
 .sl-markdown-content .mash-guide li {
   margin: 0;
@@ -567,21 +627,22 @@
 }
 .sl-markdown-content .mash-tool {
   margin: 0;
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
-  background: var(--surface-paper);
+  border: 0;
+  border-radius: var(--radius-6);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-float);
   overflow: hidden;
   scroll-margin-top: 5rem;
 }
 .sl-markdown-content .mash-tool.write {
-  border-style: dashed;
+  box-shadow: var(--shadow-butter);
 }
 .mash-tool > summary {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  min-height: 2.5rem;
-  padding: 0.375rem 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.875rem;
   cursor: pointer;
   list-style: none;
 }
@@ -599,8 +660,8 @@
   width: 0.4375rem;
   height: 0.4375rem;
   margin-inline: auto 0.375rem;
-  border-right: 2px solid var(--text-ink);
-  border-bottom: 2px solid var(--text-ink);
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
   rotate: -45deg;
   transition: rotate 0.12s;
 }
@@ -608,8 +669,10 @@
   rotate: 45deg;
 }
 .mash-tool[open] > summary {
-  border-bottom: var(--border-outline);
-  background: var(--surface-cream);
+  border-bottom: var(--border-divider);
+}
+.mash-tool > summary:hover {
+  background: var(--surface-hover);
 }
 .mash-tool .badge {
   display: inline-flex;
@@ -617,33 +680,31 @@
   align-items: center;
   height: 1.375rem;
   padding: 0 0.5625rem;
-  border: var(--stroke-fill) solid var(--line-outline);
-  border-radius: var(--radius-pill);
-  background: var(--surface-paper);
-  color: var(--text-ink);
+  border-radius: var(--radius-5);
+  background: var(--pill-bg);
+  color: var(--pill-text);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.04em;
 }
 .mash-tool.write .badge {
-  border-color: var(--line-ink);
-  background: var(--fill-mustard);
-  color: var(--text-on-fill);
+  background: var(--pill-warn-bg);
+  color: var(--pill-warn-text);
 }
 .mash-tool > summary > code {
   flex: none;
   padding: 0;
   border: 0;
   background: none;
-  color: var(--text-ink);
-  font-size: 0.875rem;
-  font-weight: 600;
+  color: var(--text-strong);
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 .mash-tool > summary .about {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: var(--text-body);
+  color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 400;
   text-overflow: ellipsis;
@@ -668,18 +729,17 @@
   margin-bottom: 1rem;
 }
 .sl-markdown-content .mash-tool h4 {
-  color: var(--text-muted);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 .mash-tool .none {
   color: var(--text-muted);
   font-size: var(--sl-text-sm);
 }
 .sl-markdown-content .mash-tool .params {
-  border: var(--border-outline);
-  border-radius: var(--radius-3);
+  border-radius: var(--radius-5);
+  box-shadow: var(--shadow-ring);
   overflow: hidden;
 }
 .mash-tool .param {
@@ -704,11 +764,11 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--text-ink);
-  font-weight: 600;
+  color: var(--text-strong);
+  font-weight: 500;
 }
 .mash-tool .param .name > small {
-  color: var(--text-muted);
+  color: var(--text-faint);
   font-family: var(--type-mono);
   font-size: var(--sl-text-xs);
 }
@@ -719,9 +779,9 @@
   font-size: inherit;
 }
 .mash-tool .param .name > b {
-  color: var(--text-ink);
+  color: var(--pill-warn-text);
   font-size: var(--sl-text-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .mash-tool .params .param .about {
   color: var(--text-body);
@@ -742,26 +802,26 @@ main:has(.mash-guides) .sl-container {
 }
 .sl-markdown-content .mash-guide-head .sl-heading-wrapper {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
 }
 .sl-markdown-content .mash-guide-head :is(h2, h3) {
   margin: 0;
   font-size: inherit;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 /* Anchors kept for old links take no room in a card. */
 .sl-markdown-content .mash-guide > p {
   position: absolute;
 }
 
-/* Pictures of the dashboard sit in an outlined frame, like a window. */
+/* Pictures of the dashboard sit in a raised frame, like a window. */
 .sl-markdown-content img[src^="/screenshots/"] {
   display: block;
   width: 100%;
   height: auto;
   margin-block: 1.25rem;
-  border: var(--border-outline);
-  border-radius: var(--radius-large);
-  background: var(--surface-cream);
+  border-radius: var(--radius-7);
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-float);
 }

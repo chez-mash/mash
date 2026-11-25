@@ -1,16 +1,17 @@
 ---
 // The page for a missing address. Starlight's own 404 is a splash page whose
-// hero would be the landing page's (Hero.astro draws the handoff, the stamp
-// and the downloads for every hero), so astro.config.mjs turns that route off
-// and this page says plainly what happened and where to go next. Its three
-// ways out use the landing page's buttons: Home in peach, the others in paper.
+// hero would be the landing page's, so astro.config.mjs turns that route off
+// and this page says plainly what happened and where to go next: Mashy tipped
+// over, the title, a field that opens search, Home in ink and the docs
+// beside it, and three places to start.
 //
 // GitHub Pages serves this one English page for every missing address, so a
 // script puts it in the language of the address asked for: /ja/… reads in
 // Japanese and leads to the Japanese home and guides.
-import { LinkButton } from "@astrojs/starlight/components";
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import { docsLocales } from "../../scripts/locales.ts";
+import tipped from "../art/mashy-tipped.svg?raw";
+import LineIcon from "../components/LineIcon.astro";
 
 const files = import.meta.glob<Record<string, string>>("../content/i18n/*.json", {
   eager: true,
@@ -21,6 +22,10 @@ const keys = [
   "mash.missing.title",
   "mash.missing.lead",
   "mash.missing.home",
+  "mash.missing.startWith",
+  "mash.missing.quickStart",
+  "mash.missing.downloads",
+  "mash.missing.compare",
   "mash.nav.docs",
   "mash.guides.tipSearch",
 ];
@@ -38,30 +43,45 @@ const words = Object.fromEntries(
     }),
 );
 const t = (key: string) => english[key] ?? "";
+const art = tipped.replace("<svg", '<svg class="art" role="img" aria-label="Mashy, tipped over"');
+const starts = [
+  ["mash.missing.quickStart", "quick-start/"],
+  ["mash.missing.downloads", "downloads/"],
+  ["mash.missing.compare", "compare/"],
+] as const;
 ---
 
 <StarlightPage
   frontmatter={{ title: t("mash.missing.title"), template: "splash", pagefind: false, editUrl: false }}
 >
-  <div class="mash-missing">
+  <div class="mash-missing not-content">
+    <Fragment set:html={art} />
+    <p class="code">404</p>
+    <h1 id="_top" data-word="mash.missing.title">{t("mash.missing.title")}</h1>
     <p class="lead" data-word="mash.missing.lead">{t("mash.missing.lead")}</p>
+    {/* Looks like a search field and opens the site's search. */}
+    <button type="button" class="find" data-mash-search>
+      <LineIcon name="search" size="1.0625rem" />
+      <span data-word="mash.guides.tipSearch">{t("mash.guides.tipSearch")}</span><kbd>Ctrl K</kbd>
+    </button>
     <div class="actions">
-      <LinkButton href="/" icon="right-arrow" data-path="">
+      <a class="button primary" href="/" data-path="">
+        <LineIcon name="house" size="0.9375rem" />
         <span data-word="mash.missing.home">{t("mash.missing.home")}</span>
-      </LinkButton>
-      <LinkButton
-        href="/guides/"
-        variant="secondary"
-        icon="open-book"
-        iconPlacement="start"
-        data-path="guides/"
-      >
+      </a>
+      <a class="button" href="/guides/" data-path="guides/">
+        <LineIcon name="book-open" size="0.9375rem" />
         <span data-word="mash.nav.docs">{t("mash.nav.docs")}</span>
-      </LinkButton>
-      <button type="button" class="find" data-mash-search>
-        <span data-word="mash.guides.tipSearch">{t("mash.guides.tipSearch")}</span><kbd>Ctrl K</kbd>
-      </button>
+      </a>
     </div>
+    <nav class="starts" aria-labelledby="missing-starts">
+      <p id="missing-starts" data-word="mash.missing.startWith">{t("mash.missing.startWith")}</p>
+      <ul>
+        {starts.map(([key, path]) => (
+          <li><a href={`/${path}`} data-path={path} data-word={key}>{t(key)}</a></li>
+        ))}
+      </ul>
+    </nav>
   </div>
 </StarlightPage>
 
@@ -72,102 +92,169 @@ const t = (key: string) => english[key] ?? "";
   if (entry) {
     const say = (key) => entry.strings[key];
     document.documentElement.lang = entry.lang;
-    const title = document.getElementById("_top");
-    if (title) title.textContent = say("mash.missing.title");
     document.title = document.title.replace(/^[^|]+/, `${say("mash.missing.title")} `);
-    for (const element of document.querySelectorAll("[data-word]")) {
+    for (const element of document.querySelectorAll(".mash-missing [data-word]")) {
       element.textContent = say(element.dataset.word);
     }
     for (const link of document.querySelectorAll(".mash-missing [data-path]")) {
       link.href = `/${locale}/${link.dataset.path}`;
     }
-    // The header's link to the guides, a word after its icon.
-    for (const link of document.querySelectorAll('header a.mash-nav[href="/guides/"]')) {
+    // The header's link to the guides.
+    for (const link of document.querySelectorAll('header a[href="/guides/"]')) {
       link.href = `/${locale}/guides/`;
-      const word = [...link.childNodes].findLast((node) => node.nodeType === Node.TEXT_NODE);
-      if (word) word.textContent = say("mash.nav.docs");
+      link.textContent = say("mash.nav.docs");
     }
   }
 </script>
 
 <style>
   .mash-missing {
-    display: grid;
-    justify-items: start;
-    gap: 1.5rem;
-    max-width: 36rem;
-    padding-block: 1rem 3rem;
-  }
-  .mash-missing .lead {
-    margin: 0;
-    font-size: 1.1875rem;
-  }
-  .actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.875rem;
-  }
-  .actions :global(.sl-link-button),
-  .find {
-    display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 0.4375rem;
-    height: 2.875rem;
+    max-width: 35rem;
+    margin: 0 auto;
+    padding: 3.5rem 0 5rem;
+    text-align: center;
+  }
+  .mash-missing > :global(*) {
     margin: 0;
-    padding: 0 1.25rem;
-    border: var(--border-outline);
-    border-radius: var(--radius-large);
-    background: var(--surface-paper);
-    color: var(--text-ink);
-    font: inherit;
-    font-size: 1rem;
+  }
+  .mash-missing :global(.art) {
+    display: block;
+    width: 10.5rem;
+    height: 10.5rem;
+  }
+  .code {
+    margin-top: 1.75rem;
+    color: var(--text-faint);
+    font: 500 0.8125rem / 1 var(--type-mono);
+  }
+  h1 {
+    margin-top: 0.75rem;
+    font-size: 2.75rem;
     font-weight: 600;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
+    line-height: 1.06;
+    letter-spacing: -0.04em;
   }
-  .actions :global(.sl-link-button.primary) {
-    border-color: var(--line-ink);
-    background: var(--fill-peach);
-    color: var(--text-on-fill);
+  .lead {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    font-size: 1.125rem;
+    line-height: 1.6;
   }
-  .actions :global(.sl-link-button:hover),
+  .find {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    height: 3rem;
+    margin-top: 2rem;
+    padding: 0 0.625rem 0 1rem;
+    border: 0;
+    border-radius: var(--radius-6);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-faint);
+    font: 400 0.9375rem / 1 var(--type-sans);
+    cursor: text;
+  }
+  .find span {
+    flex: 1;
+    text-align: start;
+  }
   .find:hover {
-    background: var(--surface-cream);
-  }
-  .actions :global(.sl-link-button.primary:hover) {
-    background: var(--action-hover-bg);
-  }
-  .find:focus-visible {
-    outline: var(--stroke-outline) solid var(--line-ink);
-    outline-offset: 2px;
+    color: var(--text-strong);
   }
   .find kbd {
-    margin-inline-start: 0.25rem;
     padding: 0.1875rem 0.3125rem;
-    border: var(--border-fill);
-    border-radius: var(--radius-key);
-    background: var(--fill-sticker-cream);
-    color: var(--text-on-fill);
-    font-family: var(--type-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
+    border-radius: var(--radius-2);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-kbd);
+    color: var(--text-secondary);
+    font: 500 0.6875rem / 1 var(--type-mono);
   }
   @media (hover: none), (pointer: coarse) {
     .find kbd {
       display: none;
     }
   }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+    margin-top: 1.25rem;
+  }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.625rem;
+    padding: 0 1.125rem;
+    border-radius: var(--radius-5);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .button:hover {
+    background: var(--surface-hover);
+  }
+  .button.primary {
+    background: var(--action-bg);
+    box-shadow: var(--shadow-button);
+    color: var(--action-text);
+  }
+  .button.primary:hover {
+    background: var(--action-hover-bg);
+  }
+  .starts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+  }
+  .starts p {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .starts ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .starts li {
+    margin: 0;
+  }
+  .starts a {
+    display: inline-flex;
+    align-items: center;
+    height: 2rem;
+    padding: 0 0.625rem;
+    border-radius: var(--radius-4);
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-decoration: none;
+  }
+  .starts a:hover {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
   @media (width < 40rem) {
-    .actions {
-      flex-direction: column;
-      align-self: stretch;
-      width: 100%;
+    .mash-missing {
+      padding-top: 2rem;
     }
-    .actions :global(.sl-link-button),
-    .find {
-      width: 100%;
+    h1 {
+      font-size: 2.25rem;
     }
   }
 </style>

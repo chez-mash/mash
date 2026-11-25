@@ -13,5 +13,11 @@
   "mash.footer.help": "Get help",
   "mash.missing.title": "Page not found",
   "mash.missing.lead": "There is no page at this address. It may have moved, or the link may have a typo.",
-  "mash.missing.home": "Home"
+  "mash.missing.home": "Home",
+  "mash.nav.label": "Site",
+  "mash.download.mac": "Download for Mac",
+  "mash.missing.startWith": "Or start with",
+  "mash.missing.quickStart": "Quick start",
+  "mash.missing.downloads": "Download and verify",
+  "mash.missing.compare": "Why Mash"
 }

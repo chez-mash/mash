@@ -23,10 +23,12 @@ function trail(entries: readonly Entry[]): string[] | undefined {
 const { hasSidebar, sidebar } = Astro.locals.starlightRoute;
 const groups = (hasSidebar && trail(sidebar)) || [];
 const title = Astro.locals.starlightRoute.entry.data.title;
+// The missing page draws its own title under its picture (pages/404.astro).
+const missing = Astro.locals.starlightRoute.id === "404";
 ---
 
 {
-  groups.length > 0 && (
+  !missing && groups.length > 0 && (
     <nav class="mash-crumbs" aria-label={Astro.locals.t("mash.crumbs")}>
       <ol>
         {groups.map((label) => (
@@ -40,7 +42,7 @@ const title = Astro.locals.starlightRoute.entry.data.title;
     </nav>
   )
 }
-<Default />
+{!missing && <Default />}
 
 <style>
   .mash-crumbs ol {
@@ -51,9 +53,9 @@ const title = Astro.locals.starlightRoute.entry.data.title;
     margin: 0;
     padding: 0;
     list-style: none;
-    color: var(--text-muted);
+    color: var(--text-faint);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 500;
   }
   .mash-crumbs li {
     display: inline-flex;

@@ -4,8 +4,8 @@
 // after every guide, where a visitor would have to scroll past thirty entries
 // to reach them. From 50rem wide the header holds them and this block hides.
 //
-// Each top-level section also gets an icon on a coloured tile, as the
-// dashboard's rail does. Starlight's sidebar config has no icon field, so the
+// Each top-level section also gets a quiet line icon before its label, as
+// the dashboard's rail does. Starlight's sidebar config has no icon field, so the
 // icons are matched to the sections by position. The English labels below pin
 // that order: an English page fails the build if the sections change without
 // this list changing with them.
@@ -19,36 +19,30 @@ const { sidebar, lang } = Astro.locals.starlightRoute;
 const sections = [
   {
     label: "Start here",
-    tile: "--tile-start",
     shapes:
       '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>',
   },
   {
     label: "Dashboard",
-    tile: "--tile-dashboard",
     shapes:
       '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
   },
   {
     label: "Search",
-    tile: "--tile-search",
     shapes: '<path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>',
   },
   {
     label: "Agents and memory",
-    tile: "--tile-agents",
     shapes:
       '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
   },
   {
     label: "Maintenance",
-    tile: "--tile-maintenance",
     shapes:
       '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>',
   },
   {
     label: "Reference",
-    tile: "--tile-reference",
     shapes:
       '<path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/>',
   },
@@ -68,7 +62,7 @@ if (lang === "en") {
     );
 }
 
-// The icon is a mask over the tile's ink, so it takes the theme's icon colour;
+// The icon is a mask over the label's colour, so it follows the theme;
 // currentColor only makes the mask's strokes opaque.
 const mask = (shapes: string) =>
   `url("data:image/svg+xml,${encodeURIComponent(
@@ -79,7 +73,7 @@ const rules = sections
     const group = groups[index];
     return group
       ? [
-          `.mash-sidebar .top-level > li:nth-child(${group.position}) > details > summary .group-label { --mash-tile: var(${section.tile}); --mash-icon: ${mask(section.shapes)}; }`,
+          `.mash-sidebar .top-level > li:nth-child(${group.position}) > details > summary .group-label { --mash-icon: ${mask(section.shapes)}; }`,
         ]
       : [];
   })
@@ -107,36 +101,24 @@ const rules = sections
     row-gap: 0;
     min-width: 0;
   }
-  /* A section's tile sits before its label: the tile colour behind, the icon
-     drawn in ink through a mask. */
+  /* A section's icon sits before its label, drawn in the label's quiet
+     colour through a mask. */
   .mash-sidebar :global(.top-level > li > details > summary .group-label) {
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-height: 1.75rem;
-    padding-inline-start: 2.375rem;
+    min-height: 1.25rem;
+    padding-inline-start: 1.5rem;
   }
-  .mash-sidebar :global(.top-level > li > details > summary .group-label)::before,
   .mash-sidebar :global(.top-level > li > details > summary .group-label)::after {
     content: "";
     position: absolute;
     inset-inline-start: 0;
     top: 50%;
+    width: 0.9375rem;
+    height: 0.9375rem;
     translate: 0 -50%;
-  }
-  .mash-sidebar :global(.top-level > li > details > summary .group-label)::before {
-    width: 1.75rem;
-    height: 1.75rem;
-    box-sizing: border-box;
-    border: var(--border-fill);
-    border-radius: var(--radius-1);
-    background: var(--mash-tile, transparent);
-  }
-  .mash-sidebar :global(.top-level > li > details > summary .group-label)::after {
-    inset-inline-start: 0.375rem;
-    width: 1rem;
-    height: 1rem;
-    background: var(--tile-icon);
+    background: var(--text-faint);
     mask: var(--mash-icon, none) center / contain no-repeat;
   }
 </style>

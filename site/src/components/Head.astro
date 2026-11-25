@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import DefaultHead from "@astrojs/starlight/components/Head.astro";
+import { tagline } from "../brand.ts";
 
 // The card that link previews show: the landing page's hero.
 const card = new URL("/og.png", Astro.site);
@@ -10,12 +11,22 @@ const card = new URL("/og.png", Astro.site);
 <meta property="og:image" content={card} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Your agents forget. Mash doesn’t." />
+<meta property="og:image:alt" content={tagline} />
 <meta name="twitter:image" content={card} />
 <ClientRouter fallback="swap" />
 
 <script>
+  import type { TransitionBeforeSwapEvent } from "astro:transitions/client";
   import type { TransitionBeforePreparationEvent } from "astro:transitions/client";
+
+  // Starlight's pages are built with data-theme="dark", and moving between
+  // pages without a full load copies that attribute across, so each incoming
+  // page keeps the theme the reader has now (light, dark, or the system's).
+  document.addEventListener("astro:before-swap", (event) => {
+    const { newDocument } = event as TransitionBeforeSwapEvent;
+    const theme = document.documentElement.dataset.theme;
+    if (theme) newDocument.documentElement.dataset.theme = theme;
+  });
 
   // Search keeps its translated UI and index for the lifetime of the document.
   document.addEventListener("astro:before-preparation", (event) => {

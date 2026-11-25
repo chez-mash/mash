@@ -11,10 +11,10 @@ importers:
       '@astrojs/starlight':
         specifier: 0.42.9
         version: 0.42.9(astro@7.4.7(@types/node@24.19.2)(yaml@2.9.1))(typescript@7.0.2)
-      '@fontsource/geist-mono':
+      '@fontsource/geist':
         specifier: 5.3.0
         version: 5.3.0
-      '@fontsource/space-grotesk':
+      '@fontsource/geist-mono':
         specifier: 5.3.0
         version: 5.3.0
       astro:
@@ -435,8 +435,8 @@ packages:
   '@fontsource/geist-mono@5.3.0':
     resolution: {integrity: sha512-UtJ1BBBCVpMYdIcW7nEB45UAoAw5M53ZXs2t0ciPW+IokuAAIc56M8+kW5tXbRJCTpDw4XTtU7proT6NdQAHTg==}
 
-  '@fontsource/space-grotesk@5.3.0':
-    resolution: {integrity: sha512-ksnGizDPXIDuvqcTYTSrmZ+evx9sDlS8rp7+42BQ7wU+spt3twEoXfbJz672C+5CLg6VeUQwRy5RXshWb67LcQ==}
+  '@fontsource/geist@5.3.0':
+    resolution: {integrity: sha512-u03ftlfVwb05uijq2jGDJ03/HKGqMKaNFk7KOhkpBUex8+BhrAOfMs/XciJ2UUNUX9fEsZbZQld/RWMA2oFU7g==}
 
   '@hono/node-server@2.1.11':
     resolution: {integrity: sha512-KzKz9vl4vvr1vgLHamj+g5uonbrj5NwAdO3yzOS6cd2HjALVeOgTgeZOyAzNxejbkfOOPIcvuf/Tg8l1pEFLog==}
@@ -3012,7 +3012,7 @@ snapshots:
 
   '@fontsource/geist-mono@5.3.0': {}
 
-  '@fontsource/space-grotesk@5.3.0': {}
+  '@fontsource/geist@5.3.0': {}
 
   '@hono/node-server@2.1.11(hono@4.13.20)':
     dependencies:

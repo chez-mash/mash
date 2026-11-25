@@ -1,0 +1,25 @@
+---
+// An operating system's mark (src/art/os, the dashboard's files), drawn in
+// the current text colour so it follows the theme: ink on light, porcelain
+// on dark, and the action's text colour inside a button.
+import apple from "../art/os/apple.svg?raw";
+import linux from "../art/os/linux.svg?raw";
+import windows from "../art/os/windows.svg?raw";
+
+const marks = { macos: apple, linux, windows } as const;
+
+interface Props {
+  system: keyof typeof marks;
+  size?: string;
+}
+const { system, size = "1em" } = Astro.props;
+const svg = marks[system]
+  .replace(/<title>.*?<\/title>/s, "")
+  .replace(/\srole="[^"]*"/, "")
+  .replace(
+    "<svg",
+    `<svg class="os-mark" data-system="${system}" width="${size}" height="${size}" fill="currentColor" aria-hidden="true" focusable="false"`,
+  );
+---
+
+<Fragment set:html={svg} />

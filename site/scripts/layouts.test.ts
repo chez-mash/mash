@@ -59,4 +59,14 @@ describe("website page layouts", () => {
     expect(result.match(/mash-pill ok/g)).toHaveLength(2);
     expect(result.match(/data-agent=/g)).toHaveLength(1);
   });
+
+  it("puts a system's mark before a table row that starts with its name", () => {
+    const result = render(
+      "| Computer | Download |\n| --- | --- |\n| Mac with Apple silicon | [a](a) |\n| Linux ARM64 | [b](b) |\n| Other | [c](c) |\n",
+      "downloads",
+    );
+    expect(result).toContain('data-system="macos"');
+    expect(result).toContain('data-system="linux"');
+    expect(result.match(/data-system=/g)).toHaveLength(2);
+  });
 });

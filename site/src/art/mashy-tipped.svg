@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -8 96 80" overflow="visible">
+  <title>Mashy, tipped over</title>
+  <!-- Mashy tipped over, his pat of butter slid off: the missing page. -->
+  <ellipse cx="44" cy="69" rx="34" ry="3.5" fill="#14130f" fill-opacity="0.07"/>
+  <g transform="rotate(-72 32 40) translate(-6 2)">
+    <path d="M12 31C11 26 15 22.5 20 23.5C21 18.5 27 16.5 31 19.5C35 15.5 42.5 17 43.5 22.5C48.5 21.5 53 25.5 52 31Z" fill="#fff1d0" stroke="#1a1915" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M19.5 27.5C22 25 25.5 25 28 27S34 29.2 38 26.5" fill="none" stroke="#d4a73e" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M8 31H56A24 21 0 0 1 8 31Z" fill="#7f8fcb" stroke="#1a1915" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="25" cy="39" r="2.2" fill="#1a1915"/>
+    <circle cx="39" cy="39" r="2.2" fill="#1a1915"/>
+    <path d="M29 45.5Q32 43 35 45.5" fill="none" stroke="#1a1915" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <rect x="58" y="56" width="15" height="11" rx="3" fill="#f5c84b" stroke="#1a1915" stroke-width="2" transform="rotate(14 65.5 61.5)"/>
+</svg>

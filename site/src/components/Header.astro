@@ -1,65 +1,224 @@
 ---
-// Starlight's header, plus a menu for pages without a sidebar (the landing
-// page and the guides directory) on a phone, where the header's links and
-// language picker do not fit. Docs pages keep Starlight's own menu
-// button, which opens the sidebar with the same controls at its top.
-import Default from "@astrojs/starlight/components/Header.astro";
+// The site header, as the wireframes draw it: the blue tile and the lowercase
+// name whose full stop is a pat of butter, "Docs" beside it on the docs pages,
+// search in the middle, then the guides and the source, the theme and
+// language menus, and the desktop app for the Mac in ink.
+//
+// On the landing page the header sits on the hero's light (it scrolls away
+// with the page) and search is hidden, but kept mounted so its shortcut and
+// query survive moving between pages. On a phone, pages without a sidebar
+// (the landing page and the guides directory) get a menu holding the links
+// and both menus; docs pages keep Starlight's menu button, which opens the
+// sidebar with the same controls at its top.
+import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
+import LineIcon from "./LineIcon.astro";
+import OsMark from "./OsMark.astro";
+import Search from "./Search.astro";
 import SocialIcons from "./SocialIcons.astro";
 
-const { hasSidebar } = Astro.locals.starlightRoute;
+const { hasSidebar, entry, locale } = Astro.locals.starlightRoute;
+const home = entry.data.template === "splash" && entry.data.hero !== undefined;
+const base = locale ? `/${locale}/` : "/";
+const t = Astro.locals.t;
 ---
 
 <!-- The copy buttons on code blocks show this word beside their icon. -->
-<style is:inline set:html={`:root{--mash-copy-label:${JSON.stringify(Astro.locals.t("mash.copy"))}}`}></style>
-<div class="mash-header">
+<style is:inline set:html={`:root{--mash-copy-label:${JSON.stringify(t("mash.copy"))}}`}></style>
+<div class:list={["mash-header", { home }]}>
   {
     !hasSidebar && (
       <details class="mash-menu">
-        <summary aria-label={Astro.locals.t("mash.menu")}>
-          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        <summary aria-label={t("mash.menu")}>
+          <LineIcon name="equal" size="1.125rem" />
         </summary>
         <div class="panel">
           <nav class="links"><SocialIcons /></nav>
           <div class="controls">
+            <ThemeSelect />
             <LanguageSelect />
           </div>
         </div>
       </details>
     )
   }
-  <div class="bar"><Default {...Astro.props} /></div>
+  <a class="brand" href={base}>
+    <img src="/mash-mark.svg" alt="" width="22" height="22" />
+    <span class="name">mash<i class="pat" aria-hidden="true"></i></span>
+    {!home && <span class="section">{t("mash.nav.docs")}</span>}
+  </a>
+  <div class="search"><Search /></div>
+  <nav class="links wide" aria-label={t("mash.nav.label")}>
+    <a href={`${base}guides/`}>{t("mash.nav.docs")}</a>
+    <a href="https://github.com/mashhq/mash" rel="me">GitHub</a>
+  </nav>
+  <div class="prefs wide">
+    <ThemeSelect />
+    <LanguageSelect />
+  </div>
+  <a class="download" href="/downloads/#desktop-app">
+    <OsMark system="macos" />
+    <span>{t("mash.download.mac")}</span>
+  </a>
 </div>
 
 <style>
   .mash-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.75rem 1rem;
     height: 100%;
   }
-  .bar {
+  .brand {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5625rem;
+    color: var(--brand-name);
+    text-decoration: none;
+  }
+  .brand img {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+  .name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  /* The wordmark's full stop is the pat of butter from the logo: a small
+     rounded square, tilted as in the mark, sitting on the baseline. */
+  .pat {
+    display: inline-block;
+    width: 0.26em;
+    height: 0.24em;
+    margin-inline-start: 0.07em;
+    border-radius: var(--radius-1);
+    background: var(--brand-pat);
+    transform: rotate(-9deg);
+  }
+  .section {
+    margin-inline-start: 0.125rem;
+    color: var(--text-faint);
+    font-size: 0.875rem;
+  }
+  .search {
+    display: flex;
     flex: 1;
+    justify-content: center;
     min-width: 0;
-    height: 100%;
   }
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+  }
+  .links a {
+    display: flex;
+    align-items: center;
+    height: 2rem;
+    padding: 0 0.625rem;
+    border-radius: var(--radius-4);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    text-decoration: none;
+  }
+  .links a:hover {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+  .prefs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* The desktop app, in ink with the Apple mark in the action's text colour. */
+  .download {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.4375rem;
+    height: 2rem;
+    padding: 0 0.875rem;
+    border-radius: var(--radius-4);
+    background: var(--action-bg);
+    box-shadow: var(--shadow-button);
+    color: var(--action-text);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .download:hover {
+    background: var(--action-hover-bg);
+  }
+  .download :global(svg) {
+    width: 0.8125rem;
+    height: 0.8125rem;
+  }
+
+  /* On the landing page: the links follow the name, search is hidden, and
+     the download sits at the far end. */
+  .home .search {
+    order: 2;
+    visibility: hidden;
+  }
+  .home .links.wide {
+    order: 1;
+    margin-inline-start: 0.75rem;
+  }
+  .home .prefs,
+  .home .download {
+    order: 3;
+  }
+  .home .links a {
+    font-size: 0.875rem;
+  }
+
   .mash-menu {
     display: none;
   }
+  @media (width < 72rem) {
+    .prefs.wide {
+      display: none;
+    }
+  }
   @media (width < 50rem) {
+    .wide,
+    .download {
+      display: none;
+    }
+    /* The landing page keeps its link to the guides beside the menu. */
+    .home .links.wide {
+      display: flex;
+      order: 3;
+      margin-inline-start: auto;
+    }
+    .home .links.wide a + a {
+      display: none;
+    }
     .mash-menu {
       display: block;
+      order: 5;
+    }
+    .search {
+      flex: 0;
+      order: 3;
+      margin-inline-start: auto;
+    }
+    .home .search {
+      display: none;
     }
   }
   .mash-menu summary {
     display: grid;
     place-items: center;
-    width: 2.375rem;
-    height: 2.375rem;
-    border: var(--border-outline);
-    border-radius: var(--radius-2);
-    background: var(--surface-paper);
-    color: var(--text-ink);
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
     list-style: none;
     cursor: pointer;
   }
@@ -73,10 +232,10 @@ const { hasSidebar } = Astro.locals.starlightRoute;
     display: grid;
     gap: 1rem;
     padding: 1rem var(--sl-nav-pad-x) 1.25rem;
-    border-bottom: var(--border-outline);
-    background: var(--surface-side);
+    background: var(--surface-page);
+    box-shadow: var(--shadow-float);
   }
-  .links {
+  .panel .links {
     display: grid;
   }
   .controls {

@@ -1,25 +1,24 @@
 ---
-// The landing page under the hero: one full-width band per idea, each with a
-// stamped label, a heading and a small window or set of cards drawn as the
-// dashboard draws them. The windows are illustrations: each is one image to
-// assistive technology, named for what it shows.
+// The landing page under the hero: the agents Mash reads, then one band per
+// idea, each with a small mono label, a heading and a window or set of cards
+// drawn as the dashboard draws them. The windows are illustrations: each is
+// one image to assistive technology, named for what it shows. Mashy appears
+// only in his own band and in the closing call to action.
 
 import { Image } from "astro:assets";
-import { Icon } from "@astrojs/starlight/components";
-// Mashy at full size: the artwork in assets/mashy.png, cut out from its white
-// background so it sits on the butter band.
+import type { Agent } from "../../../dashboard/src/lib/types";
 import mashy from "../art/mashy.webp";
 import "../styles/welcome.css";
 import "../styles/welcome-panels.css";
-import ferris from "../art/ferris.svg?raw";
 import qdrant from "../art/stack/qdrant.svg?raw";
 import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
+import AgentTile from "./AgentTile.astro";
 import LineIcon from "./LineIcon.astro";
+import OsMark from "./OsMark.astro";
 
-/** The projects Mash is built on, shown under Ferris, each with its logo and
- * linked to its own site. */
+/** The projects Mash is built on, each with its logo and linked to its own site. */
 const built = [
   { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)", href: "https://tauri.app/" },
   { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)", href: "https://qdrant.tech/" },
@@ -33,10 +32,76 @@ function mark(svg: string): string {
     .replace(/\srole="[^"]*"/, "")
     .replace("<svg", '<svg fill="currentColor" aria-hidden="true" focusable="false"');
 }
+
+/** The quick search panel's results: a made-up history, as in the demo. */
+const quick: { agent: Agent; title: string; where: string; when: string }[] = [
+  {
+    agent: "claude-code",
+    title: "Sign-in tokens for web and mobile",
+    where: "billing-api · laptop",
+    when: "2d",
+  },
+  {
+    agent: "codex",
+    title: "Mobile auth: keychain or secure storage",
+    where: "mobile · workstation",
+    when: "5d",
+  },
+  {
+    agent: "cursor",
+    title: "Keychain access group for the share extension",
+    where: "mobile · mini",
+    when: "3w",
+  },
+  {
+    agent: "copilot",
+    title: "Rotate webhook signing secrets",
+    where: "billing-api · laptop",
+    when: "Nov 12",
+  },
+  {
+    agent: "claude-code",
+    title: "Session cookie lifetime on the admin site",
+    where: "admin · workstation",
+    when: "Oct 30",
+  },
+];
 ---
 
 <div class="mash-welcome not-content">
   <Agents />
+
+  <section class="band" id="welcome-shortcuts" aria-labelledby="welcome-shortcuts-title">
+    <div class="wrapper shortcuts" data-reveal>
+      <h2 id="welcome-shortcuts-title">Take shortcuts, not detours. <span class="quiet">Press ⌥ ⇧ Space and the chat you need is one line away.</span></h2>
+      <div class="desk" role="img"
+        aria-label="The Mash desktop app's search panel under the menu bar: the search ‘refresh token’ lists five chats from Claude Code, Codex, Cursor and GitHub Copilot across three machines.">
+        <div class="desk-screen" aria-hidden="true">
+          <i class="glow butter"></i><i class="glow sky"></i><i class="glow peach"></i>
+          <div class="menubar">
+            <b>Mash</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span>
+            <img class="tray" src="/mash-mark.svg" alt="" width="18" height="18" />
+            <span class="clock">Wed 25 Nov 10:42</span>
+          </div>
+          <div class="quick">
+            <div class="quick-q"><LineIcon name="search" size="1rem" /><b>refresh token</b><span>All machines</span></div>
+            <p class="quick-h">Best matches</p>
+            <ul>
+              {quick.map((row, index) => (
+                <li class:list={{ on: index === 0 }}>
+                  <AgentTile agent={row.agent} />
+                  <b>{row.title}</b>
+                  <span class="where">{row.where}</span>
+                  <span class="when">{row.when}</span>
+                </li>
+              ))}
+            </ul>
+            <div class="quick-f"><span>Open chat <kbd>↵</kbd></span><i></i><span>Open Mash <kbd>⌘</kbd><kbd>O</kbd></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="band" id="welcome-search" aria-labelledby="welcome-search-title">
     <div class="wrapper split" data-reveal>
@@ -44,39 +109,42 @@ function mark(svg: string): string {
         aria-label="The example search ‘Why does checkout keep failing?’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines.">
         <div class="window-h" aria-hidden="true"><u></u><u></u><u></u><span>mash · search</span></div>
         <div class="window-b" aria-hidden="true">
-          <div class="query"><Icon name="magnifier" size="1rem" /><b>Why does checkout keep failing?</b><span class="go"><Icon name="right-arrow" size="0.875rem" /></span></div>
+          <div class="query"><LineIcon name="search" size="1rem" /><b>Why does checkout keep failing?</b></div>
           <div class="result">
-            <p class="who"><span class="mash-agent-tile" data-agent="claude-code"></span><b>Checkout outage review</b><span>build-box · 2d</span></p>
+            <p class="who"><AgentTile agent="claude-code" /><b>Checkout outage review</b><span><OsMark system="windows" />build-box · 2d</span></p>
             <p>The migration held a lock on <mark>checkout</mark> orders for four minutes, so every request <mark>failed</mark> until it finished.</p>
           </div>
           <div class="result">
-            <p class="who"><span class="mash-agent-tile" data-agent="codex"></span><b>Fix the flaky checkout test</b><span>workstation · 1d</span></p>
+            <p class="who"><AgentTile agent="codex" /><b>Fix the flaky checkout test</b><span><OsMark system="linux" />workstation · 1d</span></p>
             <p>The test <mark>keeps failing</mark> because it shares a cart with the test before it.</p>
           </div>
           <div class="result">
-            <p class="who"><span class="mash-agent-tile" data-agent="cursor"></span><b>Retry payments after a timeout</b><span>laptop · 6d</span></p>
+            <p class="who"><AgentTile agent="cursor" /><b>Retry payments after a timeout</b><span><OsMark system="macos" />laptop · 6d</span></p>
             <p>Added one retry when the payment provider times out during <mark>checkout</mark>.</p>
           </div>
         </div>
       </div>
       <div class="words">
-        <span class="stamp">Search</span>
+        <span class="kicker">Search</span>
         <h2 id="welcome-search-title">Find it. <span class="quiet">However you remember it.</span></h2>
         <ul class="points">
-          <li><span class="ico"><Icon name="comment-alt" /></span>By meaning, with optional local models.</li>
-          <li><span class="ico"><Icon name="magnifier" /></span>By the exact words.</li>
-          <li><span class="ico"><Icon name="server" /></span>Across machines through a server you run.</li>
+          <li><span class="ico"><LineIcon name="message-square" /></span>By meaning, with optional local models.</li>
+          <li><span class="ico"><LineIcon name="search" /></span>By the exact words.</li>
+          <li><span class="ico"><LineIcon name="server" /></span>Across machines through a server you run.</li>
         </ul>
         <a class="more" href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
       </div>
     </div>
   </section>
 
-  <section class="band lilac" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
+  <section class="band tint mashy-band" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
     <div class="wrapper split reverse" data-reveal>
       <div class="words">
-        <span class="stamp">Dashboard</span>
-        <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask anything about your chats.</span></h2>
+        <div class="mashy-head">
+          <Image src={mashy} alt="" width={144} class="mashy-face" />
+          <span class="kicker">Dashboard</span>
+        </div>
+        <h2 id="welcome-mashy-title">Meet Mashy. <span class="quiet">Ask anything about your chats.</span></h2>
         <p class="blurb">
           Mashy searches your chats, smooth as butter. He can help you remember what you were
           doing last week or cross-reference between chats. Plus, he’s super cute!
@@ -86,7 +154,7 @@ function mark(svg: string): string {
       <div class="mashy-carousel" data-mashy-chat>
         <div class="window mashy-window" role="img"
           aria-label="Three example questions to the read-only assistant, each answered with a quote from the chat it came from: the checkout outage traced to a database migration in Claude Code, yesterday’s flaky test fix in Codex, and a payment retry added in Cursor.">
-          <div class="window-h" aria-hidden="true"><img src="/mashy.png" alt="" width="26" height="24" /><span>Ask Mashy</span></div>
+          <div class="window-h" aria-hidden="true"><u></u><u></u><u></u><span>Ask Mashy</span></div>
           <div class="window-b" aria-hidden="true">
             <div class="examples">
             <div class="example" data-example="1">
@@ -96,7 +164,7 @@ function mark(svg: string): string {
                 <div>
                   <p>A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:</p>
                   <div class="quote">
-                    <p class="who"><span class="mash-agent-tile" data-agent="claude-code"></span><b>Checkout outage review</b><span>build-box</span></p>
+                    <p class="who"><AgentTile agent="claude-code" /><b>Checkout outage review</b><span><OsMark system="windows" />build-box</span></p>
                     <p>“The migration takes an exclusive lock, so checkout writes queue behind it.”</p>
                     <span class="fake-link">Open the message ›</span>
                   </div>
@@ -110,7 +178,7 @@ function mark(svg: string): string {
                 <div>
                   <p>You were fixing the flaky checkout test with Codex on the workstation. It ended with the cause:</p>
                   <div class="quote">
-                    <p class="who"><span class="mash-agent-tile" data-agent="codex"></span><b>Fix the flaky checkout test</b><span>workstation</span></p>
+                    <p class="who"><AgentTile agent="codex" /><b>Fix the flaky checkout test</b><span><OsMark system="linux" />workstation</span></p>
                     <p>“The test keeps failing because it shares a cart with the test before it.”</p>
                     <span class="fake-link">Open the message ›</span>
                   </div>
@@ -124,7 +192,7 @@ function mark(svg: string): string {
                 <div>
                   <p>Yes. Cursor added it on the laptop, for when the payment provider times out during checkout:</p>
                   <div class="quote">
-                    <p class="who"><span class="mash-agent-tile" data-agent="cursor"></span><b>Retry payments after a timeout</b><span>laptop</span></p>
+                    <p class="who"><AgentTile agent="cursor" /><b>Retry payments after a timeout</b><span><OsMark system="macos" />laptop</span></p>
                     <p>“Added one retry when the payment provider times out during checkout.”</p>
                     <span class="fake-link">Open the message ›</span>
                   </div>
@@ -132,15 +200,14 @@ function mark(svg: string): string {
               </div>
             </div>
             </div>
-            <div class="ask"><span>Ask about your chats</span><span class="send">Ask</span></div>
           </div>
         </div>
         <div class="pager" hidden>
-          <button type="button" class="pager-go" data-go="-1" aria-label="Previous example"><Icon name="left-arrow" size="1rem" /></button>
+          <button type="button" class="pager-go" data-go="-1" aria-label="Previous example"><LineIcon name="arrow-left" size="0.875rem" /></button>
           {[1, 2, 3].map((example) => (
             <button type="button" class="dot" data-example-to={example} aria-label={`Show example ${example} of 3`}></button>
           ))}
-          <button type="button" class="pager-go" data-go="1" aria-label="Next example"><Icon name="right-arrow" size="1rem" /></button>
+          <button type="button" class="pager-go" data-go="1" aria-label="Next example"><LineIcon name="arrow-right" size="0.875rem" /></button>
         </div>
       </div>
     </div>
@@ -151,22 +218,22 @@ function mark(svg: string): string {
       <div class="memory-thread" role="img"
         aria-label="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session.">
         <p class="bubble said" aria-hidden="true">OK, go with the tokens. Keep the mobile app on the same scheme.</p>
-        <p class="step" aria-hidden="true"><Icon name="down-arrow" size="1rem" />saved with your message as evidence</p>
+        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />saved with your message as evidence</p>
         <div class="record" aria-hidden="true">
-          <p class="pills"><span class="mash-pill butter">decision</span><span class="mash-pill ok">accepted</span><span class="mash-pill">established</span></p>
+          <p class="pills"><span class="pill butter">decision</span><span class="pill ok">accepted</span><span class="pill">established</span></p>
           <p class="statement">Sign-in uses fifteen-minute access tokens with a server-held refresh token.</p>
           <dl>
             <dt>why</dt><dd>Chosen so that signing out reaches every device within fifteen minutes.</dd>
             <dt>evidence</dt><dd>you said this (endorsement) · <span class="fake-link">open the message</span></dd>
           </dl>
         </div>
-        <p class="step" aria-hidden="true"><Icon name="down-arrow" size="1rem" />comes back in a later session</p>
-        <p class="later" aria-hidden="true"><span class="mash-agent-tile" data-agent="codex"></span>Codex: “Found the decision in Mash: tokens, mobile follows.”</p>
+        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />comes back in a later session</p>
+        <p class="later" aria-hidden="true"><AgentTile agent="codex" />Codex: “Found the decision in Mash: tokens, mobile follows.”</p>
       </div>
       <div class="words">
-        <span class="stamp">Memory</span>
+        <span class="kicker">Memory</span>
         <h2 id="welcome-memory-title">Save the decision. <span class="quiet">Keep the source.</span></h2>
-        <ol class="points">
+        <ol class="points steps">
           <li><span class="ico">1</span>You say it.</li>
           <li><span class="ico">2</span>Ask the plugin to save the decision with your message as evidence.</li>
           <li><span class="ico">3</span>The decision can come back in a later session.</li>
@@ -176,10 +243,10 @@ function mark(svg: string): string {
     </div>
   </section>
 
-  <section class="band" id="welcome-speed" aria-labelledby="welcome-speed-title">
+  <section class="band tint" id="welcome-speed" aria-labelledby="welcome-speed-title">
     <div class="wrapper stack" data-reveal>
       <div class="head">
-        <span class="stamp">Performance</span>
+        <span class="kicker">Performance</span>
         <h2 id="welcome-speed-title">Fast, and light on your machine.</h2>
       </div>
       <dl class="stats">
@@ -189,18 +256,18 @@ function mark(svg: string): string {
           <dd>for an exact-phrase search, at its quickest</dd>
         </div>
         <div>
-          <span class="ico"><Icon name="database" /></span>
+          <span class="ico"><LineIcon name="database" /></span>
           <dt><b>103</b><small>k</small></dt>
           <dd>messages from 1,137 chats, searched in one index on one machine</dd>
         </div>
         <div>
           <span class="ico"><LineIcon name="chip" /></span>
-          <dt><b>5</b>×</dt>
+          <dt><b>5</b><small>×</small></dt>
           <dd>embedding throughput on a Windows GPU</dd>
         </div>
         <div>
-          <span class="ico"><Icon name="rocket" /></span>
-          <dt><b>9</b>×</dt>
+          <span class="ico"><LineIcon name="rocket" /></span>
+          <dt><b>9</b><small>×</small></dt>
           <dd>embedding throughput with an experimental NVIDIA worker</dd>
         </div>
       </dl>
@@ -230,7 +297,7 @@ function mark(svg: string): string {
     <div class="wrapper stack" data-reveal>
       <div class="privacy-head">
         <div class="head">
-          <span class="stamp">Privacy</span>
+          <span class="kicker">Privacy</span>
           <h2 id="welcome-privacy-title">Self-hosted, end to end. <span class="quiet">No cloud. No account.</span></h2>
         </div>
         <div class="aside">
@@ -243,22 +310,22 @@ function mark(svg: string): string {
       </div>
       <ul class="cards">
         <li>
-          <span class="ico"><Icon name="laptop" /></span>
+          <span class="ico"><LineIcon name="laptop" /></span>
           <h3>Runs on your machine</h3>
           <p>Indexing and search work offline once the local search service is running.</p>
         </li>
         <li>
-          <span class="ico"><Icon name="server" /></span>
+          <span class="ico"><LineIcon name="server" /></span>
           <h3>Your own server</h3>
           <p>For search across machines, share through a Mash server you run.</p>
         </li>
         <li>
-          <span class="ico"><Icon name="setting" /></span>
+          <span class="ico"><LineIcon name="power" /></span>
           <h3>Off until you turn it on</h3>
           <p>Sharing, remote workers and Mashy are each a choice you make.</p>
         </li>
         <li>
-          <span class="ico"><Icon name="padlock" /></span>
+          <span class="ico"><LineIcon name="key-round" /></span>
           <h3>Credentials masked</h3>
           <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
         </li>
@@ -266,23 +333,23 @@ function mark(svg: string): string {
     </div>
   </section>
 
-  <section class="band" id="welcome-features" aria-labelledby="welcome-features-title">
+  <section class="band tint" id="welcome-features" aria-labelledby="welcome-features-title">
     <div class="wrapper stack" data-reveal>
       <div class="head">
-        <span class="stamp">And more</span>
+        <span class="kicker">And more</span>
         <h2 id="welcome-features-title">Fits the way you work.</h2>
       </div>
       <div class="tiles">
-        <article class="big">
-          <span class="ico"><Icon name="puzzle" /></span>
+        <article>
+          <span class="ico"><LineIcon name="plug" /></span>
           <h3>Context, before you ask.</h3>
           <p>
             The <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> brings earlier
             decisions and discussions into new sessions.
           </p>
         </article>
-        <article class="big">
-          <span class="ico"><Icon name="random" /></span>
+        <article>
+          <span class="ico"><LineIcon name="layers" /></span>
           <h3>RAG over your own history.</h3>
           <p>
             <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
@@ -290,17 +357,17 @@ function mark(svg: string): string {
           </p>
         </article>
         <article>
-          <span class="icos"><span class="ico" title="macOS"><Icon name="apple" /></span><span class="ico" title="Linux"><Icon name="linux" /></span><span class="ico" title="Windows"><LineIcon name="windows" /></span></span>
+          <span class="systems"><span title="macOS"><OsMark system="macos" /></span><span title="Linux"><OsMark system="linux" /></span><span title="Windows"><OsMark system="windows" /></span></span>
           <h3>macOS. Linux. Windows.</h3>
           <p>The same Mash on each, with the desktop app or the CLI.</p>
         </article>
         <article>
-          <span class="icos"><span class="ico"><Icon name="laptop" /></span><span class="ico"><Icon name="desktop" /></span><span class="ico"><Icon name="server" /></span></span>
+          <span class="ico"><LineIcon name="server" /></span>
           <h3>Every machine.</h3>
           <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
         </article>
         <article>
-          <span class="icos files" aria-hidden="true"><span class="ico">MD</span><span class="ico">&lt;/&gt;</span><span class="ico">PDF</span></span>
+          <span class="ico"><LineIcon name="download" /></span>
           <h3>Markdown. HTML. PDF.</h3>
           <p>Export any chat.</p>
         </article>
@@ -309,9 +376,9 @@ function mark(svg: string): string {
   </section>
 
   <section class="band" id="welcome-rust" aria-labelledby="welcome-rust-title">
-    <div class="wrapper rust" data-reveal>
+    <div class="wrapper split rust" data-reveal>
       <div class="words">
-        <span class="stamp">Open source</span>
+        <span class="kicker">Open source</span>
         <h2 id="welcome-rust-title">Written with <span class="under">&lt;3</span> in Rust.</h2>
         <p class="blurb">
           Mash is free and open source under the MIT and Apache 2.0 licenses. Ideas, issues and pull
@@ -322,9 +389,8 @@ function mark(svg: string): string {
           <a class="more" href="https://github.com/mashhq/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
         </p>
       </div>
-      <div class="rust-art">
-        <!-- Ferris, Rust's unofficial mascot, drawn in ink on a sticker. -->
-        <span class="ferris-sticker"><Fragment set:html={ferris} /></span>
+      <div class="built-with">
+        <p>Built with</p>
         <ul class="built" aria-label="Built with">
           {built.map((part) => (
             <li>
@@ -339,13 +405,14 @@ function mark(svg: string): string {
     </div>
   </section>
 
-  <section class="band butter close" aria-labelledby="welcome-close">
-    <div class="wrapper closing" data-reveal>
-      <Image src={mashy} alt="Mashy, the Mash mascot" width={384} />
-      <h2 id="welcome-close">Give your agents a memory.</h2>
+  <section class="close" aria-labelledby="welcome-close">
+    <div class="closing" data-reveal>
+      <i class="close-glow" aria-hidden="true"></i>
+      <Image src={mashy} alt="Mashy, the Mash mascot" width={176} />
+      <h2 id="welcome-close">Give your agents their history back.</h2>
       <p class="actions">
-        <a class="button" href="/quick-start/">Get started<Icon name="right-arrow" size="1rem" /></a>
-        <a class="button secondary" href="/guides/">Read the docs<Icon name="right-arrow" size="1rem" /></a>
+        <a class="button" href="/quick-start/"><LineIcon name="rocket" size="1rem" />Get started</a>
+        <a class="button secondary" href="/guides/"><LineIcon name="book-open" size="1rem" />Read the docs</a>
       </p>
     </div>
   </section>

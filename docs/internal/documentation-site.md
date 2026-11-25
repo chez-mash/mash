@@ -137,10 +137,11 @@ the values in `theme.css` and the bundled fonts listed in
 `site/astro.config.mjs`. The dashboard keeps the same arrangement in
 `dashboard/src/theme/`.
 
-There is one theme, the light one. `ThemeProvider.astro` always chooses it,
-whatever the reader's system prefers, and `ThemeSelect.astro` draws nothing,
-so there is no switch. Starlight's built pages say `data-theme="dark"`, so the
-provider also sets light on each page swapped in without a full load.
+There are two themes, light and dark, with the same roles. `theme.css` sets
+the light values on `:root` and the dark ones under `[data-theme="dark"]`;
+Starlight's theme menu in the header offers Auto (follow the system, the
+default), Light and Dark, and remembers the choice. The typefaces are Geist and
+Geist Mono, bundled through `@fontsource`.
 
 ## Local preview and checks
 

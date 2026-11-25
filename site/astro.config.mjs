@@ -1,6 +1,7 @@
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import { docsLocales } from "./scripts/locales.ts";
+import { systemMarks } from "./scripts/systems.ts";
 import { agentationReview } from "./src/agentation.ts";
 
 export default defineConfig({
@@ -20,70 +21,73 @@ export default defineConfig({
         },
         { tag: "link", attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" } },
       ],
-      description: "The Multi-Agent Search History Tool",
+      // The tagline, for pages that give no description of their own.
+      description: "Supercharged context for your agents.",
       locales: docsLocales,
       // src/pages/404.astro draws the missing-page screen without the hero.
       disable404Route: true,
       // src/routeData.ts keeps untranslated pages out of each language's search.
       routeMiddleware: "./src/routeData.ts",
-      // The header is the project logo drawn live: the mark, the name and its
-      // cursor, in the dark colouring or the light one to suit the theme.
+      // The header draws the logo itself (components/Header.astro): the blue
+      // tile, then the lowercase name whose full stop is a pat of butter.
       logo: { src: "./public/mash-mark.svg" },
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/mashhq/mash" }],
       // The fonts are bundled with the site, as they are with the dashboard.
       customCss: [
-        "@fontsource/space-grotesk/latin-400.css",
-        "@fontsource/space-grotesk/latin-500.css",
-        "@fontsource/space-grotesk/latin-600.css",
-        "@fontsource/space-grotesk/latin-700.css",
+        "@fontsource/geist/latin-400.css",
+        "@fontsource/geist/latin-500.css",
+        "@fontsource/geist/latin-600.css",
         "@fontsource/geist-mono/latin-400.css",
         "@fontsource/geist-mono/latin-500.css",
         "./src/styles/theme.css",
         "./src/styles/custom.css",
         "./src/styles/docs.css",
       ],
-      // Code blocks are drawn as the dashboard's windows: an ink outline, and
-      // a cream title bar for a titled or terminal block. docs.css adds the
-      // bar's three dots and the outlined copy button.
+      // Code blocks are raised windows: a hairline ring and a soft shadow, a
+      // bar with the systems' marks beside the title (scripts/systems.ts), and
+      // a quiet copy button. docs.css draws the rest.
       expressiveCode: {
+        plugins: [systemMarks()],
         // Long commands wrap inside the window instead of scrolling sideways.
         defaultProps: { wrap: true, preserveIndent: true },
         styleOverrides: {
-          borderRadius: "var(--radius-3)",
-          borderWidth: "var(--stroke-outline)",
-          borderColor: "var(--line-outline)",
-          codeBackground: "var(--surface-paper)",
+          borderRadius: "var(--radius-7)",
+          borderWidth: "0",
+          borderColor: "transparent",
+          codeBackground: "var(--surface-code)",
           codeFontFamily: "var(--type-mono)",
+          codeFontSize: "0.8125rem",
+          codeLineHeight: "1.8",
           codePaddingBlock: "1rem",
           codePaddingInline: "1.125rem",
-          uiFontFamily: "var(--type-mono)",
-          uiFontWeight: "600",
-          uiFontSize: "0.75rem",
+          uiFontFamily: "var(--type-sans)",
+          uiFontWeight: "500",
+          uiFontSize: "0.8125rem",
           frames: {
             shadowColor: "transparent",
-            frameBoxShadowCssValue: "none",
-            editorBackground: "var(--surface-paper)",
-            editorTabBarBackground: "var(--surface-cream)",
-            editorTabBarBorderColor: "var(--line-outline)",
-            editorTabBarBorderBottomColor: "var(--line-outline)",
-            editorActiveTabBackground: "var(--surface-cream)",
-            editorActiveTabForeground: "var(--text-ink)",
+            frameBoxShadowCssValue: "var(--shadow-float)",
+            editorBackground: "var(--surface-code)",
+            editorTabBarBackground: "var(--surface-code)",
+            editorTabBarBorderColor: "transparent",
+            editorTabBarBorderBottomColor: "var(--line-divider)",
+            editorActiveTabBackground: "var(--surface-code)",
+            editorActiveTabForeground: "var(--text-strong)",
             editorActiveTabBorderColor: "transparent",
             editorActiveTabIndicatorTopColor: "transparent",
             editorActiveTabIndicatorBottomColor: "transparent",
-            terminalBackground: "var(--surface-paper)",
-            terminalTitlebarBackground: "var(--surface-cream)",
-            terminalTitlebarForeground: "var(--text-ink)",
-            terminalTitlebarBorderBottomColor: "var(--line-outline)",
+            terminalBackground: "var(--surface-code)",
+            terminalTitlebarBackground: "var(--surface-code)",
+            terminalTitlebarForeground: "var(--text-strong)",
+            terminalTitlebarBorderBottomColor: "var(--line-divider)",
             terminalTitlebarDotsOpacity: "0",
-            inlineButtonBackground: "var(--surface-paper)",
+            inlineButtonBackground: "var(--surface-code)",
             inlineButtonBackgroundIdleOpacity: "1",
             inlineButtonBackgroundHoverOrFocusOpacity: "1",
             inlineButtonBorder: "var(--line-outline)",
             inlineButtonBorderOpacity: "1",
-            inlineButtonForeground: "var(--text-ink)",
-            tooltipSuccessBackground: "var(--fill-mint)",
-            tooltipSuccessForeground: "var(--text-on-fill)",
+            inlineButtonForeground: "var(--text-secondary)",
+            tooltipSuccessBackground: "var(--action-bg)",
+            tooltipSuccessForeground: "var(--action-text)",
           },
         },
       },
@@ -97,8 +101,6 @@ export default defineConfig({
         Search: "./src/components/Search.astro",
         Sidebar: "./src/components/Sidebar.astro",
         SocialIcons: "./src/components/SocialIcons.astro",
-        ThemeProvider: "./src/components/ThemeProvider.astro",
-        ThemeSelect: "./src/components/ThemeSelect.astro",
       },
       sidebar: [
         {
