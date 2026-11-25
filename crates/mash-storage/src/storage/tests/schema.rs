@@ -179,6 +179,97 @@ fn retiring_facts_removes_them_and_refuses_new_ones() {
 }
 
 #[test]
+fn notes_migration_widens_the_kind_check_and_keeps_every_record() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("index.sqlite3");
+    // A database at schema 70, whose check on records.kind predates notes.
+    let connection = baseline(&path);
+    for script in [
+        include_str!("../records.sql"),
+        include_str!("../record_provenance.sql"),
+        include_str!("../record_extractions.sql"),
+        include_str!("../record_kinds.sql"),
+        include_str!("../publication_messages.sql"),
+        include_str!("../chat_subagents.sql"),
+        include_str!("../retired_facts.sql"),
+    ] {
+        connection.execute_batch(script).unwrap();
+    }
+    connection
+        .execute_batch(
+            "PRAGMA foreign_keys=ON; PRAGMA user_version=70;
+             INSERT INTO records(id,owner,kind,scope,revision) VALUES('kept','me','decision','{}',1);
+             INSERT INTO record_revisions(record_id,revision,body,recorded_at) VALUES('kept',1,'{}',1);
+             INSERT INTO record_evidence(record_id,revision,position,chat_id,message_id,fingerprint,quote)
+               VALUES('kept',1,0,'chat','message','fingerprint','we chose it');",
+        )
+        .unwrap();
+    assert!(
+        connection
+            .execute(
+                "INSERT INTO records(id,owner,kind,scope,revision) VALUES('early','me','note','{}',1)",
+                [],
+            )
+            .is_err(),
+        "schema 70 refuses notes"
+    );
+    drop(connection);
+    let storage = Storage::open(&path).unwrap();
+    assert_eq!(user_version(&path), SCHEMA_VERSION);
+    let count = |sql: &str| {
+        storage
+            .connection
+            .query_row(sql, [], |row| row.get::<_, i64>(0))
+            .unwrap()
+    };
+    // Widening the check changes no row: the decision keeps its history.
+    assert_eq!(
+        count("SELECT count(*) FROM record_revisions WHERE record_id='kept'"),
+        1
+    );
+    assert_eq!(
+        count("SELECT count(*) FROM record_evidence WHERE record_id='kept'"),
+        1
+    );
+    storage
+        .connection
+        .execute(
+            "INSERT INTO records(id,owner,kind,scope,revision) VALUES('noted','me','note','{}',1)",
+            [],
+        )
+        .unwrap();
+    // Retired kinds stay refused, and unknown kinds still fail the check.
+    for refused in ["fact", "open_question", "reminder"] {
+        assert!(
+            storage
+                .connection
+                .execute(
+                    "INSERT INTO records(id,owner,kind,scope,revision) VALUES('new','me',?1,'{}',1)",
+                    [refused],
+                )
+                .is_err(),
+            "{refused}"
+        );
+    }
+    // A database created at this release has the same table definition.
+    let fresh = Storage::open(&directory.path().join("fresh.sqlite3")).unwrap();
+    let definition = |connection: &Connection| {
+        connection
+            .query_row(
+                "SELECT sql FROM sqlite_schema WHERE type='table' AND name='records'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .unwrap()
+    };
+    assert_eq!(
+        definition(&fresh.connection),
+        definition(&storage.connection)
+    );
+    assert!(definition(&fresh.connection).contains("'note'"));
+}
+
+#[test]
 fn message_journal_migration_keeps_pending_chats_whole() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("index.sqlite3");

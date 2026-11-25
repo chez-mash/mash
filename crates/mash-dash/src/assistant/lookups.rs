@@ -314,9 +314,9 @@ pub(super) fn tools() -> Vec<Tool> {
         ),
         tool(
             "memories",
-            "List the decisions and preferences saved from the reader's chats, newest first. Each has a short id such as m3, its kind, date, the project it applies to and the chat it came from.",
+            "List the decisions, preferences and notes saved from the reader's chats, newest first. Each has a short id such as m3, its kind, date, the project it applies to and the chat it came from.",
             &json!({
-                "kind": {"type": "string", "enum": ["decision", "preference"]},
+                "kind": {"type": "string", "enum": ["decision", "preference", "note"]},
                 "about": {"type": "string", "description": "One or two words the memory or its project must contain, such as a project name."},
                 "chat_id": {"type": "string", "description": "Only memories saved from this chat."},
                 "more": {"type": "integer", "description": "The number a previous listing gave for its next memories."}
@@ -1086,7 +1086,7 @@ fn applies_to(record: &Value) -> String {
         .unwrap_or_else(|| "everything".to_owned())
 }
 
-/// Whether a memory is a decision or a preference.
+/// Whether a memory is a decision, a preference or a note.
 fn kind(body: &Value) -> Option<&str> {
     body.pointer("/details/kind")
         .or_else(|| body.get("kind"))

@@ -62,22 +62,23 @@ macro_rules! with_record_fields {
         #[serde(deny_unknown_fields)]
         pub(crate) struct $name {
             $($(#[$field_meta])* $field: $kind,)*
-            /// decision or preference.
+            /// decision, preference or note. A note is anything else the person
+            /// asked to keep; it is always established.
             #[serde(
                 default,
                 deserialize_with = "given",
                 skip_serializing_if = "Option::is_none"
             )]
             kind: Option<Kind>,
-            /// decision: proposed, accepted, superseded, withdrawn. preference:
-            /// active, superseded, withdrawn.
+            /// decision: proposed, accepted, superseded, withdrawn. preference
+            /// and note: active, superseded, withdrawn.
             #[serde(
                 default,
                 deserialize_with = "given",
                 skip_serializing_if = "Option::is_none"
             )]
             state: Option<State>,
-            /// The decision or preference itself, in a sentence or two.
+            /// The decision, preference or note itself, in a sentence or two.
             #[serde(
                 default,
                 deserialize_with = "given",
@@ -481,6 +482,24 @@ mod tests {
                 "expected": {"id": "r", "revision": "two"}}))
             .is_err()
         );
+    }
+
+    #[test]
+    fn a_note_takes_only_a_state_among_the_kind_fields() {
+        let note = json!({
+            "operation_id": "one", "action": "create", "scope": {"kind": "personal"},
+            "kind": "note", "state": "active", "review": "established",
+            "statement": "Staging resets every Monday", "recorded_by": "agent",
+            "evidence": [{"session_id": "s1", "quote": "note that staging resets on Mondays"}]
+        });
+        let Change::Create { body, .. } = change(note.clone()).unwrap().change else {
+            panic!("a create")
+        };
+        assert!(matches!(body.details, Details::Note { .. }));
+        // Conditions belong to a preference, not a note.
+        let mut conditioned = note;
+        conditioned["conditions"] = json!(["on Mondays"]);
+        assert!(change(conditioned).is_err());
     }
 
     #[test]

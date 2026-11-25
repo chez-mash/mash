@@ -1,5 +1,5 @@
 use super::*;
-use crate::records::{DecidedBy, DecisionState, PreferenceState};
+use crate::records::{DecidedBy, DecisionState, NoteState, PreferenceState};
 mod authorship;
 mod capture;
 mod dashboard;
@@ -86,13 +86,16 @@ fn expected(receipt: &Receipt) -> Expected {
 }
 
 #[test]
-fn native_records_both_kinds_have_typed_states_and_short_approval_evidence() {
+fn native_records_every_kind_has_typed_states_and_short_approval_evidence() {
     let (_directory, mut storage) = database();
     let variants = [
         decision(),
         body(Details::Preference {
             state: PreferenceState::Active,
             conditions: vec!["local queries".into()],
+        }),
+        body(Details::Note {
+            state: NoteState::Active,
         }),
     ];
     for (index, body) in variants.into_iter().enumerate() {
@@ -115,7 +118,7 @@ fn native_records_both_kinds_have_typed_states_and_short_approval_evidence() {
         );
         assert_eq!(record.revisions[0].evidence[1].quote, "yes");
     }
-    assert_eq!(storage.records(&List::default()).unwrap().records.len(), 2);
+    assert_eq!(storage.records(&List::default()).unwrap().records.len(), 3);
     // Facts are no longer a kind of record.
     assert!(
         serde_json::from_str::<Details>(
@@ -123,6 +126,56 @@ fn native_records_both_kinds_have_typed_states_and_short_approval_evidence() {
         )
         .is_err()
     );
+}
+
+#[test]
+fn native_records_notes_are_saved_only_on_the_persons_request() {
+    let (_directory, mut storage) = database();
+    let note = || {
+        body(Details::Note {
+            state: NoteState::Active,
+        })
+    };
+    // Nothing proposes a note for review, so a candidate note is refused.
+    let mut candidate = note();
+    candidate.review = Review::Candidate;
+    let refused = storage
+        .mutate_record(&create_request("candidate", candidate))
+        .unwrap_err();
+    assert!(
+        refused.error.message.contains("must be established"),
+        "{:?}",
+        refused.error
+    );
+    // An established note needs the person's own words, not only the agent's.
+    let mut unendorsed = create_request("agent-only", note());
+    if let Change::Create { evidence, .. } = &mut unendorsed.change {
+        evidence.truncate(1);
+    }
+    let refused = storage.mutate_record(&unendorsed).unwrap_err();
+    assert!(
+        refused.error.message.contains("user endorsement"),
+        "{:?}",
+        refused.error
+    );
+    // A note the person asked for is saved and can be superseded like any record.
+    let created = storage
+        .mutate_record(&create_request("asked", note()))
+        .unwrap();
+    let mut newer = note();
+    newer.statement = "Use Qdrant 1.14".into();
+    storage
+        .mutate_record(&Mutation {
+            operation_id: "newer".into(),
+            change: Change::Supersede {
+                expected: expected(&created),
+                body: newer,
+                evidence: vec![citation("again", "Still choose Qdrant.")],
+            },
+        })
+        .unwrap();
+    let old = storage.record(&created.record_id, true).unwrap();
+    assert!(old.revisions[0].body.details.superseded());
 }
 
 #[test]

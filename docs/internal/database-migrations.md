@@ -5,7 +5,7 @@ and full search rebuilds. Use the same migration definitions for local silver
 and each node's shared silver database. Export/import remains for portability,
 recovery and legacy transitions that do not have a tested migration.
 
-`crates/mash-storage/src/storage/schema.rs` supports upgrades from versions 62 through 69 to 70.
+`crates/mash-storage/src/storage/schema.rs` supports upgrades from versions 62 through 70 to 71.
 These are the supported older starting versions. The same initializer creates
 and upgrades local and shared silver. Read-only commands do not migrate.
 
@@ -35,7 +35,12 @@ schema: it journals every chat already marked as a subagent, so the next
 publication delta amends those chats with their markers. Step 70 retires facts
 the same way step 66 retired open questions: it deletes records of that kind,
 which takes their revisions, evidence, confirmations and links with them, and
-adds triggers that refuse the kind. Fresh creation directly creates the same
+adds triggers that refuse the kind. Step 71 adds notes as a kind of record. It
+widens the check on `records.kind` by editing the stored table definition with
+`writable_schema`, which SQLite documents as safe for a CHECK change: no row
+changes, and rebuilding the table instead would cascade its drop into every
+revision, quote and link. It then rebuilds `records_scope` so the schema cookie
+changes and other connections reload the widened check. Fresh creation directly creates the same
 schema and sets the current version in its creation transaction. Do not reset a
 live database to zero, silently renumber it, or let placeholder migrations make
 unsupported old schemas appear valid. Fresh creation and upgraded databases must

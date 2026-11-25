@@ -552,7 +552,7 @@ impl Mash {
 
     #[tool(
         annotations(read_only_hint = false, destructive_hint = true),
-        description = "Create, revise, supersede, confirm, link or forget a local record: a decision or preference. Cite evidence by message_id, or your own session by session_id with an exact quote, which needs no indexing. An established decision or preference needs a citation of the user endorsing it, and that is your reading, not proof of approval; keep unclear interpretations as candidates. Revise to correct, supersede when the choice changed. Pass operation_id so a retry is safe, and the expected revision when editing. Link marks two established, current records in one scope as supports or contradicts. Forget removes every revision. Every field sits at the top level: a create is {operation_id, action: \"create\", scope, kind, state, statement, recorded_by, evidence: [{quote, message_id or session_id}]}. Call help with topic=records for the rules."
+        description = "Create, revise, supersede, confirm, link or forget a local record: a decision, preference or note. A note is anything else the person asks you to keep, such as where something runs; save one only on their request. Cite evidence by message_id, or your own session by session_id with an exact quote, which needs no indexing. An established record needs a citation of the user endorsing it, and a note is always established, and that is your reading, not proof of approval; keep unclear interpretations as candidates. Revise to correct, supersede when the choice changed. Pass operation_id so a retry is safe, and the expected revision when editing. Link marks two established, current records in one scope as supports or contradicts. Forget removes every revision. Every field sits at the top level: a create is {operation_id, action: \"create\", scope, kind, state, statement, recorded_by, evidence: [{quote, message_id or session_id}]}. Call help with topic=records for the rules."
     )]
     async fn record(
         &self,
@@ -582,7 +582,7 @@ impl Mash {
 
     #[tool(
         annotations(read_only_hint = true, destructive_hint = false),
-        description = "List saved records (decisions and preferences) without models. Filter by kind, scope, chat or words in the statement; scope identity is exact. Each is its current statement, reason, scope and source messages; detail=extended or get_record gives quotes, history and links. include_inactive adds candidates and retired or stale records. shared=true reads the group; continue with offset=next_offset, or cursor=next_cursor for shared pages, even after an empty page."
+        description = "List saved records (decisions, preferences and notes) without models. Filter by kind, scope, chat or words in the statement; scope identity is exact. Each is its current statement, reason, scope and source messages; detail=extended or get_record gives quotes, history and links. include_inactive adds candidates and retired or stale records. shared=true reads the group; continue with offset=next_offset, or cursor=next_cursor for shared pages, even after an empty page."
     )]
     async fn list_records(&self, Parameters(request): Parameters<ListRecords>) -> CallToolResult {
         self.execute_detailed(Operation::Records(request.input), request.detail)

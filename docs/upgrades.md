@@ -103,6 +103,10 @@ revisions, evidence and links; decisions and preferences stay. An export from an
 that holds facts can no longer be imported. Upgrade the shared server and every
 machine together: an older machine's facts are refused.
 
+**Notes need the same release everywhere.** Upgrading an index adds notes as a
+kind of saved record and changes no existing record. A machine or shared server
+on an earlier release refuses notes, so upgrade them together.
+
 ### Upgrade a shared index
 
 If you [share history across machines](shared-index.md), upgrade the server

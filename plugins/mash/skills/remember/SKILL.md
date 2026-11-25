@@ -1,6 +1,6 @@
 ---
 name: remember
-description: Save something to Mash memory on request. Use when the person runs /mash:remember, or says "remember this", "save this to Mash", "make a note that", or asks you to keep a decision, preference or correction for later sessions.
+description: Save something to Mash memory on request. Use when the person runs /mash:remember, or says "remember this", "save this to Mash", or asks you to keep a decision, preference, correction or anything else for later sessions.
 ---
 
 # Save to Mash memory
@@ -11,8 +11,8 @@ The person wants one thing kept for later sessions. Save it now with Mash's
 ## What to save
 
 Whatever follows the command. With nothing after it, save the most recent
-thing the person decided, stated as a preference or corrected in this
-conversation, and say which one you chose. If nothing in the
+thing the person decided, stated as a preference, corrected or asked you to
+note in this conversation, and say which one you chose. If nothing in the
 conversation qualifies, ask what to remember instead of inventing something.
 
 Write it as one statement that will make sense alone in a later session:
@@ -30,7 +30,13 @@ a discussion happened.
 3. Call `record` with:
    - the scope and `session_id` from the Mash note at the start of this
      session (repository scope inside a repository);
-   - a kind that fits: a decision or a preference;
+   - a kind that fits:
+     - `decision` for a choice the person made or confirmed;
+     - `preference` for how they like things done, including a correction
+       to how you work;
+     - `note` for anything else they want kept, such as where something
+       runs, a date, a name or a fact about the project. A note has only a
+       state (`active`) and no other kind fields.
    - `evidence`: the person's exact words from this conversation as the
      quote, with purpose `endorsement`. The quote is checked against this
      session's transcript, so copy it exactly, typos included.
@@ -45,3 +51,5 @@ unless asked. Do not save anything else the person did not ask for.
 
 Never save credentials, tokens or other secrets, even on request: say why and
 offer to save a note about where the secret is kept instead.
+
+`/mash:note` is a shortcut for the same thing that always saves a note.

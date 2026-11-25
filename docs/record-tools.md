@@ -104,13 +104,15 @@ Pass **kind and state** at the top level of the tool call:
 | --- | --- | --- |
 | `decision` | `proposed`, `accepted`, `superseded`, `withdrawn` | optional alternatives and consequences |
 | `preference` | `active`, `superseded`, `withdrawn` | optional conditions |
+| `note` | `active`, `superseded`, `withdrawn` | none |
 
 Optional `effective_at` uses Unix milliseconds; omit an unknown date. Choices
 not yet in effect are left out of the default list.
 
 **Review** is `candidate` (the default) or `established`. Keep uncertain
-interpretations as candidates. An established decision or preference requires
-an `endorsement` citation of a user message. A decision with
+interpretations as candidates. An established decision, preference or note
+requires an `endorsement` citation of a user message. A note is saved only when
+the person asks for one, so it must be `established`. A decision with
 `"decided_by": "agent"` instead requires a citation of the
 agent's own message, and cannot revise or supersede a decision made by the
 person. `recorded_by` is caller-supplied attribution, not authenticated

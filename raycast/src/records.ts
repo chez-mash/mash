@@ -1,11 +1,11 @@
 /**
- * Reading what `mash memory` answers: the decisions and preferences Mash
+ * Reading what `mash memory` answers: the decisions, preferences and notes Mash
  * remembers, each at its current revision, with the quotes that support
  * it. Plain data in and out, so it is tested without Raycast.
  */
 import { MashError, rendered } from "./mash";
 
-export type MemoryKind = "decision" | "preference";
+export type MemoryKind = "decision" | "preference" | "note";
 
 /** One remembered record at its current revision. */
 export interface Memory {
@@ -91,7 +91,7 @@ function memory(record: Record<string, unknown>): Memory[] {
   const details = object(body.details);
   const kind = text(details.kind);
   const statement = text(body.statement).trim();
-  if (!statement || (kind !== "decision" && kind !== "preference")) return [];
+  if (!statement || (kind !== "decision" && kind !== "preference" && kind !== "note")) return [];
   return [
     {
       id: text(record.id),

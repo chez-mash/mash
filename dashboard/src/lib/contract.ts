@@ -842,7 +842,7 @@ export interface components {
             recorded_by: string;
             /** @default candidate */
             review: components["schemas"]["Review"];
-            /** @description The decision or preference itself, in a sentence or two. */
+            /** @description The decision, preference or note itself, in a sentence or two. */
             statement: string;
         };
         /** @enum {string} */
@@ -1254,6 +1254,10 @@ export interface components {
             /** @constant */
             kind: "preference";
             state: components["schemas"]["PreferenceState"];
+        } | {
+            /** @constant */
+            kind: "note";
+            state: components["schemas"]["NoteState"];
         };
         Diagnostic: {
             label: string;
@@ -1703,7 +1707,7 @@ export interface components {
             admin_key: boolean;
         };
         /** @enum {string} */
-        Kind: "decision" | "preference";
+        Kind: "decision" | "preference" | "note";
         LexicalManifest: {
             /**
              * Format: uint32
@@ -1915,6 +1919,12 @@ export interface components {
             views_current: boolean;
             views_manifest?: components["schemas"]["SharedViewsManifest"] | null;
         };
+        /**
+         * @description A note is something the person asked to keep that is neither a decision
+         *     nor a preference, such as where a service runs or when a job resets.
+         * @enum {string}
+         */
+        NoteState: "active" | "superseded" | "withdrawn";
         /** @description The chat the reader has on screen, so "this chat" means something. */
         OpenChat: {
             id: string;

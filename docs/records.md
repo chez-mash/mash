@@ -1,6 +1,6 @@
 # Use Mash memory
 
-Mash can save a decision or preference with a quote from the chat
+Mash can save a decision, a preference or a note with a quote from the chat
 where it came up. Open the quote whenever you want to check the context.
 
 ## Inspect existing records
@@ -23,7 +23,15 @@ in the conversation to save a decision for future sessions.
 > Remember that this project keeps its refresh tokens in the device keychain.
 
 In Claude Code, you can also use `/mash:remember`. In Codex or Copilot,
-ask the agent to use the `remember` skill. Check the saved statement in the
+ask the agent to use the `remember` skill.
+
+Use a note for anything worth keeping that isn't a choice, such as where a
+service runs or when a job resets.
+
+> Note that the staging database is reset every Monday.
+
+In Claude Code, `/mash:note` saves a note directly; `/mash:remember` also saves
+a note when what you ask it to keep is not a decision or a preference. Check the saved statement in the
 agent's reply, then open **memory** to see the quote in context.
 
 ## Recall records
@@ -45,6 +53,7 @@ read yourself. Agents can still miss or misread what you meant.
 
 - The agent can establish decisions and preferences based on your own words.
   Other interpretations may appear as **candidates** that need review.
+- A note is saved only when you ask for one, so it never waits for review.
 - The agent can save its own choices as agent decisions. Your decisions take
   precedence over the agent's choices.
 - If an indexed chat changes and the quote no longer matches, Mash marks

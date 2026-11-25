@@ -7,7 +7,7 @@ plugin recall.
 
 ## Purpose and ownership
 
-Records interpret Mash's agent history as decisions and preferences. They are not external content connectors or arbitrary objects.
+Records interpret Mash's agent history as decisions and preferences, and keep the notes a person asks an agent to save. They are not external content connectors or arbitrary objects.
 Canonical chat messages remain the supporting evidence. SQLite owns record
 state; retrieval never establishes acceptance or updates confirmations.
 

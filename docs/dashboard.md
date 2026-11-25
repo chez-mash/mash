@@ -95,7 +95,7 @@ The left rail is the way around. On a phone it opens from the menu button.
   it.
 - **agents**, **machines** and **projects:** one page each, with its recent
   chats and how they break down by the other two.
-- **memory:** saved decisions and preferences.
+- **memory:** saved decisions, preferences and notes.
 - **services** and **fleet manager:** process and database checks, each
   machine's agent setup, and fleet actions. The fleet manager appears only
   where fleet control is set up. See [services](services.md).
@@ -255,7 +255,7 @@ If your dashboard does not show the menu, choose the mode with
 
 ## Inspect conversation records
 
-Open **memory** in the rail. Switch between decisions and preferences
+Open **memory** in the rail. Switch between decisions, preferences and notes
 with the chips at the top, search statements with **find a statement**, and filter
 with the status and review chips. Whose memories are listed follows the
 [viewing switcher](#choose-whose-history-you-see). Choose **Apply filters** to

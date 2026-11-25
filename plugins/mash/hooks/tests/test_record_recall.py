@@ -37,12 +37,13 @@ for line in sys.stdin:
         if mode == "oversize":
             print("x" * 70000, flush=True)
             continue
+        NOTE = {"kind": "note", "state": "active"}
         packet = {"records": [{"id": "record/test/one", "revision": 1,
             "status": "candidate" if mode in ("candidate", "mislabeled") else "current",
             "conflicted": mode == "conflict",
             "body": {"review": "candidate" if mode == "candidate" else "established",
                      "statement": "Keep source evidence.",
-                     "details": {"kind": "decision", **(
+                     "details": NOTE if mode == "note" else {"kind": "decision", **(
                          {"decided_by": "agent"} if mode == "agent" else {})}}}]}
         result = {"structuredContent": packet}
     response = {"jsonrpc": "2.0", "id": request["id"], "result": result}
@@ -101,6 +102,11 @@ class RecordRecall(unittest.TestCase):
         with patch.dict(os.environ, {"RECALL_TEST_MODE": "agent"}):
             lines = record_recall.hints(str(self.binary), str(self.root), None, 1)
         self.assertTrue(lines[0].startswith("- agent decision: "), lines)
+
+    def test_a_note_is_recalled_as_a_note(self) -> None:
+        with patch.dict(os.environ, {"RECALL_TEST_MODE": "note"}):
+            lines = record_recall.hints(str(self.binary), str(self.root), None, 1)
+        self.assertTrue(lines[0].startswith("- note: "), lines)
 
     def test_concurrent_file_claims_show_exactly_once_and_keep_projects_separate(
         self,

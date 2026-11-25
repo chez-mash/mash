@@ -1,11 +1,12 @@
 ---
 name: recall
-description: Show what Mash memory holds about a topic or this project, with where each record came from. Use when the person runs /mash:recall, or asks what Mash remembers, what is saved in memory, or to list saved decisions or preferences.
+description: Show what Mash memory holds about a topic or this project, with where each record came from. Use when the person runs /mash:recall, or asks what Mash remembers, what is saved in memory, or to list saved decisions, preferences or notes.
 ---
 
 # Show what Mash remembers
 
-The person wants to see saved memory records: decisions and preferences.
+The person wants to see saved memory records: decisions, preferences and
+notes.
 Mash recalls a few of these into sessions without being asked; this
 shows them on request, by topic. Hosts may prefix the tool names.
 

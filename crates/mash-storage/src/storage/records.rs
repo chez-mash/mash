@@ -185,19 +185,16 @@ fn evidence(
     }
     if endorsement && !human {
         return Err(AppError::usage(
-            "established decisions and preferences require a user endorsement citation; uncertain interpretations must remain candidates",
+            "established decisions, preferences and notes require a user endorsement citation; uncertain interpretations must remain candidates",
         ));
     }
     Ok(result)
 }
 
+/// Every kind rests on the person's own words once established, except a
+/// choice the agent made itself.
 fn requires_endorsement(body: &Body) -> bool {
-    body.review == Review::Established
-        && !body.details.agent_decided()
-        && matches!(
-            body.details,
-            Details::Decision { .. } | Details::Preference { .. }
-        )
+    body.review == Review::Established && !body.details.agent_decided()
 }
 
 /// A settled agent decision rests on the agent's own message making it.

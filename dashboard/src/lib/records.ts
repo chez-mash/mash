@@ -3,7 +3,7 @@ import { stableRead } from "./queries";
 import type { Answer, Wire } from "./routes";
 import type { Reach, Scope as Viewing } from "./scope.svelte";
 
-export const kinds = ["decision", "preference"] as const;
+export const kinds = ["decision", "preference", "note"] as const;
 export const states = ["proposed", "accepted", "active", "superseded", "withdrawn"] as const;
 export type Kind = (typeof kinds)[number];
 export type Lifecycle = (typeof states)[number];
@@ -32,6 +32,11 @@ export type Details =
       kind: "preference";
       state: "active" | "superseded" | "withdrawn";
       conditions: readonly string[];
+    }
+  | {
+      /** Something the person asked to keep that is not a choice. */
+      kind: "note";
+      state: "active" | "superseded" | "withdrawn";
     };
 export interface Revision {
   revision: number;
@@ -86,6 +91,8 @@ function details(row: Wire["Details"]): Details {
       };
     case "preference":
       return { kind: row.kind, state: row.state, conditions: row.conditions };
+    case "note":
+      return { kind: row.kind, state: row.state };
   }
 }
 function revision(row: Wire["RecordRevision"]): Revision {
@@ -269,7 +276,7 @@ export function standing(revision: { review: string; details: Details }): string
 }
 
 /** The fill of the pill that names a kind of memory (see .pill): a decision
- * is butter, a preference plain paper. */
+ * is butter, a preference or a note plain paper. */
 export function kindPill(kind: Kind): "decision" | "" {
   return kind === "decision" ? "decision" : "";
 }

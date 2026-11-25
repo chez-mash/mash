@@ -186,14 +186,14 @@ fn prompt(task: &capture::Task, since: Option<i64>) -> Result<String, AppError> 
          include_inactive=true, WITHOUT scope filtering, and follow every page. Inspect existing \
          records citing this chat, including personal records and other record kinds. Rewording, \
          adding rationale, or moving an existing \
-         personal fact into repository scope is NOT new memory. If the retained quotes support \
+         personal record into repository scope is NOT new memory. If the retained quotes support \
          knowledge already covered there, leave it unchanged and omit it entirely. Only genuinely \
          new outcomes or changed conclusions justify writes. A user's question is not an endorsed \
          decision. \
-         Find durable decisions, preferences and attributed facts. Inspect \
+         Find durable decisions and preferences, and notes the user explicitly asked to keep. Inspect \
          find_record_matches first; omit equivalent existing memory. Do not add confirmations \
-         just for rereading. Use exact user quotes; decisions/preferences require explicit user \
-         endorsement. Keep uncertain interpretations as candidates. Save reviewed outcomes through \
+         just for rereading. Use exact user quotes; every record requires explicit user \
+         endorsement, and a note is always established. Keep uncertain interpretations as candidates. Save reviewed outcomes through \
          record with on_duplicate=reuse and stable operation_id values derived from chat ID, \
          source fingerprint and outcome. Establish clearly supported outcomes so recall can use \
          them; consult the actual tool schema. Only AFTER reading the full chat and finishing \

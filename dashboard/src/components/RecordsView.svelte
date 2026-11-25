@@ -125,7 +125,7 @@ const dirty = $derived(
 );
 </script>
 
-<div><h1 class="h1">Memory</h1><p class="meta">Decisions and preferences, with the conversations behind them.</p><ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></div>
+<div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and notes, with the conversations behind them.</p><ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></div>
 <nav class="chips" aria-label="Memory kind" style:gap="10px">
   <a class="btn" class:sel={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Bookmark size={15} aria-hidden="true" />all</a>
   {#each kinds as value (value)}
@@ -149,7 +149,7 @@ const dirty = $derived(
 <QueryError title="Couldn’t load memory" query={result} />
 {#if page.data && !page.error}
   {#if !page.data.records.length}
-    <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions and preferences as you state them."}</span></p>
+    <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions and preferences as you state them, and notes when you ask."}</span></p>
   {:else}
     <section class="card pad0 list" aria-label="Memory">
       {#each page.data.records as record (JSON.stringify([record.node, record.owner, record.id]))}

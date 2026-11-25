@@ -186,7 +186,8 @@ def context(payload: Any, end: float) -> str:
         [
             "Mash memory: when the person states a lasting preference, makes or"
             " confirms a decision, or corrects how you work, save it as it happens:"
-            f" {saving}. Skip one-off instructions."
+            f" {saving}. Skip one-off instructions. Save a note only when the"
+            " person asks you to note or remember something else."
         ]
         if saving and available
         else []

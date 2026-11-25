@@ -32,6 +32,7 @@ pub enum Review {
 pub enum Kind {
     Decision,
     Preference,
+    Note,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema)]
@@ -80,6 +81,16 @@ pub enum PreferenceState {
     Withdrawn,
 }
 
+/// A note is something the person asked to keep that is neither a decision
+/// nor a preference, such as where a service runs or when a job resets.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum NoteState {
+    Active,
+    Superseded,
+    Withdrawn,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Details {
@@ -98,6 +109,8 @@ pub enum Details {
         #[serde(default)]
         conditions: Vec<String>,
     },
+    /// Saved only when the person asks, so it is always established.
+    Note { state: NoteState },
 }
 
 impl Details {
@@ -105,6 +118,7 @@ impl Details {
         match self {
             Self::Decision { .. } => "decision",
             Self::Preference { .. } => "preference",
+            Self::Note { .. } => "note",
         }
     }
 
@@ -117,6 +131,8 @@ impl Details {
             } | Self::Preference {
                 state: PreferenceState::Active,
                 ..
+            } | Self::Note {
+                state: NoteState::Active
             }
         )
     }
@@ -128,6 +144,7 @@ impl Details {
         match self {
             Self::Decision { state, .. } => *state = DecisionState::Superseded,
             Self::Preference { state, .. } => *state = PreferenceState::Superseded,
+            Self::Note { state } => *state = NoteState::Superseded,
         }
         Ok(())
     }
@@ -152,6 +169,8 @@ impl Details {
             } | Self::Preference {
                 state: PreferenceState::Superseded,
                 ..
+            } | Self::Note {
+                state: NoteState::Superseded
             }
         )
     }
@@ -160,7 +179,7 @@ impl Details {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Body {
-    /// The decision or preference itself, in a sentence or two.
+    /// The decision, preference or note itself, in a sentence or two.
     pub statement: String,
     /// Why, when known.
     #[serde(default)]
@@ -184,6 +203,13 @@ impl Body {
     pub fn validate(&self) -> Result<(), AppError> {
         bounded(&self.statement, 4096, "statement")?;
         bounded(&self.recorded_by, 256, "recorded_by")?;
+        // Notes exist only because the person asked for one, so nothing
+        // proposes them for review: a candidate note would be an agent's guess.
+        if matches!(self.details, Details::Note { .. }) && self.review != Review::Established {
+            return Err(AppError::usage(
+                "a note is saved only when the person asks for it, so it must be established",
+            ));
+        }
         if self.rationale.len() > 8192 {
             return Err(AppError::usage("rationale exceeds 8192 bytes"));
         }
@@ -433,6 +459,7 @@ impl Body {
                     *text = policy.text(text);
                 }
             }
+            Details::Note { .. } => {}
         }
     }
 }

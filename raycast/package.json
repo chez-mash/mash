@@ -42,7 +42,7 @@
       "name": "memory",
       "title": "Search Memory",
       "subtitle": "Mash",
-      "description": "Find the decisions and preferences Mash remembers from your chats, with the quotes behind them.",
+      "description": "Find the decisions, preferences and notes Mash remembers from your chats, with the quotes behind them.",
       "mode": "view",
       "keywords": [
         "memory",

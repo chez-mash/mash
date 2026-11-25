@@ -289,7 +289,7 @@
             "default": "candidate"
           },
           "statement": {
-            "description": "The decision or preference itself, in a sentence or two.",
+            "description": "The decision, preference or note itself, in a sentence or two.",
             "type": "string"
           }
         },
@@ -1039,6 +1039,24 @@
               "state"
             ],
             "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Saved only when the person asks, so it is always established.",
+            "properties": {
+              "kind": {
+                "const": "note",
+                "type": "string"
+              },
+              "state": {
+                "$ref": "#/components/schemas/NoteState"
+              }
+            },
+            "required": [
+              "kind",
+              "state"
+            ],
+            "type": "object"
           }
         ]
       },
@@ -1539,7 +1557,8 @@
       "Kind": {
         "enum": [
           "decision",
-          "preference"
+          "preference",
+          "note"
         ],
         "type": "string"
       },
@@ -2041,6 +2060,15 @@
           "messages"
         ],
         "type": "object"
+      },
+      "NoteState": {
+        "description": "A note is something the person asked to keep that is neither a decision\nnor a preference, such as where a service runs or when a job resets.",
+        "enum": [
+          "active",
+          "superseded",
+          "withdrawn"
+        ],
+        "type": "string"
       },
       "Order": {
         "enum": [

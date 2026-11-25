@@ -81,7 +81,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
           {#each memories.data.page.records.slice(0, 4) as record (record.node + record.id)}<MemoryRow {record} />{/each}
         </div>
       {/if}
-      {#if memories.data && !memories.data.page.records.length}<p class="card tight cream">Nothing saved yet. Agents save decisions and preferences as you state them.</p>{/if}
+      {#if memories.data && !memories.data.page.records.length}<p class="card tight cream">Nothing saved yet. Agents save decisions and preferences as you state them, and notes when you ask.</p>{/if}
       <QueryError title="Couldn’t load memory" query={memories} />
     </section>
     <div class="g2">

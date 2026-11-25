@@ -14,7 +14,7 @@ pub(super) const CAP: usize = 100;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Reference {
     pub(super) kind: &'static str,
-    /// For a record: decision or preference.
+    /// For a record: decision, preference or note.
     pub(super) record_kind: Option<String>,
     pub(super) id: String,
     /// The machine the item came from, when the response says.

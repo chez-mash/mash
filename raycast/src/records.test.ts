@@ -73,6 +73,15 @@ describe("reading what Mash remembers", () => {
     ]);
   });
 
+  it("reads a note like any other record", () => {
+    const note = record({
+      revisions: [
+        { revision: 2, body: { statement: "Staging resets on Mondays", details: { kind: "note", state: "active" } } },
+      ],
+    });
+    expect(parseRecords(JSON.stringify({ records: [note] })).memories[0]?.kind).toBe("note");
+  });
+
   it("skips records it cannot show, and says what Mash said when it fails", () => {
     const unknown = record({ revisions: [{ revision: 2, body: { statement: "x", details: { kind: "rumour" } } }] });
     expect(parseRecords(JSON.stringify({ records: [unknown] })).memories).toEqual([]);

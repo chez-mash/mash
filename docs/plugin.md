@@ -68,7 +68,8 @@ if the agent cannot find Mash.
 | Skill | In Claude Code | In Codex | What it does |
 | --- | --- | --- | --- |
 | `setup` | `/mash:setup` | pick the `setup` skill, or ask “Set up Mash on this machine” | Installs Mash with your approval, connects your history, and checks that you can find an earlier conversation. |
-| `remember` | `/mash:remember what to keep` | pick the `remember` skill, or say "remember this" | Saves a decision or preference to [memory](records.md), with your words as the evidence. With nothing after it, saves the latest decision in the conversation. |
+| `remember` | `/mash:remember what to keep` | pick the `remember` skill, or say "remember this" | Saves a decision, preference or note to [memory](records.md), with your words as the evidence. With nothing after it, saves the latest decision in the conversation. |
+| `note` | `/mash:note what to keep` | pick the `note` skill, or say "note that…" | Saves a note to [memory](records.md): something worth keeping that isn't a decision or a preference, such as where a service runs. |
 | `resume` | `/mash:resume` | pick the `resume` skill, or ask "where did we leave off?" | Reads this project's most recent chats, from every agent and machine, and tells you what was in progress, what was left open and what was decided. |
 | `handoff` | `/mash:handoff` | pick the `handoff` skill, or say "hand this off" | Writes a brief of the session into the conversation: goal, what is done, what is half done, decisions and the next step. `resume` finds it from any agent or machine once the chat is indexed. |
 | `recall` | `/mash:recall a topic` | pick the `recall` skill, or ask "what does Mash remember about…?" | Shows the [memory](records.md) records for a topic or this project, with where each came from. It tells you when records need review. |

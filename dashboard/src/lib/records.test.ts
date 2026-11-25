@@ -32,7 +32,7 @@ describe("record API boundary", () => {
     expect(standing(agents)).toBe("agent decided");
     expect(standing({ ...agents, review: "candidate" })).toBe("unconfirmed");
   });
-  it("decodes all four kinds without interpreting archived markup", () => {
+  it("decodes every kind without interpreting archived markup", () => {
     for (const kind of kinds) {
       const fixture = recordFixture("id", kind);
       const record = parseRecord(fixture);

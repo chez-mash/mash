@@ -9,6 +9,7 @@ export function recordFixture(id = "preference-1", kind: Kind = "preference") {
       consequences: ["Update the clients"],
     },
     preference: { kind: "preference", state: "active", conditions: ["Incident reports"] },
+    note: { kind: "note", state: "active" },
   }[kind];
   return {
     id,
