@@ -87,17 +87,8 @@ pnpm lint
   publishes to the organization's private store). `pnpm lint` checks the
   organization against Raycast's API, which finds it only for a signed-in
   member, so run it after `ray login` on a Mac.
-- **Screenshots**: none exist yet. TODO: add them to `metadata/` as
-  `mash-1.png`, `mash-2.png` and so on, 2000 × 1250 PNG, taken with Raycast's
-  Window Capture while `pnpm dev` runs. They are needed for:
-  1. Recent chats, before anything is typed.
-  2. A search with matches, with the passage and details beside the list.
-  3. **Read Messages** on a match.
-  4. The action panel on a match with the desktop app installed (**Open Chat
-     in Mash**, **Copy Link**, **Search Everywhere**).
-  5. No matches, with its description and next step.
-
-  Take them only from made-up chats, never real history. Raycast runs on macOS,
-  so these cannot be rendered on Linux or in CI; one way is a Mac with Mash set
-  up on a demo history, using the **Mash Executable** preference to point at
-  that install.
+- **Screenshots**: `metadata/mash-1.png` to `mash-5.png`, 2000 × 1250 PNG:
+  recent chats, a search with matches, **Read Messages**, the action panel,
+  and no matches. They were taken from made-up chats in a separate home
+  folder (the **Mash Executable** preference pointed at a wrapper that sets
+  `HOME`), never real history. Retake them the same way when the UI changes.
