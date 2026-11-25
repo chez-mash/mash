@@ -25,6 +25,7 @@ import { catalogOptions } from "../lib/queries";
 import { type Applied, appliedHref, dateRanges, filtersOf, parseApplied } from "../lib/search";
 import { inDesktopApp } from "../lib/shareLink";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import QueryError from "./QueryError.svelte";
@@ -264,7 +265,7 @@ async function copy(): Promise<void> {
             <AgentMark agent={chat.agent} size="sm" />
             <span class="xrow-t">
               <b>{plainTitle(chat.title)}</b>
-              <span class="xrow-m">{[chat.machine, chat.project ? projectLabel(chat.project) : "", agoLabel(chat.updatedMs, now)].filter(Boolean).join(" · ")}</span>
+              <span class="xrow-m"><ChatPlace machine={chat.machine} project={chat.project ?? ""} /><span>{agoLabel(chat.updatedMs, now)}</span></span>
             </span>
             <button class="xrow-a" type="button" aria-label="{included ? 'Leave out' : 'Put back'} {plainTitle(chat.title)}" onclick={() => setIncluded(key, !included)}>{included ? "Leave out" : "Put back"}</button>
           </div>
@@ -348,5 +349,11 @@ async function copy(): Promise<void> {
   }
   .xrow-t > b {
     font-weight: 500;
+  }
+  .xrow-m {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
   }
 </style>

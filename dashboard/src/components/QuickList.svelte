@@ -1,5 +1,6 @@
 <script lang="ts">
 import Bookmark from "@lucide/svelte/icons/bookmark";
+import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import SearchIcon from "@lucide/svelte/icons/search";
 import type { Snippet } from "svelte";
@@ -64,7 +65,7 @@ const offset = $derived(chats ? rows.length : 0);
         <a class="q-row" class:q-sel={index === selected} href={rowTarget(row, desktop)} onmouseenter={() => onhover(index)}>
           <AgentMark agent={row.chat.agent} size="sm" />
           <span class="q-t">
-            <span class="q-line"><span class="q-title">{plainTitle(row.chat.title)}</span>{#if row.chat.project}<span class="q-sub">{projectLabel(row.chat.project)}</span>{/if}</span>
+            <span class="q-line"><span class="q-title">{plainTitle(row.chat.title)}</span>{#if row.chat.project}<span class="q-sub" title="Project: {row.chat.project}"><Folder size={11} aria-hidden="true" /><span>{projectLabel(row.chat.project)}</span></span>{/if}</span>
             {#if row.passage}<span class="q-passage"><Highlight text={plainPassage(row.passage)} {query} /></span>{/if}
           </span>
           {#if row.byMeaning}<span class="q-age">by meaning</span>{/if}
@@ -147,6 +148,15 @@ const offset = $derived(chats ? rows.length : 0);
   }
   .q-sub {
     flex: 0 1 auto;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .q-sub > :global(svg) {
+    flex: none;
+  }
+  .q-sub > span {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

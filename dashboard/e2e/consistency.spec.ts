@@ -160,9 +160,11 @@ test("the overview greets the reader and its chat rows name the agent, machine a
     .getByRole("main")
     .getByRole("region", { name: "Recent chats" })
     .getByRole("link", { name: /Tune the export queue/ });
-  // The agent's mark leads the row; where the chat ran is a line under its title.
+  // The agent's mark leads the row; where the chat ran is a line under its
+  // title, each name after the icon of its kind.
   await expect(row.locator(".mark svg")).toHaveCount(1);
-  await expect(row.locator(".oc-m")).toHaveText(/ · .+ · /);
+  for (const kind of ["Agent", "Machine", "Project"])
+    await expect(row.locator(`.oc-m [title^="${kind}: "]`)).toHaveCount(1);
 });
 
 test("memory follows the viewing switcher, which names this machine once", async ({ page }) => {

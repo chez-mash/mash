@@ -199,7 +199,7 @@ async function save(): Promise<void> {
               <AgentMark agent={entry.agent} />
               <span class="set-n">{agentInfo[entry.agent].name}</span>
               <span class="set-p"><Wrapped value={entry.roots.join(", ")} /></span>
-              <span class="set-s">{@render changedPill(`agent:${entry.agent}`)}<span class="meta" class:set-on={on}>{on ? "indexed" : "not indexed"}</span>{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{/if}</span>
+              <span class="set-s">{@render changedPill(`agent:${entry.agent}`)}<span class="meta set-st" class:set-on={on}><i class="dot {on ? 'ok' : 'none'}" aria-hidden="true"></i>{on ? "indexed" : "not indexed"}</span>{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{/if}</span>
             </div>
           {/each}
         </div>
@@ -407,3 +407,12 @@ async function save(): Promise<void> {
 {/if}
 </div>
 </div>
+
+<style>
+  /* An agent history's state: the status dot the agent cards use, with its word. */
+  .set-st {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+</style>

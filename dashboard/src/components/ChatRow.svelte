@@ -5,6 +5,7 @@ import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import DecisionCount from "./DecisionCount.svelte";
 import MetaChips from "./MetaChips.svelte";
 import SubagentPill from "./SubagentPill.svelte";
 
@@ -38,7 +39,7 @@ const href = $derived.by(() => {
 </script>
 
 <a class="chatrow" {href}>
-  <span class="chatrow-t"><AgentMark agent={chat.agent} size="sm" /><b>{#if title}{@render title()}{:else}{plainTitle(chat.title)}{/if}</b><SubagentPill {chat} />{#if decisions}<span class="pill decision">{decisions} decision{decisions === 1 ? "" : "s"}</span>{/if}</span>
+  <span class="chatrow-t"><AgentMark agent={chat.agent} size="sm" /><b>{#if title}{@render title()}{:else}{plainTitle(chat.title)}{/if}</b><SubagentPill {chat} />{#if decisions}<span class="pill decision"><DecisionCount count={decisions} /></span>{/if}</span>
   {#if snippet}<span class="snip">{@render snippet()}</span>{/if}
   <MetaChips {chat} />
 </a>

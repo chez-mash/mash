@@ -2,10 +2,12 @@
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import { createQuery } from "@tanstack/svelte-query";
 import { type Scoped, stableRead } from "../lib/queries";
-import { label, scopedRecordPage, scopeName } from "../lib/records";
+import { scopeIcons } from "../lib/recordIcons";
+import { label, scopedRecordPage, scopeLabel, scopeName } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import { scopeText } from "../lib/scope.svelte";
 import Highlight from "./Highlight.svelte";
+import KindIcon from "./KindIcon.svelte";
 
 // Above the chats a search found: the saved memories whose statements match
 // the same words, as the memory page's own search finds them. Only a few are
@@ -29,11 +31,12 @@ const records = $derived(found.data?.page.records ?? []);
     {#each records.slice(0, shown) as record (record.node + record.id)}
       {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
       {#if revision}
+        {@const ScopeIcon = scopeIcons[record.scope.kind]}
         <a class="mm-r" href={recordHref(record.id, record.node, recordsHref(params))}>
           <span class="mm-i" aria-hidden="true"><Bookmark size={13} /></span>
           <span class="mm-t">
             <b><Highlight text={revision.statement} {query} /></b>
-            <small>{label(revision.details.kind)} · {label(revision.details.state).toLowerCase()} · {scopeName(record.scope)}</small>
+            <small><KindIcon kind={revision.details.kind} size={12} /><span>{label(revision.details.state).toLowerCase()}</span><span class="mm-s" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span></small>
           </span>
         </a>
       {/if}
@@ -85,6 +88,17 @@ const records = $derived(found.data?.page.records ?? []);
     font-size: 13.5px;
     font-weight: 600;
     line-height: 1.4;
+  }
+  .mm-t small,
+  .mm-s {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+  }
+  .mm-s {
+    display: inline-flex;
+    gap: 4px;
   }
   .mm-t small {
     font-size: 12px;

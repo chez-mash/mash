@@ -20,7 +20,9 @@ import { createScoped } from "../lib/scoped.svelte";
 import { foldedNote } from "../lib/subagents";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 import ChatRow from "./ChatRow.svelte";
+import DecisionCount from "./DecisionCount.svelte";
 import EmptyState from "./EmptyState.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
@@ -114,7 +116,7 @@ function rowHref(chat: ChatSummary): string {
             {#if field === "machine"}
               <!-- On a machine's page every chat is from that machine, so a row is one line: the title, then its project and when. -->
               {@const count = decided.get(chat.id) ?? 0}
-              <a class="bd-r" href={rowHref(chat)}><AgentMark agent={chat.agent} size="sm" /><b>{plainTitle(chat.title)}</b><SubagentPill {chat} />{#if count}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}<span class="bd-w">{chat.project ? `${projectLabel(chat.project)} · ` : ""}{whenLabel(chat.updatedMs, now)}</span></a>
+              <a class="bd-r" href={rowHref(chat)}><AgentMark agent={chat.agent} size="sm" /><b>{plainTitle(chat.title)}</b><SubagentPill {chat} />{#if count}<span class="pill decision"><DecisionCount {count} /></span>{/if}<span class="bd-w">{#if chat.project}<ChatPlace project={chat.project} />{/if}<span>{whenLabel(chat.updatedMs, now)}</span></span></a>
             {:else}
               <ChatRow {chat} decisions={decided.get(chat.id) ?? 0} />
             {/if}
@@ -235,6 +237,9 @@ function rowHref(chat: ChatSummary): string {
   }
   .bd-w {
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     margin-left: auto;
     font-size: 12px;
     color: var(--text-muted);

@@ -8,8 +8,7 @@ import MessageSquare from "@lucide/svelte/icons/message-square";
 import SquareArrowOutUpRight from "@lucide/svelte/icons/square-arrow-out-up-right";
 import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
-import { agents } from "../lib/agents";
-import { agoLabel, projectLabel } from "../lib/browse";
+import { agoLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { appLink, mayOpenInApp, resumeCommand } from "../lib/openIn";
 import { stableRead } from "../lib/queries";
@@ -17,6 +16,7 @@ import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 
 let { chat, local }: { chat: ChatSummary; local: boolean } = $props();
 const asked = $derived(local && mayOpenInApp(chat.agent, chat.id));
@@ -37,11 +37,6 @@ const href = $derived.by(() => {
   );
   return chatHref(chat.id, chat.machine, position?.message ?? "", position?.shared ?? false);
 });
-const where = $derived(
-  [agents[chat.agent].name, chat.machine, chat.project ? projectLabel(chat.project) : ""]
-    .filter(Boolean)
-    .join(" · "),
-);
 
 async function copy(text: string): Promise<void> {
   const folder = chat.agent === "claude-code" ? " Run it in the chat’s project folder." : "";
@@ -59,7 +54,7 @@ async function copy(text: string): Promise<void> {
   <div class="resume-t">
     <span class="resume-k">Pick up where you left off</span>
     <h2 id="resume-title" class="resume-h">{plainTitle(chat.title)}</h2>
-    <span class="resume-m">{where}{chat.updatedMs !== undefined ? ` · last message ${agoLabel(chat.updatedMs, Date.now())}` : ""}</span>
+    <span class="resume-m resume-w"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} os />{#if chat.updatedMs !== undefined}<span>last message {agoLabel(chat.updatedMs, Date.now())}</span>{/if}</span>
     {#if notice}<span class="resume-m" role="status">{notice}</span>{/if}
   </div>
   <div class="resume-a">
@@ -108,6 +103,12 @@ async function copy(text: string): Promise<void> {
   .resume-m {
     font-size: 13px;
     color: var(--text-muted);
+  }
+  .resume-w {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
   }
   .resume-a {
     display: flex;

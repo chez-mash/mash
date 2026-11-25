@@ -7,15 +7,16 @@
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import Folder from "@lucide/svelte/icons/folder";
 import ListOrdered from "@lucide/svelte/icons/list-ordered";
+import MessageSquare from "@lucide/svelte/icons/message-square";
 import X from "@lucide/svelte/icons/x";
-import { agents } from "../lib/agents";
 import { projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { saidText } from "../lib/message";
 import { label, type NativeRecord } from "../lib/records";
 import { chatHref, projectHref, recordHref, recordsHref } from "../lib/route.svelte";
 import type { ChatSummary, Message } from "../lib/types";
-import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
+import KindIcon from "./KindIcon.svelte";
 import SubagentPill from "./SubagentPill.svelte";
 
 let {
@@ -66,7 +67,7 @@ const projectSessions = $derived.by(() => {
 <nav class="sess" aria-label="Prompts and sessions">
   {#if closable}<button class="btn sessclose" type="button" onclick={onclose}><X size={15} aria-hidden="true" />Back to chat</button>{/if}
   {#if chat?.project}
-    <h2 class="cs-h"><a href={projectHref(chat.project)}><Folder size={14} aria-hidden="true" /><span>{projectLabel(chat.project)}</span></a><span class="cs-n">{projectCount.toLocaleString()} chat{projectCount === 1 ? "" : "s"}</span></h2>
+    <h2 class="cs-h"><a href={projectHref(chat.project)}><Folder size={14} aria-hidden="true" /><span>{projectLabel(chat.project)}</span></a><span class="cs-n" title="{projectCount.toLocaleString()} chat{projectCount === 1 ? '' : 's'}"><MessageSquare size={12} aria-hidden="true" />{projectCount.toLocaleString()}<span class="vh">{projectCount === 1 ? " chat" : " chats"}</span></span></h2>
   {/if}
   {#if projectSessions.length}
     <div class="cs-l">
@@ -74,7 +75,7 @@ const projectSessions = $derived.by(() => {
         {@const current = session.id === id && session.machine === machine}
         <a class="cs-r" class:on={current} href={chatHref(session.id, session.machine)} aria-current={current ? "page" : undefined}>
           <span class="cs-t"><b>{plainTitle(session.title)}</b><small>{whenLabel(session.updatedMs, now)}</small></span>
-          <span class="cs-m"><AgentMark agent={session.agent} size="sm" />{agents[session.agent].name} · {session.machine}<SubagentPill chat={session} /></span>
+          <span class="cs-m"><ChatPlace agent={session.agent} machine={session.machine} mark /><SubagentPill chat={session} /></span>
         </a>
       {/each}
     </div>
@@ -93,7 +94,7 @@ const projectSessions = $derived.by(() => {
   {#if recordsError}<p class="meta" role="alert">{recordsError.message}</p>{/if}
   {#each records ?? [] as record (record.id)}
     {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
-    {#if revision}<a class="cs-mem" href={recordHref(record.id, record.node, recordsHref(memoryParams))}><b class="clamp">{revision.statement}</b><small>{label(revision.details.kind)} · {label(revision.details.state).toLowerCase()}</small></a>{/if}
+    {#if revision}<a class="cs-mem" href={recordHref(record.id, record.node, recordsHref(memoryParams))}><b class="clamp">{revision.statement}</b><small><KindIcon kind={revision.details.kind} size={12} />{label(revision.details.state).toLowerCase()}</small></a>{/if}
   {/each}
   {#if records && !records.length}<p class="cs-none">Nothing saved from this chat.</p>{/if}
 </nav>
@@ -133,7 +134,7 @@ const projectSessions = $derived.by(() => {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .sess > .cs-h:first-child :global(svg) {
+  .sess > .cs-h:first-child > a :global(svg) {
     display: none;
   }
   /* The project's name heads the column in a band of its own. */
@@ -151,6 +152,9 @@ const projectSessions = $derived.by(() => {
   }
   .cs-n {
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: 12px;
     font-weight: 400;
     color: var(--text-faint);
@@ -229,8 +233,19 @@ const projectSessions = $derived.by(() => {
     color: var(--text-strong);
   }
   .cs-mem small {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 11.5px;
     color: var(--text-faint);
+  }
+  .vh {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .cs-none {
     padding: 0 8px;

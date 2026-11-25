@@ -2,8 +2,10 @@
 import { createQueries } from "@tanstack/svelte-query";
 import { currentOf } from "../lib/memoryView";
 import { stableRead } from "../lib/queries";
-import { getRecord, label, type NativeRecord, scopeName } from "../lib/records";
+import { scopeIcons } from "../lib/recordIcons";
+import { getRecord, type NativeRecord, scopeLabel, scopeName } from "../lib/records";
 import { recordHref } from "../lib/route.svelte";
+import KindIcon from "./KindIcon.svelte";
 
 // The records a memory is linked to, each by what it says. A related record
 // is read the way its own page reads it, so opening it costs nothing more;
@@ -33,8 +35,9 @@ const reads = createQueries(() => ({
     <a class="card rel-c" href={recordHref(item.id, record.node, back)}>
       <span class="pill {relation === 'supports' ? 'ok' : relation === 'contradicts' ? 'bad' : ''}">{item.outgoing ? `this record ${relation}` : `${relation} this record`}</span>
       {#if current && other}
+        {@const ScopeIcon = scopeIcons[other.scope.kind]}
         <b>{current.statement}</b>
-        <small>{label(current.details.kind)} · {scopeName(other.scope)}</small>
+        <small><KindIcon kind={current.details.kind} size={12} /><span class="rel-s" title={scopeLabel(other.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(other.scope)}</span></small>
       {:else}
         <b class="mono">…{item.id.slice(-12)}</b>
       {/if}
@@ -66,6 +69,15 @@ const reads = createQueries(() => ({
     line-height: 1.4;
     color: var(--text-strong);
     overflow-wrap: anywhere;
+  }
+  small,
+  .rel-s {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rel-s {
+    gap: 4px;
   }
   small {
     font-size: 12px;

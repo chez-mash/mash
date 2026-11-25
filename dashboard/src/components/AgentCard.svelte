@@ -4,6 +4,7 @@ import { whenLabel } from "../lib/browse";
 import { agentHref } from "../lib/route.svelte";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 
 // One agent as a card: its mark and name, whether this machine indexes it
 // (from this machine's settings, when they can be read), how many chats it
@@ -63,7 +64,7 @@ const status = $derived(
   <span class="ac-b" aria-hidden="true"><i style:width="{chats ? Math.max(2, Math.round((chats / Math.max(1, total)) * 100)) : 0}%"></i></span>
   <span class="ac-f">
     {#if setting}<code title={setting.roots.join("\n")}>{setting.roots[0] ?? "No history found on this machine"}</code>{/if}
-    <span>{machines.length ? machines.join(" · ") : "None yet"}</span>
+    {#if machines.length}<span class="ac-m">{#each machines as machine (machine)}<ChatPlace {machine} />{/each}</span>{:else}<span>None yet</span>{/if}
   </span>
 </div>
 
@@ -198,5 +199,10 @@ const status = $derived(
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .ac-f > .ac-m {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
   }
 </style>

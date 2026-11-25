@@ -1,13 +1,14 @@
 <script lang="ts">
 // The overview's recent chats: each with its agent's mark, its title, where
 // it happened, how many decisions it produced and how long ago it was.
-import { agents } from "../lib/agents";
-import { projectLabel, whenLabel } from "../lib/browse";
+import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
+import DecisionCount from "./DecisionCount.svelte";
 import SubagentPill from "./SubagentPill.svelte";
 
 let { chats, decided }: { chats: readonly ChatSummary[]; decided: ReadonlyMap<string, number> } =
@@ -29,10 +30,10 @@ function hrefOf(chat: ChatSummary): string {
       <AgentMark agent={chat.agent} size="sm" />
       <span class="oc-t">
         <b>{plainTitle(chat.title)}</b>
-        <span class="oc-m">{agents[chat.agent].name} · {chat.machine}{chat.project ? ` · ${projectLabel(chat.project)}` : ""}</span>
+        <span class="oc-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} os /></span>
       </span>
       <SubagentPill {chat} />
-      {#if decisions}<span class="oc-badge">{decisions} decision{decisions === 1 ? "" : "s"}</span>{/if}
+      {#if decisions}<span class="oc-badge"><DecisionCount count={decisions} /></span>{/if}
       <span class="oc-w">{whenLabel(chat.updatedMs, now)}</span>
     </a>
   {/each}

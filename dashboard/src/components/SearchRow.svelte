@@ -1,9 +1,10 @@
 <script lang="ts">
-import { agents } from "../lib/agents";
-import { projectLabel, whenLabel } from "../lib/browse";
+import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
+import DecisionCount from "./DecisionCount.svelte";
 import Highlight from "./Highlight.svelte";
 import SubagentPill from "./SubagentPill.svelte";
 
@@ -34,11 +35,6 @@ let {
   onselect?: () => void;
 } = $props();
 const now = Date.now();
-const where = $derived(
-  [agents[chat.agent].name, chat.machine, chat.project ? projectLabel(chat.project) : ""]
-    .filter(Boolean)
-    .join(" · "),
-);
 </script>
 
 <a class="sr chatrow" class:on={selected} {href} aria-current={selected ? "true" : undefined} data-row onmouseenter={onselect} onfocus={onselect}>
@@ -47,11 +43,11 @@ const where = $derived(
     <b><Highlight text={plainTitle(chat.title)} {query} /></b>
     {#if byMeaning}<span class="pill">by meaning</span>{/if}
     <SubagentPill {chat} {parentTitle} />
-    {#if decisions}<span class="pill decision">{decisions} decision{decisions === 1 ? "" : "s"}</span>{/if}
+    {#if decisions}<span class="pill decision"><DecisionCount count={decisions} /></span>{/if}
     <span class="sr-when">{whenLabel(chat.updatedMs, now)}</span>
   </span>
   {#if snippet}<span class="sr-s"><Highlight text={plainTitle(snippet)} {query} /></span>{/if}
-  <span class="sr-m">{where}</span>
+  <span class="sr-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} /></span>
 </a>
 
 <style>

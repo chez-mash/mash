@@ -1,12 +1,11 @@
 <script lang="ts">
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import { agents } from "../lib/agents";
 import { plainTitle } from "../lib/markdown";
 import { speaker } from "../lib/memoryView";
 import { type Evidence, label } from "../lib/records";
 import { chatHref } from "../lib/route.svelte";
 import type { ChatSummary } from "../lib/types";
-import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 
 // A quoted message behind a memory: the words, who said them and in which
 // chat, and the way to the message. The reader's own words carry a butter
@@ -27,8 +26,7 @@ const mine = $derived(source.sourceRole === "user");
   <blockquote>“{source.quote}”</blockquote>
   {#if brief}
     <figcaption>
-      {#if chat}<AgentMark agent={chat.agent} size="sm" />{/if}
-      <span class="ev-who">{who}{#if chat} · {agents[chat.agent].name}{/if}{#if chat?.machine || node} · {chat?.machine || node}{/if}</span>
+      <span class="ev-who"><span>{who}</span><ChatPlace agent={chat?.agent} machine={chat?.machine || node} mark /></span>
       <a class="ev-go" {href} aria-label="Open the quoted message">Open<ChevronRight size={14} aria-hidden="true" /></a>
     </figcaption>
   {:else}
@@ -104,9 +102,11 @@ const mine = $derived(source.sourceRole === "user");
     max-width: 100%;
   }
   .brief .ev-who {
-    display: block;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .ev-go {

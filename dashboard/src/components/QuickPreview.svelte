@@ -3,7 +3,7 @@ import Bookmark from "@lucide/svelte/icons/bookmark";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents } from "../lib/agents";
 import { context } from "../lib/api";
-import { agoLabel, projectLabel } from "../lib/browse";
+import { agoLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { saidText } from "../lib/message";
 import { passageAround, plainPassage } from "../lib/passage";
@@ -11,7 +11,7 @@ import { stableRead } from "../lib/queries";
 import { chatMemoryParams, pageTarget, type QuickRow } from "../lib/quick";
 import { label, recordPage } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
-import AgentMark from "./AgentMark.svelte";
+import ChatPlace from "./ChatPlace.svelte";
 import Highlight from "./Highlight.svelte";
 
 // Beside the quick panel's list when the panel is wide enough: the selected
@@ -69,22 +69,13 @@ const position = $derived.by(() => {
   const place = (matched.ordinal + 1).toLocaleString();
   return total ? `Message ${place} of ${total.toLocaleString()}` : `Message ${place}`;
 });
-const meta = $derived(
-  [
-    agents[chat.agent].name,
-    chat.project ? projectLabel(chat.project) : "",
-    chat.machine,
-    agoLabel(chat.updatedMs, now),
-  ]
-    .filter(Boolean)
-    .join(" · "),
-);
+const when = $derived(agoLabel(chat.updatedMs, now));
 </script>
 
 <aside class="qp" aria-label="Preview">
   <div class="qp-h">
     <h2><Highlight text={plainTitle(chat.title)} {query} /></h2>
-    <p class="qp-m"><AgentMark agent={chat.agent} size="sm" /><span>{meta}</span></p>
+    <p class="qp-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} mark />{#if when}<span>{when}</span>{/if}</p>
   </div>
   {#if row.messageId}
     {#if position}<span class="qp-n">{position}</span>{/if}

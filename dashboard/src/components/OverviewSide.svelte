@@ -10,9 +10,10 @@ import type { Group } from "../lib/browse";
 import { whenLabel } from "../lib/browse";
 import { createMachineEvidence } from "../lib/machineEvidence.svelte";
 import { machinePulse } from "../lib/machinePulse";
-import { label, type NativeRecord } from "../lib/records";
+import type { NativeRecord } from "../lib/records";
 import { agentHref, machineHref, recordHref } from "../lib/route.svelte";
 import AgentMark from "./AgentMark.svelte";
+import KindIcon from "./KindIcon.svelte";
 import MemoryRow from "./MemoryRow.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -41,12 +42,17 @@ function current(record: NativeRecord) {
     record.revisions[0]
   );
 }
-function source(record: NativeRecord): string {
+/** Who saved a memory, by agent when the name is one, and how long ago. */
+function source(record: NativeRecord) {
   const revision = current(record);
-  if (!revision) return "";
+  if (!revision) return undefined;
   const agent = agentNamed(revision.recordedBy);
-  const who = agent ? agentInfo[agent].name : revision.recordedBy;
-  return `${label(revision.details.kind)} · ${who}, ${whenLabel(revision.recordedAt, now)}`;
+  return {
+    kind: revision.details.kind,
+    agent,
+    who: agent ? agentInfo[agent].name : revision.recordedBy,
+    when: whenLabel(revision.recordedAt, now),
+  };
 }
 /** A machine's state in a word or two, from the evidence its dot shows. */
 function state(machine: string): { words: string; title: string } {
@@ -63,8 +69,9 @@ function state(machine: string): { words: string; title: string } {
       <div class="os-h"><h2><Bookmark size={15} aria-hidden="true" />Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
       {#each unconfirmed.slice(0, 3) as record (record.node + record.id)}
         {@const revision = current(record)}
+        {@const from = source(record)}
         {#if revision}
-          <a class="os-card os-mem" href={recordHref(record.id, record.node, "#/")}><span class="os-mem-t">{revision.statement}</span><span class="os-q">{source(record)}</span></a>
+          <a class="os-card os-mem" href={recordHref(record.id, record.node, "#/")}><span class="os-mem-t">{revision.statement}</span>{#if from}<span class="os-q os-src"><KindIcon kind={from.kind} /><span class="os-who">{#if from.agent}<AgentMark agent={from.agent} size="sm" />{/if}{from.who}</span><span>{from.when}</span></span>{/if}</a>
         {/if}
       {/each}
       <p class="os-note">Agents confirm these in a review: ask your agent to run <code>/mash:review</code>.</p>
@@ -170,6 +177,16 @@ function state(machine: string): { words: string; title: string } {
   .os-q {
     font-size: 12px;
     color: var(--text-faint);
+  }
+  .os-src,
+  .os-who {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+  }
+  .os-who {
+    gap: 5px;
   }
   .os-note {
     margin: 2px 2px 0;
