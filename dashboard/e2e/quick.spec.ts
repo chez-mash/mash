@@ -92,21 +92,33 @@ test("the quick panel lists recent chats, searches as you type and opens a match
   await expect(field).toBeFocused();
   // The panel stands alone: no rail or dashboard search box.
   await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Recent chats" })).toBeVisible();
-  const options = page.getByRole("option");
-  await expect(options).toHaveCount(3);
-  await expect(options.first()).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Recent", exact: true })).toBeVisible();
+  const recent = page.getByRole("listbox", { name: "Recent chats" }).getByRole("option");
+  await expect(recent).toHaveCount(3);
+  await expect(recent.first()).toHaveAttribute("aria-selected", "true");
+  // Under the chats, Mash's own pages are suggested.
+  await expect(page.getByRole("listbox", { name: "Suggestions" }).getByRole("option")).toHaveCount(
+    3,
+  );
   await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
 
   await field.fill("deplo");
   await expect(page.getByRole("heading", { name: "Chats", exact: true })).toBeVisible();
+  const options = page.getByRole("listbox", { name: "Matching chats" }).getByRole("option");
   await expect(options).toHaveCount(2);
   await expect(options.first()).toContainText("the deploy step retries forever");
   expect(typed).toEqual(["deplo"]);
 
   await field.press("ArrowDown");
   await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");
+  // The selection runs on into the suggestions and stops at the last one.
+  const everywhere = page.getByRole("listbox", { name: "Suggestions" }).getByRole("option");
+  await expect(everywhere).toHaveCount(1);
   await field.press("ArrowDown");
+  await expect(everywhere.first()).toHaveAttribute("aria-selected", "true");
+  await field.press("ArrowDown");
+  await expect(everywhere.first()).toHaveAttribute("aria-selected", "true");
+  await field.press("ArrowUp");
   await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");
   await field.press("Enter");
   // In a browser a match opens the dashboard's own chat page.
@@ -127,18 +139,19 @@ test("Escape clears the query before anything else, and the menu reaches the mai
     "href",
     "#/chat/c1?node=laptop",
   );
-  const more = page.getByRole("button", { name: "More" });
+  const more = page.getByRole("button", { name: "Actions" });
   await more.click();
-  // Linux has no Command key: the labels name Ctrl, which is what applies.
-  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("Ctrl+O");
+  // Linux has no Command key: the keycaps name Ctrl, which is what applies.
+  const openMash = page.getByRole("menuitem", { name: "Open Mash", exact: true });
+  await expect(openMash).toContainText("CtrlO");
+  await expect(openMash).toHaveAttribute("aria-keyshortcuts", "Control+O");
   await expect(page.getByRole("menuitem", { name: /Settings…/ })).toHaveAttribute(
     "href",
     "#/settings",
   );
-  await expect(page.getByRole("link", { name: "Search Everywhere Ctrl+Enter" })).toHaveAttribute(
-    "href",
-    "#/search",
-  );
+  const everywhere = page.getByRole("link", { name: /Search everywhere/ });
+  await expect(everywhere).toHaveAttribute("href", "#/search");
+  await expect(everywhere).toHaveAttribute("aria-keyshortcuts", "Control+Enter");
   // Escape closes the menu from the button, not only from the field.
   await more.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
@@ -146,7 +159,7 @@ test("Escape clears the query before anything else, and the menu reaches the mai
   // A click outside the menu closes it too.
   await more.click();
   await expect(page.getByRole("menu")).toBeVisible();
-  await page.getByRole("heading", { name: "Recent chats" }).click();
+  await page.getByRole("heading", { name: "Recent", exact: true }).click();
   await expect(page.getByRole("menu")).toHaveCount(0);
 });
 
@@ -157,9 +170,12 @@ test("on a Mac the shortcuts are written with Command", async ({ page }) => {
   });
   await mock(page);
   await page.goto("/#/quick");
-  await expect(page.getByRole("link", { name: "Search Everywhere ⌘↵" })).toBeVisible();
-  await page.getByRole("button", { name: "More" }).click();
-  await expect(page.getByRole("menuitem", { name: /Open Mash/ })).toContainText("⌘O");
+  await expect(page.getByRole("link", { name: /Search everywhere/ })).toHaveAttribute(
+    "aria-keyshortcuts",
+    "Meta+Enter",
+  );
+  await page.getByRole("button", { name: "Actions" }).click();
+  await expect(page.getByRole("menuitem", { name: "Open Mash", exact: true })).toContainText("⌘O");
   await expect(page.getByRole("menuitem", { name: /Settings…/ })).toHaveAttribute(
     "aria-keyshortcuts",
     "Meta+,",
@@ -176,7 +192,9 @@ test("copying a row's link says so", async ({ page }) => {
   });
   await mock(page);
   await page.goto("/#/quick");
-  await expect(page.getByRole("option")).toHaveCount(3);
+  await expect(page.getByRole("listbox", { name: "Recent chats" }).getByRole("option")).toHaveCount(
+    3,
+  );
   await page.getByRole("textbox", { name: "Search Mash" }).press("Control+c");
   await expect(page.getByRole("status")).toHaveText("Link copied");
   expect(await page.evaluate(() => (window as unknown as { copies: string[] }).copies)).toEqual([
@@ -212,9 +230,13 @@ test("when Mash isn't responding the panel says so, searches still fail visibly,
   await page.unroute("**/api/**");
   await mock(page);
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByRole("option")).toHaveCount(2);
+  await expect(
+    page.getByRole("listbox", { name: "Matching chats" }).getByRole("option"),
+  ).toHaveCount(2);
   await page.getByRole("textbox", { name: "Search Mash" }).fill("");
-  await expect(page.getByRole("option")).toHaveCount(3);
+  await expect(page.getByRole("listbox", { name: "Recent chats" }).getByRole("option")).toHaveCount(
+    3,
+  );
   await expect(page.getByRole("status")).toHaveText("Up to date · 1,073 chats");
 });
 
@@ -274,8 +296,8 @@ test("the quick panel and the dashboard follow the system's dark appearance", as
   await mock(page);
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/#/quick");
-  await expect(page.getByRole("heading", { name: "Recent chats" })).toBeVisible();
-  // The panel offers both schemes, so the system's dark Canvas colours apply.
+  await expect(page.getByRole("heading", { name: "Recent", exact: true })).toBeVisible();
+  // The panel is drawn in the theme, whose dark roles follow the system.
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
   ).toContain("dark");
@@ -320,10 +342,142 @@ test("the panel follows the viewing scope chosen in the dashboard", async ({ pag
   await page.addInitScript(() => localStorage.setItem("mash.scope", "local"));
   await streamFromSearch(page);
   await page.goto("/#/quick");
-  const options = page.getByRole("option");
-  await expect(options).toHaveCount(3);
+  await expect(page.getByRole("listbox", { name: "Recent chats" }).getByRole("option")).toHaveCount(
+    3,
+  );
   await expect(page.getByText("Deploy the workstation build")).toHaveCount(0);
   await page.getByRole("textbox", { name: "Search Mash" }).fill("deploy");
+  const options = page.getByRole("listbox", { name: "Matching chats" }).getByRole("option");
   await expect(options).toHaveCount(1);
   await expect(options.first()).toContainText("the deploy step retries");
+});
+
+test("⌘K opens the selected chat's actions, which search and run from the keyboard", async ({
+  page,
+}) => {
+  const codex = "01a1b649-827e-7692-a5b1-0de415a69df5";
+  const claude = "586f44fa-8aaa-4587-b69f-b763d3279ef1";
+  await page.addInitScript(() => {
+    const copies: string[] = [];
+    Object.assign(window, { copies });
+    Object.defineProperty(navigator, "clipboard", {
+      get: () => ({ writeText: async (text: string) => void copies.push(text) }),
+    });
+  });
+  await page.route(statusPath, (route) =>
+    route.fulfill({
+      json: { ...ready, configuration: { ...ready.configuration, records: { enabled: true } } },
+    }),
+  );
+  await page.route("**/api/chats**", (route) =>
+    route.fulfill({
+      json: {
+        local_node: "laptop",
+        truncated: false,
+        chats: [
+          { ...chats[1], chat_id: codex },
+          { ...chats[0], chat_id: claude, node_id: "desk" },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/open-in?**", (route) =>
+    route.fulfill({
+      json: { link: { app: "Codex", url: `codex://threads/${codex}`, addsSession: false } },
+    }),
+  );
+  await page.goto("/#/quick");
+  const field = page.getByRole("textbox", { name: "Search Mash" });
+  await expect(page.getByRole("listbox", { name: "Recent chats" }).getByRole("option")).toHaveCount(
+    2,
+  );
+  await field.press("Control+k");
+  const menu = page.getByRole("menu", { name: "Actions" });
+  await expect(menu.getByRole("menuitem", { name: "Open in Mash" })).toHaveAttribute(
+    "href",
+    `#/chat/${codex}?node=laptop`,
+  );
+  await expect(menu.getByRole("menuitem", { name: "Open in Codex" })).toHaveAttribute(
+    "href",
+    `codex://threads/${codex}`,
+  );
+  await expect(menu.getByRole("menuitem", { name: "Show memory from this chat" })).toHaveAttribute(
+    "href",
+    `#/records?chat=${codex}`,
+  );
+  await expect(page.getByRole("textbox", { name: "Search actions" })).toBeFocused();
+  await page.getByRole("textbox", { name: "Search actions" }).fill("resume");
+  await expect(menu.getByRole("menuitem")).toHaveCount(1);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(page.getByRole("status")).toHaveText("Resume command copied");
+  expect(await page.evaluate(() => (window as unknown as { copies: string[] }).copies)).toEqual([
+    `codex resume ${codex}`,
+  ]);
+
+  // A chat of another machine opens nothing on this one: no agent, no resume command.
+  await field.press("ArrowDown");
+  await field.press("Control+k");
+  await expect(menu.getByRole("menuitem", { name: "Open in Mash" })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: /Open in Codex|resume/ })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Show memory from this chat" })).toHaveAttribute(
+    "href",
+    `#/records?chat=${claude}&shared=true&node=desk`,
+  );
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
+test("a match reads as plain words, and a wide panel previews the message", async ({ page }) => {
+  await mock(page);
+  await page.unroute("**/api/search/live?**");
+  await page.route("**/api/search/live?**", (route) =>
+    route.fulfill({
+      json: {
+        results: [
+          {
+            ...chats[0],
+            matches: [
+              {
+                message_id: "m-3",
+                snippet: "…o **access tokens that expire**, and the deploy retri…",
+              },
+            ],
+          },
+        ],
+        next_offset: null,
+      },
+    }),
+  );
+  await page.route("**/api/view?**", (route) =>
+    route.fulfill({
+      json: {
+        message_count: 14,
+        messages: [
+          { id: "m-2", ordinal: 1, role: "assistant", content: "Which tokens?" },
+          {
+            id: "m-3",
+            ordinal: 2,
+            role: "user",
+            content: "Use **access tokens**; the deploy waits.",
+          },
+        ],
+      },
+    }),
+  );
+  await streamFromSearch(page);
+  await page.setViewportSize({ width: 800, height: 540 });
+  await page.goto("/#/quick");
+  await page.getByRole("textbox", { name: "Search Mash" }).fill("deploy");
+  const option = page.getByRole("listbox", { name: "Matching chats" }).getByRole("option");
+  await expect(option).toHaveCount(1);
+  await expect(option).toContainText("…access tokens that expire, and the deploy…");
+  await expect(option).not.toContainText("**");
+  const preview = page.getByRole("complementary", { name: "Preview" });
+  await expect(preview.getByRole("heading", { name: "Fix the deploy retry loop" })).toBeVisible();
+  await expect(preview).toContainText("Message 3 of 14");
+  await expect(preview).toContainText("Use access tokens; the deploy waits.");
+  // The desktop panel is too narrow for a preview.
+  await page.setViewportSize({ width: 380, height: 305 });
+  await expect(preview).toHaveCount(0);
 });

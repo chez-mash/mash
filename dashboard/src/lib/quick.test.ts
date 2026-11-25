@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  ariaShortcut,
   browserPlatform,
   fullSearchTarget,
   hidePanel,
-  inkLogo,
+  keycaps,
   moveSelection,
   pageTarget,
+  quickCommands,
   quickEmpty,
   quickKeys,
   quickRows,
@@ -75,6 +77,8 @@ describe("the quick search panel", () => {
       everywhere: "⌘↵",
       open: "⌘O",
       settings: "⌘,",
+      actions: "⌘K",
+      copy: "⌘C",
       modifier: "Meta",
     });
     expect(quickKeys("macOS").open).toBe("⌘O");
@@ -82,6 +86,8 @@ describe("the quick search panel", () => {
       everywhere: "Ctrl+Enter",
       open: "Ctrl+O",
       settings: "Ctrl+,",
+      actions: "Ctrl+K",
+      copy: "Ctrl+C",
       modifier: "Control",
     });
     expect(quickKeys("Linux x86_64").modifier).toBe("Control");
@@ -146,9 +152,30 @@ describe("the quick search panel", () => {
     expect(quickStatus(undefined, false)).toEqual({ tone: "checking", label: "Checking…" });
   });
 
-  it("draws ink logos in the text colour so they show in dark mode", () => {
-    expect(inkLogo("codex")).toBe(true);
-    expect(inkLogo("claude-code")).toBe(false);
+  it("draws a shortcut as one keycap per key, and names it for assistive technology", () => {
+    expect(keycaps("⌘K")).toEqual(["⌘", "K"]);
+    expect(keycaps("⌘↵")).toEqual(["⌘", "↵"]);
+    expect(keycaps("Ctrl+Enter")).toEqual(["Ctrl", "Enter"]);
+    expect(keycaps("Ctrl+,")).toEqual(["Ctrl", ","]);
+    expect(keycaps("↵")).toEqual(["↵"]);
+    expect(ariaShortcut("⌘↵", "Meta")).toBe("Meta+Enter");
+    expect(ariaShortcut("Ctrl+K", "Control")).toBe("Control+K");
+  });
+
+  it("suggests full search, Memory and Machines, and only full search once typing", () => {
+    const keys = quickKeys("Linux");
+    expect(quickCommands("", false, keys).map((command) => command.target)).toEqual([
+      "#/search",
+      "#/records?",
+      "#/machines",
+    ]);
+    const typed = quickCommands("deploy", true, keys);
+    expect(typed).toHaveLength(1);
+    expect(typed[0]).toMatchObject({
+      title: "Search everywhere",
+      target: "mash://search?q=deploy",
+      shortcut: "Ctrl+Enter",
+    });
   });
 
   it("asks the app to hide its window, and does nothing in a browser", async () => {

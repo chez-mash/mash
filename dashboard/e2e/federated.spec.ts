@@ -246,7 +246,7 @@ test("the quick panel keeps the highlighted row while results arrive", async ({ 
   await page.goto("/#/quick");
   const field = page.getByRole("textbox", { name: "Search Mash" });
   await field.fill("invoice exports");
-  const options = page.getByRole("option");
+  const options = page.getByRole("listbox", { name: "Matching chats" }).getByRole("option");
   await expect(options).toHaveCount(2);
   await field.press("ArrowDown");
   await expect(options.nth(1)).toHaveAttribute("aria-selected", "true");

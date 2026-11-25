@@ -112,18 +112,22 @@ app's full-colour tile (`src-tauri/icons/64x64.png`).
 The panel is the dashboard's `#/quick` page in a second, borderless window,
 so its live search, recent chats, agent logos and links are the dashboard's
 own (`dashboard/src/components/QuickSearch.svelte`, `dashboard/src/lib/quick.ts`).
-It looks like the operating system, not the Sticker theme: the theme's
-`--native-*` roles are system colours (Canvas, GrayText, AccentColor) and the
-system font, and the window's title-bar theme sync skips it. Its rows and menu
-open mash:// links, which the app follows in the main window before hiding
-the panel; the only Tauri permission the panel has is hiding its own window
+It is drawn in the dashboard's theme (Geist, its tokens, a neutral selected
+row), light or dark as the system is, and the window's title-bar theme sync
+skips it. Before anything is typed it lists recent chats and suggests full
+search, Memory and Machines; ⌘K (Ctrl+K) opens the selected chat's actions,
+the ones the chat page offers. The window is too narrow for the preview
+of the selected result, which shows only where the page is 600 pixels wide or
+more, as in a browser. Its rows and menu open mash:// links, which the app
+follows in the main window before hiding the panel (an agent's own link goes
+to that agent's app, as from the main window); the only Tauri permission the panel has is hiding its own window
 (`capabilities/quick.json`). It hides whenever it loses focus, and it is on
 every desktop (Space). The window is
 transparent, for its rounded edge, on macOS and Windows only: Linux desktops
 without a compositor paint a transparent window black. On macOS the window is
 drawn on the system's popover material (a Tauri window effect) and the page,
 told so by `window.__MASH_PANEL_MATERIAL__`, uses the translucent
-`--native-surface-material`, so the panel looks like a menu bar extra in
+`--quick-surface-material`, so the panel looks like a menu bar extra in
 light and dark. Tauri's window theme sets the appearance of the whole app on
 macOS, so the main window's light title bar is set on that NSWindow alone
 (`light_title_bar` in `lib.rs`); otherwise the panel and the app's notices

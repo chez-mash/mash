@@ -180,33 +180,12 @@
   /* The brand. */
   --brand-name: #1a1915;
   --brand-cursor: #f5c84b;
-  /* The quick search panel the desktop app shows from the menu bar. It looks
-     like the operating system rather than this theme: the system's own
-     colours in its light or dark appearance, the system font, and the
-     system's accent colour for the selected row. The dashboard now has a light and a dark theme of its own; this panel still follows macOS directly. Older engines without
-     AccentColor use the selection highlight instead. */
-  --type-native: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --native-scheme: light dark;
-  --native-backdrop: transparent;
-  --native-surface: Canvas;
-  /* Over the system's blurred popover material (the desktop app on macOS),
-     the panel lets most of the material through, as a menu bar extra does. */
-  --native-surface-material: color-mix(in srgb, Canvas 30%, transparent);
-  --native-text: CanvasText;
-  --native-muted: GrayText;
-  --native-line: color-mix(in srgb, CanvasText 12%, transparent);
-  --native-hover: color-mix(in srgb, CanvasText 7%, transparent);
-  --native-selected-bg: AccentColor;
-  --native-selected-text: AccentColorText;
-  --native-selected-fallback-bg: Highlight;
-  --native-selected-fallback-text: HighlightText;
-  /* The system's status colours for the panel's footer dot: ready, working
-     or partial, and unavailable. */
-  --native-status-ready: #34c759;
-  --native-status-busy: #ff9f0a;
-  --native-status-problem: #ff3b30;
-  --native-radius-panel: 12px;
-  --native-radius-row: 7px;
+  /* The quick search panel the desktop app shows from the menu bar is drawn
+     in this theme. Its window is clear around the panel's rounded edge, and
+     over the system's blurred popover material (the desktop app on macOS) the
+     panel lets some of the material through, as a menu bar extra does. */
+  --quick-backdrop: transparent;
+  --quick-surface-material: color-mix(in srgb, var(--surface-page) 72%, transparent);
   color-scheme: light;
   /* Search and reading: matched words glow, saved memory is a butter-ringed card with a glowing butter tile, and a chat's minimap marks its hits. */
   --find-glow: 0 0 12px rgba(245, 200, 75, 0.5);

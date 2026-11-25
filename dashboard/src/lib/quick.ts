@@ -8,7 +8,7 @@
 import { searchHref } from "./route.svelte";
 import { shareLink } from "./shareLink";
 import type { Status } from "./status";
-import type { Agent, ChatSummary, SearchHit } from "./types";
+import type { ChatSummary, SearchHit } from "./types";
 
 /** How many rows the panel shows. */
 export const QUICK_ROWS = 5;
@@ -69,14 +69,28 @@ export function rowRoute(row: QuickRow): string {
   return `#/chat/${encodeURIComponent(row.chat.id)}?${params}`;
 }
 
+/**
+ * The Memory page's filter for what was saved from a chat, as the chat page
+ * builds it: another machine's chat is read from the shared index.
+ */
+export function chatMemoryParams(
+  chat: { readonly id: string; readonly machine: string },
+  local: boolean,
+): URLSearchParams {
+  return new URLSearchParams({
+    chat: chat.id,
+    ...(local ? {} : { shared: "true", node: chat.machine }),
+  });
+}
+
 /** Mash's full search for the same words: other machines, identifiers, meaning. */
 export function fullSearchTarget(query: string, desktop: boolean): string {
   const route = searchHref(query.trim() ? { q: query.trim() } : {});
   return desktop ? shareLink(route, "", true) : route;
 }
 
-/** Pages of the main window the panel's menu opens. */
-export function pageTarget(route: "#/" | "#/settings" | "#/setup", desktop: boolean): string {
+/** Pages of the main window the panel opens: its own routes in a browser. */
+export function pageTarget(route: string, desktop: boolean): string {
   return desktop ? shareLink(route, "", true) : route;
 }
 
@@ -89,14 +103,68 @@ export interface QuickKeys {
   readonly everywhere: string;
   readonly open: string;
   readonly settings: string;
+  readonly actions: string;
+  readonly copy: string;
   /** The modifier's name for `aria-keyshortcuts`. */
   readonly modifier: "Meta" | "Control";
 }
 
 export function quickKeys(platform: string): QuickKeys {
   return /mac|iphone|ipad/i.test(platform)
-    ? { everywhere: "⌘↵", open: "⌘O", settings: "⌘,", modifier: "Meta" }
-    : { everywhere: "Ctrl+Enter", open: "Ctrl+O", settings: "Ctrl+,", modifier: "Control" };
+    ? { everywhere: "⌘↵", open: "⌘O", settings: "⌘,", actions: "⌘K", copy: "⌘C", modifier: "Meta" }
+    : {
+        everywhere: "Ctrl+Enter",
+        open: "Ctrl+O",
+        settings: "Ctrl+,",
+        actions: "Ctrl+K",
+        copy: "Ctrl+C",
+        modifier: "Control",
+      };
+}
+
+/**
+ * A shortcut as the keys drawn on separate keycaps: `⌘K` is ⌘ and K, and
+ * `Ctrl+Enter` is Ctrl and Enter.
+ */
+export function keycaps(shortcut: string): string[] {
+  return shortcut.length > 1 && shortcut.includes("+")
+    ? shortcut.split(/\+(?=.)/)
+    : Array.from(shortcut);
+}
+
+/** A shortcut for `aria-keyshortcuts`: `Control+Enter`, `Meta+K`. */
+export function ariaShortcut(shortcut: string, modifier: QuickKeys["modifier"]): string {
+  const [first = "", ...rest] = keycaps(shortcut);
+  const named = (key: string) => (key === "↵" ? "Enter" : key);
+  return [/^(⌘|Ctrl)$/.test(first) ? modifier : named(first), ...rest.map(named)].join("+");
+}
+
+/**
+ * The suggestions under the chats: Mash's own pages the panel can open. Full
+ * search (every machine, by meaning too) comes first, and takes the typed
+ * words with it; Memory and Machines are offered before anything is typed.
+ */
+export interface QuickCommand {
+  readonly id: "everywhere" | "memory" | "machines";
+  readonly title: string;
+  readonly target: string;
+  /** The shortcut that runs it from anywhere in the panel, as {@link QuickKeys} writes it. */
+  readonly shortcut?: string;
+}
+
+export function quickCommands(query: string, desktop: boolean, keys: QuickKeys): QuickCommand[] {
+  const everywhere: QuickCommand = {
+    id: "everywhere",
+    title: "Search everywhere",
+    target: fullSearchTarget(query, desktop),
+    shortcut: keys.everywhere,
+  };
+  if (searching(query)) return [everywhere];
+  return [
+    everywhere,
+    { id: "memory", title: "Open Memory", target: pageTarget("#/records?", desktop) },
+    { id: "machines", title: "Machines", target: pageTarget("#/machines", desktop) },
+  ];
 }
 
 /** The platform the browser reports, for {@link quickKeys}. */
@@ -168,17 +236,6 @@ export function quickStatus(status: Status | undefined, failed: boolean): QuickS
       ? { tone: "busy", label: "Indexing…" }
       : { tone: "busy", label: "Not indexed yet" };
   return { tone: "problem", label: "Search unavailable" };
-}
-
-/**
- * Agents whose logo is drawn in ink. In the panel they take the text colour,
- * so they show in the system's dark mode as well as its light one; the rest
- * keep their own colour.
- */
-const inkLogos: ReadonlySet<Agent> = new Set(["codex", "cursor", "opencode"]);
-
-export function inkLogo(agent: Agent): boolean {
-  return inkLogos.has(agent);
 }
 
 /**

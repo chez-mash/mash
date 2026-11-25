@@ -232,7 +232,7 @@ fn over_full_screen(window: &tauri::WebviewWindow) {
 }
 
 /// The corner radius of the panel's material, matching the page's
-/// `--native-radius-panel`.
+/// `--radius-7` (QuickSearch.svelte).
 #[cfg(target_os = "macos")]
 const PANEL_RADIUS: f64 = 12.0;
 
