@@ -1,0 +1,137 @@
+{
+  "about": "Made-up chats for the macOS VM screenshots. Every person, project and conversation here is invented; tools/mac-vm/demo_history.py writes them into each agent's own history format. minutesAgo is counted back from the time the history is written, so the chats always look recent.",
+  "chats": [
+    {
+      "id": "b1982953-eabf-430e-80c6-6911f7f40f98",
+      "agent": "claude",
+      "project": "/Users/ada/code/checkout",
+      "minutesAgo": 180,
+      "messages": [
+        ["user", "Checkout is timing out for some customers since this morning's deploy. Can you find out why?"],
+        ["assistant", "The payment service now retries card authorization three times with a 10 second timeout, so a slow provider holds the checkout request for 30 seconds. The load balancer gives up at 25. I'd cap the retries at one and move the rest to the background queue."],
+        ["user", "Do that, and add a test for the slow provider."],
+        ["assistant", "Done. Authorization retries once inline, and later retries run from the payments queue. The new test simulates a provider that answers after 12 seconds and checks that checkout returns in under 15."]
+      ]
+    },
+    {
+      "id": "e3c27e15-10a2-4818-9c2a-3aecbf8fc176",
+      "agent": "codex",
+      "project": "/Users/ada/code/checkout",
+      "minutesAgo": 7380,
+      "messages": [
+        ["user", "Plan the move of the cart service from Redis to Postgres."],
+        ["assistant", "Write to both stores for a week, compare reads in the background and alert on any difference, then switch reads to Postgres and stop the Redis writes. Carts are small, so one table with a JSON column for items is enough."],
+        ["user", "Let's go with the dual-write plan. Start with the schema."],
+        ["assistant", "The carts table has the customer, the items as JSON, and updated_at with an index. The migration is in db/migrations/0042_carts.sql."]
+      ]
+    },
+    {
+      "id": "d00fb8ce-09c8-4360-92ef-4bca30da019b",
+      "agent": "cursor",
+      "project": "/Users/ada/code/auth",
+      "minutesAgo": 3060,
+      "messages": [
+        ["user", "Should sign-in tokens be stored in local storage or a cookie?"],
+        ["assistant", "A cookie marked HttpOnly, Secure and SameSite=Lax. Scripts can't read it, so a cross-site scripting bug can't steal the session, and the browser sends it on its own."],
+        ["user", "Decided: we'll use an HttpOnly cookie and drop the local storage token."],
+        ["assistant", "I've moved the session to an HttpOnly cookie, removed the token from local storage, and added a migration that signs old sessions in again once."]
+      ]
+    },
+    {
+      "id": "2c6ceee1-55bb-488e-ae43-cc59a5089910",
+      "agent": "opencode",
+      "project": "/Users/ada/code/billing",
+      "minutesAgo": 1500,
+      "messages": [
+        ["user", "Invoice exports are stuck in the queue again. Customers with more than 5,000 invoices never get their CSV."],
+        ["assistant", "The export job loads every invoice into memory before writing the file, and the worker is killed at 512 MB. Streaming the rows straight into the CSV keeps memory flat however many invoices there are."],
+        ["user", "Let's stream them. Keep the column order the same so existing spreadsheets don't break."],
+        ["assistant", "Exports now stream in pages of 500 rows with the same columns in the same order. A 40,000-invoice export finished in 18 seconds using 60 MB."]
+      ]
+    },
+    {
+      "id": "0d839cc1-a0b9-4e52-8971-ba5ba7d7accd",
+      "agent": "copilot",
+      "project": "/Users/ada/code/billing",
+      "minutesAgo": 11700,
+      "messages": [
+        ["user", "How do we round tax on invoices with several line items?"],
+        ["assistant", "Right now each line's tax is rounded and then added up, which can be a cent off the total. Most tax authorities expect tax on the invoice total, rounded once."],
+        ["user", "We'll round tax once on the invoice total from now on."],
+        ["assistant", "Tax is now computed on the total and rounded once, half up. Old invoices keep their stored amounts."]
+      ]
+    },
+    {
+      "id": "b17c9bdc-03ae-46f1-8230-4123f6f10312",
+      "agent": "antigravity",
+      "project": "/Users/ada/code/mobile-app",
+      "minutesAgo": 4320,
+      "messages": [
+        ["user", "The release build of the iOS app crashes on launch but the debug build is fine."],
+        ["assistant", "The release configuration strips the analytics module's Objective-C categories, so a selector is missing at launch. Adding -ObjC to Other Linker Flags for the release configuration keeps them."],
+        ["user", "That fixed it, thanks. Can you add a CI step that launches the release build in the simulator?"],
+        ["assistant", "Added. CI now builds the release configuration, boots an iPhone 17 simulator, launches the app and fails if it exits within 20 seconds."]
+      ]
+    },
+    {
+      "id": "38e68260-a615-47a9-9b0b-7d80e85d2dbf",
+      "agent": "claude",
+      "project": "/Users/ada/code/docs-site",
+      "minutesAgo": 6300,
+      "messages": [
+        ["user", "Search on the docs site doesn't find pages by their old titles after we renamed them."],
+        ["assistant", "The search index only has the current titles. I'd add each page's previous titles as hidden keywords, so old bookmarks and habits still find the page."],
+        ["user", "Good idea, do it for the pages renamed this quarter."],
+        ["assistant", "Added aliases to the twelve renamed pages. Searching for \"API keys\" now finds \"Access tokens\" first."]
+      ]
+    },
+    {
+      "id": "3c8639e9-3594-4edb-85a7-b841508c5a5e",
+      "agent": "codex",
+      "project": "/Users/ada/code/infra",
+      "minutesAgo": 9480,
+      "messages": [
+        ["user", "Nightly backups are taking six hours now. Why so slow?"],
+        ["assistant", "The backup copies every table in full, including the 900 GB events table that only ever gets new rows. Backing up events incrementally by day would bring the nightly run under an hour."],
+        ["user", "Make the events backup incremental and keep weekly full backups."],
+        ["assistant", "Events are now backed up by day, with a full backup every Sunday. Last night's run took 41 minutes."]
+      ]
+    }
+  ],
+  "records": [
+    {
+      "operation_id": "demo-checkout-retries",
+      "scope": { "kind": "local_project", "path": "/Users/ada/code/checkout" },
+      "kind": "decision",
+      "statement": "Retry card authorization once inline during checkout; run later retries from the payments queue.",
+      "rationale": "Three 10 second retries held checkout for 30 seconds, past the load balancer's 25 second limit.",
+      "alternatives": ["Keep three inline retries and raise the load balancer timeout"],
+      "evidence": [{ "chat": "b1982953-eabf-430e-80c6-6911f7f40f98", "quote": "Do that, and add a test for the slow provider." }]
+    },
+    {
+      "operation_id": "demo-cart-dual-write",
+      "scope": { "kind": "local_project", "path": "/Users/ada/code/checkout" },
+      "kind": "decision",
+      "statement": "Move carts from Redis to Postgres by writing to both for a week, then switching reads.",
+      "rationale": "Background read comparison catches differences before Redis is turned off.",
+      "evidence": [{ "chat": "e3c27e15-10a2-4818-9c2a-3aecbf8fc176", "quote": "Let's go with the dual-write plan. Start with the schema." }]
+    },
+    {
+      "operation_id": "demo-auth-cookie",
+      "scope": { "kind": "local_project", "path": "/Users/ada/code/auth" },
+      "kind": "decision",
+      "statement": "Keep the sign-in session in an HttpOnly, Secure, SameSite=Lax cookie, not in local storage.",
+      "rationale": "Scripts can't read the cookie, so a cross-site scripting bug can't steal the session.",
+      "alternatives": ["Local storage token"],
+      "evidence": [{ "chat": "d00fb8ce-09c8-4360-92ef-4bca30da019b", "quote": "Decided: we'll use an HttpOnly cookie and drop the local storage token." }]
+    },
+    {
+      "operation_id": "demo-tax-rounding",
+      "scope": { "kind": "local_project", "path": "/Users/ada/code/billing" },
+      "kind": "decision",
+      "statement": "Round invoice tax once, on the invoice total, half up.",
+      "rationale": "Rounding each line can leave the total a cent off.",
+      "evidence": [{ "chat": "0d839cc1-a0b9-4e52-8971-ba5ba7d7accd", "quote": "We'll round tax once on the invoice total from now on." }]
+    }
+  ]
+}

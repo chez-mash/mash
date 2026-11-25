@@ -17,5 +17,6 @@ documentation website and its search. User guides live in [docs](../README.md).
 - [Documentation website](documentation-site.md)
 - [Desktop app](desktop-app.md)
 - [Native first-user setup audits](setup-audits.md)
+- [macOS VM for Raycast checks](mac-vm.md)
 - [Fleet deployment](../../deployment/README.md)
 - [Protocol models](../../protocol/README.md)
