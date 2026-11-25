@@ -1,4 +1,5 @@
 <script lang="ts">
+import Settings from "@lucide/svelte/icons/settings";
 import { createQuery } from "@tanstack/svelte-query";
 import { asset } from "../lib/asset";
 import { settingsHref } from "../lib/route.svelte";
@@ -26,6 +27,6 @@ const settings = createQuery(() => settingsOptions);
     <AssistantKeyForm settings={settings.data} withService={!settings.data.assistant} id="mashy-panel" />
     <a class="a" href={settingsHref("assistant")} onclick={leave}>More Mashy settings</a>
   {:else if settings.error}
-    <a class="btn p" href={settingsHref("assistant")} onclick={leave}>Set up Mashy in Settings</a>
+    <a class="btn p" href={settingsHref("assistant")} onclick={leave}><Settings size={14} aria-hidden="true" />Set up Mashy in Settings</a>
   {/if}
 </div>

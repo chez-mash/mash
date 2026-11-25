@@ -200,7 +200,9 @@ test.describe("at 1440px", () => {
       "Automatic indexing publishes Shared server: working",
     );
     // There is no list view to switch to.
-    await expect(page.getByRole("heading", { name: "services", exact: true })).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Services", exact: true }),
+    ).toHaveCount(0);
     await map.getByRole("link", { name: /Local search/ }).click();
     await expect(page).toHaveURL(/place=search/);
     const panel = page.getByRole("complementary", { name: "Local search details" });

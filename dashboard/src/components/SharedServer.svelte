@@ -85,7 +85,7 @@ async function forgetKey(): Promise<void> {
             <label class="meta" style:display="block" for="admin-key">Admin key</label>
             <input id="admin-key" class="field" type="password" autocomplete="off" spellcheck="false" bind:value={key} />
             <p class="meta">An admin key starts with <code class="i">mash-admin.</code>. Make one on the server machine with <code class="i">mash-server --server-config … --add-admin NAME</code>. Mash checks it with the server before saving it, readable only by you.</p>
-            <button class="btn p" type="submit" disabled={!key.trim() || savingKey}>{savingKey ? "Checking…" : "Save admin key"}</button>
+            <button class="btn p" type="submit" disabled={!key.trim() || savingKey}><KeyRound size={14} aria-hidden="true" />{savingKey ? "Checking…" : "Save admin key"}</button>
             <button class="btn" type="button" onclick={() => { adding = false; key = ""; keyFailure = ""; }}>Cancel</button>
             {#if keyFailure}<p class="warn" role="alert">{keyFailure}</p>{/if}
           </form>

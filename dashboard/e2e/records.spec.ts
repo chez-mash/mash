@@ -20,7 +20,7 @@ test("memory categories work from the page's tabs even when chat history is unav
     ["decisions", "decision"],
     ["preferences", "preference"],
   ] as const) {
-    await followRail(page, "memory");
+    await followRail(page, "Memory");
     await kindNav(page).getByRole("link", { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`kind=${kind}`));
     await expect(kindNav(page).getByRole("link", { name: label, exact: true })).toHaveAttribute(
@@ -30,7 +30,7 @@ test("memory categories work from the page's tabs even when chat history is unav
     await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
     await expect(page.getByRole("alert")).toHaveCount(0);
     await page.getByRole("link", { name: "mash", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "recent memories" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent memories" })).toBeVisible();
   }
   expect(documents()).toBe(1);
 });
@@ -100,7 +100,7 @@ test("records filter on submission, expose history and safe citations, and navig
     });
   });
   await page.goto("/");
-  await followRail(page, "memory");
+  await followRail(page, "Memory");
   await expect(page.getByRole("heading", { name: "Memory", exact: true })).toBeVisible();
   await expect(records(page)).toHaveCount(3);
   await kindNav(page).getByRole("link", { name: "preferences", exact: true }).click();
@@ -122,7 +122,7 @@ test("records filter on submission, expose history and safe citations, and navig
   await memoryLink.click();
   await expect(page.getByRole("heading", { name: statement, exact: true })).toBeVisible();
   expect(await page.evaluate(() => "recordPwned" in window)).toBe(false);
-  for (const name of ["evidence", "revision history", "related records"])
+  for (const name of ["Evidence", "Revision history", "Related records"])
     await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await expect(page.getByText(/^Revision 9 \(current\)/)).toBeVisible();
   await page.getByRole("button", { name: "Older revisions" }).click();
@@ -149,7 +149,7 @@ test("records filter on submission, expose history and safe citations, and navig
   await expect(
     page.locator("#message-message-1").getByText("The service uses port 8080.", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "memory from this chat" }).click();
+  await page.getByRole("link", { name: "Memory from this chat" }).click();
   await expect(page.getByText(/Memory citing chat/)).toContainText("chat-1");
   expect(documents()).toBe(1);
   expect(errors).toEqual([]);
@@ -252,7 +252,7 @@ for (const sourceNode of ["remote/one", "local"]) {
       "Exported 1 messages",
     );
     const sent = requests.length;
-    await page.getByRole("link", { name: "memory from this chat" }).click();
+    await page.getByRole("link", { name: "Memory from this chat" }).click();
     await expect.poll(() => requests.length).toBeGreaterThan(sent);
     // Another machine's memories are its published copy; this machine's own
     // published copy is shown as this machine's own index instead.
@@ -386,7 +386,7 @@ test("once joined, the overview shows every machine's memories and says whose", 
 }) => {
   await joinedWithSharedMemory(page);
   await page.goto("/#/");
-  const section = page.locator("section").filter({ hasText: "recent memories" });
+  const section = page.locator("section").filter({ hasText: "Recent memories" });
   await expect(section.locator("a").nth(1)).toBeVisible();
   await expect(section.getByText(/Nothing saved yet/)).toHaveCount(0);
   await expect(page.getByRole("main").getByText("All machines")).toBeVisible();

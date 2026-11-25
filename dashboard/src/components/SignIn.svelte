@@ -1,5 +1,6 @@
 <script lang="ts">
 import KeyRound from "@lucide/svelte/icons/key-round";
+import LogIn from "@lucide/svelte/icons/log-in";
 import { signIn } from "../lib/session.svelte";
 
 const { done }: { done: () => void } = $props();
@@ -44,6 +45,6 @@ async function submit(event: SubmitEvent): Promise<void> {
       aria-invalid={problem !== undefined}
     />
     {#if problem !== undefined}<p id="signin-problem" class="signin-problem" role="alert">{problem}</p>{/if}
-    <button class="btn p" type="submit" disabled={busy || token.trim() === ""}>{busy ? "Signing in…" : "Sign in"}</button>
+    <button class="btn p" type="submit" disabled={busy || token.trim() === ""}><LogIn size={14} aria-hidden="true" />{busy ? "Signing in…" : "Sign in"}</button>
   </form>
 </main>

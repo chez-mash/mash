@@ -23,7 +23,7 @@ const issues = $derived(problems(machine ? [machine] : []));
 
 {#if machine?.reachable}
   <section class="sec">
-    <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2><SetupLink {machineId} /></div>
+    <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agent setup</h2><SetupLink {machineId} /></div>
     <div class="rws agentset solo">
       <div class="rw head" aria-hidden="true"><span>agent</span><span>parts</span><span>status</span></div>
       <MachineSetup {machineId} {enabled} showMachine={false} />
@@ -32,7 +32,7 @@ const issues = $derived(problems(machine ? [machine] : []));
   </section>
 {/if}
 <section class="sec">
-  <h2 class="h2"><Server size={15} aria-hidden="true" />services</h2>
+  <h2 class="h2"><Server size={15} aria-hidden="true" />Services</h2>
   {#if fleet.isPending && enabled}<p class="meta" role="status">Checking services…</p>{/if}
   {#if fleet.error}<p class="meta" role="alert">{fleet.error.message}</p>{/if}
   {#if fleet.data && !machine}<p class="card tight cream meta">This machine is not in the dashboard's services configuration, so its services and agent setup are not reported.</p>{/if}

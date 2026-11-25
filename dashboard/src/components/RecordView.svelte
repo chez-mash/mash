@@ -126,13 +126,13 @@ function date(value: number | null): string {
       </div>
     {/if}
   </header>
-  {#if current.rationale}<section class="sec"><h2 class="h2"><Lightbulb size={15} aria-hidden="true" />why</h2><p class="rec-why">{current.rationale}</p></section>{/if}
+  {#if current.rationale}<section class="sec"><h2 class="h2"><Lightbulb size={15} aria-hidden="true" />Why</h2><p class="rec-why">{current.rationale}</p></section>{/if}
   <section class="sec">
-    <h2 class="h2"><FileText size={15} aria-hidden="true" />evidence{current.evidenceCurrent ? "" : " (stale or missing)"}</h2>
+    <h2 class="h2"><FileText size={15} aria-hidden="true" />Evidence{current.evidenceCurrent ? "" : " (stale or missing)"}</h2>
     {@render sources(current.evidence, record.node, record.owner)}
   </section>
   <section class="sec">
-    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />revision history</h2></div>
+    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Revision history</h2></div>
     {#if page.isFetching}<p class="meta" role="status">Loading history…</p>{/if}
     {#if page.data}
       {#if !page.data.revisions.length}<p class="meta">No revisions on this page.</p>{/if}
@@ -164,7 +164,7 @@ function date(value: number | null): string {
   </section>
   {#if page.data && (page.data.links.length || linkOffset > 0)}
     <section class="sec">
-      <h2 class="h2"><Link2 size={15} aria-hidden="true" />related records</h2>
+      <h2 class="h2"><Link2 size={15} aria-hidden="true" />Related records</h2>
       {#if !page.data.links.length}<p class="meta">No relationships on this page.</p>{/if}
       {#if page.data.links.length}
         <div class="card pad0 list">

@@ -1,6 +1,7 @@
 <script lang="ts">
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import Send from "@lucide/svelte/icons/send";
+import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import { useQueryClient } from "@tanstack/svelte-query";
 import { servicesHref } from "../lib/services.svelte";
 import type { ServerView } from "../lib/shared";
@@ -42,7 +43,7 @@ async function check(): Promise<void> {
     <p class="meta">Mash publishes when it indexes. If automatic indexing is not running on this machine, start it on the <a class="a" href={servicesHref()}>Services</a> page, or run <code class="i">mash index</code> in a terminal.</p>
   {/if}
   <div class="share-actions">
-    <button class="btn" type="button" onclick={change}>Change what’s shared</button>
+    <button class="btn" type="button" onclick={change}><SlidersHorizontal size={14} aria-hidden="true" />Change what’s shared</button>
     <button class="btn" type="button" disabled={checking} onclick={check}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check again"}</button>
   </div>
 </section>

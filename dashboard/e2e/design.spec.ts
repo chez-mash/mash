@@ -57,16 +57,16 @@ for (const width of [1440, 390]) {
     const main = page.getByRole("main");
     const recentChat = main.getByRole("link", { name: /Investigate the watcher/ });
     await expect(recentChat).toBeVisible();
-    for (const name of ["recent chats", "recent memories", "machines", "agents"])
+    for (const name of ["Recent chats", "Recent memories", "Machines", "Agents"])
       await expect(main.getByRole("heading", { name, exact: true })).toBeVisible();
     await expect(main.getByRole("link", { name: /preference fixture on port 8080/ })).toBeVisible();
     const section = (name: string) =>
       main.locator("section").filter({ has: page.getByRole("heading", { name, exact: true }) });
-    await section("agents").getByRole("link", { name: /Codex/ }).click();
+    await section("Agents").getByRole("link", { name: /Codex/ }).click();
     await expect(page).toHaveURL(/#\/agent\/codex$/);
     await expect(page.getByRole("heading", { name: "Codex", exact: true })).toBeVisible();
     await page.goBack();
-    await section("machines").getByRole("link", { name: /local/ }).click();
+    await section("Machines").getByRole("link", { name: /local/ }).click();
     await expect(page).toHaveURL(/#\/machine\/local$/);
     await expect(page.getByRole("heading", { name: "local", exact: true })).toBeVisible();
     await page.goBack();
@@ -97,7 +97,7 @@ for (const width of [1440, 390]) {
       await expect(open).toBeHidden();
       await expect(rail(page)).toBeVisible();
     }
-    await followRail(page, "machines");
+    await followRail(page, "Machines");
     if (width < 800) await expect(rail(page)).toBeHidden();
     await expect(page.getByRole("heading", { name: "Machines", exact: true })).toBeVisible();
     await main.getByRole("link", { name: /local/ }).click();
@@ -140,10 +140,10 @@ for (const width of [1440, 390]) {
     await expect(searchBox(page)).toHaveValue("watcher");
     await expect(main.getByText("watcher result")).toBeVisible();
     expect(searches).toBe(1);
-    await followRail(page, "viewing history", "chats");
+    await followRail(page, "Viewing history", "Chats");
     await expect(page.getByRole("heading", { name: "Viewing history", exact: true })).toBeVisible();
     await expect(recentChat).toBeVisible();
-    await followRail(page, "memory");
+    await followRail(page, "Memory");
     await page
       .getByRole("navigation", { name: "Memory kind" })
       .getByRole("link", { name: "preferences", exact: true })

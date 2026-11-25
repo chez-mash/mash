@@ -2,13 +2,40 @@
   <!-- The Mash logo: a bowl of mash with a pat of butter, on the blue tile. -->
   <defs>
     <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3b7ad6"/>
-      <stop offset="1" stop-color="#2a62b8"/>
+      <stop offset="0" stop-color="#3b7ad6" />
+      <stop offset="1" stop-color="#2a62b8" />
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#tile)"/>
-  <rect x="0.5" y="0.5" width="63" height="63" rx="14.5" fill="none" stroke="#ffffff" stroke-opacity="0.18"/>
+  <rect width="64" height="64" rx="15" fill="url(#tile)" />
+  <rect
+    x="0.5"
+    y="0.5"
+    width="63"
+    height="63"
+    rx="14.5"
+    fill="none"
+    stroke="#ffffff"
+    stroke-opacity="0.18"
+  />
   <!-- The mark fills about seventy per cent of the tile: a lumpy scoop of mash
        with a swirl, a pale bowl and a pat of butter. -->
-  <g transform="translate(32 33) scale(1.08) translate(-32 -32.5)"><path d="M12 31C11 26 15 22.5 20 23.5C21 18.5 27 16.5 31 19.5C35 15.5 42.5 17 43.5 22.5C48.5 21.5 53 25.5 52 31Z" fill="#fff1d0"/><path d="M19.5 27.5C22 25 25.5 25 28 27S34 29.2 38 26.5" fill="none" stroke="#d4a73e" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/><path d="M8 31H56A24 21 0 0 1 8 31Z" fill="#dce3fa"/><g transform="rotate(-9 32.5 18.5)"><rect x="25" y="13" width="15" height="11" rx="3" fill="#f5c84b"/><rect x="27.5" y="15" width="6" height="2" rx="1" fill="#fff0be"/></g></g>
+  <g transform="translate(32 33) scale(1.08) translate(-32 -32.5)">
+    <path
+      d="M12 31C11 26 15 22.5 20 23.5C21 18.5 27 16.5 31 19.5C35 15.5 42.5 17 43.5 22.5C48.5 21.5 53 25.5 52 31Z"
+      fill="#fff1d0"
+    />
+    <path
+      d="M19.5 27.5C22 25 25.5 25 28 27S34 29.2 38 26.5"
+      fill="none"
+      stroke="#d4a73e"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      opacity="0.85"
+    />
+    <path d="M8 31H56A24 21 0 0 1 8 31Z" fill="#dce3fa" />
+    <g transform="rotate(-9 32.5 18.5)">
+      <rect x="25" y="13" width="15" height="11" rx="3" fill="#f5c84b" />
+      <rect x="27.5" y="15" width="6" height="2" rx="1" fill="#fff0be" />
+    </g>
+  </g>
 </svg>

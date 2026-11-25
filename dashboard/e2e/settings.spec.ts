@@ -312,7 +312,7 @@ test("Mashy's link to settings opens at the assistant section", async ({ page })
   await mock(page, settings, []);
   await page.goto("/#/settings?section=assistant");
   await expect(page.getByRole("button", { name: "Turn on Mashy" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "assistant" })).toBeInViewport();
+  await expect(page.getByRole("heading", { name: "Assistant" })).toBeInViewport();
 });
 
 test("another service needs its address and model before Mashy can be turned on", async ({
@@ -399,7 +399,7 @@ test("read-only settings line up: paths break only after slashes and cards fill 
       .locator(".card")
       .first()
       .boundingBox();
-  const [indexing, privacy] = await Promise.all([card("indexing"), card("privacy")]);
+  const [indexing, privacy] = await Promise.all([card("Indexing"), card("Privacy")]);
   expect(Math.round(indexing?.y ?? 0)).toBe(Math.round(privacy?.y ?? 1));
   expect(Math.round(indexing?.height ?? 0)).toBe(Math.round(privacy?.height ?? 1));
   // Mashy's state sits at the end of its row, like the privacy settings.

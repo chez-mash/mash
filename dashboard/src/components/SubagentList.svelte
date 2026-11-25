@@ -14,7 +14,7 @@ const now = Date.now();
 
 {#if children.length}
   <section class="forks" aria-label="Subagents">
-    <h2 class="h2"><GitFork size={15} aria-hidden="true" />subagents ({children.length})</h2>
+    <h2 class="h2"><GitFork size={15} aria-hidden="true" />Subagents ({children.length})</h2>
     <div class="card pad0 list sess-l">
       {#each children as child (child.machine + child.id)}
         <a class="chatrow ses" href={chatHref(child.id, child.machine)}><AgentMark agent={child.agent} size="sm" /><span><span class="clamp">{plainTitle(child.title)}</span><small>{detailLabel(child, whenLabel(child.updatedMs, now))}</small></span></a>

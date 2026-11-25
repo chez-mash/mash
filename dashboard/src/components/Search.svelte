@@ -1,14 +1,18 @@
 <script lang="ts">
 import Bot from "@lucide/svelte/icons/bot";
+import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
 import CircleHelp from "@lucide/svelte/icons/circle-help";
 import Clock from "@lucide/svelte/icons/clock";
 import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
 import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
 import Folder from "@lucide/svelte/icons/folder";
+import FunnelX from "@lucide/svelte/icons/funnel-x";
 import GitFork from "@lucide/svelte/icons/git-fork";
 import Laptop from "@lucide/svelte/icons/laptop";
+import ListChecks from "@lucide/svelte/icons/list-checks";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import SearchIcon from "@lucide/svelte/icons/search";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
@@ -299,8 +303,12 @@ const foldedLabel = $derived(foldedNote(view?.folded ?? 0));
 const hasSubagents = $derived((catalogue.data?.all ?? []).some((chat) => chat.subagent));
 // A search that found nothing may have matched only chats agents started as
 // subagents, which are left out unless asked for; the empty page says so.
-const leftOutSubagents = $derived(hasSubagents && !!applied.query && applied.subagentHits === "hidden");
-const withSubagentsHref = $derived(appliedHref({ ...applied, subagentHits: "included", offset: 0 }));
+const leftOutSubagents = $derived(
+  hasSubagents && !!applied.query && applied.subagentHits === "hidden",
+);
+const withSubagentsHref = $derived(
+  appliedHref({ ...applied, subagentHits: "included", offset: 0 }),
+);
 const parentTitle = (chat: ChatSummary): string | undefined =>
   chat.subagent
     ? catalogue.data
@@ -429,12 +437,12 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       {/if}
       <div class="acts" style:justify-content="center">
         {#if view.first > 0}
-          <a class="btn p" href={page(0)}>First page</a>
+          <a class="btn p" href={page(0)}><ChevronsLeft size={14} aria-hidden="true" />First page</a>
         {/if}
         {#if filtered}
-          <a class="btn p" href={clearFiltersHref}>Clear filters</a>
+          <a class="btn p" href={clearFiltersHref}><FunnelX size={14} aria-hidden="true" />Clear filters</a>
         {:else if view.first === 0 && !applied.query}
-          <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer">Check history setup</a>
+          <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer"><ListChecks size={14} aria-hidden="true" />Check history setup</a>
         {/if}
         {#if applied.query && view.first === 0}
           <!-- Two ways on when a search finds nothing: look through the chats
@@ -472,7 +480,7 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       {/if}
       {#if streamed && federated.done && hits.length && federated.hits.length % pageSize === 0}
         <!-- More continues the same merged ranking; results already shown stay put. -->
-        <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}>Show more results</button></div>
+        <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}><ChevronDown size={14} aria-hidden="true" />Show more results</button></div>
       {:else if view.first > 0 || view.nextOffset !== null}
         <nav class="hd" aria-label="Pages" style:margin-top="14px">
           <span class="meta">{rangeLabel}</span>

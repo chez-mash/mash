@@ -16,7 +16,7 @@ test("live records browse, filter, expose revisions and open the real source cha
   page.on("pageerror", (error) => errors.push(error.message));
   const records = page.getByRole("main").getByRole("article");
   await page.goto("/");
-  await rail(page).getByRole("link", { name: "memory", exact: true }).click();
+  await rail(page).getByRole("link", { name: "Memory", exact: true }).click();
   await expect(records).toHaveCount(4);
   await page.screenshot({
     path: "../../mash-artifacts/dashboard-records-live/list.png",
@@ -48,7 +48,7 @@ test("live records browse, filter, expose revisions and open the real source cha
       exact: true,
     }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "memory from this chat" }).click();
+  await page.getByRole("link", { name: "Memory from this chat" }).click();
   await expect(records).toHaveCount(4);
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });

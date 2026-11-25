@@ -54,7 +54,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
 <div class="cols">
   <section class="c-main">
     <div class="hd" style:margin-bottom="14px">
-      <h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2>
+      <h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2>
       <!-- The count is in the title line above; this is a way to the list, not a page counter. -->
       {#if chats.length}<a class="a ic" href="#/search" style:font-size="12.5px">All chats<ArrowRight size={13} aria-hidden="true" /></a>{/if}
     </div>
@@ -74,7 +74,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
   </section>
   <div class="c-side">
     <section>
-      <h2 class="h2" style:margin-bottom="14px"><a href="#/records?"><Bookmark size={15} aria-hidden="true" />recent memories</a></h2>
+      <h2 class="h2" style:margin-bottom="14px"><a href="#/records?"><Bookmark size={15} aria-hidden="true" />Recent memories</a></h2>
       {#if memories.isPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
       {#if memories.data?.page.records.length}
         <div class="card pad0 list">
@@ -86,7 +86,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
     </section>
     <div class="g2">
       <section>
-        <h2 class="h2" style:margin-bottom="14px"><a href="#/machines"><Laptop size={15} aria-hidden="true" />machines</a></h2>
+        <h2 class="h2" style:margin-bottom="14px"><a href="#/machines"><Laptop size={15} aria-hidden="true" />Machines</a></h2>
         {#if machines.length}
           <div class="card tight tally">
             {#each machines as machine (machine.key)}
@@ -96,7 +96,7 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
         {/if}
       </section>
       <section>
-        <h2 class="h2" style:margin-bottom="14px"><a href="#/agents"><Bot size={15} aria-hidden="true" />agents</a></h2>
+        <h2 class="h2" style:margin-bottom="14px"><a href="#/agents"><Bot size={15} aria-hidden="true" />Agents</a></h2>
         {#if providers.length}
           <div class="card tight tally">
             {#each providers as provider (provider.key)}

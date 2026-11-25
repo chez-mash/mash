@@ -90,7 +90,7 @@ for (const width of [390, 1280]) {
     await machine("xenia").uncheck();
     const server = page.getByRole("checkbox", { name: "Shared server", exact: true });
     if (readOnly) {
-      await expect(page.getByRole("heading", { name: "services", exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
       await expect(server).toContainText("on xenia");
       await expect(server).toBeChecked();
       await expect(

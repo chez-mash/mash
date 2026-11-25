@@ -286,7 +286,7 @@ async function copy(): Promise<void> {
   </div>
 
   <section class="c-side" aria-labelledby="format-h">
-  <h2 class="h2" id="format-h"><FileText size={15} aria-hidden="true" />format</h2>
+  <h2 class="h2" id="format-h"><FileText size={15} aria-hidden="true" />Format</h2>
   <div class="picks" role="radiogroup" aria-label="What to make">
     {#each formats as option (option.value)}
       <label class="card pick" class:butter={format === option.value}>

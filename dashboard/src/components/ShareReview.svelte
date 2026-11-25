@@ -1,5 +1,7 @@
 <script lang="ts">
+import Save from "@lucide/svelte/icons/save";
 import Send from "@lucide/svelte/icons/send";
+import Upload from "@lucide/svelte/icons/upload";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { catalogOptions } from "../lib/queries";
@@ -124,8 +126,8 @@ async function save(publish: boolean): Promise<void> {
     {/if}
     {#if failure}<p class="warn" role="alert">{failure} Nothing was sent.</p>{/if}
     <div class="share-actions">
-      <button class="btn" type="button" disabled={saving !== null} onclick={() => save(false)}>{saving === "later" ? "Saving…" : "Save and publish later"}</button>
-      <button class="btn p" type="button" disabled={saving !== null || summary.sharedAgents.length === 0} onclick={() => save(true)}>{saving === "publish" ? "Starting…" : `Publish ${summary.shared.toLocaleString()} ${summary.shared === 1 ? "chat" : "chats"}`}</button>
+      <button class="btn" type="button" disabled={saving !== null} onclick={() => save(false)}><Save size={14} aria-hidden="true" />{saving === "later" ? "Saving…" : "Save and publish later"}</button>
+      <button class="btn p" type="button" disabled={saving !== null || summary.sharedAgents.length === 0} onclick={() => save(true)}><Upload size={14} aria-hidden="true" />{saving === "publish" ? "Starting…" : `Publish ${summary.shared.toLocaleString()} ${summary.shared === 1 ? "chat" : "chats"}`}</button>
     </div>
   {:else}
     <p class="meta" role="status">Loading what this machine indexes…</p>

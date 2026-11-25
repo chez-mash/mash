@@ -184,7 +184,7 @@ function focusSearch(event: KeyboardEvent): void {
     {#if showDrop && suggestions}
       <div class="drop">
         {#if suggestions.filters.length}
-          <h4>filters</h4>
+          <h4>Filters</h4>
           {#each suggestions.filters as filter (filter.kind + filter.value)}
             <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Bot size={14} aria-hidden="true" />{:else if filter.kind === "machine"}<Laptop size={14} aria-hidden="true" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
           {/each}
@@ -198,7 +198,7 @@ function focusSearch(event: KeyboardEvent): void {
           </div>
           {#if status.text}<p class="meta drop-status" role="status">{status.text}{#if status.retry}{" · "}<button class="a" type="button" onclick={() => live.retry()}>Retry</button>{/if}</p>{/if}
         {:else if suggestions.chats.length}
-          <h4>chats</h4>
+          <h4>Chats</h4>
           {#each suggestions.chats as chat (chat.machine + chat.id)}
             <a class="opt" href={chatHref(chat.id, chat.machine)} onclick={() => (focused = false)}><AgentMark agent={chat.agent} size="sm" /><span class="t"><span>{chat.title}</span></span></a>
           {/each}

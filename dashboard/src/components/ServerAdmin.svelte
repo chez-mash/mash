@@ -1,6 +1,9 @@
 <script lang="ts">
+import CircleMinus from "@lucide/svelte/icons/circle-minus";
 import Copy from "@lucide/svelte/icons/copy";
+import KeyRound from "@lucide/svelte/icons/key-round";
 import Plus from "@lucide/svelte/icons/plus";
+import Trash from "@lucide/svelte/icons/trash";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { read } from "../lib/api";
 import { type Change, changeMachine, lastPublish, machineState, type NewJoin } from "../lib/shared";
@@ -84,11 +87,11 @@ async function copy(text: string): Promise<void> {
           <span class="meta">{machine.group_id} · {machineState(machine, data.now)} · {lastPublish(machine)}{#if machine.fingerprint} · credential …{machine.fingerprint}{/if}</span>
           {#if machine.state !== "configured"}
             <span class="chips">
-            <button class="btn sm" type="button" disabled={busy} onclick={() => act("replace", machine.group_id, machine.node_id)}>Replace credential</button>
+            <button class="btn sm" type="button" disabled={busy} onclick={() => act("replace", machine.group_id, machine.node_id)}><KeyRound size={14} aria-hidden="true" />Replace credential</button>
             {#if machine.state === "removed"}
-              <button class="btn sm" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}>Delete what it published</button>
+              <button class="btn sm" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}><Trash size={14} aria-hidden="true" />Delete what it published</button>
             {:else}
-              <button class="btn sm" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}>Remove</button>
+              <button class="btn sm" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}><CircleMinus size={14} aria-hidden="true" />Remove</button>
             {/if}
             </span>
           {/if}
@@ -101,7 +104,7 @@ async function copy(text: string): Promise<void> {
         <p><strong>This permanently deletes everything {target.node} published</strong>: its chats, messages, memories and attachments, from the server and from search. It can’t be undone. {target.node}’s own copy is not touched.</p>
         <label class="meta" style:display="block" for="confirm-delete">Type {target.node} to confirm</label>
         <input id="confirm-delete" class="field" autocomplete="off" spellcheck="false" bind:value={typed} />
-        <button class="btn p" type="submit" disabled={typed !== target.node || busy}>Delete what {target.node} published</button>
+        <button class="btn p" type="submit" disabled={typed !== target.node || busy}><Trash size={14} aria-hidden="true" />Delete what {target.node} published</button>
         <button class="btn" type="button" onclick={() => (deleting = null)}>Cancel</button>
       </form>
     {/if}

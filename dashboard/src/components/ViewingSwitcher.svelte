@@ -7,6 +7,7 @@ import Check from "@lucide/svelte/icons/check";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import Globe from "@lucide/svelte/icons/globe";
 import Laptop from "@lucide/svelte/icons/laptop";
+import Network from "@lucide/svelte/icons/network";
 import Radio from "@lucide/svelte/icons/radio";
 import { createQuery } from "@tanstack/svelte-query";
 import { groupChats } from "../lib/browse";
@@ -134,7 +135,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
         <div class="vw-j">
           <p>See your other machines here by joining a shared index.</p>
           <!-- The machines page has the join form. -->
-          <a class="btn sm" href="#/machines" onclick={() => (open = false)}>Join a shared index</a>
+          <a class="btn sm" href="#/machines" onclick={() => (open = false)}><Network size={14} aria-hidden="true" />Join a shared index</a>
         </div>
       {/if}
     </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 import Route from "@lucide/svelte/icons/route";
+import Save from "@lucide/svelte/icons/save";
 import Server from "@lucide/svelte/icons/server";
 import { useQueryClient } from "@tanstack/svelte-query";
 import { agents } from "../lib/agents";
@@ -97,7 +98,7 @@ async function save(): Promise<void> {
   <input id="{id}-key" class="field" type="password" autocomplete="off" spellcheck="false" bind:value={apiKey} />
   {#if failure}<p class="meta warn" role="alert">{failure}</p>{/if}
   <span class="keyacts">
-    <button class="btn p" type="submit" disabled={saving || !ready}>{saving ? "Saving…" : withService ? "Turn on Mashy" : "Save key"}</button>
+    <button class="btn p" type="submit" disabled={saving || !ready}><Save size={14} aria-hidden="true" />{saving ? "Saving…" : withService ? "Turn on Mashy" : "Save key"}</button>
     {#if oncancel}<button class="btn" type="button" onclick={() => { apiKey = ""; failure = ""; oncancel(); }}>Cancel</button>{/if}
   </span>
 </form>

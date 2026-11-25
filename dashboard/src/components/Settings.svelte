@@ -11,6 +11,7 @@ import Save from "@lucide/svelte/icons/save";
 import Search from "@lucide/svelte/icons/search";
 import Server from "@lucide/svelte/icons/server";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+import Undo2 from "@lucide/svelte/icons/undo-2";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { appearance, appearances } from "../lib/appearance.svelte";
@@ -160,7 +161,7 @@ async function save(): Promise<void> {
 {/if}
 <section class="sec">
   <div class="hd">
-    <h2 class="h2"><Monitor size={15} aria-hidden="true" />appearance</h2>
+    <h2 class="h2"><Monitor size={15} aria-hidden="true" />Appearance</h2>
   </div>
   <div class="card set-card">
     <div class="set-r">
@@ -196,7 +197,7 @@ async function save(): Promise<void> {
 
   <section class="sec">
     <div class="hd">
-      <h2 class="h2"><Bot size={15} aria-hidden="true" />agent histories</h2>
+      <h2 class="h2"><Bot size={15} aria-hidden="true" />Agent histories</h2>
       {#if config.loaded && file?.editable}<a class="a" href="#/setup" style:font-size="12.5px">Connect an agent</a>{/if}
     </div>
     {#if file && draft}
@@ -229,7 +230,7 @@ async function save(): Promise<void> {
 
   <div class="g2 set-g">
     <section class="sec">
-      <h2 class="h2"><Eye size={15} aria-hidden="true" />indexing</h2>
+      <h2 class="h2"><Eye size={15} aria-hidden="true" />Indexing</h2>
       {#if file && draft && file.editable}
         <div class="card set-card">
           <div class="set-r" class:changed={touched.has("range")}>
@@ -279,7 +280,7 @@ async function save(): Promise<void> {
     </section>
 
     <section class="sec">
-      <h2 class="h2"><Lock size={15} aria-hidden="true" />privacy</h2>
+      <h2 class="h2"><Lock size={15} aria-hidden="true" />Privacy</h2>
       <div class="card set-card">
         {#if file && draft && file.editable}
           <div class="set-r inline" class:changed={touched.has("results")}>
@@ -312,7 +313,7 @@ async function save(): Promise<void> {
 
   <section class="sec" id="assistant" bind:this={assistantSection}>
     <div class="hd">
-      <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />assistant</h2>
+      <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />Assistant</h2>
       <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer" style:font-size="12.5px">Set up Mashy</a>
     </div>
     <div class="card mashy-card set-card">
@@ -356,7 +357,7 @@ async function save(): Promise<void> {
 
   <div class="g3 set-g">
     <section class="sec">
-      <h2 class="h2"><Search size={15} aria-hidden="true" />search</h2>
+      <h2 class="h2"><Search size={15} aria-hidden="true" />Search</h2>
       <dl class="card kvs">
         {@render row("search mode", status.data.mode)}
         {@render row("embeddings", config.embeddings)}
@@ -366,7 +367,7 @@ async function save(): Promise<void> {
       </dl>
     </section>
     <section class="sec">
-      <h2 class="h2"><Database size={15} aria-hidden="true" />storage</h2>
+      <h2 class="h2"><Database size={15} aria-hidden="true" />Storage</h2>
       <dl class="card kvs">
         {@render row("database", status.data.databasePath ?? "not created yet")}
         {@render row("chats", status.data.chats.toLocaleString())}
@@ -376,7 +377,7 @@ async function save(): Promise<void> {
       </dl>
     </section>
     <section class="sec">
-      <h2 class="h2"><Server size={15} aria-hidden="true" />shared index</h2>
+      <h2 class="h2"><Server size={15} aria-hidden="true" />Shared index</h2>
       <SharedServer joinable />
     </section>
   </div>
@@ -388,8 +389,8 @@ async function save(): Promise<void> {
     {#if changed.length}
       <div class="set-bt">
         <strong>{changed.length} unsaved change{changed.length === 1 ? "" : "s"}</strong>
-        <button class="btn" type="button" disabled={saving} onclick={discard}>Discard</button>
-        <button class="btn" type="button" aria-expanded={reviewing} onclick={() => (reviewing = !reviewing)}>{reviewing ? "Hide changes" : "Review changes"}</button>
+        <button class="btn" type="button" disabled={saving} onclick={discard}><Undo2 size={14} aria-hidden="true" />Discard</button>
+        <button class="btn" type="button" aria-expanded={reviewing} onclick={() => (reviewing = !reviewing)}><Eye size={14} aria-hidden="true" />{reviewing ? "Hide changes" : "Review changes"}</button>
         <button class="btn p" type="button" disabled={saving || !!blocked} onclick={save}><Save size={15} aria-hidden="true" />{saving ? "Saving…" : "Save to file"}</button>
       </div>
       {#if blocked}<p class="meta warn" role="alert">{blocked}</p>{/if}

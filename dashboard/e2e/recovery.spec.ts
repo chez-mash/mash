@@ -31,7 +31,7 @@ test("opening chats while offline settles and retries without a document reload"
   await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
   online = false;
   await context.setOffline(true);
-  await followRail(page, "overview");
+  await followRail(page, "Overview");
   await expect(chatsAlert(page)).toContainText("Could not reach Mash");
   await expect(page.getByRole("status", { name: "Loading" })).toHaveCount(0);
   await expect(page.getByText("Loading chats…", { exact: true })).toHaveCount(0);
@@ -64,11 +64,11 @@ for (const width of [390, 1440]) {
     await expect(alert).toContainText("Couldn’t load chats");
     await expect(alert).toContainText("Could not reach Mash");
     // Memory and the navigation stay usable while chat history is unreachable.
-    await expect(page.getByRole("heading", { name: "recent memories", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent memories", exact: true })).toBeVisible();
     await expect(page.getByText(/Nothing saved yet/)).toBeVisible();
     if (width < 800)
       await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
-    else await expect(rail(page).getByRole("link", { name: "memory", exact: true })).toBeVisible();
+    else await expect(rail(page).getByRole("link", { name: "Memory", exact: true })).toBeVisible();
     expect(await fitsViewport(page)).toBe(true);
     await page.screenshot({
       path: test.info().outputPath(`recovery-${width}.png`),

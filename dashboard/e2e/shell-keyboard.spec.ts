@@ -12,7 +12,7 @@ test("a skip link is the first stop and lands on the page's content", async ({ p
   await mockShell(page);
   await page.goto("/#/projects");
   // Tab only once the page is drawn, or the key lands before the link exists.
-  await expect(rail(page).getByRole("link", { name: "projects", exact: true })).toBeVisible();
+  await expect(rail(page).getByRole("link", { name: "Projects", exact: true })).toBeVisible();
   await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
@@ -31,12 +31,12 @@ test("each rail row is one tab stop, and arrows open and close its pages", async
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/#/settings");
-  const chevron = rail(page).getByRole("button", { name: /^(Expand|Collapse) agents$/ });
+  const chevron = rail(page).getByRole("button", { name: /^(Expand|Collapse) Agents$/ });
   await expect(chevron).toHaveAttribute("tabindex", "-1");
-  const agents = rail(page).getByRole("link", { name: "agents", exact: true });
+  const agents = rail(page).getByRole("link", { name: "Agents", exact: true });
   await agents.focus();
   await page.keyboard.press("Tab");
-  await expect(rail(page).getByRole("link", { name: "machines", exact: true })).toBeFocused();
+  await expect(rail(page).getByRole("link", { name: "Machines", exact: true })).toBeFocused();
   await agents.focus();
   await page.keyboard.press("ArrowRight");
   await expect(chevron).toHaveAttribute("aria-expanded", "true");
@@ -110,8 +110,8 @@ test("the rail marks recent chats only when there is no query", async ({ page })
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/#/search");
-  const recent = rail(page).getByRole("link", { name: "recent chats" });
-  const chats = rail(page).getByRole("link", { name: "chats", exact: true });
+  const recent = rail(page).getByRole("link", { name: "Recent chats" });
+  const chats = rail(page).getByRole("link", { name: "Chats", exact: true });
   await expect(recent).toHaveAttribute("aria-current", "page");
   await expect(chats).not.toHaveAttribute("aria-current", "page");
   await page.goto("/#/search?q=deploy");
@@ -131,7 +131,7 @@ test("on a short screen the rail's footer stays in view while its rows scroll", 
   await expect(update).toBeInViewport({ ratio: 1 });
   await nav.evaluate((element) => element.scrollTo(0, element.scrollHeight));
   await expect(update).toBeInViewport({ ratio: 1 });
-  await expect(nav.getByRole("link", { name: "settings", exact: true })).toBeInViewport({
+  await expect(nav.getByRole("link", { name: "Settings", exact: true })).toBeInViewport({
     ratio: 1,
   });
 });

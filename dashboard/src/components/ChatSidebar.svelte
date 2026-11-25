@@ -62,7 +62,7 @@ const projectSessions = $derived.by(() => {
   {#if closable}<button class="btn sessclose" type="button" onclick={onclose}><X size={15} aria-hidden="true" />Back to chat</button>{/if}
   {#if prompts.length >= 2}
     <div class="outl">
-      <h2 class="h2"><ListOrdered size={15} aria-hidden="true" />your prompts</h2>
+      <h2 class="h2"><ListOrdered size={15} aria-hidden="true" />Your prompts</h2>
       <div class="outl-l">
         {#each prompts as message, index (message.id)}
           <button type="button" class:on={currentMessage === message.id} aria-current={currentMessage === message.id ? "location" : undefined} onclick={() => onprompt(message.id)}><small>{index + 1}</small><span>{saidText(message).replace(/\s+/g, " ").slice(0, 80)}</span></button>
@@ -80,7 +80,7 @@ const projectSessions = $derived.by(() => {
       {/each}
     </div>
   {/if}
-  <h2 class="h2"><a href={recordsHref(memoryParams)}><Bookmark size={15} aria-hidden="true" />memory from this chat</a></h2>
+  <h2 class="h2"><a href={recordsHref(memoryParams)}><Bookmark size={15} aria-hidden="true" />Memory from this chat</a></h2>
   {#if recordsError}<p class="meta" role="alert">{recordsError.message}</p>{/if}
   {#each records ?? [] as record (record.id)}
     {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}

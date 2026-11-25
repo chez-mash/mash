@@ -171,7 +171,7 @@ for (const width of [390, 1440]) {
     // A deployed plugin whose hooks await approval is visible from the list.
     const setup = page
       .locator("section")
-      .filter({ has: page.getByRole("heading", { name: "agent setup", exact: true }) });
+      .filter({ has: page.getByRole("heading", { name: "Agent setup", exact: true }) });
     await expect(setup.getByText("Hooks need approval")).toBeVisible();
     await expect(setup.getByText("Ready", { exact: true })).toBeVisible();
     await expect(
@@ -321,7 +321,7 @@ for (const width of [390, 1440]) {
     expect(await fitsViewport(page)).toBe(true);
     const setup = page
       .locator("section")
-      .filter({ has: page.getByRole("heading", { name: "agent setup", exact: true }) });
+      .filter({ has: page.getByRole("heading", { name: "Agent setup", exact: true }) });
     for (const part of ["Connection", "Plugin", "Skill"])
       await expect(setup.locator("summary").getByText(part, { exact: true })).toBeVisible();
     await expect(setup.getByRole("link", { name: "Connect an agent" })).toHaveAttribute(
@@ -338,6 +338,6 @@ for (const width of [390, 1440]) {
     await expect(page.getByRole("link", { name: "How to turn on service controls" })).toHaveCount(
       0,
     );
-    await expect(page.getByRole("heading", { name: "diagnostics", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Diagnostics", exact: true })).toBeVisible();
   });
 }

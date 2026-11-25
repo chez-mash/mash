@@ -3,6 +3,9 @@ import ArrowLeft from "@lucide/svelte/icons/arrow-left";
 import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Copy from "@lucide/svelte/icons/copy";
+import Play from "@lucide/svelte/icons/play";
+import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
@@ -166,7 +169,7 @@ function toggleConnect(agent: Integration): void {
     {:else}
       {@render command(mashCommand("qdrant install"))}
     {/if}
-    <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}>{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
+    <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}><RefreshCw size={14} aria-hidden="true" />{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
     <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{service.url}</code></p>
   </div>
 {/snippet}
@@ -310,7 +313,7 @@ function toggleConnect(agent: Integration): void {
           {@const previous = at > 0 ? at - 1 : null}
           <button class="btn" type="button" disabled={running} onclick={() => goToStep(previous)}><ArrowLeft size={15} aria-hidden="true" />{previous === null ? "Back to review" : "Back"}</button>
         {:else if at === null && file.editable}
-          <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}>Customize setup</button>
+          <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}><SlidersHorizontal size={14} aria-hidden="true" />Customize setup</button>
         {/if}
         <span class="sp"></span>
         {#if at !== null && step !== "review"}
@@ -318,10 +321,10 @@ function toggleConnect(agent: Integration): void {
           <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
         {:else if file.editable}
           {#if !searchServiceReady || at !== null || file.configured}
-            <button class="btn" class:p={!searchServiceReady || canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}>Set up without indexing</button>
+            <button class="btn" class:p={!searchServiceReady || canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}><Check size={14} aria-hidden="true" />Set up without indexing</button>
           {/if}
           {#if searchServiceReady}
-            <button class="btn" class:p={!canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}>Set up and index</button>
+            <button class="btn" class:p={!canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}><Play size={14} aria-hidden="true" />Set up and index</button>
           {/if}
         {/if}
       </div>
@@ -352,7 +355,7 @@ function toggleConnect(agent: Integration): void {
             {/if}
             {#if !indexed && indexRun?.state !== "running"}
               {#if searchServiceReady && desktop}
-                <div><button class="btn p" type="button" disabled={running || !file.editable} onclick={() => run(true)}>{running ? "Starting…" : "Index now"}</button></div>
+                <div><button class="btn p" type="button" disabled={running || !file.editable} onclick={() => run(true)}><Play size={14} aria-hidden="true" />{running ? "Starting…" : "Index now"}</button></div>
               {:else if searchServiceReady}
                 <p class="meta">Run this in a terminal on this machine to index your history.</p>
                 {@render command("mash index")}
@@ -415,7 +418,7 @@ function toggleConnect(agent: Integration): void {
 
       <div class="setup-acts">
         <span class="sp"></span>
-        <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}>{openChats ? "Open your chats" : "Open the dashboard"}</a>
+        <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}><ArrowRight size={14} aria-hidden="true" />{openChats ? "Open your chats" : "Open the dashboard"}</a>
       </div>
       <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">{mashCommand("init")}</code>.</p>
     {/if}

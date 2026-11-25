@@ -28,7 +28,7 @@ const detail = $derived(
   <span class="ico"><TriangleAlert size={17} aria-hidden="true" /></span>
   <strong>{title}</strong>
   <p>{detail}</p>
-  <button type="button" class="btn" onclick={retry} disabled={busy}>
+  <button type="button" class="btn" onclick={retry} disabled={busy}><RotateCw size={14} aria-hidden="true" />
     <RotateCw size={14} aria-hidden="true" />{busy ? "Trying again…" : retryLabel}
   </button>
 </div>

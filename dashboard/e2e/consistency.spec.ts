@@ -78,9 +78,9 @@ test("memory has no rows of its own in the rail; its kinds are the page's tabs",
   await mockDashboard(page);
   await page.goto("/#/records?kind=decision");
   const rail = page.locator("#rail");
-  await expect(rail.getByRole("button", { name: "Expand memory" })).toHaveCount(0);
+  await expect(rail.getByRole("button", { name: "Expand Memory" })).toHaveCount(0);
   await expect(rail.getByRole("link", { name: "decisions", exact: true })).toHaveCount(0);
-  await expect(rail.getByRole("link", { name: "memory", exact: true })).toHaveAttribute(
+  await expect(rail.getByRole("link", { name: "Memory", exact: true })).toHaveAttribute(
     "aria-current",
     "page",
   );
@@ -90,8 +90,8 @@ test("memory has no rows of its own in the rail; its kinds are the page's tabs",
       .getByRole("link", { name: "decisions", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   // Chats keep their rows: they are pages of their own, not filters.
-  await rail.getByRole("button", { name: "Expand chats" }).click();
-  await expect(rail.getByRole("link", { name: "viewing history", exact: true })).toBeVisible();
+  await rail.getByRole("button", { name: "Expand Chats" }).click();
+  await expect(rail.getByRole("link", { name: "Viewing history", exact: true })).toBeVisible();
 });
 
 test("the overview links to every chat in words, with the count in its title line", async ({

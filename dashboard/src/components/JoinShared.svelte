@@ -1,6 +1,8 @@
 <script lang="ts">
+import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Server from "@lucide/svelte/icons/server";
+import ShieldCheck from "@lucide/svelte/icons/shield-check";
 import { type JoinView, joinShared } from "../lib/shared";
 
 // Join a shared index from a join string made on the machine that runs the
@@ -62,7 +64,7 @@ async function save(): Promise<void> {
   <label class="meta" style:display="block" for="join-string">Join string</label>
   <textarea id="join-string" class="field" style:width="100%" style:word-break="break-all" rows="3" spellcheck="false" autocomplete="off" bind:value={text} oninput={() => { preview = null; failure = ""; }}></textarea>
   <p class="meta">It starts with <code class="i">mash-join.</code> and is one long line.</p>
-  <button class="btn" type="submit" disabled={!text.trim() || checking}>{checking ? "Checking…" : "Check"}</button>
+  <button class="btn" type="submit" disabled={!text.trim() || checking}><ShieldCheck size={14} aria-hidden="true" />{checking ? "Checking…" : "Check"}</button>
   {#if failure}<p class="warn" role="alert">{failure} Nothing was saved.</p>{/if}
   {#if preview}
     {#if preview.check.status === "ready"}
@@ -76,7 +78,7 @@ async function save(): Promise<void> {
         </dl>
         <p class="meta">This string was made for {preview.node_id}. Each computer gets its own; if this computer is not {preview.node_id}, ask for a string made for it.</p>
         <p class="meta">Save and continue saves the server, group and name in Mash’s configuration and the credential in <code class="i">~/.mash/node.env</code>, readable only by you. It does not index, publish or change your agents.</p>
-        <button class="btn p" type="button" disabled={saving} onclick={save}>{saving ? "Saving…" : "Save and continue"}</button>
+        <button class="btn p" type="button" disabled={saving} onclick={save}><ArrowRight size={14} aria-hidden="true" />{saving ? "Saving…" : "Save and continue"}</button>
       </div>
     {:else}
       <p class="warn" role="alert">{refusal[preview.check.status] ?? "The server refused this join string."} Nothing was saved.</p>

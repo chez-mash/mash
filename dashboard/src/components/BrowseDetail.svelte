@@ -97,7 +97,7 @@ const now = Date.now();
     <div class="c-main stack">
       {#if extra}{@render extra()}{/if}
       <section class="sec">
-        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">all {chats.length.toLocaleString()}</a></div>
+        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">all {chats.length.toLocaleString()}</a></div>
         <div class="card pad0 list">
           {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
         </div>
@@ -105,21 +105,21 @@ const now = Date.now();
     </div>
     <div class="c-side">
       {#if field !== "agent"}
-        <section class="sec"><h2 class="h2"><Bot size={15} aria-hidden="true" />agents</h2>
+        <section class="sec"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agents</h2>
           <div class="card tight tally">
             {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b class="g">{agentInfo[agent].name}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "machine"}
-        <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2>
+        <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2>
           <div class="card tight tally">
             {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><Laptop size={15} aria-hidden="true" /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "project" && listed.length}
-        <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />projects</h2>
+        <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />Projects</h2>
           <div class="card tight tally">
             {#each listed.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>

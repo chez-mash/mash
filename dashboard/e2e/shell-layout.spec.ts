@@ -19,25 +19,25 @@ test("the rail keeps only the current section open, so its last rows stay in vie
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/");
-  for (const section of ["chats", "agents", "machines", "memory", "projects"])
+  for (const section of ["Chats", "Agents", "Machines", "Memory", "Projects"])
     await rail(page).getByRole("link", { name: section, exact: true }).click();
   const expanded = (section: string) =>
     rail(page).getByRole("button", { name: new RegExp(`^(Expand|Collapse) ${section}$`) });
-  await expect(expanded("projects")).toHaveAttribute("aria-expanded", "true");
+  await expect(expanded("Projects")).toHaveAttribute("aria-expanded", "true");
   // Memory's kinds are tabs on its page, so it has no rows to open here.
-  await expect(expanded("memory")).toHaveCount(0);
-  for (const section of ["chats", "agents", "machines"])
+  await expect(expanded("Memory")).toHaveCount(0);
+  for (const section of ["Chats", "Agents", "Machines"])
     await expect(expanded(section)).toHaveAttribute("aria-expanded", "false");
-  for (const bottom of ["services", "tool explorer", "settings"])
+  for (const bottom of ["Services", "Tool explorer", "Settings"])
     await expect(rail(page).getByRole("link", { name: bottom, exact: true })).toBeInViewport({
       ratio: 1,
     });
 
   // A section the reader opens stays open while they stay where they are.
-  await expanded("agents").click();
-  await expect(expanded("agents")).toHaveAttribute("aria-expanded", "true");
+  await expanded("Agents").click();
+  await expect(expanded("Agents")).toHaveAttribute("aria-expanded", "true");
   // Leaving for a section without pages folds them all.
-  await rail(page).getByRole("link", { name: "services", exact: true }).click();
+  await rail(page).getByRole("link", { name: "Services", exact: true }).click();
   await expect(rail(page).locator(".subs")).toHaveCount(0);
 });
 
@@ -66,7 +66,7 @@ test("on a phone the navigation button shows a menu icon beside the mark", async
   await expect(burger.locator(".menu-ico svg")).toBeVisible();
   await expect(burger.locator("img")).toBeVisible();
   await burger.click();
-  await expect(rail(page).getByRole("link", { name: "settings", exact: true })).toBeVisible();
+  await expect(rail(page).getByRole("link", { name: "Settings", exact: true })).toBeVisible();
 });
 
 for (const [width, height] of [

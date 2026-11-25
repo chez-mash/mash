@@ -49,54 +49,54 @@ const providers = $derived(groupChats(chats, (chat) => chat.agent));
 const machines = $derived(groupChats(chats, (chat) => chat.machine));
 
 const sections = [
-  { id: "overview", label: "overview", href: "#/", icon: House, tile: "var(--tile-overview)" },
+  { id: "overview", label: "Overview", href: "#/", icon: House, tile: "var(--tile-overview)" },
   {
     id: "chats",
-    label: "chats",
+    label: "Chats",
     href: "#/search",
     icon: MessagesSquare,
     tile: "var(--tile-chats)",
   },
-  { id: "agents", label: "agents", href: "#/agents", icon: Bot, tile: "var(--tile-agents)" },
+  { id: "agents", label: "Agents", href: "#/agents", icon: Bot, tile: "var(--tile-agents)" },
   {
     id: "machines",
-    label: "machines",
+    label: "Machines",
     href: "#/machines",
     icon: Laptop,
     tile: "var(--tile-machines)",
   },
   {
     id: "projects",
-    label: "projects",
+    label: "Projects",
     href: "#/projects",
     icon: Folder,
     tile: "var(--tile-projects)",
   },
-  { id: "memory", label: "memory", href: "#/records?", icon: Bookmark, tile: "var(--tile-memory)" },
+  { id: "memory", label: "Memory", href: "#/records?", icon: Bookmark, tile: "var(--tile-memory)" },
   {
     id: "services",
-    label: "services",
+    label: "Services",
     href: "#/services",
     icon: Server,
     tile: "var(--tile-services)",
   },
   {
     id: "fleet",
-    label: "fleet manager",
+    label: "Fleet manager",
     href: "#/fleet",
     icon: SlidersHorizontal,
     tile: "var(--tile-fleet)",
   },
   {
     id: "console",
-    label: "tool explorer",
+    label: "Tool explorer",
     href: "#/console",
     icon: Wrench,
     tile: "var(--tile-tools)",
   },
   {
     id: "settings",
-    label: "settings",
+    label: "Settings",
     href: "#/settings",
     icon: Settings,
     tile: "var(--tile-settings)",
@@ -295,9 +295,9 @@ function arrows(event: KeyboardEvent, id: Section): void {
       {#if isOpen}
         <div class="subs">
         {#if section.id === "chats"}
-          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>recent chats</span></a>
-          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>viewing history</span></a>
-          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={14} aria-hidden="true" /><span>export chats</span></a>
+          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>Recent chats</span></a>
+          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>Viewing history</span></a>
+          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={14} aria-hidden="true" /><span>Export chats</span></a>
         {:else if section.id === "agents"}
           {#each providers as provider (provider.key)}
             {@const agent = provider.chats[0]?.agent}

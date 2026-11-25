@@ -201,7 +201,7 @@ for (const width of [1440, 390]) {
       await expect(spawn).toHaveAttribute("href", /agent-windows/);
       if (width > 700) {
         const panel = page.getByRole("region", { name: "Subagents" });
-        await expect(panel.getByRole("heading")).toHaveText("subagents (2)");
+        await expect(panel.getByRole("heading")).toHaveText("Subagents (2)");
         await expect(panel).toContainText("general-purpose");
         await expect(panel).toContainText(notes.subagent.label);
       }

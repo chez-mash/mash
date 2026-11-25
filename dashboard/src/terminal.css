@@ -187,14 +187,6 @@ summary::-webkit-details-marker {
   font-size: 13px;
   color: var(--text-body);
 }
-/* Labels are lowercase in the markup, which tests and screen readers use;
-   the rail shows them in sentence case. */
-.nav-label {
-  display: inline-block;
-}
-.nav-label::first-letter {
-  text-transform: uppercase;
-}
 .nav-row.on .nav-link {
   color: var(--selected-text);
   font-weight: 500;

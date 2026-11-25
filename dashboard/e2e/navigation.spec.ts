@@ -66,18 +66,18 @@ for (const width of [390, 1280]) {
     // Between links the drawer is shut on a narrow screen; a wide one has no burger.
     const hiddenAtRest = width < 800 ? rail(page) : burger;
     for (const [label, section, hash, heading] of [
-      ["machines", "", "#/machines", "Machines"],
-      ["agents", "", "#/agents", "Agents"],
-      ["projects", "", "#/projects", "Projects"],
-      ["chats", "", "#/search", "Chats"],
-      ["viewing history", "chats", "#/history", "Viewing history"],
-      ["recent chats", "chats", "#/search", "Chats"],
-      ["memory", "", "#/records?", "Memory"],
-      ["fleet manager", "", "#/fleet", "Fleet manager"],
-      ["tool explorer", "", "#/console", "Tool explorer"],
-      ["settings", "", "#/settings", "Settings"],
-      ["services", "", "#/services", "Services"],
-      ["overview", "", "#/", "Overview"],
+      ["Machines", "", "#/machines", "Machines"],
+      ["Agents", "", "#/agents", "Agents"],
+      ["Projects", "", "#/projects", "Projects"],
+      ["Chats", "", "#/search", "Chats"],
+      ["Viewing history", "Chats", "#/history", "Viewing history"],
+      ["Recent chats", "Chats", "#/search", "Chats"],
+      ["Memory", "", "#/records?", "Memory"],
+      ["Fleet manager", "", "#/fleet", "Fleet manager"],
+      ["Tool explorer", "", "#/console", "Tool explorer"],
+      ["Settings", "", "#/settings", "Settings"],
+      ["Services", "", "#/services", "Services"],
+      ["Overview", "", "#/", "Overview"],
     ] as const) {
       await expect(hiddenAtRest).toBeHidden();
       await followRail(page, label, section || undefined);
@@ -96,7 +96,7 @@ for (const width of [390, 1280]) {
     await page.goBack();
     await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
     await page.goForward();
-    await expect(page.getByRole("heading", { name: "recent chats", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent chats", exact: true })).toBeVisible();
     expect(documents()).toBe(1);
     expect(errors).toEqual([]);
   });
@@ -107,8 +107,8 @@ test("the rail offers the fleet manager only where fleet control is set up", asy
   await page.goto("/#/services");
   await expect(page.getByRole("heading", { name: "Services", exact: true })).toBeVisible();
   await openRail(page);
-  await expect(rail(page).getByRole("link", { name: "services", exact: true })).toBeVisible();
-  await expect(rail(page).getByRole("link", { name: "fleet manager", exact: true })).toHaveCount(0);
+  await expect(rail(page).getByRole("link", { name: "Services", exact: true })).toBeVisible();
+  await expect(rail(page).getByRole("link", { name: "Fleet manager", exact: true })).toHaveCount(0);
   // Its page still explains the setup to anyone who opens it directly.
   await page.goto("/#/fleet");
   await expect(page.getByText("Fleet control is not set up on this dashboard.")).toBeVisible();
@@ -118,9 +118,9 @@ test("an unknown address shows a missing page instead of the overview", async ({
   await mockEmptyDashboard(page);
   await page.goto("/#/no-such-page");
   await expect(page.getByRole("heading", { name: "Page not found", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "recent chats", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Recent chats", exact: true })).toHaveCount(0);
   await page.getByRole("link", { name: "Go to overview" }).click();
-  await expect(page.getByRole("heading", { name: "recent chats", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent chats", exact: true })).toBeVisible();
 });
 
 test("the app boundary prevents document navigation from bare links and unhandled forms", async ({

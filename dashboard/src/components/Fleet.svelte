@@ -278,7 +278,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
     <div class="dh"><span class="ico lg fleet"><Icon size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
     <p style:max-width="640px" style:font-size="15px">{blurb[current.action]}{readOnly.includes(current.action) ? "" : " It keeps running if you leave this page."}</p>
     <section class="sec">
-      <div class="hd"><h2 class="h2"><Laptop size={15} aria-hidden="true" />machines</h2><button class="a" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }} style:font-size="12.5px">Select all</button></div>
+      <div class="hd"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2><button class="a" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }} style:font-size="12.5px">Select all</button></div>
       <div class="g3">
         {#each machineTargets as machine (machine)}
           {@const on = selected.includes(machine)}
@@ -289,7 +289,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
     </section>
     {#if serviceTargets.length}
       <section class="sec">
-        <h2 class="h2"><Server size={15} aria-hidden="true" />services</h2>
+        <h2 class="h2"><Server size={15} aria-hidden="true" />Services</h2>
         <div class="g3">
           {#each serviceTargets as service (service.id)}
             {@const on = selected.includes(service.id)}
@@ -302,14 +302,14 @@ function percent(target: FleetJob["targets"][number]): number | null {
     {#if confirmation}
       <div class="card butter armed" role="group" aria-label="Confirm">
         <p><strong>{fleetActionLabel[confirmation.action]} on {confirmation.targets.map(targetName).join(", ")}? {blurb[confirmation.action]}</strong></p>
-        <button class="btn p" type="button" disabled={pending} onclick={() => { if (confirmation) void submit(confirmation); }}>Yes, start it</button>
+        <button class="btn p" type="button" disabled={pending} onclick={() => { if (confirmation) void submit(confirmation); }}><Play size={14} aria-hidden="true" />Yes, start it</button>
         <button class="btn" type="button" onclick={() => (confirmation = null)}>Cancel</button>
       </div>
     {:else}
       <div><button class="btn p lg" type="button" disabled={!selected.length || pending || !!error || !!running} onclick={prepare}><Icon size={16} aria-hidden="true" />{running ? "Unavailable while another job runs" : selected.length ? `${fleetActionLabel[current.action]} on ${countLabel(selected)}` : serviceTargets.length ? "Choose targets" : "Choose machines"}</button></div>
     {/if}
     {#if pending}<p class="meta" role="status">Recording the fleet operation…</p>{/if}
-    {#if error}<p class="fail" role="alert">{error}</p><div><button class="btn" type="button" onclick={() => (error = "")}>I’ve checked the outcome</button></div>{/if}
+    {#if error}<p class="fail" role="alert">{error}</p><div><button class="btn" type="button" onclick={() => (error = "")}><Check size={14} aria-hidden="true" />I’ve checked the outcome</button></div>{/if}
     <section class="sec">{@render activity()}</section>
   {/if}
 {/if}

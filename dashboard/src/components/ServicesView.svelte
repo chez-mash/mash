@@ -1,5 +1,6 @@
 <script lang="ts">
 import Bot from "@lucide/svelte/icons/bot";
+import Check from "@lucide/svelte/icons/check";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import Clock from "@lucide/svelte/icons/clock";
 import Info from "@lucide/svelte/icons/info";
@@ -185,7 +186,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
 {#snippet confirmation(target: Target)}
   <div class="card tight confirm" role="group" aria-label="Confirm service action">
     <span>{actionLabel[target.action]} {target.service.name} on {target.machine.id}? {consequences(target)}</span>
-    <button class="btn p" type="button" onclick={act}>Confirm {target.action}</button>
+    <button class="btn p" type="button" onclick={act}><Check size={14} aria-hidden="true" />Confirm {target.action}</button>
     <button class="btn" type="button" onclick={() => (confirm = null)}>Cancel</button>
   </div>
 {/snippet}
@@ -199,7 +200,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
 {/snippet}
 {#snippet activity()}
   <section class="sec">
-    <h2 class="h2"><Clock size={15} aria-hidden="true" />recent activity{serviceId ? "" : ` on ${selectedId}`}</h2>
+    <h2 class="h2"><Clock size={15} aria-hidden="true" />Recent activity{serviceId ? "" : ` on ${selectedId}`}</h2>
     {#if history.error}<p class="fail" role="alert">{history.error.message}</p>{/if}
     {#if history.isPending}<p class="meta" role="status">Loading activity…</p>{/if}
     {#if activityItems.length}
@@ -252,7 +253,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
     {/if}
     {@const controllable = service.actions.length > 0 || service.logs_available}
     <section class="sec">
-      <h2 class="h2"><Server size={15} aria-hidden="true" />manage</h2>
+      <h2 class="h2"><Server size={15} aria-hidden="true" />Manage</h2>
       <div class="card stack-s" class:cream={!controllable}>
         {#if !controllable}<p><strong>No actions are available for this service here.</strong></p>{/if}
         {#if issue}<p><span class="warn">Needs attention.</span> {issue.fix}</p>{/if}
@@ -273,7 +274,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       </div>
     </section>
     <section class="sec">
-      <h2 class="h2"><Info size={15} aria-hidden="true" />diagnostics</h2>
+      <h2 class="h2"><Info size={15} aria-hidden="true" />Diagnostics</h2>
       <div class="card">
         {#if service.diagnostics.length}
           <dl class="kvs wide">{#each service.diagnostics as item (item.label)}<dt>{item.label}</dt><dd>{item.value}</dd>{/each}</dl>
@@ -290,7 +291,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
         {@const issues = problems([machine])}
         {#if issues.length}
           <section class="sec" aria-label="Needs attention on {machine.id}">
-            <h2 class="h2"><TriangleAlert size={15} aria-hidden="true" />needs attention on {machine.id}</h2>
+            <h2 class="h2"><TriangleAlert size={15} aria-hidden="true" />Needs attention on {machine.id}</h2>
             {#each issues as issue (`${issue.machine.id}/${issue.service?.id ?? ""}`)}
               {@const entry = issue.service}
               <div class="card warn fixit">
@@ -301,7 +302,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
                 <span class="acts">
                   {#if entry}
                     {#each issue.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn p" type="button" disabled={blocked} onclick={() => (confirm = { machine: issue.machine, service: entry, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
-                    <a class="btn" href={servicesHref(issue.machine.id, entry.id)}>Details</a>
+                    <a class="btn" href={servicesHref(issue.machine.id, entry.id)}><Info size={14} aria-hidden="true" />Details</a>
                   {:else}
                     <button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>
                   {/if}
@@ -318,7 +319,7 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
       {/each}
       {#if shown.some((machine) => machine.reachable)}
         <section class="sec">
-          <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
+          <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
           <div class="rws agentset" class:solo={shown.length < 2}>
             <div class="rw head" aria-hidden="true"><span>agent</span>{#if shown.length > 1}<span>machine</span>{/if}<span>parts</span><span>status</span></div>
             {#each shown.filter((machine) => machine.reachable) as machine (machine.id)}<MachineSetup machineId={machine.id} {enabled} showMachine={shown.length > 1} />{/each}
