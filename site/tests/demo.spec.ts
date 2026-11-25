@@ -24,7 +24,7 @@ test("the landing page leads to a working demo of the dashboard", async ({ page 
 
   await demo.getByRole("link", { name: "See a decision" }).click();
   await expect(page.getByRole("heading", { name: /fifteen-minute access tokens/ })).toBeVisible();
-  await page.getByRole("link", { name: /open the message/ }).click();
+  await page.getByRole("link", { name: /open the message/i }).click();
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
   expect(problems).toEqual([]);
 });
@@ -97,7 +97,7 @@ test("the welcome examples open the checkout source and the cross-agent handoff"
 
   await page.goto("/#welcome-memory");
   await page.getByRole("link", { name: /follow the sign-in decision in the demo/i }).click();
-  await page.getByRole("link", { name: /open the message/ }).click();
+  await page.getByRole("link", { name: /open the message/i }).click();
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
   await page.getByRole("link", { name: "See the Codex follow-up", exact: true }).click();
   await expect(page.locator("#message-mobile-keychain-follow-up-1")).toHaveClass(/\bhit\b/);
@@ -148,7 +148,7 @@ test("the sample handoff opens the Claude Code decision and its later Codex chat
   await page.goto(target.pathname + target.hash);
   const demo = page.getByRole("complementary", { name: "About this demo" });
   await expect(demo).toContainText("Demo with sample chats");
-  await page.getByRole("link", { name: /open the message/ }).click();
+  await page.getByRole("link", { name: /open the message/i }).click();
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
   await expect(page.getByText(/store the refresh token in the device keychain/)).toBeVisible();
 
@@ -193,7 +193,7 @@ test("the memory guide leads from a saved decision to its source message", async
   );
   const target = new URL((await example.getAttribute("href")) ?? "");
   await page.goto(target.pathname + target.hash);
-  await page.getByRole("link", { name: /open the message/ }).click();
+  await page.getByRole("link", { name: /open the message/i }).click();
   await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
 });
 
