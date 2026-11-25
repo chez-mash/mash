@@ -6,7 +6,17 @@
  * its words, so the translations get the same layout. When a page no longer
  * has the structure a step looks for, the step leaves it unchanged.
  */
-import type { BlockContent, Code, Html, List, Paragraph, Root, RootContent, Table } from "mdast";
+import type {
+  BlockContent,
+  Code,
+  Html,
+  List,
+  Paragraph,
+  Root,
+  RootContent,
+  Table,
+  TableCell,
+} from "mdast";
 import { toString as text } from "mdast-util-to-string";
 
 /** Words the layouts add, in the page's language. */
@@ -18,6 +28,8 @@ export interface LayoutStrings {
   readonly copy: string;
   readonly copied: string;
   readonly copyPrompt: string;
+  /** The answer a table's dash stands for, read aloud beside its minus icon. */
+  readonly no: string;
 }
 
 const html = (value: string): Html => ({ type: "html", value });
@@ -245,8 +257,8 @@ const testedPills: Readonly<Record<string, string>> = {
 };
 
 /**
- * Supported agents: each agent's row starts with its mark on a light tile; a
- * plain "yes" is a mint pill, and the testing levels are pills.
+ * Supported agents: each agent's row starts with its mark on a light tile,
+ * and the testing levels are pills.
  */
 function agentTables(tree: Root): void {
   const tables = tree.children.filter((node): node is Table => node.type === "table");
@@ -269,16 +281,64 @@ function agentTables(tree: Root): void {
         }
         const plain = cell.children.length === 1 && cell.children[0]?.type === "text";
         if (!plain) return;
-        if (
-          order === 0 &&
-          column === table.children[0].children.length - 1 &&
-          /^(Yes|Oui|Sí|是|はい)$/.test(value)
-        ) {
-          cell.children = [html(`<span class="mash-pill ok">${escapeHtml(value)}</span>`)];
-        } else if (order > 0) {
+        if (order > 0) {
           const tone = testedPills[value] ?? "plain";
           cell.children = [html(`<span class="mash-pill ${tone}">${escapeHtml(value)}</span>`)];
         }
+      });
+    }
+  }
+}
+
+/** Lucide's check and minus, drawn in the answer's colour. */
+const answerIcons = {
+  yes: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  no: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
+};
+
+/** "Yes" and "No" in each of the site's languages. */
+const yesWord = /^(Yes|Oui|Sí|是|はい)$/;
+const noWord = /^(No|Non|否|いいえ)$/;
+/** "Yes, through the Codex CLI": a yes with a condition after it. */
+const yesWith = /^(Yes|Oui|Sí|是|はい)[,，、]/;
+
+/**
+ * Yes-or-no cells: a plain yes or no takes a check or a minus before its
+ * word, and a yes with a condition takes the check before the sentence. A
+ * dash in a column that also answers yes means no: it becomes a minus whose
+ * word, in the page's language, is read aloud instead of "dash". Any other
+ * cell, and a dash in a column with no yes, is left as it is.
+ */
+export function answerCells(tree: Root, strings: LayoutStrings): void {
+  const answer = (kind: "yes" | "no", word: string, visible: boolean) =>
+    html(
+      `<span class="mash-answer ${kind}" title="${escapeHtml(word)}">${answerIcons[kind]}<span${visible ? "" : ' class="sr-only"'}>${escapeHtml(word)}</span></span>`,
+    );
+  for (const table of tree.children.filter((node): node is Table => node.type === "table")) {
+    const body = table.children.slice(1);
+    // Read before any cell changes, since a drawn answer is no longer text.
+    const yesColumns = new Set(
+      body.flatMap((row) =>
+        row.children.flatMap((cell, column) => {
+          const value = text(cell).trim();
+          return yesWord.test(value) || yesWith.test(value) ? [column] : [];
+        }),
+      ),
+    );
+    for (const row of body) {
+      row.children.forEach((cell, column) => {
+        const first = cell.children[0];
+        const value = text(cell).trim();
+        const plain = cell.children.length === 1 && first?.type === "text";
+        if (plain && yesWord.test(value)) cell.children = [answer("yes", value, true)];
+        else if (plain && noWord.test(value)) cell.children = [answer("no", value, true)];
+        else if (plain && value === "—" && strings.no && yesColumns.has(column))
+          cell.children = [answer("no", strings.no, false)];
+        else if (first?.type === "text" && yesWith.test(first.value.trimStart()))
+          cell.children = [
+            html(`<span class="mash-answer yes lead" aria-hidden="true">${answerIcons.yes}</span>`),
+            ...cell.children,
+          ];
       });
     }
   }
@@ -291,26 +351,37 @@ const systemMarks: readonly [RegExp, string][] = [
   [/^Linux\b/, "linux"],
 ];
 
+/** Puts a system's mark before the words of a table cell. */
+function markSystem(cell: TableCell, system: string): void {
+  cell.children = [
+    html(
+      `<span class="mash-system"><span class="mash-os" data-system="${system}" aria-hidden="true"></span><span>`,
+    ),
+    ...cell.children,
+    html("</span></span>"),
+  ];
+}
+
 /**
  * Downloads and verification: a table row that starts with a system's name,
  * such as "Mac with Apple silicon" or "Linux ARM64", starts with that
  * system's mark. Rows in other languages that name the system later keep
- * their words alone.
+ * their words alone. A column headed by a system's name alone, as in the
+ * supported agents' "Tested with", takes the mark in its heading.
  */
 export function systemTables(tree: Root): void {
+  const systemOf = (cell: TableCell) =>
+    systemMarks.find(([name]) => name.test(text(cell).trim()))?.[1];
   for (const table of tree.children.filter((node): node is Table => node.type === "table")) {
-    for (const row of table.children.slice(1)) {
+    const [head, ...body] = table.children;
+    for (const cell of head?.children ?? []) {
+      const system = /^(macOS|Windows|Linux)$/.test(text(cell).trim()) && systemOf(cell);
+      if (system) markSystem(cell, system);
+    }
+    for (const row of body) {
       const cell = row.children[0];
-      if (!cell) continue;
-      const system = systemMarks.find(([name]) => name.test(text(cell).trim()))?.[1];
-      if (!system) continue;
-      cell.children = [
-        html(
-          `<span class="mash-system"><span class="mash-os" data-system="${system}" aria-hidden="true"></span><span>`,
-        ),
-        ...cell.children,
-        html("</span></span>"),
-      ];
+      const system = cell && systemOf(cell);
+      if (cell && system) markSystem(cell, system);
     }
   }
 }
@@ -369,6 +440,7 @@ function quickStart(tree: Root, strings: LayoutStrings): void {
 export function layoutPage(tree: Root, page: string, strings: LayoutStrings): void {
   titleCodeBlocks(tree, page === "quick-start");
   badgePills(tree);
+  answerCells(tree, strings);
   if (page === "guides") guideCards(tree, strings);
   if (page === "tools") toolStacks(tree);
   if (page === "supported-agents") agentTables(tree);

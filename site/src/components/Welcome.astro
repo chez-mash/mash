@@ -33,36 +33,54 @@ function mark(svg: string): string {
     .replace("<svg", '<svg fill="currentColor" aria-hidden="true" focusable="false"');
 }
 
-/** The quick search panel's results: a made-up history, as in the demo. */
-const quick: { agent: Agent; title: string; where: string; when: string }[] = [
+/** The quick search panel's results: a made-up history, as in the demo. Each
+ * machine shows its system's mark, as in the search band below. */
+const quick: {
+  agent: Agent;
+  title: string;
+  project: string;
+  machine: string;
+  system: "macos" | "linux" | "windows";
+  when: string;
+}[] = [
   {
     agent: "claude-code",
     title: "Sign-in tokens for web and mobile",
-    where: "billing-api · laptop",
+    project: "billing-api",
+    machine: "laptop",
+    system: "macos",
     when: "2d",
   },
   {
     agent: "codex",
     title: "Mobile auth: keychain or secure storage",
-    where: "mobile · workstation",
+    project: "mobile",
+    machine: "workstation",
+    system: "linux",
     when: "5d",
   },
   {
     agent: "cursor",
     title: "Keychain access group for the share extension",
-    where: "mobile · mini",
+    project: "mobile",
+    machine: "mini",
+    system: "macos",
     when: "3w",
   },
   {
     agent: "copilot",
     title: "Rotate webhook signing secrets",
-    where: "billing-api · laptop",
+    project: "billing-api",
+    machine: "laptop",
+    system: "macos",
     when: "Nov 12",
   },
   {
     agent: "claude-code",
     title: "Session cookie lifetime on the admin site",
-    where: "admin · workstation",
+    project: "admin",
+    machine: "workstation",
+    system: "linux",
     when: "Oct 30",
   },
 ];
@@ -91,7 +109,7 @@ const quick: { agent: Agent; title: string; where: string; when: string }[] = [
                 <li class:list={{ on: index === 0 }}>
                   <AgentTile agent={row.agent} />
                   <b>{row.title}</b>
-                  <span class="where">{row.where}</span>
+                  <span class="where"><LineIcon name="folder" size="0.75rem" />{row.project}<OsMark system={row.system} />{row.machine}</span>
                   <span class="when">{row.when}</span>
                 </li>
               ))}
@@ -220,7 +238,7 @@ const quick: { agent: Agent; title: string; where: string; when: string }[] = [
         <p class="bubble said" aria-hidden="true">OK, go with the tokens. Keep the mobile app on the same scheme.</p>
         <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />saved with your message as evidence</p>
         <div class="record" aria-hidden="true">
-          <p class="pills"><span class="pill butter">decision</span><span class="pill ok">accepted</span><span class="pill">established</span></p>
+          <p class="pills"><span class="pill butter"><LineIcon name="gavel" size="0.75rem" />decision</span><span class="pill ok">accepted</span><span class="pill">established</span></p>
           <p class="statement">Sign-in uses fifteen-minute access tokens with a server-held refresh token.</p>
           <dl>
             <dt>why</dt><dd>Chosen so that signing out reaches every device within fifteen minutes.</dd>

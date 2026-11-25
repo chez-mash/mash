@@ -47,6 +47,7 @@ async function layoutStrings(locale: string | undefined) {
     copy: word("mash.copy"),
     copied: word("mash.copied"),
     copyPrompt: word("mash.copyPrompt"),
+    no: word("mash.answer.no"),
   };
 }
 // Diagrams the guides link from the repository's assets directory.

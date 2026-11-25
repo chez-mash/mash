@@ -7,6 +7,7 @@ const strings = {
   copy: "Copy",
   copied: "Copied",
   copyPrompt: "Copy the prompt for your agent",
+  no: "No",
 };
 const render = (body: string, page: string) =>
   renderMarkdown(body, "docs/example.md", new Map(), { page, strings });
@@ -50,14 +51,40 @@ describe("website page layouts", () => {
     expect(result).not.toContain("> Read");
   });
 
-  it("puts each agent's mark beside its name and a plain yes in a pill", () => {
+  it("puts each agent's mark beside its name", () => {
     const result = render(
       "| Agent | Reads | Connect |\n| --- | --- | --- |\n| Codex | Chats | Yes |\n| Other | Chats | Yes |\n",
       "supported-agents",
     );
     expect(result).toContain('data-agent="codex"');
-    expect(result.match(/mash-pill ok/g)).toHaveLength(2);
     expect(result.match(/data-agent=/g)).toHaveLength(1);
+  });
+
+  it("draws yes and no as a check and a minus, keeping each word", () => {
+    const result = render(
+      "| | A | B |\n| --- | --- | --- |\n| Needs models | No | Yes |\n| Connect | Yes, through the CLI | — |\n",
+      "search",
+    );
+    expect(result.match(/mash-answer yes/g)).toHaveLength(2);
+    expect(result).toContain('<span class="mash-answer no" title="No">');
+    expect(result).toContain(">Yes</span>");
+    expect(result).toContain("Yes, through the CLI");
+    // The dash shares a column with a yes, so it reads aloud as no.
+    expect(result).toContain('<span class="sr-only">No</span>');
+  });
+
+  it("leaves a dash alone in a column that never answers yes", () => {
+    const result = render("| Flag | Effect |\n| --- | --- |\n| `--x` | — |\n", "cli");
+    expect(result).not.toContain("mash-answer");
+    expect(result).toContain("—");
+  });
+
+  it("marks a column headed by a system's name alone", () => {
+    const result = render(
+      "| Agent | Linux | macOS | Windows |\n| --- | --- | --- | --- |\n| Codex | Daily use | Daily use | Light use |\n",
+      "supported-agents",
+    );
+    expect(result.match(/data-system=/g)).toHaveLength(3);
   });
 
   it("puts a system's mark before a table row that starts with its name", () => {

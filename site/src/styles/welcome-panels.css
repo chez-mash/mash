@@ -58,7 +58,9 @@
     white-space: nowrap;
   }
   .who .os-mark,
-  .quick .os-mark {
+  .quick .os-mark,
+  .quick .where svg {
+    flex: none;
     width: 0.75rem;
     height: 0.75rem;
     opacity: 0.7;
@@ -263,6 +265,7 @@
   .pill {
     display: inline-flex;
     align-items: center;
+    gap: 0.3125rem;
     height: 1.375rem;
     padding: 0 0.5625rem;
     border-radius: var(--radius-5);
@@ -436,11 +439,18 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* The project after its folder, then the machine after its system's mark. */
   .quick .where {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     overflow: hidden;
     color: var(--text-muted);
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .quick .where .os-mark {
+    margin-inline-start: 0.375rem;
   }
   .quick .when {
     margin-inline-start: auto;

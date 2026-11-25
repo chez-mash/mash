@@ -61,7 +61,9 @@ test("the tool reference marks reading and writing tools with pills", async ({ p
   await expect(tool.locator(".params, .none").first()).toBeVisible();
 });
 
-test("a guide shows its screenshots and the agent list uses tiles and pills", async ({ page }) => {
+test("a guide shows its screenshots and the agent list uses tiles, answers and marks", async ({
+  page,
+}) => {
   await page.goto("/dashboard/");
   await expect(page.locator("h1")).toHaveText("Use the dashboard");
   await expect(page.locator('.sl-markdown-content img[src^="/screenshots/"]')).toHaveCount(3);
@@ -69,8 +71,15 @@ test("a guide shows its screenshots and the agent list uses tiles and pills", as
   const first = page.locator(".sl-markdown-content table").first();
   await expect(first.locator(".mash-agent-tile")).toHaveCount(7);
   await expect(
-    first.getByRole("row", { name: /^Claude Code/ }).locator(".mash-pill.ok"),
+    first.getByRole("row", { name: /^Claude Code/ }).locator(".mash-answer.yes"),
   ).toHaveText("Yes");
+  // A dash in the connect column is a minus that reads aloud as no.
+  await expect(first.getByRole("row", { name: /^OpenCode/ }).locator(".mash-answer.no")).toHaveText(
+    "No",
+  );
+  // The tested-with table heads its system columns with their marks.
+  const tested = page.locator(".sl-markdown-content table").nth(1);
+  await expect(tested.locator("thead .mash-os")).toHaveCount(3);
 });
 
 test("the guides tip opens search and names the shortcut for the platform", async ({ page }) => {

@@ -8,6 +8,7 @@
   "mash.copy": "Copy",
   "mash.copied": "Copied",
   "mash.copyPrompt": "Copy the prompt for your agent",
+  "mash.answer.no": "No",
   "mash.footer.label": "Footer",
   "mash.footer.privacy": "Privacy",
   "mash.footer.help": "Get help",

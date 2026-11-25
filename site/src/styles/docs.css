@@ -225,6 +225,31 @@
   --mash-os: url("/os/windows.svg");
 }
 
+/* A yes-or-no cell: a check in the mint of the "ok" pill, or a quiet minus,
+   beside the word (or a word only screen readers hear, for a dash). */
+.mash-answer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  vertical-align: middle;
+}
+.mash-answer svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+}
+.mash-answer.yes svg {
+  color: var(--pill-ok-text);
+}
+.mash-answer.no svg {
+  color: var(--text-faint);
+}
+/* The check before a conditional yes sits before the sentence's own words. */
+.mash-answer.lead {
+  margin-inline-end: 0.375rem;
+  vertical-align: -0.125em;
+}
+
 /* Callouts: Starlight's asides and the quick start's lead line, a raised
    card ringed in butter light, with a pat of butter for its icon. */
 .starlight-aside,
