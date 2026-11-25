@@ -34,8 +34,8 @@ in `dashboard/` first). Windows and Linux show the app icon in the tray.
 
 On macOS 26 and later the app's icon comes from `src-tauri/icons/Assets.car`,
 compiled from the layered `icons/Mash.icon` (editable in Icon Composer). Its
-dark appearance keeps the blue tile, so the icon stays the same when the
-system's icon style is Dark. Rebuild it on a Mac after changing the icon:
+dark appearance keeps a blue tile, a shade deeper, so the icon still reads as
+Mash when the system's icon style is Dark. Rebuild it on a Mac after changing the icon:
 
 ```sh
 xcrun actool icons/Mash.icon --compile /tmp/mash-icon --app-icon Mash \

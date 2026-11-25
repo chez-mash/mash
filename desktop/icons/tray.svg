@@ -1,16 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- The macOS menu bar icon: the Mash scoop in one colour, which macOS draws
-       as a template image in the menu bar's own colour. The pat of butter is
-       cut clear of the scoop by a gap, and the scoop has the mark's lumpy top
-       and swirl, so the shape reads as mash rather than a bell. -->
+  <!-- The macOS menu bar icon: the Mash mark in one colour, which macOS draws
+       as a template image in the menu bar's own colour. Three solid shapes
+       read at 22 points where outlines do not: the bowl, the lumpy scoop of
+       mash, and the pat of butter, each cut clear of the next by a gap. -->
   <defs>
-    <mask id="scoop">
+    <mask id="gaps">
       <rect width="64" height="64" fill="#fff"/>
-      <rect x="23.5" y="11.5" width="17" height="12" rx="3" fill="#000" stroke="#000" stroke-width="7" stroke-linejoin="round" transform="rotate(-12 32 17.5)"/>
-      <path d="M19 38c5-4 15-5 22-1" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="4" y="31" width="56" height="4" fill="#000"/>
+      <rect x="21" y="7" width="23" height="19" rx="6" fill="#000" transform="rotate(-9 32.5 16.5)"/>
     </mask>
   </defs>
-  <path d="M9 45c-2-8 2-15 9-17 2-5 8-8 14-7 6-1 12 2 14 7 7 2 11 9 9 17z" fill="#000" mask="url(#scoop)"/>
-  <rect x="23.5" y="11.5" width="17" height="12" rx="3" fill="#000" transform="rotate(-12 32 17.5)"/>
-  <rect x="8" y="49" width="48" height="7" rx="3.5" fill="#000"/>
+  <g fill="#000">
+    <path d="M6 35H58A26 22 0 0 1 6 35Z"/>
+    <path mask="url(#gaps)" d="M11 33C10 27 14.5 23 20 24C21 18.5 27.5 16.5 31.5 19.5C35.5 15 43.5 16.5 44.5 22.5C50 21.5 54.5 26 53 33Z"/>
+    <rect x="25" y="10" width="15" height="12" rx="3" transform="rotate(-9 32.5 16)"/>
+  </g>
 </svg>
