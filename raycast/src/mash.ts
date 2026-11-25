@@ -366,41 +366,6 @@ const count = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 
 /**
- * Where the shown passages sit in the whole chat: how many messages come
- * before and after them, and the match's place. Each is known only when Mash
- * gave the chat's message count and the messages' places in it.
- */
-export interface ChatPosition {
-  readonly total?: number;
-  /** The match's place, counting from 1. */
-  readonly match?: number;
-  readonly earlier?: number;
-  readonly later?: number;
-}
-
-export function chatPosition(view: ChatView, passages: readonly Passage[]): ChatPosition {
-  const shown = passages.flatMap((passage) => (passage.kind === "message" ? [passage] : []));
-  const first = shown[0]?.message.ordinal;
-  const last = shown[shown.length - 1]?.message.ordinal;
-  const match = shown.find((passage) => passage.match)?.message.ordinal;
-  const { total } = view;
-  return {
-    ...(total !== undefined ? { total } : {}),
-    ...(match !== undefined ? { match: match + 1 } : {}),
-    ...(first !== undefined ? { earlier: first } : {}),
-    ...(total !== undefined && last !== undefined && last < total ? { later: total - 1 - last } : {}),
-  };
-}
-
-/** The message count as the reading view's sidebar says it: "14 · match is message 4". */
-export function messageCount(position: ChatPosition): string | undefined {
-  if (position.total === undefined) return undefined;
-  return position.match === undefined
-    ? String(position.total)
-    : `${position.total} · match is message ${position.match}`;
-}
-
-/**
  * The messages to show around `matchId`: up to `around` said messages on each
  * side, with the steps between them counted instead of shown. A match that is
  * itself a step is still shown, since that is what the search found.
@@ -495,43 +460,8 @@ export function searchCommand(query: string): string {
 }
 
 export { literal, rendered } from "./markdown";
-
-/** How the list groups chats by when they were last active. */
-export type Activity = "Today" | "This week" | "Earlier";
-
-/** One group of rows, in the order they were ranked; undated rows have no title. */
-export interface ActivityGroup {
-  readonly title: Activity | undefined;
-  readonly hits: Hit[];
-}
-
-/**
- * The rows grouped Today, This week (the six days before today) and Earlier
- * by each chat's last activity, in local time. Rows keep their ranked order
- * within a group, so a group's rows do not move as later results arrive. A row
- * Mash gave no time for is listed last, under no heading, rather than guessed.
- */
-export function byActivity(hits: readonly Hit[], now: Date): ActivityGroup[] {
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
-  const activity = (hit: Hit): Activity | undefined => {
-    if (!hit.updatedAt) return undefined;
-    const at = hit.updatedAt.getTime();
-    return at >= today ? "Today" : at >= weekStart ? "This week" : "Earlier";
-  };
-  const order: (Activity | undefined)[] = ["Today", "This week", "Earlier", undefined];
-  return order
-    .map((title) => ({ title, hits: hits.filter((hit) => activity(hit) === title) }))
-    .filter((group) => group.hits.length > 0);
-}
-
-/** When a chat was last active, as the reading view's sidebar says it: "Today, 10:12". */
-export function lastActive(at: Date, now: Date): string {
-  const sameDay = at.toDateString() === now.toDateString();
-  return sameDay
-    ? `Today, ${at.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
-    : at.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-}
+export { type Activity, type ActivityGroup, byActivity, lastActive } from "./activity";
+export { type ChatPosition, chatPosition, messageCount } from "./position";
 
 /** The agents Mash reads, by the IDs Mash gives them, with the names Mash shows. */
 const AGENT_NAMES: Readonly<Record<string, string>> = {
