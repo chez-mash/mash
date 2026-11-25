@@ -142,10 +142,11 @@ async function shoot(page: Page, name: string): Promise<void> {
 const menu = (page: Page) => page.getByRole("group", { name: "Show chats and memory from" });
 const option = (page: Page, name: RegExp) => menu(page).getByRole("menuitemradio", { name });
 async function openSwitcher(page: Page): Promise<void> {
-  // On a phone the sidebar is a drawer behind the menu button.
-  if ((page.viewportSize()?.width ?? 0) <= 800)
+  // It sits in the top bar; on a phone, at the top of the navigation sheet.
+  if ((page.viewportSize()?.width ?? 0) <= 800) {
     await page.getByRole("button", { name: "Open navigation" }).click();
-  await page.locator("#rail .vw-b").click();
+    await page.locator("#rail .vw-b").click();
+  } else await page.locator("#top .vw-b").click();
   await expect(menu(page)).toBeVisible();
 }
 
@@ -158,9 +159,7 @@ for (const width of [1440, 390]) {
     }) => {
       await mock(page);
       await page.goto("/#/");
-      await expect(
-        page.getByRole("main").getByText("All machines", { exact: true }),
-      ).toBeVisible();
+      await expect(page.getByRole("main").getByText("All machines", { exact: true })).toBeVisible();
       await openSwitcher(page);
       await expect(menu(page).getByRole("menuitemradio")).toHaveText([
         /^\s*This machine · laptop.*1$/,
@@ -175,9 +174,7 @@ for (const width of [1440, 390]) {
     test("all machines lists every machine's chats, each naming its machine", async ({ page }) => {
       await mock(page);
       await page.goto("/#/search");
-      await expect(
-        page.getByRole("main").getByText("All machines", { exact: true }),
-      ).toBeVisible();
+      await expect(page.getByRole("main").getByText("All machines", { exact: true })).toBeVisible();
       const list = page.locator("#reslist");
       for (const id of ["sign-in", "checkout", "queue", "staging"])
         await expect(list.getByText(new RegExp(`^${id} on`))).toBeVisible();
@@ -322,7 +319,7 @@ for (const width of [1440, 390]) {
     await option(page, /build-box/).click();
     if (width > 500) {
       // The button names the machine in full, with what it shows in a pill.
-      const button = page.locator("#rail .vw-b");
+      const button = page.locator("#top .vw-b");
       await expect(button).toContainText("build-box");
       await expect(button.locator(".vw-p")).toHaveText("published");
     }

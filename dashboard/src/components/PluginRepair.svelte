@@ -151,7 +151,7 @@ const busy = $derived(stage !== null);
   {/if}
   {#if result?.ok}
     <p class="ok rp-out" role="status"><Check size={16} aria-hidden="true" /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
-    <div class="rp-acts"><button class="btn ghost sm" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check the plugin again"}</button></div>
+    <div class="rp-acts"><button class="btn sm" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check the plugin again"}</button></div>
   {:else if result}
     <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} You can also do it by hand: see the steps below.</span></p>
     <div class="rp-acts"><button class="btn sm" type="button" onclick={start}><RotateCw size={14} aria-hidden="true" />Try again</button></div>
@@ -218,11 +218,19 @@ const busy = $derived(stage !== null);
     align-items: center;
     gap: 6px;
   }
+  /* Asking before a deploy: a raised card with a butter ring, as every
+     confirmation of a change on another machine is. */
   .rp-confirm {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 10px;
+    gap: 12px 10px;
+    padding: 16px;
+    border-color: transparent;
+    border-radius: var(--radius-8);
+    box-shadow:
+      0 0 0 1px var(--memory-ring),
+      var(--memory-glow);
   }
   .rp-confirm span {
     flex: 1 1 100%;

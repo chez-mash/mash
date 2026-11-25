@@ -1,38 +1,45 @@
 <script lang="ts">
+// The navigation rail under the top bar: the main pages with their counts,
+// the tools that manage Mash, the projects pinned for quick reach, and a
+// status line at the foot. On a phone it is a sheet that drops from the top,
+// with the viewing switcher above the pages.
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Clock from "@lucide/svelte/icons/clock";
-import Download from "@lucide/svelte/icons/download";
 import Folder from "@lucide/svelte/icons/folder";
 import History from "@lucide/svelte/icons/history";
-import House from "@lucide/svelte/icons/house";
 import Laptop from "@lucide/svelte/icons/laptop";
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
+import LayoutGrid from "@lucide/svelte/icons/layout-grid";
+import MessageSquare from "@lucide/svelte/icons/message-square";
 import Pin from "@lucide/svelte/icons/pin";
+import Plug from "@lucide/svelte/icons/plug";
+import Search from "@lucide/svelte/icons/search";
 import Server from "@lucide/svelte/icons/server";
-import Settings from "@lucide/svelte/icons/settings";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
+import Upload from "@lucide/svelte/icons/upload";
 import Wrench from "@lucide/svelte/icons/wrench";
 import X from "@lucide/svelte/icons/x";
-import { createQuery, useQueryClient } from "@tanstack/svelte-query";
-import { agents as agentInfo } from "../lib/agents";
+import { createQuery } from "@tanstack/svelte-query";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
+import { askForSearch } from "../lib/findField";
 import { createProjectChoices, sidebarProjects } from "../lib/projectChoices.svelte";
 import { catalogOptions } from "../lib/queries";
-import { agentHref, machineHref, projectHref, router } from "../lib/route.svelte";
+import { projectHref, router } from "../lib/route.svelte";
+import { createScoped } from "../lib/scoped.svelte";
 import { fleetCatalogOptions, serviceAccessOptions } from "../lib/services.svelte";
-import { updates } from "../lib/updates.svelte";
-import AgentMark from "./AgentMark.svelte";
-import CheckUpdates from "./CheckUpdates.svelte";
-import MachineDot from "./MachineDot.svelte";
+import { toolCountOptions } from "../lib/toolCount";
+import RailFoot from "./RailFoot.svelte";
 import ViewingSwitcher from "./ViewingSwitcher.svelte";
 
 let { open, close }: { open: boolean; close: () => void } = $props();
-const client = useQueryClient();
 const catalogue = createQuery(() => catalogOptions);
+// Counts follow the viewing scope, as the pages they lead to do. Machines
+// lists every machine whatever the scope, so its count does too.
+const scoped = createScoped();
 const chats = $derived(catalogue.data?.chats ?? []);
+const seen = $derived(scoped.data?.chats ?? []);
 const choices = createProjectChoices();
 // Every pinned project, then the most recent others not hidden, while there is room.
 const projects = $derived(
@@ -45,133 +52,96 @@ const projects = $derived(
     6,
   ),
 );
-const providers = $derived(groupChats(chats, (chat) => chat.agent));
-const machines = $derived(groupChats(chats, (chat) => chat.machine));
+const allPinned = $derived(
+  projects.length > 0 && projects.every((project) => choices.isPinned(project.key)),
+);
+const tools = createQuery(() => toolCountOptions);
+const counts = $derived<Readonly<Record<string, number | undefined>>>({
+  chats: scoped.data ? seen.length : undefined,
+  machines: catalogue.data ? groupChats(chats, (chat) => chat.machine).length : undefined,
+  agents: scoped.data ? groupChats(seen, (chat) => chat.agent).length : undefined,
+  console: tools.data,
+});
 
-const sections = [
-  { id: "overview", label: "Overview", href: "#/", icon: House, tile: "var(--tile-overview)" },
-  {
-    id: "chats",
-    label: "Chats",
-    href: "#/search",
-    icon: MessagesSquare,
-    tile: "var(--tile-chats)",
-  },
-  { id: "agents", label: "Agents", href: "#/agents", icon: Bot, tile: "var(--tile-agents)" },
-  {
-    id: "machines",
-    label: "Machines",
-    href: "#/machines",
-    icon: Laptop,
-    tile: "var(--tile-machines)",
-  },
-  {
-    id: "projects",
-    label: "Projects",
-    href: "#/projects",
-    icon: Folder,
-    tile: "var(--tile-projects)",
-  },
-  { id: "memory", label: "Memory", href: "#/records?", icon: Bookmark, tile: "var(--tile-memory)" },
-  {
-    id: "services",
-    label: "Services",
-    href: "#/services",
-    icon: Server,
-    tile: "var(--tile-services)",
-  },
-  {
-    id: "fleet",
-    label: "Fleet manager",
-    href: "#/fleet",
-    icon: SlidersHorizontal,
-    tile: "var(--tile-fleet)",
-  },
-  {
-    id: "console",
-    label: "Tool explorer",
-    href: "#/console",
-    icon: Wrench,
-    tile: "var(--tile-tools)",
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    href: "#/settings",
-    icon: Settings,
-    tile: "var(--tile-settings)",
-  },
-] as const;
-type Section = (typeof sections)[number]["id"];
-// Memory has no rows of its own: its page already offers the kinds as tabs.
-const expandable: readonly Section[] = ["chats", "agents", "machines", "projects"];
+interface Row {
+  readonly id: string;
+  readonly label: string;
+  readonly href: string;
+  readonly icon: typeof Bookmark;
+}
+const main: readonly Row[] = [
+  { id: "overview", label: "Overview", href: "#/", icon: LayoutGrid },
+  { id: "search", label: "Search", href: "#/search", icon: Search },
+  { id: "chats", label: "Chats", href: "#/search", icon: MessageSquare },
+  { id: "memory", label: "Memory", href: "#/records?", icon: Bookmark },
+  { id: "machines", label: "Machines", href: "#/machines", icon: Laptop },
+  { id: "agents", label: "Agents", href: "#/agents", icon: Bot },
+  { id: "services", label: "Services", href: "#/services", icon: Server },
+  { id: "settings", label: "Settings", href: "#/settings", icon: SlidersHorizontal },
+];
+const manage: readonly Row[] = [
+  { id: "console", label: "Tools", href: "#/console", icon: Plug },
+  { id: "export", label: "Export", href: "#/export", icon: Upload },
+  { id: "fleet", label: "Fleet manager", href: "#/fleet", icon: Wrench },
+];
 
 const route = $derived(router.current);
 // The fleet manager is offered only where fleet control is set up. Its page
 // still explains the setup to anyone who opens it directly.
 const access = createQuery(() => serviceAccessOptions);
 const fleet = createQuery(() => fleetCatalogOptions(access.data !== undefined));
-const offered = $derived(
-  sections.filter(
-    (section) => section.id !== "fleet" || fleet.data?.enabled === true || route.page === "fleet",
+const managed = $derived(
+  manage.filter(
+    (row) => row.id !== "fleet" || fleet.data?.enabled === true || route.page === "fleet",
   ),
 );
-const area = $derived.by((): Section | "" => {
+const query = $derived(
+  route.page === "search" ? (new URLSearchParams(route.params).get("q") ?? "") : "",
+);
+const area = $derived.by((): string => {
   switch (route.page) {
-    case "overview":
-      return "overview";
     case "search":
+      return query ? "search" : "chats";
     case "history":
-    case "export":
     case "chat":
       return "chats";
-    case "agents":
     case "agent":
       return "agents";
-    case "machines":
     case "machine":
       return "machines";
-    case "projects":
-    case "project":
-      return "projects";
-    case "records":
     case "record":
+    case "records":
       return "memory";
-    case "services":
-      return "services";
-    case "fleet":
-      return "fleet";
-    case "console":
-      return "console";
-    case "settings":
     case "setup":
       return "settings";
     default:
-      return "";
+      return route.page;
   }
 });
-// A row is the current page only while none of its children is.
-const child = $derived.by((): string => {
-  // Search results are not the recent chats: with a query, the chats row is
-  // the current one.
-  if (route.page === "search") return new URLSearchParams(route.params).get("q") ? "" : "recent";
-  if (route.page === "history") return "history";
-  if (route.page === "export") return "export";
-  if (route.page === "agent") return route.agent;
-  if (route.page === "machine") return route.id;
-  if (route.page === "project") return route.name;
-  return "";
-});
-let expanded = $state<readonly Section[]>([]);
-// Arriving in a section opens it and folds the others, so the rail keeps to
-// the section the reader is in and its last rows stay in view. While they
-// stay in a section, what they open or close is theirs.
+// Chats keeps its own pages under it: the recent list and what was read lately.
+const child = $derived(
+  route.page === "history" ? "history" : route.page === "search" && !query ? "recent" : "",
+);
+let chatsOpen = $state(false);
 let arrived = "";
 $effect(() => {
   if (area === arrived) return;
   arrived = area;
-  expanded = area && expandable.includes(area) ? [area] : [];
+  chatsOpen = area === "chats";
 });
+// The chevron beside Chats is for pointers; keyboards open and close its
+// pages from the row's own link with the arrow keys.
+function arrows(event: KeyboardEvent): void {
+  if (event.key === "ArrowRight" && !chatsOpen) chatsOpen = true;
+  else if (event.key === "ArrowLeft" && chatsOpen) chatsOpen = false;
+  else return;
+  event.preventDefault();
+}
+function find(): void {
+  close();
+  askForSearch();
+}
+
 // Where the rows are taller than the rail, the list fades at the edge that
 // has more to scroll to, so rows out of sight are not mistaken for none.
 let nav = $state<HTMLElement>();
@@ -196,7 +166,7 @@ $effect(() => {
   };
 });
 
-// Something above the dashboard, such as the demo's banner, pushes the rail
+// Something above the rail, the top bar and the demo's banner, pushes it
 // down until the page scrolls past it. The rail is shorter by that much
 // meanwhile, so its foot stays on screen.
 let aside = $state<HTMLElement>();
@@ -218,7 +188,7 @@ $effect(() => {
 });
 
 // The reader can drag the edge to set the width, which this browser keeps.
-const widths = { least: 180, usual: 252, most: 440 } as const;
+const widths = { least: 180, usual: 220, most: 440 } as const;
 function stored(): number {
   try {
     const width = Number(localStorage.getItem("mash.rail.width"));
@@ -262,66 +232,53 @@ function nudge(event: KeyboardEvent): void {
   else return;
   event.preventDefault();
 }
-function toggle(id: Section): void {
-  expanded = expanded.includes(id) ? expanded.filter((item) => item !== id) : [...expanded, id];
-}
-// The chevron beside a row is for pointers; keyboards reach its pages from
-// the row's own link, which opens and closes them with the arrow keys, so
-// each row is one stop on the way through the rail.
-function arrows(event: KeyboardEvent, id: Section): void {
-  if (!expandable.includes(id)) return;
-  const isOpen = expanded.includes(id);
-  if (event.key === "ArrowRight" && !isOpen) toggle(id);
-  else if (event.key === "ArrowLeft" && isOpen) toggle(id);
-  else return;
-  event.preventDefault();
-}
 </script>
+
+{#snippet row(item: Row)}
+  {@const on = item.id === area && !child}
+  {@const count = counts[item.id]}
+  <!-- The count is drawn beside the name but kept out of it, so the row is
+       named by its section alone; the page it leads to says the number. -->
+  <div class="nav-row" class:on>
+    {#if item.id === "search"}
+      <!-- Search is the field in the top bar; this row shows and focuses it. -->
+      <button class="nav-link" type="button" aria-current={on ? "page" : undefined} aria-label="Search every chat" aria-keyshortcuts="Control+K Meta+K" onclick={find}><span class="nav-ico"><item.icon size={15} aria-hidden="true" /></span><span class="nav-label">{item.label}</span></button>
+    {:else}
+      <a class="nav-link" href={item.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={item.id === "chats" ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={item.id === "chats" ? arrows : undefined}><span class="nav-ico"><item.icon size={15} aria-hidden="true" /></span><span class="nav-label">{item.label}</span>{#if count !== undefined}<span class="nav-count" aria-hidden="true">{count.toLocaleString()}</span>{/if}</a>
+    {/if}
+    {#if item.id === "chats"}
+      <button class="chev" type="button" tabindex="-1" aria-label="{chatsOpen ? 'Collapse' : 'Expand'} Chats" aria-expanded={chatsOpen} onclick={() => (chatsOpen = !chatsOpen)}><ChevronRight size={14} /></button>
+    {/if}
+  </div>
+  {#if item.id === "chats" && chatsOpen}
+    <div class="subs">
+      <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>Recent chats</span></a>
+      <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>Viewing history</span></a>
+    </div>
+  {/if}
+{/snippet}
 
 <aside id="rail" class:open style:--rail-width="{width}px" bind:this={aside}>
   <div class="rail-in" style:--rail-pushed="{pushed}px">
-  <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></a>
-  <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
+  <div class="sheet-top">
+    <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" width="24" height="24" /><span>mash<i class="pat" aria-hidden="true"></i></span></a>
+    <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
+  </div>
+  {#if !catalogue.error}<div class="sheet-viewing"><ViewingSwitcher place="sheet" /></div>{/if}
   <nav class="nav" class:fade-above={fade.above} class:fade-below={fade.below} aria-label="Main" bind:this={nav} onscroll={measure}>
-    {#each offered as section (section.id)}
-      {@const on = section.id === area && !child}
-      {@const isOpen = expanded.includes(section.id)}
+    {#each main as item (item.id)}{@render row(item)}{/each}
+    <p class="nav-group">Manage</p>
+    {#each managed as item (item.id)}{@render row(item)}{/each}
+    <!-- The heading leads to every project; the rows are the pinned ones,
+         then recent others while there is room. -->
+    <a class="nav-group" href="#/projects" aria-current={route.page === "projects" ? "page" : undefined} onclick={close}>{allPinned ? "Pinned projects" : "Projects"}</a>
+    {#each projects as project (project.key)}
+      {@const on = route.page === "project" && route.name === project.key}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={expandable.includes(section.id) ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={(event) => arrows(event, section.id)}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span><span class="nav-label">{section.label}</span></a>
-        {#if expandable.includes(section.id)}
-          <button class="chev" type="button" tabindex="-1" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={14} /></button>
-        {/if}
+        <a class="nav-link" href={projectHref(project.key)} title={project.key} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico">{#if choices.isPinned(project.key)}<Pin size={15} aria-label="Pinned" />{:else}<Folder size={15} aria-hidden="true" />{/if}</span><span class="nav-label">{projectLabel(project.key)}</span></a>
       </div>
-      {#if isOpen}
-        <div class="subs">
-        {#if section.id === "chats"}
-          <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>Recent chats</span></a>
-          <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>Viewing history</span></a>
-          <a class="sub" class:on={child === "export"} href="#/export" aria-current={child === "export" ? "page" : undefined} onclick={close}><Download size={14} aria-hidden="true" /><span>Export chats</span></a>
-        {:else if section.id === "agents"}
-          {#each providers as provider (provider.key)}
-            {@const agent = provider.chats[0]?.agent}
-            {#if agent}<a class="sub" class:on={child === agent} href={agentHref(agent)} onclick={close}><AgentMark {agent} size="sm" /><span>{agentInfo[agent].name}</span></a>{/if}
-          {/each}
-        {:else if section.id === "machines"}
-          {#each machines as machine (machine.key)}
-            <a class="sub" class:on={child === machine.key} href={machineHref(machine.key)} onclick={close}><MachineDot machine={machine.key} /><span>{machine.key}</span></a>
-          {/each}
-        {:else if section.id === "projects"}
-          {#each projects as project (project.key)}
-            <a class="sub" class:on={child === project.key} href={projectHref(project.key)} title={project.key} onclick={close}>{#if choices.isPinned(project.key)}<Pin size={14} aria-label="Pinned" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span>{projectLabel(project.key)}</span></a>
-          {/each}
-        {/if}
-        </div>
-      {/if}
     {/each}
-    <!-- data-chats keeps the chat lists above in use while every section is
-         folded: read for the first time inside a section opened later, they
-         kept the empty list from before the catalogue arrived. -->
-    <div class="status" style:margin-top="auto" style:padding-top="14px" data-chats={chats.length}>
-      {#if catalogue.error}history unavailable{:else}<ViewingSwitcher />{/if}
-      <span style:display="flex" style:margin-top="6px"><CheckUpdates checking={updates.checking} check={() => updates.check(client)} /></span>
-    </div>
+    <RailFoot unavailable={catalogue.error !== null} />
   </nav>
   </div>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->

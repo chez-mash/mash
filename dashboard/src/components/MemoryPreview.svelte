@@ -1,0 +1,173 @@
+<script lang="ts">
+import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import { agoLabel } from "../lib/browse";
+import { chatOf, currentOf } from "../lib/memoryView";
+import { kindIcons } from "../lib/recordIcons";
+import { label, type NativeRecord, standing } from "../lib/records";
+import { recordHref } from "../lib/route.svelte";
+import type { ChatSummary } from "../lib/types";
+import EvidenceCard from "./EvidenceCard.svelte";
+
+// The memory the reader is pointing at in the list, beside it: what it says
+// and pv-why, the first message behind it, and its revisions, with the way to
+// its own page. Only what the list already read is shown.
+let {
+  record,
+  back,
+  chats,
+  now,
+}: {
+  record: NativeRecord;
+  back: string;
+  chats: readonly ChatSummary[] | undefined;
+  now: number;
+} = $props();
+const current = $derived(currentOf(record));
+const EVIDENCE = 2;
+</script>
+
+{#if current}
+  {@const Icon = kindIcons[current.details.kind]}
+  <aside class="pv" aria-label="Selected memory">
+    <div class="pv-h">
+      <span class="pv-k"><Icon size={14} aria-hidden="true" />{label(current.details.kind)}</span>
+      <span class="meta">{label(current.details.state)} · {standing(current)}</span>
+    </div>
+    <p class="pv-st">{current.statement}</p>
+    {#if current.rationale}<p class="pv-why">{current.rationale}</p>{/if}
+    {#if current.evidence.length}
+      <div class="pv-s">
+        <span class="lbl">Evidence</span>
+        {#each current.evidence.slice(0, EVIDENCE) as source, index (index)}
+          <EvidenceCard {source} node={record.node} chat={chatOf(chats, source.chatId, record.node)} brief />
+        {/each}
+        {#if current.evidence.length > EVIDENCE}<span class="meta">{current.evidence.length - EVIDENCE} more on its page</span>{/if}
+      </div>
+    {/if}
+    <div class="pv-s">
+      <span class="lbl">History</span>
+      <ol class="hist">
+        {#each record.revisions as revision (revision.revision)}
+          {@const latest = revision.revision === record.currentRevision}
+          <li class:cur={latest}>
+            <span class="pip" aria-hidden="true"></span>
+            <span><b>Revision {revision.revision}{latest ? " · current" : ""}</b><small>Saved by {revision.recordedBy || "an agent"} · {agoLabel(revision.recordedAt, now)}</small></span>
+          </li>
+        {/each}
+      </ol>
+    </div>
+    <a class="pv-open" href={recordHref(record.id, record.node, back)}>Open record<ChevronRight size={14} aria-hidden="true" /></a>
+  </aside>
+{/if}
+
+<style>
+  .pv {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+    border-radius: var(--radius-7);
+    background: var(--surface-rail);
+    color: var(--text-body);
+  }
+  .pv-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .pv-h .meta {
+    font-size: 12px;
+  }
+  .pv-k {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 10px 0 8px;
+    border: var(--stroke-outline) solid var(--linked-line);
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .pv-st {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .pv-why {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .pv-s {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .lbl {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-faint);
+  }
+  .hist {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .hist li {
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .hist .pip {
+    width: 8px;
+    height: 8px;
+    margin-top: 4px;
+    border: 1.5px solid var(--text-faint);
+    border-radius: var(--radius-round);
+  }
+  .hist .cur .pip {
+    border-color: var(--find-current-bg);
+    background: var(--find-current-bg);
+    box-shadow: 0 0 8px var(--find-current-bg);
+  }
+  .hist b {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text-strong);
+  }
+  .hist small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-muted);
+  }
+  .pv-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    align-self: flex-start;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .pv-open:hover {
+    color: var(--accent);
+  }
+</style>

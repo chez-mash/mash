@@ -17,8 +17,8 @@ test("memory categories work from the page's tabs even when chat history is unav
   await expect(page.getByRole("alert")).toContainText("Couldn’t load chats");
   await expect(page.getByText(/Nothing saved yet/)).toBeVisible();
   for (const [label, kind] of [
-    ["decisions", "decision"],
-    ["preferences", "preference"],
+    ["Decisions", "decision"],
+    ["Preferences", "preference"],
   ] as const) {
     await followRail(page, "Memory");
     await kindNav(page).getByRole("link", { name: label, exact: true }).click();
@@ -29,7 +29,7 @@ test("memory categories work from the page's tabs even when chat history is unav
     );
     await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
     await expect(page.getByRole("alert")).toHaveCount(0);
-    await page.getByRole("link", { name: "mash", exact: true }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Mash overview" }).click();
     await expect(page.getByRole("heading", { name: "Recent memories" })).toBeVisible();
   }
   expect(documents()).toBe(1);
@@ -103,7 +103,7 @@ test("records filter on submission, expose history and safe citations, and navig
   await followRail(page, "Memory");
   await expect(page.getByRole("heading", { name: "Memory", exact: true })).toBeVisible();
   await expect(records(page)).toHaveCount(3);
-  await kindNav(page).getByRole("link", { name: "preferences", exact: true }).click();
+  await kindNav(page).getByRole("link", { name: "Preferences", exact: true }).click();
   await expect(records(page)).toHaveCount(1);
   const apply = page.getByRole("button", { name: "Apply filters" });
   await expect(apply).toHaveCount(0);
@@ -130,7 +130,7 @@ test("records filter on submission, expose history and safe citations, and navig
   await expect(page.getByRole("heading", { name: statement, exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Newest revisions" }).click();
   await expect(page.getByText(/^Revision 9 \(current\)/)).toBeVisible();
-  const related = page.getByRole("link", { name: /this record supports.*decision-1/ });
+  const related = page.getByRole("link", { name: /this record supports.*decision fixture/ });
   await expect(related).toBeVisible();
   await page.getByRole("button", { name: "More relationships" }).click();
   // The second page of relationships is empty; the way back stays offered.
@@ -141,11 +141,11 @@ test("records filter on submission, expose history and safe citations, and navig
   await expect(page.getByText("Keep the old port", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Back to memory" }).click();
   await expect(
-    kindNav(page).getByRole("link", { name: "preferences", exact: true }),
+    kindNav(page).getByRole("link", { name: "Preferences", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   await expect(page.getByLabel("Search statements")).toHaveValue("port");
   await memoryLink.click();
-  await page.getByRole("link", { name: /open the message/ }).click();
+  await page.getByRole("link", { name: /Open the message/ }).click();
   await expect(
     page.locator("#message-message-1").getByText("The service uses port 8080.", { exact: true }),
   ).toBeVisible();
@@ -240,7 +240,7 @@ for (const sourceNode of ["remote/one", "local"]) {
     expect(new URLSearchParams(new URL(page.url()).hash.split("?")[1]).get("node")).toBe(
       sourceNode,
     );
-    await page.getByRole("link", { name: /open the message/ }).click();
+    await page.getByRole("link", { name: /Open the message/ }).click();
     await expect(
       page.locator("#message-message-1").getByText("Shared source reply", { exact: true }),
     ).toBeVisible();
@@ -344,7 +344,7 @@ test("a shared-only dashboard names the shared machines and never calls one this
     route.fulfill({ json: { records: [], next_offset: null } }),
   );
   await page.goto("/#/records?");
-  await page.locator("#rail .vw-b").click();
+  await page.locator("#top .vw-b").click();
   const options = page
     .getByRole("group", { name: "Show chats and memory from" })
     .getByRole("menuitemradio");
@@ -401,7 +401,7 @@ test("the memory page reads the scope's index on every page", async ({ page }) =
   await expect.poll(() => asked.at(-1)?.get("cursor_offset")).toBe("20");
   expect(asked.at(-1)?.get("shared")).toBe("true");
   // Choosing this machine reads only what it saved: nothing, and it says so.
-  await page.locator("#rail .vw-b").click();
+  await page.locator("#top .vw-b").click();
   await page
     .getByRole("group", { name: "Show chats and memory from" })
     .getByRole("menuitemradio", { name: /^\s*This machine/ })

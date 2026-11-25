@@ -24,11 +24,15 @@ const detail = $derived(
 );
 </script>
 
+<!-- One line across the space the content would fill: the warning, what
+     failed over why, and the retry at the end. -->
 <div class="card bad loaderr" role="alert" aria-busy={busy}>
-  <span class="ico"><TriangleAlert size={17} aria-hidden="true" /></span>
-  <strong>{title}</strong>
-  <p>{detail}</p>
-  <button type="button" class="btn" onclick={retry} disabled={busy}><RotateCw size={14} aria-hidden="true" />
+  <TriangleAlert class="loaderr-mark" size={18} aria-hidden="true" />
+  <div>
+    <strong>{title}</strong>
+    <p>{detail}</p>
+  </div>
+  <button type="button" class="btn sm" onclick={retry} disabled={busy}>
     <RotateCw size={14} aria-hidden="true" />{busy ? "Trying again…" : retryLabel}
   </button>
 </div>

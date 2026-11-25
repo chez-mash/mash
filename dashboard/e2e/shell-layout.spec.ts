@@ -1,5 +1,5 @@
 import { expect, type Locator, test } from "@playwright/test";
-import { mockShell, rail } from "./shell";
+import { fitsViewport, mockShell, rail } from "./shell";
 
 async function box(locator: Locator) {
   const found = await locator.boundingBox();
@@ -13,32 +13,41 @@ function overlaps(
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
-test("the rail keeps only the current section open, so its last rows stay in view", async ({
+test("the rail opens Chats' own pages only while in Chats, and its last rows stay in view", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/");
-  for (const section of ["Chats", "Agents", "Machines", "Memory", "Projects"])
-    await rail(page).getByRole("link", { name: section, exact: true }).click();
-  const expanded = (section: string) =>
-    rail(page).getByRole("button", { name: new RegExp(`^(Expand|Collapse) ${section}$`) });
-  await expect(expanded("Projects")).toHaveAttribute("aria-expanded", "true");
-  // Memory's kinds are tabs on its page, so it has no rows to open here.
-  await expect(expanded("Memory")).toHaveCount(0);
-  for (const section of ["Chats", "Agents", "Machines"])
-    await expect(expanded(section)).toHaveAttribute("aria-expanded", "false");
-  for (const bottom of ["Services", "Tool explorer", "Settings"])
+  const chats = rail(page).getByRole("button", { name: /^(Expand|Collapse) Chats$/ });
+  await expect(chats).toHaveAttribute("aria-expanded", "false");
+  await rail(page).getByRole("link", { name: "Chats", exact: true }).click();
+  await expect(chats).toHaveAttribute("aria-expanded", "true");
+  await expect(rail(page).getByRole("link", { name: "Viewing history" })).toBeVisible();
+  // Only Chats has pages of its own; the other sections are single rows.
+  await expect(rail(page).getByRole("button", { name: /^(Expand|Collapse) / })).toHaveCount(1);
+  for (const bottom of ["Services", "Tools", "Settings", "Export"])
     await expect(rail(page).getByRole("link", { name: bottom, exact: true })).toBeInViewport({
       ratio: 1,
     });
-
-  // A section the reader opens stays open while they stay where they are.
-  await expanded("Agents").click();
-  await expect(expanded("Agents")).toHaveAttribute("aria-expanded", "true");
-  // Leaving for a section without pages folds them all.
+  // Leaving Chats folds its pages.
   await rail(page).getByRole("link", { name: "Services", exact: true }).click();
   await expect(rail(page).locator(".subs")).toHaveCount(0);
+});
+
+test("the top bar runs across the screen above the rail", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await mockShell(page);
+  await page.goto("/");
+  const bar = await box(page.getByRole("banner"));
+  const side = await box(page.locator("#rail"));
+  expect(bar.x).toBe(0);
+  expect(bar.width).toBe(1280);
+  expect(side.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1);
+  // The bar holds the mark, the search field and the viewing switcher.
+  await expect(page.getByRole("banner").getByRole("link", { name: "Mash overview" })).toBeVisible();
+  await expect(page.getByRole("banner").locator(".vw-b")).toBeVisible();
+  await expect(page.getByPlaceholder("Search every chat")).toBeVisible();
 });
 
 test("a rail taller than the screen fades at the edge with more rows", async ({ page }) => {
@@ -58,15 +67,23 @@ test("a rail taller than the screen fades at the edge with more rows", async ({ 
   await expect(nav).not.toHaveClass(/fade-/);
 });
 
-test("on a phone the navigation button shows a menu icon beside the mark", async ({ page }) => {
+test("on a phone the bar keeps the mark, a search button and the menu button", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockShell(page);
   await page.goto("/");
-  const burger = page.getByRole("button", { name: "Open navigation" });
+  const bar = page.getByRole("banner");
+  await expect(bar.getByRole("link", { name: "Mash overview" })).toBeVisible();
+  // The search field waits behind its button, and the switcher in the sheet.
+  await expect(page.locator("#q")).toBeHidden();
+  await expect(bar.locator(".vw-b")).toBeHidden();
+  await bar.getByRole("button", { name: "Show search" }).click();
+  await expect(page.locator("#q")).toBeFocused();
+  const burger = bar.getByRole("button", { name: "Open navigation" });
   await expect(burger.locator(".menu-ico svg")).toBeVisible();
-  await expect(burger.locator("img")).toBeVisible();
   await burger.click();
   await expect(rail(page).getByRole("link", { name: "Settings", exact: true })).toBeVisible();
+  await expect(page.locator("#rail .vw-b")).toBeVisible();
+  expect(await fitsViewport(page)).toBe(true);
 });
 
 for (const [width, height] of [

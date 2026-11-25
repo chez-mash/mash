@@ -73,3 +73,57 @@ let trigger: HTMLButtonElement;
     </div>
   {/if}
 </div>
+
+<style>
+  /* A filter chip is a small raised control with a hairline ring; a chosen
+     filter carries a butter ring and tint. Its menu is a floating panel of
+     rows, the chosen ones on the neutral selected tint. */
+  .fwrap > :global(.chip) {
+    min-height: 30px;
+    gap: 7px;
+    padding: 0 9px 0 10px;
+    border: 0;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 var(--stroke-outline) var(--line-strong);
+    color: var(--text-strong);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .fwrap > :global(.chip:hover) {
+    background: var(--surface-hover);
+  }
+  .fwrap > :global(.chip.on),
+  .fwrap > :global(.chip[aria-expanded="true"].on) {
+    background: var(--chip-on-bg);
+    box-shadow: 0 0 0 var(--stroke-outline) var(--chip-on-line);
+    font-weight: 500;
+  }
+  .fwrap > :global(.chip[aria-expanded="true"]) {
+    font-weight: 500;
+  }
+  .fwrap > :global(.chip > svg:last-child) {
+    color: var(--text-muted);
+  }
+  .fmenu {
+    top: calc(100% + 6px);
+    padding: 5px;
+    border: 0;
+    border-radius: var(--radius-7);
+    box-shadow:
+      0 0 0 var(--stroke-outline) var(--line-outline),
+      var(--shadow-float);
+  }
+  .fmenu button {
+    min-height: 32px;
+    border-radius: var(--radius-5);
+    font-size: 13px;
+  }
+  .fmenu button[aria-checked="true"] {
+    background: var(--selected-surface);
+    font-weight: 500;
+  }
+  .fmenu .n {
+    font-size: 12px;
+  }
+</style>

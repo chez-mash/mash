@@ -1,7 +1,7 @@
 <script lang="ts">
 // The viewing switcher: whose history the overview, chats, search, memory,
-// projects and agents show. It sits in the sidebar's corner, which on a
-// phone is the navigation drawer. Services and Machines are
+// projects and agents show. It sits at the right of the top bar, and on a
+// phone at the top of the navigation sheet. Services and Machines are
 // about the machines themselves, so they show every machine whatever it says.
 import Check from "@lucide/svelte/icons/check";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
@@ -22,6 +22,9 @@ import {
   staleWords,
 } from "../lib/serverStatus";
 
+/** Where it is drawn: the top bar's compact button, or the phone sheet's full-width field. */
+let { place }: { place: "bar" | "sheet" } = $props();
+const labelId = $derived(`viewing-label-${place}`);
 const whole = createQuery(() => catalogOptions);
 const liveList = createQuery(() => liveOptions);
 const scoped = createScoped();
@@ -95,10 +98,10 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   }}
 />
 
-<div class="vw" bind:this={root}>
-  <span class="vw-l" id="viewing-label">viewing</span>
-  <button class="vw-b" type="button" aria-haspopup="true" aria-expanded={open} aria-describedby="viewing-label" onclick={() => (open = !open)}>
-    {#if current?.kind === "all"}<Globe size={15} aria-hidden="true" />{:else if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
+<div class="vw vw-{place}" bind:this={root}>
+  <span class="vw-l" class:sr-only={place === "bar"} id={labelId}>Viewing</span>
+  <button class="vw-b" type="button" aria-haspopup="true" aria-expanded={open} aria-describedby={labelId} onclick={() => (open = !open)}>
+    {#if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
     <span class="vw-n" title={name}>{label.text}</span>{#if label.pill}<span class="pill vw-p">{label.pill}</span>{/if}
     <ChevronDown size={14} aria-hidden="true" class="vw-c" />
   </button>
@@ -146,26 +149,51 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   .vw {
     position: relative;
   }
+  /* In the sheet the label sits inside the field, before the name. */
   .vw-l {
-    display: block;
-    margin-bottom: 6px;
+    flex: none;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 13px;
+  }
+  .vw.vw-sheet .vw-l {
+    position: absolute;
+    top: 0;
+    left: 12px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
   }
   .vw-b {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
+    border-radius: var(--radius-5);
+    color: var(--text-body);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+  }
+  .vw.vw-bar .vw-b {
+    height: 30px;
+    max-width: 260px;
+    padding: 0 10px;
+  }
+  .vw.vw-bar .vw-b:hover,
+  .vw.vw-bar .vw-b[aria-expanded="true"] {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+  .vw.vw-sheet .vw-b {
     width: 100%;
-    min-height: 40px;
-    padding: 0 12px;
-    border: var(--border-strong);
+    min-height: 44px;
+    padding: 0 12px 0 72px;
+    border: var(--border-outline);
     border-radius: var(--radius-box);
     background: var(--surface-raised);
+    box-shadow: var(--shadow-pick);
     color: var(--text-strong);
-    font-weight: 700;
-    font-size: 13.5px;
-    text-align: left;
+    font-size: 14px;
   }
   .vw-n {
     flex: 1;
@@ -185,22 +213,34 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     height: 18px;
     font-size: 11px;
   }
+  .vw-b :global(.vw-c) {
+    flex: none;
+    color: var(--text-muted);
+  }
   .vw-b[aria-expanded="true"] :global(.vw-c) {
     transform: rotate(180deg);
   }
-  /* The sidebar clips what overflows it, so the menu keeps to its width. */
+  /* The menu drops below the button: under the bar's right edge, or as wide
+     as the sheet's field. */
   .vw-m {
     position: absolute;
     z-index: 30;
-    bottom: calc(100% + 8px);
-    left: 0;
+    top: calc(100% + 6px);
     right: 0;
+    width: 320px;
+    max-width: calc(100vw - 32px);
     max-height: min(560px, 70vh);
     overflow-y: auto;
     padding: 6px;
-    border: var(--border-strong);
+    border: var(--border-outline);
     border-radius: var(--radius-box);
     background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+  }
+  .vw.vw-sheet .vw-m {
+    left: 0;
+    width: auto;
+    max-width: none;
   }
   .vw-m button {
     display: flex;

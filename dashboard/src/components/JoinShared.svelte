@@ -3,7 +3,7 @@ import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Server from "@lucide/svelte/icons/server";
 import ShieldCheck from "@lucide/svelte/icons/shield-check";
-import { type JoinView, joinShared } from "../lib/shared";
+import { type JoinView, joinRefusals, joinShared } from "../lib/shared";
 
 // Join a shared index from a join string made on the machine that runs the
 // server. Checking saves nothing; Save and continue writes the settings and
@@ -15,16 +15,6 @@ let checking = $state(false);
 let saving = $state(false);
 let preview = $state<JoinView | null>(null);
 let failure = $state("");
-
-const refusal: Record<string, string> = {
-  expired:
-    "This join string has expired: each one works for 24 hours. Ask for a new one on the machine that runs the server.",
-  used: "This join string was already used: each one works once, on one computer. Ask for a new one.",
-  revoked:
-    "The server’s operator replaced this join string or removed its machine. Ask for a new one.",
-  unknown:
-    "The server did not make this join string, or the machine it was for was deleted. Ask for a new one.",
-};
 
 async function check(): Promise<void> {
   failure = "";
@@ -58,18 +48,18 @@ async function save(): Promise<void> {
 }
 </script>
 
-<form class="card" aria-label="Join a shared index" onsubmit={(event) => { event.preventDefault(); void check(); }}>
-  <h2 class="h2"><Server size={15} aria-hidden="true" />Join a shared index</h2>
+<form class="card join" aria-label="Join a shared index" onsubmit={(event) => { event.preventDefault(); void check(); }}>
+  <h2 class="join-h"><Server size={16} aria-hidden="true" />Join a shared index</h2>
   <p class="meta">Paste the join string made for this computer on the machine that runs your shared server. Mash checks it and shows where it connects. Nothing is saved until you choose Save and continue.</p>
-  <label class="meta" style:display="block" for="join-string">Join string</label>
-  <textarea id="join-string" class="field" style:width="100%" style:word-break="break-all" rows="3" spellcheck="false" autocomplete="off" bind:value={text} oninput={() => { preview = null; failure = ""; }}></textarea>
-  <p class="meta">It starts with <code class="i">mash-join.</code> and is one long line.</p>
-  <button class="btn" type="submit" disabled={!text.trim() || checking}><ShieldCheck size={14} aria-hidden="true" />{checking ? "Checking…" : "Check"}</button>
+  <label class="join-l" for="join-string">Join string</label>
+  <textarea id="join-string" class="field join-t" rows="3" spellcheck="false" autocomplete="off" bind:value={text} oninput={() => { preview = null; failure = ""; }}></textarea>
+  <p class="meta join-hint">It starts with <code class="i">mash-join.</code> and is one long line.</p>
+  <button class="btn join-check" type="submit" disabled={!text.trim() || checking}><ShieldCheck size={14} aria-hidden="true" />{checking ? "Checking…" : "Check"}</button>
   {#if failure}<p class="warn" role="alert">{failure} Nothing was saved.</p>{/if}
   {#if preview}
     {#if preview.check.status === "ready"}
-      <div class="card tight cream" role="status">
-        <p><Check size={14} aria-hidden="true" /> The server accepted this join string.</p>
+      <div class="card cream join-ok" role="status">
+        <p class="join-yes"><Check size={15} aria-hidden="true" />The server accepted this join string.</p>
         <dl class="kvs">
           <dt>This computer joins as</dt><dd><strong>{preview.node_id}</strong></dd>
           <dt>Shared server</dt><dd><code class="i">{preview.server}</code></dd>
@@ -81,7 +71,74 @@ async function save(): Promise<void> {
         <button class="btn p" type="button" disabled={saving} onclick={save}><ArrowRight size={14} aria-hidden="true" />{saving ? "Saving…" : "Save and continue"}</button>
       </div>
     {:else}
-      <p class="warn" role="alert">{refusal[preview.check.status] ?? "The server refused this join string."} Nothing was saved.</p>
+      <p class="warn" role="alert">{joinRefusals[preview.check.status] ?? "The server refused this join string."} Nothing was saved.</p>
     {/if}
   {/if}
 </form>
+
+<style>
+  .join {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 22px 22px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .join > :global(*),
+  .join-ok > :global(*) {
+    margin: 0;
+  }
+  .join-h {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+  .join-l {
+    margin-top: 4px !important;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .join-t {
+    width: 100%;
+    min-height: 76px;
+    font-family: var(--type-mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    word-break: break-all;
+    resize: vertical;
+  }
+  .join-hint {
+    margin-top: -4px !important;
+    font-size: 12.5px;
+  }
+  .join-check {
+    align-self: flex-start;
+  }
+  .join-ok {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+  }
+  .join-ok > :global(.btn) {
+    align-self: flex-start;
+  }
+  .join-yes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .join-yes :global(svg) {
+    color: var(--status-ok);
+  }
+  .join-ok :global(.kvs) {
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 9px 14px;
+  }
+</style>

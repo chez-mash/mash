@@ -77,7 +77,7 @@ async function save(publish: boolean): Promise<void> {
 </script>
 
 <section class="card share" aria-labelledby="share-review-title" style:margin-top="18px">
-  <h2 class="h2" id="share-review-title"><Send size={15} aria-hidden="true" />Choose what {server.node_id} shares</h2>
+  <h2 class="share-h" id="share-review-title"><Send size={15} aria-hidden="true" />Choose what {server.node_id} shares</h2>
   <p class="meta">Publishing sends these chats, and the attachments Mash kept with them, to <code class="i">{server.server}</code>. Every machine in {server.group_id} can then search and read them. Nothing has been sent yet.</p>
   {#if settings.error}
     <p class="warn" role="alert">The settings could not be read: {settings.error.message}</p>
@@ -90,14 +90,15 @@ async function save(publish: boolean): Promise<void> {
           <AgentMark agent={row.agent} size="sm" />
           <span class="share-name"><strong>{agentInfo[row.agent].name}</strong></span>
           <span class="meta share-count">{row.chats.toLocaleString()} chat{row.chats === 1 ? "" : "s"}</span>
-          <span class="meta share-fate">{row.shared ? "shared" : `stays on ${server.node_id}`}</span>
+          <span class="meta share-fate" class:on={row.shared}>{row.shared ? "shared" : `stays on ${server.node_id}`}</span>
           <button class="sw" type="button" role="switch" aria-checked={row.shared} aria-label="Share {agentInfo[row.agent].name}" disabled={saving !== null} onclick={() => toggle(row.agent)}><i></i></button>
         </li>
       {/each}
     </ul>
     <p class="meta">{server.node_id} still indexes and searches the chats you leave out. They just aren’t sent to the server.</p>
 
-    <div class="card tight">
+    <div class="card tight cream share-range">
+      <div class="share-when">
       <span class="set-l">History range</span>
       <span class="seg" role="group" aria-label="History range">
         <button type="button" aria-pressed={range !== null} onclick={() => (since = range ?? 90)}>recent updates</button>
@@ -106,6 +107,7 @@ async function save(publish: boolean): Promise<void> {
       {#if range !== null}
         <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" style:width="72px" style:margin="0 4px" value={range} oninput={(event) => { const value = event.currentTarget.valueAsNumber; since = Number.isNaN(value) ? range : value; }} /> days</span>
       {/if}
+      </div>
       <p class="meta">The range picks which history files Mash reads. Chats already in {server.node_id}’s index count too, and are shared too.</p>
       <label class="share-mask">
         <button class="sw" type="button" role="switch" aria-checked={masking} aria-label="Hide credentials when publishing" onclick={() => (hide = !masking)}><i></i></button>
@@ -138,6 +140,44 @@ async function save(publish: boolean): Promise<void> {
   .share > :global(* + *) {
     margin-top: 14px;
   }
+  .share {
+    padding: 22px 22px 20px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .share-h {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+  .share-fate.on {
+    color: var(--status-ok-text);
+  }
+  .share-when {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .share-when .set-l {
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .share-range > :global(p) {
+    margin: 12px 0 0;
+  }
+  .share-range .share-mask {
+    padding-top: 12px;
+    border-top: var(--border-divider);
+  }
+  .share :global(.kvs) {
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 9px 14px;
+  }
   .share-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
@@ -166,6 +206,8 @@ async function save(publish: boolean): Promise<void> {
     flex-wrap: wrap;
     gap: 10px;
     justify-content: flex-end;
+    padding-top: 14px;
+    border-top: var(--border-divider);
   }
   @media (max-width: 560px) {
     .share-row {

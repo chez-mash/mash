@@ -99,11 +99,13 @@ for (const width of [1440, 390]) {
     }
     await followRail(page, "Machines");
     if (width < 800) await expect(rail(page)).toBeHidden();
-    await expect(page.getByRole("heading", { name: "Machines", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Machines", exact: true }),
+    ).toBeVisible();
     await main.getByRole("link", { name: /local/ }).click();
     await main
       .getByRole("navigation", { name: "Summary" })
-      .getByRole("link", { name: /^chats/ })
+      .getByRole("link", { name: /^chats/i })
       .click();
     await expect(page).toHaveURL(/#\/search\?machine=local$/);
     await expect(page.getByRole("link", { name: "Remove filter local" })).toBeVisible();
@@ -146,12 +148,12 @@ for (const width of [1440, 390]) {
     await followRail(page, "Memory");
     await page
       .getByRole("navigation", { name: "Memory kind" })
-      .getByRole("link", { name: "preferences", exact: true })
+      .getByRole("link", { name: "Preferences", exact: true })
       .click();
     await expect(
       page
         .getByRole("navigation", { name: "Memory kind" })
-        .getByRole("link", { name: "preferences", exact: true }),
+        .getByRole("link", { name: "Preferences", exact: true }),
     ).toHaveAttribute("aria-current", "page");
     expect(await fitsViewport(page)).toBe(true);
     expect(documents()).toBe(1);

@@ -31,19 +31,19 @@ test("each rail row is one tab stop, and arrows open and close its pages", async
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/#/settings");
-  const chevron = rail(page).getByRole("button", { name: /^(Expand|Collapse) Agents$/ });
+  const chevron = rail(page).getByRole("button", { name: /^(Expand|Collapse) Chats$/ });
   await expect(chevron).toHaveAttribute("tabindex", "-1");
-  const agents = rail(page).getByRole("link", { name: "Agents", exact: true });
-  await agents.focus();
+  const chats = rail(page).getByRole("link", { name: "Chats", exact: true });
+  await chats.focus();
   await page.keyboard.press("Tab");
-  await expect(rail(page).getByRole("link", { name: "Machines", exact: true })).toBeFocused();
-  await agents.focus();
+  await expect(rail(page).getByRole("link", { name: "Memory", exact: true })).toBeFocused();
+  await chats.focus();
   await page.keyboard.press("ArrowRight");
   await expect(chevron).toHaveAttribute("aria-expanded", "true");
-  await expect(rail(page).getByRole("link", { name: "Codex" })).toBeVisible();
+  await expect(rail(page).getByRole("link", { name: "Viewing history" })).toBeVisible();
   await page.keyboard.press("ArrowLeft");
   await expect(chevron).toHaveAttribute("aria-expanded", "false");
-  await expect(agents).toBeFocused();
+  await expect(chats).toBeFocused();
 });
 
 test("the phone drawer holds focus while open and returns it to the menu button", async ({
@@ -106,17 +106,28 @@ test("the search box shows a focus ring", async ({ page }) => {
   await expect(box).toHaveCSS("outline-width", "2px");
 });
 
-test("the rail marks recent chats only when there is no query", async ({ page }) => {
+test("the rail marks recent chats without a query and Search with one", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockShell(page);
   await page.goto("/#/search");
   const recent = rail(page).getByRole("link", { name: "Recent chats" });
   const chats = rail(page).getByRole("link", { name: "Chats", exact: true });
+  const search = rail(page).getByRole("button", { name: "Search every chat" });
   await expect(recent).toHaveAttribute("aria-current", "page");
   await expect(chats).not.toHaveAttribute("aria-current", "page");
+  await expect(search).not.toHaveAttribute("aria-current", "page");
   await page.goto("/#/search?q=deploy");
-  await expect(recent).not.toHaveAttribute("aria-current", "page");
-  await expect(chats).toHaveAttribute("aria-current", "page");
+  await expect(search).toHaveAttribute("aria-current", "page");
+  await expect(chats).not.toHaveAttribute("aria-current", "page");
+});
+
+test("the rail's Search row focuses the search field", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockShell(page);
+  await page.goto("/#/settings");
+  await rail(page).getByRole("button", { name: "Search every chat" }).click();
+  await expect(page.locator("#q")).toBeFocused();
+  await expect(page).toHaveURL(/#\/settings$/);
 });
 
 test("on a short screen the rail's footer stays in view while its rows scroll", async ({

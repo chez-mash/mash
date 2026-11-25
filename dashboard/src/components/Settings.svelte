@@ -1,21 +1,10 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
 import Check from "@lucide/svelte/icons/check";
 import Copy from "@lucide/svelte/icons/copy";
-import Database from "@lucide/svelte/icons/database";
-import Eye from "@lucide/svelte/icons/eye";
-import Lock from "@lucide/svelte/icons/lock";
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
-import Monitor from "@lucide/svelte/icons/monitor";
-import Save from "@lucide/svelte/icons/save";
-import Search from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
-import Undo2 from "@lucide/svelte/icons/undo-2";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { appearance, appearances } from "../lib/appearance.svelte";
-import { asset } from "../lib/asset";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
 import { mashCommand } from "../lib/command";
 import { router } from "../lib/route.svelte";
@@ -34,6 +23,8 @@ import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import AssistantKeyForm from "./AssistantKeyForm.svelte";
 import QueryError from "./QueryError.svelte";
+import SettingsNav from "./SettingsNav.svelte";
+import SettingsSaveBar from "./SettingsSaveBar.svelte";
 import SharedServer from "./SharedServer.svelte";
 import Skeleton from "./Skeleton.svelte";
 import Wrapped from "./Wrapped.svelte";
@@ -87,7 +78,6 @@ $effect(() => {
 const changed = $derived(file && draft ? differences(file, draft, names) : []);
 const touched = $derived(new Set(changed.map((change) => change.key)));
 const blocked = $derived(file && draft ? problem(file, draft) : "");
-let reviewing = $state(false);
 let saving = $state(false);
 let failure = $state("");
 let saved = $state(0);
@@ -95,20 +85,29 @@ let days = $state(90);
 
 function discard(): void {
   if (file) draft = draftOf(file);
-  reviewing = false;
   failure = "";
 }
 // Mashy is set up here by choosing a service and pasting its API key. The
 // key is saved on the machine running the dashboard and never shown again.
 let replacingKey = $state(false);
-// Mashy links here when it is not set up: the assistant section is brought
-// into view once everything above it has loaded, so it does not move after.
-let assistantSection = $state<HTMLElement>();
+// The sections in page order, for the list beside them. A route naming one
+// (Mashy links to "assistant" when it is not set up) brings it into view
+// once everything above it has loaded, so it does not move after.
+const sections = [
+  { id: "agents", label: "Agent histories" },
+  { id: "indexing", label: "Indexing" },
+  { id: "search", label: "Search" },
+  { id: "privacy", label: "Privacy" },
+  { id: "assistant", label: "Models and Mashy" },
+  { id: "sync", label: "Machines and sync" },
+  { id: "storage", label: "Storage" },
+  { id: "appearance", label: "Appearance" },
+] as const;
 $effect(() => {
   const route = router.current;
-  if (route.page !== "settings" || route.section !== "assistant") return;
+  if (route.page !== "settings" || !route.section) return;
   if (status.isPending || settings.isPending) return;
-  assistantSection?.scrollIntoView({ block: "start" });
+  document.getElementById(`set-${route.section}`)?.scrollIntoView({ block: "start" });
 });
 async function save(): Promise<void> {
   if (!file || !draft || saving || blocked || !changed.length) return;
@@ -121,7 +120,6 @@ async function save(): Promise<void> {
     await queryClient.invalidateQueries({ queryKey: statusOptions.queryKey });
     await queryClient.invalidateQueries({ queryKey: assistantOptions.queryKey, exact: true });
     saved = count;
-    reviewing = false;
   } catch (error) {
     failure = error instanceof Error ? error.message : "The settings were not saved.";
   } finally {
@@ -130,8 +128,11 @@ async function save(): Promise<void> {
 }
 </script>
 
-{#snippet row(name: string, value: string)}
-  <dt>{name}</dt><dd><Wrapped {value} /></dd>
+{#snippet title(name: string, description?: string)}
+  <span class="set-t"><span>{name}</span>{#if description}<small>{description}</small>{/if}</span>
+{/snippet}
+{#snippet value(name: string, shown: string, description?: string)}
+  <div class="set-row"><dt class="set-t"><span>{name}</span>{#if description}<small>{description}</small>{/if}</dt><dd class="set-v"><Wrapped value={shown} /></dd></div>
 {/snippet}
 {#snippet copyPath()}
   {#if path}<button class="btn sm" type="button" onclick={copyConfigPath}>{#if copied}<Check size={13} aria-hidden="true" />Copied{:else}<Copy size={13} aria-hidden="true" />Copy path{/if}</button>{/if}
@@ -142,11 +143,14 @@ async function save(): Promise<void> {
 {#snippet changedPill(key: string)}
   {#if touched.has(key)}<span class="pill warn">changed</span>{/if}
 {/snippet}
+{#snippet heading(name: string, note?: string)}
+  <div class="hd set-hd"><h2 class="h2">{name}</h2>{#if note}<span class="meta">{note}</span>{/if}</div>
+{/snippet}
 
-<div class="hd" style:align-items="flex-start">
+<div class="hd set-top">
   <div>
     <h1 class="h1">Settings</h1>
-    <p class="meta set-path" style:margin-top="6px"><span class="mono"><Wrapped value={path || "Mash configuration"} /></span> {@render copyPath()} <a class="a" href="https://getmash.io/dashboard-settings/" target="_blank" rel="noreferrer">Settings guide</a></p>
+    <p class="meta set-path"><span class="mono"><Wrapped value={path || "Mash configuration"} /></span> {@render copyPath()} <a class="a" href="https://getmash.io/dashboard-settings/" target="_blank" rel="noreferrer">Settings guide</a></p>
   </div>
   {#if status.data}
     <span class="pill" class:ok={status.data.ready} class:warn={!status.data.ready}>
@@ -154,29 +158,15 @@ async function save(): Promise<void> {
     </span>
   {/if}
 </div>
+
+<div class="set-layout">
+<SettingsNav {sections} />
+<div class="set-main">
 {#if file && !file.editable}
   <p class="card tight">Shown from this machine's configuration file. This dashboard can be reached from other machines and was not started with a services configuration, so it does not change settings. Open the dashboard on the machine itself, or edit the file named above. <a class="a" href="https://getmash.io/dashboard-settings/#if-settings-are-read-only" target="_blank" rel="noreferrer">Why settings are read-only</a></p>
 {:else if file}
-  <p>These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
+  <p class="meta">These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
 {/if}
-<section class="sec">
-  <div class="hd">
-    <h2 class="h2"><Monitor size={15} aria-hidden="true" />Appearance</h2>
-  </div>
-  <div class="card set-card">
-    <div class="set-r">
-      <span class="set-l">theme</span>
-      <span class="set-c">
-        <span class="seg" role="group" aria-label="Theme" aria-describedby="theme-help">
-          {#each appearances as choice (choice)}
-            <button type="button" aria-pressed={appearance.current === choice} onclick={() => appearance.set(choice)}>{choice === "system" ? "match the system" : choice}</button>
-          {/each}
-        </span>
-        <span id="theme-help" class="meta" style:flex-basis="100%">Kept in this browser only; other browsers and the desktop app keep their own choice.</span>
-      </span>
-    </div>
-  </div>
-</section>
 
 {#if status.isPending || settings.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load settings" query={status} />
@@ -195,9 +185,9 @@ async function save(): Promise<void> {
     <p class="card tight warn">Search by meaning needs local models. Run <code class="i">{mashCommand("models install")}</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
   {/if}
 
-  <section class="sec">
-    <div class="hd">
-      <h2 class="h2"><Bot size={15} aria-hidden="true" />Agent histories</h2>
+  <section class="sec" id="set-agents">
+    <div class="hd set-hd">
+      <h2 class="h2">Agent histories</h2>
       {#if config.loaded && file?.editable}<a class="a" href="#/setup" style:font-size="12.5px">Connect an agent</a>{/if}
     </div>
     {#if file && draft}
@@ -209,7 +199,7 @@ async function save(): Promise<void> {
               <AgentMark agent={entry.agent} />
               <span class="set-n">{agentInfo[entry.agent].name}</span>
               <span class="set-p"><Wrapped value={entry.roots.join(", ")} /></span>
-              <span class="set-t">{@render changedPill(`agent:${entry.agent}`)}{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{:else}<span class="meta">{on ? "indexed" : "not indexed"}</span>{/if}</span>
+              <span class="set-s">{@render changedPill(`agent:${entry.agent}`)}<span class="meta" class:set-on={on}>{on ? "indexed" : "not indexed"}</span>{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{/if}</span>
             </div>
           {/each}
         </div>
@@ -228,186 +218,192 @@ async function save(): Promise<void> {
     {/if}
   </section>
 
-  <div class="g2 set-g">
-    <section class="sec">
-      <h2 class="h2"><Eye size={15} aria-hidden="true" />Indexing</h2>
-      {#if file && draft && file.editable}
-        <div class="card set-card">
-          <div class="set-r" class:changed={touched.has("range")}>
-            <span class="set-l">history range</span>
-            <span class="set-c">
-              <span class="seg" role="group" aria-label="History range" aria-describedby="history-range-help">
-                <button type="button" aria-pressed={draft.sinceDays === null} onclick={() => { saved = 0; if (draft) draft.sinceDays = null; }}>all history</button>
-                <button type="button" aria-pressed={draft.sinceDays !== null} onclick={() => { saved = 0; if (draft && draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>recent updates</button>
-              </span>
-              {#if draft.sinceDays !== null}
-                <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" aria-describedby="history-range-help" style:width="72px" style:margin="0 4px" value={draft.sinceDays} oninput={(event) => { saved = 0; days = event.currentTarget.valueAsNumber; if (draft) draft.sinceDays = Number.isNaN(days) ? 0 : days; }} /> days</span>
-              {/if}
-              {@render changedPill("range")}
-              <span id="history-range-help" class="meta" style:flex-basis="100%">
-                The range applies to future indexing. Chats already indexed stay searchable.
-                <a class="a" href="https://getmash.io/privacy/#remove-a-chat" target="_blank" rel="noreferrer">How to remove an indexed chat</a>
-              </span>
+  <section class="sec" id="set-indexing">
+    {@render heading("Indexing", "Applies to this machine")}
+    {#if file && draft && file.editable}
+      <div class="card set-list">
+        <div class="set-row stack" class:changed={touched.has("range")}>
+          {@render title("History range", "How far back Mash reads.")}
+          <span class="set-c">
+            <span class="seg" role="group" aria-label="History range" aria-describedby="history-range-help">
+              <button type="button" aria-pressed={draft.sinceDays === null} onclick={() => { saved = 0; if (draft) draft.sinceDays = null; }}>all history</button>
+              <button type="button" aria-pressed={draft.sinceDays !== null} onclick={() => { saved = 0; if (draft && draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>recent updates</button>
             </span>
-          </div>
-          <div class="set-r" class:changed={touched.has("destination")}>
-            <span class="set-l">index into</span>
-            <span class="set-c">
-              {#if file.shared}
-                <span class="seg" role="group" aria-label="Index into">
-                  <button type="button" aria-pressed={draft.destination === "both"} onclick={() => { saved = 0; if (draft) draft.destination = "both"; }}>this machine and the shared server</button>
-                  <button type="button" aria-pressed={draft.destination === "local"} onclick={() => { saved = 0; if (draft) draft.destination = "local"; }}>this machine only</button>
-                </span>
-                {@render changedPill("destination")}
-                {#if draft.destination === "local" && file.destination === "both"}<span class="set-h">History already on the shared server stays there.</span>{/if}
-              {:else}
-                <span class="meta">this machine only · no shared server is configured</span>
-              {/if}
+            {#if draft.sinceDays !== null}
+              <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" aria-describedby="history-range-help" style:width="72px" style:margin="0 4px" value={draft.sinceDays} oninput={(event) => { saved = 0; days = event.currentTarget.valueAsNumber; if (draft) draft.sinceDays = Number.isNaN(days) ? 0 : days; }} /> days</span>
+            {/if}
+            {@render changedPill("range")}
+            <span id="history-range-help" class="meta set-help">
+              The range applies to future indexing. Chats already indexed stay searchable.
+              <a class="a" href="https://getmash.io/privacy/#remove-a-chat" target="_blank" rel="noreferrer">How to remove an indexed chat</a>
             </span>
-          </div>
-          <div class="set-r inline" class:changed={touched.has("memory")}>
-            <span class="set-l">memory capture<small>agents save decisions and preferences as you state them</small></span>
-            <span class="set-c">{@render changedPill("memory")}{@render toggle("Memory capture", draft.memoryCapture, () => { if (draft) draft.memoryCapture = !draft.memoryCapture; })}</span>
-          </div>
+          </span>
         </div>
-      {:else}
-        <dl class="card kvs wide">
-          {@render row("history range", config.sinceDays === null ? "all history" : `the last ${config.sinceDays} days`)}
-          {@render row("index into", config.destination === "both" ? destinations.both : destinations.local)}
-          {@render row("memory capture", config.recordsEnabled ? "on" : "off")}
-        </dl>
-      {/if}
-    </section>
-
-    <section class="sec">
-      <h2 class="h2"><Lock size={15} aria-hidden="true" />Privacy</h2>
-      <div class="card set-card">
-        {#if file && draft && file.editable}
-          <div class="set-r inline" class:changed={touched.has("results")}>
-            <span class="set-l">hide credentials in results</span>
-            <span class="set-c">{@render changedPill("results")}{@render toggle("Hide credentials in results", draft.hideInResults, () => { if (draft) draft.hideInResults = !draft.hideInResults; })}</span>
-          </div>
-          <div class="set-r inline" class:changed={touched.has("publishing")}>
-            <span class="set-l">hide credentials when publishing</span>
-            <span class="set-c">
-              {@render changedPill("publishing")}
-              {@render toggle("Hide credentials when publishing", draft.hideWhenPublishing, () => { if (draft) draft.hideWhenPublishing = !draft.hideWhenPublishing; })}
-              {#if draft.hideWhenPublishing !== file.hideWhenPublishing}
-                <span class="set-h">
-                  The next publication replaces this machine's shared copy of its history.
-                  {#if !draft.hideWhenPublishing}That copy can include credentials found in chats.{/if}
-                </span>
-              {/if}
-            </span>
-          </div>
-        {:else}
-          <dl class="kvs flip">
-            {@render row("hide credentials in results", config.redactOutput ? "on" : "off")}
-            {@render row("hide credentials when publishing", config.redactPublication ? "on" : "off")}
-          </dl>
-        {/if}
-        <p class="meta">Credentials are never shown here. The configuration names the environment variables that hold them.</p>
+        <div class="set-row stack" class:changed={touched.has("destination")}>
+          {@render title("Index into", "Where this machine writes its index.")}
+          <span class="set-c">
+            {#if file.shared}
+              <span class="seg" role="group" aria-label="Index into">
+                <button type="button" aria-pressed={draft.destination === "both"} onclick={() => { saved = 0; if (draft) draft.destination = "both"; }}>this machine and the shared server</button>
+                <button type="button" aria-pressed={draft.destination === "local"} onclick={() => { saved = 0; if (draft) draft.destination = "local"; }}>this machine only</button>
+              </span>
+              {@render changedPill("destination")}
+              {#if draft.destination === "local" && file.destination === "both"}<span class="set-h">History already on the shared server stays there.</span>{/if}
+            {:else}
+              <span class="meta">this machine only · no shared server is configured</span>
+            {/if}
+          </span>
+        </div>
+        <div class="set-row" class:changed={touched.has("memory")}>
+          {@render title("Memory capture", "Agents save decisions and preferences as you state them.")}
+          <span class="set-c">{@render changedPill("memory")}{@render toggle("Memory capture", draft.memoryCapture, () => { if (draft) draft.memoryCapture = !draft.memoryCapture; })}</span>
+        </div>
       </div>
-    </section>
-  </div>
+    {:else}
+      <dl class="card set-list">
+        {@render value("History range", config.sinceDays === null ? "all history" : `the last ${config.sinceDays} days`, "How far back Mash reads.")}
+        {@render value("Index into", config.destination === "both" ? destinations.both : destinations.local, "Where this machine writes its index.")}
+        {@render value("Memory capture", config.recordsEnabled ? "on" : "off", "Agents save decisions and preferences as you state them.")}
+      </dl>
+    {/if}
+  </section>
 
-  <section class="sec" id="assistant" bind:this={assistantSection}>
-    <div class="hd">
-      <h2 class="h2"><MessagesSquare size={15} aria-hidden="true" />Assistant</h2>
+  <section class="sec" id="set-search">
+    {@render heading("Search", "Set in the configuration file")}
+    <dl class="card set-list">
+      {@render value("Search mode", status.data.mode, "What a search runs: words, meaning, or both.")}
+      {@render value("Embeddings", config.embeddings, "Where search by meaning computes its vectors.")}
+      {@render value("Vector search", config.vectorSearch.toUpperCase())}
+      {@render value("Ranking", config.ranking, "How word and meaning results are combined.")}
+    </dl>
+  </section>
+
+  <section class="sec" id="set-privacy">
+    {@render heading("Privacy")}
+    {#if file && draft && file.editable}
+      <div class="card set-list">
+        <div class="set-row" class:changed={touched.has("results")}>
+          {@render title("Hide credentials in results", "Mask API keys and tokens that agents printed in chats.")}
+          <span class="set-c">{@render changedPill("results")}{@render toggle("Hide credentials in results", draft.hideInResults, () => { if (draft) draft.hideInResults = !draft.hideInResults; })}</span>
+        </div>
+        <div class="set-row" class:changed={touched.has("publishing")}>
+          {@render title("Hide credentials when publishing", "Mask them in the copy this machine sends to a shared server.")}
+          <span class="set-c">
+            {@render changedPill("publishing")}
+            {@render toggle("Hide credentials when publishing", draft.hideWhenPublishing, () => { if (draft) draft.hideWhenPublishing = !draft.hideWhenPublishing; })}
+          </span>
+          {#if draft.hideWhenPublishing !== file.hideWhenPublishing}
+            <span class="set-h">
+              The next publication replaces this machine's shared copy of its history.
+              {#if !draft.hideWhenPublishing}That copy can include credentials found in chats.{/if}
+            </span>
+          {/if}
+        </div>
+        <p class="meta set-foot">Credentials are never shown here. The configuration names the environment variables that hold them.</p>
+      </div>
+    {:else}
+      <dl class="card set-list">
+        {@render value("Hide credentials in results", config.redactOutput ? "on" : "off")}
+        {@render value("Hide credentials when publishing", config.redactPublication ? "on" : "off")}
+        <p class="meta set-foot">Credentials are never shown here. The configuration names the environment variables that hold them.</p>
+      </dl>
+    {/if}
+  </section>
+
+  <section class="sec" id="set-assistant">
+    <div class="hd set-hd">
+      <h2 class="h2">Models and Mashy</h2>
       <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer" style:font-size="12.5px">Set up Mashy</a>
     </div>
-    <div class="card mashy-card set-card">
+    <div class="card set-list">
+      <dl class="set-dl">{@render value("Search by meaning", modelLabels[status.data.queryModels], "Local models that rank results by what you meant.")}</dl>
       {#if file?.assistant && draft?.assistant && file.editable}
-        <div class="set-r inline" class:changed={touched.has("mashy")}>
-          <span class="set-l mashy-l"><img src={asset("mashy.png")} alt="" /><span>Mashy<small>answers questions from your history, and sends the model the chat text it reads</small></span></span>
+        <div class="set-row" class:changed={touched.has("mashy")}>
+          {@render title("Mashy", "Answers questions from your history, and sends the model the chat text it reads.")}
           <span class="set-c">{@render changedPill("mashy")}{@render toggle("Mashy", draft.assistant.enabled, () => { if (draft?.assistant) draft.assistant.enabled = !draft.assistant.enabled; })}</span>
         </div>
-        <div class="set-r" class:changed={touched.has("model")}>
-          <span class="set-l">model<small>{models.data?.length ? `${models.data.length.toLocaleString()} offered by the configured service` : models.error ? "the service did not list its models; type a name" : "as the configured service names it"}</small></span>
+        <div class="set-row" class:changed={touched.has("model")}>
+          {@render title("Mashy's model", models.data?.length ? `${models.data.length.toLocaleString()} offered by the configured service.` : models.error ? "The service did not list its models; type a name." : "As the configured service names it.")}
           <span class="set-c">
-            <input class="field" list="assistant-models" aria-label="Mashy's model" autocomplete="off" autocapitalize="off" spellcheck="false" style:width="min(100%, 340px)" value={draft.assistant.model} oninput={(event) => { saved = 0; if (draft?.assistant) draft.assistant.model = event.currentTarget.value; }} />
             {@render changedPill("model")}
+            <input class="field" list="assistant-models" aria-label="Mashy's model" autocomplete="off" autocapitalize="off" spellcheck="false" style:width="min(100%, 280px)" value={draft.assistant.model} oninput={(event) => { saved = 0; if (draft?.assistant) draft.assistant.model = event.currentTarget.value; }} />
             <datalist id="assistant-models">{#each models.data ?? [] as model (model)}<option value={model}></option>{/each}</datalist>
           </span>
         </div>
-        {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
-          <p class="meta warn">Mashy has no API key on this computer yet.</p>
-          {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" />{/if}
-        {:else if replacingKey}
-          {#if file}<AssistantKeyForm settings={file} withService={false} id="settings-mashy" oncancel={() => (replacingKey = false)} onsaved={() => (replacingKey = false)} />{/if}
-        {:else}
-          <p class="meta">Mashy uses your model service and API key on the computer running the dashboard. <button class="a" type="button" onclick={() => (replacingKey = true)}>Replace the API key</button></p>
-        {/if}
-      {:else}
-        <div class="mashy-l"><img src={asset("mashy.png")} alt="" /><dl class="kvs flip">
-          {@render row("Mashy", assistant.data?.enabled ? "on" : "off")}
-          {#if file?.assistant}{@render row("model", file.assistant.model)}{:else if assistant.data?.model}{@render row("model", assistant.data.model)}{/if}
-        </dl></div>
-        {#if !file?.assistant && !assistant.data?.enabled}
-          {#if file?.editable}
-            <p class="meta">Mashy answers questions about your history. Choose a model service and paste its API key to turn it on.</p>
-            {#if file}<AssistantKeyForm settings={file} withService={true} id="settings-mashy" />{/if}
+        <div class="set-foot">
+          {#if file.assistant.enabled && assistant.data && !assistant.data.enabled}
+            <p class="meta warn">Mashy has no API key on this computer yet.</p>
+            <AssistantKeyForm settings={file} withService={false} id="settings-mashy" />
+          {:else if replacingKey}
+            <AssistantKeyForm settings={file} withService={false} id="settings-mashy" oncancel={() => (replacingKey = false)} onsaved={() => (replacingKey = false)} />
           {:else}
-            <p class="meta">Mashy is optional. To use it, set it up from the dashboard on the computer that runs it.</p>
+            <p class="meta">Mashy uses your model service and API key on the computer running the dashboard. <button class="a" type="button" onclick={() => (replacingKey = true)}>Replace the API key</button></p>
           {/if}
+        </div>
+      {:else}
+        <dl class="set-dl set-mashy">
+          {@render value("Mashy", assistant.data?.enabled ? "on" : "off", "Answers questions about your history.")}
+          {#if file?.assistant}{@render value("Mashy's model", file.assistant.model, "Used only when you ask Mashy something.")}{:else if assistant.data?.model}{@render value("Mashy's model", assistant.data.model, "Used only when you ask Mashy something.")}{/if}
+        </dl>
+        {#if !file?.assistant && !assistant.data?.enabled}
+          <div class="set-foot">
+            {#if file?.editable}
+              <p class="meta">Mashy answers questions about your history. Choose a model service and paste its API key to turn it on.</p>
+              <AssistantKeyForm settings={file} withService={true} id="settings-mashy" />
+            {:else}
+              <p class="meta">Mashy is optional. To use it, set it up from the dashboard on the computer that runs it.</p>
+            {/if}
+          </div>
         {/if}
       {/if}
     </div>
   </section>
 
-  <div class="g3 set-g">
-    <section class="sec">
-      <h2 class="h2"><Search size={15} aria-hidden="true" />Search</h2>
-      <dl class="card kvs">
-        {@render row("search mode", status.data.mode)}
-        {@render row("embeddings", config.embeddings)}
-        {@render row("query models", modelLabels[status.data.queryModels])}
-        {@render row("vector search", config.vectorSearch.toUpperCase())}
-        {@render row("ranking", config.ranking)}
-      </dl>
-    </section>
-    <section class="sec">
-      <h2 class="h2"><Database size={15} aria-hidden="true" />Storage</h2>
-      <dl class="card kvs">
-        {@render row("database", status.data.databasePath ?? "not created yet")}
-        {@render row("chats", status.data.chats.toLocaleString())}
-        {@render row("messages stored", status.data.messages.toLocaleString())}
-        {@render row("messages eligible for search", status.data.searchableMessages.toLocaleString())}
-        {@render row("search store", config.searchStore)}
-      </dl>
-    </section>
-    <section class="sec">
-      <h2 class="h2"><Server size={15} aria-hidden="true" />Shared index</h2>
-      <SharedServer joinable />
-    </section>
-  </div>
-  <p class="meta">To change the search engine or storage settings, edit the configuration file. <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>
+  <section class="sec" id="set-sync">
+    {@render heading("Machines and sync")}
+    <dl class="card set-list">
+      {#if config.shared}
+        {@render value("This machine", config.shared.node, "Shown as the machine name in shared results.")}
+        {@render value("Shared server", config.shared.url, `Publishes to the ${config.shared.group} group.`)}
+      {:else}
+        {@render value("Shared server", "not connected", "History stays on each machine.")}
+      {/if}
+      {@render value("Watching for new chats", status.data.watching ? "running" : "not running", "Indexes chats as your agents write them.")}
+    </dl>
+    <SharedServer joinable />
+  </section>
+
+  <section class="sec" id="set-storage">
+    {@render heading("Storage")}
+    <dl class="card set-list">
+      {@render value("Database", status.data.databasePath ?? "not created yet")}
+      {@render value("Chats", status.data.chats.toLocaleString())}
+      {@render value("Messages stored", status.data.messages.toLocaleString())}
+      {@render value("Messages eligible for search", status.data.searchableMessages.toLocaleString(), "Dialogue only; tool calls stay out of search.")}
+      {@render value("Search store", config.searchStore)}
+    </dl>
+    <p class="meta">To change the search engine or storage settings, edit the configuration file. <a class="a" href="https://getmash.io/configuration/" target="_blank" rel="noreferrer">Configuration guide</a></p>
+  </section>
 {/if}
 
-{#if file?.editable && (changed.length || saved || failure)}
-  <div class="set-bar card butter" role="region" aria-label="Unsaved settings">
-    {#if changed.length}
-      <div class="set-bt">
-        <strong>{changed.length} unsaved change{changed.length === 1 ? "" : "s"}</strong>
-        <button class="btn" type="button" disabled={saving} onclick={discard}><Undo2 size={14} aria-hidden="true" />Discard</button>
-        <button class="btn" type="button" aria-expanded={reviewing} onclick={() => (reviewing = !reviewing)}><Eye size={14} aria-hidden="true" />{reviewing ? "Hide changes" : "Review changes"}</button>
-        <button class="btn p" type="button" disabled={saving || !!blocked} onclick={save}><Save size={15} aria-hidden="true" />{saving ? "Saving…" : "Save to file"}</button>
-      </div>
-      {#if blocked}<p class="meta warn" role="alert">{blocked}</p>{/if}
-      {#if reviewing}
-        <ul class="set-d">
-          {#each changed as change (change.key)}<li><span>{change.label}</span><span class="was">{change.from}</span><span aria-hidden="true">→</span><span class="now">{change.to}</span></li>{/each}
-        </ul>
-        <p class="meta">The file is rewritten; the previous one is kept beside it as <code class="i">config.toml.previous</code>. Settings the page does not show are kept.</p>
-      {/if}
-    {/if}
-    {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
-    {#if saved && !changed.length}
-      <p class="ok" role="status">
-        Saved {saved} change{saved === 1 ? "" : "s"} to the file. New requests use the saved
-        settings. To update the index now, run <code class="i">{mashCommand("index")}</code> on this machine,
-        or wait for the next pass if a watcher is running.
-      </p>
-    {/if}
+<section class="sec" id="set-appearance">
+  {@render heading("Appearance", "This browser only")}
+  <div class="card set-list">
+    <div class="set-row">
+      {@render title("Theme", "Kept in this browser only; other browsers and the desktop app keep their own choice.")}
+      <span class="set-c">
+        <span class="seg" role="group" aria-label="Theme">
+          {#each appearances as choice (choice)}
+            <button type="button" aria-pressed={appearance.current === choice} onclick={() => appearance.set(choice)}>{choice === "system" ? "match the system" : choice}</button>
+          {/each}
+        </span>
+      </span>
+    </div>
   </div>
+</section>
+
+{#if file?.editable && (changed.length || saved || failure)}
+  <SettingsSaveBar {changed} {blocked} {saving} {failure} {saved} {discard} {save} />
 {/if}
+</div>
+</div>

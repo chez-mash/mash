@@ -9,13 +9,21 @@ let {
   checking,
   disabled,
   check,
+  compact = false,
 }: {
   /** A check is in progress; the button says so and waits. */
   checking: boolean;
   /** Unavailable for another reason, for instance before the first answer. */
   disabled?: boolean;
   check: () => unknown;
+  /** Only the icon, named for assistive technology and in a tooltip. */
+  compact?: boolean;
 } = $props();
+const words = $derived(checking ? "Checking…" : "Check for updates");
 </script>
 
-<button class="btn ghost sm" type="button" disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check for updates"}</button>
+{#if compact}
+  <button class="btn ghost sm icon" type="button" aria-label={words} title={words} disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" /></button>
+{:else}
+  <button class="btn ghost sm" type="button" disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" />{words}</button>
+{/if}

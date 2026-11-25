@@ -87,7 +87,7 @@ test("memory has no rows of its own in the rail; its kinds are the page's tabs",
   await expect(
     page
       .getByRole("navigation", { name: "Memory kind" })
-      .getByRole("link", { name: "decisions", exact: true }),
+      .getByRole("link", { name: "Decisions", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   // Chats keep their rows: they are pages of their own, not filters.
   await rail.getByRole("button", { name: "Expand Chats" }).click();
@@ -102,7 +102,7 @@ test("the overview links to every chat in words, with the count in its title lin
   const all = page.getByRole("main").getByRole("link", { name: "All chats", exact: true });
   await expect(all).toHaveAttribute("href", "#/search");
   await expect(page.getByRole("main").getByText(/^\d+–\d+ of \d+$/)).toHaveCount(0);
-  await expect(page.getByText("2 chats from 2 machines")).toBeVisible();
+  await expect(page.getByText(/^2 chats from \d+ agents? on 2 machines\./)).toBeVisible();
 });
 
 test("on a phone the search filters fold behind one Filters button that counts them", async ({
@@ -148,22 +148,27 @@ test("filter chips name what they leave open the same way on every page", async 
   expect(await radius(find)).toBe(await radius(chip));
 });
 
-test("the overview has a title and its chat rows carry the agent, machine and project icons", async ({
+test("the overview greets the reader and its chat rows name the agent, machine and project", async ({
   page,
 }) => {
   await mockDashboard(page);
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Overview", exact: true }),
+    page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening)$/ }),
   ).toBeVisible();
-  const row = page.getByRole("main").getByRole("link", { name: /Tune the export queue/ });
-  await expect(row.locator(".mt svg")).toHaveCount(3);
+  const row = page
+    .getByRole("main")
+    .getByRole("region", { name: "Recent chats" })
+    .getByRole("link", { name: /Tune the export queue/ });
+  // The agent's mark leads the row; where the chat ran is a line under its title.
+  await expect(row.locator(".mark svg")).toHaveCount(1);
+  await expect(row.locator(".oc-m")).toHaveText(/ · .+ · /);
 });
 
 test("memory follows the viewing switcher, which names this machine once", async ({ page }) => {
   const requests = await mockDashboard(page);
   await page.goto("/#/records?");
-  const switcher = page.locator("#rail .vw-b");
+  const switcher = page.locator("#top .vw-b");
   await switcher.click();
   const menu = page.getByRole("group", { name: "Show chats and memory from" });
   await expect(menu.getByRole("menuitemradio")).toHaveText([

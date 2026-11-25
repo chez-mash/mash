@@ -87,7 +87,10 @@ for (const width of [390, 1280]) {
     await expect(locked.getByRole("button", { name: "Run" })).toHaveCount(0);
     await expect(locked.getByRole("textbox")).toHaveCount(0);
 
-    await page.getByRole("button", { name: /search/ }).click();
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: /search/ })
+      .click();
     const search = page.locator("#tool-search");
     const run = search.getByRole("button", { name: "Run", exact: true });
     // A required parameter left empty names itself and holds Run back.
@@ -119,8 +122,10 @@ for (const width of [390, 1280]) {
     await expect(response.getByText('"<b>chat 5</b>"')).toBeVisible();
 
     await page.getByRole("searchbox", { name: "Filter tools" }).fill("forg");
+    // The chosen tool goes with its row; the matching one stays to choose.
     await expect(page.locator("#tool-search")).toHaveCount(0);
-    await expect(page.locator("#tool-forget")).toBeVisible();
+    await expect(page.getByRole("main").getByRole("button", { name: /search/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /forget/ })).toBeVisible();
     expect(await fitsViewport(page)).toBe(true);
   });
 }
@@ -158,7 +163,7 @@ test("tools start folded, fold long option lists and style every field alike", a
     return route.fulfill({ json: { local_node: "xenia", chats: [], truncated: false } });
   });
   await page.goto("/#/console");
-  const button = page.getByRole("button", { name: /search/ });
+  const button = page.getByRole("main").getByRole("button", { name: /search/ });
   await expect(button).toHaveAttribute("aria-expanded", "false");
   await button.click();
   const search = page.locator("#tool-search");
@@ -189,7 +194,7 @@ test("tools start folded, fold long option lists and style every field alike", a
   await expect(choice).not.toHaveClass(/unset/);
 });
 
-test("tool groups use the dashboard's section headings and locked tools keep room to read", async ({
+test("tools are listed by group beside the chosen one, each saying whether it only reads", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -199,21 +204,19 @@ test("tool groups use the dashboard's section headings and locked tools keep roo
     return route.fulfill({ json: { local_node: "xenia", chats: [], truncated: false } });
   });
   await page.goto("/#/console");
-  const heading = page.getByRole("heading", { level: 2, name: "changes data · locked" });
+  const heading = page.getByRole("heading", { level: 2, name: "Changes data · locked" });
   await expect(heading).toBeVisible();
   expect(await heading.evaluate((node) => getComputedStyle(node).textTransform)).toBe("none");
-  expect(await heading.evaluate((node) => node.classList.contains("h2"))).toBe(true);
-  // Locked tools sit two to a row, like the read-only ones, not three.
-  const grid = page.locator(".opl").last();
-  const columns = await grid.evaluate(
-    (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length,
-  );
-  expect(columns).toBe(2);
+  // On a wide screen the chosen tool opens in a panel beside the list.
+  await page.getByRole("button", { name: /forget/ }).click();
+  const list = await page.locator(".tx-list").boundingBox();
+  const chosen = await page.locator("#tool-forget").boundingBox();
+  expect(chosen?.x ?? 0).toBeGreaterThan((list?.x ?? 0) + (list?.width ?? 0));
   // Each tool says whether it only reads, in words and in colour.
-  const reader = page.locator(".pill", { hasText: "READ" }).first();
-  const writer = page.locator(".pill", { hasText: "WRITE" }).first();
+  const reader = page.locator(".tx-list .op-k", { hasText: "READ" }).first();
+  const writer = page.locator(".tx-list .op-k", { hasText: "WRITE" }).first();
   await expect(reader).toHaveClass(/\bok\b/);
-  await expect(writer).toHaveClass(/\bwarn\b/);
+  await expect(writer).not.toHaveClass(/\bok\b/);
   if (process.env.MASH_SCREENSHOTS)
     await page.screenshot({
       path: `${process.env.MASH_SCREENSHOTS}/console-1440.png`,

@@ -220,7 +220,9 @@ for (const width of [1440, 390]) {
       await shoot(page, "child");
       await page.goto("/#/chat/codex-child");
       await expect(page.getByRole("heading", { name: "Popper", level: 1 })).toBeVisible();
-      await expect(page.getByText("Subagent of a chat not on this machine")).toBeVisible();
+      await expect(
+        page.getByText("Subagent of a chat not on this machine", { exact: true }),
+      ).toBeVisible();
     });
 
     test("search leaves subagent chats out unless asked, then labels them", async ({ page }) => {
@@ -228,16 +230,16 @@ for (const width of [1440, 390]) {
       await page.goto("/#/search?q=windows+tests");
       const results = page.locator(".results");
       await expect(
-        results.locator("a.card").filter({ hasText: parent.title }).first(),
+        results.locator(".chatrow").filter({ hasText: parent.title }).first(),
       ).toBeVisible();
       await expect(
-        results.locator("a.card").filter({ hasText: windows.subagent.label }),
+        results.locator(".chatrow").filter({ hasText: windows.subagent.label }),
       ).toHaveCount(0);
       await expect(page.locator(".chip", { hasText: "subagents: hidden" })).toBeAttached();
       await shoot(page, "search");
       // Asked to, a search includes them, each labelled with its parent.
       await page.goto("/#/search?q=windows+tests&subagent_hits=included");
-      const hit = results.locator("a.card").filter({ hasText: windows.subagent.label });
+      const hit = results.locator(".chatrow").filter({ hasText: windows.subagent.label });
       await expect(hit).toContainText(`subagent of ${parent.title}`);
       await expect(page.locator(".chip", { hasText: "subagents: included" })).toBeAttached();
       await shoot(page, "search-included");
@@ -276,7 +278,7 @@ test("a search that matched only subagent chats says so and offers to include th
   await page.getByRole("link", { name: "Include subagent chats" }).click();
   await expect(page).toHaveURL(/subagent_hits=included/);
   await expect(
-    page.locator(".results a.card").filter({ hasText: windows.subagent.label }),
+    page.locator(".results .chatrow").filter({ hasText: windows.subagent.label }),
   ).toContainText(`subagent of ${parent.title}`);
 });
 

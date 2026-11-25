@@ -1,5 +1,5 @@
 import { expect, type Page, type Route, test } from "@playwright/test";
-import { fitsViewport, searchBox } from "./shell";
+import { fitsViewport, openSearch } from "./shell";
 
 // Federated search: one list from every source in the viewing scope, which
 // settles and then freezes (see src/lib/federated.ts). These fixtures answer
@@ -123,7 +123,7 @@ for (const width of [1440, 390]) {
         ),
       ]);
       await page.goto("/#/search?q=invoice+exports");
-      const results = page.locator(".results a.card");
+      const results = page.locator(".results .chatrow");
       await expect(results).toHaveCount(2);
       // No headings by source; a chat found only by meaning says so.
       await expect(results.nth(1)).toContainText("by meaning");
@@ -159,7 +159,7 @@ for (const width of [1440, 390]) {
             ],
       );
       await page.goto("/#/search?q=invoice+exports");
-      const results = page.locator(".results a.card");
+      const results = page.locator(".results .chatrow");
       await expect(results).toHaveCount(2);
       await expect(page.getByText("build-box didn't answer")).toBeVisible();
       await page.getByRole("button", { name: "Retry" }).click();
@@ -204,7 +204,7 @@ for (const width of [1440, 390]) {
             ],
       );
       await page.goto("/#/");
-      await searchBox(page).fill("invoice exports");
+      await (await openSearch(page)).fill("invoice exports");
       const said = page.locator(".drop a.said");
       await expect(said).toHaveCount(2);
       // The reader moves to the list before search by meaning answers.

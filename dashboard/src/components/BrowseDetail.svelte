@@ -12,6 +12,7 @@ import { groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { createProjectChoices } from "../lib/projectChoices.svelte";
 import { catalogOptions } from "../lib/queries";
+import { decisionOptions, decisionsByChat } from "../lib/records";
 import { agentHref, chatHref, machineHref, projectHref, searchHref } from "../lib/route.svelte";
 import { scope } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
@@ -67,10 +68,13 @@ const latest = $derived(
 // A project exists only through its chats, so one with none is a link to
 // nothing. An agent or machine can be real with no chats yet.
 const unknown = $derived(field === "project" && catalogue.data !== undefined && !group);
+// Chats that produced decisions say how many, as search results do.
+const decisions = createQuery(() => decisionOptions);
+const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
 const now = Date.now();
 </script>
 
-{#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label}</a>{/if}
+{#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label.replace(/^./, (letter) => letter.toUpperCase())}</a>{/if}
 {#if unknown}
   <EmptyState card title="Project not found" heading="h1">
     No indexed chat belongs to <code style:overflow-wrap="anywhere">{value}</code>.
@@ -79,48 +83,48 @@ const now = Date.now();
 {:else}
 <div class="dh">
   {@render icon()}
-  <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}{foldedNote(folded)}</p>{#if scoped}<ScopeNote {scoped} />{/if}</div>
+  <div><h1 class="h1">{title}</h1><p class="meta">{chats.length.toLocaleString()} chat{chats.length === 1 ? "" : "s"}{foldedNote(folded)}{#if field === "project"}{" · "}<code class="bd-p">{value}</code>{/if}</p>{#if scoped}<ScopeNote {scoped} />{/if}</div>
 </div>
 {/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
 {#if catalogue.data && !group && !unknown}<div class="state-c"><p>No indexed chats here.</p></div>{/if}
 {#if group}
-  <nav class="stats" aria-label="Summary">
-    <a href={searchHref({ [field]: value })}><span class="eyebrow"><MessagesSquare size={12} aria-hidden="true" />chats</span><b>{chats.length.toLocaleString()}</b></a>
-    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="eyebrow"><Bot size={12} aria-hidden="true" />agents</span><b>{group.agents.length}</b></a>{/if}
-    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="eyebrow"><Folder size={12} aria-hidden="true" />projects</span><b>{named.length}</b></a>{/if}
-    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="eyebrow"><Laptop size={12} aria-hidden="true" />machines</span><b>{group.machines.length}</b></a>{/if}
-    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="eyebrow"><Clock size={12} aria-hidden="true" />last active</span><b>{whenLabel(group.latestMs, now)}</b></a>{/if}
+  <nav class="bd-stats" aria-label="Summary">
+    <a href={searchHref({ [field]: value })}><span class="bd-e"><MessagesSquare size={12} aria-hidden="true" />Chats</span><b>{chats.length.toLocaleString()}</b></a>
+    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="bd-e"><Bot size={12} aria-hidden="true" />Agents</span><b>{group.agents.length}</b></a>{/if}
+    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="bd-e"><Folder size={12} aria-hidden="true" />Projects</span><b>{named.length}</b></a>{/if}
+    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="bd-e"><Laptop size={12} aria-hidden="true" />Machines</span><b>{group.machines.length}</b></a>{/if}
+    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="bd-e"><Clock size={12} aria-hidden="true" />Last active</span><b>{whenLabel(group.latestMs, now)}</b></a>{/if}
   </nav>
   <div class="cols c32">
     <div class="c-main stack">
       {#if extra}{@render extra()}{/if}
       <section class="sec">
-        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">all {chats.length.toLocaleString()}</a></div>
-        <div class="card pad0 list">
-          {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} />{/each}
+        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">All {chats.length.toLocaleString()}</a></div>
+        <div class="card pad0 list bd-card">
+          {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} decisions={decided.get(chat.id) ?? 0} />{/each}
         </div>
       </section>
     </div>
     <div class="c-side">
       {#if field !== "agent"}
         <section class="sec"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agents</h2>
-          <div class="card tight tally">
+          <div class="card tight tally bd-card">
             {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b class="g">{agentInfo[agent].name}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "machine"}
         <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2>
-          <div class="card tight tally">
+          <div class="card tight tally bd-card">
             {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><Laptop size={15} aria-hidden="true" /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "project" && listed.length}
         <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />Projects</h2>
-          <div class="card tight tally">
+          <div class="card tight tally bd-card">
             {#each listed.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
@@ -128,3 +132,53 @@ const now = Date.now();
     </div>
   </div>
 {/if}
+
+<style>
+  /* The numbers as a row of tiles: a small label with its icon over the value. */
+  .bd-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+    gap: 11px;
+  }
+  .bd-stats > a {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding: 14px 16px;
+    border: var(--border-outline);
+    border-radius: var(--radius-7);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-panel);
+    color: var(--text-body);
+  }
+  .bd-stats > a:hover {
+    background: var(--surface-hover);
+    color: var(--text-body);
+  }
+  .bd-e {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .bd-stats b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--text-strong);
+  }
+  .bd-p {
+    font: 12px var(--type-mono);
+    overflow-wrap: anywhere;
+  }
+  .bd-card {
+    border-color: var(--line-outline);
+    box-shadow: var(--shadow-panel);
+  }
+</style>

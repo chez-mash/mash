@@ -70,27 +70,46 @@ summary {
 summary::-webkit-details-marker {
   display: none;
 }
+/* --top-h is the top bar's height, kept on the document by lib/topBar.ts
+   while a page that needs it is open; the fallbacks are the bar's usual
+   height. The rail and anything sticky sit below it. */
 #app {
   display: flex;
   min-height: 100dvh;
 }
+/* The dashboard's shell: the top bar across the screen, then the rail and
+   the page side by side under it. */
+#app:has(> #frame) {
+  flex-direction: column;
+}
+#frame {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
 /* The rail's colour runs the full height of the page; what is on it stays
-   in view while the page scrolls. */
+   in view, under the top bar, while the page scrolls. */
 #rail {
   flex: none;
   position: relative;
-  width: var(--rail-width, 252px);
+  width: var(--rail-width, 220px);
   background: var(--surface-rail);
   border-right: var(--border-outline);
 }
 .rail-in {
   position: sticky;
-  top: 0;
-  height: calc(100vh - var(--rail-pushed, 0px));
+  top: var(--top-h, 52px);
+  height: calc(100vh - max(var(--top-h, 52px), var(--rail-pushed, 0px)));
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 18px 12px 14px;
+  padding: 12px 10px 8px;
+}
+/* The sheet's own header and viewing switcher show only on a phone, where
+   the rail drops from the top as a sheet over the page. */
+.sheet-top,
+.sheet-viewing {
+  display: none;
 }
 /* A keyboard's first stop: hidden above the screen until it has focus. */
 .skip {
@@ -150,7 +169,7 @@ summary::-webkit-details-marker {
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   flex: 1;
 }
 /* The current page is a raised row: the surface colour with a hairline ring
@@ -172,8 +191,8 @@ summary::-webkit-details-marker {
   flex: none;
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--tile-icon);
 }
 .nav-link {
@@ -183,9 +202,37 @@ summary::-webkit-details-marker {
   align-items: center;
   gap: 10px;
   min-height: 32px;
-  padding: 2px 10px;
+  padding: 0 10px;
+  border-radius: var(--radius-5);
   font-size: 13px;
   color: var(--text-body);
+  text-align: left;
+}
+.nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A section's count, quiet and in figures that line up. */
+.nav-count {
+  flex: none;
+  font: 400 12px / 1 var(--type-mono);
+  color: var(--text-faint);
+}
+/* A group's name over its rows: Manage, and the projects heading, which
+   leads to every project. */
+.nav-group {
+  margin: 0;
+  padding: 16px 10px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+a.nav-group:hover,
+a.nav-group[aria-current="page"] {
+  color: var(--text-strong);
 }
 .nav-row.on .nav-link {
   color: var(--selected-text);
@@ -240,10 +287,37 @@ summary::-webkit-details-marker {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The rail's foot: this machine and whether its index is watched, with
+   the update check beside it. */
 .status {
-  margin: 14px 8px 0;
-  font-size: 12.5px;
-  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.status-t {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-t > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-round);
+  background: var(--text-faint);
+}
+.status-dot.on {
+  background: var(--status-ok-dot);
 }
 .prog {
   display: flex;
@@ -278,58 +352,74 @@ summary::-webkit-details-marker {
 #mbar {
   display: none;
 }
+/* The top bar: the mark at the left, the search field centred, the viewing
+   switcher at the right. */
 #top {
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px) minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  padding: 14px max(32px, env(safe-area-inset-right, 0px)) 14px
-    max(32px, env(safe-area-inset-left, 0px));
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px
+    max(16px, env(safe-area-inset-left, 0px));
   background: var(--surface-top);
   border-bottom: var(--border-outline);
 }
-/* On a narrow screen the navigation is a drawer. Its button shows the usual
-   three-line menu icon, beside the mark, so it reads as a menu and not only
-   as the logo. */
-#burger {
+#top .brand {
+  justify-self: start;
+  padding: 0;
+  font-size: 14px;
+  letter-spacing: -0.015em;
+}
+.top-end {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+/* A phone has room for the mark and two buttons: one shows the search
+   field, the other opens the navigation sheet. */
+.top-btn {
   display: none;
   flex: none;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  border: var(--border-outline);
+  border-radius: var(--radius-box);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pick);
+  color: var(--text-strong);
+}
+.top-btn:hover,
+.top-btn[aria-expanded="true"] {
+  background: var(--selected-surface);
 }
 #burger .menu-ico {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border: var(--border-strong);
-  border-radius: var(--radius-field);
-  background: var(--surface-field);
-  color: var(--text-strong);
-}
-#burger:hover .menu-ico {
-  background: var(--selected-surface);
 }
 .search {
   position: relative;
-  flex: 1 1 300px;
+  width: 100%;
   min-width: 0;
-  max-width: 640px;
 }
 .box {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 9px;
-  min-height: 42px;
-  padding: 0 4px 0 13px;
-  border: var(--border-strong);
-  border-radius: var(--radius-field);
-  background: var(--surface-field);
+  gap: 2px 8px;
+  min-height: 32px;
+  padding: 0 5px 0 11px;
+  border: 0;
+  border-radius: var(--radius-5);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pick);
   color: var(--text-muted);
 }
 .box input::placeholder {
@@ -351,15 +441,15 @@ summary::-webkit-details-marker {
 .box input {
   flex: 1 1 100px;
   min-width: 0;
-  min-height: 34px;
+  min-height: 30px;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--text-strong);
-  font-size: 14px;
+  font-size: 13px;
 }
 .tag {
-  min-height: 28px;
+  min-height: 24px;
   padding: 0 8px;
   border: var(--border-fill);
   border-radius: var(--radius-4);
@@ -379,6 +469,12 @@ summary::-webkit-details-marker {
   border-radius: var(--radius-4);
   background: transparent;
   color: var(--text-muted);
+}
+/* Where the shortcut hint shows, it stands in for the submit button at rest. */
+@media (hover: hover) {
+  .go.rest {
+    display: none;
+  }
 }
 .go:hover {
   background: var(--surface-hover);
@@ -638,26 +734,73 @@ summary::-webkit-details-marker {
   margin-top: 2px;
 }
 .jt {
-  display: flex;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 6.5em) minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
   min-width: 0;
   font-size: 12.5px;
 }
 .jt > b {
-  flex: none;
-  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
   color: var(--text-strong);
 }
-.jt > .bar {
-  flex: 1;
-  min-width: 60px;
+.jbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.jt > .sp {
+.jbar > .bar {
+  flex: 1;
+  min-width: 40px;
+}
+.jnote {
   min-width: 0;
   color: var(--text-muted);
-  text-align: right;
   overflow-wrap: anywhere;
+}
+.jnote.fail {
+  color: var(--status-bad-text);
+}
+/* The fleet manager: the operations beside a narrow activity column. */
+.cols.fleet-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+@container (min-width: 900px) {
+  .cols.fleet-cols {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+/* An operation's targets: small tiles in a row, a tick box, the name, the
+   machine's system; an ink outline once chosen. */
+.fleet-ts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.card.tick.ft {
+  min-height: 54px;
+  padding: 10px 14px;
+}
+.card.tick.ft .g {
+  flex: 1;
+}
+.card.tick.ft b {
+  font-weight: 600;
+}
+.ft-os {
+  display: inline-grid;
+  flex: none;
+  color: var(--text-muted);
+}
+.card.tick.sel {
+  border-color: var(--action-line);
+  box-shadow: inset 0 0 0 1px var(--action-line);
 }
 .jn {
   margin: 0;
@@ -1380,7 +1523,8 @@ h1:focus {
   bottom: 0;
   z-index: 1;
   margin-inline: -4px;
-  padding: 14px 12px 2px;
+  margin-top: auto;
+  padding: 14px 6px 0 14px;
   background: var(--surface-rail);
 }
 .nav.fade-below > .status::before {
@@ -1623,18 +1767,39 @@ h1:focus {
     opacity: 1;
   }
 }
+/* A placeholder bar: a pill with a slow light running left to right
+   across it. Nothing spins. */
 .sk {
   display: block;
-  border-radius: var(--radius-3);
-  background: var(--line-divider);
-  animation: skp 1.4s ease-in-out infinite;
+  border-radius: var(--radius-pill);
+  background:
+    linear-gradient(
+      90deg,
+      var(--line-divider) 30%,
+      var(--surface-muted) 50%,
+      var(--line-divider) 70%
+    )
+    0 0 / 300% 100%;
+  animation: sk-run 1.8s linear infinite;
+}
+@keyframes sk-run {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: skp 1.4s ease-in-out infinite;
+  }
 }
 .skrow {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 15px 0;
-  border-bottom: var(--border-divider);
+  gap: 9px;
+  padding: 14px 0;
 }
 .sktile {
   display: flex;
@@ -2129,13 +2294,35 @@ h1:focus {
   font-size: 13.5px;
 }
 @media (max-width: 800px) {
-  #burger {
+  /* On a phone the bar keeps the mark and its two buttons; the search field
+     takes a row of its own when shown. */
+  #top {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-block: 10px;
+  }
+  #top .search {
+    display: none;
+  }
+  #top.searching .search {
+    display: block;
+    order: 3;
+    flex: 1 0 100%;
+  }
+  #top .top-viewing {
+    display: none;
+  }
+  .top-btn {
+    display: flex;
+  }
+  #top .box {
+    min-height: 40px;
   }
   #mbar:not([hidden]) {
     display: block;
     position: sticky;
-    top: 72px;
+    top: var(--top-h, 60px);
     z-index: 19;
     padding: 8px max(20px, env(safe-area-inset-right, 0px)) 10px
       max(20px, env(safe-area-inset-left, 0px));
@@ -2149,6 +2336,13 @@ h1:focus {
   }
   .nav-link {
     min-height: 46px;
+    gap: 14px;
+    padding-inline: 12px;
+    font-size: 16px;
+  }
+  .nav-ico {
+    width: 18px;
+    height: 18px;
   }
   .sub,
   .li,
@@ -2156,27 +2350,51 @@ h1:focus {
   .opt {
     min-height: 44px;
   }
+  /* The rail is a sheet that drops from the top of the screen over the
+     page, with its own mark, close button and viewing switcher. */
   #rail {
     position: fixed;
     z-index: 30;
     left: 0;
+    right: 0;
     top: 0;
-    bottom: 0;
-    width: 280px;
-    height: auto;
+    width: auto;
+    max-height: 100dvh;
+    border-right: 0;
+    border-radius: 0 0 var(--radius-9) var(--radius-9);
     background: var(--surface-rail);
-    transform: translateX(-100%);
+    box-shadow: var(--shadow-float);
+    transform: translateY(-100%);
     transition: transform 0.16s;
     visibility: hidden;
   }
   .rail-in {
     position: static;
-    height: 100%;
-    padding-top: max(18px, env(safe-area-inset-top, 0px));
+    height: auto;
+    max-height: 100dvh;
+    padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
+      14px max(12px, env(safe-area-inset-left, 0px));
   }
-  #top {
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  .sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+    padding: 0 4px;
+  }
+  .sheet-top .brand {
+    padding: 0;
+    font-size: 15px;
+  }
+  .sheet-viewing {
+    display: block;
+    margin: 0 0 8px;
+  }
+  .nav-group {
+    padding: 12px 12px 6px;
+  }
+  .nav > .status {
+    padding-top: 10px;
   }
   #main {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -2210,15 +2428,15 @@ h1:focus {
   }
   #xdrawer {
     display: flex;
-    position: absolute;
-    top: max(10px, env(safe-area-inset-top, 0px));
-    right: 8px;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
-    font-size: 22px;
+    border: var(--border-outline);
+    border-radius: var(--radius-box);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-pick);
+    color: var(--text-strong);
   }
   .chip,
   .find {
@@ -2391,18 +2609,55 @@ button:disabled {
   flex: none;
 }
 
-/* The mark matches the menu button's height, so the pair reads as one control. */
-#burger img {
-  width: 40px;
-  height: 40px;
-}
 /* Mashy's link to its settings lands with the section below the top bar. */
 #assistant {
   scroll-margin-top: 88px;
 }
-.mashy-unset strong {
+/* Before Mashy is set up the panel is a short page of its own: Mashy, a
+   heading and the form, read from the left like the settings it stands for. */
+.mashy-hello.mashy-unset {
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 0 4px;
+  text-align: left;
+}
+.mashy-hello.mashy-unset img {
+  width: 64px;
+  height: 58px;
+}
+.mashy-hello.mashy-unset p {
+  max-width: none;
+}
+.mashy-unset > strong {
   color: var(--text-strong);
-  font-size: 15px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+/* What leaves the machine, said in a quiet box under the form. */
+.mashy-sends {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: stretch;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border: var(--border-divider);
+  border-radius: var(--radius-7);
+  background: var(--surface-muted);
+  font-size: 12.5px;
+}
+.mashy-sends strong {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+.mashy-sends .a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
 }
 
 /* Weights for a proportional face. At the same size it reads lighter than the
@@ -2455,19 +2710,17 @@ button:disabled {
   }
 }
 
-/* Navigation words are medium; the current page is bold. */
+/* Navigation words are regular; the current page is medium, as in the wireframes. */
 #rail .nav-link,
 #rail .sub {
-  font-weight: 500;
+  font-weight: 400;
 }
 #rail .nav-row.on .nav-link,
 #rail .sub.on {
-  font-weight: 700;
+  font-weight: 500;
 }
 #rail .status button {
-  font-weight: 600;
-  color: var(--text-strong);
-  text-decoration: none;
+  color: var(--text-faint);
 }
 
 /* An icon keeps its section's colour wherever it appears: in headings, on
@@ -2506,97 +2759,163 @@ button:disabled {
   color: var(--hue-tools);
 }
 
-/* The tool explorer: tools grouped by what they touch, each an outlined
-   row that opens into its parameters, the request and the response. Tools
-   that change data are dashed and locked. */
+/* The tool explorer: a list of tools grouped by what they touch, each row
+   a name and whether it only reads, with the chosen tool in a panel beside
+   it. On a narrow screen the chosen tool opens under its row instead. */
+.tx-count {
+  display: flex;
+  justify-content: flex-end;
+}
+.tx {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .tx {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+  .tx-detail {
+    position: sticky;
+    top: 88px;
+  }
+}
+.card.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 8px;
+  overflow: hidden;
+}
+.tx-find {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-bottom: var(--border-divider);
+  color: var(--text-muted);
+}
+.tx-find input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+}
+.tx-find:focus-within {
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+.tx-none {
+  padding: 8px 14px;
+}
 .ops {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  container-type: inline-size;
+  padding: 6px 6px 0;
+}
+.tx-g {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 .opl {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-.opl.g2 {
-  display: grid;
-  gap: 12px 16px;
-  align-items: start;
-}
-@container (max-width: 520px) {
-  .opl.g2 {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-/* An open tool takes the whole row of its grid. */
-.opl > .mop.open {
-  grid-column: 1 / -1;
-}
-.mop {
-  min-width: 0;
-  border: var(--border-strong);
-  border-radius: var(--radius-box);
-  background: var(--surface-raised);
-  overflow: hidden;
-  scroll-margin-top: 80px;
-}
-.mop.locked {
-  border-style: dashed;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .op-h {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 44px;
-  padding: 6px 12px;
+  min-height: 34px;
+  padding: 4px 8px;
+  border-radius: var(--radius-4);
   text-align: left;
 }
 .op-h:hover {
   background: var(--surface-hover);
 }
-.mop.open > .op-h {
-  border-bottom: var(--border-strong);
+.op-h[aria-expanded="true"] {
   background: var(--surface-muted);
 }
-.mop.locked.open > .op-h {
-  border-bottom-style: dashed;
-}
-.op-h > .pill {
-  flex: none;
-  letter-spacing: 0.05em;
+.op-h > .op-n {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
 }
 .op-n {
-  flex: none;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-strong);
 }
-.op-h > .lucide-lock {
+/* Whether a tool only reads: a small word, green for reading, quiet for
+   writing, which the server refuses from here. */
+.op-k {
   flex: none;
-  color: var(--text-strong);
+  font-family: var(--type-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
-.op-a {
-  flex: 1 1 0;
+.op-k.ok {
+  color: var(--status-ok);
+}
+.tx-inline {
+  margin: 6px 0 10px;
+  padding: 14px;
+  border: var(--border-divider);
+  border-radius: var(--radius-5);
+}
+.card.tx-detail {
+  min-height: 160px;
+  padding: 20px 22px;
+}
+.mop {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
+}
+.op-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.op-top > .op-n {
+  font-size: 18px;
+  font-weight: 500;
+}
+.op-lead {
+  margin: 0;
+  font-size: 13.5px;
   color: var(--text-body);
 }
-.op-h .op-c {
-  flex: none;
-  margin-left: auto;
+.op-lead code {
+  font-family: var(--type-mono);
+  font-size: 12.5px;
   color: var(--text-strong);
 }
 .op-b {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 14px 16px 18px;
+}
+.mop .op-cols {
+  grid-template-columns: minmax(0, 1fr);
 }
 .op-d {
   max-width: 78ch;
@@ -3097,14 +3416,53 @@ summary.rw::-webkit-details-marker {
 
 /* Import / export: a chat row with a way to leave it out, a choice drawn as
    a tile, and a command to copy. */
-.xrow .chatrow-t > button {
-  flex: none;
+.chatrow.xrow {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 6px 10px 16px;
+}
+.xrow-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.xrow-t > b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.xrow-m {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12.5px;
+  color: var(--text-muted);
+}
+.xrow-a {
+  flex: none;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-5);
+  font-size: 13px;
+  color: var(--text-body);
   white-space: nowrap;
 }
-.xrow.off > :not(.chatrow-t),
-.xrow.off .chatrow-t > :not(button) {
+.xrow-a:hover {
+  color: var(--text-strong);
+  background: var(--surface-hover);
+}
+.xrow.off > :not(.xrow-a) {
   opacity: 0.55;
+}
+.xrow.off .xrow-t > b {
+  text-decoration: line-through;
+}
+.xrow.off .xrow-a {
+  color: var(--text-muted);
 }
 .cmdline {
   display: flex;
@@ -3288,8 +3646,7 @@ summary.rw::-webkit-details-marker {
 /* Settings: rows in cards. An agent's history is a row of a card list; a
    setting is a row of its section's card, divided from the next by a dashed
    rule, and cream with a "changed" pill until it is saved. */
-.set-a,
-.set-r {
+.set-a {
   display: grid;
   align-items: center;
   gap: 4px 14px;
@@ -3304,33 +3661,12 @@ summary.rw::-webkit-details-marker {
   border-top: 0;
 }
 .set-a .set-n {
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--text-strong);
 }
-.set-t {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-.set-r {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-}
-.set-r.inline {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-.set-a.changed,
-.set-card > .set-r.changed {
+.set-a.changed {
   background: var(--surface-muted);
-}
-.set-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.set-card > .set-r + .set-r {
-  padding-top: 16px;
-  border-top: var(--stroke-divider) dashed var(--line-divider);
 }
 .set-a.off .set-n,
 .set-a.off .set-p,
@@ -3371,31 +3707,6 @@ summary.rw::-webkit-details-marker {
   --line-outline: var(--line-on-accent);
   --line-ink: var(--line-on-accent);
   --line-strong: var(--line-on-accent);
-}
-.mashy-l {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.mashy-l > img {
-  flex: none;
-  width: 46px;
-  height: 42px;
-}
-/* Mashy's state, when it cannot be changed here, reads like the privacy
-   rows: the name at the start, the state at the end. */
-.mashy-l > .kvs {
-  flex: 1;
-}
-/* Settings cards side by side share the row's height, so a short card does
-   not leave a hole under it. */
-.set-g.g2,
-.set-g.g3 {
-  align-items: stretch;
-}
-.set-g > .sec > .card {
-  flex: 1;
-  align-content: start;
 }
 /* A note naming the configuration file, with a button to copy its path. */
 .set-path .btn.sm {
@@ -3574,37 +3885,289 @@ summary.rw::-webkit-details-marker {
   }
 }
 
-/* The sign-in screen of a dashboard reached from other devices. */
-.signin {
+/* Settings as one column of sections, with their names listed beside it on
+   a wide screen. A section is a plain heading, a quiet note at its end, and
+   a card of rows: a name over one line about it, the control at the end. */
+.set-top {
+  align-items: flex-end;
+}
+.set-path {
+  margin-top: 6px;
+}
+.set-layout {
   display: grid;
-  place-items: center;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.set-main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.set-main > .sec {
+  scroll-margin-top: 88px;
+}
+.set-nav {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.set-nav a {
+  position: relative;
+  padding: 6px 12px 6px 18px;
+  border-radius: var(--radius-4);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.set-nav a:hover {
+  color: var(--text-strong);
+}
+.set-nav a[aria-current] {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.set-nav a[aria-current]::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-strong);
+}
+.set-hd .h2 {
+  font-size: 14.5px;
+}
+.set-hd > .meta {
+  font-size: 12.5px;
+}
+.card.set-list,
+.set-list > .set-dl {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+.set-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-top: var(--border-divider);
+}
+.set-list > .set-row:first-child,
+.set-list > .set-dl:first-child > .set-row:first-child {
+  border-top: 0;
+}
+.set-row.stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+.set-row.changed {
+  background: var(--surface-muted);
+}
+.set-row > .set-h {
+  grid-column: 1 / -1;
+}
+.set-t {
+  display: block;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.set-t small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.set-row > .set-c {
+  justify-content: flex-end;
+}
+.set-row.stack > .set-c {
+  justify-content: flex-start;
+}
+.set-v {
+  min-width: 0;
+  max-width: 340px;
+  font-family: var(--type-mono);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.set-help {
+  flex-basis: 100%;
+}
+.set-foot {
+  margin: 0;
+  padding: 12px 16px;
+  border-top: var(--border-divider);
+}
+.set-s {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.set-s .set-on {
+  color: var(--status-ok);
+}
+/* The unsaved changes float at the foot of the screen as one rounded bar. */
+.set-main > .set-bar {
+  bottom: 16px;
+  border-radius: var(--radius-6);
+  box-shadow: var(--shadow-float);
+}
+.set-bs {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.set-bs .meta {
+  margin-left: -8px;
+}
+.set-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-strong);
+}
+@media (max-width: 900px) {
+  .set-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .set-nav {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .set-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .set-row > .set-c,
+  .set-v {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .set-row:has(> .set-c > .sw:only-child) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* The sign-in screen of a dashboard reached from other devices: the brand in
+   a band, then one column, left aligned, with the way to get a code under
+   the form. */
+.signin {
+  display: flex;
+  flex-direction: column;
   /* #app is a row; without this the screen is only as wide as the form and
      sits at the left edge on a wide window. */
   flex: 1;
   min-height: 100dvh;
-  padding: 16px;
+}
+.signin-top {
+  display: flex;
+  align-items: center;
+  padding: 14px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: var(--border-outline);
+  background: var(--surface-top);
+}
+.signin-top .brand {
+  padding: 0;
+}
+.signin-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(100%, 452px);
+  margin: 0 auto;
+  padding: 40px 20px 32px;
 }
 .signin form {
   display: grid;
   gap: 12px;
-  width: min(100%, 420px);
+}
+.signin form > * {
+  margin: 0;
+}
+.signin-key {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 6px !important;
+  border: var(--border-strong);
+  border-radius: var(--radius-7);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pick);
+  color: var(--text-strong);
 }
 .signin .h1 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 26px;
+}
+.signin-why {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.signin-l {
+  margin-top: 6px !important;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
 }
 .signin .field {
   /* 16px keeps a phone from zooming into the field. */
+  font-family: var(--type-mono);
   font-size: 16px;
-  min-height: 46px;
+  min-height: 50px;
+  letter-spacing: 0.04em;
 }
-.signin .btn {
+.signin form .btn {
   justify-content: center;
-  min-height: 46px;
+  min-height: 48px;
+  border-radius: var(--radius-pill);
 }
 .signin-problem {
   color: var(--status-bad);
+}
+.signin-help {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.signin-help > * {
+  margin: 0;
+}
+.signin-help h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.signin-help code.i {
+  white-space: nowrap;
+}
+.signin-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* Phones: tool text wraps instead of hiding past the box edge, argument
@@ -3618,11 +4181,9 @@ summary.rw::-webkit-details-marker {
   .tc-r {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* The field has a row of its own here, as wide as the screen, so the
+     suggestions drop under it at its width. */
   .drop {
-    position: fixed;
-    top: 64px;
-    left: 12px;
-    right: 12px;
     max-height: 60vh;
   }
   .box input {
@@ -3733,16 +4294,18 @@ summary.rw::-webkit-details-marker {
   border-radius: var(--radius-round);
   background: var(--notify);
 }
+/* The chat is a tall window at the right edge, over the circle that opened
+   it, reaching from under the top bar to near the foot of the screen. */
 #mashy {
   position: fixed;
   z-index: 34;
-  right: max(18px, env(safe-area-inset-right, 0px));
-  bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 68px);
+  right: max(24px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  width: 390px;
-  max-width: calc(100vw - 36px);
-  height: min(560px, calc(100dvh - 120px));
+  width: 432px;
+  max-width: calc(100vw - 48px);
+  height: min(800px, calc(100dvh - 110px));
   overflow: hidden;
   border: var(--border-outline);
   border-radius: var(--radius-8);
@@ -3753,10 +4316,10 @@ summary.rw::-webkit-details-marker {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 8px 10px 12px;
-  border-bottom: var(--border-outline);
-  background: var(--mashy-surface);
-  color: var(--mashy-surface-text);
+  padding: 10px 10px 10px 16px;
+  border-bottom: var(--border-divider);
+  background: var(--surface-raised);
+  color: var(--text-muted);
   cursor: grab;
   -webkit-user-select: none;
   user-select: none;
@@ -3773,8 +4336,8 @@ summary.rw::-webkit-details-marker {
   cursor: pointer;
 }
 #mashy > header img {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 #mashy > header div {
@@ -3784,8 +4347,8 @@ summary.rw::-webkit-details-marker {
 #mashy > header strong {
   display: block;
   color: var(--text-strong);
-  font-size: 14.5px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
 }
 #mashy > header button {
   display: grid;
@@ -3796,16 +4359,16 @@ summary.rw::-webkit-details-marker {
   color: inherit;
 }
 #mashy > header button:hover {
-  background: color-mix(in srgb, var(--mashy-surface-text) 12%, transparent);
-  color: inherit;
+  background: var(--surface-hover);
+  color: var(--text-strong);
 }
 .mashy-log {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+  padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -3836,11 +4399,10 @@ summary.rw::-webkit-details-marker {
 .mashy-q {
   align-self: flex-end;
   max-width: 85%;
-  padding: 8px 12px;
+  padding: 9px 14px;
   border-radius: var(--radius-7) var(--radius-7) var(--radius-2) var(--radius-7);
-  border: var(--border-you);
-  background: var(--you-bg);
-  color: var(--you-text);
+  background: var(--surface-muted);
+  color: var(--text-strong);
   font-size: 14px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -4112,7 +4674,7 @@ summary.rw::-webkit-details-marker {
    together in the middle, in a chat no taller than they need. */
 #mashy.fresh {
   height: auto;
-  max-height: min(560px, calc(100dvh - 120px));
+  max-height: min(800px, calc(100dvh - 110px));
 }
 .mashy-hello {
   display: flex;
@@ -4148,7 +4710,12 @@ summary.rw::-webkit-details-marker {
 .mashy-sugg.next button {
   display: inline-flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
+  border-color: transparent;
+  background: var(--surface-muted);
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 500;
   text-align: left;
 }
 /* The arrow stays beside the first line of a question that wraps. */
@@ -4175,21 +4742,22 @@ summary.rw::-webkit-details-marker {
   border-color: var(--accent);
   color: var(--accent);
 }
+/* The question field is one rounded box with the send button inside it. */
 #mashy > form {
+  position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  padding: 10px 12px 12px;
+  padding: 10px;
   border-top: var(--border-divider);
 }
 #mashy textarea {
   flex: 1;
   min-width: 0;
-  height: 40px;
+  height: 44px;
   max-height: 132px;
-  padding: 9px 10px;
+  padding: 11px 50px 11px 12px;
   border: var(--border-outline);
-  border-radius: var(--radius-6);
+  border-radius: var(--radius-8);
   background: var(--surface-field);
   color: var(--text-strong);
   font: inherit;
@@ -4197,13 +4765,15 @@ summary.rw::-webkit-details-marker {
   resize: none;
 }
 #mashy .go {
+  position: absolute;
+  right: 17px;
+  bottom: 17px;
   display: grid;
   place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border: var(--border-fill);
-  border-radius: var(--radius-6);
+  border-radius: var(--radius-round);
   background: var(--action-bg);
   color: var(--action-text);
 }
@@ -4305,6 +4875,7 @@ body:has(#mashy-fab):has(.ends) #main {
     visibility: hidden;
   }
   #mashy > header {
+    background: transparent;
     cursor: auto;
     touch-action: auto;
   }
@@ -4338,6 +4909,12 @@ body:has(#mashy-fab):has(.ends) #main {
   #mashy textarea {
     /* Below 16px, iOS zooms the page when the field is focused. */
     font-size: 16px;
+    height: 50px;
+    padding: 13px 54px 13px 14px;
+  }
+  #mashy .go {
+    width: 36px;
+    height: 36px;
   }
   #mashy ~ #mashy-fab {
     display: none;
@@ -4350,8 +4927,9 @@ body:has(#mashy-fab):has(.ends) #main {
   }
 }
 
-/* First-run setup: a cream band with the brand and the way out, then a
-   review with optional guided steps under a row of numbered steps. */
+/* First-run setup: a band with the brand and the way out, then Mashy and
+   the steps down the left beside the current step's question. On a narrow
+   screen the steps become a row of numbers above the question. */
 .setup {
   flex: 1;
   min-height: 100dvh;
@@ -4366,76 +4944,146 @@ body:has(#mashy-fab):has(.ends) #main {
   justify-content: space-between;
   gap: 8px 16px;
   width: 100%;
-  padding: 14px max(32px, env(safe-area-inset-right, 0px)) 14px
-    max(32px, env(safe-area-inset-left, 0px));
-  border-bottom: var(--border-strong);
-  background: var(--surface-muted);
+  padding: 12px max(20px, env(safe-area-inset-right, 0px)) 12px
+    max(20px, env(safe-area-inset-left, 0px));
+  border-bottom: var(--border-outline);
+  background: var(--surface-top);
+}
+.setup-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .setup-top .brand {
   padding: 0;
 }
+.setup-word {
+  font-size: 13px;
+  color: var(--text-muted);
+}
 .setup-top .a {
   font-size: 13.5px;
 }
+.setup-body {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1020px;
+  margin: 44px auto 0;
+  padding: 0 20px;
+}
+.setup-side {
+  display: flex;
+  flex: 0 0 222px;
+  flex-direction: column;
+  gap: 22px;
+}
+.setup-hi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.setup-hi img {
+  flex: none;
+  width: 60px;
+  height: 60px;
+}
+.setup-hi > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.setup-hi strong {
+  font-size: 15px;
+  color: var(--text-strong);
+}
 .setup-col {
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 700px;
-  margin: 26px auto 0;
-  padding: 0 20px;
+  max-width: 716px;
+  min-width: 0;
+  margin: 0;
 }
-/* The steps in a row: a numbered circle and a name, joined by dashes. Done
-   is mint with a tick, the current step butter. */
+.setup-body:not(.guided) .setup-col {
+  flex: 0 1 716px;
+}
+/* The steps down the side: a numbered circle, the name, and a short fact.
+   Done steps are an ink tick, the current one a raised row with a butter
+   number. */
 .setup-steps {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 8px 12px;
-  margin: 0 0 8px;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 .setup-steps li {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 12px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: var(--stroke-outline) solid transparent;
+  border-radius: var(--radius-6);
+  font-size: 13.5px;
+  line-height: 1.25;
   color: var(--text-muted);
 }
-.setup-steps li + li::before {
-  content: "";
-  width: 48px;
-  margin-right: 4px;
-  border-top: var(--stroke-divider) dashed var(--line-strong);
-  opacity: 0.3;
+.setup-sn {
+  flex: 1;
+}
+.setup-steps small {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 .setup-steps .n {
   display: grid;
+  flex: none;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: var(--border-strong);
-  border-color: var(--line-ink);
   border-radius: var(--radius-round);
   background: var(--surface-raised);
-  color: var(--text-strong);
-  font-size: 12px;
-  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
 }
-.setup-steps li[aria-current="step"] {
+.setup-steps li.done {
   color: var(--text-strong);
-}
-.setup-steps li[aria-current="step"] .n {
-  background: var(--selected-bg);
-  color: var(--selected-text);
 }
 .setup-steps li.done .n {
-  background: var(--status-ok-bg);
-  color: var(--status-ok-text);
+  border-color: var(--action-line);
+  background: var(--action-bg);
+  color: var(--action-text);
+}
+.setup-steps li[aria-current="step"] {
+  border-color: var(--line-strong);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pick);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.setup-steps li[aria-current="step"] .n {
+  border-color: var(--accent-strong);
+  background: var(--toggle-on);
+  color: var(--text-strong);
+}
+.setup-eyebrow {
+  margin: 0 0 -6px;
+  font-family: var(--type-mono);
+  font-size: 12.5px;
+  color: var(--text-muted);
 }
 .setup-q {
   margin: 0;
@@ -4448,11 +5096,20 @@ body:has(#mashy-fab):has(.ends) #main {
 .setup-help {
   margin: 0;
 }
+.setup-col > .meta.setup-help {
+  font-size: 15px;
+  line-height: 1.5;
+}
 .setup-card {
   padding: 4px 18px;
   border: var(--border-strong);
   border-radius: var(--radius-7);
   background: var(--surface-raised);
+  box-shadow: var(--shadow-panel);
+}
+.setup-card.cream {
+  background: var(--surface-muted);
+  box-shadow: none;
 }
 .setup-card > .kvs {
   padding: 14px 0;
@@ -4476,6 +5133,37 @@ body:has(#mashy-fab):has(.ends) #main {
 }
 .setup-acts .sp {
   flex: 1 1 auto;
+}
+.setup-ready {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 13.5px;
+}
+@media (max-width: 760px) {
+  .setup-body {
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .setup-side {
+    flex: none;
+  }
+  .setup-hi {
+    display: none;
+  }
+  .setup-steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .setup-steps li {
+    min-height: 34px;
+    padding: 4px 8px;
+  }
+  .setup-steps li:not([aria-current="step"]) :is(.setup-sn, small) {
+    display: none;
+  }
 }
 /* One choice: its mark, a name over one quiet line, and its switch. */
 .setup-row {
@@ -4501,6 +5189,11 @@ body:has(#mashy-fab):has(.ends) #main {
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* History folders are paths, set in the code face as the wireframe does. */
+.setup-who small[title] {
+  font-family: var(--type-mono);
+  font-size: 12px;
 }
 .setup-row.off :is(.mark, .setup-who) {
   opacity: 0.5;

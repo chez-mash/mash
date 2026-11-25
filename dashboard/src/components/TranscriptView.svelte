@@ -1,50 +1,46 @@
 <script lang="ts">
 import ArrowDownToLine from "@lucide/svelte/icons/arrow-down-to-line";
 import ArrowUpToLine from "@lucide/svelte/icons/arrow-up-to-line";
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import ChevronUp from "@lucide/svelte/icons/chevron-up";
 import ChevronsDown from "@lucide/svelte/icons/chevrons-down";
-import Copy from "@lucide/svelte/icons/copy";
-import Download from "@lucide/svelte/icons/download";
-import FileCode from "@lucide/svelte/icons/file-code";
 import FileText from "@lucide/svelte/icons/file-text";
 import Lightbulb from "@lucide/svelte/icons/lightbulb";
-import PanelLeft from "@lucide/svelte/icons/panel-left";
-import Printer from "@lucide/svelte/icons/printer";
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import Search from "@lucide/svelte/icons/search";
 import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
 import { tick, untrack } from "svelte";
+import { agents } from "../lib/agents";
 import { transcript } from "../lib/api";
 import { ChatReading, toBottom } from "../lib/chatReading.svelte";
 import { collectChat, type ExportFormat, exportChat, type ReadPage } from "../lib/export";
 import { countLabel, type FindMatch, findMatches } from "../lib/find";
 import { clearMatches, paintMatches, revealMatch } from "../lib/findHighlight";
 import { concerns, onChange } from "../lib/live";
-import { plainTitle } from "../lib/markdown";
 import { messageText, saidText, shownText } from "../lib/message";
 import { onThisMachine } from "../lib/openIn";
 import { catalogOptions, stableRead } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
-import { label, recordPage } from "../lib/records";
-import { chatHref, recordHref, recordsHref } from "../lib/route.svelte";
+import { recordPage } from "../lib/records";
+import { chatHref } from "../lib/route.svelte";
 import { stepLabel, stepParts, stepsSummary, transcriptItems } from "../lib/steps";
 import { childrenOf } from "../lib/subagents";
+import { followTopBar } from "../lib/topBar";
+import { startsAgentTurn } from "../lib/turns";
 import type { Message } from "../lib/types";
 import { updates } from "../lib/updates.svelte";
+import "./reading.css";
+import AgentMark from "./AgentMark.svelte";
 import Attachments from "./Attachments.svelte";
+import ChatHeader from "./ChatHeader.svelte";
 import ChatSidebar from "./ChatSidebar.svelte";
 import FindBar from "./FindBar.svelte";
+import HitMap from "./HitMap.svelte";
 import MessageActions from "./MessageActions.svelte";
 import MessageBody from "./MessageBody.svelte";
-import MetaChips from "./MetaChips.svelte";
-import OpenInAgent from "./OpenInAgent.svelte";
 import QueryError from "./QueryError.svelte";
-import SubagentOrigin from "./SubagentOrigin.svelte";
+import SavedMemory from "./SavedMemory.svelte";
+import SubagentList from "./SubagentList.svelte";
 import SubagentSpawns from "./SubagentSpawns.svelte";
-import SubagentState from "./SubagentState.svelte";
 import ToolStep from "./ToolStep.svelte";
 
 let {
@@ -168,8 +164,6 @@ let findActive = $state(false);
 let findProgress = $state(0);
 let findInput = $state<HTMLInputElement>();
 let pendingFind: FindMatch | undefined;
-const shortcut =
-  typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform) ? "⌘F" : "Ctrl F";
 const whole = createQuery(() => ({
   queryKey: ["find-chat", id, machine, shared],
   enabled: findOpen,
@@ -293,6 +287,8 @@ $effect(() => {
   });
 });
 
+// The list beside the chat stays in view under the top bar.
+$effect(followTopBar);
 // The same chat ID may exist on another machine; follow the copy shown.
 $effect(() => {
   const chatId = id;
@@ -368,32 +364,9 @@ const prompts = $derived(
   </nav>
 {/snippet}
 <div class="chat" class:nosess={!showSessions} class:sessopen={sessionsOpen}>
-  <ChatSidebar {id} machine={displayMachine} {chat} sessions={catalogue.data?.chats ?? []} {children} {prompts} {currentMessage} records={memories.data?.records} recordsError={memories.error} {memoryParams} closable={phone && sessionsOpen} onclose={() => closeSessions(true)} onprompt={async (message) => { await closeSessions(false); jump(message); }} />
+  <ChatSidebar {id} machine={displayMachine} {chat} sessions={catalogue.data?.chats ?? []} {prompts} {currentMessage} records={memories.data?.records} recordsError={memories.error} {memoryParams} closable={phone && sessionsOpen} onclose={() => closeSessions(true)} onprompt={async (message) => { await closeSessions(false); jump(message); }} />
   <article class="log" bind:this={transcriptPane}>
-    <header class="chat-h">
-      {#if chat}<SubagentOrigin {chat} {all} />{/if}
-      <h1 class="h1">{chat ? plainTitle(chat.title) : `Chat ${id.slice(-8)}`}</h1>
-      <div class="acts">
-        <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={toggleSessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
-        <button class="btn" type="button" aria-expanded={findOpen} onclick={openFind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
-        <button class="btn" type="button" onclick={copySession}><Copy size={15} aria-hidden="true" />Copy session ID</button>
-        {#if chat}<OpenInAgent {chat} local={onThisMachine(chat, catalogue.data?.localNode, shared)} onnotice={(text) => (notice = text)} />{/if}
-        <span style:position="relative">
-        <button class="btn" type="button" aria-expanded={exportOpen} onclick={() => (exportOpen = !exportOpen)}><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</button>
-        {#if exportOpen}
-          <div class="menu">
-            <button type="button" disabled={exporting || !reader.loaded} onclick={() => startExport("pdf")}><Printer size={15} aria-hidden="true" />Export to PDF</button>
-            <button type="button" disabled={exporting || !reader.loaded} onclick={() => startExport("html")}><FileCode size={15} aria-hidden="true" />Export to HTML</button>
-            <button type="button" disabled={exporting || !reader.loaded} onclick={() => startExport("markdown")}><FileText size={15} aria-hidden="true" />Export to Markdown</button>
-          </div>
-        {/if}
-        </span>
-      </div>
-      <div class="mts chat-m">
-        {#if chat}<MetaChips {chat} agentMark /><SubagentState {chat} />{:else}<span class="mtx">{displayMachine}</span>{/if}
-        {#if reader.total}<span class="mtx">{reader.total.toLocaleString()} message{reader.total === 1 ? "" : "s"}</span>{/if}
-      </div>
-    </header>
+    <ChatHeader {id} {chat} {all} machine={displayMachine} total={reader.total} local={chat ? onThisMachine(chat, catalogue.data?.localNode, shared) : false} {phone} {sessionsShown} {findOpen} bind:exportOpen canExport={!exporting && !!reader.loaded} ontogglesessions={toggleSessions} onfind={openFind} oncopy={copySession} onexport={startExport} onnotice={(text) => (notice = text)} />
     {#if findOpen}<FindBar bind:query={findQuery} bind:input={findInput} status={findStatus} matches={matches.length} onstep={go} onclose={closeFind} />{/if}
     {#if exporting}<p class="card tight cream" style:display="flex" style:font-size="12.5px"><button class="a sp" type="button" onclick={() => exportController?.abort()}>Cancel export</button></p>{/if}
     <QueryError title="Couldn’t load the chat list" query={catalogue} retryLabel="Retry catalogue" />
@@ -408,17 +381,14 @@ const prompts = $derived(
     {#if reader.changed}<button type="button" class="btn" onclick={() => reader.showChanged()}><RefreshCw size={15} aria-hidden="true" />This chat has changed. Show updated messages</button>{/if}
     {#if notice}<p role="status" class="meta">{notice}</p>{/if}
     <div class="newpill" aria-live="polite">{#if reader.added && !sessionsOpen}<button type="button" class="btn p" onclick={() => reader.showNew()}><ChevronsDown size={15} aria-hidden="true" />{reader.added.toLocaleString()} new message{reader.added === 1 ? "" : "s"}</button>{/if}</div>
+    <div class="tv-body">
+    <div class="tv-msgs">
     {#if reader.loaded}
       {#if !sessionsOpen}{@render ends()}{/if}
       {#if !reader.loaded.messages.length}<p class="card tight cream" style:font-size="13.5px">No messages here. The chat may have been removed.</p>{/if}
       {#if reader.stretches.isFetchingPreviousPage}<p class="meta" role="status">Loading earlier messages…</p>{/if}
       {#snippet saved(message: Message)}
-        {#each memories.data?.records ?? [] as record (record.id)}
-          {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
-          {#if revision?.evidence.some((source) => source.messageId === message.id)}
-            <a class="a saved-as" href={recordHref(record.id, record.node, recordsHref(memoryParams))} style:align-self={message.role === "user" ? "flex-end" : "flex-start"}>Saved as {label(revision.details.kind).toLowerCase()}: {revision.statement}</a>
-          {/if}
-        {/each}
+        <SavedMemory records={memories.data?.records ?? []} messageId={message.id} {memoryParams} />
       {/snippet}
       <!-- Thinking and context: a closed row that opens to plain text. -->
       {#snippet note(message: Message)}
@@ -436,7 +406,12 @@ const prompts = $derived(
       {#snippet actions(message: Message)}
         <MessageActions {message} href={chatHref(id, machine, message.id, shared)} />
       {/snippet}
-      {#each items as item (item.kind === "message" ? item.message.id : item.messages[0]?.id)}
+      <!-- Who speaks: the agent's name at the start of each of its turns. -->
+      {#snippet who()}
+        <p class="tv-who">{#if chat}<AgentMark agent={chat.agent} size="sm" />{agents[chat.agent].name}{:else}Agent{/if}</p>
+      {/snippet}
+      {#each items as item, index (item.kind === "message" ? item.message.id : item.messages[0]?.id)}
+        {#if startsAgentTurn(items, index)}{@render who()}{/if}
         {#if item.kind === "steps"}
           {@const only = item.messages.length === 1 ? item.messages[0] : undefined}
           {#if only?.presentation === "context"}
@@ -461,9 +436,11 @@ const prompts = $derived(
           {@const message = item.message}
           {@const selected = message.id === messageId}
           <div class="hitbox" class:hit={selected} id="message-{message.id}" data-message={message.id} style:scroll-margin-top="80px">
-            {#if selected}<span class="hitlabel">Linked message</span>{/if}
+            {#if selected && message.role !== "user"}<span class="hitlabel">Linked message</span>{/if}
             {#if message.role === "user"}
-              <div class="you"><MessageBody text={saidText(message)} own />{@render files(message)}{@render actions(message)}</div>
+              <span class="tv-you">{selected ? "You · linked message" : "You"}</span>
+              <div class="you"><MessageBody text={saidText(message)} own />{@render actions(message)}</div>
+              <div class="tv-files">{@render files(message)}</div>
               {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
@@ -481,5 +458,15 @@ const prompts = $derived(
       {/each}
       {#if reader.stretches.isFetchingNextPage}<p class="meta" role="status">Loading later messages…</p>{/if}
     {/if}
+    </div>
+    <!-- Beside the messages: the subagents this chat started, and while
+         finding, where the matches fall in the whole chat. -->
+    {#if children.length || (findOpen && matches.length)}
+      <aside class="tv-side">
+        {#if findOpen && matches.length && whole.data}<HitMap count={whole.data.length} {matches} current={findActive ? findIndex : -1} />{/if}
+        <SubagentList {children} />
+      </aside>
+    {/if}
+    </div>
   </article>
 </div>

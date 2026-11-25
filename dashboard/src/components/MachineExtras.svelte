@@ -1,5 +1,4 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
 import {
@@ -8,7 +7,7 @@ import {
   serviceOptions,
   servicesHref,
 } from "../lib/services.svelte";
-import MachineSetup from "./MachineSetup.svelte";
+import AgentSetupList from "./AgentSetupList.svelte";
 import ServiceRows from "./ServiceRows.svelte";
 import SetupLink from "./SetupLink.svelte";
 
@@ -22,14 +21,9 @@ const issues = $derived(problems(machine ? [machine] : []));
 </script>
 
 {#if machine?.reachable}
-  <section class="sec">
-    <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agent setup</h2><SetupLink {machineId} /></div>
-    <div class="rws agentset solo">
-      <div class="rw head" aria-hidden="true"><span>agent</span><span>parts</span><span>status</span></div>
-      <MachineSetup {machineId} {enabled} showMachine={false} />
-    </div>
-    <p class="meta">Mash reads settings and files for this; it does not start the agents.</p>
-  </section>
+  <AgentSetupList {machineId} {enabled}>
+    {#snippet action()}<SetupLink {machineId} />{/snippet}
+  </AgentSetupList>
 {/if}
 <section class="sec">
   <h2 class="h2"><Server size={15} aria-hidden="true" />Services</h2>

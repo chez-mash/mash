@@ -2,7 +2,6 @@
 import Bot from "@lucide/svelte/icons/bot";
 import Check from "@lucide/svelte/icons/check";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import Clock from "@lucide/svelte/icons/clock";
 import Info from "@lucide/svelte/icons/info";
 import Play from "@lucide/svelte/icons/play";
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
@@ -38,8 +37,9 @@ import LoadError from "./LoadError.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 import MapPanel from "./MapPanel.svelte";
 import QueryError from "./QueryError.svelte";
+import ServiceActivity from "./ServiceActivity.svelte";
+import ServiceList from "./ServiceList.svelte";
 import { kindIcon } from "./ServiceRows.svelte";
-import ServiceStatus from "./ServiceStatus.svelte";
 import ServicesMap from "./ServicesMap.svelte";
 import SetupLink from "./SetupLink.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -98,8 +98,8 @@ interface Target {
   machine: Machine;
   service: Service;
   action: ServiceAction;
-  /** Set when asked from the map's panel, so only the panel shows it. */
-  fromPanel?: boolean;
+  /** Where it was asked, so only that place shows the confirmation. */
+  from?: "panel" | "list";
 }
 let confirm = $state<Target | null>(null);
 // Faults are shown with the machine they belong to, not across the fleet.
@@ -181,6 +181,8 @@ const activityItems = $derived(
   history.data?.filter((item) => !serviceId || item.request.service === serviceId) ?? [],
 );
 const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
+// The latest check of any machine, said in the page's subtitle.
+const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.checked_at)));
 </script>
 
 {#snippet confirmation(target: Target)}
@@ -193,26 +195,47 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
 {#snippet serviceControls(entry: Service)}
   {#if machine && entry.actions.length}
     <div class="chips" style:gap="8px">
-      {#each entry.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={action !== "stop" && entry.state !== "healthy"} type="button" disabled={blocked || !machine.reachable} onclick={() => machine && (confirm = { machine, service: entry, action, fromPanel: true })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
+      {#each entry.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={action !== "stop" && entry.state !== "healthy"} type="button" disabled={blocked || !machine.reachable} onclick={() => machine && (confirm = { machine, service: entry, action, from: "panel" })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
     </div>
   {/if}
-  {#if confirm?.fromPanel && confirm.service.id === entry.id && confirm.machine.id === machine?.id}{@render confirmation(confirm)}{/if}
+  {#if confirm?.from === "panel" && confirm.service.id === entry.id && confirm.machine.id === machine?.id}{@render confirmation(confirm)}{/if}
 {/snippet}
 {#snippet activity()}
-  <section class="sec">
-    <h2 class="h2"><Clock size={15} aria-hidden="true" />Recent activity{serviceId ? "" : ` on ${selectedId}`}</h2>
-    {#if history.error}<p class="fail" role="alert">{history.error.message}</p>{/if}
-    {#if history.isPending}<p class="meta" role="status">Loading activity…</p>{/if}
-    {#if activityItems.length}
-      <div class="card pad0 list">
-        {#each activityItems as item (item.request.request_id)}
-          <div class="lrow"><b class:fail={item.outcome === "failed"}>{actionLabel[item.request.action]} {item.request.service}: {item.outcome}</b><span class="sp">{checkedTime(item.requested_at)}</span><p>{item.message}</p></div>
-        {/each}
-      </div>
-    {:else if history.data}<p class="card tight cream meta">No recorded service actions.</p>{/if}
-  </section>
+  <ServiceActivity title="Recent activity{serviceId ? '' : ` on ${selectedId}`}" items={history.data ? activityItems : undefined} error={history.error} pending={history.isPending} />
+{/snippet}
+{#snippet listConfirmation(entry: Service)}
+  {#if confirm?.from === "list" && confirm.service.id === entry.id && confirm.machine.id === machine?.id}{@render confirmation(confirm)}{/if}
 {/snippet}
 
+{#snippet attention()}
+  <!-- The map shows every machine, so every machine's faults are listed. -->
+  {#each fleet.data ?? [] as machine (machine.id)}
+    {@const issues = problems([machine])}
+    {#if issues.length}
+      <section class="sec" aria-label="Needs attention on {machine.id}">
+        <h2 class="h2"><TriangleAlert size={15} aria-hidden="true" />Needs attention on {machine.id}</h2>
+        {#each issues as issue (`${issue.machine.id}/${issue.service?.id ?? ""}`)}
+          {@const entry = issue.service}
+          <div class="card next-step">
+            <div class="g">
+              <p><strong>{entry ? entry.name : issue.machine.id}</strong> <span>{entry ? entry.summary : "Could not be reached"}</span></p>
+              <p class="meta">{issue.fix}</p>
+            </div>
+            <span class="acts">
+              {#if entry}
+                {#each issue.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn sm p" type="button" disabled={blocked} onclick={() => (confirm = { machine: issue.machine, service: entry, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
+                <a class="btn sm" href={servicesHref(issue.machine.id, entry.id)}><Info size={14} aria-hidden="true" />Details</a>
+              {:else}
+                <button class="btn sm" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>
+              {/if}
+            </span>
+          </div>
+          {#if entry && confirm && !confirm.from && confirm.service.id === entry.id && confirm.machine.id === issue.machine.id}{@render confirmation(confirm)}{/if}
+        {/each}
+      </section>
+    {/if}
+  {/each}
+{/snippet}
 {#if serviceId}
   {@const KindIcon = service ? kindIcon[service.kind] : Server}
   <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><ChevronLeft size={15} aria-hidden="true" />services</a>
@@ -221,10 +244,10 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   </div>
 {:else}
   <div class="hd">
-    <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check. This page does not refresh on its own.</p></div>
+    <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check{checked ? `, ${agoLabel(checked * 1000, Date.now())}` : ""}. This page does not refresh on its own.</p></div>
     <span class="acts">
+      <span role="status">{#if fleet.data}<span class="pill svc-health" class:ok={allHealthy} class:warn={!allHealthy}><i class="dot" aria-hidden="true"></i>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
       {#if enabled}<button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>{/if}
-      <span role="status">{#if fleet.data}<span class="pill" class:ok={allHealthy} class:warn={!allHealthy}>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
     </span>
   </div>
 {/if}
@@ -286,34 +309,8 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
   {#if machineId && !machine}<div class="state-c"><p role="alert">This machine is not in the configured inventory.</p></div>{/if}
   <div class="cols map-side">
     <div class="c-main stack">
-      <!-- The map shows every machine, so every machine's faults are listed. -->
-      {#each fleet.data as machine (machine.id)}
-        {@const issues = problems([machine])}
-        {#if issues.length}
-          <section class="sec" aria-label="Needs attention on {machine.id}">
-            <h2 class="h2"><TriangleAlert size={15} aria-hidden="true" />Needs attention on {machine.id}</h2>
-            {#each issues as issue (`${issue.machine.id}/${issue.service?.id ?? ""}`)}
-              {@const entry = issue.service}
-              <div class="card warn fixit">
-                <div class="g">
-                  <p><strong>{entry ? entry.name : issue.machine.id}</strong> <span>{entry ? entry.summary : "Could not be reached"}</span></p>
-                  <p style:margin-top="6px">{issue.fix}</p>
-                </div>
-                <span class="acts">
-                  {#if entry}
-                    {#each issue.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn p" type="button" disabled={blocked} onclick={() => (confirm = { machine: issue.machine, service: entry, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
-                    <a class="btn" href={servicesHref(issue.machine.id, entry.id)}><Info size={14} aria-hidden="true" />Details</a>
-                  {:else}
-                    <button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>
-                  {/if}
-                </span>
-              </div>
-              {#if entry && confirm && !confirm.fromPanel && confirm.service.id === entry.id && confirm.machine.id === issue.machine.id}{@render confirmation(confirm)}{/if}
-            {/each}
-          </section>
-        {/if}
-      {/each}
       {#if map}<ServicesMap {map} {others} selected={placeId} {report} />{/if}
+      {#if machine}<ServiceList {machine} disabled={blocked} ask={(entry, action) => machine && (confirm = { machine, service: entry, action, from: "list" })} confirmation={listConfirmation} />{/if}
       {#each shown as machine (machine.id)}
         {#if machine.reachable}{#each machine.warnings as warning (warning)}<p class="meta">{machine.id}: {warning}</p>{/each}{/if}
       {/each}
@@ -331,7 +328,37 @@ const allHealthy = $derived(!!fleet.data && healthy === fleet.data.length);
     <div class="c-side">
       {#if map && place}<MapPanel {map} {place} {report} {publication} controls={serviceControls} />{/if}
       {#if selectedId}{@render activity()}{/if}
+      {@render attention()}
     </div>
   </div>
 {/if}
 {#if enabled && selectedId && serviceId}{@render activity()}{/if}
+
+<style>
+  /* A fault and what to do about it: a raised card with a butter ring. */
+  .next-step {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-color: transparent;
+    border-radius: var(--radius-9);
+    box-shadow:
+      0 0 0 1px var(--memory-ring),
+      var(--memory-glow);
+  }
+  .next-step .acts {
+    flex-wrap: wrap;
+  }
+  .svc-health {
+    gap: 7px;
+  }
+  /* Asking before a service is started, stopped or restarted. */
+  .confirm {
+    border-color: transparent;
+    border-radius: var(--radius-8);
+    box-shadow:
+      0 0 0 1px var(--memory-ring),
+      var(--memory-glow);
+  }
+</style>

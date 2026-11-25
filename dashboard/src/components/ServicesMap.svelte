@@ -21,18 +21,9 @@ export const placeIcon: Record<PlaceId, typeof Database> = {
 </script>
 
 <script lang="ts">
-import Laptop from "@lucide/svelte/icons/laptop";
-import {
-  bandCards,
-  bandWords,
-  type Card,
-  cardHealth,
-  cardTone,
-  publishes,
-  publishVerb,
-  tone,
-} from "../lib/mapBand";
-import { publishWords, reported, type ServerReport, staleWords } from "../lib/serverStatus";
+import MapNode from "./MapNode.svelte";
+import { bandCards, bandWords, publishes, publishVerb } from "../lib/mapBand";
+import { reported, type ServerReport } from "../lib/serverStatus";
 import type { Machine } from "../lib/services.svelte";
 import { type Edge, type MachineMap, type Place, placeHref, placeLabel } from "../lib/topology";
 
@@ -64,30 +55,39 @@ const cards = $derived(bandCards(others, report, id));
 const shared = $derived(bandWords(report));
 const ownPublish = $derived(reported(report, id));
 
-// The desktop map is laid out on a fixed grid, in pixels of a 660-wide
-// canvas; the phone flow below needs no coordinates.
-const H = 84;
+// The desktop map is laid out on a fixed grid, in pixels of a 600-wide
+// canvas; the phone flow below needs no coordinates. The pipeline runs along
+// the top row; the readers sit under it on the left, each with its own line
+// across to search, which is as tall as the readers' rows together.
+const H = 76;
+const gap = 12;
 const band = $derived(
-  server || cards.length ? Math.max(server ? 40 + H : 0, 40 + cards.length * (H + 14)) + 40 : 0,
+  server || cards.length ? Math.max(server ? 40 + H : 0, 40 + cards.length * (H + 14)) + 16 : 0,
 );
 const top = $derived(band ? band + 20 : 0);
 const at = $derived.by(() => {
-  const spots: Partial<Record<PlaceId, { x: number; y: number; w: number }>> = {
-    server: { x: 230, y: 40, w: 200 },
-    serverSearch: { x: 470, y: 40, w: 190 },
-    histories: { x: 0, y: top + 40, w: 170 },
-    indexing: { x: 215, y: top + 40, w: 190 },
-    sqlite: { x: 450, y: top + 40, w: 210 },
-    search: { x: 450, y: top + 160, w: 210 },
-    mcp: { x: 0, y: top + 280, w: 170 },
-    dashboard: { x: 215, y: top + 280, w: 190 },
+  const row = top + (band ? 40 : 0);
+  const below = row + H + 56;
+  const spots: Partial<Record<PlaceId, Spot>> = {
+    server: { x: 218, y: 40, w: 164, h: H },
+    serverSearch: { x: 436, y: 40, w: 164, h: H },
+    histories: { x: 0, y: row, w: 164, h: H },
+    indexing: { x: 218, y: row, w: 164, h: H },
+    sqlite: { x: 436, y: row, w: 164, h: H },
+    search: { x: 436, y: below, w: 164, h: Math.max(1, readers.length) * (H + gap) - gap },
   };
+  readers.forEach((reader, index) => {
+    spots[reader] = { x: 0, y: below + index * (H + gap), w: 164, h: H };
+  });
   return spots;
 });
-const height = $derived(top + (readers.length ? 280 + H : places.has("search") ? 160 + H : 40 + H) + 24);
-const other = (index: number) => ({ x: 0, y: 40 + index * (H + 14), w: 170 });
+const height = $derived(
+  (at.search ? at.search.y + at.search.h : (at.sqlite?.y ?? top) + H) + (band ? 16 : 0),
+);
+const other = (index: number): Spot => ({ x: 0, y: 40 + index * (H + 14), w: 164, h: H });
 
 type Point = [number, number];
+type Spot = { x: number; y: number; w: number; h: number };
 /** The path of a connection between two places, and where its label goes. */
 function route(edge: Edge): { points: Point[]; label: Point; middle?: boolean } | null {
   const a = at[edge.from],
@@ -95,39 +95,31 @@ function route(edge: Edge): { points: Point[]; label: Point; middle?: boolean } 
   if (!a || !b) return null;
   if (edge.to === "server") {
     const from: Point = [a.x + a.w / 2, a.y],
-      to: Point = [b.x + b.w / 2, b.y + H],
+      to: Point = [b.x + b.w / 2, b.y + b.h],
       mid = (from[1] + to[1]) / 2;
     return { points: [from, [from[0], mid], [to[0], mid], to], label: [to[0] + 8, mid - 6] };
   }
-  if (a.y === b.y) {
-    const y = a.y + H / 2;
+  // Side by side, at the height of the place the line starts from: the
+  // pipeline's steps, and each reader beside the tall search box.
+  if (a.y + a.h <= b.y + b.h && a.y >= b.y) {
+    const y = a.y + a.h / 2;
     return {
       points: [[a.x + a.w, y], [b.x, y]],
       label: [(a.x + a.w + b.x) / 2, y - 8],
       middle: true,
     };
   }
-  if (edge.from === "sqlite")
-    return {
-      points: [[a.x + a.w / 2, a.y + H], [b.x + b.w / 2, b.y]],
-      label: [a.x + a.w / 2 + 8, (a.y + H + b.y) / 2 + 4],
-    };
-  // A reader joins a shared line under search.
-  const join = b.y + H + 28,
-    x = a.x + a.w / 2;
   return {
-    points: [[x, a.y], [x, join], [b.x + b.w / 2, join], [b.x + b.w / 2, b.y + H]],
-    label: [b.x + b.w / 2 + 8, join - 6],
+    points: [[a.x + a.w / 2, a.y + a.h], [b.x + b.w / 2, b.y]],
+    label: [a.x + a.w / 2 + 8, (a.y + a.h + b.y) / 2 + 4],
   };
 }
 const routes = $derived(map.edges.flatMap((edge) => {
   const path = route(edge);
   return path ? [{ edge, ...path }] : [];
 }));
-const verbLabels = $derived(
-  // A shared line carries its verb once.
-  routes.filter((path, index) => routes.findIndex((other) => other.edge.verb === path.edge.verb && other.edge.to === path.edge.to) === index),
-);
+// Every line has its own label; none are shared.
+const verbLabels = $derived(routes);
 function statusText(place: Place): string {
   if (place.id === "server" && report.kind === "reported") {
     const count = report.machines.filter((machine) => !machine.removed).length;
@@ -146,49 +138,17 @@ const verbText = (edge: Edge) =>
   edge.to === "server" ? publishVerb(edge.verb, ownPublish, now) : edge.verb;
 </script>
 
-{#snippet node(place: Place, flow = false)}
-  {@const Icon = placeIcon[place.id]}
-  <a
-    class="node {tone(place.state)}"
-    class:affected={!!place.affectedBy}
-    class:sel={selected === place.id}
-    class:flow
-    href={placeHref(id, place.id)}
-    aria-current={selected === place.id ? "true" : undefined}
-  >
-    <Icon size={17} aria-hidden="true" />
-    <span class="nt"><strong>{place.label}</strong><small title={statusText(place)}>{#if place.state !== null}<i class="dot {tone(place.state)}" aria-hidden="true"></i>{/if}<span>{statusText(place)}</span></small></span>
-  </a>
-{/snippet}
-{#snippet cardBody(card: Card)}
-  <Laptop size={16} aria-hidden="true" />
-  <span class="nt">
-    <strong>{card.id}</strong>
-    {#if card.fleet}<small><i class="dot {cardTone(card)}" aria-hidden="true"></i><span>{cardHealth(card)}</span></small>{/if}
-    {#if card.reported}
-      {@const stale = staleWords(card.reported, now)}
-      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}>{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
-    {:else if !card.fleet}<small>Not reported</small>{/if}
-  </span>
-{/snippet}
-{#snippet machineCard(card: Card, flow = false)}
-  {#if card.fleet}
-    <a class="node small {cardTone(card)}" class:flow href={placeHref(card.id)}>{@render cardBody(card)}</a>
-  {:else}
-    <div class="node small neutral" class:flow>{@render cardBody(card)}</div>
-  {/if}
-{/snippet}
 
 <section class="card pad0 smap" aria-label="How your services connect">
-  <header class="smap-h"><strong>How your services connect</strong><span class="meta">{id}{cards.length ? ` · ${cards.length + 1} machines` : ""}</span></header>
+  <header class="smap-h"><h2>How your services connect</h2><span class="meta">This machine · {id}{cards.length ? ` · ${cards.length + 1} machines` : ""}</span></header>
   <!-- Desktop: the map. -->
   <div class="canvas-wrap">
     <div class="canvas" style:height="{height}px">
       {#if band}
         <div class="band" style:top="0px" style:height="{band}px"><span class="band-l">{server ? "Shared server" : "Other machines"}{#if server}<span class="meta">&nbsp;· {shared}</span>{/if}</span></div>
       {/if}
-      <div class="band" style:top="{top}px" style:height="{height - top - 8}px"><span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span></div>
-      <svg class="edges" width="660" height={height} aria-hidden="true">
+      {#if band}<div class="band" style:top="{top}px" style:height="{height - top - 8}px"><span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span></div>{/if}
+      <svg class="edges" width="600" height={height} aria-hidden="true">
         <defs>
           <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" class="arrowhead" /></marker>
         </defs>
@@ -198,7 +158,7 @@ const verbText = (edge: Edge) =>
         {#each cards as entry, index (entry.id)}
           {#if server && publishes(entry)}
             {@const card = other(index)}
-            <polyline class="edge ok" points="{card.w},{card.y + H / 2} {card.w + 30},{card.y + H / 2} {card.w + 30},{40 + H / 2} 230,{40 + H / 2}" marker-end="url(#arrow)" />
+            <polyline class="edge ok" points="{card.w},{card.y + H / 2} {card.w + 30},{card.y + H / 2} {card.w + 30},{40 + H / 2} 218,{40 + H / 2}" marker-end="url(#arrow)" />
           {/if}
         {/each}
         {#each verbLabels as path (`${path.edge.from}>${path.edge.to}`)}
@@ -207,11 +167,11 @@ const verbText = (edge: Edge) =>
       </svg>
       {#each cards as entry, index (entry.id)}
         {@const card = other(index)}
-        <div class="spot" style:left="{card.x}px" style:top="{card.y}px" style:width="{card.w}px">{@render machineCard(entry)}</div>
+        <div class="spot" style:left="{card.x}px" style:top="{card.y}px" style:width="{card.w}px" style:height="{card.h}px"><MapNode card={entry} {now} spot /></div>
       {/each}
       {#each [...places.values()] as place (place.id)}
         {@const spot = at[place.id]}
-        {#if spot}<div class="spot" style:left="{spot.x}px" style:top="{spot.y}px" style:width="{spot.w}px">{@render node(place)}</div>{/if}
+        {#if spot}<div class="spot" style:left="{spot.x}px" style:top="{spot.y}px" style:width="{spot.w}px" style:height="{spot.h}px"><MapNode {place} href={placeHref(id, place.id)} selected={selected === place.id} status={statusText(place)} {now} spot /></div>{/if}
       {/each}
     </div>
   </div>
@@ -220,27 +180,28 @@ const verbText = (edge: Edge) =>
     {#if server || cards.length}
       <li class="flow-group">
         <span class="band-l">{server ? "Shared server" : "Other machines"}{#if server}<span class="meta">&nbsp;· {shared}</span>{/if}</span>
-        {#if server}{@render node(server, true)}{/if}
+        {#if server}<MapNode place={server} href={placeHref(id, "server")} selected={selected === "server"} status={statusText(server)} {now} />{/if}
         {#if serverSearch}
           <span class="link {map.edges.find((edge) => edge.to === 'serverSearch')?.state ?? 'ok'}">builds</span>
-          {@render node(serverSearch, true)}
+          <MapNode place={serverSearch} href={placeHref(id, "serverSearch")} selected={selected === "serverSearch"} status={statusText(serverSearch)} {now} />
         {/if}
-        {#if cards.length}<p class="also">Also publishing here</p><div class="flow-pair">{#each cards as entry (entry.id)}{@render machineCard(entry, true)}{/each}</div>{/if}
+        {#if cards.length}<p class="also">Also publishing here</p><div class="flow-pair">{#each cards as entry (entry.id)}<MapNode card={entry} {now} />{/each}</div>{/if}
       </li>
       {#if server}{@const publish = map.edges.find((edge) => edge.to === "server")}<li class="link {publish?.state ?? 'ok'}">{id} {publish ? verbText(publish) : "publishes"} ↑</li>{/if}
     {/if}
-    <li class="flow-group">
-      <span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span>
+    <!-- Alone, this machine needs no band: the header already names it. -->
+    <li class="flow-group" class:plain={!server && !cards.length}>
+      {#if server || cards.length}<span class="band-l">This machine<span class="meta">&nbsp;· {id}</span></span>{/if}
       {#each (["histories", "indexing", "sqlite", "search"] as const).filter((step) => places.has(step)) as step, index (step)}
         {@const into = map.edges.find((edge) => edge.to === step && edge.from !== "mcp" && edge.from !== "dashboard")}
         {#if index && into}<span class="link {into.state}">{into.verb}</span>{/if}
         {@const place = places.get(step)}
-        {#if place}{@render node(place, true)}{/if}
+        {#if place}<MapNode {place} href={placeHref(id, place.id)} selected={selected === place.id} status={statusText(place)} {now} />{/if}
       {/each}
       {#if readers.length}
         {@const reads = map.edges.find((edge) => edge.from === readers[0])}
         <span class="link up {reads?.state ?? 'ok'}">searched by</span>
-        <div class="flow-pair">{#each readers as reader (reader)}{@const place = places.get(reader)}{#if place}{@render node(place, true)}{/if}{/each}</div>
+        <div class="flow-pair">{#each readers as reader (reader)}{@const place = places.get(reader)}{#if place}<MapNode {place} href={placeHref(id, place.id)} selected={selected === place.id} status={statusText(place)} {now} />{/if}{/each}</div>
       {/if}
     </li>
   </ol>
@@ -261,17 +222,28 @@ const verbText = (edge: Edge) =>
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 4px 12px;
-    padding: 12px 16px;
-    border-bottom: var(--border-strong);
-    background: var(--surface-muted);
+    align-items: center;
+    min-height: 46px;
+    padding: 10px 18px;
+    border-bottom: var(--border-divider);
+  }
+  .smap-h h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .smap-h .meta {
+    color: var(--text-faint);
+    font-size: 12px;
   }
   .canvas-wrap {
     overflow-x: auto;
-    padding: 18px 16px 8px;
+    padding: 20px 18px;
   }
   .canvas {
     position: relative;
-    width: 660px;
+    width: 600px;
     margin: 0 auto;
   }
   .band {
@@ -295,8 +267,8 @@ const verbText = (edge: Edge) =>
   }
   .edge {
     fill: none;
-    stroke: var(--line-ink);
-    stroke-width: 1.5;
+    stroke: var(--text-faint);
+    stroke-width: 1;
   }
   .edge.broken {
     stroke: var(--status-bad);
@@ -307,11 +279,11 @@ const verbText = (edge: Edge) =>
     stroke-dasharray: 5 4;
   }
   .arrowhead {
-    fill: var(--line-ink);
+    fill: var(--text-faint);
   }
   .edge-l {
-    font: 700 12px var(--type-sans);
-    fill: var(--text-muted);
+    font: 400 11px var(--type-sans);
+    fill: var(--text-faint);
   }
   .edge-l.broken {
     fill: var(--status-bad-text);
@@ -319,93 +291,18 @@ const verbText = (edge: Edge) =>
   .spot {
     position: absolute;
   }
-  /* On the map every box has the height the connectors are drawn for. A long
-     name wraps to a second line rather than being cut. */
-  .spot .node {
-    height: 84px;
-    overflow: hidden;
-    padding: 8px 12px;
+  /* The legend's shapes: a square needs attention, a diamond failed, so the
+     state reads without its colour. */
+  .smap .dot {
+    width: 8px;
+    height: 8px;
   }
-  .spot .nt strong {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: 14px;
-    line-height: 1.2;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+  .smap .dot.warn {
+    border-radius: var(--radius-1);
   }
-  .spot .nt small > span {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-  }
-  .node {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 64px;
-    padding: 10px 12px;
-    border: var(--border-strong);
-    border-radius: var(--radius-6);
-    background: var(--surface-raised);
-    color: var(--text-strong);
-    text-decoration: none;
-  }
-  .node:hover {
-    background: var(--surface-hover);
-  }
-  .node:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-  .node.small {
-    min-height: 56px;
-  }
-  .node.warn,
-  .node.bad {
-    background: var(--status-warn-bg);
-  }
-  .node.bad {
-    background: var(--status-bad-bg);
-  }
-  .node.unknown,
-  .node.affected {
-    border-style: dashed;
-  }
-  .node.sel {
-    outline: 3px solid var(--line-ink);
-    outline-offset: 3px;
-  }
-  .node.sel.ok {
-    background: var(--selected-surface);
-  }
-  .nt {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-  .nt small {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    color: var(--text-body);
-    font-size: 12.5px;
-    overflow-wrap: anywhere;
-  }
-  .nt small .dot {
-    transform: translateY(1px);
-  }
-  .dot.ok {
-    color: var(--status-ok-dot);
-  }
-  .dot.unknown,
-  .dot.neutral {
-    background: transparent;
-    border-color: var(--text-muted);
+  .smap .dot.bad {
+    border-radius: 0;
+    transform: rotate(45deg) scale(0.85);
   }
   .flow-list,
   .sr-only {
@@ -424,23 +321,9 @@ const verbText = (edge: Edge) =>
     border-radius: var(--radius-7);
     background: var(--surface-muted);
   }
-  .spot .small .nt small,
-  .spot .small .nt strong {
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
-  .spot .small .nt small > span {
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
-  .pub {
-    color: var(--text-muted);
-  }
-  .stale {
-    align-self: flex-start;
-    height: 18px;
-    margin-top: 2px;
-    font-size: 11px;
+  .flow-group.plain {
+    padding: 0;
+    background: transparent;
   }
   .also {
     margin: 12px 0 6px;
@@ -476,8 +359,10 @@ const verbText = (edge: Edge) =>
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
-    padding: 10px 16px;
+    padding: 12px 18px;
     border-top: var(--border-divider);
+    color: var(--text-muted);
+    font-size: 12px;
   }
   .legend span {
     display: inline-flex;

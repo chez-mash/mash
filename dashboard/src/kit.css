@@ -163,24 +163,30 @@ a.chatrow:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 40px 24px;
   text-align: center;
 }
+/* The whole page's own state keeps a page-sized heading. */
+.empty > h1.empty-h {
+  font-size: 20px;
+}
 .empty > img {
-  width: 96px;
-  height: 87px;
+  width: 64px;
+  height: 58px;
+  margin-bottom: 4px;
 }
 .empty > .empty-h,
 .empty > h2 {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   color: var(--text-strong);
 }
 .empty > p {
   max-width: 46ch;
   color: var(--text-body);
+  font-size: 14px;
 }
 
 .ico {
@@ -272,26 +278,42 @@ input.radio:checked {
   line-height: 1.5;
 }
 
-/* Something could not be read: a red card with what failed, why, and a retry. */
+/* Something could not be read: a red card with what failed, why, and a retry,
+   in one line where the content would have been. */
 .loaderr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 26px 24px;
-  text-align: center;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  padding: 14px 16px;
   overflow-wrap: anywhere;
 }
-.loaderr > strong {
-  font-size: 20px;
+.loaderr-mark {
+  margin-top: 1px;
+  color: var(--status-bad);
+}
+.loaderr strong {
+  display: block;
+  color: var(--text-strong);
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.025em;
 }
-.loaderr > p {
-  max-width: 52ch;
+.loaderr p {
+  margin-top: 2px;
+  max-width: 64ch;
+  color: var(--text-body);
+  font-size: 13.5px;
 }
-.loaderr .ico {
-  background: var(--surface-raised);
+/* On a narrow card the retry goes under the words. */
+@container (max-width: 480px) {
+  .loaderr {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .loaderr > .btn {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 6px;
+  }
 }
 /* A plain box on a tinted card is raised, like any other control. */
 .card:is(.butter, .bad, .warn, .ok) :is(.btn:not(.p), .ico) {
@@ -337,20 +359,15 @@ input.radio:checked {
 .xcols > .c-side {
   gap: 14px;
 }
-/* In one column the format comes first and the export is a bar held at the
- * bottom of the screen, so a phone reaches both from anywhere in the list. */
+/* In one column the format and the export come first, above the list, so a
+ * phone reaches the export without a bar pinned to the bottom of the screen. */
 @container (max-width: 759px) {
-  .xcols > .c-side {
+  .xcols > .c-side,
+  .xcols > .xact {
     order: -1;
   }
   .xcols > .xact {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
     flex: 1 1 100%;
-    padding: 12px 16px;
-    border-radius: var(--radius-6) var(--radius-6) 0 0;
-    box-shadow: var(--shadow-float);
   }
 }
 /* A choice drawn as a card: the radio, an icon tile, a name over a line. */
@@ -362,9 +379,13 @@ input.radio:checked {
 .card.pick {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 14px 16px;
   cursor: pointer;
+}
+/* The chosen format keeps a butter edge, as a chosen filter chip does. */
+.card.pick.butter {
+  border-color: var(--chip-on-line);
 }
 .card.pick:hover:not(.butter) {
   background: var(--surface-hover);
@@ -380,7 +401,9 @@ input.radio:checked {
   margin-top: 2px;
 }
 .card.pick b {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   color: var(--text-strong);
 }
@@ -394,6 +417,16 @@ input.radio:checked {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.xact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.xact-l {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
 }
 
 /* A button with no outline until it is pointed at, for quiet row actions. */
@@ -714,7 +747,7 @@ a.card.sum:hover {
   min-height: 34px;
   padding: 0 13px;
   border: var(--border-strong);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-5);
   background: var(--surface-field);
   color: var(--text-muted);
 }
@@ -747,15 +780,15 @@ a.card.sum:hover {
   }
 }
 /* The services map with its details beside it once both fit; the map needs
-   about 700px, the details 300px. */
+   about 640px, the details 260px. */
 .cols.map-side {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
-@container (min-width: 1000px) {
+@container (min-width: 900px) {
   .cols.map-side {
-    grid-template-columns: minmax(0, 1fr) 300px;
-    column-gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    column-gap: 20px;
   }
 }
 .g3 {
@@ -1060,11 +1093,22 @@ a.lrow:hover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  min-height: 160px;
+  gap: 6px;
+  padding: 14px;
   font-size: 12.5px;
   line-height: 1.5;
-  color: var(--text-body);
+  color: var(--text-muted);
+}
+.card.opc > .ico {
+  margin-bottom: 8px;
+}
+.opc-off {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 6px;
 }
 .card.opc > b {
   font-size: 14px;
@@ -1077,7 +1121,15 @@ a.card.opc:hover {
 }
 .card.opc.off {
   border-color: var(--line-divider);
+  background: var(--surface-muted);
+  box-shadow: none;
   color: var(--text-muted);
+}
+.card.opc.off .pill {
+  border-color: transparent;
+  background: var(--selected-soft-bg);
+  color: var(--text-muted);
+  font-weight: 500;
 }
 .card.opc.off > :is(b, .ico) {
   color: var(--text-muted);

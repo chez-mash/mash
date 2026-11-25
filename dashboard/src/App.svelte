@@ -193,9 +193,11 @@ function skip(event: MouseEvent): void {
     <QuickSearch />
   {:else}
   <a class="skip" href="#main" onclick={skip}>Skip to content</a>
+  <!-- The top bar runs across the screen; the rail and the page sit under it. -->
+  <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
+  <div id="frame">
   <Rail open={railOpen} close={() => (railOpen = false)} />
   <div id="col" inert={railOpen}>
-    <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
     <main id="main" class:narrow={narrow} tabindex="-1">
       {#if searchParams !== null}
         <div class="stack" hidden={route.page !== "search"}>
@@ -260,6 +262,7 @@ function skip(event: MouseEvent): void {
         <Missing />
       {/if}
     </main>
+  </div>
   </div>
   <!-- The drawer's own button and Escape close it for keyboards and screen readers. -->
   {#if railOpen}<div id="scrim" aria-hidden="true" onclick={() => (railOpen = false)}></div>{/if}

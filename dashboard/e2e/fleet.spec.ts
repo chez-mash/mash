@@ -10,7 +10,7 @@ for (const width of [390, 1280]) {
     let submitted: FleetRequest | null = null;
     const action = width === 390 ? "status" : "watch-start";
     const label = width === 390 ? "Check machines" : "Set up and start watchers";
-    const group = width === 390 ? "check" : "watchers";
+    const group = width === 390 ? "Check" : "Watchers";
     const readOnly = action === "status";
     await page.route("**/api/**", async (route) => {
       const request = route.request();

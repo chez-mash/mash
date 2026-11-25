@@ -56,9 +56,9 @@ test("a pinned project comes first on the projects page and in the sidebar", asy
     "aria-pressed",
     "true",
   );
-  // On the projects page the sidebar's projects section is already open.
+  // The rail lists pinned projects first under its projects heading.
   const first = rail(page)
-    .locator("a.sub")
+    .locator(".nav-row a")
     .filter({ hasText: /docs|billing|storefront/ })
     .first();
   await expect(first).toHaveText("docs");
@@ -79,7 +79,7 @@ test("a hidden project leaves the project lists until it is shown again", async 
   expect(saved.at(-1)).toEqual({ pinned: [], hidden: ["/home/sam/code/billing"] });
   await expect(page.locator(".sums .card.sum")).toHaveCount(2);
   await expect(cards(page)).toHaveText("storefront");
-  await expect(rail(page).locator("a.sub").filter({ hasText: "billing" })).toHaveCount(0);
+  await expect(rail(page).locator(".nav-row a").filter({ hasText: "billing" })).toHaveCount(0);
   // Its chats are still listed and searchable.
   await page.goto("/#/search");
   await expect(page.getByText("Work on billing")).toBeVisible();

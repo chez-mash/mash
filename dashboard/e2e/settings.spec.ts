@@ -134,7 +134,7 @@ for (const [state, action, link] of [
     if (state === "unreachable") {
       await expect(page.getByRole("link", { name: "Set up Mash here" })).toBeVisible();
     }
-    await expect(page.getByText("messages eligible for search", { exact: true })).toBeVisible();
+    await expect(page.getByText("Messages eligible for search", { exact: true })).toBeVisible();
     expect(await fitsViewport(page)).toBe(true);
   });
 }
@@ -312,7 +312,7 @@ test("Mashy's link to settings opens at the assistant section", async ({ page })
   await mock(page, settings, []);
   await page.goto("/#/settings?section=assistant");
   await expect(page.getByRole("button", { name: "Turn on Mashy" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Assistant" })).toBeInViewport();
+  await expect(page.getByRole("heading", { name: "Models and Mashy" })).toBeInViewport();
 });
 
 test("another service needs its address and model before Mashy can be turned on", async ({
@@ -361,7 +361,8 @@ test("a read-only dashboard names the file to edit, with a copy button and guide
       .evaluate((node) => node.querySelectorAll("wbr").length),
   ).toBeGreaterThan(0);
   // Settings use the same width as the other list pages: the page's whole
-  // content width, inside the room kept for the floating controls.
+  // content width, inside the room kept for the floating controls, with the
+  // sections' names listed beside them.
   const main = await page.locator("#main").evaluate((element) => {
     const style = getComputedStyle(element);
     return (
@@ -370,7 +371,7 @@ test("a read-only dashboard names the file to edit, with a copy button and guide
       Number.parseFloat(style.paddingRight)
     );
   });
-  const section = await page.locator("#main > .sec").first().boundingBox();
+  const section = await page.locator("#main .set-layout").first().boundingBox();
   expect(Math.round(section?.width ?? 0)).toBeGreaterThan(Math.round(main * 0.9));
 });
 
@@ -391,7 +392,7 @@ test("read-only settings line up: paths break only after slashes and cards fill 
   );
   expect(before.length).toBeGreaterThan(0);
   expect(before.every((last) => last === "/" || last === "\\")).toBe(true);
-  // Indexing and privacy share a row and its height: no hole under the shorter one.
+  // Sections stack in one column, each card as wide as the others.
   const card = (name: string) =>
     page
       .locator("section.sec")
@@ -400,10 +401,11 @@ test("read-only settings line up: paths break only after slashes and cards fill 
       .first()
       .boundingBox();
   const [indexing, privacy] = await Promise.all([card("Indexing"), card("Privacy")]);
-  expect(Math.round(indexing?.y ?? 0)).toBe(Math.round(privacy?.y ?? 1));
-  expect(Math.round(indexing?.height ?? 0)).toBe(Math.round(privacy?.height ?? 1));
+  expect(Math.round(indexing?.x ?? 0)).toBe(Math.round(privacy?.x ?? 1));
+  expect(Math.round(indexing?.width ?? 0)).toBe(Math.round(privacy?.width ?? 1));
+  expect(indexing?.y ?? 0).toBeLessThan(privacy?.y ?? 0);
   // Mashy's state sits at the end of its row, like the privacy settings.
-  const mashy = page.locator(".mashy-card .kvs");
+  const mashy = page.locator(".set-mashy .set-row").first();
   const row = await mashy.boundingBox();
   const state = await mashy.getByRole("definition").first().boundingBox();
   expect((row?.x ?? 0) + (row?.width ?? 0) - ((state?.x ?? 0) + (state?.width ?? 0))).toBeLessThan(

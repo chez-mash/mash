@@ -1,16 +1,19 @@
 <script lang="ts">
+import Plus from "@lucide/svelte/icons/plus";
 import { createQuery } from "@tanstack/svelte-query";
-import { agents as agentInfo } from "../lib/agents";
+import { isAgent } from "../lib/api";
 import { asset } from "../lib/asset";
-import { groupChats, whenLabel } from "../lib/browse";
+import { groupChats } from "../lib/browse";
 import { catalogOptions } from "../lib/queries";
-import { agentHref, machineHref } from "../lib/route.svelte";
-import { scope } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
+import { serviceAccessOptions, serviceOptions } from "../lib/services.svelte";
+import { settingsOptions } from "../lib/settings";
 import { statusOptions } from "../lib/status";
-import AgentMark from "./AgentMark.svelte";
-import MachineDot from "./MachineDot.svelte";
-import MachineIcon from "./MachineIcon.svelte";
+import type { Agent } from "../lib/types";
+import AgentCard from "./AgentCard.svelte";
+import AgentSetupList from "./AgentSetupList.svelte";
+import MachineCard from "./MachineCard.svelte";
+import MachinesServer from "./MachinesServer.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -33,8 +36,37 @@ const local = $derived(catalogue.data?.localNode ?? "");
 const status = createQuery(() => ({ ...statusOptions, enabled: field === "machine" }));
 const server = $derived(status.data?.configuration.shared?.url ?? "");
 const others = $derived(groups.map((group) => group.key).filter((key) => key !== local));
+// This machine's settings say which agents it indexes and where it finds
+// their history; an agent set up here with no chats yet still gets a card.
+const settings = createQuery(() => ({ ...settingsOptions, enabled: field === "agent" }));
+const setting = (agent: Agent) => settings.data?.agents.find((row) => row.agent === agent);
+const agentCards = $derived.by(() => {
+  const seen = groups.flatMap((group) =>
+    isAgent(group.key)
+      ? [
+          {
+            agent: group.key,
+            chats: group.chats.length,
+            latestMs: group.latestMs as number | undefined,
+            machines: group.machines.map(([machine]) => machine),
+          },
+        ]
+      : [],
+  );
+  const idle = (settings.data?.agents ?? [])
+    .filter((row) => !seen.some((card) => card.agent === row.agent))
+    .map((row) => ({ agent: row.agent, chats: 0, latestMs: undefined, machines: [] }));
+  return [...seen, ...idle];
+});
+const machineCount = $derived(new Set(chats.map((chat) => chat.machine)).size);
+// The setup list is this machine's own, read from its service check.
+const access = createQuery(() => ({ ...serviceAccessOptions, enabled: field === "agent" }));
+const fleet = createQuery(() => serviceOptions(field === "agent" && access.data !== undefined));
+const own = $derived(access.data?.localNode ?? "");
+const reachable = $derived(
+  fleet.data?.some((machine) => machine.id === own && machine.reachable) ?? false,
+);
 const now = Date.now();
-const MARKS = 4;
 function plural(count: number, word: string): string {
   return `${count.toLocaleString()} ${word}${count === 1 ? "" : "s"}`;
 }
@@ -47,40 +79,65 @@ function host(url: string): string {
 }
 </script>
 
-<div>
-  <h1 class="h1">{field === "agent" ? "Agents" : "Machines"}</h1>
-  <p class="meta">{chats.length.toLocaleString()} chats {field === "agent" ? "from" : "on"} {plural(groups.length, field)}</p>
+{#if field === "agent"}
+  <header class="bt-h">
+    <div>
+      <h1 class="h1">Agents</h1>
+      <p class="meta">{plural(chats.length, "chat")} from {plural(groups.length, "agent")}{machineCount > 1 ? ` on ${plural(machineCount, "machine")}` : ""}. Mash reads the history each agent already keeps.</p>
+    </div>
+    {#if own && own === local && settings.data?.editable}<a class="btn p" href="#/setup"><Plus size={15} aria-hidden="true" />Connect an agent</a>{/if}
+  </header>
   {#if scoped}<ScopeNote {scoped} />{/if}
-</div>
+{:else}
+  <header class="bt-h">
+    <div><h1 class="h1">Machines</h1><p class="meta">{plural(chats.length, "chat")} on {plural(groups.length, field)}</p></div>
+  </header>
+{/if}
 <QueryError title="Couldn’t load chats" query={catalogue} />
 {#if catalogue.isPending}<Skeleton rows={4} />{/if}
-<div class="sums">
-  {#each groups as group (group.key)}
-    {@const agent = group.chats[0]?.agent}
-    {@const named = group.projects.filter(([name]) => name).length}
-    <a class="card sum" href={field === "agent" ? agentHref(group.key) : machineHref(group.key)}>
-      <span class="sum-h">
-        {#if field === "agent" && agent}<AgentMark {agent} size="lg" /><b>{agentInfo[agent].name}</b>
-        {:else}<span class="ico lg machines"><MachineIcon machine={group.key} /></span><b>{group.key}</b><MachineDot machine={group.key} />{#if group.key === local}<span class="pill">this machine</span>{/if}{/if}
-      </span>
-      <span class="big"><b>{group.chats.length.toLocaleString()}</b><span>chat{group.chats.length === 1 ? "" : "s"}</span></span>
-      <span class="bar"><i style:width="{Math.max(2, Math.round((group.chats.length / Math.max(1, chats.length)) * 100))}%"></i></span>
-      {#if field === "agent"}
-        <span class="sum-f">
-          {#each group.machines as [machine] (machine)}<span class="mchip"><MachineIcon {machine} size={13} />{machine}</span>{/each}
-          <span class="sp">{whenLabel(group.latestMs, now)}</span>
-        </span>
-      {:else}
-        <span class="marks">
-          {#each group.agents.slice(0, MARKS) as [name] (name)}<AgentMark agent={name} size="sm" />{/each}
-          {#if group.agents.length > MARKS}<small aria-label="{group.agents.length - MARKS} more agents">+{group.agents.length - MARKS}</small>{/if}
-        </span>
-        <hr class="dash" />
-        <span class="sum-f"><span>{plural(named, "project")}</span><span class="sp">{whenLabel(group.latestMs, now)}</span></span>
-      {/if}
-    </a>
-  {/each}
-</div>
-{#if field === "machine" && server && others.length}
-  <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>Chats from {#each others as name, index (name)}{index ? (index === others.length - 1 ? " and " : ", ") : ""}<b>{name}</b>{/each} arrive through your shared server, <code>{host(server)}</code>.</span></p>
+{#if field === "agent"}
+  <div class="bt-g">
+    {#each agentCards as card (card.agent)}
+      <AgentCard {...card} total={chats.length} setting={setting(card.agent)} {now} />
+    {/each}
+  </div>
+  {#if own && reachable}
+    <AgentSetupList machineId={own} enabled title="Agent setup on {own}" note="Connection lets an agent search Mash; the plugin and skill teach it when to." />
+  {/if}
+{:else}
+  <MachinesServer />
+  {#if groups.length}
+    <div class="sec">
+      <h2 class="bt-l">Machines</h2>
+      <div class="bt-g">
+        {#each groups as group (group.key)}<MachineCard {group} {local} />{/each}
+      </div>
+    </div>
+  {/if}
+  {#if server && others.length}
+    <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>Chats from {#each others as name, index (name)}{index ? (index === others.length - 1 ? " and " : ", ") : ""}<b>{name}</b>{/each} arrive through your shared server, <code>{host(server)}</code>.</span></p>
+  {/if}
 {/if}
+
+<style>
+  .bt-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 20px;
+  }
+  .bt-h .meta {
+    margin-top: 6px;
+  }
+  .bt-g {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: 13px;
+  }
+  .bt-l {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+</style>

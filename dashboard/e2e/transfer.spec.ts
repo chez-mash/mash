@@ -55,7 +55,7 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 850 });
     const read = await mockHistory(page);
     await page.goto("/#/");
-    await followRail(page, "Export chats", "Chats");
+    await followRail(page, "Export");
     await expect(page).toHaveURL(/#\/export$/);
     const main = page.getByRole("main");
     const status = main.getByRole("status").first();
@@ -78,9 +78,9 @@ for (const width of [390, 1280]) {
     await main.getByRole("link", { name: "Next" }).click();
     await expect(main.getByRole("navigation", { name: "Pages" })).toContainText("11–20 of 30");
     await main.getByRole("link", { name: "Previous" }).click();
-    await expect(main.getByRole("button", { name: /^Include Conversation 1$/ })).toBeVisible();
+    await expect(main.getByRole("button", { name: /^Put back Conversation 1$/ })).toBeVisible();
     await main.getByRole("button", { name: "show them" }).click();
-    await expect(main.getByRole("button", { name: /^(Leave out|Include) / })).toHaveCount(1);
+    await expect(main.getByRole("button", { name: /^(Leave out|Put back) / })).toHaveCount(1);
     await main.getByRole("button", { name: "show all" }).click();
 
     await main.getByRole("radio", { name: /JSON/ }).check();
@@ -136,7 +136,7 @@ test("choosing a Mash archive puts the filters and the chat list away", async ({
   await expect(main.getByRole("group", { name: "Filters" })).toBeVisible();
 });
 
-test("on a phone the export stays in reach at the bottom and its controls are large enough to tap", async ({
+test("on a phone the export comes before the list and its controls are large enough to tap", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -152,14 +152,15 @@ test("on a phone the export stays in reach at the bottom and its controls are la
   const format = await main.getByRole("radiogroup", { name: "What to make" }).boundingBox();
   const list = await main.getByRole("region", { name: "Chats to export" }).boundingBox();
   expect(format?.y ?? 0).toBeLessThan(list?.y ?? 0);
-  // Leaving out a chat down the list, the export is held at the screen's foot.
+  // The export sits above the list rather than in a bar pinned to the screen's foot.
   const chat = main.getByRole("button", { name: /^Leave out Conversation 5$/ });
   await chat.scrollIntoViewIfNeeded();
   await chat.click();
   const bar = main.getByRole("region", { name: "Export", exact: true });
-  await expect(bar.getByRole("button", { name: "Export 59 chats" })).toBeInViewport();
+  await expect(bar.getByRole("button", { name: "Export 59 chats" })).toBeVisible();
   const box = await bar.boundingBox();
-  expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(844);
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThan(list?.y ?? 0);
+  expect(await bar.evaluate((node) => getComputedStyle(node).position)).toBe("static");
   for (const target of [
     main.getByRole("button", { name: /^Leave out Conversation 8$/ }),
     main.getByRole("link", { name: "Next" }),

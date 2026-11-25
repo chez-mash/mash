@@ -50,24 +50,30 @@ function close(): void {
       <a class="btn icon" href={open.downloadUrl ?? open.url} download={open.name} aria-label="Download {open.name}" title="Download"><Download size={15} aria-hidden="true" /></a>
       <button type="button" class="btn icon" onclick={close} aria-label="Close" title="Close"><X size={15} aria-hidden="true" /></button>
     </div>
-    <img src={open.url} alt={open.name} />
+    <div class="viewbody"><img src={open.url} alt={open.name} /></div>
   </dialog>
 {/if}
 
 <style>
+/* Pictures as rounded thumbnails, kept files as raised cards with their
+   download, and files Mash did not keep as quieter cards saying why. */
 .atts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.thumb { display: block; padding: 0; border: var(--border-outline); border-radius: var(--radius-5); overflow: hidden; background: var(--surface-raised); cursor: zoom-in; max-width: min(320px, 100%); }
-.thumb:hover { border-color: var(--line-strong); }
+.thumb { display: block; padding: 0; border: 0; border-radius: var(--radius-7); box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline); overflow: hidden; background: var(--surface-muted); cursor: zoom-in; max-width: min(320px, 100%); }
+.thumb:hover { box-shadow: 0 0 0 var(--stroke-outline) var(--line-strong); }
 .thumb img { display: block; height: auto; max-height: 180px; max-width: 100%; object-fit: contain; }
-.file { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: min(360px, 100%); font-size: 13.5px; line-height: 1.35; color: var(--text-body); text-decoration: none; }
-.file .what { display: flex; flex-direction: column; min-width: 0; }
-.file b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file .mtx { white-space: normal; }
-.file :global(svg) { flex: none; }
-.file .get { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding-left: 8px; font-weight: 600; white-space: nowrap; }
-.full { position: fixed; inset: 0; margin: auto; min-width: min(320px, 96vw); max-width: min(96vw, 1200px); max-height: 94vh; padding: 0; border: var(--border-strong); border-radius: var(--radius-7); background: var(--surface-raised); color: var(--text-body); }
+.file { display: flex; align-items: center; gap: 12px; min-width: min(300px, 100%); max-width: min(380px, 100%); padding: 12px 16px; border: 0; border-radius: var(--radius-7); background: var(--surface-raised); box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline); font-size: 13.5px; line-height: 1.35; color: var(--text-body); text-decoration: none; }
+.file.gone { background: var(--surface-muted); }
+.file .what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.file b { font-weight: 600; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file .mtx { white-space: normal; font-size: 12px; color: var(--text-faint); }
+.file :global(svg) { flex: none; color: var(--text-muted); }
+.file .get { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding-left: 12px; font-weight: 600; white-space: nowrap; color: var(--text-strong); text-decoration: none; }
+.file .get :global(svg) { color: inherit; }
+.full { position: fixed; inset: 0; margin: auto; width: fit-content; min-width: min(360px, 96vw); max-width: min(96vw, 1200px); max-height: 94vh; padding: 0; border: 0; border-radius: var(--radius-9); background: var(--surface-raised); box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline), var(--shadow-float); color: var(--text-body); overflow: hidden; }
 .full::backdrop { background: var(--scrim); }
-.full .viewbar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: var(--border-outline); }
-.full .viewname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 600; }
-.full img { display: block; max-width: 100%; max-height: calc(94vh - 56px); margin: 0 auto; object-fit: contain; }
+.full .viewbar { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-bottom: var(--border-divider); }
+.full .viewname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--text-strong); }
+.full .viewbar :global(.btn.icon) { width: 32px; height: 32px; min-height: 32px; border-radius: var(--radius-5); }
+.full .viewbody { padding: 20px; background: var(--surface-raised); }
+.full img { display: block; max-width: 100%; max-height: calc(94vh - 96px); margin: 0 auto; border-radius: var(--radius-7); object-fit: contain; }
 </style>

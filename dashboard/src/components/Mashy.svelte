@@ -388,7 +388,7 @@ function followed(event: MouseEvent): void {
   <section id="mashy" class:fresh={empty} aria-label="Mashy" bind:this={panel} style:translate="{moved.x}px {moved.y}px" onclick={followed}>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <header title="Drag to move" onpointerdown={grab} onpointermove={drag} onpointerup={drop} onpointercancel={drop} ondblclick={(event) => { if (!(event.target instanceof Element) || !event.target.closest("button")) place(0, 0); }}>
-      <img src={asset("mashy.png")} alt="" />
+      {#if !(empty && unset)}<img src={asset("mashy.png")} alt="" />{/if}<!-- Unset, Mashy stands in the panel, so the header only names it. -->
       <div><strong>Mashy</strong></div>
       {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/if}
       <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><X size={18} /></button>

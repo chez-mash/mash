@@ -1,22 +1,13 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
 import CircleHelp from "@lucide/svelte/icons/circle-help";
-import Clock from "@lucide/svelte/icons/clock";
-import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
-import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
-import Folder from "@lucide/svelte/icons/folder";
 import FunnelX from "@lucide/svelte/icons/funnel-x";
 import GitFork from "@lucide/svelte/icons/git-fork";
-import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import MessagesSquare from "@lucide/svelte/icons/messages-square";
-import SearchIcon from "@lucide/svelte/icons/search";
-import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
-import Sparkles from "@lucide/svelte/icons/sparkles";
 import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
 import { untrack } from "svelte";
@@ -26,38 +17,22 @@ import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { statusLine } from "../lib/federated";
 import { FederatedSearch, takeAfresh } from "../lib/federatedSearch.svelte";
-import { navigate } from "../lib/navigation";
 import { searchQueryKey, stableRead } from "../lib/queries";
 import { decisionOptions, decisionsByChat } from "../lib/records";
-import { chatHref } from "../lib/route.svelte";
-import { inScope, scope, scopeText } from "../lib/scope.svelte";
+import { chatHref, router } from "../lib/route.svelte";
+import { inScope, scopeText } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
-import {
-  type Applied,
-  appliedHref,
-  dateRanges,
-  filtersOf,
-  parseApplied,
-  parseIntent,
-  rankings,
-  type Sort,
-  sameSearch,
-  searchIntents,
-  sorts,
-  subagentHitViews,
-  subagentViews,
-} from "../lib/search";
+import { type Applied, appliedHref, filtersOf, parseApplied } from "../lib/search";
 import { withoutCopies } from "../lib/sshCopies";
 import { foldedNote, parentOf } from "../lib/subagents";
+import { followTopBar } from "../lib/topBar";
 import type { ChatSummary } from "../lib/types";
-import AgentMark from "./AgentMark.svelte";
-import ChatRow from "./ChatRow.svelte";
-import FilterMenu from "./FilterMenu.svelte";
-import Highlight from "./Highlight.svelte";
-import MetaChips from "./MetaChips.svelte";
+import MemoryMatches from "./MemoryMatches.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
-import SubagentPill from "./SubagentPill.svelte";
+import SearchFilters from "./SearchFilters.svelte";
+import SearchPreview from "./SearchPreview.svelte";
+import SearchRow from "./SearchRow.svelte";
 
 // Chats and search are one page: without a query it lists chats, newest
 // first. The address is the applied search; the chips below are a draft
@@ -71,19 +46,6 @@ const filtered = $derived(
     applied.projects.length > 0 ||
     applied.days !== null,
 );
-// How many filters narrow the results, for the button that folds them away
-// on a phone. The sort order is not a filter.
-const activeFilters = $derived(
-  [
-    applied.agents.length > 0,
-    applied.machines.length > 0,
-    applied.projects.length > 0,
-    applied.days !== null,
-    !!applied.query && applied.intent !== "default",
-    !!applied.query && applied.subagentHits === "included",
-  ].filter(Boolean).length,
-);
-let filtersOpen = $state(false);
 const clearFiltersHref = $derived(
   appliedHref({ ...applied, agents: [], machines: [], projects: [], days: null, offset: 0 }),
 );
@@ -91,7 +53,6 @@ const browseChatsHref = $derived(
   appliedHref({ ...applied, query: "", rank: "relevance", offset: 0 }),
 );
 let draft = $state<Applied>(untrack(() => parseApplied(params)));
-const dirty = $derived(!sameSearch(draft, applied));
 // The list and the search follow the viewing scope chosen in the sidebar.
 const catalogue = createScoped();
 const scopeKey = $derived(catalogue.data ? scopeText(catalogue.data.scope) : "");
@@ -248,43 +209,6 @@ const hits = $derived(view?.hits ?? []);
 // Chats that produced decisions say how many; the memory page reads the same list.
 const decisions = createQuery(() => decisionOptions);
 const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
-/** The one agent chosen, whose mark stands in for the chip's icon. */
-const onlyAgent = $derived(draft.agents.length === 1 ? draft.agents[0] : undefined);
-const draftIntentLabel = $derived(
-  searchIntents.find((intent) => intent.value === draft.intent)?.label,
-);
-const resolvedDefaultLabel = $derived(
-  draft.intent === "default" && applied.intent === "default"
-    ? searchIntents.find((intent) => intent.value === view?.intent)?.label
-    : undefined,
-);
-
-function toggle(field: "agents" | "machines" | "projects", value: string): void {
-  const current: readonly string[] = draft[field];
-  const next = current.includes(value)
-    ? current.filter((item) => item !== value)
-    : [...current, value];
-  draft =
-    field === "agents" ? { ...draft, agents: next.filter(isAgent) } : { ...draft, [field]: next };
-}
-function chipLabel(field: "agents" | "machines" | "projects", noun: string): string {
-  const chosen = draft[field];
-  if (chosen.length === 0) return `any ${noun}`;
-  if (chosen.length > 1) return `${chosen.length} ${noun}s`;
-  const [only] = chosen;
-  if (only === undefined) return `any ${noun}`;
-  if (field === "agents") return isAgent(only) ? agentInfo[only].name : only;
-  return field === "projects" ? projectLabel(only) : only;
-}
-const changed = (field: "agents" | "machines" | "projects") =>
-  [...draft[field]].sort().join() !== [...applied[field]].sort().join();
-function chooseSort(value: string): void {
-  const sort: Sort | undefined = sorts.find((option) => option.value === value)?.value;
-  if (sort) draft = { ...draft, sort };
-}
-function apply(): void {
-  navigate(appliedHref({ ...draft, query: applied.query, offset: 0 }));
-}
 function page(offset: number): string {
   return appliedHref({ ...applied, offset });
 }
@@ -315,181 +239,254 @@ const parentTitle = (chat: ChatSummary): string | undefined =>
       ? parentOf(catalogue.data.all, chat)?.title
       : undefined
     : undefined;
+// The row the preview beside the list shows: the first, until the reader
+// moves to another with the pointer or the keyboard.
+let selected = $state(0);
+$effect(() => {
+  void params;
+  selected = 0;
+});
+const current = $derived(hits[Math.min(selected, hits.length - 1)]);
+// The preview needs width beside the list; a narrower screen opens the chat.
+const wideQuery =
+  typeof window === "undefined" ? undefined : window.matchMedia("(min-width: 1100px)");
+let wide = $state(wideQuery?.matches ?? false);
+$effect(() => {
+  if (!wideQuery) return;
+  const update = (): void => {
+    wide = wideQuery.matches;
+  };
+  wideQuery.addEventListener("change", update);
+  return () => wideQuery.removeEventListener("change", update);
+});
+const split = $derived(!!applied.query && wide && hits.length > 0);
+// The page is a full-width pair of panes only while it is the page shown:
+// it stays mounted, hidden, while a chat is open.
+const shown = $derived(router.current.page === "search");
+// The preview stays in view under the sticky top bar, whatever its height.
+$effect(followTopBar);
+/** Up and down move between rows, as they would in a list box. */
+function step(event: KeyboardEvent): void {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  const rows = [
+    ...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-row]"),
+  ];
+  const at = rows.indexOf(document.activeElement as HTMLElement);
+  if (at < 0) return;
+  const next = rows[at + (event.key === "ArrowDown" ? 1 : -1)];
+  if (!next) return;
+  event.preventDefault();
+  next.focus();
+}
 </script>
 
-{#if applied.query}<h1 class="sr-only">Search results</h1><ScopeNote scoped={catalogue.data} />{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents.</p><ScopeNote scoped={catalogue.data} /></div>{/if}
-<div class="hd" style:align-items="flex-start">
-<!-- On a phone the filters fold behind one button, so results start near the top. -->
-<button class="btn sm fold-t" type="button" aria-expanded={filtersOpen || dirty} aria-controls="search-filters" onclick={() => (filtersOpen = !filtersOpen)}><SlidersHorizontal size={14} aria-hidden="true" />Filters{#if activeFilters}<span class="pill">{activeFilters}</span>{/if}</button>
-<div class="chips" class:folded={!filtersOpen && !dirty} id="search-filters" role="group" aria-label="Filters" style:flex="1 1 480px">
-  <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
-    {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
-    {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
-  </FilterMenu>
-  <!-- Which machines is the viewing scope's to choose; a link may still name one. -->
-  {#if applied.machines.length || draft.machines.length}<FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
-    {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
-  </FilterMenu>{/if}
-  <FilterMenu label={chipLabel("projects", "project")} active={draft.projects.length > 0} draft={changed("projects")} multiple options={options.project} selected={draft.projects} choose={(value) => toggle("projects", value)}>
-    {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
-  </FilterMenu>
-  <FilterMenu
-    label={dateRanges.find((range) => range.days === draft.days)?.label ?? "any time"}
-    active={draft.days !== null}
-    draft={draft.days !== applied.days}
-    options={dateRanges.map((range) => ({ value: String(range.days ?? ""), label: range.label }))}
-    selected={[String(draft.days ?? "")]}
-    choose={(value) => (draft = { ...draft, days: value ? Number(value) : null })}
-  >
-    {#snippet icon()}<Clock size={15} aria-hidden="true" />{/snippet}
-  </FilterMenu>
-  {#if !applied.query}
-    <FilterMenu
-      label="sort: {sorts.find((sort) => sort.value === draft.sort)?.label}"
-      draft={draft.sort !== applied.sort}
-      options={sorts}
-      selected={[draft.sort]}
-      choose={chooseSort}
-    >
-      {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
-    </FilterMenu>
-  {:else}
-    <FilterMenu
-      label={resolvedDefaultLabel ? `search: default (${resolvedDefaultLabel})` : `search: ${draftIntentLabel}`}
-      active={draft.intent !== "default"}
-      draft={draft.intent !== applied.intent}
-      options={searchIntents}
-      selected={[draft.intent]}
-      choose={(value) => (draft = { ...draft, intent: parseIntent(value) })}
-    >
-      {#snippet icon()}<SearchIcon size={15} aria-hidden="true" />{/snippet}
-    </FilterMenu>
-    <FilterMenu
-      label="sort: {rankings.find((ranking) => ranking.value === draft.rank)?.label}"
-      draft={draft.rank !== applied.rank}
-      options={rankings}
-      selected={[draft.rank]}
-      choose={(value) => (draft = { ...draft, rank: value === "recent" ? "recent" : "relevance" })}
-    >
-      {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value === "recent"}<ClockArrowDown size={15} aria-hidden="true" />{:else}<Sparkles size={15} aria-hidden="true" />{/if}{/snippet}
-    </FilterMenu>
+<div class="sx" class:shown class:split>
+<section class="sx-l" aria-label={applied.query ? "Results" : undefined}>
+  <header class="sx-h">
+    {#if applied.query}<h1 class="sr-only">Search results</h1>{:else}<div><h1 class="h1">Chats</h1><p class="meta">Every chat Mash has indexed, from all your agents.</p></div>{/if}
+    <ScopeNote scoped={catalogue.data} />
+    <SearchFilters {applied} bind:draft {options} {hasSubagents} resolvedIntent={view?.intent} />
+    {#if view && hits.length}
+      <div class="sx-count">
+        {#if applied.query}
+          <p class="meta" role="status">{streamed && status.text ? status.text : rangeLabel}{#if streamed && status.retry}{" · "}<button class="a" type="button" onclick={() => federated.retry()}>Retry</button>{/if}</p>
+          <span class="meta">{applied.rank === "recent" ? "Newest first" : "Sorted by best match"}</span>
+        {:else}
+          <p class="meta" role="status">{rangeLabel}{foldedLabel}</p>
+          <span class="meta">{applied.sort === "old" ? "Oldest first" : "Newest first"}</span>
+        {/if}
+      </div>
+    {/if}
+  </header>
+
+  <div class="sx-b">
+  <QueryError title="Couldn’t load chats" query={catalogue} />
+  {#if !streamed}<QueryError title="Couldn’t load results" query={result} />{/if}
+  {#if (streamed ? !view && !federated.done : result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
+    <div class="card" role="status">
+      <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
+      <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
+    </div>
   {/if}
-  {#if hasSubagents && draft.query}
-    <!-- A query leaves subagent chats out unless asked to include them. -->
-    <FilterMenu
-      label="subagents: {draft.subagentHits}"
-      active={draft.subagentHits === "included"}
-      draft={draft.subagentHits !== applied.subagentHits}
-      options={subagentHitViews}
-      selected={[draft.subagentHits]}
-      choose={(value) => (draft = { ...draft, subagentHits: value === "included" ? "included" : "hidden" })}
-    >
-      {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
-    </FilterMenu>
-  {:else if hasSubagents}
-    <!-- Subagents are chats an agent started for part of a task; the list
-         keeps them with the chat that started them unless asked. -->
-    <FilterMenu
-      label="subagents: {draft.subagents}"
-      active={draft.subagents === "shown"}
-      draft={draft.subagents !== applied.subagents}
-      options={subagentViews}
-      selected={[draft.subagents]}
-      choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
-    >
-      {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
-    </FilterMenu>
+  {#if view}
+    {#each view.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
+    {#if !hits.length}
+      <div class="card empty">
+        <img src={asset("mashy.png")} alt="" />
+        <h2>
+          {#if view.first > 0}No results on this page
+          {:else if applied.query || filtered}No results
+          {:else}No chats to show{/if}
+        </h2>
+        {#if applied.query && view.first === 0}
+          <p>
+            {#if filtered}Nothing matched “{applied.query}” with the selected filters.
+            {:else if view.intent === "related-discussion"}Try a short question in English about the chat.
+            {:else}Try one distinctive word you remember from the chat.{/if}
+          </p>
+          {#if leftOutSubagents}<p class="meta">Chats your agents started as subagents are left out of search.</p>{/if}
+        {/if}
+        <div class="acts" style:justify-content="center">
+          {#if view.first > 0}
+            <a class="btn p" href={page(0)}><ChevronsLeft size={14} aria-hidden="true" />First page</a>
+          {/if}
+          {#if filtered}
+            <a class="btn p" href={clearFiltersHref}><FunnelX size={14} aria-hidden="true" />Clear filters</a>
+          {:else if view.first === 0 && !applied.query}
+            <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer"><ListChecks size={14} aria-hidden="true" />Check history setup</a>
+          {/if}
+          {#if applied.query && view.first === 0}
+            <!-- Two ways on when a search finds nothing: look through the chats
+                 themselves, or learn why one might not be indexed. -->
+            {#if leftOutSubagents}<a class="btn" href={withSubagentsHref}><GitFork size={15} aria-hidden="true" />Include subagent chats</a>{/if}
+            <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
+            <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><CircleHelp size={15} aria-hidden="true" />Find a missing chat</a>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      {#if applied.query && view.first === 0 && catalogue.data}<MemoryMatches query={applied.query} scoped={catalogue.data} />{/if}
+      <section id="reslist" aria-label={applied.query ? "Chats" : undefined}>
+        {#if applied.query}<h2 class="sx-label">Chats</h2>{/if}
+        <!-- Moving to a result keeps the list where it is while more arrive. -->
+        <div class="sx-rows" class:results={!!applied.query} role="presentation" onmouseenter={() => federated.interact()} onfocusin={() => federated.interact()} onkeydown={step}>
+          {#each hits as hit, index (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
+            <SearchRow
+              chat={hit.chat}
+              href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}
+              query={applied.query}
+              snippet={applied.query ? hit.before : ""}
+              decisions={decided.get(hit.chat.id) ?? 0}
+              parentTitle={parentTitle(hit.chat)}
+              byMeaning={"byMeaning" in hit && !!hit.byMeaning}
+              selected={split && index === selected}
+              onselect={() => (selected = index)}
+            />
+          {/each}
+        </div>
+        {#if streamed && federated.done && hits.length && federated.hits.length % pageSize === 0}
+          <!-- More continues the same merged ranking; results already shown stay put. -->
+          <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}><ChevronDown size={14} aria-hidden="true" />Show more results</button></div>
+        {:else if view.first > 0 || view.nextOffset !== null}
+          <nav class="hd sx-pages" aria-label="Pages">
+            <span class="meta">{rangeLabel}</span>
+            <span class="acts">
+              {#if view.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, view.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
+              {#if view.nextOffset !== null}<a class="btn sm" rel="next" href={page(view.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
+            </span>
+          </nav>
+        {/if}
+      </section>
+    {/if}
   {/if}
-  {#if dirty}<button class="a" id="applyf" type="button" onclick={apply} style:min-height="30px" style:padding="0 4px" style:margin-left="4px" style:font-size="13px">Apply filters</button>{/if}
-</div>
-{#if !applied.query && view && hits.length}
-  <p class="meta" role="status" style:margin-top="8px">{rangeLabel}{foldedLabel}</p>
+  </div>
+</section>
+{#if split && shown && current}
+  <div class="sx-p">
+    {#key JSON.stringify([current.chat.machine, current.chat.id, current.messageId])}
+      <SearchPreview hit={current} query={applied.query} href={chatHref(current.chat.id, current.chat.machine, current.messageId)} />
+    {/key}
+  </div>
 {/if}
 </div>
 
-<QueryError title="Couldn’t load chats" query={catalogue} />
-{#if !streamed}<QueryError title="Couldn’t load results" query={result} />{/if}
-{#if (streamed ? !view && !federated.done : result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
-  <div class="card" role="status">
-    <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
-    <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
-  </div>
-{/if}
-{#if view}
-  {#each view.warnings as warning (warning)}<p class="meta" role="status">{warning}</p>{/each}
-  {#if !hits.length}
-    <div class="card empty">
-      <img src={asset("mashy.png")} alt="" />
-      <h2>
-        {#if view.first > 0}No results on this page
-        {:else if applied.query || filtered}No results
-        {:else}No chats to show{/if}
-      </h2>
-      {#if applied.query && view.first === 0}
-        <p>
-          {#if filtered}Nothing matched “{applied.query}” with the selected filters.
-          {:else if view.intent === "related-discussion"}Try a short question in English about the chat.
-          {:else}Try one distinctive word you remember from the chat.{/if}
-        </p>
-        {#if leftOutSubagents}<p class="meta">Chats your agents started as subagents are left out of search.</p>{/if}
-      {/if}
-      <div class="acts" style:justify-content="center">
-        {#if view.first > 0}
-          <a class="btn p" href={page(0)}><ChevronsLeft size={14} aria-hidden="true" />First page</a>
-        {/if}
-        {#if filtered}
-          <a class="btn p" href={clearFiltersHref}><FunnelX size={14} aria-hidden="true" />Clear filters</a>
-        {:else if view.first === 0 && !applied.query}
-          <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer"><ListChecks size={14} aria-hidden="true" />Check history setup</a>
-        {/if}
-        {#if applied.query && view.first === 0}
-          <!-- Two ways on when a search finds nothing: look through the chats
-               themselves, or learn why one might not be indexed. -->
-          {#if leftOutSubagents}<a class="btn" href={withSubagentsHref}><GitFork size={15} aria-hidden="true" />Include subagent chats</a>{/if}
-          <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
-          <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><CircleHelp size={15} aria-hidden="true" />Find a missing chat</a>
-        {/if}
-      </div>
-    </div>
-  {:else}
-    <section id="reslist">
-      {#if applied.query}
-        <!-- Each match is a card of its own: the title and the passage that
-             matched, with the searched words marked. -->
-        <p class="meta" role="status" style:margin-bottom="14px">{streamed && status.text ? status.text : rangeLabel}{#if streamed && status.retry}{" · "}<button class="a" type="button" onclick={() => federated.retry()}>Retry</button>{/if}</p>
-        <!-- Moving to a result keeps the list where it is while more arrive. -->
-        <div class="results" role="presentation" onmouseenter={() => federated.interact()} onfocusin={() => federated.interact()}>
-          {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
-            <a class="card pad0" href={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)}>
-              <span class="chatrow">
-                <span class="chatrow-t"><AgentMark agent={hit.chat.agent} size="sm" /><b><Highlight text={hit.chat.title} query={applied.query} /></b>{#if "byMeaning" in hit && hit.byMeaning}<span class="pill">by meaning</span>{/if}<SubagentPill chat={hit.chat} parentTitle={parentTitle(hit.chat)} />{#if decided.get(hit.chat.id)}{@const count = decided.get(hit.chat.id) ?? 0}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}</span>
-                {#if hit.before}<span class="snip res-s"><Highlight text={hit.before} query={applied.query} /></span>{/if}
-                <MetaChips chat={hit.chat} />
-              </span>
-            </a>
-          {/each}
-        </div>
-      {:else}
-        <div class="card pad0 list">
-          {#each hits as hit (JSON.stringify([hit.chat.machine, hit.chat.id, hit.messageId]))}
-            <ChatRow chat={hit.chat} decisions={decided.get(hit.chat.id) ?? 0} to={chatHref(hit.chat.id, hit.chat.machine, hit.messageId)} />
-          {/each}
-        </div>
-      {/if}
-      {#if streamed && federated.done && hits.length && federated.hits.length % pageSize === 0}
-        <!-- More continues the same merged ranking; results already shown stay put. -->
-        <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}><ChevronDown size={14} aria-hidden="true" />Show more results</button></div>
-      {:else if view.first > 0 || view.nextOffset !== null}
-        <nav class="hd" aria-label="Pages" style:margin-top="14px">
-          <span class="meta">{rangeLabel}</span>
-          <span class="acts">
-            {#if view.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, view.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
-            {#if view.nextOffset !== null}<a class="btn sm" rel="next" href={page(view.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
-          </span>
-        </nav>
-      {/if}
-    </section>
-  {/if}
-{/if}
+<style>
+  /* While it is the page shown, search takes the whole column beside the
+     rail: the list on the left and, when there is room, the preview on the
+     right, split by a hairline, as the wireframes draw them. */
+  :global(#app #main:has(> * > .sx.shown)) {
+    max-width: none;
+    padding-block: 0;
+    padding-left: 0;
+    gap: 0;
+  }
+  /* Beside Mashy's corner the panes keep its column clear, as other pages do. */
+  @media (min-width: 801px) {
+    :global(#app #main:has(> * > .sx.shown)) {
+      padding-right: calc(env(safe-area-inset-right, 0px) + 96px);
+    }
+  }
+  :global(body:not(:has(#mashy-fab)) #main:has(> * > .sx.shown)) {
+    padding-right: 0;
+  }
+  .sx {
+    display: flex;
+    align-items: stretch;
+    min-height: 100%;
+    flex: 1;
+  }
+  .sx-l {
+    flex: 2 1 440px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .split .sx-l {
+    border-right: var(--border-divider);
+  }
+  .sx-h {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 20px 12px;
+    border-bottom: var(--border-divider);
+  }
+  .sx-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sx-count .meta {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .sx-b {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 12px 56px;
+  }
+  .sx-b > :global(.card) {
+    margin: 8px;
+  }
+  .sx-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  :global(.sx-label) {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-faint);
+  }
+  :global(.sx-label a) {
+    color: inherit;
+  }
+  .sx-pages {
+    margin: 14px 8px 0;
+  }
+  .sx-p {
+    flex: 1 1 340px;
+    min-width: 0;
+  }
+  .sx-p > :global(.pv) {
+    position: sticky;
+    top: var(--top-h, 52px);
+    min-height: 0;
+    height: calc(100dvh - var(--top-h, 52px));
+    overflow-y: auto;
+  }
+  @media (max-width: 800px) {
+    :global(#app #main:has(> * > .sx.shown)) {
+      padding-right: 0;
+    }
+    .sx-h {
+      padding: 14px 16px 12px;
+    }
+    .sx-b {
+      padding: 8px 8px 96px;
+    }
+  }
+</style>

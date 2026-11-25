@@ -28,6 +28,8 @@
   --surface-top: #f5f3ee;
   --surface-raised: #ffffff;
   --surface-muted: #f1eee8;
+  /* A well sunk into a raised card, such as a place on the services map. */
+  --surface-well: #f5f3ee;
   --surface-hover: rgba(20, 19, 15, 0.045);
   --surface-field: #ffffff;
   /* Text. */
@@ -148,16 +150,11 @@
   --hue-export-json: var(--text-strong);
   --hue-export-archive: var(--text-strong);
   /* Section tiles: a quiet neutral tile behind a section icon, in both themes. */
-  --tile-overview: transparent;
   --tile-chats: transparent;
-  --tile-agents: transparent;
   --tile-machines: transparent;
   --tile-projects: transparent;
-  --tile-memory: transparent;
   --tile-services: transparent;
   --tile-fleet: transparent;
-  --tile-tools: transparent;
-  --tile-settings: transparent;
   --tile-icon: #5f5b52;
   /* Agents: each agent's tile colour; the logo on it is white, or dark on a light tile. */
   --agent-tile-bg: #ffffff;
@@ -211,6 +208,16 @@
   --native-radius-panel: 12px;
   --native-radius-row: 7px;
   color-scheme: light;
+  /* Search and reading: matched words glow, saved memory is a butter-ringed card with a glowing butter tile, and a chat's minimap marks its hits. */
+  --find-glow: 0 0 12px rgba(245, 200, 75, 0.5);
+  --memory-ring: rgba(245, 200, 75, 0.5);
+  --memory-glow: 0 14px 30px -16px rgba(232, 176, 40, 0.5);
+  --memory-tile: radial-gradient(circle at 35% 30%, #fdedb4 0%, #f5c84b 70%);
+  --memory-tile-text: #1a1915;
+  --chip-on-bg: rgba(245, 200, 75, 0.22);
+  --chip-on-line: rgba(232, 176, 40, 0.5);
+  --tick: rgba(20, 19, 15, 0.18);
+  --tick-hit: #e8b02a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -220,6 +227,7 @@
     --surface-top: #1b1a17;
     --surface-raised: #23211d;
     --surface-muted: #2a2824;
+    --surface-well: #0f0e0c;
     --surface-hover: rgba(255, 250, 240, 0.05);
     --surface-field: #23211d;
     --text-strong: #f3efe6;
@@ -277,16 +285,11 @@
     --you-rule: rgba(255, 250, 240, 0.12);
     --banner-bg: #f3efe6;
     --banner-text: #141311;
-    --tile-overview: transparent;
     --tile-chats: transparent;
-    --tile-agents: transparent;
     --tile-machines: transparent;
     --tile-projects: transparent;
-    --tile-memory: transparent;
     --tile-services: transparent;
     --tile-fleet: transparent;
-    --tile-tools: transparent;
-    --tile-settings: transparent;
     --tile-icon: #b3ac9f;
     --agent-tile-bg: #23211d;
     --agent-on-neutral: #1a1915;
@@ -301,6 +304,13 @@
     --quote-line: rgba(255, 250, 240, 0.16);
     --brand-name: #f3efe6;
     --action-text: #141311;
+    --find-glow: 0 0 14px rgba(245, 200, 75, 0.45);
+    --memory-ring: rgba(245, 200, 75, 0.4);
+    --memory-glow: 0 16px 34px -16px rgba(245, 200, 75, 0.28);
+    --chip-on-bg: rgba(245, 200, 75, 0.16);
+    --chip-on-line: rgba(245, 200, 75, 0.4);
+    --tick: rgba(255, 250, 240, 0.18);
+    --tick-hit: #f5c84b;
     color-scheme: dark;
   }
 }
@@ -311,6 +321,7 @@
   --surface-top: #1b1a17;
   --surface-raised: #23211d;
   --surface-muted: #2a2824;
+  --surface-well: #0f0e0c;
   --surface-hover: rgba(255, 250, 240, 0.05);
   --surface-field: #23211d;
   --text-strong: #f3efe6;
@@ -368,16 +379,11 @@
   --you-rule: rgba(255, 250, 240, 0.12);
   --banner-bg: #f3efe6;
   --banner-text: #141311;
-  --tile-overview: transparent;
   --tile-chats: transparent;
-  --tile-agents: transparent;
   --tile-machines: transparent;
   --tile-projects: transparent;
-  --tile-memory: transparent;
   --tile-services: transparent;
   --tile-fleet: transparent;
-  --tile-tools: transparent;
-  --tile-settings: transparent;
   --tile-icon: #b3ac9f;
   --agent-tile-bg: #23211d;
   --agent-on-neutral: #1a1915;
@@ -392,6 +398,13 @@
   --quote-line: rgba(255, 250, 240, 0.16);
   --brand-name: #f3efe6;
   --action-text: #141311;
+  --find-glow: 0 0 14px rgba(245, 200, 75, 0.45);
+  --memory-ring: rgba(245, 200, 75, 0.4);
+  --memory-glow: 0 16px 34px -16px rgba(245, 200, 75, 0.28);
+  --chip-on-bg: rgba(245, 200, 75, 0.16);
+  --chip-on-line: rgba(245, 200, 75, 0.4);
+  --tick: rgba(255, 250, 240, 0.18);
+  --tick-hit: #f5c84b;
   color-scheme: dark;
 }
 

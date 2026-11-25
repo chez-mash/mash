@@ -74,10 +74,10 @@ for (const width of [390, 1280]) {
       ["Recent chats", "Chats", "#/search", "Chats"],
       ["Memory", "", "#/records?", "Memory"],
       ["Fleet manager", "", "#/fleet", "Fleet manager"],
-      ["Tool explorer", "", "#/console", "Tool explorer"],
+      ["Tools", "", "#/console", "Tool explorer"],
       ["Settings", "", "#/settings", "Settings"],
       ["Services", "", "#/services", "Services"],
-      ["Overview", "", "#/", "Overview"],
+      ["Overview", "", "#/", /^Good (morning|afternoon|evening)$/],
     ] as const) {
       await expect(hiddenAtRest).toBeHidden();
       await followRail(page, label, section || undefined);
@@ -235,7 +235,7 @@ test("the old index status address opens services, which reports the local index
   const index = map.getByRole("link", { name: /SQLite index/ });
   await expect(index).toContainText("Schema 65 · current");
   // The viewing switcher names the machine, with "this machine" in a pill.
-  const viewing = page.getByRole("navigation", { name: "Main" }).locator(".vw-b");
+  const viewing = page.getByRole("banner").locator(".vw-b");
   await expect(viewing).toContainText("xenia");
   await expect(viewing.locator(".vw-p")).toHaveText("this machine");
   await expect(page.getByRole("link", { name: "Index status" })).toHaveCount(0);

@@ -5,6 +5,11 @@ let { rows = 4 }: { rows?: number } = $props();
 
 <div role="status" aria-label="Loading">
   {#each { length: rows } as _, index (index)}
-    <div class="skrow"><span class="sk" style:height="13px" style:width="{55 + ((index * 17) % 35)}%"></span><span class="sk" style:height="10px" style:width="{30 + ((index * 11) % 25)}%"></span></div>
+    <!-- A title, a longer line and a short one, as a result row reads. -->
+    <div class="skrow">
+      <span class="sk" style:height="10px" style:width="{50 + ((index * 17) % 25)}%"></span>
+      <span class="sk" style:height="8px" style:width="{70 + ((index * 11) % 20)}%"></span>
+      <span class="sk" style:height="8px" style:width="{28 + ((index * 13) % 18)}%"></span>
+    </div>
   {/each}
 </div>

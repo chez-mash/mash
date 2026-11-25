@@ -1,0 +1,208 @@
+<script lang="ts">
+import Bot from "@lucide/svelte/icons/bot";
+import Clock from "@lucide/svelte/icons/clock";
+import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
+import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
+import Folder from "@lucide/svelte/icons/folder";
+import GitFork from "@lucide/svelte/icons/git-fork";
+import Laptop from "@lucide/svelte/icons/laptop";
+import SearchIcon from "@lucide/svelte/icons/search";
+import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
+import Sparkles from "@lucide/svelte/icons/sparkles";
+import { agents as agentInfo } from "../lib/agents";
+import { isAgent } from "../lib/api";
+import { projectLabel } from "../lib/browse";
+import { navigate } from "../lib/navigation";
+import {
+  type Applied,
+  appliedHref,
+  dateRanges,
+  parseIntent,
+  rankings,
+  type Sort,
+  sameSearch,
+  searchIntents,
+  sorts,
+  subagentHitViews,
+  subagentViews,
+} from "../lib/search";
+import AgentMark from "./AgentMark.svelte";
+import FilterMenu from "./FilterMenu.svelte";
+
+type Field = "agents" | "machines" | "projects";
+type Option = { value: string; label: string; count?: number };
+
+// The search page's filter chips. They edit a draft of the search; "Apply
+// filters" puts the draft in the address, so results never change under the
+// reader. On a phone the chips fold behind one button that counts them.
+let {
+  applied,
+  draft = $bindable(),
+  options,
+  hasSubagents,
+  resolvedIntent,
+}: {
+  applied: Applied;
+  draft: Applied;
+  options: { agent: Option[]; machine: Option[]; project: Option[] };
+  /** Whether any chat in view is a subagent, so the subagent chip means something. */
+  hasSubagents: boolean;
+  /** The kind of search Mash chose for a default search, once it answered. */
+  resolvedIntent: string | undefined;
+} = $props();
+let open = $state(false);
+const dirty = $derived(!sameSearch(draft, applied));
+// How many filters narrow the results. The sort order is not a filter.
+const active = $derived(
+  [
+    applied.agents.length > 0,
+    applied.machines.length > 0,
+    applied.projects.length > 0,
+    applied.days !== null,
+    !!applied.query && applied.intent !== "default",
+    !!applied.query && applied.subagentHits === "included",
+  ].filter(Boolean).length,
+);
+/** The one agent chosen, whose mark stands in for the chip's icon. */
+const onlyAgent = $derived(draft.agents.length === 1 ? draft.agents[0] : undefined);
+const intentLabel = $derived.by(() => {
+  const chosen = searchIntents.find((intent) => intent.value === draft.intent)?.label;
+  const resolved =
+    draft.intent === "default" && applied.intent === "default"
+      ? searchIntents.find((intent) => intent.value === resolvedIntent)?.label
+      : undefined;
+  return resolved ? `search: default (${resolved})` : `search: ${chosen}`;
+});
+
+function toggle(field: Field, value: string): void {
+  const current: readonly string[] = draft[field];
+  const next = current.includes(value)
+    ? current.filter((item) => item !== value)
+    : [...current, value];
+  draft =
+    field === "agents" ? { ...draft, agents: next.filter(isAgent) } : { ...draft, [field]: next };
+}
+function chipLabel(field: Field, noun: string): string {
+  const chosen = draft[field];
+  if (chosen.length === 0) return `any ${noun}`;
+  if (chosen.length > 1) return `${chosen.length} ${noun}s`;
+  const [only] = chosen;
+  if (only === undefined) return `any ${noun}`;
+  if (field === "agents") return isAgent(only) ? agentInfo[only].name : only;
+  return field === "projects" ? projectLabel(only) : only;
+}
+const changed = (field: Field) =>
+  [...draft[field]].sort().join() !== [...applied[field]].sort().join();
+function chooseSort(value: string): void {
+  const sort: Sort | undefined = sorts.find((option) => option.value === value)?.value;
+  if (sort) draft = { ...draft, sort };
+}
+function apply(): void {
+  navigate(appliedHref({ ...draft, query: applied.query, offset: 0 }));
+}
+</script>
+
+<div class="sf">
+  <button class="btn sm fold-t" type="button" aria-expanded={open || dirty} aria-controls="search-filters" onclick={() => (open = !open)}><SlidersHorizontal size={14} aria-hidden="true" />Filters{#if active}<span class="pill">{active}</span>{/if}</button>
+  <div class="chips" class:folded={!open && !dirty} id="search-filters" role="group" aria-label="Filters">
+    <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
+      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+    </FilterMenu>
+    <!-- Which machines is the viewing scope's to choose; a link may still name one. -->
+    {#if applied.machines.length || draft.machines.length}<FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
+      {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>{/if}
+    <FilterMenu label={chipLabel("projects", "project")} active={draft.projects.length > 0} draft={changed("projects")} multiple options={options.project} selected={draft.projects} choose={(value) => toggle("projects", value)}>
+      {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+    <FilterMenu
+      label={dateRanges.find((range) => range.days === draft.days)?.label ?? "any time"}
+      active={draft.days !== null}
+      draft={draft.days !== applied.days}
+      options={dateRanges.map((range) => ({ value: String(range.days ?? ""), label: range.label }))}
+      selected={[String(draft.days ?? "")]}
+      choose={(value) => (draft = { ...draft, days: value ? Number(value) : null })}
+    >
+      {#snippet icon()}<Clock size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+    {#if !applied.query}
+      <FilterMenu label="sort: {sorts.find((sort) => sort.value === draft.sort)?.label}" draft={draft.sort !== applied.sort} options={sorts} selected={[draft.sort]} choose={chooseSort}>
+        {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
+        {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
+      </FilterMenu>
+    {:else}
+      <FilterMenu
+        label={intentLabel}
+        active={draft.intent !== "default"}
+        draft={draft.intent !== applied.intent}
+        options={searchIntents}
+        selected={[draft.intent]}
+        choose={(value) => (draft = { ...draft, intent: parseIntent(value) })}
+      >
+        {#snippet icon()}<SearchIcon size={15} aria-hidden="true" />{/snippet}
+      </FilterMenu>
+      <FilterMenu
+        label="sort: {rankings.find((ranking) => ranking.value === draft.rank)?.label}"
+        draft={draft.rank !== applied.rank}
+        options={rankings}
+        selected={[draft.rank]}
+        choose={(value) => (draft = { ...draft, rank: value === "recent" ? "recent" : "relevance" })}
+      >
+        {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
+        {#snippet optionIcon(value: string)}{#if value === "recent"}<ClockArrowDown size={15} aria-hidden="true" />{:else}<Sparkles size={15} aria-hidden="true" />{/if}{/snippet}
+      </FilterMenu>
+    {/if}
+    {#if hasSubagents && draft.query}
+      <!-- A query leaves subagent chats out unless asked to include them. -->
+      <FilterMenu
+        label="subagents: {draft.subagentHits}"
+        active={draft.subagentHits === "included"}
+        draft={draft.subagentHits !== applied.subagentHits}
+        options={subagentHitViews}
+        selected={[draft.subagentHits]}
+        choose={(value) => (draft = { ...draft, subagentHits: value === "included" ? "included" : "hidden" })}
+      >
+        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+      </FilterMenu>
+    {:else if hasSubagents}
+      <!-- Subagents are chats an agent started for part of a task; the list
+           keeps them with the chat that started them unless asked. -->
+      <FilterMenu
+        label="subagents: {draft.subagents}"
+        active={draft.subagents === "shown"}
+        draft={draft.subagents !== applied.subagents}
+        options={subagentViews}
+        selected={[draft.subagents]}
+        choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
+      >
+        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+      </FilterMenu>
+    {/if}
+    {#if dirty}<button class="btn sm p apply" id="applyf" type="button" onclick={apply}>Apply filters</button>{/if}
+  </div>
+</div>
+
+<style>
+  .sf {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .apply {
+    min-height: 30px;
+    margin-left: 4px;
+  }
+  @media (max-width: 640px) {
+    .chips.folded {
+      display: none;
+    }
+  }
+</style>

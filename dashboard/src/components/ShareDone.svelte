@@ -28,7 +28,7 @@ async function check(): Promise<void> {
 </script>
 
 <section class="card share" aria-labelledby="share-done-title" style:margin-top="18px">
-  <h2 class="h2" id="share-done-title"><Send size={15} aria-hidden="true" />Publishing to {server.group_id}</h2>
+  <h2 class="share-h" id="share-done-title"><Send size={15} aria-hidden="true" />Publishing to {server.group_id}</h2>
   {#if server.problem}
     <p class="warn" role="alert">{server.problem.message}</p>
     <p class="meta">Nothing is lost: {server.node_id} keeps everything and publishes again when the server answers.</p>
@@ -51,6 +51,28 @@ async function check(): Promise<void> {
 <style>
   .share > :global(* + *) {
     margin-top: 14px;
+  }
+  /* Publishing is under way or done: the card carries the butter ring and
+     glow the dashboard gives what Mash keeps (the memory roles). */
+  .share {
+    padding: 22px 22px 20px;
+    border-color: var(--memory-ring);
+    box-shadow: var(--memory-glow);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .share > :global([role="status"]) {
+    font-size: 15.5px;
+    color: var(--text-strong);
+  }
+  .share-h {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
   }
   .share-actions {
     display: flex;

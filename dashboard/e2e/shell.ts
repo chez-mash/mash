@@ -9,6 +9,13 @@ export function searchBox(page: Page): Locator {
   return page.getByRole("textbox", { name: "Search your history" });
 }
 
+/** Shows the top bar's search field on a phone, where it waits behind "Show search". */
+export async function openSearch(page: Page): Promise<Locator> {
+  const show = page.getByRole("banner").getByRole("button", { name: "Show search" });
+  if (await show.isVisible()) await show.click();
+  return searchBox(page);
+}
+
 /** Opens the drawer on a narrow screen; the rail is always shown on a wide one. */
 export async function openRail(page: Page): Promise<void> {
   const burger = page.getByRole("button", { name: "Open navigation" });

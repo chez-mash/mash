@@ -1,37 +1,23 @@
 <script lang="ts">
 import BadgeCheck from "@lucide/svelte/icons/badge-check";
-import Bookmark from "@lucide/svelte/icons/bookmark";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
 import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import Laptop from "@lucide/svelte/icons/laptop";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import SearchIcon from "@lucide/svelte/icons/search";
 import { createQuery } from "@tanstack/svelte-query";
 import { untrack } from "svelte";
-import { agentNamed } from "../lib/agents";
 import { asset } from "../lib/asset";
-import { whenLabel } from "../lib/browse";
+import { groupByWeek, recordKey } from "../lib/memoryView";
 import { navigate } from "../lib/navigation";
 import { stableRead } from "../lib/queries";
-import { kindIcons, scopeIcons } from "../lib/recordIcons";
-import {
-  kindPill,
-  kinds,
-  label,
-  scopedRecordPage,
-  scopeLabel,
-  scopeName,
-  standing,
-  statePill,
-  states,
-  timingLabel,
-} from "../lib/records";
+import { kinds, label, scopedRecordPage, states } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import { readingScope, scope, scopeText } from "../lib/scope.svelte";
 import { createScoped } from "../lib/scoped.svelte";
-import AgentMark from "./AgentMark.svelte";
 import FilterMenu from "./FilterMenu.svelte";
+import MemoryItem from "./MemoryItem.svelte";
+import MemoryPreview from "./MemoryPreview.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -123,27 +109,40 @@ const dirty = $derived(
     lifecycle !== (initial.get("state") ?? "") ||
     review !== (initial.get("review") ?? ""),
 );
+const back = $derived(recordsHref(new URLSearchParams(params)));
+const groups = $derived(page.data ? groupByWeek(page.data.records, now) : []);
+// The preview shows the row last pointed at or reached by keyboard, and the
+// first row until then.
+let chosen = $state("");
+const previewed = $derived(
+  page.data?.records.find((record) => recordKey(record) === chosen) ?? page.data?.records[0],
+);
+const localNode = $derived(scoped.data?.reach.localNode ?? "");
 </script>
 
-<div><h1 class="h1">Memory</h1><p class="meta">Decisions, preferences and notes, with the conversations behind them.</p><ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></div>
-<nav class="chips" aria-label="Memory kind" style:gap="10px">
-  <a class="btn" class:sel={!kind} href={kindHref("")} aria-current={!kind ? "page" : undefined}><Bookmark size={15} aria-hidden="true" />all</a>
-  {#each kinds as value (value)}
-    {@const Icon = kindIcons[value]}
-    <a class="btn" class:sel={kind === value} href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><Icon size={15} aria-hidden="true" />{label(value).toLowerCase()}s</a>
-  {/each}
-</nav>
-<form onsubmit={submit} class="chips" aria-label="Memory filters" style:gap="10px">
-  <label class="find"><SearchIcon size={15} aria-hidden="true" /><span class="sr-only">Search statements</span><input id="memory-q" type="search" bind:value={query} placeholder="find a statement" /></label>
-  <FilterMenu label={lifecycle ? label(lifecycle).toLowerCase() : "any status"} active={!!lifecycle} draft={lifecycle !== (initial.get("state") ?? "")} options={[{ value: "", label: "any status" }, ...states.map((value) => ({ value, label: label(value).toLowerCase() }))]} selected={[lifecycle]} choose={(value) => (lifecycle = value)}>
-    {#snippet icon()}<ListChecks size={15} aria-hidden="true" />{/snippet}
-  </FilterMenu>
-  <FilterMenu label={review || "any review"} active={!!review} draft={review !== (initial.get("review") ?? "")} options={[{ value: "", label: "any review" }, { value: "established", label: "established" }, { value: "candidate", label: "candidate (unconfirmed)" }]} selected={[review]} choose={(value) => (review = value)}>
-    {#snippet icon()}<BadgeCheck size={15} aria-hidden="true" />{/snippet}
-    {#snippet optionIcon(value: string)}{#if value === "candidate"}<CircleDashed size={15} aria-hidden="true" />{:else}<BadgeCheck size={15} aria-hidden="true" />{/if}{/snippet}
-  </FilterMenu>
-  {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
-</form>
+<header class="mem-h">
+  <div class="mem-t"><h1 class="h1">Memory</h1><p class="meta">What your agents saved, with the messages behind it</p></div>
+  <ScopeNote scoped={scoped.data} fallback={result.data?.fallback} />
+</header>
+<div class="mem-bar">
+  <nav class="mem-seg" aria-label="Memory kind">
+    <a href={kindHref("")} aria-current={!kind ? "page" : undefined}>All</a>
+    {#each kinds as value (value)}
+      <a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}>{label(value)}s</a>
+    {/each}
+  </nav>
+  <form onsubmit={submit} class="mem-f" aria-label="Memory filters">
+    <label class="find mem-q"><SearchIcon size={15} aria-hidden="true" /><span class="sr-only">Search statements</span><input id="memory-q" type="search" bind:value={query} placeholder="Find a statement" /></label>
+    <FilterMenu label={lifecycle ? label(lifecycle).toLowerCase() : "any status"} active={!!lifecycle} draft={lifecycle !== (initial.get("state") ?? "")} options={[{ value: "", label: "any status" }, ...states.map((value) => ({ value, label: label(value).toLowerCase() }))]} selected={[lifecycle]} choose={(value) => (lifecycle = value)}>
+      {#snippet icon()}<ListChecks size={15} aria-hidden="true" />{/snippet}
+    </FilterMenu>
+    <FilterMenu label={review || "any review"} active={!!review} draft={review !== (initial.get("review") ?? "")} options={[{ value: "", label: "any review" }, { value: "established", label: "established" }, { value: "candidate", label: "candidate (unconfirmed)" }]} selected={[review]} choose={(value) => (review = value)}>
+      {#snippet icon()}<BadgeCheck size={15} aria-hidden="true" />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value === "candidate"}<CircleDashed size={15} aria-hidden="true" />{:else}<BadgeCheck size={15} aria-hidden="true" />{/if}{/snippet}
+    </FilterMenu>
+    {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
+  </form>
+</div>
 {#if chat}<p class="card tight cream meta">Memory citing chat <code style:overflow-wrap="anywhere">{chat}</code>. <a class="a" href="#/records?">Show all memory</a></p>{/if}
 {#if page.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load memory" query={result} />
@@ -151,34 +150,21 @@ const dirty = $derived(
   {#if !page.data.records.length}
     <p class="card tight note"><img src={asset("mashy.png")} alt="" /><span>{hasNext ? "No matching records on this page. Continue to the next page." : "No memory matches these filters. Agents save decisions and preferences as you state them, and notes when you ask."}</span></p>
   {:else}
-    <section class="card pad0 list" aria-label="Memory">
-      {#each page.data.records as record (JSON.stringify([record.node, record.owner, record.id]))}
-        {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
-        {#if revision}
-          {@const Icon = kindIcons[revision.details.kind]}
-          {@const ScopeIcon = scopeIcons[record.scope.kind]}
-          {@const settled = standing(revision)}
-          {@const recorder = agentNamed(revision.recordedBy)}
-          <article class="chatrow mrow">
-            <span class="pills">
-              <span class="pill {kindPill(revision.details.kind)}"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span>
-              <span class="pill {statePill(revision.details.state)}">{label(revision.details.state).toLowerCase()}</span>
-              {#if settled !== "established"}<span class="pill warn">{settled}</span>{/if}
-              {#if !revision.evidenceCurrent}<span class="pill bad">stale evidence</span>{/if}
-              {#if record.conflicted}<span class="pill bad">conflicting records</span>{/if}
-              {#if timingLabel(revision, now)}<span class="pill warn">{timingLabel(revision, now)?.toLowerCase()}</span>{/if}
-            </span>
-            <a href={recordHref(record.id, record.node, recordsHref(new URLSearchParams(params)))}>{revision.statement}</a>
-            <span class="mts">
-              <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span>
-              <span class="mt"><Laptop size={12} aria-hidden="true" />{record.node || scoped.data?.reach.localNode || "this machine"}</span>
-              {#if revision.recordedBy}<span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}{revision.recordedBy}</span>{/if}
-              <span class="mtx">{whenLabel(revision.recordedAt, now)}</span>
-            </span>
-          </article>
-        {/if}
-      {/each}
-    </section>
+    <div class="mem-split">
+      <section class="mem-l" aria-label="Memory">
+        {#each groups as group (group.label)}
+          <h2 class="mem-g">{group.label}</h2>
+          <div class="mem-c">
+            {#each group.records as record (recordKey(record))}
+              <MemoryItem {record} {back} {now} machine={localNode || "this machine"} selected={previewed === record} preview={() => (chosen = recordKey(record))} />
+            {/each}
+          </div>
+        {/each}
+      </section>
+      {#if previewed}
+        <div class="mem-p">{#key recordKey(previewed)}<MemoryPreview record={previewed} {back} {now} chats={scoped.data?.chats} />{/key}</div>
+      {/if}
+    </div>
   {/if}
   {#if initial.has("offset") || initial.has("cursor_node") || hasNext}
     <nav aria-label="Record pages" class="hd">
@@ -190,3 +176,133 @@ const dirty = $derived(
     </nav>
   {/if}
 {/if}
+
+<style>
+  .mem-h {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mem-t {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+  }
+  .mem-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  /* The kinds as a segmented control: a muted track, the current kind raised. */
+  .mem-seg {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--radius-6);
+    background: var(--surface-muted);
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mem-seg a {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 11px;
+    border-radius: var(--radius-5);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .mem-seg a:hover {
+    color: var(--text-strong);
+  }
+  .mem-seg a[aria-current="page"] {
+    background: var(--selected-bg);
+    color: var(--text-strong);
+    box-shadow: var(--shadow-pick);
+  }
+  .mem-f {
+    display: flex;
+    flex: 1 1 320px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .mem-q {
+    flex: 1 1 200px;
+    min-height: 34px;
+    border: var(--border-outline);
+    border-radius: var(--radius-5);
+  }
+  /* The list and, on a wide page, the memory pointed at beside it. */
+  .mem-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: 24px;
+    align-items: start;
+  }
+  .mem-l {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .mem-c {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mem-g {
+    padding: 8px 12px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-faint);
+  }
+  .mem-c + .mem-g {
+    padding-top: 14px;
+  }
+  .mem-p {
+    position: sticky;
+    top: 16px;
+    min-width: 0;
+  }
+  @container (max-width: 860px) {
+    .mem-split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .mem-p {
+      display: none;
+    }
+  }
+  /* On a phone each group is a card of rows. */
+  @container (max-width: 600px) {
+    .mem-g {
+      padding: 4px 2px 0;
+    }
+    .mem-c + .mem-g {
+      padding-top: 12px;
+    }
+    .mem-c {
+      gap: 0;
+      margin-top: 6px;
+      border: var(--border-outline);
+      border-radius: var(--radius-7);
+      background: var(--surface-raised);
+      overflow: hidden;
+    }
+    .mem-c > :global(article + article) {
+      border-top: var(--border-divider);
+    }
+    .mem-f {
+      flex-basis: 100%;
+    }
+    .mem-q {
+      flex-basis: 100%;
+    }
+  }
+</style>

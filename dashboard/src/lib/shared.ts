@@ -39,6 +39,17 @@ export function joinShared(join: string, apply: boolean): Promise<JoinView> {
   return post<JoinView>("/api/shared/join", { join: join.trim(), apply });
 }
 
+/** Why the server refused a join string, by the status it answered with. */
+export const joinRefusals: Readonly<Record<string, string>> = {
+  expired:
+    "This join string has expired: each one works for 24 hours. Ask for a new one on the machine that runs the server.",
+  used: "This join string was already used: each one works once, on one computer. Ask for a new one.",
+  revoked:
+    "The server’s operator replaced this join string or removed its machine. Ask for a new one.",
+  unknown:
+    "The server did not make this join string, or the machine it was for was deleted. Ask for a new one.",
+};
+
 /** Save an admin key once the server accepts it, or forget the saved one. */
 export function setAdminKey(key: string | null): Promise<{ admin_key: boolean }> {
   return post("/api/shared/admin/key", key === null ? {} : { key: key.trim() });

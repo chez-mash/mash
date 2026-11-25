@@ -1,4 +1,5 @@
 <script lang="ts">
+import BookOpen from "@lucide/svelte/icons/book-open";
 import Settings from "@lucide/svelte/icons/settings";
 import { createQuery } from "@tanstack/svelte-query";
 import { asset } from "../lib/asset";
@@ -26,6 +27,12 @@ const settings = createQuery(() => settingsOptions);
     <!-- A service already configured keeps its address and model: only the key is asked for. -->
     <AssistantKeyForm settings={settings.data} withService={!settings.data.assistant} id="mashy-panel" />
     <a class="a" href={settingsHref("assistant")} onclick={leave}>More Mashy settings</a>
+    <!-- Said before the key is given, in the words of the Mashy guide. -->
+    <aside class="mashy-sends">
+      <strong>What Mashy sends</strong>
+      <p>Your question, recent turns with Mashy, any passage you pin, and the chat text and memories Mashy looks up go to the model service you choose. By default Mash masks recognizable credentials in what it looks up. Nothing is sent until you ask.</p>
+      <a class="a" href="https://getmash.io/privacy/#when-history-can-leave-your-machine" target="_blank" rel="noreferrer"><BookOpen size={13} aria-hidden="true" />When history can leave your machine</a>
+    </aside>
   {:else if settings.error}
     <a class="btn p" href={settingsHref("assistant")} onclick={leave}><Settings size={14} aria-hidden="true" />Set up Mashy in Settings</a>
   {/if}

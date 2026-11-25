@@ -1,0 +1,336 @@
+/*
+ * Reading a chat: the project's chats in a column on the left, then the
+ * chat itself, its header across the top over a hairline, its messages in a
+ * readable column, and beside them the subagents it started and, while
+ * finding, where the matches fall. Every colour, line, corner and shadow is a
+ * role from src/theme/tokens.css.
+ */
+
+/* The chat takes the whole column beside the rail, as the wireframes draw it.
+   Mashy's corner keeps its own column clear where Mashy is offered. */
+html body #app #main:has(> .chat) {
+  max-width: none;
+  padding-block: 0;
+  padding-left: 0;
+  gap: 0;
+}
+html body:not(:has(#mashy-fab)) #main:has(> .chat) {
+  padding-right: 0;
+}
+@media (min-width: 801px) {
+  html body:has(#mashy-fab) #main:has(> .chat) {
+    padding-right: calc(env(safe-area-inset-right, 0px) + 96px);
+  }
+}
+#main > .chat {
+  flex: 1;
+  gap: 0;
+  align-items: stretch;
+  min-height: calc(100dvh - var(--top-h, 52px));
+}
+#main > .chat > .sess {
+  flex: 0 0 280px;
+  position: sticky;
+  top: var(--top-h, 52px);
+  align-self: flex-start;
+  height: calc(100dvh - var(--top-h, 52px));
+  max-height: none;
+  overflow-y: auto;
+  border-right: var(--border-divider);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-outline) transparent;
+}
+#main > .chat > .log {
+  gap: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.log > :not(.chat-h, .tv-body, .newpill, .ends, .findbar) {
+  margin: 14px 32px 0;
+}
+.log > .findbar {
+  margin: 0;
+}
+.tv-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px 44px 96px 32px;
+}
+.tv-msgs {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tv-side {
+  flex: 0 0 auto;
+  position: sticky;
+  top: calc(var(--top-h, 52px) + 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  max-width: 240px;
+}
+.tv-side:not(:has(.forks)) {
+  max-width: 60px;
+}
+
+/* Who speaks: "You" over the reader's bubble, the agent's mark and name at
+   the start of each of its turns. */
+.tv-you {
+  align-self: flex-end;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.tv-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -6px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+.tv-who .mark {
+  width: 18px;
+  height: 18px;
+}
+.log .hitbox > .you {
+  border-radius: var(--radius-8);
+  padding: 11px 16px;
+}
+.log .hitbox.hit > .you {
+  font-weight: 400;
+  border-color: var(--chip-on-line);
+  box-shadow: var(--memory-glow);
+}
+.log .hitlabel {
+  align-self: flex-start;
+  margin-bottom: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font: 500 12px / 1.4 var(--type-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.log .hitbox:has(> .you) > .hitlabel {
+  align-self: flex-end;
+}
+/* A person's files sit under their bubble, on the same side. */
+.tv-files {
+  display: flex;
+  justify-content: flex-end;
+}
+.tv-files:empty {
+  display: none;
+}
+.tv-files .atts {
+  justify-content: flex-end;
+}
+
+/* A memory saved from a message: a raised card in a butter ring and glow,
+   its butter tile, the statement, and the way to it. */
+.tv-mem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-7);
+  background: var(--surface-raised);
+  box-shadow:
+    0 0 0 var(--stroke-outline) var(--memory-ring),
+    var(--memory-glow);
+  color: var(--text-strong);
+}
+.tv-mem:hover {
+  color: var(--text-strong);
+}
+.tv-mem-i {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-5);
+  background: var(--memory-tile);
+  color: var(--memory-tile-text);
+}
+.tv-mem-t {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.4;
+}
+.tv-mem-t b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.tv-mem-t small {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.tv-mem-o {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* A run of steps reads as a quiet line until it is opened; open, it is a
+   box holding each step. */
+.tv-msgs > details.fold:not(.spawn) {
+  border-color: transparent;
+  background: none;
+}
+.tv-msgs > details.fold:not(.spawn) > summary {
+  padding-inline: 0;
+  color: var(--text-muted);
+  font: 400 13.5px / 1.4 var(--type-sans);
+}
+.tv-msgs > details.fold[open]:not(.spawn) {
+  border-color: var(--line-outline);
+  border-radius: var(--radius-7);
+  background: var(--surface-muted);
+}
+.tv-msgs > details.fold[open]:not(.spawn) > summary {
+  padding-inline: 12px;
+}
+/* Its chevron leads, as a disclosure's does. */
+.tv-msgs > details.fold:not(.spawn, [id]) > summary > svg:first-child {
+  display: none;
+}
+.tv-msgs > details.fold:not(.spawn, [id]) > summary > .cv {
+  order: -1;
+  margin-left: 0;
+}
+
+/* Matched words glow, in the transcript as in search. */
+.tv-msgs mark {
+  box-shadow: var(--find-glow);
+}
+
+/* Without room beside the messages, the subagents come first, above them,
+   and the match map steps aside. The column beside the rail (#main) is the
+   container; the project's list takes 280px of it while shown. */
+@container (max-width: 1179px) {
+  .chat:not(.nosess) .tv-body:has(.forks) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+@container (max-width: 899px) {
+  .tv-body:has(.forks) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+@container (max-width: 879px) {
+  .chat:not(.nosess) .tv-body {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+@container (max-width: 599px) {
+  .tv-body {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+@container (max-width: 1179px) {
+  .chat:not(.nosess) .tv-side:has(.forks) {
+    position: static;
+    max-width: none;
+  }
+  .chat:not(.nosess) .tv-side:has(.forks) .hm {
+    display: none;
+  }
+}
+@container (max-width: 899px) {
+  .tv-side {
+    position: static;
+    max-width: none;
+  }
+  .tv-side .hm {
+    display: none;
+  }
+}
+@container (max-width: 879px) {
+  .chat:not(.nosess) .tv-side {
+    position: static;
+    max-width: none;
+  }
+  .chat:not(.nosess) .tv-side .hm {
+    display: none;
+  }
+}
+@container (max-width: 640px) {
+  .log > :not(.chat-h, .tv-body, .newpill, .ends, .findbar) {
+    margin-inline: 16px;
+  }
+  .tv-body {
+    padding: 18px 16px 32px;
+  }
+  #main > .chat > .sess {
+    position: static;
+    height: auto;
+    border-right: 0;
+  }
+}
+
+/* A message's copy buttons wait in the gutter beside it until it is hovered,
+   so its words keep the column's whole width. A phone or a touch screen keeps
+   them under the message (terminal.css). */
+@media (hover: hover) and (pointer: fine) and (not (any-pointer: coarse)) and (min-width: 701px) {
+  .tv-msgs .msg:has(> .cp-actions) {
+    padding-inline-end: 0;
+  }
+  .tv-msgs .hitbox > .you:has(> .cp-actions) {
+    padding-inline-end: 16px;
+  }
+  .tv-msgs .cp-actions:has(> .meta:empty) {
+    position: static;
+  }
+  .tv-msgs .cp-buttons {
+    top: 0;
+    inset-inline-end: -40px;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tv-msgs .cp {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-4);
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline);
+  }
+  .tv-msgs .you .cp {
+    background: var(--surface-raised);
+    color: var(--text-muted);
+  }
+  .tv-msgs .cp-actions > .meta:not(:empty) {
+    margin-top: 6px;
+    font-size: 12px;
+  }
+}
+
+/* On a phone the chat runs edge to edge; Mashy's circle steps aside as the
+   reader scrolls (lib/tuck.ts) rather than keeping a column. */
+@media (max-width: 800px) {
+  html body #app #main:has(> .chat) {
+    padding-right: 0;
+  }
+  /* The last message scrolls clear of Mashy's circle and the jumps above it. */
+  .tv-body {
+    padding-bottom: 204px;
+  }
+}

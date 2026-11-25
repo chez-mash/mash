@@ -86,7 +86,7 @@ const now = Date.now();
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
 {#if projects.length}
   <div class="chips" role="group" aria-label="Project filters">
-    <label class="find"><SearchIcon size={15} aria-hidden="true" /><input type="search" aria-label="Find a project" placeholder="find a project" autocomplete="off" bind:value={view.find} /></label>
+    <label class="find pfind"><SearchIcon size={15} aria-hidden="true" /><input type="search" aria-label="Find a project" placeholder="find a project" autocomplete="off" bind:value={view.find} /></label>
     <FilterMenu label={chosenAgent ? agentInfo[chosenAgent].name : "any agent"} active={!!view.agent} options={[{ value: "", label: "any agent" }, ...agentChoices.map((agent) => ({ value: agent, label: agentInfo[agent].name }))]} selected={[view.agent]} choose={(value) => (view.agent = value)}>
       {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
       {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
@@ -133,6 +133,12 @@ const now = Date.now();
 {#if shown.length > limit}{#key limit}<div bind:this={more} aria-hidden="true" style:height="1px"></div>{/key}{/if}
 
 <style>
+  /* The search box is shaped like the filter chips beside it. */
+  :global(.chips) > .pfind {
+    min-height: 32px;
+    border: var(--border-outline);
+    border-radius: var(--radius-5);
+  }
   /* The card fills its grid cell; the pin sits in its top corner. */
   .pinned-card {
     position: relative;
@@ -181,6 +187,62 @@ const now = Date.now();
     button.pin:focus-visible {
       opacity: 1;
     }
+  }
+  /* The card as in the wireframes: a ring and a soft shadow, a small tile,
+     the name over its path, the count, a thin bar, then quiet chips. */
+  .pinned-card > :global(.card.sum) {
+    gap: 12px;
+    padding: 16px 18px;
+    border-color: var(--line-outline);
+    border-radius: var(--radius-8);
+    box-shadow: var(--shadow-panel);
+  }
+  .pinned-card :global(.ico.lg) {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: var(--selected-surface);
+    color: var(--text-muted);
+  }
+  .pinned-card :global(.sum-t) {
+    gap: 3px;
+  }
+  .pinned-card :global(.sum-h b) {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  .pinned-card :global(.big b) {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .pinned-card :global(.big span) {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .pinned-card :global(.bar) {
+    height: 4px;
+    border: 0;
+    background: var(--selected-surface);
+  }
+  .pinned-card :global(.bar i) {
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--text-muted);
+  }
+  .pinned-card :global(.mchip) {
+    height: 22px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: var(--radius-3);
+    background: var(--selected-surface);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .pinned-card :global(.sum-f) {
+    font-size: 12px;
   }
   /* Room for the pin, so a long name never runs under it. */
   .pinned-card :global(.sum-h) {

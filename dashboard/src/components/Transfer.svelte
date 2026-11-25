@@ -17,7 +17,7 @@ import { createQuery } from "@tanstack/svelte-query";
 import { onDestroy } from "svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent } from "../lib/api";
-import { groupChats, projectLabel } from "../lib/browse";
+import { agoLabel, groupChats, projectLabel } from "../lib/browse";
 import { type BulkFormat, chatKey, exportChats, saveBlob } from "../lib/bulkExport";
 import { plainTitle } from "../lib/markdown";
 import { navigate } from "../lib/navigation";
@@ -27,7 +27,6 @@ import { inDesktopApp } from "../lib/shareLink";
 import AgentMark from "./AgentMark.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
-import MetaChips from "./MetaChips.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -262,12 +261,12 @@ async function copy(): Promise<void> {
           {@const key = chatKey(chat)}
           {@const included = !excluded.has(key)}
           <div class="chatrow xrow" class:off={!included}>
-            <span class="chatrow-t">
-              <AgentMark agent={chat.agent} size="sm" /><b>{plainTitle(chat.title)}</b>
-              {#if !included}<span class="pill">left out</span>{/if}
-              <button class="a sp" type="button" aria-label="{included ? 'Leave out' : 'Include'} {plainTitle(chat.title)}" onclick={() => setIncluded(key, !included)}>{included ? "Leave out" : "Include"}</button>
+            <AgentMark agent={chat.agent} size="sm" />
+            <span class="xrow-t">
+              <b>{plainTitle(chat.title)}</b>
+              <span class="xrow-m">{[chat.machine, chat.project ? projectLabel(chat.project) : "", agoLabel(chat.updatedMs, now)].filter(Boolean).join(" · ")}</span>
             </span>
-            <MetaChips {chat} />
+            <button class="xrow-a" type="button" aria-label="{included ? 'Leave out' : 'Put back'} {plainTitle(chat.title)}" onclick={() => setIncluded(key, !included)}>{included ? "Leave out" : "Put back"}</button>
           </div>
         {/each}
       </div>
@@ -291,8 +290,7 @@ async function copy(): Promise<void> {
     {#each formats as option (option.value)}
       <label class="card pick" class:butter={format === option.value}>
         <input class="radio" type="radio" name="format" value={option.value} bind:group={format} />
-        <span class="ico chats"><option.icon size={17} color={option.tint} aria-hidden="true" /></span>
-        <span style:min-width="0"><b>{option.name}</b><span class="pick-a">{option.about}</span></span>
+        <span style:min-width="0"><b><option.icon size={15} color={option.tint} aria-hidden="true" />{option.name}</b><span class="pick-a">{option.about}</span></span>
       </label>
     {/each}
   </div>
@@ -312,7 +310,9 @@ async function copy(): Promise<void> {
   {#if format !== "archive"}
     <!-- On a phone this bar stays at the bottom of the screen, so chats left
          out far down the list can be exported without scrolling back up. -->
-    <div class="card xcard xact" role="region" aria-label="Export">
+    <div class="xact" role="region" aria-label="Export">
+      {#if job.state === "running"}<span class="xact-l">Exporting</span>{/if}
+      <div class="card xcard">
       <span class="acts">
         <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Upload size={15} aria-hidden="true" />Export {count(chosen.length, "chat")}</button>
         {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Square size={14} aria-hidden="true" />Stop</button>{/if}
@@ -328,8 +328,9 @@ async function copy(): Promise<void> {
         <p class="card tight bad" role="alert">{job.reason}</p>
       {/if}
       {#if job.state === "done"}
-        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="center"><Check size={16} aria-hidden="true" style="flex:none" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
+        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="flex-start"><Check size={16} aria-hidden="true" style="flex:none;margin-top:2px" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
       {/if}
+      </div>
     </div>
   {/if}
   </div>

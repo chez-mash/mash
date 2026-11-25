@@ -53,6 +53,20 @@ const names = Object.fromEntries(
 ) as Record<Agent, string>;
 
 const steps = ["histories", "range", "agents", "review"] as const;
+const stepNames = {
+  histories: "Choose histories",
+  range: "History range",
+  agents: "Connect your agents",
+  review: "Review and start",
+} as const;
+/** A short fact beside a step, from what this machine reported. */
+function stepHint(name: (typeof steps)[number]): string {
+  if (!file || !answers) return "";
+  if (name === "histories") return `${file.histories.length} found`;
+  if (name === "range") return answers.sinceDays === null ? "all" : `${answers.sinceDays} days`;
+  if (name === "agents") return answers.connect.length ? `${answers.connect.length} chosen` : "";
+  return "";
+}
 // Where this computer's chats are searched: here only, or also on a shared
 // index this computer joins with a join string.
 let reach = $state<"local" | "join">("local");
@@ -189,28 +203,34 @@ function toggleConnect(agent: Integration): void {
 
 <main class="setup">
   <header class="setup-top">
-    <span class="brand"><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></span>
+    <span class="setup-brand"><span class="brand"><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></span><span class="setup-word">Setup</span></span>
     {#if file && !running}
       <a class="a" href="#/" onclick={skipSetup}>{file.configured || outcome ? "Back to the dashboard" : "Skip to the dashboard"}</a>
     {/if}
   </header>
 
-  <div class="setup-col">
-    {#if at !== null && !outcome}
-      <ol class="setup-steps" aria-label="Setup steps">
-        {#each steps as name, index (name)}
-          {@const done = index < at}
-          <li class:done aria-current={index === at ? "step" : undefined}>
-            <span class="n">{#if done}<Check size={15} aria-label="done" />{:else}{index + 1}{/if}</span>{name}
-          </li>
-        {/each}
-      </ol>
+  <div class="setup-body" class:guided={!!file && !!answers && !outcome}>
+    {#if file && answers && !outcome}
+      {@const current = at ?? steps.length - 1}
+      <aside class="setup-side">
+        <p class="setup-hi"><img src={asset("mashy.png")} alt="" /><span><strong>Hi, I’m Mashy.</strong><span>{steps.length} steps and your chats are ready to search.</span></span></p>
+        <ol class="setup-steps" aria-label="Setup steps">
+          {#each steps as name, index (name)}
+            {@const done = index < current}
+            <li class:done aria-current={index === current ? "step" : undefined}>
+              <span class="n">{#if done}<Check size={13} aria-label="done" />{:else}{index + 1}{/if}</span><span class="setup-sn">{stepNames[name]}</span>{#if stepHint(name)}<small>{stepHint(name)}</small>{/if}
+            </li>
+          {/each}
+        </ol>
+      </aside>
     {/if}
+  <div class="setup-col">
 
     {#if setup.isPending}<Skeleton rows={4} />{/if}
     {#if setup.error}<p class="card tight warn" role="alert">{file ? "Could not refresh setup" : "Setup can't be shown right now"}: {setup.error.message}</p>{/if}
 
     {#if file && answers && !outcome}
+      <p class="setup-eyebrow">Step {(at ?? steps.length - 1) + 1} of {steps.length}</p>
       <h1 class="setup-q" tabindex="-1" bind:this={heading}>{titles[step]}</h1>
       <p class="meta setup-help">{helps[step]}</p>
       {#if !file.editable}
@@ -219,7 +239,7 @@ function toggleConnect(agent: Integration): void {
         <p class="meta setup-help">This machine is already set up. Saving replaces the configuration with these choices and keeps the previous file beside it.</p>
       {/if}
 
-      <section class="setup-card" aria-label={titles[step]}>
+      <section class="setup-card" class:cream={step === "review"} aria-label={titles[step]}>
         {#if step === "histories"}
           {#each file.histories as entry (entry.agent)}
             {@const on = answers.agents[entry.agent] ?? entry.indexed}
@@ -294,14 +314,12 @@ function toggleConnect(agent: Integration): void {
             <label><input type="radio" name="reach" value="local" bind:group={reach} /> <span><strong>On this computer only</strong><br /><span class="meta">Mash indexes chats here. Nothing leaves this computer.</span></span></label>
             <label><input type="radio" name="reach" value="join" bind:group={reach} /> <span><strong>Join a shared index</strong><br /><span class="meta">You have a join string from the machine that runs your Mash server.</span></span></label>
           </fieldset>
-          {#if reach === "join"}<SharedServer joinable />{/if}
+          {#if reach === "join"}<SharedServer joinable notes={false} />{/if}
         {/if}
         {#if !file.configured && file.editable}
           <p class="card tight mashy-card note"><img src={asset("mashy.png")} alt="" /><span>Want to ask questions about your chats? <a class="a" href="https://getmash.io/configuration/#the-dashboard-assistant" target="_blank" rel="noreferrer">Set up Mashy</a> with your own model service and API key.</span></p>
         {/if}
-        {#if searchServiceReady}
-          <p class="ok" style:display="flex" style:gap="7px" style:align-items="center" style:font-size="13.5px"><Check size={16} aria-hidden="true" />The search service is ready.</p>
-        {:else}
+        {#if !searchServiceReady}
           {@render searchServiceProblem(file.qdrant)}
         {/if}
       {/if}
@@ -309,13 +327,16 @@ function toggleConnect(agent: Integration): void {
       {#if blocked && step !== "agents"}<p class="card tight warn" role="alert">{blocked}</p>{/if}
       {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
       <div class="setup-acts">
+        {#if step === "review" && searchServiceReady}
+          <p class="ok setup-ready"><Check size={16} aria-hidden="true" />The search service is ready.</p>
+        {/if}
+        <span class="sp"></span>
         {#if at !== null}
           {@const previous = at > 0 ? at - 1 : null}
           <button class="btn" type="button" disabled={running} onclick={() => goToStep(previous)}><ArrowLeft size={15} aria-hidden="true" />{previous === null ? "Back to review" : "Back"}</button>
         {:else if at === null && file.editable}
           <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}><SlidersHorizontal size={14} aria-hidden="true" />Customize setup</button>
         {/if}
-        <span class="sp"></span>
         {#if at !== null && step !== "review"}
           {@const next = at + 1}
           <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
@@ -422,5 +443,6 @@ function toggleConnect(agent: Integration): void {
       </div>
       <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">{mashCommand("init")}</code>.</p>
     {/if}
+  </div>
   </div>
 </main>
