@@ -81,12 +81,12 @@ pnpm lint
 
 ## Before submitting to the Store
 
-- **`author`** and **`owner`**: `author` is James's Raycast username,
-  `james_ko`. To publish under the MashHQ organization, add
-  `"owner": "<organization handle>"` and `"access": "public"` (an `owner`
-  alone publishes to the organization's private store). Copy the handle from
-  Raycast's **Manage Organization** command (**Copy Organization Handle**);
-  `pnpm lint` checks it against Raycast's API.
+- **`author`**, **`owner`** and **`access`**: `author` is James's Raycast
+  username, `james_ko`; `owner` is the MashHQ organization, `mashhq`; and
+  `"access": "public"` sends it to the public Store (an `owner` alone
+  publishes to the organization's private store). `pnpm lint` checks the
+  organization against Raycast's API, which finds it only for a signed-in
+  member, so run it after `ray login` on a Mac.
 - **Screenshots**: none exist yet. TODO: add them to `metadata/` as
   `mash-1.png`, `mash-2.png` and so on, 2000 × 1250 PNG, taken with Raycast's
   Window Capture while `pnpm dev` runs. They are needed for:

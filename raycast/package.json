@@ -5,6 +5,8 @@
   "description": "Search the history of your coding agents as you type, and open a chat in Mash.",
   "icon": "mash.png",
   "author": "james_ko",
+  "owner": "mashhq",
+  "access": "public",
   "categories": [
     "Developer Tools",
     "Productivity"
