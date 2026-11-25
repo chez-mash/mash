@@ -179,6 +179,80 @@
     font-weight: 600;
   }
 
+  /* Mashy's examples: one question and its answer at a time, picked with the
+     pager or in turn by the script. All share one grid cell, so the window
+     keeps the tallest one's height and nothing below it moves. Without the
+     script every example shows, one under the other, and the pager stays
+     hidden. */
+  .mashy-carousel {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .examples {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .example {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .mashy-carousel[data-example] .example {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+  }
+  .mashy-carousel[data-example] .example.on {
+    visibility: visible;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .mashy-carousel[data-example] .example {
+      transition:
+        opacity 320ms ease-out,
+        visibility 320ms;
+    }
+  }
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .pager[hidden] {
+    display: none;
+  }
+  .pager button {
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border: var(--border-outline);
+    background: var(--surface-paper);
+    color: var(--text-ink);
+    cursor: pointer;
+  }
+  .pager .pager-go {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-round);
+  }
+  .pager .dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radius-round);
+  }
+  .pager .dot[aria-current="true"] {
+    width: 1.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--fill-butter);
+    border-color: var(--line-ink);
+  }
+  .pager button:focus-visible {
+    outline: var(--stroke-outline) solid var(--line-ink);
+    outline-offset: 2px;
+  }
+
   /* Memory: what you said, the decision saved from it, and its later return. */
   .memory-thread {
     display: flex;

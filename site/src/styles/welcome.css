@@ -81,7 +81,7 @@
     background: var(--band-peach);
   }
   #welcome-features {
-    background: var(--band-rose);
+    background: var(--band-sky);
   }
   #welcome-rust {
     background: var(--band-apricot);
@@ -163,7 +163,7 @@
     align-items: center;
     gap: 0.625rem;
   }
-  .points .small {
+  .words .small {
     font-size: 0.8125rem;
     font-weight: 400;
   }
@@ -316,15 +316,11 @@
   }
   .tiles article.big {
     grid-column: span 3;
-    padding-block: 1.25rem 1.5rem;
   }
+  /* One title size for every tile, so the rows read as one set. */
   .tiles h3 {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     letter-spacing: -0.025em;
-  }
-  .tiles .big h3 {
-    font-size: 1.875rem;
-    letter-spacing: -0.035em;
   }
   /* A row of icon stickers, for a tile that names several things at once. */
   .icos {
@@ -359,12 +355,23 @@
     align-items: center;
     gap: 1.25rem;
   }
+  /* Ferris drawn in ink on a rust sticker, like the page's other stickers. */
+  .ferris-sticker {
+    display: grid;
+    place-items: center;
+    padding: 1rem 1.5rem 0.75rem;
+    border: var(--border-outline);
+    border-color: var(--line-ink);
+    border-radius: var(--radius-7);
+    background: var(--fill-peach);
+    color: var(--text-on-fill);
+    rotate: -2deg;
+  }
   .rust .ferris {
-    width: 17rem;
+    width: 15rem;
     height: auto;
-    color: var(--mark-rust);
     /* As heavy as the page's 2px outlines at this size. */
-    stroke-width: 14;
+    stroke-width: 16;
   }
   .built {
     display: flex;
@@ -435,7 +442,7 @@
     text-align: center;
   }
   .closing img {
-    width: 7.5rem;
+    width: 12rem;
     height: auto;
   }
   .closing h2 {
@@ -502,8 +509,8 @@
       width: auto;
     }
     .rust .ferris {
-      width: 12rem;
-      stroke-width: 18;
+      width: 11rem;
+      stroke-width: 20;
     }
     .privacy-head .aside {
       padding-top: 0;

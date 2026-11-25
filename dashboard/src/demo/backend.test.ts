@@ -88,7 +88,7 @@ describe("the demo answers in the shapes mash dash sends", () => {
     expect(earlierCart?.updatedMs).toBeLessThan(original?.updatedMs ?? 0);
 
     const decision = parseRecord(body("/api/record", "?id=record-sign-in-tokens&node=laptop"));
-    const quote = "ok, go with the tokens. keep the mobile app on the same scheme";
+    const quote = "OK, go with the tokens. Keep the mobile app on the same scheme.";
     expect(decision.revisions[0]?.evidence).toMatchObject([
       { chatId: "sign-in-tokens", messageId: "sign-in-tokens-2", quote, purpose: "endorsement" },
     ]);

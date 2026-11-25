@@ -94,7 +94,7 @@ const ownChats: readonly DemoChat[] = [
     [
       user("Use the Mash resume skill to tell me where we left off on mobile sign-in."),
       agent(
-        "I found the saved storefront decision and the Claude Code chat on your laptop. You said: “ok, go with the tokens. keep the mobile app on the same scheme”\n\nThe storefront already uses fifteen-minute access tokens and revokes the refresh token on sign-out. The mobile task is still open: store the refresh token in the device keychain, use it when refreshing an access token, and clear it on sign-out.",
+        "I found the saved storefront decision and the Claude Code chat on your laptop. You said: “OK, go with the tokens. Keep the mobile app on the same scheme.”\n\nThe storefront already uses fifteen-minute access tokens and revokes the refresh token on sign-out. The mobile task is still open: store the refresh token in the device keychain, use it when refreshing an access token, and clear it on sign-out.",
       ),
       user("Go ahead with the storage change. I’ll check the flow on a phone afterwards."),
       agent(
@@ -116,7 +116,7 @@ const ownChats: readonly DemoChat[] = [
       agent(
         "The session cookie lasts thirty days and nothing on the server can end it early, which is why sign-out on one device doesn't reach the others.\n\nI'd switch to **access tokens that expire after fifteen minutes**, with a refresh token kept in a cookie that the page's scripts can't read. Signing out then deletes the refresh token on the server, and every device is out within fifteen minutes.\n\nThe alternative is to keep cookies and add a server-side session table. That fixes sign-out too, but the mobile app would still need its own scheme.",
       ),
-      user("ok, go with the tokens. keep the mobile app on the same scheme"),
+      user("OK, go with the tokens. Keep the mobile app on the same scheme."),
       tool(
         "Edit",
         {

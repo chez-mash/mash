@@ -24,10 +24,11 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "Find it. However you remember it.",
-    "Meet Mashy. Ask your history anything.",
+    "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
+    "Fits the way you work.",
     "Written with <3 in Rust.",
     "Give your agents a memory.",
   ]);
@@ -37,7 +38,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAccessibleName(/\w/);
   }
-  const more = page.getByRole("region", { name: "More about Mash" });
+  const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("link")).toHaveText([
     "plugin for Claude Code, Codex and Copilot",
     "Hybrid search",
@@ -212,7 +213,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const welcome = page.locator(".mash-welcome");
   const windows = welcome.locator("[role=img]");
   await expect(windows).toHaveCount(3);
-  await expect(windows.first()).toHaveAccessibleName(/why does checkout keep failing/);
+  await expect(windows.first()).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
   const mashy = welcome.getByRole("img", { name: "Mashy, the Mash mascot" });
@@ -269,4 +270,30 @@ test("every feature tile has an icon, the stack chips have logos, and the close 
     links.map((link) => link.getBoundingClientRect().height),
   );
   expect(heights[1]).toBe(heights[0]);
+});
+
+test("Mashy shows one example at a time, and the pager picks another", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const chat = page.locator("[data-mashy-chat]");
+  const shown = chat.locator(".example.on .bubble");
+  // With less motion the examples do not change by themselves.
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+  await chat.getByRole("button", { name: "Show example 3 of 3" }).click();
+  await expect(shown).toHaveText(["Did the payment retry change touch checkout?"]);
+  await chat.getByRole("button", { name: "Next example" }).click();
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+  await expect(chat.getByRole("button", { name: "Show example 1 of 3" })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+  // Every example shares the window, so changing one never moves the page.
+  const heights = new Set<number>();
+  for (const example of [1, 2, 3]) {
+    await chat.getByRole("button", { name: `Show example ${example} of 3` }).click();
+    heights.add(
+      await chat.locator(".mashy-window").evaluate((w) => w.getBoundingClientRect().height),
+    );
+  }
+  expect(heights.size).toBe(1);
 });

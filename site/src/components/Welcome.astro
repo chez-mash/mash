@@ -3,7 +3,12 @@
 // stamped label, a heading and a small window or set of cards drawn as the
 // dashboard draws them. The windows are illustrations: each is one image to
 // assistive technology, named for what it shows.
+
+import { Image } from "astro:assets";
 import { Icon } from "@astrojs/starlight/components";
+// Mashy at full size: the artwork in assets/mashy.png, cut out from its white
+// background so it sits on the butter band.
+import mashy from "../art/mashy.webp";
 import "../styles/welcome.css";
 import "../styles/welcome-panels.css";
 import ferris from "../art/ferris.svg?raw";
@@ -36,10 +41,10 @@ function mark(svg: string): string {
   <section class="band" id="welcome-search" aria-labelledby="welcome-search-title">
     <div class="wrapper split" data-reveal>
       <div class="window search-window" role="img"
-        aria-label="The example search ‘why does checkout keep failing’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines.">
+        aria-label="The example search ‘Why does checkout keep failing?’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines.">
         <div class="window-h" aria-hidden="true"><u></u><u></u><u></u><span>mash · search</span></div>
         <div class="window-b" aria-hidden="true">
-          <div class="query"><Icon name="magnifier" size="1rem" /><b>why does checkout keep failing</b><span class="go"><Icon name="right-arrow" size="0.875rem" /></span></div>
+          <div class="query"><Icon name="magnifier" size="1rem" /><b>Why does checkout keep failing?</b><span class="go"><Icon name="right-arrow" size="0.875rem" /></span></div>
           <div class="result">
             <p class="who"><span class="mash-agent-tile" data-agent="claude-code"></span><b>Checkout outage review</b><span>build-box · 2d</span></p>
             <p>The migration held a lock on <mark>checkout</mark> orders for four minutes, so every request <mark>failed</mark> until it finished.</p>
@@ -71,31 +76,71 @@ function mark(svg: string): string {
     <div class="wrapper split reverse" data-reveal>
       <div class="words">
         <span class="stamp">Dashboard</span>
-        <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask your history anything.</span></h2>
-        <ul class="points plain">
-          <li>Ask in plain language.</li>
-          <li>Mashy reads across agents and machines.</li>
-          <li>Follow the quote back to the original chat.</li>
-          <li class="small">Optional. Requires your own model service and API key.</li>
-        </ul>
+        <h2 id="welcome-mashy-title">Meet Mashy. <span>Ask anything about your chats.</span></h2>
+        <p class="blurb">
+          Mashy searches your chats, smooth as butter. He can help you remember what you were
+          doing last week or cross-reference between chats. Plus, he’s super cute!
+        </p>
+        <p class="small">Optional. Requires your own model service and API key.</p>
       </div>
-      <div class="window mashy-window" role="img"
-        aria-label="The read-only assistant traces an example checkout outage to a database migration and quotes the Claude Code conversation that describes the lock.">
-        <div class="window-h" aria-hidden="true"><img src="/mashy.png" alt="" width="26" height="24" /><span>Ask Mashy</span></div>
-        <div class="window-b" aria-hidden="true">
-          <p class="bubble">What caused the checkout outage last week?</p>
-          <div class="answer">
-            <img src="/mashy.png" alt="" width="30" height="27" />
-            <div>
-              <p>A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:</p>
-              <div class="quote">
-                <p class="who"><span class="mash-agent-tile" data-agent="claude-code"></span><b>Checkout outage review</b><span>build-box</span></p>
-                <p>“The migration takes an exclusive lock, so checkout writes queue behind it.”</p>
-                <span class="fake-link">Open the message ›</span>
+      <div class="mashy-carousel" data-mashy-chat>
+        <div class="window mashy-window" role="img"
+          aria-label="Three example questions to the read-only assistant, each answered with a quote from the chat it came from: the checkout outage traced to a database migration in Claude Code, yesterday’s flaky test fix in Codex, and a payment retry added in Cursor.">
+          <div class="window-h" aria-hidden="true"><img src="/mashy.png" alt="" width="26" height="24" /><span>Ask Mashy</span></div>
+          <div class="window-b" aria-hidden="true">
+            <div class="examples">
+            <div class="example" data-example="1">
+              <p class="bubble">What caused the checkout outage last week?</p>
+              <div class="answer">
+                <img src="/mashy.png" alt="" width="30" height="27" />
+                <div>
+                  <p>A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:</p>
+                  <div class="quote">
+                    <p class="who"><span class="mash-agent-tile" data-agent="claude-code"></span><b>Checkout outage review</b><span>build-box</span></p>
+                    <p>“The migration takes an exclusive lock, so checkout writes queue behind it.”</p>
+                    <span class="fake-link">Open the message ›</span>
+                  </div>
+                </div>
               </div>
             </div>
+            <div class="example" data-example="2">
+              <p class="bubble">What was I working on yesterday?</p>
+              <div class="answer">
+                <img src="/mashy.png" alt="" width="30" height="27" />
+                <div>
+                  <p>You were fixing the flaky checkout test with Codex on the workstation. It ended with the cause:</p>
+                  <div class="quote">
+                    <p class="who"><span class="mash-agent-tile" data-agent="codex"></span><b>Fix the flaky checkout test</b><span>workstation</span></p>
+                    <p>“The test keeps failing because it shares a cart with the test before it.”</p>
+                    <span class="fake-link">Open the message ›</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="example" data-example="3">
+              <p class="bubble">Did the payment retry change touch checkout?</p>
+              <div class="answer">
+                <img src="/mashy.png" alt="" width="30" height="27" />
+                <div>
+                  <p>Yes. Cursor added it on the laptop, for when the payment provider times out during checkout:</p>
+                  <div class="quote">
+                    <p class="who"><span class="mash-agent-tile" data-agent="cursor"></span><b>Retry payments after a timeout</b><span>laptop</span></p>
+                    <p>“Added one retry when the payment provider times out during checkout.”</p>
+                    <span class="fake-link">Open the message ›</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div class="ask"><span>Ask about your chats</span><span class="send">Ask</span></div>
           </div>
-          <div class="ask"><span>Ask about your chats</span><span class="send">Ask</span></div>
+        </div>
+        <div class="pager" hidden>
+          <button type="button" class="pager-go" data-go="-1" aria-label="Previous example"><Icon name="left-arrow" size="1rem" /></button>
+          {[1, 2, 3].map((example) => (
+            <button type="button" class="dot" data-example-to={example} aria-label={`Show example ${example} of 3`}></button>
+          ))}
+          <button type="button" class="pager-go" data-go="1" aria-label="Next example"><Icon name="right-arrow" size="1rem" /></button>
         </div>
       </div>
     </div>
@@ -105,7 +150,7 @@ function mark(svg: string): string {
     <div class="wrapper split" data-reveal>
       <div class="memory-thread" role="img"
         aria-label="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session.">
-        <p class="bubble said" aria-hidden="true">ok, go with the tokens. keep the mobile app on the same scheme</p>
+        <p class="bubble said" aria-hidden="true">OK, go with the tokens. Keep the mobile app on the same scheme.</p>
         <p class="step" aria-hidden="true"><Icon name="down-arrow" size="1rem" />saved with your message as evidence</p>
         <div class="record" aria-hidden="true">
           <p class="pills"><span class="mash-pill butter">decision</span><span class="mash-pill ok">accepted</span><span class="mash-pill">established</span></p>
@@ -221,39 +266,45 @@ function mark(svg: string): string {
     </div>
   </section>
 
-  <section class="band" id="welcome-features" aria-label="More about Mash">
-    <div class="wrapper tiles" data-reveal>
-      <article class="big">
-        <span class="ico"><Icon name="puzzle" /></span>
-        <h3>Context, before you ask.</h3>
-        <p>
-          The <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> brings earlier
-          decisions and discussions into new sessions.
-        </p>
-      </article>
-      <article class="big">
-        <span class="ico"><Icon name="random" /></span>
-        <h3>RAG over your own history.</h3>
-        <p>
-          <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
-          results with a cross-encoder.
-        </p>
-      </article>
-      <article>
-        <span class="icos"><span class="ico" title="macOS"><Icon name="apple" /></span><span class="ico" title="Linux"><Icon name="linux" /></span><span class="ico" title="Windows"><LineIcon name="windows" /></span></span>
-        <h3>macOS. Linux. Windows.</h3>
-        <p>Wherever you work.</p>
-      </article>
-      <article>
-        <span class="icos"><span class="ico"><Icon name="laptop" /></span><span class="ico"><Icon name="desktop" /></span><span class="ico"><Icon name="server" /></span></span>
-        <h3>Every machine.</h3>
-        <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
-      </article>
-      <article>
-        <span class="icos files" aria-hidden="true"><span class="ico">MD</span><span class="ico">&lt;/&gt;</span><span class="ico">PDF</span></span>
-        <h3>Markdown. HTML. PDF.</h3>
-        <p>Export any chat.</p>
-      </article>
+  <section class="band" id="welcome-features" aria-labelledby="welcome-features-title">
+    <div class="wrapper stack" data-reveal>
+      <div class="head">
+        <span class="stamp">And more</span>
+        <h2 id="welcome-features-title">Fits the way you work.</h2>
+      </div>
+      <div class="tiles">
+        <article class="big">
+          <span class="ico"><Icon name="puzzle" /></span>
+          <h3>Context, before you ask.</h3>
+          <p>
+            The <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> brings earlier
+            decisions and discussions into new sessions.
+          </p>
+        </article>
+        <article class="big">
+          <span class="ico"><Icon name="random" /></span>
+          <h3>RAG over your own history.</h3>
+          <p>
+            <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
+            results with a cross-encoder.
+          </p>
+        </article>
+        <article>
+          <span class="icos"><span class="ico" title="macOS"><Icon name="apple" /></span><span class="ico" title="Linux"><Icon name="linux" /></span><span class="ico" title="Windows"><LineIcon name="windows" /></span></span>
+          <h3>macOS. Linux. Windows.</h3>
+          <p>The same Mash on each, with the desktop app or the CLI.</p>
+        </article>
+        <article>
+          <span class="icos"><span class="ico"><Icon name="laptop" /></span><span class="ico"><Icon name="desktop" /></span><span class="ico"><Icon name="server" /></span></span>
+          <h3>Every machine.</h3>
+          <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
+        </article>
+        <article>
+          <span class="icos files" aria-hidden="true"><span class="ico">MD</span><span class="ico">&lt;/&gt;</span><span class="ico">PDF</span></span>
+          <h3>Markdown. HTML. PDF.</h3>
+          <p>Export any chat.</p>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -272,8 +323,8 @@ function mark(svg: string): string {
         </p>
       </div>
       <div class="rust-art">
-        <!-- Ferris, Rust's unofficial mascot. -->
-        <Fragment set:html={ferris} />
+        <!-- Ferris, Rust's unofficial mascot, drawn in ink on a sticker. -->
+        <span class="ferris-sticker"><Fragment set:html={ferris} /></span>
         <ul class="built" aria-label="Built with">
           {built.map((part) => (
             <li>
@@ -290,7 +341,7 @@ function mark(svg: string): string {
 
   <section class="band butter close" aria-labelledby="welcome-close">
     <div class="wrapper closing" data-reveal>
-      <img src="/mashy.png" alt="Mashy, the Mash mascot" width="120" height="109" />
+      <Image src={mashy} alt="Mashy, the Mash mascot" width={384} />
       <h2 id="welcome-close">Give your agents a memory.</h2>
       <p class="actions">
         <a class="button" href="/quick-start/">Get started<Icon name="right-arrow" size="1rem" /></a>

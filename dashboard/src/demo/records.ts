@@ -31,7 +31,7 @@ export const records: readonly DemoRecord[] = [
     source: {
       chat: "sign-in-tokens",
       message: 2,
-      quote: "ok, go with the tokens. keep the mobile app on the same scheme",
+      quote: "OK, go with the tokens. Keep the mobile app on the same scheme.",
     },
   },
   {

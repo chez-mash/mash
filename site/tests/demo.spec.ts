@@ -161,7 +161,7 @@ test("the sample handoff opens the Claude Code decision and its later Codex chat
   const recap = page.locator("#message-mobile-keychain-follow-up-1");
   await expect(recap).toHaveClass(/\bhit\b/);
   await expect(recap).toContainText(
-    "ok, go with the tokens. keep the mobile app on the same scheme",
+    "OK, go with the tokens. Keep the mobile app on the same scheme.",
   );
   await expect(recap).toContainText("The mobile task is still open");
   await expect(page.getByText(/The remaining check is on two devices/)).toBeVisible();
