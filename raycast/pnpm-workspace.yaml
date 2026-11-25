@@ -1,9 +1,0 @@
-# Raycast's build tool bundles with esbuild, whose install step fetches its
-# native binary.
-allowBuilds:
-  esbuild: true
-
-# minimatch 7–11.0.0 can be made to spend unbounded time on crafted globs
-# (GHSA via Dependabot alert 11); ESLint reaches 10.x, so move it to 11.
-overrides:
-  "minimatch@>=7.0.0 <11.0.1": "^11.0.1"

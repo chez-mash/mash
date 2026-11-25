@@ -74,7 +74,7 @@
       "default": false
     }
   ],
-  "packageManager": "pnpm@11.28.5",
+  "packageManager": "npm@11.17.0",
   "dependencies": {
     "@raycast/api": "2.11.1",
     "@raycast/utils": "2.3.3"
@@ -95,5 +95,8 @@
     "fix-lint": "ray lint --fix",
     "test": "vitest run",
     "publish": "npx @raycast/api@latest publish"
+  },
+  "overrides": {
+    "minimatch@>=7.0.0 <11.0.1": "^11.0.1"
   }
 }

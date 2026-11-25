@@ -73,18 +73,20 @@ image or link.
 ## Development
 
 ```sh
-pnpm install
-pnpm dev        # opens the extension in Raycast
-pnpm test       # the parsing and link tests
-pnpm lint
+npm install
+npm run dev     # opens the extension in Raycast
+npm test        # the parsing and link tests
+npm run lint
 ```
+
+The extension uses npm, as Raycast's Store expects a `package-lock.json`.
 
 ## Before submitting to the Store
 
 - **`author`**, **`owner`** and **`access`**: `author` is James's Raycast
   username, `james_ko`; `owner` is the MashHQ organization, `mashhq`; and
   `"access": "public"` sends it to the public Store (an `owner` alone
-  publishes to the organization's private store). `pnpm lint` checks the
+  publishes to the organization's private store). `npm run lint` checks the
   organization against Raycast's API, which finds it only for a signed-in
   member, so run it after `ray login` on a Mac.
 - **Screenshots**: `metadata/mash-1.png` to `mash-5.png`, 2000 × 1250 PNG:
