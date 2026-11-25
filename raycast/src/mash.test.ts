@@ -418,6 +418,7 @@ describe("reading a chat's messages", () => {
     expect(speaker("user", "codex")).toBe("You");
     expect(speaker("assistant", "claude-code")).toBe("Claude Code");
     expect(speaker("system", "codex")).toBe("System");
+    expect(speaker("assistant", "")).toBe("Assistant");
   });
 
   it("reads another machine's message from the shared index, by that machine", () => {

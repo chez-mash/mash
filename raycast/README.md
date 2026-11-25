@@ -33,7 +33,7 @@ From a chat you can:
   desktop app. Offered only when the app is installed.
 - **Copy Message ID** — the ID that `mash view` and your agents' Mash tools
   read the message by (⇧⌘C without the desktop app).
-- **Copy Passage** (⇧⌘.).
+- **Copy Passage** (⌥⌘C).
 - **Copy Resume Command** (⇧⌘R) — `claude --resume …` or `codex resume …`,
   in the folder the chat ran in, to pick the session up in a terminal.
   Offered for this machine's own Claude Code and Codex sessions.

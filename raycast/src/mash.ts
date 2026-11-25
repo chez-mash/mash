@@ -380,10 +380,13 @@ export function conversation(messages: readonly Message[], matchId: string, arou
   return passages;
 }
 
-/** Who said a message: you, or the agent by name. */
+/**
+ * Who said a message: you, or the agent by name. A memory's source chat comes
+ * without its agent, so its replies are headed "Assistant" rather than nothing.
+ */
 export function speaker(role: string, agent: string): string {
   if (role === "user") return "You";
-  if (role === "assistant") return agentName(agent);
+  if (role === "assistant") return agentName(agent) || "Assistant";
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
