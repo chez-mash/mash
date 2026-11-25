@@ -130,8 +130,10 @@ export async function exportChats(
         if (stop.aborted) throw error;
         failure.abort();
         const reason = error instanceof Error ? error.message : "it could not be read";
+        // A server message may not end its sentence; the next one must not run on.
+        const ended = /[.!?…]$/.test(reason.trim()) ? reason.trim() : `${reason.trim()}.`;
         throw new Error(
-          `Couldn’t read “${plainTitle(chat.title)}” on ${chat.machine}: ${reason} Nothing was saved. Leave that chat out, or try again.`,
+          `Couldn’t read “${plainTitle(chat.title)}” on ${chat.machine}: ${ended} Nothing was saved. Leave that chat out, or try again.`,
         );
       }
       done += 1;

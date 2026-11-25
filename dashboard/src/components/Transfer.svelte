@@ -325,13 +325,28 @@ async function copy(): Promise<void> {
       {:else if job.state === "stopped"}
         <p class="meta" role="status">Export stopped. Nothing was saved.</p>
       {:else if job.state === "failed"}
-        <p class="card tight bad" role="alert">{job.reason}</p>
+        <p class="xfail" role="alert"><TriangleAlert size={15} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{job.reason}</span></p>
       {/if}
       {#if job.state === "done"}
-        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="flex-start"><Check size={16} aria-hidden="true" style="flex:none;margin-top:2px" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
+        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="flex-start" style:font-size="13px"><Check size={16} aria-hidden="true" style="flex:none;margin-top:2px" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
       {/if}
       </div>
     </div>
   {/if}
   </div>
 {/if}
+
+<style>
+  /* A failed export: the reason in red at the size of the line beside it. */
+  .xfail {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    color: var(--status-bad-text);
+    overflow-wrap: anywhere;
+  }
+  .xrow-t > b {
+    font-weight: 500;
+  }
+</style>

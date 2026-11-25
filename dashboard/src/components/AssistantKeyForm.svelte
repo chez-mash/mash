@@ -77,7 +77,7 @@ async function save(): Promise<void> {
         {#each [...assistantServices, { id: "other", name: "Another service" }] as option (option.id)}
           <label class="service-tile" class:on={service === option.id}>
             <input type="radio" name="{id}-service" value={option.id} bind:group={service} />
-            <span class="service-mark" aria-hidden="true">
+            <span class="service-mark {option.id}" aria-hidden="true">
               {#if marks[option.id]}{@html marks[option.id]}{:else if option.id === "openrouter"}<Route size={18} />{:else}<Server size={18} />{/if}
             </span>
             <span>{option.name}</span>
@@ -102,3 +102,46 @@ async function save(): Promise<void> {
     {#if oncancel}<button class="btn" type="button" onclick={() => { apiKey = ""; failure = ""; oncancel(); }}>Cancel</button>{/if}
   </span>
 </form>
+
+<style>
+  /* The chosen service, as in the wireframes: a visible radio, a tinted tile
+     with a firmer ring, and each provider's mark on its own colour. */
+  .service-tile {
+    border-color: var(--line-outline);
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .service-tile.on {
+    border-color: transparent;
+    background: var(--selected-surface);
+    color: var(--text-strong);
+    box-shadow: 0 0 0 1.5px var(--selected-ring);
+    font-weight: 600;
+  }
+  .service-tile input {
+    position: static;
+    flex: none;
+    margin: 0;
+    opacity: 1;
+    accent-color: var(--text-strong);
+  }
+  .service-mark {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-4);
+    background: var(--surface-muted);
+    color: var(--text-body);
+  }
+  .service-mark :global(svg) {
+    width: 14px;
+    height: 14px;
+  }
+  .service-mark.anthropic {
+    background: var(--agent-claude-code);
+    color: var(--agent-on);
+  }
+  .service-mark.openai {
+    background: var(--agent-codex);
+    color: var(--agent-on-neutral);
+  }
+</style>

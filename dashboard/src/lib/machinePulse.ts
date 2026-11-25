@@ -24,6 +24,8 @@ export interface Pulse {
   readonly tone: PulseTone;
   /** What the dot stands for, for its tooltip. */
   readonly words: string;
+  /** Nothing reports on this machine at all, which says nothing about whether it is offline. */
+  readonly unreported?: boolean;
 }
 
 export interface PulseEvidence {
@@ -50,7 +52,7 @@ export function machinePulse(name: string, evidence: PulseEvidence): Pulse {
     return { tone: "none", words: `Did not answer · checked ${when}` };
   }
   if (entry) return publishedPulse(entry, serverNow);
-  return { tone: "none", words: "No status reported" };
+  return { tone: "none", words: "No status reported", unreported: true };
 }
 
 function checkedPulse(machine: Machine, now: number): Pulse {

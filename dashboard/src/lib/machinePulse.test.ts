@@ -116,6 +116,7 @@ describe("a machine's status dot", () => {
     expect(machinePulse("stranger", evidence())).toEqual({
       tone: "none",
       words: "No status reported",
+      unreported: true,
     });
     expect(
       machinePulse("stranger", { fleet: undefined, report: { kind: "none" }, now: NOW * 1000 })

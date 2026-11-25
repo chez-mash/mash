@@ -318,7 +318,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
         <section class="sec">
           <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
           <div class="rws agentset" class:solo={shown.length < 2}>
-            <div class="rw head" aria-hidden="true"><span>agent</span>{#if shown.length > 1}<span>machine</span>{/if}<span>parts</span><span>status</span></div>
+            <div class="rw head" aria-hidden="true"><span>Agent</span>{#if shown.length > 1}<span>Machine</span>{/if}<span>Parts</span><span>Status</span></div>
             {#each shown.filter((machine) => machine.reachable) as machine (machine.id)}<MachineSetup machineId={machine.id} {enabled} showMachine={shown.length > 1} />{/each}
           </div>
           <p class="meta">Mash reads settings and files for this; it does not start the agents.</p>

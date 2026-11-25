@@ -93,6 +93,11 @@
   --selected-text: #1a1915;
   --selected-line: rgba(20, 19, 15, 0.12);
   --selected-bg: #ffffff;
+  /* The ring round a chosen option among tiles, such as a model service. */
+  --selected-ring: rgba(20, 19, 15, 0.34);
+  /* A decision badge beside a chat's title: a soft butter tint. */
+  --decision-bg: rgba(245, 200, 75, 0.3);
+  --decision-text: #6b4e00;
   --selected-soft-bg: rgba(20, 19, 15, 0.055);
   --selected-soft-text: #1a1915;
   --toggle-on: #f5c84b;
@@ -236,6 +241,9 @@
     --selected-text: #f3efe6;
     --selected-line: rgba(255, 250, 240, 0.12);
     --selected-bg: #23211d;
+    --selected-ring: rgba(255, 250, 240, 0.32);
+    --decision-bg: rgba(245, 200, 75, 0.18);
+    --decision-text: #f5c84b;
     --selected-soft-bg: rgba(255, 250, 240, 0.07);
     --selected-soft-text: #f3efe6;
     --toggle-knob: #141311;
@@ -262,8 +270,8 @@
     --you-text: #f3efe6;
     --you-inset: #1b1a17;
     --you-rule: rgba(255, 250, 240, 0.12);
-    --banner-bg: #f3efe6;
-    --banner-text: #141311;
+    --banner-bg: #2a2824;
+    --banner-text: #f3efe6;
     --tile-chats: transparent;
     --tile-machines: transparent;
     --tile-projects: transparent;
@@ -330,6 +338,9 @@
   --selected-text: #f3efe6;
   --selected-line: rgba(255, 250, 240, 0.12);
   --selected-bg: #23211d;
+  --selected-ring: rgba(255, 250, 240, 0.32);
+  --decision-bg: rgba(245, 200, 75, 0.18);
+  --decision-text: #f5c84b;
   --selected-soft-bg: rgba(255, 250, 240, 0.07);
   --selected-soft-text: #f3efe6;
   --toggle-knob: #141311;
@@ -356,8 +367,8 @@
   --you-text: #f3efe6;
   --you-inset: #1b1a17;
   --you-rule: rgba(255, 250, 240, 0.12);
-  --banner-bg: #f3efe6;
-  --banner-text: #141311;
+  --banner-bg: #2a2824;
+  --banner-text: #f3efe6;
   --tile-chats: transparent;
   --tile-machines: transparent;
   --tile-projects: transparent;

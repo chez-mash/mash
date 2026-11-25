@@ -2,6 +2,7 @@
 import ArrowLeft from "@lucide/svelte/icons/arrow-left";
 import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
+import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Copy from "@lucide/svelte/icons/copy";
 import Play from "@lucide/svelte/icons/play";
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
@@ -192,7 +193,7 @@ function toggleConnect(agent: Integration): void {
 {/snippet}
 {#snippet connectAgent(entry: FirstRun["integrations"][number], on: boolean, editable: boolean)}
   <div class="setup-row" class:off={!entry.installed}>
-    <AgentMark agent={entry.agent} size="lg" />
+    <AgentMark agent={entry.agent} />
     <span class="setup-who"><strong>{agentInfo[entry.agent].name}</strong><small>{entry.installed ? (entry.connected ? "already connected" : "its command-line tool is installed") : "its command-line tool was not found here"}</small></span>
     {@render toggle(`Connect ${agentInfo[entry.agent].name}`, on, () => toggleConnect(entry.agent), !entry.installed || !editable || running)}
   </div>
@@ -292,8 +293,8 @@ function toggleConnect(agent: Integration): void {
         {@render connectionHelp()}
       {:else if step === "review"}
         {#if file.editable && installedAgents.length && at === null}
-          <details class="fold">
-            <summary>Choose agents to connect</summary>
+          <details class="fold lite">
+            <summary><ChevronRight class="cv" size={14} aria-hidden="true" />Choose agents to connect</summary>
             <div>
               <p class="meta">{helps.agents}</p>
               {#each installedAgents as entry (entry.agent)}

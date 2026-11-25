@@ -324,3 +324,32 @@ function percent(target: FleetJob["targets"][number]): number | null {
     <section class="sec">{@render activity()}</section>
   {/if}
 {/if}
+
+<style>
+  /* As in the wireframes: a chosen target has a solid ink tick box, targets
+     share the row equally, and the question before a run is a raised card
+     with an amber ring, as every confirmation of a change elsewhere is. */
+  .ft .check.on {
+    border-color: var(--action-bg);
+    background: var(--action-bg);
+    color: var(--surface-raised);
+  }
+  .fleet-ts {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+  .armed {
+    padding: 16px;
+    border-color: transparent;
+    border-radius: var(--radius-8);
+    background: var(--surface-raised);
+    box-shadow:
+      0 0 0 1px var(--memory-ring),
+      var(--memory-glow);
+  }
+  /* The operations get more of the row; activity is a narrow column. */
+  @container (min-width: 900px) {
+    .cols.fleet-cols {
+      grid-template-columns: minmax(0, 1fr) 250px;
+    }
+  }
+</style>

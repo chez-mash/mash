@@ -23,30 +23,10 @@ let {
 
 <section class="sec">
   <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />{title}</h2>{#if action}{@render action()}{/if}</div>
-  <div class="rws agentset solo asl">
+  <div class="rws agentset solo">
     <div class="rw head" aria-hidden="true"><span>Agent</span><span>Parts</span><span>Status</span></div>
     <MachineSetup {machineId} {enabled} showMachine={false} />
   </div>
   {#if note}<p class="meta">{note}</p>{/if}
 </section>
 
-<style>
-  /* As in the wireframes: the list is a raised card, its header plain words. */
-  .asl {
-    border-color: var(--line-outline);
-    box-shadow: var(--shadow-panel);
-  }
-  .asl > :global(.rw.head) {
-    border-bottom: var(--border-divider);
-    background: transparent;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0;
-    text-transform: none;
-    color: var(--text-muted);
-  }
-  .asl :global(.rw-n strong) {
-    font-size: 13.5px;
-    font-weight: 500;
-  }
-</style>

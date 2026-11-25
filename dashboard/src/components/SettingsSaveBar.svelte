@@ -56,3 +56,17 @@ $effect(() => {
     </p>
   {/if}
 </div>
+
+<style>
+  /* The count stays on one line; the list of what changed gives way first. */
+  .set-bs strong {
+    flex: none;
+    white-space: nowrap;
+  }
+  .set-bs .meta {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

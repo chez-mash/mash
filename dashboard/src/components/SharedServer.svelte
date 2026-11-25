@@ -2,9 +2,10 @@
 import KeyRound from "@lucide/svelte/icons/key-round";
 import Server from "@lucide/svelte/icons/server";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import type { Snippet } from "svelte";
 import { serverViewOptions } from "../lib/serverStatus";
 import { settingsOptions } from "../lib/settings";
-import { machineLine, type ServerView, setAdminKey } from "../lib/shared";
+import { machineLine, type ServerView, setAdminKey, sharingLeads } from "../lib/shared";
 import JoinShared from "./JoinShared.svelte";
 import MachineDot from "./MachineDot.svelte";
 import ServerAdmin from "./ServerAdmin.svelte";
@@ -17,7 +18,21 @@ import ShareReview from "./ShareReview.svelte";
 // saved here, its machines can be managed too.
 // `notes` adds the cards of terminal commands and what each step keeps beside
 // the main card; first-run setup, already a long page, leaves them out.
-let { joinable = false, notes = true }: { joinable?: boolean; notes?: boolean } = $props();
+// On the Machines page this machine's own sharing leads, above the machine
+// cards, and joining or viewing a server follows them: `placement` picks
+// which part one copy shows. Other pages show the whole.
+let {
+  joinable = false,
+  notes = true,
+  placement = "all",
+  below,
+}: {
+  joinable?: boolean;
+  notes?: boolean;
+  placement?: "all" | "lead" | "tail";
+  /** More of the page under this machine's own card, beside the server's. */
+  below?: Snippet;
+} = $props();
 
 const client = useQueryClient();
 const view = createQuery(() => serverViewOptions);
@@ -102,7 +117,7 @@ async function forgetKey(): Promise<void> {
   </section>
 {/snippet}
 
-{#if view.data}
+{#if view.data && (placement === "all" || (placement === "lead") === sharingLeads(view.data, !!settings.data))}
   {@const data = view.data}
   {#if data.server}
     {@const admin = data.admin_key && data.may_change}
@@ -120,6 +135,7 @@ async function forgetKey(): Promise<void> {
               {/if}
             {/if}
             {#if admin}<ServerAdmin />{/if}
+            {#if below}{@render below()}{/if}
           </div>
         {/if}
         <div class="ss-side">
@@ -144,7 +160,7 @@ async function forgetKey(): Promise<void> {
       </div>
     </div>
   {/if}
-{:else if view.error}
+{:else if view.error && placement !== "lead"}
   <p class="meta" role="status">The shared server’s state could not be read: {view.error.message}</p>
 {/if}
 

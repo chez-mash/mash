@@ -74,7 +74,7 @@ for (const width of [390, 1280]) {
       ["Recent chats", "Chats", "#/search", "Chats"],
       ["Memory", "", "#/records?", "Memory"],
       ["Fleet manager", "", "#/fleet", "Fleet manager"],
-      ["Tools", "", "#/console", "Tool explorer"],
+      ["Tools", "", "#/console", "Tools"],
       ["Settings", "", "#/settings", "Settings"],
       ["Services", "", "#/services", "Services"],
       ["Overview", "", "#/", /^Good (morning|afternoon|evening)$/],

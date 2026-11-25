@@ -5,6 +5,8 @@ import { createQuery } from "@tanstack/svelte-query";
 import { read } from "../lib/api";
 import { groupOrder, locked, parseConsole } from "../lib/console";
 import { stableRead } from "../lib/queries";
+import { serviceAccessOptions, serviceOptions } from "../lib/services.svelte";
+import AgentSetupList from "./AgentSetupList.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
 import ToolDetail from "./ToolDetail.svelte";
@@ -20,8 +22,15 @@ const listing = createQuery(() => ({
     parseConsole(await read("/api/console/tools", new URLSearchParams(), signal)),
 }));
 let filter = $state("");
-// No tool is chosen at first, so the page first reads as a list of what exists.
+// On a wide screen the page opens on `search`, the tool agents call most, so
+// the pane beside the list shows what a tool looks like; once the reader
+// picks or closes a tool, their choice stands. A narrow screen opens none.
 let open = $state("");
+let touched = $state(false);
+function choose(name: string): void {
+  touched = true;
+  open = name;
+}
 let values = $state<Record<string, string>>({});
 let wide = $state(false);
 $effect(() => {
@@ -46,6 +55,17 @@ const sections = $derived(
     .map((name) => ({ name, tools: matching.filter((tool) => tool.group === name) }))
     .filter((section) => section.tools.length),
 );
+$effect(() => {
+  if (!touched && wide && !open && tools.some((tool) => tool.name === "search")) open = "search";
+});
+// Which agents reach Mash on this machine: the same agent setup the Agents
+// page shows, when this dashboard can check it.
+const access = createQuery(() => serviceAccessOptions);
+const fleet = createQuery(() => serviceOptions(access.data !== undefined));
+const own = $derived(access.data?.localNode ?? "");
+const reachable = $derived(
+  fleet.data?.some((machine) => machine.id === own && machine.reachable) ?? false,
+);
 const runnable = $derived(tools.filter((tool) => tool.readOnly).length);
 // A chosen tool the filter hides is put away with its row.
 const chosen = $derived(matching.find((entry) => entry.name === open));
@@ -59,8 +79,8 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
 
 <div class="hd" style:align-items="flex-end">
   <div style:min-width="0">
-    <h1 class="h1">Tool explorer</h1>
-    <p class="meta" style:max-width="64ch" style:margin-top="4px">Every tool your agents can call on Mash, with what it takes and what it returns. Run the read-only ones here and see exactly what comes back.</p>
+    <h1 class="h1">Tools</h1>
+    <p class="meta" style:max-width="64ch" style:margin-top="4px">Which agents can reach Mash, and every tool they can call, with what it takes and what it returns. Run the read-only ones here and see exactly what comes back.</p>
   </div>
   {#if listing.data}
     <span class="pills" style:gap="8px"><span class="pill plain mono">build {listing.data.build.slice(0, 8)}</span><span class="pill plain mono">contract {listing.data.contract.slice(0, 8)}</span></span>
@@ -68,8 +88,12 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
 </div>
 <QueryError title="Couldn’t load the tool list" query={listing} />
 {#if listing.isPending}<Skeleton rows={5} />{/if}
+{#if own && reachable}
+  <AgentSetupList machineId={own} enabled title="Connected agents" note="Connection lets an agent call these tools; the plugin and skill teach it when to." />
+{/if}
 {#if listing.data}
   <section class="sec">
+    <h2 class="h2">Tool explorer</h2>
     <div class="tx-count">
       <span class="meta" role="status">{tools.length} tools · {runnable} can run here · {tools.length - runnable} change data and are locked</span>
     </div>
@@ -84,7 +108,7 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
               {#each section.tools as entry (entry.name)}
                 {@const expanded = open === entry.name}
                 <li>
-                  <button class="op-h" type="button" aria-expanded={expanded} onclick={() => (open = expanded ? "" : entry.name)}>
+                  <button class="op-h" type="button" aria-expanded={expanded} onclick={() => choose(expanded ? "" : entry.name)}>
                     <code class="op-n">{entry.name}</code>
                     <span class="op-k" class:ok={entry.readOnly}>{entry.readOnly ? "READ" : "WRITE"}</span>
                   </button>
@@ -103,3 +127,11 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
     </div>
   </section>
 {/if}
+
+<style>
+  /* The build and contract are reference numbers, so they read quietly. */
+  .pills .pill.mono {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+</style>

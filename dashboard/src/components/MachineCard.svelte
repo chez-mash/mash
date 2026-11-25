@@ -9,7 +9,7 @@ import MachineIcon from "./MachineIcon.svelte";
 // One machine as a card: its system's mark, its name and what its status dot
 // says, the system's name, a line on how it was last heard from, then its
 // chats and agents. A machine that needs a look gets an amber edge, and one
-// that is not answering is drawn quieter. Everything here is what the
+// that is not answering is drawn quieter; one nothing reports on is not. Everything here is what the
 // machine's pulse and the chat list already say; nothing is assumed.
 let { group, local }: { group: Group; local: string } = $props();
 const evidence = createMachineEvidence();
@@ -23,7 +23,7 @@ const line = $derived(
 );
 </script>
 
-<a class="card mc" class:warn={pulse.tone === "warn" || pulse.tone === "bad"} class:quiet={pulse.tone === "none"} href={machineHref(group.key)}>
+<a class="card mc" class:warn={pulse.tone === "warn" || pulse.tone === "bad"} class:quiet={pulse.tone === "none" && !pulse.unreported} href={machineHref(group.key)}>
   <span class="mc-h">
     <span class="mc-i" aria-hidden="true"><MachineIcon machine={group.key} size={16} /></span>
     <span class="mc-n">

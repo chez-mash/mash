@@ -898,13 +898,17 @@ a.lrow:hover {
 #main.narrow > * {
   max-width: 976px;
 }
-/* A status pill in a table cell: a hollow ring, then words that may be cut short. */
+/* A status pill in a table cell: a filled dot in the pill's own colour, then
+   words that may be cut short. */
 .svc-pill {
   max-width: 100%;
 }
 .svc-pill > .dot {
-  background: transparent;
-  border-color: currentColor;
+  width: 6px;
+  height: 6px;
+  border: 0;
+  color: inherit;
+  background: currentColor;
 }
 .svc-pill > span {
   overflow: hidden;
@@ -1208,11 +1212,63 @@ a.card.opc:hover {
   height: 15px;
 }
 
+/* A quiet disclosure row: plain words after a turning chevron, no box. Used
+   for "Do it by hand" under an agent's fix and for optional parts of setup. */
+.fold.lite {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.fold.lite > summary {
+  gap: 7px;
+  min-height: 30px;
+  padding: 2px 0;
+  font: 400 13px / 1.5 var(--type-sans);
+  color: var(--text-body);
+  cursor: pointer;
+  list-style: none;
+}
+.fold.lite > summary::-webkit-details-marker {
+  display: none;
+}
+.fold.lite > summary:hover {
+  background: transparent;
+  color: var(--text-strong);
+}
+.fold.lite[open] > summary {
+  border-bottom: 0;
+  background: transparent;
+}
+.fold.lite > summary .cv {
+  flex: none;
+  margin-left: 0;
+  color: var(--text-muted);
+  transition: transform 0.12s;
+}
+.fold.lite[open] > summary .cv {
+  transform: rotate(90deg);
+}
+.fold.lite > div {
+  padding: 4px 0 4px 21px;
+}
+
 /* Setup's first-run choice of where chats are searched. */
 .setup-reach {
   display: grid;
   gap: 12px;
-  border: var(--border-fill);
+  border: var(--border-outline);
+}
+/* The question sits inside the card rather than breaking its border. */
+.setup-reach > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 0;
+}
+/* The review's labels in sentence case, as every other label. */
+.setup-card > .kvs dt::first-letter {
+  text-transform: uppercase;
 }
 .setup-reach input {
   accent-color: var(--text-strong);

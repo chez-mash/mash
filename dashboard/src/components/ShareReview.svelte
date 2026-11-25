@@ -183,13 +183,10 @@ async function save(publish: boolean): Promise<void> {
     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 6px 16px;
   }
   .share-row + .share-row {
     border-top: var(--border-divider);
-  }
-  .share-row.kept {
-    background: var(--surface-muted);
   }
   .share-fate {
     min-width: 7.5em;

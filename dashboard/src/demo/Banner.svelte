@@ -24,6 +24,7 @@ import { localMachine } from "./history";
     justify-content: center;
     gap: 0 18px;
     padding: 4px 14px;
+    border-bottom: var(--border-divider);
     background: var(--banner-bg);
     color: var(--banner-text);
     font-family: var(--type-sans);

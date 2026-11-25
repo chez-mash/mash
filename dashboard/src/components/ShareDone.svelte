@@ -36,7 +36,7 @@ async function check(): Promise<void> {
     <p role="status"><strong>{progress.sent.toLocaleString()}</strong> of {progress.total.toLocaleString()} chats received by the server.</p>
     <span class="bar" role="progressbar" aria-label="Chats received" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.sent}><i style:width="{Math.round((progress.sent / Math.max(1, progress.total)) * 100)}%"></i></span>
   {:else if progress.state === "published"}
-    <p role="status"><strong>{progress.chats.toLocaleString()}</strong> chats from {server.node_id} are on the server{progress.at ? ` · last published ${new Date(progress.at).toLocaleString()}` : ""}.</p>
+    <p role="status"><strong>{progress.chats.toLocaleString()}</strong> chats from {server.node_id} are on the server{progress.at ? ` · last published ${new Date(progress.at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}` : ""}.</p>
     <p class="meta">New chats are published when Mash indexes them.</p>
   {:else}
     <p role="status">The server has nothing from {server.node_id} yet.</p>

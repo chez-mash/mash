@@ -46,9 +46,9 @@ const here = $derived(node || "this machine");
     <h3><TriangleAlert size={15} aria-hidden="true" />When the server says no</h3>
     <p>Mash shows why, and saves nothing.</p>
     <dl class="sh-why">
-      <dt>Expired</dt><dd>{joinRefusals.expired}</dd>
-      <dt>Already used</dt><dd>{joinRefusals.used}</dd>
-      <dt>Replaced</dt><dd>{joinRefusals.revoked}</dd>
+      <dt>Expired</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.expired}</span></dd>
+      <dt>Already used</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.used}</span></dd>
+      <dt>Replaced</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.revoked}</span></dd>
     </dl>
   </section>
 {:else}
@@ -130,7 +130,13 @@ const here = $derived(node || "this machine");
     color: var(--text-muted);
   }
   .sh-why dd {
+    display: flex;
+    gap: 7px;
     margin: 2px 0 10px;
     color: var(--status-warn-text);
+  }
+  .sh-why dd :global(svg) {
+    flex: none;
+    margin-top: 3px;
   }
 </style>

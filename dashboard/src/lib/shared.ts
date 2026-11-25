@@ -35,6 +35,16 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 /** Check a join string, saving nothing; or join with it when `apply` is set. */
+/**
+ * Whether this machine's own sharing card (what it publishes, or the admin
+ * tools) leads the Machines page. It does when the machine has joined a server
+ * it may change and either its settings are read or an admin key is saved.
+ */
+export function sharingLeads(view: ServerView | undefined, settingsRead: boolean): boolean {
+  if (!view?.server || !view.may_change) return false;
+  return settingsRead || !!view.admin_key;
+}
+
 export function joinShared(join: string, apply: boolean): Promise<JoinView> {
   return post<JoinView>("/api/shared/join", { join: join.trim(), apply });
 }

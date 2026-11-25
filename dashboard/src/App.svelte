@@ -235,7 +235,7 @@ function skip(event: MouseEvent): void {
         {/if}
       {:else if route.page === "machines"}
         <BrowseTiles field="machine" />
-        <SharedServer joinable />
+        <SharedServer joinable placement="tail" />
       {:else if route.page === "machine"}
         {@const id = route.id}
         {#key id}

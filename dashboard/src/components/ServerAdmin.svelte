@@ -119,7 +119,7 @@ async function copy(text: string): Promise<void> {
       <h2 class="adm-h">Recent admin actions</h2>
       <ul class="card pad0 adm-log" aria-label="Recent admin actions">
         {#each data.actions.slice(0, 10) as action (`${action.at}-${action.target}-${action.action}`)}
-          <li class="meta"><time>{new Date(action.at * 1000).toLocaleString()}</time> · {action.action} {action.target} · key {action.key}{action.from ? ` from ${action.from}` : ""}</li>
+          <li class="meta"><time>{new Date(action.at * 1000).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}</time> · {action.action} {action.target} · key {action.key}{action.from ? ` from ${action.from}` : ""}</li>
         {/each}
       </ul>
     {/if}

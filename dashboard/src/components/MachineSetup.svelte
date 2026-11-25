@@ -1,5 +1,6 @@
 <script lang="ts">
 import Check from "@lucide/svelte/icons/check";
+import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import CircleHelp from "@lucide/svelte/icons/circle-help";
 import Copy from "@lucide/svelte/icons/copy";
 import ListChecks from "@lucide/svelte/icons/list-checks";
@@ -108,16 +109,16 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
             <p class="why"><TriangleAlert size={16} aria-hidden="true" /><span>{fix.cause}</span></p>
             {#if fix.deploy && setup.data}
               <PluginRepair {machineId} build={setup.data.build} agentName={agents[agent.agent].name} result={repairs[agent.agent]} onresult={(result) => setRepair(agent.agent, result)} />
-              <details class="fold" open={repairs[agent.agent]?.ok === false}>
-                <summary><ListChecks size={15} aria-hidden="true" />Do it by hand</summary>
+              <details class="fold lite" open={repairs[agent.agent]?.ok === false}>
+                <summary><ChevronRight class="cv" size={14} aria-hidden="true" /><ListChecks size={15} aria-hidden="true" />Do it by hand</summary>
                 <div>{@render steps(fix, agent.agent)}</div>
               </details>
             {:else}
               {@render steps(fix, agent.agent)}
             {/if}
           </div>
-          <details class="fold" style:margin-top="8px">
-            <summary><ListChecks size={15} aria-hidden="true" />{fix.checks === 1 ? "The check behind this" : `The ${fix.checks} checks behind this`}</summary>
+          <details class="fold lite" style:margin-top="8px">
+            <summary><ChevronRight class="cv" size={14} aria-hidden="true" /><ListChecks size={15} aria-hidden="true" />{fix.checks === 1 ? "The check behind this" : `The ${fix.checks} checks behind this`}</summary>
             <div>
               {#each chain.filter((part) => part.notes.length > 0) as part (part.label)}
             {#each part.notes as note (note.message)}
@@ -145,3 +146,64 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
     </div>
   {/if}
 {/each}
+
+<style>
+  /* As in the wireframes: an open agent stays on the card's white, its parts
+     sit in one tinted strip, and the fix is a neutral card whose steps are a
+     plain numbered list. Only the confirmation before a deploy is amber. */
+  .rw-d[open] > summary.rw,
+  .rw-d[open] > .rw-b {
+    background: transparent;
+  }
+  .rw-d[open] > summary.rw:hover {
+    background: var(--surface-hover);
+  }
+  .set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-5);
+    background: var(--surface-muted);
+  }
+  .set > div {
+    min-height: 0;
+    gap: 5px;
+    border: 0;
+    font-size: 13px;
+  }
+  .set .g {
+    flex: none;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .fix {
+    border: var(--border-outline);
+    background: var(--surface-raised);
+    font-size: 13.5px;
+  }
+  .fix .why {
+    font-weight: 400;
+    color: var(--text-strong);
+  }
+  .fix :global(li::before) {
+    content: counter(fix) ".";
+    display: block;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    font-weight: 400;
+    text-align: right;
+  }
+  .fix :global(li > span code) {
+    padding: 1px 6px;
+    border-radius: var(--radius-2);
+    background: var(--surface-muted);
+    font: 12.5px var(--type-mono);
+    color: var(--text-strong);
+  }
+</style>

@@ -12,6 +12,7 @@ import { groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { createProjectChoices } from "../lib/projectChoices.svelte";
 import { catalogOptions } from "../lib/queries";
+import { reading } from "../lib/reading.svelte";
 import { decisionOptions, decisionsByChat } from "../lib/records";
 import { agentHref, chatHref, machineHref, projectHref, searchHref } from "../lib/route.svelte";
 import { scope } from "../lib/scope.svelte";
@@ -24,6 +25,7 @@ import EmptyState from "./EmptyState.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
+import SubagentPill from "./SubagentPill.svelte";
 
 // One agent, machine or project: its chats and how they break down by the
 // other two. `extra` adds page-specific sections above the recent chats.
@@ -72,6 +74,11 @@ const unknown = $derived(field === "project" && catalogue.data !== undefined && 
 const decisions = createQuery(() => decisionOptions);
 const decided = $derived(decisionsByChat(decisions.data?.records ?? []));
 const now = Date.now();
+// A chat opened earlier in this browser session reopens where it was left, as in ChatRow.
+function rowHref(chat: ChatSummary): string {
+  const at = reading.positions.find((item) => item.id === chat.id && item.node === chat.machine);
+  return chatHref(chat.id, chat.machine, at?.message ?? "", at?.shared ?? false);
+}
 </script>
 
 {#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label.replace(/^./, (letter) => letter.toUpperCase())}</a>{/if}
@@ -103,7 +110,15 @@ const now = Date.now();
       <section class="sec">
         <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">All {chats.length.toLocaleString()}</a></div>
         <div class="card pad0 list bd-card">
-          {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}<ChatRow {chat} decisions={decided.get(chat.id) ?? 0} />{/each}
+          {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}
+            {#if field === "machine"}
+              <!-- On a machine's page every chat is from that machine, so a row is one line: the title, then its project and when. -->
+              {@const count = decided.get(chat.id) ?? 0}
+              <a class="bd-r" href={rowHref(chat)}><AgentMark agent={chat.agent} size="sm" /><b>{plainTitle(chat.title)}</b><SubagentPill {chat} />{#if count}<span class="pill decision">{count} decision{count === 1 ? "" : "s"}</span>{/if}<span class="bd-w">{chat.project ? `${projectLabel(chat.project)} · ` : ""}{whenLabel(chat.updatedMs, now)}</span></a>
+            {:else}
+              <ChatRow {chat} decisions={decided.get(chat.id) ?? 0} />
+            {/if}
+          {/each}
         </div>
       </section>
     </div>
@@ -180,5 +195,62 @@ const now = Date.now();
   .bd-card {
     border-color: var(--line-outline);
     box-shadow: var(--shadow-panel);
+  }
+  /* Names in the side lists and chat titles at a medium weight, as drawn. */
+  .bd-card .g,
+  .bd-card :global(.chatrow-t > b) {
+    font-weight: 500;
+  }
+  /* A decision badge sits right after the title, in a soft butter tint. */
+  .bd-card :global(.chatrow-t > .pill.decision),
+  .bd-r .pill.decision {
+    margin-left: 0;
+    border-color: transparent;
+    background: var(--decision-bg);
+    color: var(--decision-text);
+  }
+  .bd-r {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    padding: 8px 16px;
+    color: var(--text-body);
+  }
+  .bd-r + .bd-r {
+    border-top: var(--border-divider);
+  }
+  .bd-r:hover {
+    background: var(--surface-hover);
+    color: var(--text-body);
+  }
+  .bd-r > b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+  .bd-w {
+    flex: none;
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .bd-r > :global(.pill) {
+    flex: none;
+  }
+  /* On a phone the project and time go under the title. */
+  @media (max-width: 640px) {
+    .bd-r {
+      flex-wrap: wrap;
+      row-gap: 2px;
+    }
+    .bd-w {
+      flex-basis: 100%;
+      margin-left: 31px;
+    }
   }
 </style>

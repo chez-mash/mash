@@ -841,20 +841,19 @@ a.nav-group[aria-current="page"] {
   font-size: 14px;
   color: var(--text-body);
 }
-/* A progress bar: an outlined pill filling with butter. */
+/* A progress bar: a thin muted track filling with ink. */
 .bar {
   display: block;
-  height: 12px;
-  border: var(--border-fill);
+  height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--surface-raised);
+  background: var(--surface-muted);
   overflow: hidden;
 }
 .bar i {
   display: block;
   height: 100%;
-  border-right: var(--border-fill);
-  background: var(--selected-bg);
+  border-radius: inherit;
+  background: var(--action-bg);
 }
 /* Buttons: ink-outlined paper; .p is the screen's main action in peach,
    .sel a pressed or open one in butter, .sm the small size for pagers and
@@ -910,9 +909,9 @@ a.nav-group[aria-current="page"] {
 .btn.p[disabled],
 .btn.p[disabled]:hover,
 .btn[disabled]:hover {
-  background: transparent;
-  border-color: var(--line-outline);
-  color: var(--text-muted);
+  background: var(--surface-muted);
+  border-color: var(--line-strong);
+  color: var(--text-faint);
   cursor: default;
 }
 .hd {
@@ -2132,7 +2131,7 @@ h1:focus {
 .tool .nm {
   overflow-wrap: anywhere;
 }
-/* A switch: an outlined round track with an ink knob; the track is mint when on. */
+/* A switch: a quiet grey track and knob when off; butter with a light knob when on. */
 .sw {
   display: inline-flex;
   align-items: center;
@@ -2146,7 +2145,7 @@ h1:focus {
   border: var(--border-strong);
   border-color: var(--line-ink);
   border-radius: var(--radius-pill);
-  background: var(--surface-raised);
+  background: var(--surface-muted);
   transition: background 0.12s;
 }
 .sw i::after {
@@ -2157,7 +2156,7 @@ h1:focus {
   width: 14px;
   height: 14px;
   border-radius: var(--radius-round);
-  background: var(--text-strong);
+  background: var(--text-faint);
   box-shadow: var(--shadow-knob);
   transition: left 0.12s;
 }
@@ -3286,10 +3285,29 @@ select.prm-i option {
   --rw: minmax(0, 1.5fr) 104px minmax(0, 1.7fr);
 }
 .rws.agentset {
-  --rw: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 2fr) minmax(0, 1.3fr);
+  --rw: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 2fr) fit-content(45%);
+  border-color: var(--line-outline);
+  box-shadow: var(--shadow-panel);
 }
 .rws.agentset.solo {
-  --rw: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.3fr);
+  --rw: minmax(0, 1fr) minmax(0, 2fr) fit-content(45%);
+}
+/* The agent setup list as in the wireframes: a raised card whose header is
+   plain words, agent names at body size, and the status at the right edge. */
+.rws.agentset > .rw.head {
+  border-bottom: var(--border-divider);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.rws.agentset .rw-n strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.rws.agentset .rw > :last-child {
+  justify-self: end;
 }
 .rw {
   display: grid;
@@ -4411,6 +4429,13 @@ summary.rw::-webkit-details-marker {
   min-width: 0;
   font-size: 14px;
 }
+/* On a phone Mashy's words are a size larger, as in the wireframes. */
+@media (max-width: 640px) {
+  .mashy-q,
+  .mashy-a {
+    font-size: 15px;
+  }
+}
 .mashy-a a {
   color: var(--accent);
   text-decoration: underline;
@@ -4494,18 +4519,18 @@ summary.rw::-webkit-details-marker {
 #mashy .mashy-a a.mashy-all .ico:last-child {
   margin-left: auto;
 }
-/* Quoted words are a card. The reader's own carry the clay edge. */
+/* Quoted words are a muted card: the words, who said them and when, then
+   the chat they came from under a rule. The reader's own carry the clay edge. */
 .mashy-a .prose blockquote.mashy-quote {
   margin: 0 0 0.75rem;
-  padding: 10px 12px;
+  padding: 12px 12px 10px;
   border: var(--border-outline);
-  border-left: 3px solid var(--line-strong);
   border-radius: var(--radius-7);
-  background: var(--surface-raised);
+  background: var(--surface-muted);
   color: var(--text-strong);
 }
 .mashy-a .prose blockquote.mashy-quote.own {
-  border-left-color: var(--linked-line);
+  border-left: 3px solid var(--linked-line);
 }
 .mashy-a .prose blockquote.mashy-quote p {
   margin: 0;
@@ -4516,9 +4541,18 @@ summary.rw::-webkit-details-marker {
   font-size: 12px;
 }
 .mashy-a .prose blockquote.mashy-quote p:last-child {
-  margin-top: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: var(--border-divider);
   color: var(--text-muted);
   font-size: 12px;
+}
+.mashy-a .prose blockquote.mashy-quote p:only-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--text-strong);
+  font-size: inherit;
 }
 /* A Mash command can be copied where it stands. */
 #mashy .mashy-a button.mashy-copy {

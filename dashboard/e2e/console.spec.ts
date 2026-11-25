@@ -164,8 +164,8 @@ test("tools start folded, fold long option lists and style every field alike", a
   });
   await page.goto("/#/console");
   const button = page.getByRole("main").getByRole("button", { name: /search/ });
-  await expect(button).toHaveAttribute("aria-expanded", "false");
-  await button.click();
+  // On a wide screen the page opens on search, the tool agents call most.
+  await expect(button).toHaveAttribute("aria-expanded", "true");
   const search = page.locator("#tool-search");
   // The notes for agents are kept but folded, with names in code type.
   const notes = search.getByText("How agents use it (1 note)");
