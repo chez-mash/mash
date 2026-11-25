@@ -61,10 +61,10 @@ test("the tool reference marks reading and writing tools with pills", async ({ p
   await expect(tool.locator(".params, .none").first()).toBeVisible();
 });
 
-test("why Mash shows each feature and the agent list uses tiles and pills", async ({ page }) => {
-  await page.goto("/compare/");
-  await expect(page.locator("h1")).toHaveText("Why Mash");
-  await expect(page.locator('.sl-markdown-content img[src^="/screenshots/"]')).toHaveCount(5);
+test("a guide shows its screenshots and the agent list uses tiles and pills", async ({ page }) => {
+  await page.goto("/dashboard/");
+  await expect(page.locator("h1")).toHaveText("Use the dashboard");
+  await expect(page.locator('.sl-markdown-content img[src^="/screenshots/"]')).toHaveCount(3);
   await page.goto("/supported-agents/");
   const first = page.locator(".sl-markdown-content table").first();
   await expect(first.locator(".mash-agent-tile")).toHaveCount(7);

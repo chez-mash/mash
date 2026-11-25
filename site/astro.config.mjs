@@ -6,6 +6,15 @@ import { agentationReview } from "./src/agentation.ts";
 
 export default defineConfig({
   site: "https://getmash.io",
+  // GitHub Pages serves files only, so a retired page stays as a small HTML
+  // page that sends the reader on: "Why Mash" (/compare/) is now the landing
+  // page, so each language's copy goes to that language's home.
+  redirects: Object.fromEntries(
+    Object.keys(docsLocales).map((locale) => {
+      const home = locale === "root" ? "/" : `/${locale}/`;
+      return [`${home}compare`, home];
+    }),
+  ),
   integrations: [
     // Adds the review toolbar in `astro dev` only (`make site-review`).
     agentationReview(),
@@ -226,16 +235,6 @@ export default defineConfig({
                 ja: "以前の作業を再開する",
               },
               slug: "pick-up-work",
-            },
-            {
-              label: "Why Mash",
-              translations: {
-                es: "Por qué Mash",
-                fr: "Pourquoi Mash",
-                "zh-CN": "为什么选择 Mash",
-                ja: "Mash を選ぶ理由",
-              },
-              slug: "compare",
             },
             {
               label: "Privacy",

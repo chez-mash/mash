@@ -9,7 +9,7 @@ New here? Follow the [quick start](../README.md#quick-start).
 
 - [Quick start](../README.md#quick-start): install Mash and find your first chat
 - [Try the demo](https://getmash.io/demo/#/search?q=invoice+exports+queue) with sample chats
-- [See what Mash can do](compare.md)
+- [See what Mash can do](https://getmash.io/)
 - [See where your history is stored and what stays private](privacy.md)
 
 ### Installation

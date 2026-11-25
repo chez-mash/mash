@@ -124,31 +124,42 @@ for (const [locale, label, lang, title] of [
 }
 
 for (const [locale, label, lang, title] of [
-  ["es", "Español", "es", "¿Es Mash para ti?"],
-  ["fr", "Français", "fr", "Mash est-il fait pour vous ?"],
-  ["zh-cn", "简体中文", "zh-CN", "Mash 适合你吗？"],
-  ["ja", "日本語", "ja", "Mash はあなたに向いていますか？"],
+  ["es", "Español", "es", "Usa el panel web de Mash"],
+  ["fr", "Français", "fr", "Utiliser le tableau de bord de Mash"],
+  ["zh-cn", "简体中文", "zh-CN", "使用 Mash 网页面板"],
+  ["ja", "日本語", "ja", "Mash のダッシュボードを使う"],
 ]) {
-  test(`the ${locale} “is Mash for you” guide offers a demo and a localized setup`, async ({
-    page,
-  }) => {
-    const compare = `/${locale}/compare/`;
+  test(`the ${locale} dashboard guide offers a demo and a localized setup`, async ({ page }) => {
+    const dashboard = `/${locale}/dashboard/`;
     const quickStart = `/${locale}/quick-start/`;
     const guide = page.locator(".sl-markdown-content");
-    await page.goto("/compare/");
+    await page.goto("/dashboard/");
     await page.getByRole("combobox", { name: "Select language" }).selectOption({ label });
-    await expect(page).toHaveURL(compare);
+    await expect(page).toHaveURL(dashboard);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
-    // The page is about Mash alone: it lists no other tools.
-    await expect(guide.getByRole("table")).toHaveCount(0);
     await expect(guide.locator('a[href^="https://getmash.io/demo/#/search?"]')).toBeVisible();
-    await expect(guide.locator(`a[href="/${locale}/privacy/"]`)).toBeVisible();
-    await guide.locator(`a[href="${quickStart}"]`).click();
-    await expect(page).toHaveURL(quickStart);
-    await page.goto(locale === "ja" ? "/ja/guides/" : `/${locale}/`);
-    await guide.locator(`a[href="${compare}"]`).click();
-    await expect(page).toHaveURL(compare);
+    await expect(guide.locator(`a[href^="/${locale}/privacy/"]`).first()).toBeVisible();
+    // The Japanese guide links to a section of the quick start.
+    await guide.locator(`a[href^="${quickStart}"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`${quickStart}(#[^/]*)?$`));
+    await page.goto(`/${locale}/guides/`);
+    await guide.locator(`a[href="${dashboard}"]`).click();
+    await expect(page).toHaveURL(dashboard);
+  });
+}
+
+// "Why Mash" became the landing page; its old addresses lead to each home.
+for (const [from, to] of [
+  ["/compare/", "/"],
+  ["/es/compare/", "/es/"],
+  ["/fr/compare/", "/fr/"],
+  ["/zh-cn/compare/", "/zh-cn/"],
+  ["/ja/compare/", "/ja/"],
+]) {
+  test(`${from} leads to ${to}`, async ({ page }) => {
+    await page.goto(from);
+    await expect(page).toHaveURL(to);
   });
 }
 

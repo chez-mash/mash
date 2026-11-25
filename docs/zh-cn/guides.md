@@ -9,7 +9,7 @@ Mash 可以帮你找到以前与编程代理的对话。如果是第一次使用
 ## 开始使用
 
 - [在演示中搜索示例对话](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- [看看 Mash 是否适合你](compare.md)
+- [看看 Mash 是否适合你](https://getmash.io/)
 - [了解历史记录存在哪里，以及哪些数据会留在本机](privacy.md)
 
 <span id="installation"></span>

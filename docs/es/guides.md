@@ -10,7 +10,7 @@ programación. Si acabas de llegar, empieza por la [guía de inicio rápido](qui
 ## Primeros pasos
 
 - [Prueba una búsqueda con conversaciones de ejemplo](https://getmash.io/demo/#/search?q=invoice+exports+queue)
-- [Descubre si Mash es para ti](compare.md)
+- [Descubre si Mash es para ti](https://getmash.io/)
 - [Consulta dónde se guarda tu historial y qué datos se quedan en tu equipo](privacy.md)
 
 <span id="installation"></span>

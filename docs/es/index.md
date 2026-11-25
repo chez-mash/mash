@@ -10,6 +10,6 @@ las búsquedas se ejecutan en tu equipo y no necesitas una cuenta de Mash.
 - [Instala Mash y haz tu primera búsqueda](quick-start.md).
 - [Prueba la demo con conversaciones de ejemplo](https://getmash.io/demo/).
 - [Comprueba qué historiales y conexiones admite tu agente](supported-agents.md).
-- [Descubre si Mash es para ti](compare.md).
+- [Descubre si Mash es para ti](https://getmash.io/).
 - [Consulta cómo Mash trata tu historial](privacy.md).
 - [Consulta todas las guías en español](guides.md).
