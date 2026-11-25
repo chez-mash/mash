@@ -286,13 +286,13 @@ const openApp = (
 );
 
 /** The agent's own logo, in its colour; ink logos follow Raycast's theme. */
+/** The agent's logo on a tile in its colour, as the Mash dashboard draws it:
+ * assets/agent-tiles holds a light and a dark version of each. */
 function agentIcon(agent: string): Image.ImageLike {
   const logo = agentLogo(agent);
   if (!logo) return Icon.Message;
-  return {
-    source: `agents/${logo.file}`,
-    tintColor: logo.tint ?? { light: "#16150f", dark: "#f5f0e4", adjustContrast: false },
-  };
+  const name = logo.file.replace(/\.svg$/, "");
+  return { source: { light: `agent-tiles/${name}-light.svg`, dark: `agent-tiles/${name}-dark.svg` } };
 }
 
 function HitDetail({ hit }: { hit: Hit }) {

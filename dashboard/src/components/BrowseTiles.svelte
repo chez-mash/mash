@@ -1,5 +1,4 @@
 <script lang="ts">
-import Laptop from "@lucide/svelte/icons/laptop";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
@@ -68,7 +67,7 @@ function host(url: string): string {
       <span class="bar"><i style:width="{Math.max(2, Math.round((group.chats.length / Math.max(1, chats.length)) * 100))}%"></i></span>
       {#if field === "agent"}
         <span class="sum-f">
-          {#each group.machines as [machine] (machine)}<span class="mchip"><Laptop size={13} aria-hidden="true" />{machine}</span>{/each}
+          {#each group.machines as [machine] (machine)}<span class="mchip"><MachineIcon {machine} size={13} />{machine}</span>{/each}
           <span class="sp">{whenLabel(group.latestMs, now)}</span>
         </span>
       {:else}

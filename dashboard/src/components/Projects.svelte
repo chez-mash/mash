@@ -6,6 +6,7 @@ const view: ProjectView = $state({ find: "", agent: "", machine: "", sort: "rece
 </script>
 
 <script lang="ts">
+import MachineIcon from "./MachineIcon.svelte";
 import ArrowDownAZ from "@lucide/svelte/icons/arrow-down-a-z";
 import Bot from "@lucide/svelte/icons/bot";
 import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
@@ -113,7 +114,7 @@ const now = Date.now();
       <span class="bar"><i style:width="{Math.max(2, Math.round((project.chats.length / largest) * 100))}%"></i></span>
       <span class="sum-f">
         {#each project.agents.slice(0, 5) as [agent] (agent)}<span title={agentInfo[agent].name}><AgentMark {agent} size="sm" /></span>{/each}
-        {#each project.machines as [machine] (machine)}<span class="mchip"><Laptop size={13} aria-hidden="true" />{machine}</span>{/each}
+        {#each project.machines as [machine] (machine)}<span class="mchip"><MachineIcon {machine} size={13} />{machine}</span>{/each}
         <span class="sp">{whenLabel(project.latestMs, now)}</span>
       </span>
     </a>
