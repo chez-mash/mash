@@ -402,7 +402,7 @@ summary::-webkit-details-marker {
   border: var(--stroke-strong) solid var(--action-line);
   border-radius: var(--radius-4);
   background: var(--action-bg);
-  color: var(--text-on-accent);
+  color: var(--action-text);
 }
 .drop {
   position: absolute;
@@ -747,10 +747,10 @@ summary::-webkit-details-marker {
 .btn.p {
   background: var(--action-bg);
   border-color: var(--action-line);
-  color: var(--text-on-accent);
+  color: var(--action-text);
 }
 .btn.p:hover {
-  color: var(--text-on-accent);
+  color: var(--action-text);
   background: var(--action-hover-bg);
 }
 .btn.sel,
@@ -4209,7 +4209,7 @@ summary.rw::-webkit-details-marker {
   border: var(--border-fill);
   border-radius: var(--radius-6);
   background: var(--action-bg);
-  color: var(--text-on-accent);
+  color: var(--action-text);
 }
 #mashy .go[disabled] {
   background: var(--surface-muted);

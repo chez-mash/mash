@@ -4,53 +4,49 @@
  * "a divider", "selected"), and nowhere else: components use these tokens
  * only, and src/theme/theme.test.ts fails if a literal colour, font name,
  * radius or shadow appears outside this folder. To change the look, change
- * the values below; to add a role, add it to both themes.
+ * the values below; to add a role, give it a value in :root and, when it
+ * differs, in the dark block too.
  *
- * This is the Sticker theme: ink outlines and flat colour on warm paper, with
- * nothing lifted off the page. Each accent has one job:
- *   butter   selected, highlighted, decisions
- *   peach    the main action on a screen
- *   mint     healthy, on, done
- *   mustard  needs attention
- *   red      failed
- *   lilac    Mashy, and only Mashy
- * Text on any accent is ink.
+ * The look: porcelain surfaces separated by hairline rings and soft shadows,
+ * Geist and Geist Mono, a neutral tint for what is selected, and butter used
+ * only as light: on matches, saved memory and the current state. Agents keep
+ * their own colours on small tiles.
  *
- * There is one theme, the light one. A dark theme was removed in November
- * 2026 so the dashboard keeps one look to maintain.
+ * There are two themes from one set of roles. Light is :root. Dark follows
+ * the system unless the reader picks one in Settings, which sets data-theme
+ * on the document; the dark values are written once and applied by both the
+ * media query and data-theme="dark".
  */
 :root {
   /* Type. */
-  --type-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --type-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --type-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-display: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Surfaces: the page, the rail and top bar on it, raised panels, filled chips, form fields. */
-  --surface-page: #f3ebdc;
-  --surface-rail: #fbf7ef;
-  --surface-top: #f3ebdc;
-  --surface-raised: #fbf7ef;
-  --surface-muted: #efe4cc;
-  --surface-hover: #efe4cc;
-  --surface-field: #fbf7ef;
+  --surface-page: #fcfbf8;
+  --surface-rail: #f5f3ee;
+  --surface-top: #f5f3ee;
+  --surface-raised: #ffffff;
+  --surface-muted: #f1eee8;
+  --surface-hover: rgba(20, 19, 15, 0.045);
+  --surface-field: #ffffff;
   /* Text. */
-  --text-strong: #16150f;
-  --text-body: #2c2a21;
-  --text-muted: #5f5847;
-  --text-faint: #68604d;
-  --text-on-accent: #16150f;
+  --text-strong: #1a1915;
+  --text-body: #2e2c27;
+  --text-muted: #5f5b52;
+  --text-faint: #6f6a60;
+  --text-on-accent: #1a1915;
   /* Lines: outlines of panels and boxes, strong lines of controls and menus, dividers inside lists. */
-  --line-outline: #16150f;
-  --line-strong: #16150f;
-  --line-divider: rgba(22, 21, 15, 0.2);
-  /* The outline of a control or a colour fill on the page, so a butter,
-     peach or mint fill keeps a visible edge; anything drawn on top of a fill
-     uses --line-on-accent instead. */
-  --line-ink: #16150f;
-  --line-on-accent: #16150f;
-  --stroke-outline: 2px;
-  --stroke-strong: 2px;
-  --stroke-divider: 2px;
-  --stroke-fill: 1.5px;
+  --line-outline: rgba(20, 19, 15, 0.08);
+  --line-strong: rgba(20, 19, 15, 0.14);
+  --line-divider: rgba(20, 19, 15, 0.07);
+  /* The hairline round a control or a tinted fill, so a chip or a tile keeps an edge on any surface; anything drawn on top of a butter fill uses --line-on-accent instead. */
+  --line-ink: rgba(20, 19, 15, 0.12);
+  --line-on-accent: rgba(20, 19, 15, 0.2);
+  --stroke-outline: 1px;
+  --stroke-strong: 1px;
+  --stroke-divider: 1px;
+  --stroke-fill: 1px;
   --border-outline: var(--stroke-outline) solid var(--line-outline);
   --border-strong: var(--stroke-strong) solid var(--line-strong);
   --border-divider: var(--stroke-divider) solid var(--line-divider);
@@ -60,85 +56,84 @@
   --radius-1: 3px;
   --radius-2: 4px;
   --radius-3: 5px;
-  --radius-4: 7px;
-  --radius-5: 9px;
-  --radius-6: 12px;
-  --radius-7: 14px;
+  --radius-4: 6px;
+  --radius-5: 8px;
+  --radius-6: 10px;
+  --radius-7: 12px;
   --radius-8: 14px;
-  --radius-9: 18px;
-  --radius-10: 22px;
-  --radius-tile-sm: 6px;
-  --radius-tile: 8px;
+  --radius-9: 16px;
+  --radius-10: 20px;
+  --radius-tile-sm: 5px;
+  --radius-tile: 6px;
   --radius-box: 10px;
-  --radius-field: 11px;
+  --radius-field: 10px;
   --radius-pill: 999px;
   --radius-round: 50%;
-  /* Shadows: none; outlines separate things instead. The scrim dims the page behind the drawer. */
-  --shadow-float: none;
-  --shadow-fab: none;
-  --shadow-panel: none;
-  --shadow-pick: none;
-  --shadow-knob: none;
-  --scrim: rgba(22, 21, 15, 0.45);
+  /* Shadows: soft and layered, so raised panels lift off the page; rings do the separating, shadows give depth. The scrim dims the page behind the drawer. */
+  --shadow-float: 0 1px 2px rgba(20, 19, 15, 0.05), 0 16px 40px -16px rgba(20, 19, 15, 0.24);
+  --shadow-fab: 0 1px 2px rgba(20, 19, 15, 0.08), 0 8px 20px -8px rgba(20, 19, 15, 0.3);
+  --shadow-panel: 0 1px 2px rgba(20, 19, 15, 0.04), 0 12px 32px -20px rgba(20, 19, 15, 0.22);
+  --shadow-pick: 0 0 0 1px rgba(20, 19, 15, 0.07), 0 1px 2px rgba(20, 19, 15, 0.06);
+  --shadow-knob: 0 1px 2px rgba(20, 19, 15, 0.3);
+  --scrim: rgba(20, 19, 15, 0.32);
   /* Accent: links and hover, and the stronger accent for lines that mark something. */
-  --accent: #a8461f;
-  --accent-strong: #e3a92f;
-  --focus: #16150f;
+  --accent: #8a5a00;
+  --accent-strong: #e8b02a;
+  --focus: #e8b02a;
   /* The main action on a screen. */
-  --action-bg: #f4a583;
-  --action-hover-bg: #f09a74;
-  --action-line: #16150f;
-  /* Text links: ink words over a peach rule. */
-  --link-line: #f4a583;
-  /* Selected and current. Text on the selected fill is ink. */
-  --selected-surface: #ffd34e;
-  --selected-text: #16150f;
-  --selected-line: #16150f;
-  --selected-bg: #ffd34e;
-  --selected-soft-bg: #ffd34e;
-  --selected-soft-text: #16150f;
-  --toggle-on: #a8e6c9;
-  --toggle-knob: #16150f;
+  --action-bg: #1a1915;
+  --action-hover-bg: #34322c;
+  --action-line: #1a1915;
+  /* Text links: ink words over a butter rule. */
+  --link-line: rgba(232, 176, 42, 0.7);
+  /* Selected and current: a neutral tint, never a colour fill. */
+  --selected-surface: rgba(20, 19, 15, 0.055);
+  --selected-text: #1a1915;
+  --selected-line: rgba(20, 19, 15, 0.12);
+  --selected-bg: #ffffff;
+  --selected-soft-bg: rgba(20, 19, 15, 0.055);
+  --selected-soft-text: #1a1915;
+  --toggle-on: #f5c84b;
+  --toggle-knob: #ffffff;
   /* Signals: progress, the linked message, find in chat, unread and unsaved. */
-  --progress: #e3a92f;
-  --linked-line: #e3a92f;
-  --find-bg: #ffd34e;
-  --find-text: #16150f;
-  --find-soft-bg: rgba(255, 211, 78, 0.5);
-  --find-current-bg: #f4a583;
-  --find-current-line: #16150f;
-  --notify: #f4a583;
-  /* Status. Text colours read on the page; fills carry ink text. */
-  --status-ok: #1d6b45;
-  --status-warn: #7c5200;
-  --status-bad: #a83224;
-  --status-ok-bg: #a8e6c9;
-  --status-ok-text: #16150f;
-  --status-warn-bg: #e3a92f;
-  --status-warn-text: #16150f;
-  --status-bad-bg: #ec7563;
-  --status-bad-text: #16150f;
-  --status-ok-dot: #4cbb88;
-  --status-warn-dot: #e3a92f;
-  --status-bad-dot: #ec7563;
-  --status-running-dot: #f4a583;
-  /* Mashy: lilac is Mashy's alone. */
-  --mashy-pick-bg: #cfc4ff;
-  --mashy-pick-text: #16150f;
-  --mashy-dot: #cfc4ff;
-  --mashy-surface: #cfc4ff;
-  --mashy-surface-text: #16150f;
-  /* The reader's own messages, on the blue of the logo's tile: light text,
-     with code, buttons and rules a shade deeper or lighter than the blue. */
-  --you-bg: #2f6bc4;
-  --you-text: #fffdf7;
-  --you-inset: #275aa6;
-  --you-rule: #7fa3db;
+  --progress: #e8b02a;
+  --linked-line: #e8b02a;
+  --find-bg: rgba(245, 200, 75, 0.42);
+  --find-text: #1a1915;
+  --find-soft-bg: rgba(245, 200, 75, 0.26);
+  --find-current-bg: #f5c84b;
+  --find-current-line: rgba(232, 176, 42, 0.8);
+  --notify: #e8b02a;
+  /* Status: one green, amber and red per theme; fills are soft tints carrying the same colour as text. */
+  --status-ok: #2f7d55;
+  --status-warn: #8a5a00;
+  --status-bad: #b3402a;
+  --status-ok-bg: rgba(47, 125, 85, 0.12);
+  --status-ok-text: #2f7d55;
+  --status-warn-bg: rgba(232, 176, 42, 0.18);
+  --status-warn-text: #8a5a00;
+  --status-bad-bg: rgba(179, 64, 42, 0.1);
+  --status-bad-text: #b3402a;
+  --status-ok-dot: #2f7d55;
+  --status-warn-dot: #e8b02a;
+  --status-bad-dot: #b3402a;
+  --status-running-dot: #e8b02a;
+  /* Mashy: the lavender of Mashy's bowl is Mashy's alone. */
+  --mashy-pick-bg: #dce3fa;
+  --mashy-pick-text: #1a1915;
+  --mashy-dot: #7f8fcb;
+  --mashy-surface: #eef1fb;
+  --mashy-surface-text: #1a1915;
+  /* The reader's own messages: a raised bubble with a hairline ring, as in the wireframes. */
+  --you-bg: #ffffff;
+  --you-text: #1a1915;
+  --you-inset: #f5f3ee;
+  --you-rule: rgba(20, 19, 15, 0.12);
   --border-you: var(--stroke-outline) solid var(--line-outline);
   /* The demo banner at the top of getmash.io/demo. */
-  --banner-bg: #ffd34e;
-  --banner-text: #16150f;
-  /* Section icons: ink, like the text. */
+  --banner-bg: #1a1915;
+  --banner-text: #fcfbf8;
+  /* Section icons: the text colour. */
   --hue-chats: var(--text-strong);
   --hue-agents: var(--text-strong);
   --hue-machines: var(--text-strong);
@@ -152,45 +147,44 @@
   --hue-export-markdown: var(--text-strong);
   --hue-export-json: var(--text-strong);
   --hue-export-archive: var(--text-strong);
-  /* Section tiles in the rail, and icon tiles that stand for a section: one
-     clear pastel each with an ink icon on it. They stay light in both themes. */
-  --tile-overview: #f4cf5d;
-  --tile-chats: #f3ad8a;
-  --tile-agents: #eeaabb;
-  --tile-machines: #9fc6ec;
-  --tile-projects: #dfd27a;
-  --tile-memory: #f0c27e;
-  --tile-services: #98dcbc;
-  --tile-fleet: #e9b98e;
-  --tile-tools: #c3d48c;
-  --tile-settings: #bcc6d8;
-  --tile-icon: #16150f;
-  /* Agents: a logo in its brand colour on an ivory tile in both themes. */
-  --agent-tile-bg: #fbf7ef;
+  /* Section tiles: a quiet neutral tile behind a section icon, in both themes. */
+  --tile-overview: #f5f3ee;
+  --tile-chats: #f5f3ee;
+  --tile-agents: #f5f3ee;
+  --tile-machines: #f5f3ee;
+  --tile-projects: #f5f3ee;
+  --tile-memory: #f5f3ee;
+  --tile-services: #f5f3ee;
+  --tile-fleet: #f5f3ee;
+  --tile-tools: #f5f3ee;
+  --tile-settings: #f5f3ee;
+  --tile-icon: #1a1915;
+  /* Agents: each agent's tile colour; the logo on it is white, or dark on a light tile. */
+  --agent-tile-bg: #ffffff;
   --agent-tile-border: var(--border-fill);
   --agent-claude-code: #d97757;
-  --agent-codex: #16150f;
-  --agent-opencode: #16150f;
-  --agent-copilot: #8957e5;
-  --agent-cursor: #16150f;
-  --agent-antigravity: #3d7fd6;
+  --agent-codex: #1a1915;
+  --agent-opencode: #3e5c76;
+  --agent-copilot: #6e40c9;
+  --agent-cursor: #1a1915;
+  --agent-antigravity: #3b6fe0;
   /* Code, JSON and quotes. */
-  --code-keyword: #a8461f;
-  --code-string: #1d6b45;
-  --code-key: #2f5f9e;
-  --code-value: #16150f;
-  --code-literal: #7c5200;
+  --code-keyword: #8a5a00;
+  --code-string: #2f7d55;
+  --code-key: #2a5fb3;
+  --code-value: #1a1915;
+  --code-literal: #8a5a00;
   --code-type: #1d6b6b;
-  --quote-line: #cdbf9f;
+  --quote-line: rgba(20, 19, 15, 0.14);
+  /* The main action's text: light on the dark action in light, dark on the light action in dark. */
+  --action-text: #fcfbf8;
   /* The brand. */
-  --brand-name: #16150f;
-  --brand-cursor: #f4a583;
+  --brand-name: #1a1915;
+  --brand-cursor: #f5c84b;
   /* The quick search panel the desktop app shows from the menu bar. It looks
      like the operating system rather than this theme: the system's own
      colours in its light or dark appearance, the system font, and the
-     system's accent colour for the selected row. The dashboard itself is
-     light only; this panel follows macOS because the system supplies both
-     looks, so there is nothing extra to maintain. Older engines without
+     system's accent colour for the selected row. The dashboard now has a light and a dark theme of its own; this panel still follows macOS directly. Older engines without
      AccentColor use the selection highlight instead. */
   --type-native: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --native-scheme: light dark;
@@ -215,6 +209,186 @@
   --native-radius-panel: 12px;
   --native-radius-row: 7px;
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-page: #141311;
+    --surface-rail: #1b1a17;
+    --surface-top: #1b1a17;
+    --surface-raised: #23211d;
+    --surface-muted: #2a2824;
+    --surface-hover: rgba(255, 250, 240, 0.05);
+    --surface-field: #23211d;
+    --text-strong: #f3efe6;
+    --text-body: #e2ddd2;
+    --text-muted: #b3ac9f;
+    --text-faint: #8f897d;
+    --text-on-accent: #1a1915;
+    --line-outline: rgba(255, 250, 240, 0.08);
+    --line-strong: rgba(255, 250, 240, 0.14);
+    --line-divider: rgba(255, 250, 240, 0.07);
+    --line-ink: rgba(255, 250, 240, 0.12);
+    --line-on-accent: rgba(20, 19, 15, 0.25);
+    --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 20px 44px -18px rgba(0, 0, 0, 0.7);
+    --shadow-fab: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 22px -8px rgba(0, 0, 0, 0.6);
+    --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+    --shadow-pick: 0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.5);
+    --accent: #f0be3c;
+    --accent-strong: #f5c84b;
+    --focus: #f5c84b;
+    --action-bg: #f3efe6;
+    --action-hover-bg: #ffffff;
+    --action-line: #f3efe6;
+    --link-line: rgba(245, 200, 75, 0.7);
+    --selected-surface: rgba(255, 250, 240, 0.07);
+    --selected-text: #f3efe6;
+    --selected-line: rgba(255, 250, 240, 0.12);
+    --selected-bg: #23211d;
+    --selected-soft-bg: rgba(255, 250, 240, 0.07);
+    --selected-soft-text: #f3efe6;
+    --toggle-knob: #141311;
+    --find-bg: rgba(245, 200, 75, 0.3);
+    --find-text: #f3efe6;
+    --find-soft-bg: rgba(245, 200, 75, 0.18);
+    --status-ok: #5bc48c;
+    --status-warn: #e8b02a;
+    --status-bad: #f08a6c;
+    --status-ok-bg: rgba(91, 196, 140, 0.14);
+    --status-ok-text: #5bc48c;
+    --status-warn-bg: rgba(232, 176, 42, 0.16);
+    --status-warn-text: #e8b02a;
+    --status-bad-bg: rgba(240, 138, 108, 0.14);
+    --status-bad-text: #f08a6c;
+    --status-ok-dot: #5bc48c;
+    --status-bad-dot: #f08a6c;
+    --mashy-pick-bg: #2c3350;
+    --mashy-pick-text: #f3efe6;
+    --mashy-dot: #8e9dd6;
+    --mashy-surface: #1f2333;
+    --mashy-surface-text: #f3efe6;
+    --you-bg: #23211d;
+    --you-text: #f3efe6;
+    --you-inset: #1b1a17;
+    --you-rule: rgba(255, 250, 240, 0.12);
+    --banner-bg: #f3efe6;
+    --banner-text: #141311;
+    --tile-overview: #2a2824;
+    --tile-chats: #2a2824;
+    --tile-agents: #2a2824;
+    --tile-machines: #2a2824;
+    --tile-projects: #2a2824;
+    --tile-memory: #2a2824;
+    --tile-services: #2a2824;
+    --tile-fleet: #2a2824;
+    --tile-tools: #2a2824;
+    --tile-settings: #2a2824;
+    --tile-icon: #f3efe6;
+    --agent-tile-bg: #23211d;
+    --agent-codex: #f3efe6;
+    --agent-cursor: #f3efe6;
+    --code-keyword: #f0be3c;
+    --code-string: #5bc48c;
+    --code-key: #8ea8e6;
+    --code-value: #f3efe6;
+    --code-literal: #e8b02a;
+    --code-type: #6fc2c2;
+    --quote-line: rgba(255, 250, 240, 0.16);
+    --brand-name: #f3efe6;
+    --action-text: #141311;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface-page: #141311;
+  --surface-rail: #1b1a17;
+  --surface-top: #1b1a17;
+  --surface-raised: #23211d;
+  --surface-muted: #2a2824;
+  --surface-hover: rgba(255, 250, 240, 0.05);
+  --surface-field: #23211d;
+  --text-strong: #f3efe6;
+  --text-body: #e2ddd2;
+  --text-muted: #b3ac9f;
+  --text-faint: #8f897d;
+  --text-on-accent: #1a1915;
+  --line-outline: rgba(255, 250, 240, 0.08);
+  --line-strong: rgba(255, 250, 240, 0.14);
+  --line-divider: rgba(255, 250, 240, 0.07);
+  --line-ink: rgba(255, 250, 240, 0.12);
+  --line-on-accent: rgba(20, 19, 15, 0.25);
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 20px 44px -18px rgba(0, 0, 0, 0.7);
+  --shadow-fab: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 22px -8px rgba(0, 0, 0, 0.6);
+  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  --shadow-pick: 0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(0, 0, 0, 0.5);
+  --accent: #f0be3c;
+  --accent-strong: #f5c84b;
+  --focus: #f5c84b;
+  --action-bg: #f3efe6;
+  --action-hover-bg: #ffffff;
+  --action-line: #f3efe6;
+  --link-line: rgba(245, 200, 75, 0.7);
+  --selected-surface: rgba(255, 250, 240, 0.07);
+  --selected-text: #f3efe6;
+  --selected-line: rgba(255, 250, 240, 0.12);
+  --selected-bg: #23211d;
+  --selected-soft-bg: rgba(255, 250, 240, 0.07);
+  --selected-soft-text: #f3efe6;
+  --toggle-knob: #141311;
+  --find-bg: rgba(245, 200, 75, 0.3);
+  --find-text: #f3efe6;
+  --find-soft-bg: rgba(245, 200, 75, 0.18);
+  --status-ok: #5bc48c;
+  --status-warn: #e8b02a;
+  --status-bad: #f08a6c;
+  --status-ok-bg: rgba(91, 196, 140, 0.14);
+  --status-ok-text: #5bc48c;
+  --status-warn-bg: rgba(232, 176, 42, 0.16);
+  --status-warn-text: #e8b02a;
+  --status-bad-bg: rgba(240, 138, 108, 0.14);
+  --status-bad-text: #f08a6c;
+  --status-ok-dot: #5bc48c;
+  --status-bad-dot: #f08a6c;
+  --mashy-pick-bg: #2c3350;
+  --mashy-pick-text: #f3efe6;
+  --mashy-dot: #8e9dd6;
+  --mashy-surface: #1f2333;
+  --mashy-surface-text: #f3efe6;
+  --you-bg: #23211d;
+  --you-text: #f3efe6;
+  --you-inset: #1b1a17;
+  --you-rule: rgba(255, 250, 240, 0.12);
+  --banner-bg: #f3efe6;
+  --banner-text: #141311;
+  --tile-overview: #2a2824;
+  --tile-chats: #2a2824;
+  --tile-agents: #2a2824;
+  --tile-machines: #2a2824;
+  --tile-projects: #2a2824;
+  --tile-memory: #2a2824;
+  --tile-services: #2a2824;
+  --tile-fleet: #2a2824;
+  --tile-tools: #2a2824;
+  --tile-settings: #2a2824;
+  --tile-icon: #f3efe6;
+  --agent-tile-bg: #23211d;
+  --agent-codex: #f3efe6;
+  --agent-cursor: #f3efe6;
+  --code-keyword: #f0be3c;
+  --code-string: #5bc48c;
+  --code-key: #8ea8e6;
+  --code-value: #f3efe6;
+  --code-literal: #e8b02a;
+  --code-type: #6fc2c2;
+  --quote-line: rgba(255, 250, 240, 0.16);
+  --brand-name: #f3efe6;
+  --action-text: #141311;
+  color-scheme: dark;
 }
 
 /* Theme rules that a value alone cannot express. */

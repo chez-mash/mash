@@ -6,10 +6,13 @@ import "./terminal.css";
 import "./kit.css";
 
 import App from "./App.svelte";
+import { installAppearance } from "./lib/appearance.svelte";
 import { installNavigationBoundary } from "./lib/navigation";
 
 const target = document.getElementById("app");
 if (target === null) throw new Error("missing #app element");
+
+installAppearance();
 
 const removeNavigationBoundary = installNavigationBoundary(document);
 import.meta.hot?.dispose(removeNavigationBoundary);
