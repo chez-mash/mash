@@ -138,7 +138,29 @@ function submit(event: SubmitEvent): void {
   }
   navigate(submitted ? `#/search?${submitted}` : "#/search");
 }
+
+// ⌘K on a Mac, Ctrl+K elsewhere, focuses the search field from anywhere in
+// the dashboard, as the hint inside the field says.
+const shortcutModifier = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? "")
+  ? "⌘"
+  : "Ctrl";
+function focusSearch(event: KeyboardEvent): void {
+  if (
+    event.key.toLowerCase() !== "k" ||
+    !(event.metaKey || event.ctrlKey) ||
+    event.altKey ||
+    event.shiftKey
+  )
+    return;
+  const field = document.getElementById("q");
+  if (!(field instanceof HTMLInputElement)) return;
+  event.preventDefault();
+  field.focus();
+  field.select();
+}
 </script>
+
+<svelte:window onkeydown={focusSearch} />
 
 <header id="top">
   <button id="burger" type="button" aria-label="Open navigation" aria-expanded={railOpen} onclick={toggleRail}><span class="menu-ico"><Menu size={20} aria-hidden="true" /></span><img src={asset("mash-mark.svg")} alt="" width="40" height="40" /></button>
@@ -156,6 +178,7 @@ function submit(event: SubmitEvent): void {
       {#each tags as tag (tag.label + tag.href)}<a class="tag" href={tag.href} aria-label="Remove filter {tag.label}" style:display="inline-flex" style:align-items="center" style:gap="4px">{tag.label}<X size={13} aria-hidden="true" /></a>{/each}
       <label for="q" class="sr-only">Search your history</label>
       <input id="q" autocomplete="off" placeholder="Search your history" bind:value={text} onkeydown={(event) => { if (event.key === "Escape") focused = false; }} />
+      {#if !focused && !text}<span class="keys" aria-hidden="true"><kbd class="kbd">{shortcutModifier}</kbd><kbd class="kbd">K</kbd></span>{/if}
       <button class="go" type="submit" aria-label="Search"><Search size={14} /></button>
     </form>
     {#if showDrop && suggestions}

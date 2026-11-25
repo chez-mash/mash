@@ -186,7 +186,7 @@ function toggleConnect(agent: Integration): void {
 
 <main class="setup">
   <header class="setup-top">
-    <span class="brand"><img src={asset("mash-mark.svg")} alt="" /><span>mash<i aria-hidden="true">_</i></span></span>
+    <span class="brand"><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></span>
     {#if file && !running}
       <a class="a" href="#/" onclick={skipSetup}>{file.configured || outcome ? "Back to the dashboard" : "Skip to the dashboard"}</a>
     {/if}

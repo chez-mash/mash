@@ -5,8 +5,10 @@ export interface AgentInfo {
   /** Its vendored provider logo (public/agents) as SVG markup filled with the
    * current colour, so a mark takes the colour of the element around it. */
   readonly logo: string;
-  /** Its brand colour: a token from src/theme/tokens.css. */
+  /** Its brand colour, the fill of its tile: a token from src/theme/tokens.css. */
   readonly tint: string;
+  /** The colour of the logo on that tile: white, or dark where the tile is light. */
+  readonly ink: string;
 }
 
 // The logos are inlined rather than drawn as <img> or a CSS mask: an <img>
@@ -32,7 +34,8 @@ function logo(file: string): string {
 export function paintMark(mark: HTMLElement, info: AgentInfo): void {
   mark.className = "mark sm";
   mark.setAttribute("aria-hidden", "true");
-  mark.style.color = info.tint;
+  mark.style.background = info.tint;
+  mark.style.color = info.ink;
   mark.innerHTML = info.logo;
 }
 
@@ -41,19 +44,37 @@ export const agents: Readonly<Record<Agent, AgentInfo>> = {
     name: "Claude Code",
     logo: logo("claude.svg"),
     tint: "var(--agent-claude-code)",
+    ink: "var(--agent-on)",
   },
-  codex: { name: "Codex", logo: logo("openai.svg"), tint: "var(--agent-codex)" },
-  opencode: { name: "OpenCode", logo: logo("opencode.svg"), tint: "var(--agent-opencode)" },
+  codex: {
+    name: "Codex",
+    logo: logo("openai.svg"),
+    tint: "var(--agent-codex)",
+    ink: "var(--agent-on-neutral)",
+  },
+  opencode: {
+    name: "OpenCode",
+    logo: logo("opencode.svg"),
+    tint: "var(--agent-opencode)",
+    ink: "var(--agent-on)",
+  },
   copilot: {
     name: "GitHub Copilot",
     logo: logo("githubcopilot.svg"),
     tint: "var(--agent-copilot)",
+    ink: "var(--agent-on)",
   },
-  cursor: { name: "Cursor", logo: logo("cursor.svg"), tint: "var(--agent-cursor)" },
+  cursor: {
+    name: "Cursor",
+    logo: logo("cursor.svg"),
+    tint: "var(--agent-cursor)",
+    ink: "var(--agent-on-neutral)",
+  },
   antigravity: {
     name: "Antigravity",
     logo: logo("antigravity.svg"),
     tint: "var(--agent-antigravity)",
+    ink: "var(--agent-on)",
   },
 };
 

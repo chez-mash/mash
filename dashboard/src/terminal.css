@@ -124,51 +124,28 @@ summary::-webkit-details-marker {
 }
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 0.28em;
-  padding: 0 8px 14px;
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  /* The project's logo, drawn live so its cursor can blink. */
+  align-items: center;
+  gap: 9px;
+  padding: 0 8px 16px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
   color: var(--brand-name);
 }
-/* The mark is sized from the lettering: its dome is as tall as the "h" (0.74em
-   in this face) and the rule under it sits on the baseline, so only the butter
-   rises above the letters. In the 64-unit drawing the dome top is at 24 and
-   the rule's lower edge at 55.5. A flex item's baseline is its box's lower
-   edge whatever its margin, so the drawing is moved down by the space under
-   its rule. */
 .brand img {
-  width: 1.5em;
-  height: 1.5em;
-  margin: 0 0.12em 0 -0.14em;
-  transform: translateY(0.2em);
+  width: 24px;
+  height: 24px;
 }
-/* The cursor follows the name directly, in the name's own weight, as in the
-   site's header. */
-.brand i {
-  font-style: normal;
-  color: var(--brand-cursor);
-  animation: cursor 1.6s ease-in-out infinite;
-}
-@keyframes cursor {
-  0%,
-  45% {
-    opacity: 1;
-  }
-  60%,
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .brand i {
-    animation: none;
-  }
+/* The wordmark's full stop is the pat of butter from the logo: a small
+   rounded square, tilted as in the mark, sitting on the baseline. */
+.brand i.pat {
+  display: inline-block;
+  width: 0.26em;
+  height: 0.24em;
+  margin-left: 0.07em;
+  border-radius: var(--radius-1);
+  background: var(--brand-cursor);
+  transform: rotate(-9deg);
 }
 .nav {
   display: flex;
@@ -176,27 +153,27 @@ summary::-webkit-details-marker {
   gap: 3px;
   flex: 1;
 }
-/* A row is outlined like a sticker when it is the current page; the outline
-   is the page's line colour, so it shows on the dark rail too. */
+/* The current page is a raised row: the surface colour with a hairline ring
+   and a soft shadow, as in the wireframes. */
 .nav-row {
   display: flex;
   align-items: center;
-  border: var(--stroke-strong) solid transparent;
   border-radius: var(--radius-5);
 }
-.nav-row.on {
-  background: var(--selected-surface);
-  border-color: var(--line-ink);
+.nav-row:not(.on):hover {
+  background: var(--surface-hover);
 }
-/* Each section's icon sits on a small tile in that section's shade. */
+.nav-row.on {
+  background: var(--selected-bg);
+  box-shadow: var(--shadow-pick);
+}
+/* Each section has a plain line icon in the text's colour. */
 .nav-ico {
   flex: none;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  border: var(--border-fill);
-  border-radius: var(--radius-4);
+  width: 18px;
+  height: 18px;
   color: var(--tile-icon);
 }
 .nav-link {
@@ -204,15 +181,23 @@ summary::-webkit-details-marker {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 36px;
-  padding: 3px 10px;
-  font-size: 14px;
-  color: var(--text-strong);
+  gap: 10px;
+  min-height: 32px;
+  padding: 2px 10px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+/* Labels are lowercase in the markup, which tests and screen readers use;
+   the rail shows them in sentence case. */
+.nav-label {
+  display: inline-block;
+}
+.nav-label::first-letter {
+  text-transform: uppercase;
 }
 .nav-row.on .nav-link {
   color: var(--selected-text);
-  font-weight: 700;
+  font-weight: 500;
 }
 .chev {
   flex: none;
@@ -394,15 +379,29 @@ summary::-webkit-details-marker {
 }
 .go {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--stroke-strong) solid var(--action-line);
   border-radius: var(--radius-4);
-  background: var(--action-bg);
-  color: var(--action-text);
+  background: transparent;
+  color: var(--text-muted);
+}
+.go:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+/* The ⌘K hint inside the search field. */
+.box .keys {
+  display: flex;
+  gap: 3px;
+  flex: none;
+}
+@media (hover: none) {
+  .box .keys {
+    display: none;
+  }
 }
 .drop {
   position: absolute;
@@ -523,17 +522,17 @@ summary::-webkit-details-marker {
   flex-direction: column;
   gap: 22px;
 }
-/* An agent's mark: its logo in ink on an ivory tile, the same in both
-   themes. The logo is an ordinary image, which every engine draws. */
+/* An agent's mark: its logo on a small tile in the agent's colour, with a
+   faint top highlight. The tile colour is set from lib/agents.ts. */
 .mark {
   flex: none;
   display: inline-grid;
   place-items: center;
   width: 28px;
   height: 28px;
-  border: var(--agent-tile-border);
   border-radius: var(--radius-tile);
   background: var(--agent-tile-bg);
+  box-shadow: var(--agent-tile-shadow);
 }
 .mark svg {
   display: block;
@@ -552,7 +551,6 @@ summary::-webkit-details-marker {
 .mark.lg {
   width: 44px;
   height: 44px;
-  border-width: var(--stroke-strong);
   border-radius: var(--radius-6);
 }
 .mark.lg svg {
@@ -3676,12 +3674,14 @@ summary.rw::-webkit-details-marker {
   white-space: nowrap;
 }
 .kbd {
+  min-width: 18px;
   padding: 1px 5px;
-  border: var(--border-fill);
   border-radius: var(--radius-3);
   background: var(--surface-raised);
-  color: var(--text-strong);
-  font: 500 11px / 1.3 var(--type-mono);
+  box-shadow: var(--shadow-pick);
+  color: var(--text-muted);
+  font: 500 11px / 1.4 var(--type-mono);
+  text-align: center;
 }
 @media (hover: none) {
   .btn .kbd {

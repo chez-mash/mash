@@ -280,14 +280,14 @@ function arrows(event: KeyboardEvent, id: Section): void {
 
 <aside id="rail" class:open style:--rail-width="{width}px" bind:this={aside}>
   <div class="rail-in" style:--rail-pushed="{pushed}px">
-  <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i aria-hidden="true">_</i></span></a>
+  <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></a>
   <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
   <nav class="nav" class:fade-above={fade.above} class:fade-below={fade.below} aria-label="Main" bind:this={nav} onscroll={measure}>
     {#each offered as section (section.id)}
       {@const on = section.id === area && !child}
       {@const isOpen = expanded.includes(section.id)}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={expandable.includes(section.id) ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={(event) => arrows(event, section.id)}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span>{section.label}</a>
+        <a class="nav-link" href={section.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={expandable.includes(section.id) ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={(event) => arrows(event, section.id)}><span class="nav-ico" style:background={section.tile}><section.icon size={14} aria-hidden="true" /></span><span class="nav-label">{section.label}</span></a>
         {#if expandable.includes(section.id)}
           <button class="chev" type="button" tabindex="-1" aria-label="{isOpen ? 'Collapse' : 'Expand'} {section.label}" aria-expanded={isOpen} onclick={() => toggle(section.id)}><ChevronRight size={14} /></button>
         {/if}

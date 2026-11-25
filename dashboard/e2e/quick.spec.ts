@@ -270,9 +270,7 @@ test("Control+, opens settings from the field", async ({ page }) => {
   await expect(page).toHaveURL(/#\/settings$/);
 });
 
-test("the quick panel follows the system's dark appearance while the dashboard stays light", async ({
-  page,
-}) => {
+test("the quick panel and the dashboard follow the system's dark appearance", async ({ page }) => {
   await mock(page);
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/#/quick");
@@ -287,7 +285,7 @@ test("the quick panel follows the system's dark appearance while the dashboard s
   expect(ground).not.toBe("rgb(255, 255, 255)");
   await page.goto("/#/");
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
-    "light",
+    "dark",
   );
 });
 

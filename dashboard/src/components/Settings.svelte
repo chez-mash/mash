@@ -158,6 +158,25 @@ async function save(): Promise<void> {
 {:else if file}
   <p>These are this machine's settings. Choose <strong>Save to file</strong> to write your changes.</p>
 {/if}
+<section class="sec">
+  <div class="hd">
+    <h2 class="h2"><Monitor size={15} aria-hidden="true" />appearance</h2>
+  </div>
+  <div class="card set-card">
+    <div class="set-r">
+      <span class="set-l">theme</span>
+      <span class="set-c">
+        <span class="seg" role="group" aria-label="Theme" aria-describedby="theme-help">
+          {#each appearances as choice (choice)}
+            <button type="button" aria-pressed={appearance.current === choice} onclick={() => appearance.set(choice)}>{choice === "system" ? "match the system" : choice}</button>
+          {/each}
+        </span>
+        <span id="theme-help" class="meta" style:flex-basis="100%">Kept in this browser only; other browsers and the desktop app keep their own choice.</span>
+      </span>
+    </div>
+  </div>
+</section>
+
 {#if status.isPending || settings.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load settings" query={status} />
 {#if settings.error}<p class="meta warn" role="alert">Settings can't be changed right now: {settings.error.message}</p>{/if}
@@ -174,25 +193,6 @@ async function save(): Promise<void> {
   {:else if status.data.nextStep === "models install"}
     <p class="card tight warn">Search by meaning needs local models. Run <code class="i">{mashCommand("models install")}</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
   {/if}
-
-  <section class="sec">
-    <div class="hd">
-      <h2 class="h2"><Monitor size={15} aria-hidden="true" />appearance</h2>
-    </div>
-    <div class="card set-card">
-      <div class="set-r">
-        <span class="set-l">theme</span>
-        <span class="set-c">
-          <span class="seg" role="group" aria-label="Theme" aria-describedby="theme-help">
-            {#each appearances as choice (choice)}
-              <button type="button" aria-pressed={appearance.current === choice} onclick={() => appearance.set(choice)}>{choice === "system" ? "match the system" : choice}</button>
-            {/each}
-          </span>
-          <span id="theme-help" class="meta" style:flex-basis="100%">Kept in this browser only; other browsers and the desktop app keep their own choice.</span>
-        </span>
-      </div>
-    </div>
-  </section>
 
   <section class="sec">
     <div class="hd">
