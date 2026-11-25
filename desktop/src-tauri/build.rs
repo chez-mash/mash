@@ -13,14 +13,8 @@ const REQUIRED: [(&str, &str); 2] = [
 /// The typefaces, from the dashboard's installed packages. Without them (a
 /// checkout whose dashboard is not installed) the page uses the system font.
 const FONTS: [(&str, &str); 3] = [
-    (
-        "geist/files/geist-latin-400-normal.woff2",
-        "sans-400.woff2",
-    ),
-    (
-        "geist/files/geist-latin-600-normal.woff2",
-        "sans-600.woff2",
-    ),
+    ("geist/files/geist-latin-400-normal.woff2", "sans-400.woff2"),
+    ("geist/files/geist-latin-600-normal.woff2", "sans-600.woff2"),
     (
         "geist-mono/files/geist-mono-latin-400-normal.woff2",
         "mono-400.woff2",
