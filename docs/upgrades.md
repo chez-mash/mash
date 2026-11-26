@@ -58,11 +58,22 @@ indexing pass also picks up history saved since the last pass.
 
 ### The desktop app updates itself
 
-On macOS, and on Linux when you run the AppImage, the Mash app downloads new
-versions in the background and shows **Update Ready — Restart to Update** in
-its menu bar menu. Restarting installs the update, upgrades the index if the
-new version needs it, and restarts Mash's background services that run the
-app's `mash`. **Check for Updates…** checks now.
+When a newer version exists, the Mash app shows a banner across the top of
+its window that names the version. Nothing is installed until you choose its
+button; **Later** puts the banner away until the app next starts or a newer
+version appears.
+
+On macOS, and on Linux when you run the AppImage, the app downloads new
+versions in the background, and the button is **Update and restart**. It
+installs the update, upgrades the index if the new version needs it, and
+restarts Mash's background services that run the app's `mash`. The menu bar
+menu shows the same update as **Update Ready — Restart to Update**, and
+**Check for Updates…** checks now. If the update cannot be installed, the
+banner says why and offers **Download instead**.
+
+Where the app does not update itself, the button is **Download update**,
+which opens the downloads page; install the new version over the old one.
+For the apt package the banner shows the `apt` command instead.
 
 - **Updates** in the same menu chooses **Stable**, the published releases, or
   **Main (latest build)**, every build of the development branch. On Main,

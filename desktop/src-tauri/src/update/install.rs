@@ -13,6 +13,16 @@ use crate::{engine, lockstep};
 use std::time::Duration;
 use tauri::AppHandle;
 
+/// Who asked for an install, which decides where a failure is said: a
+/// choice in the menus gets a notice, the banner shows its own, and an idle
+/// install interrupts nobody. The banner shows the reason in every case.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum By {
+    Menu,
+    Banner,
+    Idle,
+}
+
 /// Install a ready update while nobody is looking: on, the main window and
 /// the search panel both hidden at two looks in a row, so a search in either
 /// is never cut off.
@@ -29,14 +39,15 @@ pub(super) fn install_if_idle(app: &AppHandle) {
     inner.idle_ticks += 1;
     if inner.idle_ticks >= 2 {
         drop(inner);
-        apply(app, true);
+        apply(app, By::Idle);
     }
 }
 
 /// Install the ready update and start the new version. The engine is stopped
 /// first and the installed app copied aside; if the install fails the engine
 /// starts again and the app carries on as it was.
-pub(super) fn apply(app: &AppHandle, quiet: bool) {
+pub(super) fn apply(app: &AppHandle, by: By) {
+    let quiet = by == By::Idle;
     let (update, file) = {
         let mut inner = lock(app);
         let Phase::Ready { update, .. } = &inner.phase else {
@@ -56,11 +67,12 @@ pub(super) fn apply(app: &AppHandle, quiet: bool) {
         let mut inner = lock(app);
         inner.phase = Phase::Idle;
         inner.settings.pending = None;
+        inner.offer.failed = Some((update.version.clone(), why.clone()));
         save(app, &inner.settings);
         refresh(app, &inner);
         drop(inner);
         eprintln!("Mash couldn’t install the update: {why}");
-        if !quiet {
+        if by == By::Menu {
             tell(
                 app,
                 &format!("Mash couldn’t install the update, and is unchanged: {why}"),

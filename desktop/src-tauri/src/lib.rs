@@ -18,6 +18,7 @@ mod lockstep;
 mod menubar;
 mod navigation;
 mod print;
+mod size;
 mod stop;
 mod update;
 
@@ -79,7 +80,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state.clone())
         .manage(downloads::Downloads::default())
-        .invoke_handler(tauri::generate_handler![retry_engine, engine_log])
+        .invoke_handler(tauri::generate_handler![
+            retry_engine,
+            engine_log,
+            update::banner::update_banner,
+            update::banner::update_install,
+            update::banner::update_later
+        ])
         .on_menu_event(|app, event| menubar::choose(app, event.id().as_ref()))
         .setup(move |app| {
             update::prepare(app.handle());
@@ -127,11 +134,11 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
     let navigation = app.clone();
     let popups = app.clone();
     let downloads = app.clone();
-    let (width, height) = window_size(app);
+    let (width, height) = size::opening(app);
     WebviewWindowBuilder::new(app, WINDOW, WebviewUrl::App("index.html".into()))
         .title("Mash")
         .inner_size(width, height)
-        .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
+        .min_inner_size(size::MIN.0, size::MIN.1)
         .center()
         // An update installed while the window was closed leaves it closed.
         .visible(!update::starts_quietly(app))
@@ -198,36 +205,6 @@ fn light_title_bar(window: &tauri::WebviewWindow) {
             ns_window.setAppearance(appearance.as_deref());
         }
     });
-}
-
-/// The window's size when the screen has room, and its smallest size, in
-/// logical pixels.
-const PREFERRED_SIZE: (f64, f64) = (1280.0, 820.0);
-const MIN_SIZE: (f64, f64) = (420.0, 480.0);
-
-/// The window's opening size: the preferred size, shrunk to fit the main
-/// screen's work area (the screen less its taskbar or dock).
-fn window_size(app: &AppHandle) -> (f64, f64) {
-    let Ok(Some(monitor)) = app.primary_monitor() else {
-        return PREFERRED_SIZE;
-    };
-    let area = monitor
-        .work_area()
-        .size
-        .to_logical::<f64>(monitor.scale_factor());
-    fit(area.width, area.height)
-}
-
-/// The preferred size, shrunk to leave a margin and room for the title bar
-/// inside a work area of `width` by `height`, but never below the minimum.
-fn fit(width: f64, height: f64) -> (f64, f64) {
-    const TITLE_BAR: f64 = 40.0;
-    let room =
-        |preferred: f64, available: f64, minimum: f64| preferred.min(available * 0.94).max(minimum);
-    (
-        room(PREFERRED_SIZE.0, width, MIN_SIZE.0),
-        room(PREFERRED_SIZE.1, height - TITLE_BAR, MIN_SIZE.1),
-    )
 }
 
 /// Follow mash:// links, both the one that launched the app and later ones.
@@ -472,26 +449,11 @@ fn local_page() -> Url {
 
 #[cfg(test)]
 mod tests {
-    use super::{fit, page};
+    use super::page;
     use tauri::Url;
 
     fn url(text: &str) -> Url {
         Url::parse(text).unwrap()
-    }
-
-    #[test]
-    fn the_window_fits_the_screen() {
-        assert_eq!(
-            fit(2560.0, 1400.0),
-            (1280.0, 820.0),
-            "a large screen gets the preferred size"
-        );
-        let (width, height) = fit(1280.0, 760.0);
-        assert!(
-            width < 1280.0 && height + 40.0 < 760.0,
-            "{width}x{height} fits 1280x760"
-        );
-        assert_eq!(fit(300.0, 300.0), (420.0, 480.0), "never below the minimum");
     }
 
     #[test]

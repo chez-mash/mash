@@ -41,9 +41,17 @@ fn main() {
             );
         }
     }
-    // The app's own commands, which only its loading page may call
-    // (capabilities/default.json): the dashboard and the panel get none.
-    let commands = tauri_build::AppManifest::new().commands(&["retry_engine", "engine_log"]);
+    // The app's own commands. Its loading page may start the engine again
+    // and read its output (capabilities/default.json); the dashboard in the
+    // main window may ask about an update and for it to be installed
+    // (capabilities/updates.json); the panel gets none of them.
+    let commands = tauri_build::AppManifest::new().commands(&[
+        "retry_engine",
+        "engine_log",
+        "update_banner",
+        "update_install",
+        "update_later",
+    ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(commands))
         .unwrap_or_else(|error| panic!("prepare the app's build: {error:#}"));
 }
