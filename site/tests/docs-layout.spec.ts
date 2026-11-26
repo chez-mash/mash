@@ -141,3 +141,50 @@ test("on a phone the docs menu starts with the links and the language picker", a
   await expect(menu.getByRole("link", { name: "Try the demo" })).toBeInViewport();
   await expect(menu.locator("starlight-lang-select")).toBeInViewport();
 });
+
+test("on a phone every page's menu button is the same square at the left with three lines", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  // What a button looks like and where it and its neighbours sit.
+  const measure = async (button: string) => {
+    const box = async (selector: string) => {
+      const found = await page.locator(selector).filter({ visible: true }).first().boundingBox();
+      return found && [found.x, found.y, found.width, found.height].map(Math.round);
+    };
+    const look = await page.locator(button).evaluate((element) => {
+      const { borderRadius, backgroundColor, boxShadow, color } = getComputedStyle(element);
+      const lines = element.querySelector("svg:not(.close-menu)")?.innerHTML;
+      return { borderRadius, backgroundColor, boxShadow, color, lines };
+    });
+    return {
+      button: await box(button),
+      glyph: await box(`${button} svg`),
+      brand: (await box("header a.brand"))?.slice(0, 2),
+      search: await box("site-search button[data-open-modal]"),
+      ...look,
+    };
+  };
+  // A page with a sidebar has Starlight's button, which the others match.
+  await page.goto("/quick-start/");
+  const sidebar = await measure(".sl-menu-button");
+  expect(sidebar.button).toEqual([16, 10, 36, 36]);
+  // Search is the same square, ending at the gutter on the other side.
+  expect(sidebar.search).toEqual([338, 10, 36, 36]);
+  expect(sidebar.lines).toContain("<path");
+  for (const path of ["/guides/", "/es/guides/", "/no-such-page/"]) {
+    await page.goto(path);
+    await expect(page.locator(".sl-menu-button")).toHaveCount(0);
+    const own = await measure(".mash-menu summary");
+    expect(own, path).toEqual(sidebar);
+    // The logo follows the button and search ends the row.
+    const [button, brand, search] = [own.button?.[0], own.brand?.[0], own.search?.[0]];
+    expect(brand).toBeGreaterThan((button ?? 0) + 36);
+    expect(search).toBeGreaterThan(brand ?? 0);
+    // It still opens the links and both menus.
+    await page.locator(".mash-menu summary").click();
+    const panel = page.locator(".mash-menu .panel");
+    await expect(panel.locator("starlight-theme-select select")).toBeVisible();
+    await expect(panel.locator("starlight-lang-select select")).toBeVisible();
+  }
+});

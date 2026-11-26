@@ -342,19 +342,6 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
-  /* The systems, by their marks rather than an icon. */
-  .systems {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    height: 2.375rem;
-    color: var(--text-strong);
-  }
-  .systems svg {
-    width: 1.375rem;
-    height: 1.375rem;
-    opacity: 0.85;
-  }
 
   /* Open source: the words beside the projects Mash is built on. */
   .built-with {
