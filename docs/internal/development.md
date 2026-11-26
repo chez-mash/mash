@@ -414,9 +414,10 @@ tools/worktree.sh done search-fix
   (a squash-merged pull request needs it, because its commits are not on
   `main` under their own identity).
 
-Files Git ignores are not in a new worktree: `node_modules`, `dashboard/dist`,
-the skills under `.agents/skills/`, and `.beads/`. Read skills from the main
-checkout and run `bd` there. Do not switch branches, rebase or reset in the
+Files Git ignores are not in a new worktree: `node_modules`, `dashboard/dist`
+and `.beads/`. `new` links the agent skills (`.agents/skills`) and `.claude`
+to the main checkout's copies, so edit them there; run `bd` from the main
+checkout too. Do not switch branches, rebase or reset in the
 main checkout; keep it on `main`, and update it with `git pull --ff-only` when
 nobody is editing it.
 
