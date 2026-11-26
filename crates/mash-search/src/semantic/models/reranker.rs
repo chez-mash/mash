@@ -54,8 +54,28 @@ impl Lazy {
             .ok_or_else(|| AppError::internal("the reranking model is not loaded"))
     }
 
-    pub(super) const fn failed(&self) -> bool {
+    /// Waits for a load in flight and reports whether loading failed. A
+    /// settled reranker has no thread left inside the model runtime.
+    pub(super) fn settle(&mut self) -> bool {
+        if self.loading.is_some() {
+            // A failure is recorded in `failed`; the next search that needs
+            // the model loads it again and reports the reason.
+            let _ = self.get();
+        }
         self.failed
+    }
+}
+
+// The loading thread must never outlive its owner. ONNX Runtime is linked
+// into the executable, so process exit destroys its C++ registries while any
+// thread still creating a session reads them: a segmentation fault after the
+// work has already succeeded. Session creation cannot be cancelled, so a
+// search that ends before it reranks waits here for the load it started.
+impl Drop for Lazy {
+    fn drop(&mut self) {
+        if let Some(loading) = self.loading.take() {
+            let _ = loading.join();
+        }
     }
 }
 
