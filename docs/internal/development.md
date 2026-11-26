@@ -290,8 +290,9 @@ admission tests) lose events when another test in the same process has
 switched those trace points off. Under `cargo test` they fail at random; under
 nextest they pass.
 
-The workspace is the executables' crate `mash` (`cli/`), the application
-library `mash-app` (`app/`) and the crates under `crates/`. These default commands cover all of them.
+The workspace is the executables' package `mash` (the repository root), their
+command lines `mash-cli` (`cli/`), the application library `mash-app` (`app/`)
+and the crates under `crates/`. These default commands cover all of them.
 
 | Crate | Holds | Depends on |
 | --- | --- | --- |
@@ -306,7 +307,8 @@ library `mash-app` (`app/`) and the crates under `crates/`. These default comman
 | `mash-server` | The authenticated HTTP service for the shared index: routes, authorization, the sync protocol's endpoints and service setup. Its store is in `mash-sync` (`shared::server`) | `mash-app`, `mash-model` |
 | `mash-mcp` | The stdio MCP server, its tool contract, the dashboard's console and the generated history skill | `mash-app`, `mash-model`, `mash-silver` |
 | `mash-dash` | The local web dashboard served by `mash dash`, and the build script that embeds its front end | `mash-app`, `mash-mcp`, `mash-fleet`, `mash-model` |
-| `mash` (`cli/`) | Both executables: argument parsing and output, and the CLI contract tests | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash-model` |
+| `mash-cli` (`cli/`) | Both command lines: argument parsing and output | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash-model` |
+| `mash` (the root; `build.rs`, `cli/main.rs`, `cli/server_main.rs`, `cli/tests/`) | Both executables, each a few lines over `mash-cli`, the commit stamped into them, the Windows delay-load hook, and the CLI contract tests | `mash-cli` |
 
 The application library is being divided from the bottom up so that an edit recompiles only its
 own crate and the ones above it; the measurements under
@@ -418,9 +420,10 @@ What the time is made of:
   and a compiler cache wrapper. The just recipes override both; a raw Cargo
   command does not, and then every edit recompiles the crate from nothing.
 - A commit changes the revision stamped by `build.rs`, so the first build after
-  any commit recompiles the `mash` package (the command line and the two
-  programs) even when no source changed. The libraries under it read the
-  revision at run time (`mash_app::build_revision`) and are left alone.
+  any commit recompiles the `mash` package even when no source changed. That
+  package is only the two programs' entry points (and, in a test build, the
+  CLI contract tests), which hand the revision to `mash-cli`; the libraries
+  read it at run time (`mash_app::build_revision`) and are left alone.
 
 For a raw Cargo command, keep one target directory and enable incremental
 compilation explicitly:
@@ -942,11 +945,12 @@ them:
 
 | The commit changed | Compiled again |
 |---|---|
-| Nothing a crate reads (`tools/`, `.github/`, instructions) | `mash`: the revision is stamped there |
-| The dashboard | `mash-dash`, `mash` |
-| `mash-server` | `mash-server`, `mash` |
-| `mash-mcp` or `mash-fleet` | That crate, `mash-dash`, `mash` |
-| `mash-app` | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash` |
+| Nothing a crate reads (`tools/`, `.github/`, instructions) | `mash` alone: the two entry points, a few lines each, and the programs are linked again |
+| The dashboard | `mash-dash`, `mash-cli`, `mash` |
+| `mash-cli` | `mash-cli`, `mash` |
+| `mash-server` | `mash-server`, `mash-cli`, `mash` |
+| `mash-mcp` or `mash-fleet` | That crate, `mash-dash`, `mash-cli`, `mash` |
+| `mash-app` | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash-cli`, `mash` |
 | A crate near the bottom (`mash-model`, `mash-silver`, `mash-query`, `mash-storage`) | Nearly every crate of ours; no dependency |
 | `Cargo.lock` | The changed dependencies and every crate of ours |
 
@@ -971,9 +975,16 @@ the dashboard and packaging. Hosted runners vary: the same uncached macOS
 build took 773 s, 876 s and 894 s in three runs that day.
 
 Keep it that way: a value that differs for every commit belongs in the `mash`
-package, not in a library under it. `MASH_BUILD_REVISION` used to be compiled
-into `mash-app`, which recompiled it and the four crates above it, more than
-half of a build, for every commit.
+package, not in a library under it, and that package stays a few lines.
+Cargo compiles every target of a package again when its build script's output
+changes, and every crate built on a crate that changed, so the stamp can cost
+nothing only where nothing else is compiled with it. `MASH_BUILD_REVISION`
+used to be compiled into `mash-app`, which recompiled it and the four crates
+above it, more than half of a build, for every commit; then into the package
+that also held the command lines, which cost 60 to 180 s of every build (the
+fourth row of the table was measured then). On Xenia, changing only the
+revision took 52 s before the command lines moved to `mash-cli` and 1.5 s
+after.
 
 Only `main` saves. A manual run on a branch reads `main`'s caches, and
 `desktop.yml` reads them for the engine it builds on macOS and Windows. After

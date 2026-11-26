@@ -3,7 +3,10 @@
 //!
 //! This script belongs to the package that builds the programs, the last one
 //! compiled, so a new commit recompiles that package and nothing under it.
-//! The library crates read the commit at run time (`mash_app::build_revision`).
+//! Keep the package to the programs' entry points: Cargo compiles all of it
+//! again whenever the commit changes. The command lines are in `mash-cli`,
+//! and the library crates read the commit at run time
+//! (`mash_app::build_revision`).
 use std::process::Command;
 
 fn main() {
@@ -48,8 +51,8 @@ fn main() {
 
 /// On Windows, `DirectML` and Direct3D 12 are loaded when the GPU is first
 /// asked for, so the programs start on a Windows without them. Only the
-/// programs get the linker options; the hook that answers a failed load is
-/// compiled into the library they are built on.
+/// programs get the linker options. The hook that answers a failed load is
+/// linked into every target of this package, which has no library.
 fn delay_load_directml() {
     println!("cargo:rerun-if-changed=cli/delay_load.c");
     let os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();

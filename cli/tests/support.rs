@@ -165,7 +165,7 @@ pub(super) fn views_path(silver: &Path) -> std::path::PathBuf {
 /// A raw silver connection that can read packed `content`.
 pub(super) fn open_silver(path: impl AsRef<Path>) -> Connection {
     let connection = Connection::open(path).expect("local silver");
-    mash::register_silver_codec(&connection).expect("silver codec");
+    mash_cli::register_silver_codec(&connection).expect("silver codec");
     connection
 }
 

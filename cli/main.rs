@@ -1,3 +1,5 @@
 fn main() {
-    std::process::exit(mash::with_main_stack(mash::main_entry));
+    std::process::exit(mash_cli::with_main_stack(|| {
+        mash_cli::main_entry(env!("MASH_BUILD_REVISION"))
+    }));
 }
