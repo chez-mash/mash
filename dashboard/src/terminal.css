@@ -2046,14 +2046,15 @@ h1:focus {
 .newpill .btn {
   box-shadow: var(--shadow-float);
 }
-/* Jumps to either end of a chat, floating in the screen's corner, in a lane
-   the transcript keeps clear for them (reading.css). A phone has none: it
-   scrolls to the top by itself, and the buttons would cover the words. */
+/* Jumps to either end of a chat, floating in the screen's corner, stacked
+   over Mashy's circle (56px across, 24px in) and centred on it, in a lane the
+   transcript keeps clear for both. A phone has none: it scrolls to the top
+   by itself, and the buttons would cover the words. */
 .ends {
   position: fixed;
   z-index: 20;
-  right: max(20px, env(safe-area-inset-right, 0px));
-  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  right: calc(max(24px, env(safe-area-inset-right, 0px)) + 10px);
+  bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 68px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -4251,34 +4252,50 @@ summary.rw::-webkit-details-marker {
   text-decoration: underline 2px var(--find-current-line);
 }
 
-/* Mashy, the assistant: a circle at the right of the top bar that opens a
-   chat. It sits in the bar so it never covers the page. */
+/* Mashy, the assistant: a circle floating in the screen's bottom right
+   corner, like a help widget, that opens a chat. The rules after the chat's
+   own keep it off what the page shows. */
 #mashy-fab {
-  position: relative;
-  flex: none;
+  position: fixed;
+  /* Under the navigation drawer and its scrim. */
+  z-index: 28;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 56px;
   border: var(--stroke-strong) solid var(--line-ink);
   border-radius: var(--radius-round);
   background: var(--mashy-surface);
   box-shadow: var(--shadow-fab);
+  transition:
+    transform 140ms ease-out,
+    box-shadow 140ms ease-out,
+    translate 160ms ease-out,
+    scale 160ms ease-out,
+    opacity 160ms ease-out;
 }
-#mashy-fab:hover {
-  background: var(--mashy-pick-bg);
+@media (hover: hover) {
+  #mashy-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+  }
+}
+#mashy-fab:active {
+  transform: none;
 }
 #mashy-fab img {
-  width: 26px;
-  height: 24px;
+  width: 40px;
+  height: 36px;
   object-fit: contain;
 }
 #mashy-fab .dot {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 11px;
-  height: 11px;
+  top: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
   border: 2px solid var(--surface-page);
   border-radius: var(--radius-round);
   background: var(--notify);
@@ -4787,13 +4804,58 @@ summary.rw::-webkit-details-marker {
   color: var(--text-faint);
   cursor: default;
 }
+/* Content never rests under Mashy's circle (56px, 24px in from the corner).
+   Pages keep their full width, with no column set aside for it; instead each
+   one ends with room for the circle, so its last rows scroll clear of it. */
+body:has(#mashy-fab) #main {
+  padding-bottom: 96px;
+}
+/* A page that fills the screen (a chat, search, memory) has no padding of its
+   own, so what scrolls in it ends with that room: the search results and the
+   memory list, and the panes at the right edge, which scroll by themselves. */
+body:has(#mashy-fab) :is(.sx-b, .mem-main, .sx-p > .pv, .mem-p) {
+  padding-bottom: 96px;
+}
+/* A chat keeps a lane at its right edge for the circle and the jumps to
+   either end above it, so no message passes under them. */
+body:has(#mashy-fab) .tv-body {
+  padding-bottom: 96px;
+}
+@media (min-width: 801px) {
+  body:has(#mashy-fab) .tv-body {
+    padding-right: 96px;
+  }
+}
+/* A phone has no room for a lane, so the circle tucks to the screen's edge,
+   inside the page's margin, while the reader scrolls down through what it
+   would cover, and comes back once they scroll up, stop or reach the end
+   (see lib/tuck.ts). It stays in the accessibility tree and comes back for
+   keyboard focus, and it never tucks while Mashy is open or new messages are
+   offered. */
 @media (max-width: 800px) {
   .ends {
     display: none;
   }
   #mashy-fab {
-    width: 40px;
-    height: 40px;
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+  :root[data-scrolling="down"]:not(:has(#mashy, .newpill .btn)) #mashy-fab:not(:focus-visible) {
+    translate: var(--tuck-shift, 58px) 0;
+    scale: var(--tuck-scale, 0.8);
+    opacity: var(--tuck-fade, 0.6);
+    pointer-events: none;
+  }
+}
+@media (max-width: 800px) and (prefers-reduced-motion: reduce) {
+  #mashy-fab {
+    transition: opacity 120ms linear;
+  }
+  /* It fades where it is rather than sliding. */
+  :root {
+    --tuck-shift: 0px;
+    --tuck-scale: 1;
+    --tuck-fade: 0;
   }
 }
 /* On a phone, upright or on its side, the chat is a sheet over the page, and
@@ -4870,6 +4932,9 @@ summary.rw::-webkit-details-marker {
   #mashy .go {
     width: 36px;
     height: 36px;
+  }
+  #mashy ~ #mashy-fab {
+    display: none;
   }
 }
 @media print {

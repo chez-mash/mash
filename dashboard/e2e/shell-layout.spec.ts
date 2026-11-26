@@ -1,4 +1,5 @@
 import { expect, type Locator, test } from "@playwright/test";
+import { recordFixture } from "./record-fixtures";
 import { fitsViewport, mockShell, rail } from "./shell";
 
 async function box(locator: Locator) {
@@ -105,7 +106,7 @@ for (const [width, height] of [
         ).map(box),
       )),
     ];
-    // A phone shows no jumps to either end; Mashy's circle is in the top bar.
+    // A phone shows no jumps to either end, only Mashy's circle.
     expect(floating.length).toBe(width > 800 ? 3 : 1);
     const actions = await last.locator(".cp").all();
     expect(actions.length).toBeGreaterThan(0);
@@ -116,7 +117,7 @@ for (const [width, height] of [
   });
 }
 
-test("on a wide screen pages fill the width and Mashy's button stays in the top bar", async ({
+test("on a wide screen pages fill the width and Mashy's button floats in the corner", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -125,13 +126,42 @@ test("on a wide screen pages fill the width and Mashy's button stays in the top 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const fab = await box(page.locator("#mashy-fab"));
   const bar = await box(page.locator("#top"));
-  expect(fab.y + fab.height).toBeLessThanOrEqual(bar.y + bar.height);
-  // The page runs to the screen's edge but for its padding, as the boards draw it.
-  const right = await page.locator("#main").evaluate((element) => {
+  // Out of the top bar, in the bottom right corner, like a help widget.
+  expect(fab.y).toBeGreaterThan(bar.y + bar.height);
+  expect(fab.width).toBe(56);
+  expect(1440 - (fab.x + fab.width)).toBe(24);
+  expect(900 - (fab.y + fab.height)).toBe(24);
+  // The page runs to the screen's edge but for its padding, as the boards
+  // draw it, with no column set aside for the button; it ends with room to
+  // scroll its last rows clear of the button instead.
+  const main = await page.locator("#main").evaluate((element) => {
     const style = getComputedStyle(element);
-    return element.getBoundingClientRect().right - Number.parseFloat(style.paddingRight);
+    return {
+      right: element.getBoundingClientRect().right - Number.parseFloat(style.paddingRight),
+      foot: Number.parseFloat(style.paddingBottom),
+    };
   });
-  expect(right).toBeGreaterThanOrEqual(1440 - 40);
+  expect(main.right).toBeGreaterThanOrEqual(1440 - 40);
+  expect(main.foot).toBeGreaterThanOrEqual(900 - fab.y);
+});
+
+// A pane at the right edge scrolls by itself, under the button; it ends with
+// room for the button too.
+test("a pane at the right edge scrolls its last rows clear of Mashy's button", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockShell(page);
+  await page.route("**/api/records?**", (route) =>
+    route.fulfill({ json: { records: [recordFixture()], next_offset: null } }),
+  );
+  await page.goto("/#/records");
+  const pane = page.locator(".mem-p");
+  await expect(pane).toBeVisible();
+  const fab = await box(page.locator("#mashy-fab"));
+  expect(overlaps(await box(pane), fab)).toBe(true);
+  const foot = await pane.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).paddingBottom),
+  );
+  expect(foot).toBeGreaterThanOrEqual(900 - fab.y);
 });
 
 // The floating controls' column must not crowd the transcript out: at a

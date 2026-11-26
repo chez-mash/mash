@@ -11,10 +11,11 @@ import { agents, paintMark } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
 import { plainTitle } from "../lib/markdown";
-import { clipPassage, MASHY_TOGGLE, mashy, PASSAGE_QUESTIONS } from "../lib/mashy.svelte";
+import { clipPassage, mashy, PASSAGE_QUESTIONS } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
 import { router } from "../lib/route.svelte";
 import { WAITING_INTERVAL, waitingPhrase } from "../lib/waiting";
+import MashyButton from "./MashyButton.svelte";
 import MashyPassage from "./MashyPassage.svelte";
 import MashyUnset from "./MashyUnset.svelte";
 import MessageBody from "./MessageBody.svelte";
@@ -100,7 +101,7 @@ async function show(): Promise<void> {
 async function hide(): Promise<void> {
   mashy.toggle(false);
   await tick();
-  // Back to the circle in the top bar (MashyButton.svelte).
+  // Back to the circle in the corner (MashyButton.svelte).
   document.getElementById("mashy-fab")?.focus();
 }
 async function open(): Promise<void> {
@@ -137,12 +138,6 @@ $effect(() => {
     seen.removeEventListener("resize", follow);
     seen.removeEventListener("scroll", follow);
   };
-});
-// The circle in the top bar asks for Mashy to open or close.
-$effect(() => {
-  const toggle = (): void => void (mashy.open ? close() : open());
-  addEventListener(MASHY_TOGGLE, toggle);
-  return () => removeEventListener(MASHY_TOGGLE, toggle);
 });
 let moved = $state(placed());
 let grip: { x: number; y: number; left: number; top: number } | undefined;
@@ -481,3 +476,4 @@ function followed(event: MouseEvent): void {
     <img src={asset("mashy.png")} alt="" />Ask Mashy
   </button>
 {/if}
+<MashyButton ontoggle={() => void (mashy.open ? close() : open())} />
