@@ -4,9 +4,12 @@ on:
   push:
     branches: [main]
     paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', 'tools/visual.sh', '.github/workflows/docs.yml']
+  # A pull request and the merge queue have no path filter: the ruleset for
+  # main requires this workflow's last job, and a workflow that does not start
+  # reports nothing. The `changes` job skips the work instead.
   pull_request:
     branches: [main]
-    paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', 'tools/visual.sh', '.github/workflows/docs.yml']
+  merge_group:
   workflow_dispatch:
   # A release adds packages to the apt repository; republish so they are served.
   workflow_run:
@@ -16,13 +19,36 @@ on:
 permissions:
   contents: read
 
+# Publishing runs one at a time. A pull request and a merge queue group each
+# have a group of their own, so validating one never waits behind a deploy.
 concurrency:
-  group: documentation-${{ github.event.pull_request.number || 'publish' }}
+  group: documentation-${{ github.event.pull_request.number || (github.event_name == 'merge_group' && github.ref) || 'publish' }}
   cancel-in-progress: false
 
 jobs:
+  # Whether a pull request or a merge queue group can affect the website. Every
+  # other event builds: a push to main is already filtered by path and must
+  # build to publish, and a release or a manual run republishes.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      docs: ${{ steps.changes.outputs.docs }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        uses: ./.github/actions/changes
+        with:
+          workflow: docs.yml
+
   build:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    needs: changes
+    if: >-
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
+      ((github.event_name != 'pull_request' && github.event_name != 'merge_group') || needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -86,7 +112,10 @@ jobs:
   # pictures were taken in. It does not hold back publishing. See
   # docs/internal/verification.md, "Visual baselines".
   visual:
-    if: github.event_name != 'workflow_run'
+    needs: changes
+    if: >-
+      github.event_name != 'workflow_run' &&
+      ((github.event_name != 'pull_request' && github.event_name != 'merge_group') || needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -118,8 +147,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  # Only what is on main is published, never a pull request or a change still
+  # in the merge queue.
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.event_name != 'merge_group' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -132,3 +163,24 @@ jobs:
       - name: Deploy documentation and apt files
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+
+  # The one status the ruleset for main requires of this workflow, on a pull
+  # request and in the merge queue: it passes when every job above passed or
+  # was skipped because its files did not change. A job that is skipped never
+  # reports a status of its own, so requiring this one cannot leave a change
+  # waiting.
+  required:
+    name: docs / required
+    needs: [changes, build, visual]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job that ran to have passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "changes, build, visual: $RESULTS"
+          case " $RESULTS " in
+            *" failure "*|*" cancelled "*) exit 1 ;;
+          esac

@@ -36,6 +36,9 @@ env:
 
 jobs:
   build:
+    # A pull request that `tools/worktree.sh land` opened only to queue it is
+    # merged within minutes, and the push to main builds the same change.
+    if: ${{ !contains(github.event.pull_request.body, '[merge queue]') }}
     strategy:
       fail-fast: false
       matrix:

@@ -1,7 +1,7 @@
 name: Changed areas
 description: >-
-  Says which areas of CI (rust, dashboard, raycast) the commit under test can
-  affect, so jobs for the others are skipped while the workflow still runs and
+  Says which areas of CI (rust, dashboard, raycast, docs) the commit under test
+  can affect, so jobs for the others are skipped while the workflow still runs and
   concludes. See tools/ci_changes.py and docs/internal/verification.md.
 
 inputs:
@@ -19,6 +19,9 @@ outputs:
   raycast:
     description: Whether the Raycast extension is affected
     value: ${{ steps.areas.outputs.raycast }}
+  docs:
+    description: Whether the website's build and its pictures are affected
+    value: ${{ steps.areas.outputs.docs }}
 
 runs:
   using: composite
@@ -30,6 +33,8 @@ runs:
         WORKFLOW: ${{ inputs.workflow }}
         EVENT: ${{ github.event_name }}
         PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+        PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        MERGE_GROUP_BASE: ${{ github.event.merge_group.base_sha }}
       run: |
         # On main the comparison is with the last commit this workflow passed
         # for, not with the previous push. A release trusts a successful run
@@ -38,11 +43,32 @@ runs:
         # commit report success on top of a Rust change whose run failed or
         # was replaced while waiting. Anything that cannot be compared, a
         # manual run included, runs everything.
+        #
+        # The merge queue tests a change on top of main and the changes queued
+        # before it, then moves main to that very commit. Two runs would
+        # otherwise repeat its work, and each is answered with "nothing":
+        # - the pull request's own run, when `tools/worktree.sh land` opened
+        #   it only to queue it (the marker in its description);
+        # - the push to main of a commit this workflow already passed for in
+        #   the queue.
+        none() {
+          echo "$1; no area runs"
+          python3 tools/ci_changes.py --none | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        }
         base=
         case "$EVENT" in
-          pull_request) base=$PULL_REQUEST_BASE ;;
+          pull_request)
+            case "$PULL_REQUEST_BODY" in
+              *'[merge queue]'*) none 'Opened for the merge queue, which runs the checks' ;;
+            esac
+            base=$PULL_REQUEST_BASE ;;
+          merge_group) base=$MERGE_GROUP_BASE ;;
           push)
             if [ "$GITHUB_REF" = refs/heads/main ]; then
+              queued=$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$WORKFLOW" --commit "$GITHUB_SHA" \
+                --event merge_group --status success --limit 1 --json databaseId -q '.[0].databaseId // ""') || queued=
+              [ -z "$queued" ] || none "The merge queue's run $queued passed for this commit"
               base=$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$WORKFLOW" --branch main \
                 --status success --limit 1 --json headSha -q '.[0].headSha // ""') || base=
             fi ;;

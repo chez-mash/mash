@@ -2,12 +2,14 @@ name: Front ends
 
 # The dashboard's checks, Storybook and browser suite, and the Raycast extension's. Each
 # runs only when its own files changed (see tools/ci_changes.py); the workflow
-# itself always runs, so its last job is one status that can be required.
+# itself always runs, so its last job is one status, which the ruleset for
+# main requires on a pull request and in the merge queue.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
   workflow_dispatch:
 
 permissions:

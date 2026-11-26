@@ -8,7 +8,7 @@ cannot affect is skipped and the run still concludes successfully.
 
 Reads changed paths, one per line, from standard input and prints one
 `area=true|false` line per area, the form `$GITHUB_OUTPUT` takes. `--all`
-answers true for every area without reading anything.
+answers true for every area without reading anything, and `--none` false.
 
 The rule is fail-safe: a path belongs to every area unless a pattern in
 `CLAIMS` says otherwise. The claims name what the Rust build reads from the
@@ -23,9 +23,12 @@ import fnmatch
 import sys
 from collections.abc import Iterable, Sequence
 
-AREAS = ("rust", "dashboard", "raycast")
+AREAS = ("rust", "dashboard", "raycast", "docs")
 
 RUST = frozenset({"rust"})
+# The website's build and its pictures (docs.yml): the site, the guides it
+# publishes, and the dashboard, which it serves as the demo.
+DOCS = frozenset({"docs"})
 NONE: frozenset[str] = frozenset()
 # The first pattern a path matches names its areas. `fnmatch` lets `*` cross
 # directory separators, so `site/*` covers the whole tree.
@@ -34,27 +37,32 @@ CLAIMS: tuple[tuple[str, frozenset[str]], ...] = (
     # setup page and the API contract are compiled into the binary or compared
     # by a Rust test, and the Windows job takes its pnpm version from the
     # site's manifest.
-    ("site/public/setup.md", RUST),
-    ("site/package.json", RUST),
-    ("dashboard/openapi.json", frozenset({"rust", "dashboard"})),
+    ("site/public/setup.md", RUST | DOCS),
+    ("site/package.json", RUST | DOCS),
+    ("dashboard/openapi.json", frozenset({"rust", "dashboard", "docs"})),
     # The mapping from dashboard source to browser specs is checked by a tools
     # test, which the dashboard workflow runs as well.
     ("tools/affected_tests.py", frozenset({"rust", "dashboard"})),
     ("tools/test_affected_tests.py", frozenset({"rust", "dashboard"})),
-    # Published by docs.yml, which has its own path filter.
-    ("site/*", NONE),
-    ("dashboard/*", frozenset({"dashboard"})),
+    ("site/*", DOCS),
+    ("dashboard/*", frozenset({"dashboard", "docs"})),
     ("raycast/*", frozenset({"raycast"})),
-    # No front end reads these. The user guides are Rust's because the binary
-    # embeds them; docs.yml publishes them under its own filter.
+    # The user guides are Rust's as well as the website's, because the binary
+    # embeds them.
+    ("docs/*", RUST | DOCS),
+    ("README.md", RUST | DOCS),
+    # No front end reads these.
     *(
         (pattern, RUST)
         for pattern in (
             "crates/*", "app/*", "cli/*", "fixtures/*", "queries/*", "protocol/*", "plugins/*",
-            "deployment/*", "packaging/*", "docs/*", "README.md", "Cargo.toml", "Cargo.lock",
+            "deployment/*", "packaging/*", "Cargo.toml", "Cargo.lock",
             "rust-toolchain.toml", "deny.toml", "sqlc.yaml", ".cargo/*", ".config/*",
         )
     ),
+    # The Scoop manifest a release renders from a template under packaging/:
+    # Scoop reads it from main, and no build or test does.
+    ("bucket/*", NONE),
     # Instructions for people and agents, read by no build and no test.
     *((name, NONE) for name in ("AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "SECURITY.md")),
 )
@@ -74,10 +82,16 @@ def affected(paths: Iterable[str]) -> frozenset[str]:
 
 def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--all", action="store_true", help="answer true for every area")
+    answers = parser.add_mutually_exclusive_group()
+    answers.add_argument("--all", action="store_true", help="answer true for every area")
+    answers.add_argument("--none", action="store_true", help="answer false for every area")
     known = parser.parse_args(arguments)
-    paths = [] if known.all else [line.strip() for line in sys.stdin if line.strip()]
-    chosen = frozenset(AREAS) if known.all else affected(paths)
+    if known.all:
+        chosen = frozenset(AREAS)
+    elif known.none:
+        chosen = NONE
+    else:
+        chosen = affected(line.strip() for line in sys.stdin if line.strip())
     for area in AREAS:
         print(f"{area}={'true' if area in chosen else 'false'}")
     return 0
