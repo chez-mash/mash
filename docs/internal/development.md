@@ -548,8 +548,9 @@ tools/worktree.sh done search-fix
 - `land NAME [--wait]` fetches, rebases the branch onto `origin/main` inside
   its worktree, runs `tools/pre-push.sh`, pushes the branch to origin as
   `work/NAME`, opens a pull request for it (or reuses the open one) and puts
-  it in the merge queue. Without `--wait` it prints the pull request's address
-  and returns; with it, it follows the pull request until it is merged, or
+  it in the merge queue, which takes about a minute. Without `--wait` it then
+  prints the pull request's address and returns; with it, it follows the pull
+  request until it is merged, or
   says why it was not and exits non-zero. A rebase conflict is left in the
   worktree to resolve. The worktree stays until `done`. See
   [The merge queue](#the-merge-queue).
@@ -704,8 +705,10 @@ tools/worktree.sh land search-fix --wait
    which makes the pull request's own CI run skip every expensive job: the
    queue is about to run them on the commit that matters. The required checks
    therefore pass on the pull request in about a minute.
-2. `gh pr merge --auto` asks GitHub to queue the pull request as soon as those
-   checks have passed.
+2. `land` asks GitHub to queue the pull request (`enqueuePullRequest`) until
+   it accepts, which it does once those checks have passed. Auto-merge is not
+   used: with it set, GitHub left pull requests with passing checks out of
+   the queue.
 3. The queue rebases the branch's commits onto `main` plus everything queued
    ahead of it, as the branch `gh-readonly-queue/main/pr-N-...`, and runs the
    workflows on that commit (`on: merge_group`). The merge method is rebase:
@@ -733,12 +736,14 @@ in the queue; it still runs on `main` for the paths it names. `Dev artifacts`
 and the website's deploy run only on a push to `main`.
 
 A change is on `main` roughly as long after `land` as its slowest required
-check takes, plus two or three minutes for the pull request's own run and the
-queue's bookkeeping: about twenty minutes for a Rust change, about five for a
-dashboard or website change, about two for `AGENTS.md`. The queue does not
+check takes, plus two minutes for the pull request's own run and the queue's
+bookkeeping: about eighteen minutes for a Rust change, about seven for a
+dashboard or website change, about two for `AGENTS.md`. The ruleset's
+five-minute wait applies only while fewer changes than its minimum group of
+one have passed, so it never delays anything. The queue does not
 wait for one change to finish before starting the next. Each queued change is
 tested on top of the ones ahead of it, up to three at once, so three changes
-landed together are all on `main` after about twenty minutes, not sixty. If
+landed together are all on `main` after about eighteen minutes, not fifty. If
 one of them fails, it leaves the queue and the ones behind it are tested
 again without it. Up to five that have passed merge in one step.
 

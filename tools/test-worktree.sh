@@ -48,7 +48,7 @@ git -C "$main" push -q origin main > /dev/null 2>&1
 bash "$main/tools/install-hooks.sh" > /dev/null
 worktree() { bash "$main/tools/worktree.sh" "$@"; }
 # GitHub and its merge queue, played against the bare remote.
-export FAKE_QUEUE=$scratch/queue FAKE_QUEUE_REMOTE=$scratch/remote.git MASH_QUEUE_POLL=0
+export FAKE_QUEUE=$scratch/queue FAKE_QUEUE_REMOTE=$scratch/remote.git MASH_QUEUE_POLL=0 MASH_QUEUE_ENTER=0
 mkdir -p "$scratch/gh" "$FAKE_QUEUE"
 printf '#!/usr/bin/env bash\nexec bash %q "$@"\n' "$repository/tools/fake-queue-gh.sh" > "$scratch/gh/gh"
 chmod +x "$scratch/gh/gh"
@@ -98,7 +98,7 @@ url=$(worktree land alpha 2> "$scratch/output") || fail 'land alpha'
 [[ $(remote_main) == "$before" ]] || fail 'land moved main itself'
 [[ $(git -C "$scratch/remote.git" rev-parse work/alpha) == $(git -C "$tree" rev-parse HEAD) ]] || fail 'land pushes the branch as work/alpha'
 git -C "$tree" merge-base --is-ancestor "$before" HEAD || fail 'land rebased onto the moved main'
-grep -q '^pr merge 1 .*--rebase --auto' "$FAKE_QUEUE/calls" || fail 'land does not queue the pull request'
+grep -q 'enqueuePullRequest' "$FAKE_QUEUE/calls" && [[ -e $FAKE_QUEUE/prs/1/queued ]] || fail 'land does not queue the pull request'
 grep -qF '[merge queue]' "$FAKE_QUEUE/prs/1/body" || fail "the pull request lacks the marker that skips its own run of the checks"
 [[ $(cat "$FAKE_QUEUE/prs/1/title") == alpha ]] || fail 'the pull request is not titled after its commit'
 refused 'done while the change is only queued' 'not on origin/main' worktree done alpha
@@ -154,7 +154,7 @@ printf 'direct\n' > "$tree/direct.md"
 git -C "$tree" add direct.md
 git -C "$tree" commit -qm direct
 before=$(remote_main)
-refused 'land without a merge queue' 'did not accept .*land --direct' worktree land direct --wait
+refused 'land without a merge queue' 'did not accept .*land NAME --direct' worktree land direct --wait
 [[ $(remote_main) == "$before" ]] || fail 'a refused landing reached main'
 worktree land direct --direct > "$scratch/output" 2>&1 || fail 'land --direct'
 grep -q 'past the merge queue' "$scratch/output" || fail 'land --direct does not say what it skips'

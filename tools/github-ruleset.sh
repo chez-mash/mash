@@ -50,11 +50,18 @@ command_show() {
     jq "$settings" <<< "$live"
     say "Ruleset $id is $(jq -r .enforcement <<< "$live"): https://github.com/$repo/rules/$id"
     say "Merged branches are deleted automatically: $("$gh" api "repos/$repo" --jq .delete_branch_on_merge)"
-    if diff <(jq -S "$settings" "$file") <(jq -S "$settings" <<< "$live") > /dev/null; then
+    # GitHub answers with every parameter of a rule, its own defaults
+    # included; only the ones the file sets are compared.
+    local wanted
+    wanted=$(jq -S "$settings" "$file")
+    live=$(jq -S --argjson wanted "$wanted" "$settings"' | .rules |= map(. as $rule
+        | ($wanted.rules[] | select(.type == $rule.type) | .parameters) as $set
+        | if $set then .parameters |= with_entries(select(.key as $key | $set | has($key))) else . end)' <<< "$live")
+    if [[ $wanted == "$live" ]]; then
         say 'It matches docs/internal/main-ruleset.json.'
     else
         say 'It DIFFERS from docs/internal/main-ruleset.json (the enforcement, when it is disabled, or more):'
-        diff <(jq -S "$settings" "$file") <(jq -S "$settings" <<< "$live") >&2 || true
+        diff <(printf '%s\n' "$wanted") <(printf '%s\n' "$live") >&2 || true
     fi
 }
 
@@ -73,11 +80,9 @@ write() {
 
 command_apply() {
     write active
-    # A queued pull request's branch is done once it merges. Auto-merge is
-    # what lets `gh pr merge --auto` queue a pull request whose own checks
-    # have not finished yet.
-    "$gh" api --method PATCH "repos/$repo" -F delete_branch_on_merge=true -F allow_auto_merge=true > /dev/null ||
-        die 'the ruleset is applied, but GitHub refused the repository settings (delete merged branches, auto-merge)'
+    # A queued pull request's branch is done once it merges.
+    "$gh" api --method PATCH "repos/$repo" -F delete_branch_on_merge=true > /dev/null ||
+        die 'the ruleset is applied, but GitHub refused the repository setting that deletes merged branches'
     say "main of $repo takes changes only through the merge queue."
     command_show > /dev/null
 }
