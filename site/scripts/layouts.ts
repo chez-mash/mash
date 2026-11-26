@@ -292,10 +292,7 @@ function agentTables(tree: Root): void {
 }
 
 /** Phosphor's bold check and minus, drawn in the answer's colour. */
-const answerIcons = {
-  yes: iconSvg("check", "bold"),
-  no: iconSvg("minus", "bold"),
-};
+const answerIcons = { yes: iconSvg("check", "bold"), no: iconSvg("minus", "bold") };
 
 /** "Yes" and "No" in each of the site's languages. */
 const yesWord = /^(Yes|Oui|Sí|是|はい)$/;
