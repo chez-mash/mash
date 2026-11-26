@@ -67,7 +67,8 @@ describe("ask", () => {
     expect(sent).toEqual({
       messages: [{ role: "user", content: "which port?" }],
       open_chat: { id: "abc", title: "Ports" },
-      utc_offset: -new Date().getTimezoneOffset(),
+      // On a UTC clock the request computes -0, which JSON writes as 0.
+      utc_offset: 0 - new Date().getTimezoneOffset(),
     });
     expect(heard).toEqual([
       { type: "searching" },
