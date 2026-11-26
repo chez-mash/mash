@@ -88,21 +88,7 @@ export function memory(band: HTMLElement, screen: Screen): void {
   } else {
     rise(timeline, record, 0.1, { y: 16, duration: 0.7, ease: "power3.out" });
   }
-  // The "saved" line draws: its arrow by its stroke, its words by a wipe.
-  for (const stroke of all<SVGGeometryElement>(saved, "svg path, svg line, svg polyline")) {
-    const length = stroke.getTotalLength();
-    timeline.fromTo(
-      stroke,
-      { strokeDasharray: length, strokeDashoffset: length },
-      {
-        strokeDashoffset: 0,
-        duration: 0.4,
-        ease: "power2.out",
-        clearProps: "strokeDasharray,strokeDashoffset",
-      },
-      0.45,
-    );
-  }
+  // The "saved" line draws by a wipe: its arrow, then its words.
   timeline.fromTo(
     saved,
     { clipPath: "inset(0% 100% 0% 0%)" },

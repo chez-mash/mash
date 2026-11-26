@@ -18,6 +18,7 @@ import type {
   TableCell,
 } from "mdast";
 import { toString as text } from "mdast-util-to-string";
+import { iconSvg } from "../src/icons.ts";
 
 /** Words the layouts add, in the page's language. */
 export interface LayoutStrings {
@@ -290,10 +291,10 @@ function agentTables(tree: Root): void {
   }
 }
 
-/** Lucide's check and minus, drawn in the answer's colour. */
+/** Phosphor's bold check and minus, drawn in the answer's colour. */
 const answerIcons = {
-  yes: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
-  no: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
+  yes: iconSvg("check", "bold"),
+  no: iconSvg("minus", "bold"),
 };
 
 /** "Yes" and "No" in each of the site's languages. */
