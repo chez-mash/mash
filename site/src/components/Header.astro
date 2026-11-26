@@ -175,13 +175,14 @@ const t = Astro.locals.t;
   }
 
   /* On the landing page the header is an island: a rounded bar, fixed over
-     the page (custom.css), on a surface the page shows through, blurred.
-     The surface is mostly opaque, so the words keep their contrast whatever
-     scrolls under them. */
+     the page (custom.css). Its surface is all but opaque, so what scrolls
+     under it never reads as broken words behind the island's own, with or
+     without the blur: Safari before 18 does not know the property, and
+     some engines accept it and blur nothing. */
   .home {
     padding-inline: 0.875rem 0.5rem;
     border-radius: var(--radius-8);
-    background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
+    background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
     box-shadow: var(--shadow-float);
     backdrop-filter: blur(18px) saturate(1.4);
     pointer-events: auto;
@@ -320,6 +321,22 @@ const t = Astro.locals.t;
   /* A link into the landing page stops under the island, not behind it. */
   html:has(.mash-header.home) {
     scroll-padding-top: 5rem;
+  }
+  /* The island is inset from the screen's edges, and the bands' windows and
+     cards start at the same gutter it does. Scrolling under it, the rounded
+     corner of one showed in the gap around the island's own corner as a
+     stray curve. Once the hero has gone, the page's surface covers the strip
+     above the island and fades out below it, so nothing shows around it. */
+  .page:has(.mash-hero) > header.header::before {
+    position: absolute;
+    inset: calc(-1 * max(0.5rem, env(safe-area-inset-top))) 0 -1rem;
+    background: linear-gradient(var(--surface-page) 45%, transparent);
+    content: "";
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+  }
+  .page:has(.mash-hero) > header.header:has([data-past-hero])::before {
+    opacity: 1;
   }
 </style>
 

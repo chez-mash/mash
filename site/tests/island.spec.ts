@@ -124,3 +124,73 @@ for (const [name, viewport] of [
       .toBeGreaterThanOrEqual(island.bottom);
   });
 }
+
+/** The widest spread of any colour channel in a part of the screen: 0 is one flat colour. */
+async function spread(
+  page: Page,
+  clip: { x: number; y: number; width: number; height: number },
+): Promise<number> {
+  const picture = (await page.screenshot({ clip })).toString("base64");
+  return page.evaluate(async (data) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${data}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("No canvas to read the picture with");
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, image.width, image.height).data;
+    let widest = 0;
+    for (let channel = 0; channel < 3; channel += 1) {
+      let [low, high] = [255, 0];
+      for (let at = channel; at < pixels.length; at += 4) {
+        low = Math.min(low, pixels[at] ?? 0);
+        high = Math.max(high, pixels[at] ?? 0);
+      }
+      widest = Math.max(widest, high - low);
+    }
+    return widest;
+  }, picture);
+}
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`nothing shows around the island's corners or through it as the ${scheme} page scrolls under`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.setViewportSize(phone);
+    await page.goto("/");
+    await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+    const island = page.locator("header.header .mash-header");
+    // The surface is all but opaque, so words under it do not read through it.
+    const alpha = await island.evaluate((node) => {
+      const colour = getComputedStyle(node).backgroundColor;
+      const parts = colour.match(/[\d.]+/g)?.map(Number) ?? [];
+      // `rgba(r, g, b, a)` or `color(srgb r g b / a)`; no fourth part is opaque.
+      return parts.length > 3 ? (parts[3] ?? 1) : 1;
+    });
+    expect(alpha).toBeGreaterThanOrEqual(0.9);
+    await scrollToPart(page, "#welcome-surfaces");
+    await expect(island).toHaveAttribute("data-past-hero", "");
+    const box = await place(island);
+    const from = await page.evaluate(() => scrollY);
+    // The bands' windows and cards start at the island's own gutter: scroll
+    // them past it a little at a time and read the strip above the island and
+    // the square outside its rounded top-left corner. (Headless WebKit shades
+    // the screen's own first pixel on every page, so both start beside it.)
+    for (let top = from; top < from + 3600; top += 150) {
+      await page.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), top);
+      await expect
+        .poll(() => spread(page, { x: 2, y: 0, width: phone.width - 2, height: box.top - 1 }), {
+          message: `the strip above the island at ${top}`,
+        })
+        .toBeLessThanOrEqual(4);
+      expect(
+        await spread(page, { x: 2, y: 0, width: box.left + 1, height: box.top + 3 }),
+        `the island's top-left corner at ${top}`,
+      ).toBeLessThanOrEqual(4);
+    }
+  });
+}

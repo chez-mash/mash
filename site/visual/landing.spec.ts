@@ -26,14 +26,10 @@ const bands = [
   ["surfaces", "#welcome-surfaces"],
   ["quick-search", "#welcome-shortcuts"],
   ["search", "#welcome-search"],
-  ["agents-band", "#welcome-agents"],
-  ["memory", "#welcome-memory"],
-  ["reading", "#welcome-reading"],
-  ["machines", "#welcome-machines"],
-  ["privacy", "#welcome-privacy"],
   ["mashy", "#welcome-mashy"],
+  ["memory", "#welcome-memory"],
   ["speed", "#welcome-speed"],
-  ["platforms", "#welcome-platforms"],
+  ["privacy", "#welcome-privacy"],
   ["features", "#welcome-features"],
   ["rust", "#welcome-rust"],
   ["closing", "section.close"],
@@ -177,26 +173,6 @@ async function pictureSurfaces(page: Page): Promise<void> {
   await chooseSurface(page, "dashboard");
 }
 
-/** The agents band's other rails, one picture each of the tabs and the rail under them. */
-async function pictureRails(page: Page): Promise<void> {
-  const top = await pageTop(page, "#welcome-agents .rail-tabs");
-  for (const id of ["tools", "ask"]) {
-    await page.locator(`#agents-tab-${id}`).evaluate((tab: HTMLElement) => tab.click());
-    await scrollAndPlay(page, top - 16);
-    await arrived(page, "#welcome-agents");
-    const clip = await page.locator("#welcome-agents .rails").evaluate((rails) => {
-      const box = rails.getBoundingClientRect();
-      const y = Math.max(0, box.top - 16);
-      return { x: 0, y, width: innerWidth, height: Math.min(innerHeight, box.bottom + 16) - y };
-    });
-    await expect.soft(page).toHaveScreenshot(`landing-agents-band-${id}.png`, {
-      clip,
-      stylePath: ["./visual/still.css", "./visual/band.css"],
-    });
-  }
-  await page.locator("#agents-tab-agents").evaluate((tab: HTMLElement) => tab.click());
-}
-
 test("landing", async ({ page }) => {
   await page.clock.install({ time: now });
   await page.clock.pauseAt(now);
@@ -223,6 +199,5 @@ test("landing", async ({ page }) => {
     await playBand(page, selector);
     await pictureBand(page, name, selector);
     if (name === "surfaces") await pictureSurfaces(page);
-    if (name === "agents-band") await pictureRails(page);
   }
 });
