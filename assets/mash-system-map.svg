@@ -2,13 +2,16 @@
   <title id="title">Mash system map</title>
   <desc id="description">People and agents reach the mash executable through the dashboard, the CLI and the stdio MCP server. All three, and the optional watcher, send typed requests to one application core. The core reads agent histories without writing to them, commits silver SQLite, builds Qdrant views from silver, searches them, and uses local models for embedding and reranking. Optionally it publishes to and searches a mash-server you run, which keeps per-machine silver SQLite and its own Qdrant views. Optional services are a remote GPU embedding worker and the OpenAI-compatible model the dashboard assistant asks.</desc>
   <style>
-    svg { --background: #f7f3ee; --panel: #fffdfb; --group: #efe7de; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
-    text { fill: var(--text); font: 600 15px system-ui, sans-serif; }
+    svg { --background: #f5f3ee; --panel: #ffffff; --group: #ebe8e1; --optional: #eef3fc; --text: #1a1915; --quiet: #5f5b52; --line: #6f6a60; --accent: #2a62b8; --rule: rgba(20, 19, 15, 0.16); }
+    @media (prefers-color-scheme: dark) {
+      svg { --background: #1b1a17; --panel: #23211d; --group: #2a2824; --optional: #1b2433; --text: #f3efe6; --quiet: #b3ac9f; --line: #8f897d; --accent: #86aef0; --rule: rgba(255, 250, 240, 0.14); }
+    }
+    text { fill: var(--text); font: 600 15px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
     .title { font-size: 17px; }
-    .detail { fill: var(--quiet); font: 13px system-ui, sans-serif; }
-    .label { fill: var(--quiet); font: italic 12px system-ui, sans-serif; }
-    .optional-label { fill: var(--accent); font: italic 12px system-ui, sans-serif; }
-    .outline { stroke: var(--line); stroke-width: 1.5; }
+    .detail { fill: var(--quiet); font: 13px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .label { fill: var(--quiet); font: italic 12px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .optional-label { fill: var(--accent); font: italic 12px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .outline { stroke: var(--rule); stroke-width: 1; }
     .area { fill: var(--background); }
     .group { fill: var(--group); }
     .panel { fill: var(--panel); }

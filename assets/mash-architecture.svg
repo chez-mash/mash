@@ -2,10 +2,13 @@
   <title id="title">How Mash works</title>
   <desc id="description">On each machine, Mash reads supported agent histories and indexes them into a SQLite chat copy and a Qdrant search index. Optional local embeddings can use a GPU or CPU and feed Qdrant. The dashboard, CLI, and connected agents can read and search the chats. Machines that opt in publish through authenticated connections to a Mash server you run with its own SQLite copies and Qdrant index.</desc>
   <style>
-    svg { --background: #f7f3ee; --panel: #fffdfb; --optional: #f9e8de; --text: #27221e; --quiet: #554a42; --line: #766a61; --accent: #924725; }
-    text { fill: var(--text); font: 600 22px system-ui, sans-serif; }
-    .detail { fill: var(--quiet); font: 19px system-ui, sans-serif; }
-    .outline { stroke: var(--line); stroke-width: 1.5; }
+    svg { --background: #f5f3ee; --panel: #ffffff; --optional: #eef3fc; --text: #1a1915; --quiet: #5f5b52; --line: #6f6a60; --accent: #2a62b8; --rule: rgba(20, 19, 15, 0.16); }
+    @media (prefers-color-scheme: dark) {
+      svg { --background: #1b1a17; --panel: #23211d; --optional: #1b2433; --text: #f3efe6; --quiet: #b3ac9f; --line: #8f897d; --accent: #86aef0; --rule: rgba(255, 250, 240, 0.14); }
+    }
+    text { fill: var(--text); font: 600 22px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .detail { fill: var(--quiet); font: 19px Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .outline { stroke: var(--rule); stroke-width: 1; }
     .machine { fill: var(--background); }
     .panel { fill: var(--panel); }
     .optional { fill: var(--optional); stroke: var(--accent); }
