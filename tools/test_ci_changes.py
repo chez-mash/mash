@@ -25,6 +25,7 @@ class AreaTests(unittest.TestCase):
         self.assertEqual(answer("dashboard/src/components/Rail.svelte"), {"dashboard", "docs"})
         self.assertEqual(answer("dashboard/e2e/quick.spec.ts"), {"dashboard", "docs"})
         self.assertEqual(answer("raycast/src/search.tsx", "raycast/package-lock.json"), {"raycast"})
+        self.assertEqual(answer("packaging/raycast-store.sh"), {"raycast"})
 
     def test_a_rust_change_runs_no_front_end_job(self):
         self.assertEqual(answer("crates/mash-dash/src/lib.rs", "Cargo.lock", "app/core.rs"), {"rust"})
