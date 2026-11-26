@@ -8,6 +8,9 @@
 #   tools/worktree.sh pr NAME          push the branch and open a pull request instead
 #   tools/worktree.sh done NAME [--force]
 #   tools/worktree.sh deploy-tree      a clean tree at origin/main for fleet.sh and releases
+#   tools/worktree.sh preview NAME [--site] [--real] [--local] [--stop]
+#                                      a live dev server on the tailnet (worktree-preview.sh)
+#   tools/worktree.sh previews         the previews that are recorded, and whether each answers
 #
 # Worktrees live in ../mash-worktrees beside the main checkout (set
 # MASH_WORKTREES to move them) on branches named work/NAME. Messages go to
@@ -166,6 +169,8 @@ command_done() {
         ! repo show-ref --verify --quiet "refs/heads/$branch" || repo merge-base --is-ancestor "$branch" origin/main ||
             die "$branch has commits that are not on origin/main; land it or open a pull request, or pass --force to discard them"
     fi
+    # A dev server left running would keep serving a directory that is gone.
+    preview_tool stop-all "$name"
     [[ ! -d $tree ]] || repo worktree remove ${force:+--force} "$tree"
     local merged=no
     if repo show-ref --verify --quiet "refs/heads/$branch"; then
@@ -195,6 +200,15 @@ command_deploy_tree() {
     printf '%s\n' "$tree"
 }
 
+# Live previews are their own file; this one only finds the worktree.
+preview_tool() { bash "$(dirname "${BASH_SOURCE[0]}")/worktree-preview.sh" "$@"; }
+command_preview() {
+    [[ $# -ge 1 ]] || usage
+    select_tree "$1"
+    shift
+    preview_tool preview "$name" "$tree" "$@"
+}
+
 operation=${1:-}
 [[ $# -eq 0 ]] || shift
 case "$operation" in
@@ -204,5 +218,7 @@ case "$operation" in
     pr) command_pr "$@" ;;
     done) command_done "$@" ;;
     deploy-tree) command_deploy_tree "$@" ;;
+    preview) command_preview "$@" ;;
+    previews) [[ $# -eq 0 ]] || usage; preview_tool list ;;
     *) usage ;;
 esac

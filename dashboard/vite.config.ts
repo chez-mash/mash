@@ -27,6 +27,26 @@ function phosphorWeights(): Plugin {
   };
 }
 
+// A preview on the tailnet that shows real history (`tools/worktree.sh preview
+// NAME --real`) sets MASH_PREVIEW_READ_ONLY: the dev server then answers
+// anything but a read itself, before the proxy, because the proxy signs every
+// forwarded request in with the dashboard's token and nobody who opens the
+// preview has signed in.
+function readOnlyApi(): Plugin {
+  return {
+    name: "mash-preview-read-only",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const read = request.method === "GET" || request.method === "HEAD";
+        if (read || !request.url?.startsWith("/api/")) return next();
+        response.statusCode = 405;
+        response.setHeader("content-type", "application/json");
+        response.end(JSON.stringify({ message: "This preview is read-only" }));
+      });
+    },
+  };
+}
+
 // `mash dash` serves the built files; during development the dev server
 // forwards API calls to a running `mash dash`.
 //
@@ -34,12 +54,15 @@ function phosphorWeights(): Plugin {
 // answered from made-up history in the browser (see src/demo).
 export default defineConfig(({ mode }) => {
   const demo = mode === "demo";
+  const readOnly = Boolean(process.env.MASH_PREVIEW_READ_ONLY);
+  const token = readOnly ? process.env.MASH_DASH_TOKEN : undefined;
   return {
     base: demo ? "/demo/" : "/",
     plugins: [
       tailwindcss(),
       phosphorWeights(),
       svelte(),
+      ...(readOnly ? [readOnlyApi()] : []),
       ...(demo
         ? [
             {
@@ -65,6 +88,7 @@ export default defineConfig(({ mode }) => {
             "/api": {
               target: process.env.MASH_DASHBOARD_API_URL || "http://127.0.0.1:8790",
               changeOrigin: true,
+              ...(token ? { headers: { authorization: `Bearer ${token}` } } : {}),
             },
           },
     },

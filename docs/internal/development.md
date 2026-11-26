@@ -410,6 +410,8 @@ tools/worktree.sh done search-fix
   until `done`.
 - `pr NAME` pushes the branch and opens a pull request with
   `gh pr create --fill` for work that wants review or CI before it lands.
+- `preview NAME` and `previews` start, stop and list live dev servers of a
+  worktree on the tailnet; see Previews below.
 - `done NAME` removes the worktree and deletes the branch, and its pushed copy
   once merged. It refuses while the worktree holds uncommitted or untracked
   files, or commits that are not on `origin/main`; `--force` discards them
@@ -432,6 +434,67 @@ different worktrees queue instead of running at once. The debug binary at
 `DEV_TARGET_DIR=/home/james/scratch/achi-targets/NAME` to keep one of your
 own, at the cost of a cold build. A raw `cargo` command without
 `CARGO_TARGET_DIR` builds everything again in the worktree's own `target/`.
+
+### Previews
+
+A preview is a worktree's own dev server, reachable from any device on the
+tailnet, so a change can be looked at on a phone seconds after it is saved,
+with no build and no deploy:
+
+```bash
+tools/worktree.sh preview search-fix          # the dashboard, with the demo's made-up history
+tools/worktree.sh preview search-fix --site   # the website
+tools/worktree.sh previews                    # what is recorded, and whether each answers
+tools/worktree.sh preview search-fix --stop   # add --site for the website's
+```
+
+`preview` prints the address twice on standard output, by Tailscale address
+and by MagicDNS name, and everything else on standard error:
+
+```text
+http://100.97.52.20:5242/demo/
+http://xenia.example.ts.net:5242/demo/
+```
+
+- **Where it listens.** Only on this machine's Tailscale address
+  (`tailscale ip -4`), never on every interface. Without Tailscale it refuses;
+  `--local` uses `127.0.0.1` instead, for a browser on this machine.
+- **Port.** The dashboard uses 5200-5299, the website 5300-5399, and
+  5400-5499 are kept for Storybook (`--storybook` says it is not set up yet).
+  The port is the checksum of the worktree's name within the range, so a
+  worktree keeps its address from one day to the next; when that port is
+  taken the next free one is used.
+- **Data.** The dashboard preview runs `pnpm dev:demo`: the demo's entry point
+  and made-up history (`dashboard/src/demo`) under `/demo/`, with nothing
+  private in it. `--real` runs `pnpm dev` instead and forwards `/api` to this
+  machine's `mash dash` (`MASH_DASHBOARD_API_URL`, else the address
+  `mash-dash.service` listens on, else `127.0.0.1:8790`). **Anyone on the
+  tailnet who opens a `--real` preview reads this machine's real chat history
+  without signing in**, so it is never the default and the command says so
+  each time. When that dashboard asks for a token, systemd passes
+  `~/.mash/dashboard.env` to the dev server and its proxy presents
+  `MASH_DASH_TOKEN`; the script never reads or prints it. A `--real` preview
+  answers anything but `GET` and `HEAD` under `/api` with 405 itself.
+- **How it runs.** As the transient user unit `mash-preview-NAME` (or
+  `mash-preview-NAME-site`) under `systemd-run --user`, with
+  `MemoryMax=1500M` and no swap, so it outlives the session that started it.
+  A dashboard preview with a page open uses about 0.8 GB and a website
+  preview about 0.6 GB. State and logs are in
+  `~/.local/state/mash/previews/` (`MASH_PREVIEW_STATE` moves them), outside
+  the worktree. `done NAME` stops the worktree's previews before removing it.
+  A missing `node_modules` is installed first, as `new --deps` does.
+- **Hot updates.** Saving a Svelte, TypeScript or CSS file updates the open
+  page in place over the dev server's WebSocket, which uses the page's own
+  address and so needs nothing extra on the tailnet. Vite and Astro refuse a
+  `Host` header they were not told about: the address always passes, and the
+  MagicDNS name is added for the run through
+  `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` and `astro dev --allowed-hosts`,
+  not in the committed configuration. The website copies `docs/` and the
+  README when it starts (`pnpm prepare-content`), so a change to those needs
+  the website preview stopped and started again.
+
+Previews are plain HTTP inside the tailnet. Stop one when the work is done;
+`previews` shows what is still running.
 
 ### The pre-push check
 

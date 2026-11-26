@@ -470,6 +470,12 @@ there. Never edit the main checkout while another session is active: sessions
 sharing one checkout stage each other's hunks, and a deploy or release run
 from it picks up half-done files. `main` stays the only long-lived branch.
 
+For work on the dashboard or the website, start a live preview with
+`tools/worktree.sh preview NAME` (`--site` for the website) and give James the
+address it prints, so he can watch the change from his phone; stop it with
+`--stop` when the work is done. It shows made-up demo history. Never pass
+`--real`, which shows real chat history to the whole tailnet, unless he asks.
+
 Land finished work with `tools/worktree.sh land NAME`, which rebases onto
 `origin/main`, runs `tools/pre-push.sh` and pushes to `main` as a fast-forward
 only, or open a pull request with `tools/worktree.sh pr NAME`. Then
