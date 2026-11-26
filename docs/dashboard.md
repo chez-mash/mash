@@ -6,7 +6,7 @@ also [open a saved decision](https://getmash.io/demo/#/record/record-sign-in-tok
 and select **open the message** to see where it came from. The demo matches
 exact words and phrases in sample chats.
 
-![The dashboard overview: recent chats, recent memories, and chat counts by machine and agent](../assets/screenshots/overview.webp)
+![The dashboard overview: the chat to pick up where you left off, counts of chats, memories, machines and agents, then recent chats beside the memories waiting for confirmation](../assets/screenshots/overview.webp)
 
 - [Find and read a chat](#find-and-read-a-chat)
 - [Save a transcript](#save-a-transcript)
@@ -178,7 +178,7 @@ for agent, machine, project and date. A changed chip has a dashed border until
 you choose **Apply filters**. Applied filters appear as tags in the search box.
 Choose a tag to remove it.
 
-![Searching for “checkout” finds chats from two agents, with the matching words highlighted](../assets/screenshots/search.webp)
+![Searching for “checkout” finds a saved memory and chats from two agents, with the matching words highlighted and the selected chat previewed beside them](../assets/screenshots/search.webp)
 
 If a filtered search comes back empty, choose **Clear filters** to try the
 same query across your chats. If your dashboard opens the chat list, submit

@@ -20,7 +20,7 @@ interface Shot {
   readonly route: string;
   readonly height?: number;
   readonly width?: number;
-  /** Leave out the rail, so the page itself reads at a readable size. */
+  /** Leave out the rail and the top bar, so the page itself reads at a readable size. */
   readonly withoutRail?: boolean;
   readonly prepare?: (page: Page) => Promise<void>;
 }
@@ -70,8 +70,10 @@ const shots: readonly Shot[] = [
   { name: "tools", route: "#/console", height: 600, withoutRail: true },
 ];
 
-/** The rail's width, added to a picture that leaves it out so the page keeps its width. */
-const railWidth = 252;
+/** The rail's usual width and the top bar's height, added to a picture that
+ * leaves them out so the page keeps its width and height. */
+const railWidth = 220;
+const topBarHeight = 52;
 
 const types: Record<string, string> = {
   ".html": "text/html",
@@ -110,7 +112,7 @@ try {
     const page = await browser.newPage({
       viewport: {
         width: (shot.width ?? 1280) + (shot.withoutRail ? railWidth : 0),
-        height: shot.height ?? 760,
+        height: (shot.height ?? 760) + (shot.withoutRail ? topBarHeight : 0),
       },
       deviceScaleFactor: 2,
       colorScheme: "light",
@@ -124,13 +126,20 @@ try {
       content:
         "aside.demo{display:none!important} *{animation:none!important;transition:none!important;caret-color:transparent!important}",
     });
+    // Mashy's button hangs a little below the top bar; it goes with the bar.
+    if (shot.withoutRail)
+      await page.addStyleTag({ content: "#mashy-fab{visibility:hidden!important}" });
     await shot.prepare?.(page);
     await page.waitForTimeout(300);
+    // Without the rail, the top bar's left end (the logo) is cut off, so the
+    // picture starts under the bar and shows only the page.
     const rail = shot.withoutRail ? await page.locator("#rail").boundingBox() : null;
+    const bar = shot.withoutRail ? await page.locator("#top").boundingBox() : null;
     const viewport = page.viewportSize() ?? { width: 0, height: 0 };
     const left = rail ? rail.x + rail.width : 0;
+    const top = bar ? bar.y + bar.height : 0;
     const png = await page.screenshot({
-      clip: { x: left, y: 0, width: viewport.width - left, height: viewport.height },
+      clip: { x: left, y: top, width: viewport.width - left, height: viewport.height - top },
     });
     await writeFile(new URL(`${shot.name}.webp`, output), await webp(page, png));
     await page.close();
