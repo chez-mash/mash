@@ -201,7 +201,6 @@ jobs:
         shell: pwsh
     env:
       MANIFESTS: ${{ github.workspace }}\winget-manifests
-      LOGS: ${{ runner.temp }}\winget-logs
     steps:
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -247,6 +246,9 @@ jobs:
           }
           '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          # Where the later steps have winget write its install logs.
+          $env:LOGS = Join-Path $env:RUNNER_TEMP 'winget-logs'
+          "LOGS=$env:LOGS" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           New-Item -ItemType Directory -Force -Path $env:LOGS | Out-Null
 
           if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
@@ -320,7 +322,7 @@ jobs:
         if: ${{ !cancelled() }}
         timeout-minutes: 5
         run: |
-          $logs = $env:LOGS
+          $logs = Join-Path $env:RUNNER_TEMP 'winget-logs'
           New-Item -ItemType Directory -Force -Path $logs | Out-Null
           # The install and uninstall logs are written here directly; the
           # other commands log to winget's own directory.
