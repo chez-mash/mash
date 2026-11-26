@@ -119,11 +119,11 @@ notice only says the versions differ, with **Don’t Show Again**.
 The app updates itself with `tauri-plugin-updater` (`src-tauri/src/update.rs`
 and `update/`). A build has updates on when `plugins.updater.pubkey` in
 `tauri.conf.json` is not empty and it is installed as something the updater
-replaces: the `.app` bundle on macOS or an AppImage on Linux. Otherwise
-**Check for Updates…** opens the downloads page, or for the apt package says
-whether a newer release exists and the `apt` command that brings it. Such a
-build still learns that a newer release exists and says so in the banner
-(see The banner).
+replaces: the `.app` bundle on macOS or an AppImage on Linux. A build
+without them still learns that a newer release exists and says so in the
+banner (see The banner); its **Check for Updates…** brings that banner
+forward and, with nothing newer, opens the downloads page, or for the apt
+package names the `apt` command that brings a new version.
 Windows is off until the installer's handover has been tested on a real
 machine: a running `mash.exe` cannot be replaced, so the order there must be
 stop the watcher, the dashboards and the engine, install, start.
@@ -148,19 +148,38 @@ after it, and Stable never takes a build of main whatever its address
 serves. `requireSignedVersion` makes the updater refuse a manifest that pairs
 a version with another version's validly signed file.
 
-The channel and the idle option are the app's own settings
-(`updates.json` in its configuration folder), changed from **Updates:
-Stable / Main (latest build)** in the menu bar menu and the app menu.
+The channel decides which versions are offered and nothing else. It is the
+app's own setting (`updates.json` in its configuration folder), changed from
+**Updates: Stable / Main (latest build)** in the menu bar menu and the app
+menu. Earlier versions also kept an idle-install choice in that file; it is
+no longer read, and a file that still has it loads as before.
 
 ### What happens
 
-The app checks at launch and every six hours, downloads a newer version in
-the background and verifies it against the public key. Then one menu line
-reads **Update Ready (version) — Restart to Update**; nothing else is shown
-unless the check was asked for. With **Install Automatically When Idle** (on
-by default for Main, off for Stable) the update installs once the main
-window and the search panel have both been hidden for two looks half a
-minute apart, and the new version starts without opening a window.
+There is one way an update is installed: the person chooses **Update and
+restart** in the banner, or the same thing on the menu line. Nothing is
+installed without that choice, on either channel. In the background the app
+only checks, at launch and every six hours, and downloads a newer version
+and verifies it against the public key, so that the choice is quick.
+
+The menu line follows the banner and calls the same request
+(`install::request`), bringing the main window forward so the banner shows
+how it goes:
+
+| State | Menu line | Chosen |
+| --- | --- | --- |
+| Nothing newer | **Mash (version)** | nothing |
+| Checking | **Checking for Updates…** | nothing |
+| A version downloaded, or still arriving | **Mash (version) Is Available — Update and Restart** | installs, after the download if need be |
+| Arriving, after that choice | **Downloading Mash (version)…** | nothing |
+| Installing | **Installing Mash (version)…** | nothing |
+
+**Check for Updates…** that finds a version, or already has one, brings the
+main window forward with the banner in it (a **Later** chosen before no
+longer hides it) and tells the dashboard to ask at once. With nothing newer
+it says the running version is the newest on the channel; a check that
+fails says why. Only if the window cannot be shown does a notice name the
+menu line instead.
 
 Installing (`update/install.rs`): the download is read back and verified
 again, so a file changed on disk is refused with the app untouched; the
@@ -177,8 +196,7 @@ engine is up the kept copy is deleted, the services that run the app's
 `mash` are restarted (`launchctl kickstart -k`, `systemctl --user restart`),
 and `mash doctor` is asked again. Anything still on the earlier version,
 and any `mash dash` someone started by hand (listed, never stopped), goes
-into one notice; after an idle install it waits behind the menu line
-**Updated to version — See What Needs Restarting…**.
+into one notice.
 
 ### The banner
 
@@ -187,8 +205,9 @@ the dashboard (`UpdateBanner.svelte`, `lib/appUpdate.svelte.ts`) from what
 the app tells it (`update/banner.rs`). The dashboard asks through three
 commands that only the main window's dashboard page may call
 (`capabilities/updates.json`): `update_banner` (what there is to offer),
-`update_install` and `update_later`. It asks every 20 seconds, and every
-second while the app downloads or installs. A dashboard in a browser has no
+`update_install` and `update_later`. It asks every 20 seconds, every
+second while the app downloads or installs, and at once when the app sends
+the page a `mash-update` event. A dashboard in a browser has no
 app to ask and never shows the banner; the `mash` command has no equivalent.
 
 | Build | The banner offers | Button |
@@ -197,16 +216,16 @@ app to ask and never shows the banner; the `mash` command has no equivalent.
 | No key, Windows, a development build | the newer stable release | **Download update** (the downloads page) |
 | The apt package | the newer stable release | **Copy command** (the `apt` command, shown) |
 
-**Update and restart** installs the downloaded update through the same path
-as the menu line (`install::apply`); chosen while the download is still
+**Update and restart** installs the downloaded update through the same
+request as the menu line (`install::request`); chosen while the download is still
 arriving, the banner shows the download's progress and the install follows
 as soon as the file has been verified. While the app installs, the banner
-says so and offers nothing. An install that fails, whoever asked for it,
+says so and offers nothing. An install that fails, wherever it was chosen,
 leaves the banner saying why with **Download instead**, which opens the
 downloads page. **Later** hides the banner for that version until the app
-starts again; a newer version brings it back. The banner never installs
-anything by itself, and it leaves the channel and **Install Automatically
-When Idle** as they are.
+starts again; a newer version brings it back, and so does **Check for
+Updates…** or the menu line. The banner never installs anything by itself,
+and it leaves the channel as it is.
 
 A build that does not update itself has no `latest.json` to read, since
 none is published without the key, so it reads GitHub's record of the

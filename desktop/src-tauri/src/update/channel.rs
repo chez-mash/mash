@@ -3,7 +3,7 @@
 //! `stable` follows the latest release; `main` follows a rolling prerelease
 //! that every successful build of the main branch replaces. Both publish the
 //! same `latest.json`, so the only difference in the app is the address it
-//! reads. A build of main is versioned as a prerelease of the release that
+//! reads: the channel decides which versions are offered and nothing else. A build of main is versioned as a prerelease of the release that
 //! will follow it (`0.2.5-main.118` after 0.2.4), so by ordinary semantic
 //! version order it is newer than the release before it, older than the
 //! release after it, and older than the next build of main.
@@ -40,13 +40,6 @@ impl Channel {
             Self::Stable => "Stable",
             Self::Main => "Main (latest build)",
         }
-    }
-
-    /// Whether an update installs by itself while the app is idle, unless the
-    /// person has chosen otherwise. Main changes many times a day, so there it
-    /// does; a release waits to be asked.
-    pub const fn installs_when_idle(self) -> bool {
-        matches!(self, Self::Main)
     }
 }
 
@@ -102,8 +95,6 @@ mod tests {
             "https://github.com/mashhq/mash/releases/download/main-channel/latest.json"
         );
         assert_eq!(Channel::default(), Channel::Stable);
-        assert!(Channel::Main.installs_when_idle());
-        assert!(!Channel::Stable.installs_when_idle());
     }
 
     #[test]

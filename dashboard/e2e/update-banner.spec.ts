@@ -73,6 +73,27 @@ test("Update and restart asks the app to install and shows it at work", async ({
   expect(await asked(page)).toContain("update_install");
 });
 
+test("the banner appears at once when the app says to look", async ({ page }) => {
+  // Check for Updates… in the app's menu found a version: no waiting for
+  // the next look.
+  await inApp(page, null);
+  await mockShell(page);
+  await page.goto("/#/");
+  await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
+  const banner = page.getByRole("complementary", { name: "Mash update" });
+  await expect(banner).toHaveCount(0);
+  await page.evaluate(
+    (answer) => {
+      (window as unknown as { app: { answer: object } }).app.answer = answer;
+      window.dispatchEvent(new Event("mash-update"));
+    },
+    { ...offer, way: "install" },
+  );
+  await expect(banner.getByRole("button", { name: "Update and restart" })).toBeVisible({
+    timeout: 2_000,
+  });
+});
+
 test("the banner fits a narrow window", async ({ page }) => {
   await page.setViewportSize({ width: 420, height: 700 });
   await inApp(page, {

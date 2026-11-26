@@ -13,41 +13,32 @@ use crate::{engine, lockstep};
 use std::time::Duration;
 use tauri::AppHandle;
 
-/// Who asked for an install, which decides where a failure is said: a
-/// choice in the menus gets a notice, the banner shows its own, and an idle
-/// install interrupts nobody. The banner shows the reason in every case.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum By {
-    Menu,
-    Banner,
-    Idle,
-}
-
-/// Install a ready update while nobody is looking: on, the main window and
-/// the search panel both hidden at two looks in a row, so a search in either
-/// is never cut off.
-pub(super) fn install_if_idle(app: &AppHandle) {
-    // Asked before the state is locked: a window answers on the main
-    // thread, which may itself be waiting for the state.
-    let hidden = crate::nothing_showing(app);
+/// Update and Restart, from the banner's button or the menu line: install
+/// the downloaded update, or do so as soon as its download has arrived and
+/// been verified. This is the only way an install begins.
+pub(super) fn request(app: &AppHandle) {
     let mut inner = lock(app);
-    let ready = matches!(inner.phase, Phase::Ready { .. });
-    if !ready || !inner.settings.installs_when_idle() || !hidden {
-        inner.idle_ticks = 0;
-        return;
-    }
-    inner.idle_ticks += 1;
-    if inner.idle_ticks >= 2 {
-        drop(inner);
-        apply(app, By::Idle);
+    inner.offer.failed = None;
+    // Asked for after Later, on the menu line: the banner shows how it goes.
+    inner.offer.later = None;
+    match inner.phase {
+        Phase::Ready { .. } => {
+            drop(inner);
+            let app = app.clone();
+            std::thread::spawn(move || apply(&app));
+        }
+        Phase::Downloading(_) => {
+            inner.offer.wanted = true;
+            refresh(app, &inner);
+        }
+        _ => {}
     }
 }
 
 /// Install the ready update and start the new version. The engine is stopped
 /// first and the installed app copied aside; if the install fails the engine
-/// starts again and the app carries on as it was.
-pub(super) fn apply(app: &AppHandle, by: By) {
-    let quiet = by == By::Idle;
+/// starts again, the app carries on as it was and the banner says why.
+pub(super) fn apply(app: &AppHandle) {
     let (update, file) = {
         let mut inner = lock(app);
         let Phase::Ready { update, .. } = &inner.phase else {
@@ -72,12 +63,6 @@ pub(super) fn apply(app: &AppHandle, by: By) {
         refresh(app, &inner);
         drop(inner);
         eprintln!("Mash couldn’t install the update: {why}");
-        if by == By::Menu {
-            tell(
-                app,
-                &format!("Mash couldn’t install the update, and is unchanged: {why}"),
-            );
-        }
     };
     // Verified before anything is stopped: a download changed on disk is
     // refused here, with the app untouched.
@@ -100,7 +85,6 @@ pub(super) fn apply(app: &AppHandle, by: By) {
             from: app.package_info().version.to_string(),
             to: update.version.clone(),
             previous: kept,
-            quiet,
         });
         save(app, &inner.settings);
     }
@@ -155,13 +139,7 @@ pub fn engine_started(app: &AppHandle) {
         let Some(notice) = lockstep::after_update(&arrived.to, separate) else {
             return;
         };
-        if arrived.quiet {
-            let mut inner = lock(&app);
-            inner.notice = Some(notice);
-            refresh(&app, &inner);
-        } else {
-            tell(&app, &notice);
-        }
+        tell(&app, &notice);
     });
 }
 

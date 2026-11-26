@@ -1,18 +1,19 @@
 //! The update banner in the main window. The dashboard draws it; the app
 //! says what there is to offer and does what its two buttons ask, through
 //! three commands that only the main window may call (capabilities/
-//! updates.json). Nothing here installs by itself: an update is installed
-//! from the banner only when the person chooses Update and Restart.
+//! updates.json). Nothing installs by itself: an update is installed only
+//! when the person chooses Update and Restart, here or on the menu line,
+//! which is the same request (`install::request`).
 //!
 //! A build that updates itself offers the version it has downloaded, or is
-//! downloading, and installs it through the same path as the menu line. A
+//! downloading. A
 //! build that does not (no public key, a .deb, Windows, a development build)
 //! offers the newer stable release GitHub names (release.rs) with the
 //! downloads page, or with the apt command for a copy apt installed.
 //! Later hides the banner for that version until the app starts again.
 
 use super::channel::DOWNLOADS;
-use super::install::{self, By};
+use super::install;
 use super::{Phase, lock};
 use serde::Serialize;
 use tauri::AppHandle;
@@ -161,20 +162,10 @@ pub fn update_banner(app: AppHandle) -> Option<Banner> {
     )
 }
 
-/// Update and Restart: install the downloaded update, or do so as soon as
-/// its download has arrived and been verified.
+/// Update and Restart.
 #[tauri::command]
 pub fn update_install(app: AppHandle) {
-    let mut inner = lock(&app);
-    inner.offer.failed = None;
-    match inner.phase {
-        Phase::Ready { .. } => {
-            drop(inner);
-            std::thread::spawn(move || install::apply(&app, By::Banner));
-        }
-        Phase::Downloading(_) => inner.offer.wanted = true,
-        _ => {}
-    }
+    install::request(&app);
 }
 
 /// Later: hide the banner for the version it shows until the app starts
@@ -192,6 +183,7 @@ pub fn update_later(app: AppHandle) {
         inner.offer.later = Some(shown.version);
         inner.offer.failed = None;
         inner.offer.wanted = false;
+        super::refresh(&app, &inner);
     }
 }
 
