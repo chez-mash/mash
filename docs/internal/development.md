@@ -964,14 +964,15 @@ then the whole job, in seconds. The workflow takes as long as its slowest job:
 | Nothing cached: every build before, and a release | 416 / 490 | 420 / 485 | 773 / 816 | 784 / 847 | 14 to 18 min |
 | Dependencies cached, all of our crates compiled | 324 / 426 | 272 / 362 | 620 / 685 | 667 / 751 | 12 min 38 s |
 | A dashboard-only commit | 139 / 237 | 121 / 202 | 289 / 362 | 206 / 287 | 6 min 8 s |
-| A commit that changes no source | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
+| A commit that changes no source, while the command lines were in `mash` | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
+| A commit that changes no source, now: only `mash` is compiled | 3 / 105 | 7 / 97 | 14 / 69 | 42 / 132 | 2 min 16 s |
 | The same commit again | under 4 / 105 | under 4 / 95 | not measured | not measured | |
 
 The dependencies are a fifth to a third of a build and our own crates the rest.
 The second row is therefore the most a commit should cost, and what the first
-build after a change to `Cargo.lock` costs. These rows were measured before
-the entry points were boxed (see below); measure them again before relying on
-them.
+build after a change to `Cargo.lock` costs. These rows, except the
+fifth, were measured before the entry points were boxed (see below); measure
+them again before relying on them.
 
 Our crates do not wait long for each other. A crate above can start as soon as
 the one below has been checked, which takes 10 to 18 s each; in an optimized
@@ -1031,7 +1032,8 @@ nothing only where nothing else is compiled with it. `MASH_BUILD_REVISION`
 used to be compiled into `mash-app`, which recompiled it and the four crates
 above it, more than half of a build, for every commit; then into the package
 that also held the command lines, which cost 60 to 180 s of every build (the
-fourth row of the table was measured then). On Xenia, changing only the
+fourth and fifth rows of the table). What is left is linking the two
+programs, which is most of Windows' 42 s. On Xenia, changing only the
 revision took 52 s before the command lines moved to `mash-cli` and 1.5 s
 after.
 
