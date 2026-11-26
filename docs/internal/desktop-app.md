@@ -473,3 +473,10 @@ and keeps the previous app until the new one has started. See
   Scoop and its own winget package, and the app is a separate download that
   carries its own engine, except under apt, where the app's package uses
   `mash-cli`'s.
+- Two things about the Windows installer that winget shows (see
+  `packaging/winget/README.md`). It is not signed, so SmartScreen stops a
+  `winget install MashHQ.Mash` at "Windows protected your PC" until the user
+  chooses Run anyway. And it registers no `QuietUninstallString`, so
+  `winget uninstall MashHQ.Mash --silent` opens the uninstaller's window;
+  writing `"$INSTDIR\uninstall.exe" /S` as that value from the NSIS template
+  would make it silent.
