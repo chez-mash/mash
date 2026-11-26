@@ -202,8 +202,11 @@ scenario() {
     sleep 2
     v type checkout pause 4
     shoot "$mode-1-search"
-    v key enter pause 3
-    shoot "$mode-2-read-messages"
+    # The glance (Command-Y) stays on between launches; turn it off again so
+    # the next search starts as a plain list.
+    v key alt-y pause 4
+    shoot "$mode-2-glance"
+    v key alt-y pause 1
     v key alt-k pause 1.5
     shoot "$mode-3-actions"
     close
@@ -281,8 +284,9 @@ store_shots() {
   sleep 2
   v type customers pause 4
   capture 1-search
-  v key enter pause 3
-  capture 2-read-messages
+  v key alt-y pause 4
+  capture 2-glance
+  v key alt-y pause 1
   v key alt-k pause 1.5
   capture 3-actions
   close

@@ -22,7 +22,10 @@ import {
   resumeCommand,
   rows,
   viewArguments,
-  conversation,
+  glance,
+  copies,
+  primaryAction,
+  quoted,
   speaker,
   viewChoice,
   parseView,
@@ -262,6 +265,58 @@ describe("links and untrusted text", () => {
     expect(rendered("``a` ![x](u)`` ![y](v)")).toBe("``a` ![x](u)`` \\![y](v)");
   });
 
+  it("closes a code block left open, so what follows the history is not code", () => {
+    expect(rendered("```ts\nconst a = 1;")).toBe("```ts\nconst a = 1;\n```");
+    expect(rendered("~~~\nabcdef", 6)).toBe("~~~\nab…\n~~~");
+    expect(rendered("```ts\nconst a = 1;\n```\nafter")).toBe("```ts\nconst a = 1;\n```\nafter");
+  });
+
+  it("does not cut a character pair in half", () => {
+    expect(rendered("ab😀cd", 3)).toBe("ab…");
+    expect(literal("ab😀cd", 4)).toBe("```text\nab😀…\n```");
+  });
+
+  it("sets the searched words in bold, as whole words in any case", () => {
+    const terms = ["checkout", "retry"];
+    expect(rendered("Checkout fails; retry the checkouts", 4000, terms)).toBe(
+      "**Checkout** fails; **retry** the checkouts",
+    );
+    expect(rendered("no terms, no bold: checkout")).toBe("no terms, no bold: checkout");
+    // A term is matched as written, never as a pattern.
+    expect(rendered("a.b and axb", 4000, ["a.b"])).toBe("**a.b** and axb");
+  });
+
+  it("adds no bold inside code, addresses, link targets or existing emphasis", () => {
+    const terms = ["checkout"];
+    expect(rendered("run `checkout --fast` on checkout", 4000, terms)).toBe("run `checkout --fast` on **checkout**");
+    expect(rendered("```sh\ncheckout\n```\n    checkout indented\ncheckout", 4000, terms)).toBe(
+      "```sh\ncheckout\n```\n    checkout indented\n**checkout**",
+    );
+    expect(rendered("[checkout docs](https://example.com/checkout) at https://example.com/checkout", 4000, terms)).toBe(
+      "[**checkout** docs](https://example.com/checkout) at https://example.com/checkout",
+    );
+    expect(rendered("[docs][checkout]\n\n[checkout]: /docs/checkout", 4000, terms)).toBe(
+      "[docs][checkout]\n\n[checkout]: /docs/checkout",
+    );
+    expect(rendered("mail checkout@example.com or www.example.com/checkout", 4000, terms)).toBe(
+      "mail checkout@example.com or www.example.com/checkout",
+    );
+    expect(rendered("**the checkout page** *checkout* _checkout_ ~~checkout~~", 4000, terms)).toBe(
+      "**the checkout page** *checkout* _checkout_ ~~checkout~~",
+    );
+  });
+
+  it("still defuses images and HTML around bold words, and never bolds inside an entity", () => {
+    expect(rendered("checkout ![checkout](https://example.com/checkout.png)", 4000, ["checkout"])).toBe(
+      "**checkout** \\![**checkout**](https://example.com/checkout.png)",
+    );
+    expect(rendered('<img src="x"> lt <b>', 4000, ["lt", "img"])).toBe('&lt;**img** src="x"> **lt** &lt;b>');
+  });
+
+  it("quotes every line, so a quoted message cannot end its own quote", () => {
+    expect(quoted("one\n\n```\ncode\n```\ntwo")).toBe("> one\n>\n> ```\n> code\n> ```\n> two");
+  });
+
   it("knows each agent's logo, and nothing for an unknown one", () => {
     expect(agentLogo("claude-code")).toEqual({ file: "claude.svg", tint: "#d97757" });
     expect(agentLogo("codex")).toEqual({ file: "openai.svg" });
@@ -405,10 +460,9 @@ describe("reading a chat's messages", () => {
   const said = (id: string, role = "assistant") => ({ id, role, content: id });
   const step = (id: string) => ({ id, role: "assistant", content: `Tool ${id}`, step: true });
 
-  it("shows what was said around the match and counts the steps between", () => {
+  it("shows the match with the message said before and after it, passing over steps", () => {
     const messages = [
       said("q0", "user"),
-      step("s1"),
       said("q1", "user"),
       step("s2"),
       step("s3"),
@@ -416,28 +470,32 @@ describe("reading a chat's messages", () => {
       step("s4"),
       said("q2", "user"),
       said("a2"),
-      said("q3", "user"),
     ];
-    expect(conversation(messages, "m")).toEqual([
-      { kind: "message", message: messages[0], match: false },
-      { kind: "steps", count: 1 },
-      { kind: "message", message: messages[2], match: false },
-      { kind: "steps", count: 2 },
-      { kind: "message", message: messages[5], match: true },
-      { kind: "steps", count: 1 },
-      { kind: "message", message: messages[7], match: false },
-      { kind: "message", message: messages[8], match: false },
+    expect(glance(messages, "m")).toEqual([
+      { message: messages[1], match: false },
+      { message: messages[4], match: true },
+      { message: messages[6], match: false },
     ]);
   });
 
-  it("still shows a match that is itself a step, and leaves out steps at the edges", () => {
+  it("still shows a match that is itself a step, and a chat's first or last message alone on that side", () => {
     const messages = [step("s0"), said("q", "user"), step("m"), step("s1"), said("a")];
-    expect(conversation(messages, "m", 1)).toEqual([
-      { kind: "message", message: messages[1], match: false },
-      { kind: "message", message: messages[2], match: true },
-      { kind: "steps", count: 1 },
-      { kind: "message", message: messages[4], match: false },
+    expect(glance(messages, "m").map((glimpse) => [glimpse.message.id, glimpse.match])).toEqual([
+      ["q", false],
+      ["m", true],
+      ["a", false],
     ]);
+    expect(glance(messages, "q").map((glimpse) => glimpse.message.id)).toEqual(["q", "a"]);
+    expect(glance(messages, "a").map((glimpse) => glimpse.message.id)).toEqual(["q", "a"]);
+  });
+
+  it("starts at the first thing said when the message is not among those read, marking no match", () => {
+    const messages = [step("s0"), said("q", "user"), said("a")];
+    expect(glance(messages, "gone")).toEqual([
+      { message: messages[1], match: false },
+      { message: messages[2], match: false },
+    ]);
+    expect(glance([step("s0")], "gone")).toEqual([]);
   });
 
   it("names who spoke", () => {
@@ -460,37 +518,51 @@ describe("reading a chat's messages", () => {
   });
 });
 
-describe("where the shown messages sit in a chat", () => {
-  const at = (id: string, ordinal?: number, step = false) => ({
+describe("where the match sits in a chat", () => {
+  const at = (id: string, ordinal?: number) => ({
     id,
     role: "assistant",
     content: id,
     ...(ordinal === undefined ? {} : { ordinal }),
-    ...(step ? { step: true } : {}),
   });
 
-  it("counts the messages before and after those shown, and the match's place", () => {
-    const messages = [at("s", 1, true), at("q", 2), at("m", 3), at("a", 4), at("t", 5, true)];
-    const view = { total: 14, messages };
-    const position = chatPosition(view, conversation(messages, "m", 1));
-    expect(position).toEqual({ total: 14, match: 4, earlier: 2, later: 9 });
+  it("says the chat's message count and the match's place", () => {
+    const messages = [at("q", 2), at("m", 3), at("a", 4)];
+    const position = chatPosition({ total: 14, messages }, glance(messages, "m"));
+    expect(position).toEqual({ total: 14, match: 4 });
     expect(messageCount(position)).toBe("14 · match is message 4");
   });
 
   it("says nothing it was not told", () => {
     const messages = [at("q"), at("m")];
-    expect(chatPosition({ messages }, conversation(messages, "m"))).toEqual({});
+    expect(chatPosition({ messages }, glance(messages, "m"))).toEqual({});
     expect(messageCount({})).toBeUndefined();
     // A count without the match's place is just the count.
     expect(messageCount({ total: 3 })).toBe("3");
-    // A chat's first message has nothing before it.
-    const first = [at("m", 0), at("a", 1)];
-    expect(chatPosition({ total: 2, messages: first }, conversation(first, "m"))).toEqual({
-      total: 2,
-      match: 1,
-      earlier: 0,
-      later: 0,
-    });
+  });
+});
+
+describe("what a row does without the desktop app", () => {
+  const chat = { agent: "claude-code", chatId: "abc-123", project: "/work/shop", passage: "the words" };
+
+  it("opens the chat in Mash when the app is installed, and offers its link to copy", () => {
+    expect(primaryAction(chat, true)).toBe("open");
+    expect(copies(chat, true)).toEqual(["resume", "link", "passage"]);
+  });
+
+  it("otherwise copies the resume command, or the message ID for a chat that cannot be resumed here", () => {
+    expect(primaryAction(chat, false)).toBe("resume");
+    expect(copies(chat, false)).toEqual(["resume", "id", "passage"]);
+    for (const other of [
+      { ...chat, agent: "cursor" },
+      { ...chat, machine: "dev-macbook" },
+      { ...chat, subagent: true },
+    ]) {
+      expect(primaryAction(other, false)).toBe("id");
+      expect(copies(other, false)).toEqual(["id", "passage"]);
+    }
+    // A recent chat has no matching passage to copy.
+    expect(copies({ ...chat, passage: "" }, false)).toEqual(["resume", "id"]);
   });
 });
 

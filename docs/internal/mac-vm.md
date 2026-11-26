@@ -26,7 +26,7 @@ tools/mac-vm.sh clean                  # delete clones left by --keep
 ```
 
 Screenshots land in `target/mac-vm/`: `light-` and `dark-` versions of
-`1-search` (Search Mash, "checkout"), `2-read-messages`, `3-actions` (⌘K) and
+`1-search` (Search Mash, "checkout"), `2-glance` (⌘Y), `3-actions` (⌘K) and
 `4-memory` (Search Memory), each as the Raycast window and as the full
 1440x900 screen (`-screen.png`). A run takes about two and a half minutes.
 
@@ -36,7 +36,7 @@ Screenshots land in `target/mac-vm/`: `light-` and `dark-` versions of
 macOS to its scaled 1440x900 mode (installing `displayplacer` in the guest),
 lets SSH capture the screen, sets a plain grey wallpaper and light mode, and
 captures five scenes with the guest's own `screencapture`: Search Mash for
-"customers" (date groups), Read Messages with its sidebar, ⌘K, Search Memory
+"customers" (date groups), the glance beside the list (⌘Y), ⌘K, Search Memory
 with a decision selected, and the latest chats. `tools/mac-vm/store_frame.py`
 then places each window, at its native 2x pixels, in the middle of a
 2000x1250 canvas of the wallpaper colour, as Raycast's Window Capture does,

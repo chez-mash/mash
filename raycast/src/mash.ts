@@ -1,8 +1,8 @@
 /**
  * Talking to Mash: finding the `mash` program and the desktop app, reading what
  * `mash search --live`, `mash list-chats` and `mash view` answer, and the
- * mash:// links that open a chat in the Mash desktop app. Everything here is plain data in and out, so it is tested
- * without Raycast.
+ * mash:// links that open a chat in the Mash desktop app. Everything here is
+ * plain data in and out, so it is tested without Raycast.
  */
 import { join } from "node:path";
 
@@ -85,10 +85,11 @@ export interface ChatView {
   readonly total?: number;
 }
 
-/** What a chat reads as around one message: what was said, with the work between counted. */
-export type Passage =
-  | { readonly kind: "message"; readonly message: Message; readonly match: boolean }
-  | { readonly kind: "steps"; readonly count: number };
+/** One message of a glance at a chat, and whether it is the one the glance was opened at. */
+export interface Glimpse {
+  readonly message: Message;
+  readonly match: boolean;
+}
 
 /**
  * Where the Mash desktop app can be installed: the Applications folder for
@@ -174,7 +175,7 @@ const VIEW_CONTEXT = 12;
 
 export function viewArguments(hit: Pick<Hit, "messageId" | "machine">): string[] {
   // Real chats are mostly tool calls and output, so read widely enough to
-  // find a few messages that were actually said on each side of the match.
+  // find a message that was actually said on each side of the match.
   const read = ["view", hit.messageId, "--context", String(VIEW_CONTEXT)];
   // A message from another machine is read from the shared index, by that
   // machine; this machine's index does not hold it.
@@ -366,42 +367,30 @@ const count = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 
 /**
- * The messages to show around `matchId`: up to `around` said messages on each
- * side, with the steps between them counted instead of shown. A match that is
- * itself a step is still shown, since that is what the search found.
+ * A glance at a chat: the message `matchId` names, with the message said
+ * before it and the one said after. Tool calls, their output and thinking
+ * between them are passed over; a match that is itself such a step is still
+ * shown, since that is what the search found.
  */
-export function conversation(messages: readonly Message[], matchId: string, around = 2): Passage[] {
+export function glance(messages: readonly Message[], matchId: string): Glimpse[] {
   const found = messages.findIndex((message) => message.id === matchId);
   const anchor = found >= 0 ? found : messages.findIndex((message) => !message.step);
   if (anchor < 0) return [];
-  const shown = new Set([anchor]);
-  for (const direction of [-1, 1]) {
-    let kept = 0;
-    for (let index = anchor + direction; index >= 0 && index < messages.length && kept < around; index += direction) {
-      if (messages[index].step) continue;
-      shown.add(index);
-      kept += 1;
+  const said = (direction: number): number[] => {
+    for (let index = anchor + direction; index >= 0 && index < messages.length; index += direction) {
+      if (!messages[index].step) return [index];
     }
-  }
-  const first = Math.min(...shown);
-  const last = Math.max(...shown);
-  const passages: Passage[] = [];
-  let steps = 0;
-  for (let index = first; index <= last; index += 1) {
-    if (!shown.has(index)) {
-      steps += 1;
-      continue;
-    }
-    if (steps) passages.push({ kind: "steps", count: steps });
-    steps = 0;
-    passages.push({ kind: "message", message: messages[index], match: found >= 0 && index === anchor });
-  }
-  return passages;
+    return [];
+  };
+  return [...said(-1), anchor, ...said(1)].map((index) => ({
+    message: messages[index],
+    match: found >= 0 && index === anchor,
+  }));
 }
 
 /**
- * Who said a message: you, or the agent by name. A memory's source chat comes
- * without its agent, so its replies are headed "Assistant" rather than nothing.
+ * Who said a message: you, or the agent by name; "Assistant" for a chat whose
+ * agent Mash did not name.
  */
 export function speaker(role: string, agent: string): string {
   if (role === "user") return "You";
@@ -443,6 +432,36 @@ export function resumeCommand(
   return hit.project ? `cd '${hit.project.replace(/'/g, `'\\''`)}' && ${resume}` : resume;
 }
 
+/** What can be copied from a chat. */
+export type Copy = "resume" | "link" | "id" | "passage";
+
+type Copied = Pick<Hit, "agent" | "chatId" | "project" | "subagent" | "machine" | "passage">;
+
+/**
+ * What a chat offers to copy, in the order listed. A mash:// link opens only
+ * in the desktop app, so without it the message ID takes the link's place:
+ * `mash view` and an agent's Mash tools read the message by it.
+ */
+export function copies(hit: Copied, hasApp: boolean): Copy[] {
+  return [
+    ...(resumeCommand(hit) ? (["resume"] as const) : []),
+    hasApp ? "link" : "id",
+    ...(hit.passage ? (["passage"] as const) : []),
+  ];
+}
+
+/**
+ * What ↵ does on a chat: open it in the desktop app at the match. Without the
+ * app nothing on this machine is known to show a chat's messages (the
+ * dashboard runs only while someone runs `mash dash`, at an address Mash does
+ * not report), so ↵ copies the way back into the chat instead: the command
+ * that resumes it in its agent, or else the message's ID.
+ */
+export function primaryAction(hit: Copied, hasApp: boolean): "open" | "resume" | "id" {
+  if (hasApp) return "open";
+  return resumeCommand(hit) ? "resume" : "id";
+}
+
 /** The mash:// link that opens Mash's main window, as the panel's Open Mash does. */
 export const appLink = "mash://";
 
@@ -459,7 +478,7 @@ export function searchCommand(query: string): string {
   return `mash search '${query.trim().replace(/'/g, `'\\''`)}'`;
 }
 
-export { literal, rendered } from "./markdown";
+export { literal, quoted, rendered } from "./markdown";
 export { type Activity, type ActivityGroup, byActivity, lastActive } from "./activity";
 export { type ChatPosition, chatPosition, messageCount } from "./position";
 
