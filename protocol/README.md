@@ -51,11 +51,11 @@ verified against SHA-256
 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`.
 
 ```bash
-make protocol-tools       # Explicit download; no Cargo or model assets involved.
-make protocol-check       # All configured models and expected counterexamples.
+just protocol-tools       # Explicit download; no Cargo or model assets involved.
+just protocol-check       # All configured models and expected counterexamples.
 ```
 
-`make protocol-check` uses the repository's `DEV_RUN` launcher (`agent-test` on
+`just protocol-check` uses the repository's `DEV_RUN` launcher (`agent-test` on
 Xenia). TLC uses one worker, a 1 GiB Java heap and a 120-second timeout per
 configuration. This is independent of Rust compilation and disposable Qdrant
 services. CI runs it as a separate job, also required by the deployment gate.

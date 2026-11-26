@@ -4,6 +4,37 @@
 
 ## Build and test
 
+### Task runner
+
+Tasks run through [just](https://just.systems). `just` alone lists every
+recipe by group (develop, test, quality, deploy, release, design), and
+`just --show RECIPE` prints what one runs. The recipes in the
+[justfile](../../justfile) call the scripts in `tools/` and each package's own
+scripts; they hold no logic of their own. Install just 1.59.0 or newer:
+
+```bash
+bash tools/install-just.sh                 # Linux: the pinned release into ~/.local/bin, no sudo
+brew install just                          # macOS
+scoop install just                         # Windows
+winget install --id Casey.Just --exact     # Windows, without Scoop
+```
+
+`tools/install-just.sh` pins the version and the archive's SHA-256 and is what
+CI runs. Arguments follow the recipe name (`just iterate 'test(name)'
+--package mash-dash`, `just deploy xenia`, `just release --dry-run 0.2.5`).
+The machine-specific settings are at the top of the justfile, with Xenia's
+values as defaults: `DEV_TMPDIR`, `DEV_TARGET_DIR` and `DEV_RUN` (the
+`agent-test` launcher where it is installed). Set one in the environment or
+before the recipe: `DEV_TARGET_DIR=/somewhere just dev-build` and
+`just DEV_TARGET_DIR=/somewhere dev-build` are the same, and `DEV_RUN=` runs
+without the launcher.
+
+The `Makefile` is a shim for the transition: each target it had runs the
+recipe of the same name (`make iterate FOCUS=... PACKAGE=...` still works)
+and says how to install just when it is missing. Add new tasks to the
+justfile only. `tools/test-justfile.sh` dry-runs every recipe and checks the
+shim.
+
 ### Dashboard browser checks
 
 Run `pnpm run lint`, `pnpm run check`, `pnpm run test`,
@@ -149,7 +180,7 @@ revision is served and `--stop` removes the unit.
 
 ### Linker
 
-On x86-64 Linux, `make iterate`, `make validate-dev`, `make dev-build` and the
+On x86-64 Linux, `just iterate`, `just validate-dev`, `just dev-build` and the
 fleet's release builds (`tools/build-dev-linux.sh`) link with
 [mold](https://github.com/rui314/mold) when it is installed
 (`apt-get install mold`), and with Rust's default `rust-lld` otherwise.
@@ -175,7 +206,7 @@ fixture gets a snapshot test beside the reader's other tests.
 
 Handwritten production source files (Rust, TypeScript, Svelte, Python) stay
 at or below 500 lines, the limit gohawk and lockdoc use.
-`tools/check_file_lines.py` enforces it in `make iterate`, `make validate-dev`
+`tools/check_file_lines.py` enforces it in `just iterate`, `just validate-dev`
 and CI. Tests, generated files and a Rust file's trailing inline
 `#[cfg(test)] mod` block are not counted. Files that were already longer are
 listed in `tools/file-lines-baseline.txt` with their length then: they may
@@ -214,10 +245,10 @@ the reason under `growth` in the budget file for review.
 [Correctness checks](verification.md) describes generated Proptest
 sequences against real SQLite, disposable-backend replay interruptions and
 focused cargo-mutants audits. Property tests run with ordinary nextest tests;
-mutation audits run explicitly with `make mutation-tools` and `make mutation-check`.
+mutation audits run explicitly with `just mutation-tools` and `just mutation-check`.
 Bounded TLA+ checks for publication, tombstones and shared
-view recovery live in [protocol/](../../protocol/README.md). Run `make protocol-tools`
-once to install the pinned checker, then `make protocol-check`. These checks
+view recovery live in [protocol/](../../protocol/README.md). Run `just protocol-tools`
+once to install the pinned checker, then `just protocol-check`. These checks
 include explicit expected counterexamples, including the historical replay
 certification bug; they supplement implementation tests rather than certify
 the Rust implementation.
@@ -299,21 +330,22 @@ the integrated checks required when changing search behavior.
 
 #### The edit loop
 
-Use the Make targets while developing; they carry the settings that keep
+Use the just recipes while developing; they carry the settings that keep
 rebuilds short:
 
 ```bash
-make iterate FOCUS='test(changed_behavior)'                       # fmt, Clippy, mash-app's unit tests
-make iterate FOCUS='test(assistant)' PACKAGE=mash-dash            # another crate's unit tests
-make iterate FOCUS='binary(cli_contract)'                         # the CLI contract tests
-make iterate FOCUS='test(changed_behavior)' PACKAGE=all           # every crate's unit tests
-make dev-build                                           # a debug `mash` to try by hand
+just iterate 'test(changed_behavior)'                    # fmt, Clippy, mash-app's unit tests
+just iterate 'test(assistant)' --package mash-dash       # another crate's unit tests
+just iterate 'binary(cli_contract)'                      # the CLI contract tests
+just iterate 'test(changed_behavior)' --package all      # every crate's unit tests
+just iterate 'test(changed_behavior)' --targets all      # integration targets as well
+just dev-build                                           # a debug `mash` to try by hand
 ```
 
 The test build compiles one crate and the ones below it: `mash-app` unless
-`PACKAGE` names another, or `all`. A filter that matches no test in that crate
-fails, so a wrong `PACKAGE` is not silent. Asking for integration targets
-builds every crate unless `PACKAGE` names one. Clippy always checks the whole
+`--package` names another, or `all`. A filter that matches no test in that crate
+fails, so a wrong `--package` is not silent. Asking for integration targets
+(`--targets all`) builds every crate unless `--package` names one. Clippy always checks the whole
 workspace.
 
 Measured on Xenia in November 2026, while Mash was still one crate, for a one-line edit in
@@ -323,22 +355,22 @@ other builds running (logs in `mash-artifacts/build-speed/`):
 | Step | Time |
 | --- | --- |
 | `cargo clippy --all-targets` | 20–26 s |
-| Test build, all targets (previous `make iterate`) | 55–57 s, 6.0 GiB peak |
-| Test build, library tests only (current `make iterate`) | 35–42 s, 3.2–4.0 GiB peak |
-| Debug `mash`, incremental (`make dev-build`) | 24–28 s |
+| Test build, all targets (previous `just iterate`) | 55–57 s, 6.0 GiB peak |
+| Test build, library tests only (current `just iterate`) | 35–42 s, 3.2–4.0 GiB peak |
+| Debug `mash`, incremental (`just dev-build`) | 24–28 s |
 | Debug `mash`, raw `cargo build-clif` under the machine-wide Cargo settings | 88 s |
-| Whole `make iterate`, all targets, Clippy then tests (original) | about 80 s |
-| Whole `make iterate`, library tests, Clippy then tests | 68–71 s |
-| Whole `make iterate`, library tests, Clippy beside tests (current) | 56–58 s with Clippy waiting for a slot; the test build alone is 36–41 s |
+| Whole `just iterate`, all targets, Clippy then tests (original) | about 80 s |
+| Whole `just iterate`, library tests, Clippy then tests | 68–71 s |
+| Whole `just iterate`, library tests, Clippy beside tests (current) | 56–58 s with Clippy waiting for a slot; the test build alone is 36–41 s |
 
-`make iterate` checks formatting first, then runs Clippy and the test build at
+`just iterate` checks formatting first, then runs Clippy and the test build at
 the same time and prints Clippy's output after the tests, so one loop reports
 both lint and test failures. Clippy has its own target directory
 (`clippy/` under the development target) because Cargo locks a target
 directory for a whole build. Each runs as its own `agent-test` job, so a loop
 takes two of the four shared slots; in one job they would pass its memory limit.
 
-With the crate split complete, the same one-line edit and `make iterate` with
+With the crate split complete, the same one-line edit and `just iterate` with
 the crate named (warm caches, November 2026) take:
 
 | Edit in | Loop | Of which test build |
@@ -355,7 +387,7 @@ the crate named (warm caches, November 2026) take:
 
 Before the split every one of these was the single-crate loop in the table
 above. In the lower crates the test build is now a few seconds and the rest is
-Clippy rechecking every crate above the edit. `PACKAGE=all` builds every
+Clippy rechecking every crate above the edit. `--package all` builds every
 crate's unit tests and costs about a minute.
 
 What the time is made of:
@@ -370,14 +402,14 @@ What the time is made of:
 - The all-targets build compiled the library twice (with and without tests) and
   linked four 540 MB executables. Its 6.0 GiB peak is exactly the soft memory
   limit `agent-test` gives a job, at which the kernel slows the job down;
-  earlier `make iterate` logs with test builds of two to six minutes all show
+  earlier `just iterate` logs with test builds of two to six minutes all show
   that same peak. Staying under it matters more than the seconds in the table
   when other sessions are building.
 - Dependencies are built with line-number debug information only
   (`[profile.dev.package."*"]` in `Cargo.toml`), which takes the debug `mash`
   from 540 MB to 400 MB.
 - The machine-wide `~/.cargo/config.toml` on Xenia sets `incremental = false`
-  and a compiler cache wrapper. The Make targets override both; a raw Cargo
+  and a compiler cache wrapper. The just recipes override both; a raw Cargo
   command does not, and then every edit recompiles the crate from nothing.
 - A commit changes the revision stamped by `app/build.rs`, so the first build after
   any commit recompiles `mash` even when no source changed.
@@ -436,10 +468,10 @@ MASH_TEST_MODELS_DIR='/path/to/explicitly-installed-models' \
 ```
 
 Docker containers run outside `agent-test`'s memory budget, which is why each
-one carries its own limit; keep `-j` low on a shared machine. `make
+one carries its own limit; keep `-j` low on a shared machine. `just
 test-cleanup` removes test containers left behind (anything labelled
 `mash.test`, never a Qdrant you run, and never one whose test process is still
-running); `make test-cleanup OWNER=ID` removes one run's. Collections a failed
+running); `just test-cleanup ID` removes one run's. Collections a failed
 test leaves in a Qdrant you run yourself are not removed automatically.
 
 The real-model integration tests are ignored by default and require
@@ -474,7 +506,7 @@ Then run:
 
 ```bash
 rustup component add llvm-tools-preview
-make coverage
+just coverage
 ```
 
 This runs every test except the manual benchmarks, including the installed
@@ -482,7 +514,7 @@ model and all three shared-backend contracts. It writes LLVM JSON coverage to
 `target/llvm-cov/coverage.json`; set `COVERAGE_OUTPUT` to choose another location.
 The coverage task cleans workspace coverage artifacts before execution so older
 binaries cannot contribute obsolete source mappings in a persistent target.
-On nightly, use `CARGO_ARGS=--branch` to include
+On nightly, use `CARGO_ARGS=--branch just coverage` to include
 LLVM's experimental branch instrumentation. This does not measure MC/DC.
 Generated SQL bindings, separate test files, standalone test helpers and the
 test-only relevance evaluator and manual benchmark modules are excluded from
@@ -490,7 +522,7 @@ the report.
 Tests embedded in production source files still contribute to those files'
 coverage, so assess uncovered behavior as well as the aggregate percentage.
 Coverage needs LLVM instrumentation; regular development continues to use
-Cranelift. On the affected nightly, use `RUSTFLAGS=-Znext-solver=no make coverage`.
+Cranelift. On the affected nightly, use `RUSTFLAGS=-Znext-solver=no just coverage`.
 
 For bounded local build and CLI search measurements, use installed models and
 a dedicated disposable Qdrant instance. The script copies a bounded sample of
@@ -533,7 +565,7 @@ after that: a commit that failed CI stayed on `main` until someone noticed.
 ```bash
 tools/install-hooks.sh                    # once per clone: the pre-push hook
 cd "$(tools/worktree.sh new search-fix)"  # ../mash-worktrees/search-fix on work/search-fix
-# edit, commit, make iterate ...
+# edit, commit, just iterate ...
 tools/worktree.sh land search-fix --wait  # through the merge queue; see below
 tools/worktree.sh done search-fix
 ```
@@ -577,9 +609,9 @@ checkout too. Do not switch branches, rebase or reset in the
 main checkout; keep it on `main`, and update it with `git pull --ff-only` when
 nobody is editing it.
 
-Rust builds need no per-worktree setup. The Makefile pins one absolute target
-directory (`DEV_TARGET_DIR`), so `make iterate`, `make dev-build` and
-`make validate-dev` in any worktree reuse the compiled dependencies, and
+Rust builds need no per-worktree setup. The justfile pins one absolute target
+directory (`DEV_TARGET_DIR`), so `just iterate`, `just dev-build` and
+`just validate-dev` in any worktree reuse the compiled dependencies, and
 `tools/build-dev-linux.sh` takes a lock in that directory, so builds from
 different worktrees queue instead of running at once. The debug binary at
 `$DEV_TARGET_DIR/debug/mash` is whichever worktree built last: pass
@@ -828,7 +860,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 | `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build, pictures (the demo) |
 | `raycast/` | nothing | nothing | `raycast` (lint, build, test) | nothing |
 | `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md`, `bucket/` | nothing | nothing | nothing | nothing |
-| `.github/`, `tools/`, `Makefile`, anything not listed | everything | everything | everything | build, pictures |
+| `.github/`, `tools/`, `justfile`, `Makefile`, anything not listed | everything | everything | everything | build, pictures |
 
 `visual.yml` runs its one job for the rows where `frontends.yml` runs the
 dashboard's. The `docs.yml` column is for a pull request and the merge queue.
@@ -899,7 +931,7 @@ hand-started ones. The details and the inventory settings are in
 A release is one command, also from the deploy tree:
 
 ```bash
-make release-tools                        # once: the pinned cargo-release
+just release-tools                        # once: the pinned cargo-release
 bash tools/release.sh --dry-run 0.2.5     # rehearse in a temporary clone; pushes nothing
 bash tools/release.sh 0.2.5
 bash tools/release.sh --resume 0.2.5      # after a wait failed or timed out
@@ -953,7 +985,7 @@ another name until it is published.
 
 `deny.toml` is the policy for Rust dependencies, checked with
 [cargo-deny](https://github.com/EmbarkStudios/cargo-deny). Install it with
-`cargo binstall cargo-deny` and run `make deny` after changing dependencies.
+`cargo binstall cargo-deny` and run `just deny` after changing dependencies.
 
 | Check | What fails it | Where it runs |
 | --- | --- | --- |
@@ -973,8 +1005,8 @@ no fix exists or the affected code is not reachable from Mash.
 SQLite query models are generated with sqlc 1.31.1 / sqlc-gen-rust 0.1.12.
 Generated output is checked in; normal Cargo builds require no generator.
 To regenerate as part of a build, install these versions and run
-`make build CODEGEN=1` (add `CARGO_ARGS='--release --locked'` for release).
-`make generate-queries` regenerates without compiling; `make check-generated`
+`just CODEGEN=1 build` (add `--release --locked` for release).
+`just generate-queries` regenerates without compiling; `just check-generated`
 checks for stale output. Generation reads the same SQLite schema SQL used at runtime.
 CI checks regeneration against committed output. Dynamic canonical predicates
 reuse the generated projection and decoder; schema initialization and writes remain explicit.
@@ -1017,8 +1049,8 @@ the installed skill fingerprint as `expected_contract` to detect stale guidance.
 The `mash-history` skill's workflow template is `crates/mash-mcp/templates/history_skill.md`.
 Its generated files live in `plugins/mash/skills/mash-history/`.
 Its small live-help bootstrap and release stamp are generated from Rust with
-`make generate-skills`; do not edit the generated `SKILL.md` or `contract.json`.
-`make check-skills` checks generation, real argument validation and CLI examples.
+`just generate-skills`; do not edit the generated `SKILL.md` or `contract.json`.
+`just check-skills` checks generation, real argument validation and CLI examples.
 Generation compares the contract stamp with the previous release and requires an increased
 version in both plugin manifests whenever the contract or workflow changes.
 Typed live-help examples also pass the real core validators. Update the installed

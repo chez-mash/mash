@@ -1,5 +1,5 @@
 allowBuilds:
-  # Agentation review tooling, used only by `make site-review`; see
+  # Agentation review tooling, used only by `just site-review`; see
   # docs/internal/documentation-site.md. The toolbar is installed from Git and
   # compiles itself on install, and its annotation store uses SQLite.
   agentation-review@https://codeload.github.com/kojah/agentation-review/tar.gz/83c898448be197e8d9eb8539504ee9c522236a40: true

@@ -58,7 +58,7 @@ patience=${MASH_RELEASE_WAIT:-7200}
 output=${MASH_RELEASE_OUTPUT:-/home/james/scratch/mash-artifacts/releases}
 installed=$(cargo release --version 2>/dev/null || true)
 [[ $installed == "cargo-release $cargo_release_version" ]] ||
-    die "needs cargo-release $cargo_release_version (found: ${installed:-none}); run: make release-tools"
+    die "needs cargo-release $cargo_release_version (found: ${installed:-none}); run: just release-tools"
 
 # The newest run of a workflow for a commit: "status conclusion id".
 run_state() {

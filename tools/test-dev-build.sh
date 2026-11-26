@@ -9,7 +9,7 @@ cleanup() {
 trap cleanup EXIT
 mkdir -p "$scratch/repository/tools" "$scratch/repository/app" "$scratch/repository/dashboard" "$scratch/bin" "$scratch/target"
 cp "$repository/tools/build-dev-linux.sh" "$scratch/repository/tools/"
-cp "$repository/Makefile" "$scratch/repository/"
+cp "$repository/justfile" "$repository/Makefile" "$scratch/repository/"
 cp "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" "$scratch/repository/tools/"
 for helper in generate-history-skill test-dev-api test-systemd-api test-dev-build test-install-shell test-run-ansible test-controller-environment test-ansible test-upgrade-local-index; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$scratch/repository/tools/$helper.sh"
@@ -50,8 +50,12 @@ export TEST_BUILD_CHILD="$scratch/compiler-daemon.pid"
 export TEST_BUILD_CLIPPY_FAIL="$scratch/clippy-fail"
 export TEST_BUILD_FRONTEND_FAIL="$scratch/frontend-fail"
 run_build() { timeout 10 bash "$scratch/repository/tools/build-dev-linux.sh" "$@"; }
-timeout 10 make --no-print-directory -C "$scratch/repository" iterate DEV_RUN= \
-    DEV_TMPDIR="$TMPDIR" DEV_TARGET_DIR="$scratch/target" FOCUS='test(contract)' >/dev/null
+# The loop is started as people start it: `just iterate`, with the launcher off.
+iterate() {
+    timeout 10 just --justfile "$scratch/repository/justfile" DEV_RUN= \
+        DEV_TMPDIR="$TMPDIR" DEV_TARGET_DIR="$scratch/target" iterate "$@" >/dev/null
+}
+iterate 'test(contract)'
 [[ $(sed -n '1p' "$TEST_BUILD_CALLS") == 'fmt --check' ]]
 # Clippy and the tests run at the same time, so their order is not fixed.
 grep -q '^clippy' "$TEST_BUILD_CALLS"
@@ -68,11 +72,11 @@ if run_build --focused 'test(contract)' >/dev/null 2>&1; then echo 'Failed focus
 rm -f "$TEST_BUILD_FAIL"
 # One crate's tests can be built alone.
 : > "$TEST_BUILD_CALLS"
-timeout 10 make --no-print-directory -C "$scratch/repository" iterate DEV_RUN= \
-    DEV_TMPDIR="$TMPDIR" DEV_TARGET_DIR="$scratch/target" FOCUS='test(contract)' PACKAGE=mash-silver >/dev/null
+iterate 'test(contract)' --package mash-silver
 grep -Fxq 'test-clif --locked -p mash-silver --lib -E test(contract) --no-tests fail --test-threads 4' "$TEST_BUILD_CALLS"
 # Integration targets are built on request, or when the filter names a binary.
 : > "$TEST_BUILD_CALLS"
+# Through the Makefile shim, with Make's variables.
 timeout 10 make --no-print-directory -C "$scratch/repository" iterate DEV_RUN= \
     DEV_TMPDIR="$TMPDIR" DEV_TARGET_DIR="$scratch/target" FOCUS='test(contract)' TARGETS=all >/dev/null
 grep -Fxq 'test-clif --locked -E test(contract) --no-tests fail --test-threads 4' "$TEST_BUILD_CALLS"

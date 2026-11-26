@@ -28,7 +28,7 @@ if [[ ${1:-} == --install-tools ]]; then
     "$tool" mutants --version
     exit
 fi
-[[ -x $tool ]] || { echo 'Run make mutation-tools first' >&2; exit 2; }
+[[ -x $tool ]] || { echo 'Run just mutation-tools first' >&2; exit 2; }
 [[ $("$tool" mutants --version) == "cargo-mutants $version" ]] || {
     echo 'Unexpected cargo-mutants version' >&2; exit 2;
 }

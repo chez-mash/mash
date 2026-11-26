@@ -60,7 +60,7 @@ while IFS= read -r file; do
 	case $file in
 	docs/* | site/* | assets/* | .agents/* | *.md | LICENSE-*) ;;
 	.github/* | tools/* | packaging/* | bucket/* | .greptile/* | .claude/* | .codex/* | .cargo/* | \
-		Makefile | Cargo.lock | deny.toml | rust-toolchain.toml | .gitignore | .gitattributes | \
+		Makefile | justfile | Cargo.lock | deny.toml | rust-toolchain.toml | .gitignore | .gitattributes | \
 		.mcp.json | sqlc.yaml)
 		docs_only=false
 		;;

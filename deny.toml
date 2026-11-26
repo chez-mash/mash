@@ -1,4 +1,4 @@
-# Dependency policy, checked by `make deny` and in CI.
+# Dependency policy, checked by `just deny` and in CI.
 # Run `cargo deny check` after changing dependencies.
 
 [graph]

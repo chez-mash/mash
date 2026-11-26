@@ -300,9 +300,9 @@ for a long time; retain private progress logs and verify freshness afterward.
 
 Commit and push focused, validated changes without deploying each one. Deploy
 at an explicitly requested release or agreed stable-batch milestone. Use
-`make iterate FOCUS='test(changed_behavior)'` while developing; it runs formatting,
+`just iterate 'test(changed_behavior)'` while developing; it runs formatting,
 Clippy and selected regressions without broad acceptance or a release build.
-`make validate-dev` validates a stable batch without building a release artifact.
+`just validate-dev` validates a stable batch without building a release artifact.
 Source/toolchain/input receipts survive commit identity and release-stamp changes;
 the release build still stamps the current commit.
 

@@ -80,14 +80,19 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      # The task runner, at the version and checksum tools/install-just.sh pins.
+      - name: Install pinned just
+        run: |
+          bash tools/install-just.sh "$RUNNER_TEMP/just"
+          echo "$RUNNER_TEMP/just" >> "$GITHUB_PATH"
       - name: Check bounded protocols and expected counterexamples
         env:
           # The runner context is only available in step-level expressions; a
           # job-level env entry makes the whole workflow invalid.
           MASH_PROTOCOL_ARTIFACTS: ${{ runner.temp }}/mash-protocol
         run: |
-          make protocol-tools
-          make protocol-check DEV_RUN=
+          just protocol-tools
+          just DEV_RUN= protocol-check
 
   dependencies:
     # Licences, banned and wildcard dependencies, and where crates come from.
@@ -173,15 +178,21 @@ jobs:
         run: |
           python3 .github/scripts/test-deploy-gate.py
           python3 .github/scripts/test-deploy-credentials.py
+      # The task runner, at the version and checksum tools/install-just.sh pins.
+      - name: Install pinned just
+        run: |
+          bash tools/install-just.sh "$RUNNER_TEMP/just"
+          echo "$RUNNER_TEMP/just" >> "$GITHUB_PATH"
       - name: Verify development API deployment rollback
         run: |
           TMPDIR="$RUNNER_TEMP" bash tools/test-dev-api.sh
           TMPDIR="$RUNNER_TEMP" bash tools/test-dev-build.sh
           bash tools/test-pr-labels.sh
-      - name: Verify the pre-push check and the worktree workflow
+      - name: Verify the pre-push check, the worktree workflow and the justfile
         run: |
           TMPDIR="$RUNNER_TEMP" bash tools/test-pre-push.sh
           TMPDIR="$RUNNER_TEMP" bash tools/test-worktree.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-justfile.sh
       - name: Verify Ansible fleet policy and cross-session exclusion
         env:
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/mash-ansible-runtime
@@ -220,7 +231,7 @@ jobs:
           echo "$RUNNER_TEMP/mash-sqlc" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/mash-sqlc/sqlc" version
       - name: Verify generated SQLite queries
-        run: make check-generated
+        run: just check-generated
       - run: cargo clippy --all-targets -- -D warnings
       - name: Verify history skill examples against Rust contracts
         env:

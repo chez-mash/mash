@@ -46,7 +46,7 @@ class AreaTests(unittest.TestCase):
     def test_anything_unclaimed_runs_everything(self):
         everything = set(ci_changes.AREAS)
         unclaimed = (
-            ".github/workflows/docs.yml", "tools/visual.sh", "tools/ci_changes.py", "Makefile",
+            ".github/workflows/docs.yml", "tools/visual.sh", "tools/ci_changes.py", "justfile", "Makefile",
             "new-directory/file", "sitemap",
         )
         for path in (*unclaimed, "LICENSE-MIT"):

@@ -115,10 +115,10 @@ command_new() {
     [[ -z $deps ]] || install_dependencies "$deps"
     say "Created $tree on $branch from $base ($(git -C "$tree" rev-parse --short HEAD))."
     [[ -n $deps ]] || say 'Front-end checks need node_modules here: rerun with --deps dashboard,site,raycast or install in the package you touch.'
-    # The Makefile pins one absolute target directory (DEV_TARGET_DIR) and
+    # The justfile pins one absolute target directory (DEV_TARGET_DIR) and
     # build-dev-linux.sh serializes on a lock inside it, so worktrees share
     # compiled dependencies without any per-worktree Cargo configuration.
-    say 'Rust: make iterate, dev-build and validate-dev share the Makefile'"'"'s DEV_TARGET_DIR across worktrees (one build at a time);'
+    say 'Rust: just iterate, dev-build and validate-dev share the justfile'"'"'s DEV_TARGET_DIR across worktrees (one build at a time);'
     say '      its debug/mash is the last worktree'"'"'s build, so pass DEV_TARGET_DIR=... to keep a binary of your own.'
     say "Skills (.agents/skills, .claude) are links to the main checkout. Beads lives there too: (cd $main_checkout && bd ready)"
     say "When the work is committed: tools/worktree.sh land $name --wait   (the merge queue), then: done $name"

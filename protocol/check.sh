@@ -21,7 +21,7 @@ jar="$artifacts/tools/tla2tools-$version.jar"
 
 verify_jar() {
     [[ -f "$jar" ]] || {
-        echo 'TLC is not installed. Run make protocol-tools first.' >&2
+        echo 'TLC is not installed. Run just protocol-tools first.' >&2
         return 1
     }
     printf '%s  %s\n' "$checksum" "$jar" | sha256sum --check --status

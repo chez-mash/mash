@@ -199,7 +199,7 @@ On Xenia, run builds and tests through `agent-test`. The static output goes to
 
 ## Review with Agentation
 
-`make site-review` starts the dev server with the
+`just site-review` starts the dev server with the
 [Agentation](https://agentation.com) toolbar, so a reviewer can click an
 element, leave a note, and submit a batch of notes to an agent. It runs
 `agentation-review` (configured in `site/agentation-review.config.mjs`),

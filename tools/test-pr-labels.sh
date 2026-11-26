@@ -25,7 +25,7 @@ check 'untouched template, docs only' \
 	$'docs/search.md\nREADME.md' "$(body ' ' ' ' '')"
 check 'no description, tooling' \
 	'label: area:install label: category:tooling label: needs:ai-disclosure label: needs:intent ' \
-	$'.github/workflows/release.yml\nMakefile' ''
+	$'.github/workflows/release.yml\njustfile\nMakefile' ''
 check 'two boxes ticked sets no category' \
 	'label: area:storage label: touches:schema ' \
 	'crates/mash-storage/src/storage/silver.sql' "$(body x x 'Claude Code wrote the tests')"
