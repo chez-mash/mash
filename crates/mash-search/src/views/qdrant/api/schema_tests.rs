@@ -1,5 +1,6 @@
 use super::availability::start_instruction;
 use super::*;
+use std::time::Duration;
 
 #[tokio::test]
 async fn unavailable_qdrant_names_endpoint_and_repair_without_exposing_api_key() {

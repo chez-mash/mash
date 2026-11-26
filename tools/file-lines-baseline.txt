@@ -19,7 +19,7 @@
 522 crates/mash-mcp/src/guidance.rs
 873 crates/mash-mcp/src/lib.rs
 501 crates/mash-search/src/views/materialize.rs
-1145 crates/mash-search/src/views/qdrant/api.rs
+1136 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
 502 crates/mash-server/src/lib.rs
 1534 crates/mash-server/src/sync.rs
