@@ -325,7 +325,7 @@ jobs:
           )
           Write-Host "winget log directories: $($directories.FullName -join ', ')"
           foreach ($directory in $directories) {
-            Get-ChildItem -LiteralPath $directory.FullName -Recurse -File | Copy-Item -Destination $logs -Force
+            Get-ChildItem -LiteralPath $directory.FullName -Recurse -File -Filter *.log | Copy-Item -Destination $logs -Force
           }
           Get-ChildItem $logs | Sort-Object LastWriteTime | Format-Table Name, Length, LastWriteTime -AutoSize | Out-String
           Write-Host '::group::Processes still running from winget'

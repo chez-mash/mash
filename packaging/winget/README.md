@@ -16,6 +16,12 @@ winget install --manifest .\winget-manifests   # needs LocalManifestFiles enable
 wingetcreate submit .\winget-manifests
 ```
 
+After a release, the `winget` job of `release-check.yml` runs those first two
+commands on x64 and ARM64 runners, runs both programs and uninstalls them, so
+check its result for the tag before submitting. Started by hand from a branch
+(`gh workflow run release-check.yml --ref BRANCH -f tag=vX.Y.Z`), it tries
+that branch's templates against the published release.
+
 The first submission creates the package; later ones only add a version
 directory. The desktop app will be a separate package once its installers are
 signed.

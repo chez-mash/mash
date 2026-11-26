@@ -1004,8 +1004,10 @@ exit code, and winget's own logs are kept as the `winget-logs-RUNNER`
 artifacts whether the job passed or not. `windows-11-arm` has no winget, so
 the job first installs App Installer there with Microsoft's
 `Repair-WinGetPackageManager`. Both runner images already carry the Visual C++
-runtime the manifest depends on, so the job shows that winget resolves that
-dependency, not how long installing it takes on a machine without it.
+runtime the manifest depends on. On x64 winget finds it and installs nothing;
+on ARM64 it still runs Microsoft's runtime installer, which finds the runtime
+present and only registers itself. Neither shows how long the dependency takes
+on a machine without the runtime.
 
 `--resume` works out where the release stopped from the repository itself (the
 release commit, whether main has it, the tag locally and on the remote, the
