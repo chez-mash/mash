@@ -153,6 +153,9 @@ jobs:
           npm run knip
           npm run build
           npm test
+      # The copy for raycast/extensions leaves the development-only tooling out.
+      - name: Check the Raycast Store copy
+        run: TMPDIR="$RUNNER_TEMP" bash tools/test-raycast-store.sh
 
   # One status for the whole workflow: it passes when every job above passed
   # or was skipped because its files did not change.

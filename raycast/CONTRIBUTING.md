@@ -24,6 +24,6 @@ The extension uses npm, as Raycast's Store expects a `package-lock.json`.
 
 The extension in [raycast/extensions](https://github.com/raycast/extensions)
 leaves out what only this repository needs: the tests, `vitest` and its `test`
-script, and this file. `packaging/raycast-store.sh` makes that copy, with its
+script, `knip` with its script and `knip.json`, and this file. `packaging/raycast-store.sh` makes that copy, with its
 own `package-lock.json`, ready to publish with `npx ray publish` from a clean
-git checkout.
+git checkout. `tools/test-raycast-store.sh` checks what the copy leaves out.
