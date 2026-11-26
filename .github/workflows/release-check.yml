@@ -246,11 +246,6 @@ jobs:
           }
           '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          # Where the later steps have winget write its install logs.
-          $env:LOGS = Join-Path $env:RUNNER_TEMP 'winget-logs'
-          "LOGS=$env:LOGS" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          New-Item -ItemType Directory -Force -Path $env:LOGS | Out-Null
-
           if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
             # Microsoft's supported way to put App Installer on a machine
             # that lacks it.
@@ -282,8 +277,7 @@ jobs:
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
           Invoke-Winget -Arguments 'install', '--manifest', $env:MANIFESTS, '--accept-package-agreements',
-              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs',
-              '--log', (Join-Path $env:LOGS 'install.log')
+              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs'
       - name: Run it from a new shell
         timeout-minutes: 15
         run: |
@@ -313,8 +307,7 @@ jobs:
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs',
-              '--log', (Join-Path $env:LOGS 'uninstall.log')
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs'
           $env:PATH = Get-FreshPath
           $left = Get-Command mash.exe, mash-server.exe -CommandType Application -ErrorAction SilentlyContinue
           if ($left) { throw "winget uninstall left $($left.Source -join ', ') on PATH." }
@@ -324,13 +317,16 @@ jobs:
         run: |
           $logs = Join-Path $env:RUNNER_TEMP 'winget-logs'
           New-Item -ItemType Directory -Force -Path $logs | Out-Null
-          # The install and uninstall logs are written here directly; the
-          # other commands log to winget's own directory.
-          $sources = @(
-            Get-ChildItem "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_*\LocalState\DiagOutputDir" -Recurse -File -ErrorAction SilentlyContinue
-            Get-ChildItem "$env:TEMP\WinGet" -Recurse -File -Filter *.log -ErrorAction SilentlyContinue
+          # The packaged winget logs under its package directory; one
+          # installed another way logs under the temporary directory.
+          $directories = @(
+            Get-Item "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_*\LocalState\DiagOutputDir" -ErrorAction SilentlyContinue
+            Get-Item "$env:TEMP\WinGet" -ErrorAction SilentlyContinue
           )
-          $sources | Copy-Item -Destination $logs -Force
+          Write-Host "winget log directories: $($directories.FullName -join ', ')"
+          foreach ($directory in $directories) {
+            Get-ChildItem -LiteralPath $directory.FullName -Recurse -File | Copy-Item -Destination $logs -Force
+          }
           Get-ChildItem $logs | Sort-Object LastWriteTime | Format-Table Name, Length, LastWriteTime -AutoSize | Out-String
           Write-Host '::group::Processes still running from winget'
           Get-CimInstance Win32_Process |
