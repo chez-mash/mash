@@ -4,8 +4,14 @@
 #
 #   tools/worktree.sh new NAME [BASE] [--deps dashboard,site,raycast]
 #   tools/worktree.sh list
-#   tools/worktree.sh land NAME        rebase on origin/main, check, fast-forward main
-#   tools/worktree.sh pr NAME          push the branch and open a pull request instead
+#   tools/worktree.sh land NAME [--wait]
+#                                      rebase on origin/main, check, push the branch, open its
+#                                      pull request and put it in the merge queue for main;
+#                                      --wait follows it until it is merged or rejected
+#   tools/worktree.sh land NAME --direct
+#                                      emergencies only, administrators only: push straight
+#                                      to main, past the queue and its checks
+#   tools/worktree.sh pr NAME          push the branch and open a pull request without queueing it
 #   tools/worktree.sh done NAME [--force]
 #   tools/worktree.sh deploy-tree      a clean tree at origin/main for fleet.sh and releases
 #   tools/worktree.sh preview NAME [--site|--storybook] [--real] [--local] [--stop]
@@ -102,8 +108,8 @@ command_new() {
     fetch
     repo rev-parse --verify --quiet "$base^{commit}" > /dev/null || die "unknown base $base"
     mkdir -p "$trees"
-    # No upstream: the branch lands on main through `land` or a pull request,
-    # and a bare `git push` must not guess either.
+    # No upstream: the branch lands on main through `land`, and a bare
+    # `git push` must not guess where it goes.
     repo worktree add --quiet --no-track -b "$branch" "$tree" "$base" >&2
     link_ignored
     [[ -z $deps ]] || install_dependencies "$deps"
@@ -115,7 +121,7 @@ command_new() {
     say 'Rust: make iterate, dev-build and validate-dev share the Makefile'"'"'s DEV_TARGET_DIR across worktrees (one build at a time);'
     say '      its debug/mash is the last worktree'"'"'s build, so pass DEV_TARGET_DIR=... to keep a binary of your own.'
     say "Skills (.agents/skills, .claude) are links to the main checkout. Beads lives there too: (cd $main_checkout && bd ready)"
-    say "When the work is committed: tools/worktree.sh land $name   (or: pr $name), then: done $name"
+    say "When the work is committed: tools/worktree.sh land $name --wait   (the merge queue), then: done $name"
     printf '%s\n' "$tree"
 }
 
@@ -124,9 +130,24 @@ command_list() {
     repo worktree list
 }
 
+# main takes changes only through GitHub's merge queue, which rebases the
+# branch's commits onto main, runs the required checks on the result and moves
+# main to that commit when they pass (tools/merge-queue.sh). The rebase and
+# the quick checks here fail in seconds what the queue would fail in minutes.
 command_land() {
-    [[ $# -eq 1 ]] || usage
-    existing_tree "$1"
+    local wait='' direct=no arguments=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --wait) wait=--wait ;;
+            --direct) direct=yes ;;
+            -*) usage ;;
+            *) arguments+=("$1") ;;
+        esac
+        shift
+    done
+    [[ ${#arguments[@]} -eq 1 ]] || usage
+    [[ $direct == no || -z $wait ]] || die '--direct pushes at once; there is nothing for --wait to follow'
+    existing_tree "${arguments[0]}"
     [[ $(git -C "$tree" rev-parse --abbrev-ref HEAD) == "$branch" ]] || die "$tree is not on $branch"
     ! dirty "$tree" || die "$tree has uncommitted changes; commit them first"
     fetch
@@ -139,14 +160,33 @@ command_land() {
         return
     fi
     (cd "$tree" && bash tools/pre-push.sh origin/main >&2) || die 'the pre-push check failed; fix it, commit and run land again'
-    # A plain push: the remote refuses anything but a fast-forward, which
-    # happens only when main moved after the fetch above. The hook would
-    # repeat the check that just passed for this exact commit.
-    MASH_PRE_PUSH_CHECKED=$head git -C "$tree" push --quiet origin "$branch:main" >&2 ||
-        die 'origin refused the push (main moved, or the push failed); run land again'
+    # The hook would repeat the check that just passed for this exact commit.
+    if [[ $direct == yes ]]; then
+        # Past the queue: only an administrator's push is accepted, and
+        # nothing has run the test suites on this commit. A plain push, so the
+        # remote still refuses anything but a fast-forward.
+        say 'Pushing straight to main, past the merge queue and its checks (emergencies only).'
+        MASH_PRE_PUSH_CHECKED=$head git -C "$tree" push --quiet origin "$branch:main" >&2 ||
+            die 'origin refused the push (main moved, the push failed, or you may not bypass the rules for main); run land again'
+        repo fetch --quiet origin
+        say "Landed $(git -C "$tree" rev-parse --short HEAD) on origin/main. Remove the worktree with: tools/worktree.sh done $name"
+        return
+    fi
+    # The branch on origin is this worktree's alone and was just rebased, so
+    # it is replaced, but only if it is still what this clone last saw there.
+    MASH_PRE_PUSH_CHECKED=$head git -C "$tree" push --quiet --force-with-lease origin "$branch:$branch" >&2 ||
+        die "origin refused $branch (someone else pushed to it, or the push failed); fetch and look, then run land again"
     repo fetch --quiet origin
-    say "Landed $(git -C "$tree" rev-parse --short HEAD) on origin/main. Remove the worktree with: tools/worktree.sh done $name"
+    (cd "$tree" && queue_tool submit "$branch" $wait) || die "$branch is not on main; when the cause is fixed and committed, run land again"
+    if [[ -n $wait ]]; then
+        repo fetch --quiet --prune origin
+        say "Landed $branch on origin/main. Remove the worktree with: tools/worktree.sh done $name"
+    else
+        say "Queued $branch for main; nothing is on main until the queue's checks pass."
+        say "Follow it with the pull request's number: tools/merge-queue.sh wait NUMBER   then: tools/worktree.sh done $name"
+    fi
 }
+queue_tool() { bash "$(dirname "${BASH_SOURCE[0]}")/merge-queue.sh" "$@"; }
 
 command_pr() {
     [[ $# -eq 1 ]] || usage
@@ -154,6 +194,20 @@ command_pr() {
     ! dirty "$tree" || die "$tree has uncommitted changes; commit them first"
     git -C "$tree" push --quiet --set-upstream origin "$branch" >&2 || die 'the push failed'
     (cd "$tree" && gh pr create --fill --base main --head "$branch")
+}
+
+# Whether origin/main holds the branch's work. The merge queue rebases, so the
+# commits on main are copies with other names: every commit of the branch must
+# have a commit with the same change on main. Failing that, GitHub is asked
+# whether a pull request merged this exact branch head, which also covers a
+# squash merge.
+landed() {
+    repo merge-base --is-ancestor "$branch" origin/main && return 0
+    ! repo cherry origin/main "$branch" | grep -q '^+' && return 0
+    local head
+    head=$(repo rev-parse "$branch")
+    (cd "$main_checkout" && "${MASH_GH:-gh}" pr list --head "$branch" --base main --state merged \
+        --json headRefOid --jq '.[].headRefOid' 2> /dev/null) | grep -qx "$head"
 }
 
 command_done() {
@@ -164,21 +218,20 @@ command_done() {
     repo worktree prune
     repo show-ref --verify --quiet "refs/heads/$branch" || [[ -d $tree ]] || die "no worktree or branch for $name"
     fetch
+    local merged=no
+    ! repo show-ref --verify --quiet "refs/heads/$branch" || ! landed || merged=yes
     if [[ -z $force ]]; then
         [[ ! -d $tree ]] || ! dirty "$tree" all || die "$tree has uncommitted or untracked files; commit or remove them, or pass --force to discard them"
-        ! repo show-ref --verify --quiet "refs/heads/$branch" || repo merge-base --is-ancestor "$branch" origin/main ||
-            die "$branch has commits that are not on origin/main; land it or open a pull request, or pass --force to discard them"
+        ! repo show-ref --verify --quiet "refs/heads/$branch" || [[ $merged == yes ]] ||
+            die "$branch has commits that are not on origin/main; land it and wait for the merge queue, or pass --force to discard them"
     fi
     # A dev server left running would keep serving a directory that is gone.
     preview_tool stop-all "$name"
     [[ ! -d $tree ]] || repo worktree remove ${force:+--force} "$tree"
-    local merged=no
-    if repo show-ref --verify --quiet "refs/heads/$branch"; then
-        ! repo merge-base --is-ancestor "$branch" origin/main || merged=yes
-        repo branch --quiet -D "$branch"
-    fi
-    # A pushed copy of a merged branch goes too; an unmerged one is left on
-    # the remote even with --force, where a pull request may still need it.
+    ! repo show-ref --verify --quiet "refs/heads/$branch" || repo branch --quiet -D "$branch"
+    # GitHub deletes a merged pull request's branch itself; this removes a
+    # pushed copy it left. An unmerged one stays on the remote even with
+    # --force, where a pull request may still need it.
     if [[ $merged == yes ]] && repo show-ref --verify --quiet "refs/remotes/origin/$branch"; then
         repo push --quiet --no-verify origin --delete "$branch" >&2 || say "Could not delete origin/$branch; remove it by hand."
     fi

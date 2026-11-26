@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Checks tools/worktree.sh against a throwaway bare remote and clone: new,
-# land (rebased, checked, fast-forward only), done and its refusals, and the
-# deploy tree. Nothing here touches the network or the real repository.
+# land (rebased, checked, through the merge queue a fake `gh` plays, or
+# straight to main with --direct), done and its refusals, and the deploy tree.
+# Nothing here touches the network or the real repository.
 set -euo pipefail
 repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/worktree-test.XXXXXXXX")
@@ -30,7 +31,7 @@ git init -q -b main "$main"
 mkdir -p "$main/tools" "$main/.githooks" "$main/src"
 cp "$repository/tools/worktree.sh" "$repository/tools/pre-push.sh" "$repository/tools/install-hooks.sh" \
     "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" "$main/tools/"
-cp "$repository/tools/worktree-preview.sh" "$repository/tools/storybook-serve.sh" "$main/tools/"
+cp "$repository/tools/worktree-preview.sh" "$repository/tools/storybook-serve.sh" "$repository/tools/merge-queue.sh" "$main/tools/"
 cp "$repository/.githooks/pre-push" "$main/.githooks/"
 : > "$main/tools/file-lines-baseline.txt"
 printf 'one\n' > "$main/notes.md"
@@ -46,6 +47,12 @@ git -C "$main" remote add origin "$scratch/remote.git"
 git -C "$main" push -q origin main > /dev/null 2>&1
 bash "$main/tools/install-hooks.sh" > /dev/null
 worktree() { bash "$main/tools/worktree.sh" "$@"; }
+# GitHub and its merge queue, played against the bare remote.
+export FAKE_QUEUE=$scratch/queue FAKE_QUEUE_REMOTE=$scratch/remote.git MASH_QUEUE_POLL=0
+mkdir -p "$scratch/gh" "$FAKE_QUEUE"
+printf '#!/usr/bin/env bash\nexec bash %q "$@"\n' "$repository/tools/fake-queue-gh.sh" > "$scratch/gh/gh"
+chmod +x "$scratch/gh/gh"
+export MASH_GH=$scratch/gh/gh
 
 refused 'a name with a slash' 'a name starts with' worktree new bad/name
 tree=$(worktree new alpha 2> "$scratch/output") || fail 'new alpha'
@@ -83,14 +90,77 @@ refused 'land with a failing check' 'pre-push check failed' worktree land alpha
 [[ $(remote_main) == "$before" ]] || fail 'a failed landing reached the remote'
 git -C "$tree" reset -q --hard HEAD~1
 
-worktree land alpha > "$scratch/output" 2>&1 || fail 'land alpha'
-[[ $(remote_main) == $(git -C "$tree" rev-parse HEAD) ]] || fail 'land fast-forwards origin main to the branch'
-git -C "$scratch/remote.git" cat-file -e main:other.md || fail 'land rebased onto the moved main'
+refused 'land --direct --wait' 'nothing for --wait to follow' worktree land alpha --direct --wait
+
+# Without --wait the change is queued and land returns with the pull request.
+url=$(worktree land alpha 2> "$scratch/output") || fail 'land alpha'
+[[ $url == https://github.example/fixture/mash/pull/1 ]] || fail "land prints the pull request's address, got $url"
+[[ $(remote_main) == "$before" ]] || fail 'land moved main itself'
+[[ $(git -C "$scratch/remote.git" rev-parse work/alpha) == $(git -C "$tree" rev-parse HEAD) ]] || fail 'land pushes the branch as work/alpha'
+git -C "$tree" merge-base --is-ancestor "$before" HEAD || fail 'land rebased onto the moved main'
+grep -q '^pr merge 1 .*--rebase --auto' "$FAKE_QUEUE/calls" || fail 'land does not queue the pull request'
+grep -qF '[merge queue]' "$FAKE_QUEUE/prs/1/body" || fail "the pull request lacks the marker that skips its own run of the checks"
+[[ $(cat "$FAKE_QUEUE/prs/1/title") == alpha ]] || fail 'the pull request is not titled after its commit'
+refused 'done while the change is only queued' 'not on origin/main' worktree done alpha
+
+# The queue removes a change whose checks fail; main is untouched and land says which.
+echo reject > "$FAKE_QUEUE/verdict"
+refused 'land --wait on a change the queue rejects' 'removed from the merge queue: FAILED CHECKS' worktree land alpha --wait
+grep -q 'Reusing pull request #1' "$scratch/output" || fail 'a second land opened another pull request'
+grep -q 'ci / required  https://github.example/fixture/mash/runs/9' "$scratch/output" || fail 'the rejection does not name the failed check and its address'
+[[ $(remote_main) == "$before" ]] || fail 'a rejected change reached main'
+
+# A required check failing on the pull request itself keeps it out of the queue.
+echo own-check > "$FAKE_QUEUE/verdict"
+refused 'land --wait when the pull request fails its own check' 'required check failed on the pull request itself' worktree land alpha --wait
+grep -q 'ci / required  https://github.example/fixture/mash/runs/7' "$scratch/output" || fail 'the failed check of the pull request is not named'
+
+# Repaired and landed again: the earlier removal is not reported a second time.
+echo merge > "$FAKE_QUEUE/verdict"
+printf 'alpha, repaired\n' > "$tree/alpha.md"
+git -C "$tree" commit -qam repair
+head=$(git -C "$tree" rev-parse HEAD)
+worktree land alpha --wait > "$scratch/output" 2>&1 || fail 'land alpha --wait'
+grep -q 'Pull request #1 is merged' "$scratch/output" || fail 'land --wait does not say the pull request merged'
+[[ $(git -C "$scratch/remote.git" show main:alpha.md) == 'alpha, repaired' ]] || fail 'the queue did not put the change on main'
+git -C "$scratch/remote.git" cat-file -e main:other.md || fail 'the change is not on top of the moved main'
+[[ $(remote_main) != "$head" ]] || fail 'the fake queue kept the commit names, unlike a rebase merge'
 [[ $(git -C "$scratch/remote.git" rev-list --count --merges main) == 0 ]] || fail 'land keeps history linear'
+[[ $(git -C "$scratch/remote.git" rev-list --count "$before..main") == 2 ]] || fail "the queue keeps the branch's commits, one each"
+! git -C "$scratch/remote.git" show-ref --verify --quiet refs/heads/work/alpha || fail 'the fake queue left the merged branch'
 [[ -d $tree ]] || fail 'land leaves the worktree for done'
+# The commits on main are rebased copies; done still knows the work landed.
 worktree done alpha > "$scratch/output" 2>&1 || fail 'done alpha'
 [[ ! -e $tree ]] || fail 'done removes the worktree'
 ! git -C "$main" show-ref --verify --quiet refs/heads/work/alpha || fail 'done deletes the merged branch'
+
+# done removes a merged branch that GitHub left on the remote.
+touch "$FAKE_QUEUE/keep-branch"
+tree=$(worktree new kept 2> /dev/null)
+printf 'kept\n' > "$tree/kept.md"
+git -C "$tree" add kept.md
+git -C "$tree" commit -qm kept
+worktree land kept --wait > "$scratch/output" 2>&1 || fail 'land kept --wait'
+git -C "$scratch/remote.git" show-ref --verify --quiet refs/heads/work/kept || fail 'the fake queue deleted a branch it was told to keep'
+worktree done kept > "$scratch/output" 2>&1 || fail 'done kept'
+! git -C "$scratch/remote.git" show-ref --verify --quiet refs/heads/work/kept || fail 'done leaves the merged branch on the remote'
+rm "$FAKE_QUEUE/keep-branch"
+
+# Without a queue GitHub refuses, and land names the emergency path, which
+# pushes the checked commit straight to main as a fast-forward.
+touch "$FAKE_QUEUE/no-queue"
+tree=$(worktree new direct 2> /dev/null)
+printf 'direct\n' > "$tree/direct.md"
+git -C "$tree" add direct.md
+git -C "$tree" commit -qm direct
+before=$(remote_main)
+refused 'land without a merge queue' 'did not accept .*land --direct' worktree land direct --wait
+[[ $(remote_main) == "$before" ]] || fail 'a refused landing reached main'
+worktree land direct --direct > "$scratch/output" 2>&1 || fail 'land --direct'
+grep -q 'past the merge queue' "$scratch/output" || fail 'land --direct does not say what it skips'
+[[ $(remote_main) == $(git -C "$tree" rev-parse HEAD) ]] || fail 'land --direct fast-forwards origin main to the branch'
+worktree done direct > "$scratch/output" 2>&1 || fail 'done direct'
+rm "$FAKE_QUEUE/no-queue"
 
 # --force discards a dirty, unlanded worktree.
 tree=$(worktree new beta 2> /dev/null)

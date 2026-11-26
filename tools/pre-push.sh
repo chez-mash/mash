@@ -9,8 +9,14 @@
 #                                     (BASE defaults to origin/main)
 #   tools/pre-push.sh --worktree [BASE]
 #                                     the files on disk, committed or not
-#   tools/pre-push.sh --hook          as Git's pre-push hook, reading the pushed
+#   tools/pre-push.sh --hook [REMOTE URL]
+#                                     as Git's pre-push hook, reading the pushed
 #                                     refs from standard input (.githooks/pre-push)
+#
+# The hook also refuses a push to main of mashhq/mash, which takes changes
+# only through the merge queue (tools/worktree.sh land). GitHub refuses such a
+# push itself, except from an administrator, whom it lets past the rules: the
+# hook is what stops an administrator's stray `git push origin HEAD:main`.
 #
 # The checks judge the commit being pushed, which is what CI will see, not the
 # working tree: a checkout with uncommitted or untracked files is not trusted,
@@ -33,8 +39,18 @@ default_base() {
 if [[ ${1:-} == --hook ]]; then
     # One run of this script per pushed ref, each for its own commit.
     result=0
-    while read -r _ local_sha _ remote_sha; do
+    queued_main=no
+    [[ ! ${3:-} =~ [:/]mashhq/mash(\.git)?/?$ ]] || queued_main=yes
+    while read -r _ local_sha remote_ref remote_sha; do
         [[ -n ${local_sha:-} && $local_sha != "$zero" ]] || continue # a deleted ref
+        # `land --direct` vouches for its commit below; tools/release.sh --direct
+        # sets MASH_PUSH_MAIN.
+        if [[ $queued_main == yes && $remote_ref == refs/heads/main && $local_sha != "${MASH_PRE_PUSH_CHECKED:-}" && -z ${MASH_PUSH_MAIN:-} ]]; then
+            echo 'pre-push: main takes changes only through the merge queue: tools/worktree.sh land NAME --wait' >&2
+            echo '          (an administrator, in an emergency: tools/worktree.sh land NAME --direct)' >&2
+            result=1
+            continue
+        fi
         # `tools/worktree.sh land` has just run these checks for this commit.
         [[ $local_sha != "${MASH_PRE_PUSH_CHECKED:-}" ]] || continue
         if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then

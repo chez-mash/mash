@@ -130,5 +130,18 @@ git -C "$work" push -q --no-verify origin main > "$scratch/output" 2>&1 || fail 
 printf 'export const a = 3;\n' > "$work/dashboard/src/lib/a.ts"
 commit repaired
 git -C "$work" push -q origin main > "$scratch/output" 2>&1 || fail 'the hook passes a repaired change'
+
+# main of the real repository takes changes through the merge queue: the hook
+# refuses any other push there, unless `land --direct` vouches for the commit.
+head=$(git -C "$work" rev-parse HEAD)
+hook() { (cd "$work" && printf 'refs/heads/x %s %s %s\n' "$head" "$1" "$head" | "${@:3}" bash tools/pre-push.sh --hook origin "$2") > "$scratch/output" 2>&1; }
+for url in https://github.com/mashhq/mash.git git@github.com:mashhq/mash https://github.com/mashhq/mash/; do
+    ! hook refs/heads/main "$url" env || fail "the hook lets a push to main of $url through"
+    grep -q 'only through the merge queue' "$scratch/output" || fail 'the refusal does not name the merge queue'
+done
+hook refs/heads/work/x https://github.com/mashhq/mash.git env || fail 'the hook refuses a work branch'
+hook refs/heads/main https://github.com/someone/mash.git env || fail "the hook refuses a fork's main"
+hook refs/heads/main https://github.com/mashhq/mash.git env "MASH_PRE_PUSH_CHECKED=$head" || fail 'the hook refuses the commit land --direct checked'
+hook refs/heads/main https://github.com/mashhq/mash.git env MASH_PUSH_MAIN=1 || fail 'the hook refuses the release script'
 rm -f "$scratch/output"
 echo 'pre-push: ok'
