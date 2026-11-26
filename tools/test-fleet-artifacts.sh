@@ -265,9 +265,12 @@ echo success > "$FAKE_GH/runs/ci.yml/$revision"
 kept="$FAKE_GH/artifacts/77/mash-$linux-$revision"
 archive "$kept" "$linux" fetched
 (cd "$kept" && sha256sum "mash-$linux.tar.gz" > "mash-$linux.tar.gz.sha256")
-# A process started from the installed program before it is replaced.
-cp "$(command -v sleep)" "$installed/mash"
-"$installed/mash" 300 &
+# A process started from the installed program before it is replaced. The
+# stand-in is a copy of bash waiting on a pipe nobody writes to: it runs under
+# any name (a multi-call `sleep` does not) and has no child to outlive it.
+mkfifo "$scratch/hold"
+cp "$(command -v bash)" "$installed/mash"
+"$installed/mash" -c 'read -r -t 300 _ <> "$0"; :' "$scratch/hold" &
 sleeper=$!
 deploy api one || fail 'A deployment from a kept artifact failed.'
 kill "$sleeper" 2>/dev/null || true
@@ -277,7 +280,7 @@ grep -q "Binaries: $linux: using CI build 77" "$scratch/notes"
 jq -se 'any(.[]; .target == "one" and .state == "succeeded")' "$scratch/summary.jsonl" >/dev/null
 # Nothing supervises it as its own unit, so it is listed and left alone
 # (hand-started here; on a CI runner the test itself runs inside a service).
-jq -se --argjson pid "$sleeper" 'any(.[]; .target == "one" and (.stale_processes // [] | any(.pid == $pid and (.state | IN("hand-started", "unit-child", "system-unit")) and .command == "mash")))' \
+jq -se --argjson pid "$sleeper" 'any(.[]; .target == "one" and (.stale_processes // [] | any(.pid == $pid and (.state | IN("hand-started", "unit-child", "system-unit")) and (.command | startswith("mash")))))' \
     "$scratch/summary.jsonl" >/dev/null || fail 'The process on the replaced binary was not listed.'
 ! grep -q '^desktop' "$scratch/actions"
 # A corrupted download stops the deployment before anything is installed.
@@ -359,11 +362,11 @@ list() { PATH="$stale/bin:$PATH" MASH_STALE_PROC_ROOT="$stale/proc" bash "$repos
 # Only where this test is itself hand-started: inside a service (a CI runner)
 # the process would belong to that unit, which is never restarted.
 if [[ $(sed -n 's/^0:://p' /proc/self/cgroup) != *.service ]]; then
-    cp "$(command -v sleep)" "$stale/mash-live"
-    "$stale/mash-live" 300 &
+    cp "$(command -v bash)" "$stale/mash-live"
+    "$stale/mash-live" -c 'read -r -t 300 _ <> "$0"; :' "$scratch/hold" &
     named=$!
     cp "$stale/mash-live" "$stale/mash-live.new" && mv -f "$stale/mash-live.new" "$stale/mash-live"
-    result=$(bash "$repository/tools/restart-stale-processes.sh" --binary "$stale/mash-live" --restart 'mash-live 300' "touch $stale/started-again")
+    result=$(bash "$repository/tools/restart-stale-processes.sh" --binary "$stale/mash-live" --restart 'mash-live -c' "touch $stale/started-again")
     [[ $(cut -f 1-3 <<<"$result") == $'restarted-by-inventory\t'"$named"$'\tinventory' ]] || fail "A named hand-started process was not restarted: $result"
     for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -e "$stale/started-again" ]] && break; sleep 0.2; done
     [[ -e "$stale/started-again" ]] && ! kill -0 "$named" 2>/dev/null
