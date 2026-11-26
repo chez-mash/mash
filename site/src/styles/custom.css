@@ -94,9 +94,7 @@ h4 {
 }
 
 /* Links are ink over a butter rule, in both themes. */
-.sl-markdown-content
-  a:not(:where(.sl-anchor-link, .sl-link-button, .mash-card-link, .not-content *)),
-.mash-link {
+.sl-markdown-content a:not(:where(.sl-anchor-link, .sl-link-button, .not-content *)) {
   color: var(--link);
   font-weight: 500;
   text-decoration: underline;
@@ -104,9 +102,7 @@ h4 {
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
-.sl-markdown-content
-  a:not(:where(.sl-anchor-link, .sl-link-button, .mash-card-link, .not-content *)):hover,
-.mash-link:hover {
+.sl-markdown-content a:not(:where(.sl-anchor-link, .sl-link-button, .not-content *)):hover {
   text-decoration-thickness: 2px;
 }
 .sl-markdown-content strong {

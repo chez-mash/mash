@@ -19,7 +19,6 @@
  *   .eyebrow         a small upper-case label
  *   .stats           numbers in one outlined strip, cells split by ink rules
  *   .mchip           a machine, agent or project on an outlined paper chip
- *   .marks           agent marks in a row, then "+N"
  *   .dash            a quiet dashed rule
  *   .sums > .card.sum  summary cards: tile and name, .big count, .bar, chips
  *   .ico.lg          the 44px icon tile of a detail page's header (.dh)
@@ -29,15 +28,15 @@
  *   .lrow            a plain row in a card list, its note at the end
  *   .kvs             names in a fixed column, values beside them
  *   .card.note       a short note from Mashy
- *   .card.quote      a quoted message on butter, with who said it (.me)
+ *   .card.quote      a quoted message on butter, with who said it
  *   .rev             one revision in a memory's history card
  *   .card.opc        a fleet action; .card.tick a choice with a tick box
  *   .disclose        a fold whose control is a text link
  *   #main.narrow     a detail page at a reading measure (976px)
  *
- * Tables (.rws > .rw with a .rw.head header, the services .matrix), the
- * tool explorer (.mop) and settings rows (.set-a, .set-r) stay in
- * terminal.css beside the older rules they replaced. Interactive controls
+ * Tables (.rws > .rw with a .rw.head header), the tool explorer (.mop) and
+ * settings rows (.set-a) stay in terminal.css beside the older rules they
+ * replaced. Interactive controls
  * (switches, menus, dialogs, tooltips) are the kit in src/lib/components/ui.
  *
  * Pills (.pill), buttons (.btn), filter chips (.chip), agent marks (.mark),
@@ -467,10 +466,6 @@ a.mt.chip:hover {
 .chat-m {
   min-height: 28px;
 }
-.saved-as {
-  font-size: 12.5px;
-  text-align: end;
-}
 /* What was saved from a chat, beside it: a butter card per memory. */
 .card.saved {
   display: flex;
@@ -495,13 +490,6 @@ a.mt.chip:hover {
 }
 .tally {
   font-size: 14px;
-}
-.chatrow.ses {
-  flex-direction: row;
-  font-size: 12.5px;
-}
-.chatrow.ses.on > span {
-  font-weight: var(--weight-strong);
 }
 
 /* ---- Phase two: pages about agents, machines, projects, memory, services,
@@ -616,18 +604,6 @@ a.stats > *:hover,
 }
 .mchip:has(> .mark) {
   padding-left: 3px;
-}
-/* Agent marks in a row, then how many more there are. */
-.marks {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-.marks > small {
-  font-size: 12px;
-  font-weight: var(--weight-strong);
-  color: var(--text-muted);
 }
 /* A quiet dashed rule, as between a card's body and its footer. */
 .dash {
@@ -762,14 +738,6 @@ a.card.sum:hover {
   outline: 0;
   background: transparent;
   color: var(--text-strong);
-}
-/* A count inside a tab or button, quieter than its label. */
-.btn > .c {
-  font: 12.5px var(--type-mono);
-  color: var(--text-muted);
-}
-.btn.sel > .c {
-  color: var(--selected-text);
 }
 
 /* Two columns, the main one wider; one column on a narrow page. */
@@ -924,38 +892,7 @@ a.lrow:hover {
   font-family: var(--type-mono);
   font-size: 0.9em;
 }
-/* One memory in a card list: its pills, the statement in bold, where it came from. */
-.chatrow.mrow {
-  gap: 8px;
-  padding: 14px 18px;
-}
-.chatrow.mrow {
-  position: relative;
-}
 /* The statement is the row's link; it covers the whole row. */
-.chatrow.mrow > a::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-.chatrow.mrow:has(> a:hover) {
-  background: var(--surface-hover);
-}
-.chatrow.mrow > a:focus-visible {
-  outline: 0;
-}
-.chatrow.mrow:has(> a:focus-visible) {
-  outline: 2px solid var(--focus);
-  outline-offset: -4px;
-}
-.chatrow.mrow > a {
-  font-size: 15px;
-  font-weight: var(--weight-strong);
-  line-height: 1.4;
-  color: var(--text-strong);
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
 .mts > .mt > .mark {
   margin-right: 1px;
 }
@@ -1029,19 +966,6 @@ a.lrow:hover {
 }
 .card.quote .a {
   min-height: 24px;
-}
-/* The reader's own initial on a small ink tile. */
-.me {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-tile-sm);
-  background: var(--text-strong);
-  color: var(--surface-page);
-  font-size: 9px;
-  font-weight: var(--weight-strong);
 }
 /* One revision in the history card: a bold line, the date at the end, then
    its details in eyebrow columns. */
@@ -1194,9 +1118,6 @@ a.card.opc:hover {
 .disclose[open] > summary {
   display: inline-block;
   margin-bottom: 6px;
-}
-.kvs.flip {
-  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 /* Inside the pill the agent's logo stands on its own: a tile with its own
