@@ -1,7 +1,7 @@
-# winget installer manifest for the Mash CLI, filled by packaging/render.py.
+# winget installer manifest for the Mash command-line programs, filled by packaging/render.py.
 # The release zip holds two programs; winget puts each on PATH by its alias.
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
-PackageIdentifier: MashHQ.Mash
+PackageIdentifier: MashHQ.Mash.CLI
 PackageVersion: @VERSION@
 InstallerType: zip
 NestedInstallerType: portable

@@ -340,8 +340,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # winget manifests are rendered for a maintainer to submit to
-  # microsoft/winget-pkgs (see packaging/winget/README.md); nothing is
-  # submitted from here.
+  # microsoft/winget-pkgs (see packaging/winget/README.md): MashHQ.Mash, the
+  # desktop app, and MashHQ.Mash.CLI, the command-line programs, each in a
+  # directory of the artifact named for it. Nothing is submitted from here.
   winget:
     needs: publish
     if: ${{ always() && (needs.publish.result == 'success' || inputs.republish) }}
@@ -355,11 +356,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
-          for template in packaging/winget/*.yaml.in; do
-            name=$(basename "$template" .in)
-            python3 packaging/render.py "$TAG" dist/SHA256SUMS "$template" "winget-manifests/$name"
+          python3 packaging/render.py --winget "$TAG" dist/SHA256SUMS winget-manifests
+          for manifest in winget-manifests/*/*.yaml; do
+            echo "::group::$manifest"
+            cat "$manifest"
+            echo '::endgroup::'
           done
-          cat winget-manifests/*
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: winget-manifests

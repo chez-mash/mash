@@ -255,11 +255,17 @@ manifests="$output/$tag-winget-manifests"
 rm -rf "$manifests"
 if "$gh" run download "$release_run" --repo "$repo" --name winget-manifests --dir "$manifests" >/dev/null 2>&1; then
     winget="Manifests: $manifests
-  On Windows, with winget and wingetcreate (packaging/winget/README.md):
-    winget validate --manifest $tag-winget-manifests
-    wingetcreate submit $tag-winget-manifests
-  Or by hand: copy them to manifests/m/MashHQ/Mash/$version/ in a fork of
-  microsoft/winget-pkgs and open a pull request titled \"New version: MashHQ.Mash version $version\"."
+  Two packages, each in its own directory: MashHQ.Mash (the desktop app) and
+  MashHQ.Mash.CLI (the command-line programs). Check release-check.yml's
+  winget job for $tag first. On Windows, with winget and wingetcreate
+  (packaging/winget/README.md), for each of the two:
+    winget validate --manifest $tag-winget-manifests\\MashHQ.Mash
+    wingetcreate submit $tag-winget-manifests\\MashHQ.Mash
+    winget validate --manifest $tag-winget-manifests\\MashHQ.Mash.CLI
+    wingetcreate submit $tag-winget-manifests\\MashHQ.Mash.CLI
+  Or by hand, in a fork of microsoft/winget-pkgs, one pull request each:
+    MashHQ.Mash/      to manifests/m/MashHQ/Mash/$version/        \"New version: MashHQ.Mash version $version\"
+    MashHQ.Mash.CLI/  to manifests/m/MashHQ/Mash/CLI/$version/    \"New version: MashHQ.Mash.CLI version $version\""
 else
     winget="The winget-manifests artifact of run $release_run could not be downloaded; get it with:
     gh run download $release_run --repo $repo --name winget-manifests --dir $manifests"

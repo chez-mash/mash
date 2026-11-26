@@ -45,7 +45,11 @@ while [[ $# -gt 0 ]]; do
 done
 case "$area $action" in
     'run list') cat "$FAKE_GH/runs/$workflow/$commit" 2>/dev/null || echo 'none  ' ;;
-    'run download') mkdir -p "$directory"; echo "PackageVersion: fixture" > "$directory/MashHQ.Mash.yaml" ;;
+    'run download')
+        for package in MashHQ.Mash MashHQ.Mash.CLI; do
+            mkdir -p "$directory/$package"
+            echo "PackageVersion: fixture" > "$directory/$package/$package.yaml"
+        done ;;
     'release download')
         for archive in mash-x86_64-pc-windows-msvc.zip mash-aarch64-pc-windows-msvc.zip; do
             printf '%064d  %s\n' 7 "$archive"
@@ -164,7 +168,11 @@ grep -q "Scoop: The bucket on main is at $next" "$scratch/output" || fail 'the r
 scoop=$(remote main)
 grep -q "gh release edit v$next --repo mashhq/mash --notes-file $scratch/out/v$next-notes.md" "$scratch/output" || fail 'no command to publish the notes'
 grep -q -- '- Explain the fixture in the README' "$scratch/out/v$next-notes.md" || fail 'no notes draft'
-[[ -f "$scratch/out/v$next-winget-manifests/MashHQ.Mash.yaml" ]] && grep -q 'wingetcreate submit' "$scratch/output" || fail 'no winget manifests or steps'
+for package in MashHQ.Mash MashHQ.Mash.CLI; do
+    [[ -f "$scratch/out/v$next-winget-manifests/$package/$package.yaml" ]] || fail "no winget manifests for $package"
+    grep -q "wingetcreate submit v$next-winget-manifests.$package\$" "$scratch/output" || fail "no winget steps for $package"
+done
+grep -q "manifests/m/MashHQ/Mash/CLI/$next/ " "$scratch/output" || fail 'no winget-pkgs path for the command-line package'
 grep -q 'run download 5 ' "$scratch/calls" || fail 'the winget manifests did not come from the release run'
 ! grep -q 'release edit\|release create' "$scratch/calls" || fail 'the script published notes itself'
 refused 'released twice' 'already exists' release "$next"

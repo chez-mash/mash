@@ -176,22 +176,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
-          for template in packaging/winget/*.yaml.in; do
-            name=$(basename "$template" .in)
-            python3 packaging/render.py "$TAG" dist/SHA256SUMS "$template" "winget-manifests/$name"
+          python3 packaging/render.py --winget "$TAG" dist/SHA256SUMS winget-manifests
+          for manifest in winget-manifests/*/*.yaml; do
+            echo "::group::$manifest"
+            cat "$manifest"
+            echo '::endgroup::'
           done
-          cat winget-manifests/*
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: winget-manifests
           path: winget-manifests
           if-no-files-found: error
 
-  # Installs the package with winget itself from those manifests, on x64 and
-  # on ARM64, the way Microsoft's validation of a submission does. Every
-  # winget command has its own time limit, so one that never returns fails
-  # with the processes it left running and winget's logs, not with a
-  # cancelled job.
+  # Installs both packages with winget itself from those manifests, on x64
+  # and on ARM64, the way Microsoft's validation of a submission does:
+  # MashHQ.Mash, the desktop app's installer, then MashHQ.Mash.CLI, the
+  # command-line programs. Every winget command has its own time limit, so
+  # one that never returns fails with the processes it left running and
+  # winget's logs, not with a cancelled job.
   winget:
     needs: winget-manifests
     strategy:
@@ -204,7 +206,8 @@ jobs:
       run:
         shell: pwsh
     env:
-      MANIFESTS: ${{ github.workspace }}\winget-manifests
+      APP_MANIFESTS: ${{ github.workspace }}\winget-manifests\MashHQ.Mash
+      CLI_MANIFESTS: ${{ github.workspace }}\winget-manifests\MashHQ.Mash.CLI
     steps:
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -218,7 +221,7 @@ jobs:
           @'
           $ErrorActionPreference = 'Stop'
           function Invoke-Winget {
-              param([Parameter(Mandatory)] [string[]] $Arguments, [int] $Minutes = 12)
+              param([Parameter(Mandatory)] [string[]] $Arguments, [int] $Minutes = 12, [string] $About = '')
               $output = Join-Path $env:RUNNER_TEMP ('winget-' + [Guid]::NewGuid().ToString('N'))
               $started = Get-Date
               $process = Start-Process -FilePath (Get-Command winget.exe).Source -ArgumentList $Arguments -NoNewWindow -PassThru `
@@ -227,7 +230,7 @@ jobs:
               $finished = $process.WaitForExit($Minutes * 60 * 1000)
               $seconds = [int] ((Get-Date) - $started).TotalSeconds
               Get-Content -LiteralPath "$output.out", "$output.err" | Where-Object { $_.Trim() }
-              $command = "winget $($Arguments[0])"
+              $command = "winget $($Arguments[0])$(if ($About) { " ($About)" })"
               if (-not $finished) {
                   "| $command | still running after $Minutes minutes |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
                   Write-Host "::group::Processes started since $command began"
@@ -248,6 +251,53 @@ jobs:
           function Get-FreshPath {
               @([Environment]::GetEnvironmentVariable('PATH', 'Machine'), [Environment]::GetEnvironmentVariable('PATH', 'User')) -join ';'
           }
+          # The first value a manifest gives a field.
+          function Get-ManifestValue {
+              param([Parameter(Mandatory)] [string] $Path, [Parameter(Mandatory)] [string] $Name)
+              $line = Select-String -LiteralPath $Path -Pattern "^\s*(?:- )?${Name}:\s*(.+?)\s*$" | Select-Object -First 1
+              if (-not $line) { throw "$Path has no $Name." }
+              $line.Matches[0].Groups[1].Value
+          }
+          # What Windows lists under Installed apps for the desktop app: every
+          # Uninstall key, for the user or the machine, that names Mash.
+          function Get-AppRegistration {
+              Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                  'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                  'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
+                  Where-Object { $_.PSChildName -like '*Mash*' -or $_.DisplayName -like '*Mash*' }
+          }
+          # Everything the app's installer puts on the machine outside its
+          # own directory: shortcuts and the mash:// link handler.
+          function Get-AppTraces {
+              @(
+                  Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs", "$env:ProgramData\Microsoft\Windows\Start Menu\Programs",
+                      ([Environment]::GetFolderPath('Desktop')), "$env:PUBLIC\Desktop" -Recurse -Filter 'Mash*' -ErrorAction SilentlyContinue |
+                      ForEach-Object FullName
+                  Get-Item 'HKCU:\Software\Classes\mash', 'HKLM:\SOFTWARE\Classes\mash' -ErrorAction SilentlyContinue | ForEach-Object Name
+              )
+          }
+          # PE machine type of a program: 8664 is x64, AA64 is ARM64.
+          function Get-Machine {
+              param([Parameter(Mandatory)] [string] $Path)
+              $bytes = [IO.File]::ReadAllBytes($Path)
+              '{0:X4}' -f [BitConverter]::ToUInt16($bytes, [BitConverter]::ToInt32($bytes, 0x3c) + 4)
+          }
+          # An NSIS uninstaller finishes in a copy of itself after winget's
+          # command returns, so what it removes is waited for.
+          function Assert-AppRemoved {
+              param([string] $Directory)
+              foreach ($attempt in 1..60) {
+                  $left = @(
+                      Get-AppRegistration | ForEach-Object PSPath
+                      Get-AppTraces
+                      if ($Directory -and (Test-Path -LiteralPath $Directory)) { $Directory }
+                  )
+                  if (-not $left) { Write-Host "Nothing of the app is left (checked after $($attempt * 2 - 2)s)."; return }
+                  Start-Sleep -Seconds 2
+              }
+              if ($Directory -and (Test-Path -LiteralPath $Directory)) { Get-ChildItem -LiteralPath $Directory -Recurse -Force | ForEach-Object FullName }
+              throw "winget uninstall left: $($left -join ', ')"
+          }
           '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
           if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
@@ -265,8 +315,8 @@ jobs:
           "### winget on $env:RUNNER_OS $env:RUNNER_ARCH`n`n| Step | Result |`n|---|---|" |
               Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           Invoke-Winget -Arguments '--info' -Minutes 5
-          # Whether the Visual C++ runtime the manifest depends on is already
-          # here decides if the install below also has to install it.
+          # Whether the Visual C++ runtime both manifests depend on is already
+          # here decides if the installs below also have to install it.
           Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\*',
               'HKLM:\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\*' -ErrorAction SilentlyContinue |
               Format-Table PSChildName, Version, Installed, PSParentPath -AutoSize | Out-String -Width 300
@@ -275,14 +325,94 @@ jobs:
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
           Invoke-Winget -Arguments 'settings', '--enable', 'LocalManifestFiles' -Minutes 5
-          Invoke-Winget -Arguments 'validate', '--manifest', $env:MANIFESTS -Minutes 5
-      - name: Install with winget
+          Invoke-Winget -Arguments 'validate', '--manifest', $env:APP_MANIFESTS -Minutes 5 -About 'app'
+          Invoke-Winget -Arguments 'validate', '--manifest', $env:CLI_MANIFESTS -Minutes 5 -About 'command line'
+      - name: Install the app with winget
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          Invoke-Winget -Arguments 'install', '--manifest', $env:MANIFESTS, '--accept-package-agreements',
-              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs'
-      - name: Run it from a new shell
+          $before = @(Get-AppRegistration | ForEach-Object PSPath) + @(Get-AppTraces)
+          if ($before) { throw "This runner already has: $($before -join ', ')" }
+          Invoke-Winget -Arguments 'install', '--manifest', $env:APP_MANIFESTS, '--accept-package-agreements',
+              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs' -About 'app, silent'
+      - name: Check the installed app
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          $version = $env:TAG.TrimStart('v')
+          $machine = if ($env:RUNNER_ARCH -eq 'ARM64') { 'AA64' } else { '8664' }
+          $manifest = Join-Path $env:APP_MANIFESTS 'MashHQ.Mash.installer.yaml'
+          # What the installer registered, in full: the manifest's
+          # ProductCode and AppsAndFeaturesEntries must say the same, or
+          # winget cannot tell that the package is installed or upgrade it.
+          $registered = @(Get-AppRegistration)
+          $registered | Format-List * | Out-String -Width 300
+          if ($registered.Count -ne 1) { throw "Expected one Uninstall key for the app, found $($registered.Count)." }
+          $entry = $registered[0]
+          $expected = [ordered] @{
+            PSChildName    = Get-ManifestValue $manifest 'ProductCode'
+            DisplayName    = Get-ManifestValue $manifest 'DisplayName'
+            Publisher      = Get-ManifestValue $manifest 'Publisher'
+            DisplayVersion = $version
+          }
+          foreach ($name in $expected.Keys) {
+            if ($entry.$name -cne $expected[$name]) { throw "The installer registered $name '$($entry.$name)'; the manifest says '$($expected[$name])'." }
+          }
+          # Scope: user in the manifest.
+          if ($entry.PSPath -notmatch 'HKEY_CURRENT_USER') { throw "The installer registered itself for the machine: $($entry.PSPath)" }
+          "| app registration | key $($entry.PSChildName), DisplayName $($entry.DisplayName), Publisher $($entry.Publisher), DisplayVersion $($entry.DisplayVersion), per user |" |
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+          $directory = $entry.InstallLocation.Trim('"')
+          Get-ChildItem -LiteralPath $directory -Recurse | Format-Table Length, FullName -AutoSize | Out-String -Width 300
+          foreach ($name in 'mash-desktop.exe', 'mash.exe', 'uninstall.exe') {
+            if (-not (Test-Path -LiteralPath (Join-Path $directory $name))) { throw "$directory has no $name." }
+          }
+          # winget must have chosen the installer for this machine.
+          foreach ($name in 'mash-desktop.exe', 'mash.exe') {
+            $built = Get-Machine (Join-Path $directory $name)
+            if ($built -ne $machine) { throw "$name is built for machine $built; this runner needs $machine." }
+          }
+          # The engine the app runs is the release's own.
+          $reported = (& (Join-Path $directory 'mash.exe') --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $reported -ne "mash $version") { throw "unexpected version from the app's engine: '$reported' (exit $LASTEXITCODE)" }
+          "| app files | $directory, machine $machine, engine reports $reported |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Host "Outside its directory: $((Get-AppTraces) -join ', ')"
+          # A silent install must not leave the app or its engine running.
+          Get-Process -Name 'mash*' -ErrorAction SilentlyContinue | Format-Table Id, Name, Path -AutoSize | Out-String -Width 300
+
+          # Installed from a local manifest, the package is listed under an
+          # identifier of its own and not as MashHQ.Mash from a source.
+          $listed = Invoke-Winget -Arguments 'list', '--query', 'Mash', '--disable-interactivity' -Minutes 5
+          $listed
+          if (-not ($listed -match "Mash\s+\S*Mash\s+$([regex]::Escape($version))(\s|$)")) { throw "winget list does not show Mash $version." }
+          "APP_DIRECTORY=$directory" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Uninstall the app with winget
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:APP_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'app'
+          Assert-AppRemoved -Directory $env:APP_DIRECTORY
+      # Without --silent winget passes the manifest's SilentWithProgress
+      # switch, which is what `winget install MashHQ.Mash` does for a user.
+      - name: Install the app showing progress, then uninstall it
+        timeout-minutes: 30
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'install', '--manifest', $env:APP_MANIFESTS, '--accept-package-agreements',
+              '--accept-source-agreements', '--disable-interactivity', '--verbose-logs' -About 'app, with progress'
+          $entry = @(Get-AppRegistration)
+          if ($entry.Count -ne 1 -or $entry[0].DisplayVersion -ne $env:TAG.TrimStart('v')) { throw 'The app is not registered after an install with progress.' }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:APP_DIRECTORY 'mash-desktop.exe'))) { throw "$env:APP_DIRECTORY has no mash-desktop.exe." }
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:APP_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'app'
+          Assert-AppRemoved -Directory $env:APP_DIRECTORY
+      - name: Install the command line with winget
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'install', '--manifest', $env:CLI_MANIFESTS, '--accept-package-agreements',
+              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs' -About 'command line'
+      - name: Run the command line from a new shell
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
@@ -299,19 +429,20 @@ jobs:
             $reported = (& $command.Source --version | Out-String).Trim()
             if ($LASTEXITCODE -ne 0 -or $reported -ne "$name $version") { throw "unexpected version from ${name}: '$reported' (exit $LASTEXITCODE)" }
             # winget must have chosen the installer for this machine.
-            $bytes = [IO.File]::ReadAllBytes($command.Source)
-            $built = '{0:X4}' -f [BitConverter]::ToUInt16($bytes, [BitConverter]::ToInt32($bytes, 0x3c) + 4)
+            $built = Get-Machine $command.Source
             if ($built -ne $machine) { throw "$name is built for machine $built; this runner needs $machine." }
             "| $name --version | $reported, machine $built, $($command.Source) |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
           # Installed from a local manifest, the package is listed under an
-          # identifier of its own and not as MashHQ.Mash from a source.
-          Invoke-Winget -Arguments 'list', '--query', 'Mash', '--disable-interactivity' -Minutes 5
-      - name: Uninstall with winget
+          # identifier of its own and not as MashHQ.Mash.CLI from a source.
+          $listed = Invoke-Winget -Arguments 'list', '--query', 'Mash', '--disable-interactivity' -Minutes 5
+          $listed
+          if (-not ($listed -match "Mash CLI\s+.*\s$([regex]::Escape($version))(\s|$)")) { throw "winget list does not show Mash CLI $version." }
+      - name: Uninstall the command line with winget
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs'
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:CLI_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'command line'
           $env:PATH = Get-FreshPath
           $left = Get-Command mash.exe, mash-server.exe -CommandType Application -ErrorAction SilentlyContinue
           if ($left) { throw "winget uninstall left $($left.Source -join ', ') on PATH." }
