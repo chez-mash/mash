@@ -50,7 +50,9 @@ function walk(root, found) {
 }
 
 function inputs() {
-  const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 1 << 28 })
+  // The Linux builds run as root in a container on a checkout the runner's
+  // user owns, which Git refuses to read unless told the directory is safe.
+  const tracked = execFileSync('git', ['-c', 'safe.directory=*', 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 1 << 28 })
     .split('\0')
     .filter(Boolean);
   const found = [];

@@ -144,8 +144,10 @@ jobs:
       # Cargo compares file times, and a checkout stamps every file with now.
       # Files whose content is what the cached crates were compiled from get
       # their old time back, so only what this commit changed is compiled.
+      # The cache steps never fail a build: without them it only takes longer.
       - name: Mark the files that have not changed since the cached build
         if: inputs.cache
+        continue-on-error: true
         run: node .github/scripts/build-inputs.mjs restore target/build-inputs.json
       - name: Build
         env:
@@ -171,10 +173,13 @@ jobs:
       # Saved once the binaries have passed the smoke check, under this
       # commit's name, so a run for the same commit restores exactly this.
       - name: Record the files this build was compiled from
+        id: record
         if: inputs.cache && github.ref == 'refs/heads/main'
+        continue-on-error: true
         run: node .github/scripts/build-inputs.mjs save target/build-inputs.json
       - name: Save this repository's compiled crates
-        if: inputs.cache && github.ref == 'refs/heads/main'
+        if: steps.record.outcome == 'success'
+        continue-on-error: true
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ env.WORKSPACE_CRATES }}

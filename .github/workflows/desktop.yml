@@ -136,6 +136,7 @@ jobs:
           pnpm build
       - name: Mark the files that have not changed since the cached build
         if: runner.os != 'Linux'
+        continue-on-error: true
         run: node .github/scripts/build-inputs.mjs restore target/build-inputs.json
       - name: Build the engine
         env:
