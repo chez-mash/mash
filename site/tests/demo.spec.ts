@@ -249,7 +249,7 @@ test("the Japanese dashboard guide leads to a downloadable sample chat", async (
     .click();
   await page.getByRole("button", { name: "Export", exact: true }).click();
   const downloaded = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export to Markdown", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Export to Markdown", exact: true }).click();
   const markdown = await downloaded;
   expect(markdown.suggestedFilename()).toMatch(/\.md$/);
   expect(await readFile(await markdown.path(), "utf8")).toContain(
