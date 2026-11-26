@@ -5,7 +5,9 @@
 #   install    install silently; the copy and its PATH entry are there
 #   probe      `mash` runs from cmd, from PowerShell, and when started with no
 #              shell at all, which is how an agent starts `mash mcp`
-#   uninstall  uninstall silently; the copy, its folder and the entry are gone
+#   uninstall  uninstall with the registered quiet uninstall command, as
+#              `winget uninstall --silent` does; the copy, its folder and the
+#              entry are gone
 #   gone       `mash` is no longer found
 #
 # probe and gone use this process's PATH, so run them in a new session; with
@@ -66,6 +68,9 @@ switch ($Step) {
         $path = User-Path
         if (-not (Has-Folder $path (Join-Path $app 'bin'))) { Fail "the user's PATH does not name $app\bin: $path" }
         Pass "the user's PATH ends with $(($path -split ';' | Where-Object { $_ })[-1])"
+        $quiet = (Get-ItemProperty -LiteralPath $uninstallKey).QuietUninstallString
+        if ($quiet -ne "`"$app\uninstall.exe`" /S") { Fail "the quiet uninstall command is '$quiet'" }
+        Pass "the quiet uninstall command is $quiet"
     }
     'probe' {
         Write-Output "PATH: $env:Path"
@@ -130,11 +135,13 @@ setTimeout(() => { console.log('no answer within 60 seconds'); child.kill(); pro
     }
     'uninstall' {
         $app = App-Folder
-        $uninstaller = Join-Path $app 'uninstall.exe'
-        if (-not (Test-Path -LiteralPath $uninstaller)) { Fail "no uninstaller at $uninstaller" }
+        # What winget uninstall --silent runs: the quiet uninstall command.
+        $quiet = (Get-ItemProperty -LiteralPath $uninstallKey).QuietUninstallString
+        if (-not $quiet) { Fail 'no quiet uninstall command is registered' }
         # The uninstaller copies itself away and returns at once, so wait for
         # what it removes.
-        Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait
+        if ($quiet -notmatch '^"([^"]+)"\s+(.+)$') { Fail "the quiet uninstall command is not a quoted program and its arguments: $quiet" }
+        Start-Process -FilePath $Matches[1] -ArgumentList $Matches[2] -Wait
         $deadline = (Get-Date).AddSeconds(120)
         while ((Test-Path -LiteralPath $uninstallKey) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 1 }
         if (Test-Path -LiteralPath $uninstallKey) { Fail 'the uninstaller did not finish within two minutes' }

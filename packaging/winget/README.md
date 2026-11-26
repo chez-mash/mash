@@ -62,12 +62,14 @@ older "Open File - Security Warning" does not take its place; without that the
 install waits forever. The command line's package is a zip that winget
 unpacks itself, so it is not stopped this way.
 
-`winget uninstall MashHQ.Mash` opens the uninstaller's window even with
-`--silent`: winget runs the `QuietUninstallString` the installer registers,
-and v0.3.0's installer registers only `UninstallString`, so winget runs that
-without `/S`. Until the installer writes a quiet string, the `winget` job runs
-the registered uninstaller with `/S` itself and says so in its summary; once
-it does, the job uninstalls with winget.
+`winget uninstall MashHQ.Mash --silent` runs the `QuietUninstallString` the
+installer registers. Installers up to v0.3.0 register only `UninstallString`,
+so winget runs that without `/S` and the uninstaller's window waits for a
+click. Later installers also register `"<install folder>\uninstall.exe" /S`
+as the quiet string (`desktop/src-tauri/windows/hooks.nsh`). For a release
+whose installer registers none, the `winget` job runs the registered
+uninstaller with `/S` itself and says so in its summary; once one does, the
+job uninstalls with winget.
 
 The first submission of a package creates it; later ones only add a version
 directory.

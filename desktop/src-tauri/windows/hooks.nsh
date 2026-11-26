@@ -8,7 +8,13 @@
 ; end of the user's PATH. The app does nothing when the person removed the
 ; command with Install Command-Line Tool…. A failure never fails the install;
 ; the same menu item puts the command in place later.
+;
+; Also register the silent uninstall command beside Tauri's UninstallString
+; (written to the same key just before this hook), which `winget uninstall
+; --silent` and other tools run; the uninstaller deletes the key, value and
+; all.
 !macro NSIS_HOOK_POSTINSTALL
+  WriteRegStr SHCTX "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
   ExecWait '"$INSTDIR\${MAINBINARYNAME}.exe" --command-line-tool installed' $0
 !macroend
 
