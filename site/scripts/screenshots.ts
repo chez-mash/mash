@@ -63,11 +63,9 @@ const shots: readonly Shot[] = [
     withoutRail: true,
   },
   { name: "agents", route: "#/agents", height: 480, withoutRail: true },
-  { name: "machines", route: "#/machines", height: 400, withoutRail: true },
   { name: "export", route: "#/export", height: 640, withoutRail: true },
   { name: "settings", route: "#/settings", height: 640, withoutRail: true },
   { name: "services", route: "#/services", height: 820, withoutRail: true },
-  { name: "tools", route: "#/console", height: 600, withoutRail: true },
 ];
 
 /** The rail's usual width and the top bar's height, added to a picture that
