@@ -63,6 +63,24 @@ install_dependencies() {
     done
 }
 
+# Git ignores the agent skills and the Claude settings, so a new worktree has
+# neither. Link them to the main checkout's copies, which stay the one place
+# they are edited. `.claude` is ignored only as a directory, so the link is
+# also named in the clone's own exclude file to keep the worktree clean.
+link_ignored() {
+    local exclude
+    if [[ -d $main_checkout/.agents/skills && ! -e $tree/.agents/skills ]]; then
+        mkdir -p "$tree/.agents"
+        ln -s "$main_checkout/.agents/skills" "$tree/.agents/skills"
+    fi
+    if [[ -d $main_checkout/.claude && ! -e $tree/.claude ]]; then
+        exclude=$(repo rev-parse --path-format=absolute --git-common-dir)/info/exclude
+        mkdir -p "$(dirname "$exclude")"
+        grep -qxF '/.claude' "$exclude" 2> /dev/null || printf '/.claude\n' >> "$exclude"
+        ln -s "$main_checkout/.claude" "$tree/.claude"
+    fi
+}
+
 command_new() {
     local deps='' arguments=()
     while [[ $# -gt 0 ]]; do
@@ -84,6 +102,7 @@ command_new() {
     # No upstream: the branch lands on main through `land` or a pull request,
     # and a bare `git push` must not guess either.
     repo worktree add --quiet --no-track -b "$branch" "$tree" "$base" >&2
+    link_ignored
     [[ -z $deps ]] || install_dependencies "$deps"
     say "Created $tree on $branch from $base ($(git -C "$tree" rev-parse --short HEAD))."
     [[ -n $deps ]] || say 'Front-end checks need node_modules here: rerun with --deps dashboard,site,raycast or install in the package you touch.'
@@ -92,6 +111,7 @@ command_new() {
     # compiled dependencies without any per-worktree Cargo configuration.
     say 'Rust: make iterate, dev-build and validate-dev share the Makefile'"'"'s DEV_TARGET_DIR across worktrees (one build at a time);'
     say '      its debug/mash is the last worktree'"'"'s build, so pass DEV_TARGET_DIR=... to keep a binary of your own.'
+    say "Skills (.agents/skills, .claude) are links to the main checkout. Beads lives there too: (cd $main_checkout && bd ready)"
     say "When the work is committed: tools/worktree.sh land $name   (or: pr $name), then: done $name"
     printf '%s\n' "$tree"
 }

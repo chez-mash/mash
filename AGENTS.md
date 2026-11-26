@@ -441,7 +441,9 @@ Do not treat a unit-only run as evidence for integration behavior or full accept
 
 ## Git
 
-Work on and push `main`; it is the repository's sole development branch.
+`main` is the repository's only long-lived branch. Work happens on short-lived
+`work/<name>` branches in their own worktrees and lands on `main` by
+fast-forward or a pull request; see Working in parallel.
 
 ## Working in parallel
 

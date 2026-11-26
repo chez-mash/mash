@@ -32,6 +32,12 @@ cp "$repository/tools/worktree.sh" "$repository/tools/pre-push.sh" "$repository/
 cp "$repository/.githooks/pre-push" "$main/.githooks/"
 : > "$main/tools/file-lines-baseline.txt"
 printf 'one\n' > "$main/notes.md"
+# Ignored in the real repository: the agent skills and the Claude settings.
+mkdir -p "$main/.agents/skills/example" "$main/.agents/plugins" "$main/.claude"
+printf 'skill\n' > "$main/.agents/skills/example/SKILL.md"
+printf '{}\n' > "$main/.agents/plugins/marketplace.json"
+printf '{}\n' > "$main/.claude/settings.json"
+printf '/.agents/*\n!/.agents/plugins/\n/.claude/\n' > "$main/.gitignore"
 git -C "$main" add -A
 git -C "$main" commit -qm fixture
 git -C "$main" remote add origin "$scratch/remote.git"
@@ -45,6 +51,10 @@ tree=$(worktree new alpha 2> "$scratch/output") || fail 'new alpha'
 [[ $(git -C "$tree" rev-parse --abbrev-ref HEAD) == work/alpha ]] || fail 'new creates branch work/alpha'
 [[ $(git -C "$tree" rev-parse HEAD) == $(remote_main) ]] || fail 'new starts from origin/main'
 grep -q DEV_TARGET_DIR "$scratch/output" || fail 'new explains the shared Cargo target'
+[[ -L $tree/.agents/skills && -f $tree/.agents/skills/example/SKILL.md ]] || fail 'new links the skills from the main checkout'
+[[ -L $tree/.claude && -f $tree/.claude/settings.json ]] || fail 'new links .claude from the main checkout'
+[[ -z $(git -C "$tree" status --porcelain) ]] || fail 'the links leave the new worktree clean'
+grep -q 'bd ready' "$scratch/output" || fail 'new says where to run bd'
 refused 'a second worktree of the same name' 'already exists' worktree new alpha
 worktree list | grep -q 'work/alpha' || fail 'list shows the worktree'
 
