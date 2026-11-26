@@ -1,7 +1,7 @@
 name: Visual baselines
 
-# Compares the dashboard's main pages with their committed pictures
-# (dashboard/visual/baselines), in the same Playwright container image the
+# Compares the dashboard's main pages and its Storybook stories with their
+# committed pictures (dashboard/visual/baselines), in the same Playwright container image the
 # pictures were taken in. It runs only when the dashboard changed since this
 # workflow last passed (see tools/ci_changes.py); the workflow itself always
 # runs. The site's pages are compared by the Documentation workflow. See
@@ -40,7 +40,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.dashboard == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4

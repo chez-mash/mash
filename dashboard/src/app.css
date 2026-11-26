@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Stories are not part of the dashboard: a utility class only a story uses
+   must not add a rule to the stylesheet the dashboard ships. A story lays
+   itself out with scoped styles. */
+@source not "./**/*.stories.svelte";
+@source not "./stories";
+
 /* Tailwind's names for the theme's roles. The values live only in
    src/theme/tokens.css; this file maps names onto them and clears Tailwind's
    own palette, so a utility class cannot bring in a colour of its own. */

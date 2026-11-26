@@ -22,6 +22,7 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.svelte",
+    ".storybook/*.ts",
     "e2e/**/*.ts",
     "visual/**/*.ts",
     "vite.config.ts",

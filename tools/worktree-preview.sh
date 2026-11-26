@@ -3,12 +3,13 @@
 # another device on the tailnet seconds after it is made. `tools/worktree.sh`
 # runs this file; use it through that command:
 #
-#   tools/worktree.sh preview NAME [--site] [--real] [--local] [--stop]
+#   tools/worktree.sh preview NAME [--site|--storybook] [--real] [--local] [--stop]
 #   tools/worktree.sh previews
 #
 # A preview is the package's own dev server (Vite for the dashboard, Astro
-# for the website), started from the worktree as a transient user unit
-# `mash-preview-NAME[-site]` with a memory cap, so it outlives the shell that
+# for the website, Storybook for the dashboard's stories), started from the
+# worktree as a transient user unit `mash-preview-NAME[-site|-storybook]`
+# with a memory cap, so it outlives the shell that
 # started it and stops with one command. It listens on this machine's
 # Tailscale address only, never on every interface, and `--local` uses
 # 127.0.0.1 instead. Its port is chosen from the worktree's name inside a
@@ -28,17 +29,14 @@ die() { say "preview: $*"; exit 1; }
 
 state=${MASH_PREVIEW_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/mash/previews}
 memory_cap=${MASH_PREVIEW_MEMORY_MAX:-1500M}
+# Storybook's dev server holds the stories' bundle as well as its own page.
+storybook_memory_cap=${MASH_PREVIEW_MEMORY_MAX:-2500M}
 # One hundred ports for each kind of preview.
 dashboard_ports=5200
 site_ports=5300
+# Storybook's first port is also where main's built Storybook is served
+# (tools/storybook-serve.sh); a preview finds it taken and uses the next.
 storybook_ports=5400
-
-# STORYBOOK HOOK: Storybook does not exist in this repository yet. When it
-# does, start it here the way the dashboard is started, in storybook_ports
-# under the unit mash-preview-NAME-storybook, and remove this refusal.
-storybook_missing() {
-    die "Storybook is not set up yet; ports $storybook_ports-$((storybook_ports + 99)) are reserved for its previews"
-}
 
 unit_for() { # NAME KIND
     if [[ $2 == dashboard ]]; then printf 'mash-preview-%s\n' "$1"; else printf 'mash-preview-%s-%s\n' "$1" "$2"; fi
@@ -129,7 +127,7 @@ real_dashboard() {
 
 start() { # NAME TREE KIND DATA BIND
     local name=$1 tree=$2 kind=$3 data=$4 bind=$5
-    local unit package first path='/' host dns='' port log script url waited=0
+    local unit package first path='/' host dns='' port log script url waited=0 cap=$memory_cap
     unit=$(unit_for "$name" "$kind")
     [[ -d $tree ]] || die "no worktree at $tree; see tools/worktree.sh list"
     mkdir -p "$state"
@@ -143,6 +141,7 @@ start() { # NAME TREE KIND DATA BIND
     case "$kind" in
         dashboard) package=dashboard first=$dashboard_ports ;;
         site) package=site first=$site_ports ;;
+        storybook) package=dashboard first=$storybook_ports cap=$storybook_memory_cap ;;
         *) die "unknown kind $kind" ;;
     esac
     command -v systemd-run > /dev/null || die 'systemd-run is needed to keep a preview running; this is a Linux tool'
@@ -163,7 +162,7 @@ start() { # NAME TREE KIND DATA BIND
     # protects against DNS rebinding. The address itself always passes; the
     # MagicDNS name is added for this run only, from outside the committed
     # configuration: Vite reads the variable and Astro takes a flag.
-    local properties=(--property "MemoryMax=$memory_cap" --property MemorySwapMax=0
+    local properties=(--property "MemoryMax=$cap" --property MemorySwapMax=0
         --property "WorkingDirectory=$tree/$package"
         --property "StandardOutput=append:$log" --property "StandardError=append:$log"
         --setenv "PATH=$PATH" --setenv "HOME=$HOME")
@@ -180,6 +179,13 @@ start() { # NAME TREE KIND DATA BIND
             script=dev:demo
             path=/demo/
         fi
+    elif [[ $kind == storybook ]]; then
+        # Storybook checks the Host header itself, and so does the Vite
+        # server it runs for the stories; each is told the name its own way
+        # (dashboard/.storybook/main.ts reads the first).
+        script=storybook
+        arguments+=(--exact-port)
+        [[ -z $dns ]] || properties+=(--setenv "MASH_STORYBOOK_HOSTS=$dns" --setenv "__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=$dns")
     else
         script=dev
         [[ -z $dns ]] || arguments+=(--allowed-hosts "$dns")
@@ -196,7 +202,7 @@ start() { # NAME TREE KIND DATA BIND
         [[ $waited -lt ${MASH_PREVIEW_WAIT:-120} ]] || { say "Started $unit, but it does not answer yet; watch $log"; break; }
         sleep 0.5
     done
-    say "Started the $kind preview of $name as $unit ($data, at most $memory_cap of memory, log $log)."
+    say "Started the $kind preview of $name as $unit ($data, at most $cap of memory, log $log)."
     if [[ $data == real && $bind != local ]]; then
         say "REAL HISTORY: this preview reads $real_target. Anyone on the tailnet who opens the address can read"
         say 'this machine'"'"'s real chat history, without signing in, until the preview is stopped. It cannot change anything.'
@@ -271,11 +277,11 @@ command_preview() { # NAME TREE [--site] [--storybook] [--real] [--local] [--sto
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --site) kind=site ;;
-            --storybook) storybook_missing ;;
+            --storybook) kind=storybook ;;
             --real) data=real ;;
             --local) bind=local ;;
             --stop) stopping=yes ;;
-            *) die "unknown preview option $1 (--site, --real, --local, --stop)" ;;
+            *) die "unknown preview option $1 (--site, --storybook, --real, --local, --stop)" ;;
         esac
         shift
     done
@@ -284,9 +290,12 @@ command_preview() { # NAME TREE [--site] [--storybook] [--real] [--local] [--sto
         return
     fi
     # The website has no private data; it shows what the worktree holds.
+    # Stories are drawn with made-up data only and never read `mash dash`.
     if [[ $kind == site ]]; then
         [[ $data == demo ]] || die '--real applies to the dashboard only'
         data=docs
+    elif [[ $kind == storybook ]]; then
+        [[ $data == demo ]] || die '--real applies to the dashboard only'
     fi
     start "$name" "$tree" "$kind" "$data" "$bind"
 }

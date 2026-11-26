@@ -1,6 +1,6 @@
 name: Front ends
 
-# The dashboard's checks and browser suite, and the Raycast extension's. Each
+# The dashboard's checks, Storybook and browser suite, and the Raycast extension's. Each
 # runs only when its own files changed (see tools/ci_changes.py); the workflow
 # itself always runs, so its last job is one status that can be required.
 on:
@@ -61,6 +61,35 @@ jobs:
           pnpm build
       - name: Check that every browser spec is mapped to the pages it covers
         run: python3 -m unittest discover -s tools -p 'test_affected_tests.py'
+
+  # The static Storybook: the dashboard's design reference, kept as an artifact
+  # of the run to download and open. It is not published anywhere.
+  storybook:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Build the Storybook
+        working-directory: dashboard
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm storybook:build
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: dashboard-storybook
+          path: dashboard/storybook-static
+          if-no-files-found: error
+          retention-days: 7
 
   # The whole browser suite, split by file across runners. Each shard writes a
   # blob report; the last job merges them into one.
@@ -126,7 +155,7 @@ jobs:
   # One status for the whole workflow: it passes when every job above passed
   # or was skipped because its files did not change.
   front-ends:
-    needs: [changes, dashboard, dashboard-browser, raycast]
+    needs: [changes, dashboard, storybook, dashboard-browser, raycast]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -168,7 +197,7 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "changes, dashboard, dashboard-browser, raycast: $RESULTS"
+          echo "changes, dashboard, storybook, dashboard-browser, raycast: $RESULTS"
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) exit 1 ;;
           esac

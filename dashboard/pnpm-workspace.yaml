@@ -1,0 +1,5 @@
+allowBuilds:
+  # Storybook bundles its own manager with esbuild. esbuild's install script
+  # only checks the binary pnpm already installed for this platform as an
+  # optional dependency, so it is not run.
+  esbuild: false

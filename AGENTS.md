@@ -283,9 +283,19 @@ change can affect; see "Fast loops" in `docs/internal/verification.md`.
 Render all chat content as text or through a sanitizer; archived history is
 untrusted.
 
-The main pages of the dashboard and the site are compared with committed
-pictures (`bash tools/visual.sh`; see "Visual baselines" in
-`docs/internal/verification.md`). A deliberate visual change must update the
+Storybook (`dashboard/.storybook`, `pnpm storybook`) is the reference for what
+the dashboard is made of; the wireframe canvas is for exploring new ideas. A
+new or changed kit control or building block ships with its story
+(`NAME.stories.svelte` beside it, which `src/stories/coverage.test.ts`
+requires), and its states are shown in stories: one story or one labelled
+case per state, not a description of it. Stories use made-up data only, the
+demo's fixtures through `src/stories/fixtures.ts`, never real chat history,
+and lay themselves out with scoped styles. See "Storybook" in
+`docs/internal/development.md`.
+
+The main pages of the dashboard and the site, and every Storybook story, are
+compared with committed pictures (`bash tools/visual.sh`; see "Visual
+baselines" in `docs/internal/verification.md`). A deliberate visual change must update the
 baselines in the same change (`bash tools/visual.sh all --update`, then review
 the pictures). Never update baselines to silence a difference you cannot
 explain.

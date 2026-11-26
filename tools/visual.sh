@@ -61,7 +61,8 @@ fi
 
 build_package() {
     case "$1" in
-        dashboard) (cd "$root/dashboard" && pnpm build:demo) ;;
+        # The demo build for the pages, the static Storybook for the stories.
+        dashboard) (cd "$root/dashboard" && pnpm build:demo && pnpm storybook:build) ;;
         site) (cd "$root/site" && pnpm build) ;;
     esac
 }

@@ -1,10 +1,5 @@
 import { mount } from "svelte";
-import "./theme/fonts";
-import "./theme/tokens.css";
-import "./app.css";
-import "./terminal.css";
-import "./kit.css";
-import "./semantics.css";
+import "./styles";
 
 import App from "./App.svelte";
 import { installAppearance } from "./lib/appearance.svelte";

@@ -8,6 +8,10 @@ Set `MASH_DASHBOARD_API_URL` to proxy to a different running dashboard.
 `pnpm dev:demo` serves the demo's made-up history under `/demo/` instead and
 needs no `mash dash`; `tools/worktree.sh preview NAME` runs it on the tailnet
 (see "Previews" in `docs/internal/development.md`).
+`pnpm storybook` shows what the dashboard is made of, in every state, with
+made-up data: the theme's roles, the kit's controls and the building blocks
+(see "Storybook" in the same file). A new or changed component ships with
+its story.
 
 The dashboard reads real local and shared silver through the typed application
 core. Search uses the existing combined search operation. It never indexes,

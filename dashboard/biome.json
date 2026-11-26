@@ -5,6 +5,7 @@
       "**",
       "!dist",
       "!dist-demo",
+      "!storybook-static",
       "!src/demo/tools.json",
       "!src/lib/contract.ts",
       "!openapi.json",

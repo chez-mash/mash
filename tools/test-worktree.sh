@@ -30,7 +30,7 @@ git init -q -b main "$main"
 mkdir -p "$main/tools" "$main/.githooks" "$main/src"
 cp "$repository/tools/worktree.sh" "$repository/tools/pre-push.sh" "$repository/tools/install-hooks.sh" \
     "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" "$main/tools/"
-cp "$repository/tools/worktree-preview.sh" "$main/tools/"
+cp "$repository/tools/worktree-preview.sh" "$repository/tools/storybook-serve.sh" "$main/tools/"
 cp "$repository/.githooks/pre-push" "$main/.githooks/"
 : > "$main/tools/file-lines-baseline.txt"
 printf 'one\n' > "$main/notes.md"
@@ -173,7 +173,7 @@ refused 'a preview without Tailscale' 'Tailscale is not up' preview preview gamm
 rm "$scratch/tailscale-down"
 FAKE_TAILNET_ADDRESS=203.0.113.9 refused 'a preview on an address outside the tailnet range' 'Tailscale is not up' preview preview gamma
 refused 'a preview of a missing worktree' 'no worktree at' preview preview missing
-refused 'a Storybook preview' 'Storybook is not set up yet' preview preview gamma --storybook
+refused 'real history in Storybook' 'dashboard only' preview preview gamma --storybook --real
 refused 'real history on the website' 'dashboard only' preview preview gamma --site --real
 
 preview preview gamma > "$scratch/addresses" 2> "$scratch/output" || fail 'preview gamma'
@@ -225,7 +225,26 @@ preview preview gamma --site --stop > /dev/null 2>&1
 preview preview gamma --site 2> /dev/null > "$scratch/addresses" || fail 'preview --site'
 [[ $(cat "$scratch/runs/mash-preview-gamma-site") == *'--allowed-hosts fixture.example.ts.net' ]] || fail 'Astro is told the MagicDNS name'
 
+# Storybook gets its own unit, range and memory cap. Stories never read the
+# real dashboard, and both of its servers are told the MagicDNS name.
+preview preview gamma --storybook > "$scratch/addresses" 2> "$scratch/output" || fail 'preview --storybook'
+run=$(cat "$scratch/runs/mash-preview-gamma-storybook")
+[[ $(sed -n 1p "$scratch/addresses") == "http://100.101.102.103:$((gamma_port + 200))/" ]] || fail "--storybook prints the tailnet address, got $(cat "$scratch/addresses")"
+[[ $run == *"WorkingDirectory=$tree/dashboard"*"run storybook --host 100.101.102.103 --port $((gamma_port + 200)) --exact-port" ]] || fail "the Storybook preview runs storybook dev on the tailnet address, got $run"
+[[ $run == *'MemoryMax=2500M'* ]] || fail 'a Storybook preview has its own memory cap'
+[[ $run == *'MASH_STORYBOOK_HOSTS=fixture.example.ts.net'* && $run == *'__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=fixture.example.ts.net'* ]] || fail 'Storybook is told the MagicDNS name'
+[[ $run != *0.0.0.0* && $run != *MASH_DASHBOARD_API_URL* && $run != *EnvironmentFile* ]] || fail 'a Storybook preview listens beyond the tailnet or reaches for the real dashboard'
+preview preview gamma --storybook --stop > /dev/null 2>&1
+[[ ! -e $scratch/units/mash-preview-gamma-storybook.service && ! -e $scratch/previews/mash-preview-gamma-storybook.state ]] || fail '--storybook --stop leaves the unit or its record'
+# The range's first port is where main's built Storybook is served: a preview
+# whose name lands on a taken port moves to the next.
+echo "$((gamma_port + 200))" > "$scratch/busy-ports"
+preview preview gamma --storybook --local > "$scratch/addresses" 2> /dev/null || fail 'preview --storybook --local'
+[[ $(cat "$scratch/addresses") == "http://127.0.0.1:$((gamma_port + 201))/" ]] || fail "a Storybook preview skips a taken port, got $(cat "$scratch/addresses")"
+rm "$scratch/busy-ports"
+
 preview previews > "$scratch/list" 2> "$scratch/output" || fail 'previews'
+grep -Eq "^gamma +storybook +demo +[0-9]+s +answers +http://127.0.0.1:$((gamma_port + 201))/\$" "$scratch/list" || fail "previews lists the Storybook preview, got $(cat "$scratch/list")"
 grep -Eq "^gamma +dashboard +real +[0-9]+s +answers +http://fixture.example.ts.net:$gamma_port/\$" "$scratch/list" || fail "previews lists the dashboard preview, got $(cat "$scratch/list")"
 grep -Eq "^gamma +site +docs +[0-9]+s +answers +http://fixture.example.ts.net:$((gamma_port + 100))/\$" "$scratch/list" || fail 'previews lists the website preview'
 rm "$scratch/units/mash-preview-gamma-site.service"
@@ -246,5 +265,57 @@ preview done gamma > "$scratch/output" 2>&1 || fail 'done gamma with previews'
 [[ ! -e $tree ]] || fail 'done removes a worktree that had previews'
 preview previews > "$scratch/list" 2>&1
 grep -q 'No previews' "$scratch/list" || fail 'previews says when there are none'
-rm -f "$scratch/output"
+
+# The Storybook of main: built in the deploy tree, copied out of it and served
+# by a user unit on the tailnet address only. The same stand-ins record it.
+serve() {
+    PATH=$fakes:$PATH HOME=$scratch/home XDG_CONFIG_HOME=$scratch/config MASH_STORYBOOK_STATE=$scratch/storybook \
+        bash "$main/tools/storybook-serve.sh" "$@"
+}
+mkdir -p "$scratch/home"
+# The real repository ignores the build's output (dashboard/.gitignore).
+printf 'storybook-static/\n' >> "$main/.git/info/exclude"
+unit_file=$scratch/config/systemd/user/mash-storybook.service
+served=$scratch/storybook/site/index.json
+rm "${deploy:?}/stray.md"
+refused 'serving before main has a Storybook' 'has no Storybook yet' serve
+[[ ! -e $unit_file ]] || fail 'a refused serve wrote a unit'
+mkdir -p "$main/dashboard/.storybook"
+printf 'export default {};\n' > "$main/dashboard/.storybook/main.ts"
+git -C "$main" add dashboard
+git -C "$main" commit -qm storybook
+git -C "$main" push -q origin main > /dev/null 2>&1
+# The stand-in for pnpm builds a one-file Storybook, or fails to.
+cat > "$fakes/pnpm" << 'FAKE'
+#!/usr/bin/env bash
+printf '%s %s\n' "$(basename "$PWD")" "$*" >> "$FAKE_ROOT/pnpm"
+[[ $1 != install ]] || mkdir -p node_modules
+[[ $1 == storybook:build ]] || exit 0
+[[ -z ${FAKE_BUILD_FAILS:-} ]] || exit 1
+mkdir -p storybook-static
+echo "build ${FAKE_BUILD:-1}" > storybook-static/index.json
+FAKE
+touch "$scratch/tailscale-down"
+refused 'serving without Tailscale' 'Tailscale is not up' serve
+rm "${scratch:?}/tailscale-down"
+echo 5400 > "$scratch/busy-ports"
+refused 'serving on a taken port' 'port 5400 is taken' serve
+rm "${scratch:?}/busy-ports"
+serve > "$scratch/addresses" 2> "$scratch/output" || fail 'storybook-serve'
+[[ $(sed -n 1p "$scratch/addresses") == 'http://100.101.102.103:5400/' && $(sed -n 2p "$scratch/addresses") == 'http://fixture.example.ts.net:5400/' ]] ||
+    fail "storybook-serve prints its tailnet addresses, got $(cat "$scratch/addresses")"
+grep -q -- "-m http.server 5400 --bind 100.101.102.103 --directory $scratch/storybook/site\$" "$unit_file" || fail 'the unit serves the copied files on the tailnet address only'
+! grep -q '0\.0\.0\.0' "$unit_file" || fail 'the unit listens on every interface'
+grep -q 'MemoryMax=200M' "$unit_file" || fail 'the unit has a memory cap'
+[[ $(cat "$served") == 'build 1' ]] || fail 'the built files are copied out of the deploy tree'
+[[ $(cat "$scratch/storybook/revision") == $(git -C "$deploy" rev-parse --short HEAD) ]] || fail 'the served revision is recorded'
+[[ -z $(git -C "$deploy" status --porcelain) ]] || fail 'serving leaves the deploy tree changed'
+# A failed rebuild leaves what was served; a good one replaces it.
+if FAKE_BUILD_FAILS=1 serve > "$scratch/output" 2>&1; then fail 'a failed build was served'; fi
+[[ $(cat "$served") == 'build 1' ]] || fail 'a failed build replaced the served files'
+FAKE_BUILD=3 serve > /dev/null 2> "$scratch/output" || fail 'storybook-serve again'
+[[ $(cat "$served") == 'build 3' && ! -e $scratch/storybook/site.old ]] || fail 'a refresh swaps the new files in'
+serve --stop > "$scratch/output" 2>&1 || fail 'storybook-serve --stop'
+[[ ! -e $unit_file ]] || fail '--stop leaves the unit file'
+rm -f "${scratch:?}/output"
 echo 'worktree: ok'

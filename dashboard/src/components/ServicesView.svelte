@@ -35,6 +35,7 @@ import { statusOptions } from "../lib/status";
 import { serviceTone } from "../lib/tone";
 import { machineMap, type PlaceId } from "../lib/topology";
 import { updates } from "../lib/updates.svelte";
+import ConfirmCard from "./ConfirmCard.svelte";
 import LoadError from "./LoadError.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 import MapPanel from "./MapPanel.svelte";
@@ -189,11 +190,11 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
 </script>
 
 {#snippet confirmation(target: Target)}
-  <div class="card tight confirm" role="group" aria-label="Confirm service action">
+  <ConfirmCard label="Confirm service action">
     <span>{actionLabel[target.action]} {target.service.name} on {target.machine.id}? {consequences(target)}</span>
     <button class="btn p" type="button" onclick={act}><Icon icon={CheckIcon} size={14} state="strong" />Confirm {target.action}</button>
     <button class="btn" type="button" onclick={() => (confirm = null)}>Cancel</button>
-  </div>
+  </ConfirmCard>
 {/snippet}
 {#snippet serviceControls(entry: Service)}
   {#if machine && entry.actions.length}
@@ -355,13 +356,5 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
   }
   .svc-health {
     gap: 7px;
-  }
-  /* Asking before a service is started, stopped or restarted. */
-  .confirm {
-    border-color: transparent;
-    border-radius: var(--radius-8);
-    box-shadow:
-      0 0 0 1px var(--memory-ring),
-      var(--memory-glow);
   }
 </style>

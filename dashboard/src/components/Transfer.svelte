@@ -26,6 +26,7 @@ import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
 import CommandLine from "./CommandLine.svelte";
 import EmptyState from "./EmptyState.svelte";
+import ExportOutcome from "./ExportOutcome.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import MachineIcon from "./MachineIcon.svelte";
 import QueryError from "./QueryError.svelte";
@@ -318,10 +319,10 @@ const backup = "mash export ~/mash-backup";
       {:else if job.state === "stopped"}
         <p class="meta st-l" role="status"><ToneIcon tone="pause" size={15} />Export stopped. Nothing was saved.</p>
       {:else if job.state === "failed"}
-        <p class="card tight bad xfail" role="alert"><ToneIcon tone="bad" size={16} /><span><strong>Export failed.</strong> {job.reason}</span></p>
+        <ExportOutcome outcome="failed">{job.reason}</ExportOutcome>
       {/if}
       {#if job.state === "done"}
-        <p class="card tight ok xdone" role="status"><ToneIcon tone="ok" size={16} /><span>Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</span></p>
+        <ExportOutcome outcome="done">Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</ExportOutcome>
       {/if}
       </div>
     </div>
@@ -330,13 +331,6 @@ const backup = "mash export ~/mash-backup";
 {/if}
 
 <style>
-  /* The export's outcome: a tinted card that leads with its tone's icon. */
-  .xfail,
-  .xdone {
-    margin: 0;
-    font-size: 13px;
-    overflow-wrap: anywhere;
-  }
   .xrow-t > b {
     font-weight: var(--weight-label);
   }

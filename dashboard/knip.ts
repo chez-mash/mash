@@ -17,13 +17,23 @@ const config: KnipConfig = {
   // swaps in its own entry (vite.config.ts), and the live browser checks run
   // only against a real dashboard (playwright.config.ts).
   // tools/visual.sh runs the visual baselines with their own configuration.
+  // Storybook reads its configuration and finds the stories by their names.
   entry: [
     "src/demo/main.ts",
+    ".storybook/*.ts",
+    "src/**/*.stories.svelte",
     "e2e/**/*.live.ts",
     "playwright.visual.config.ts",
     "visual/**/*.spec.ts",
   ],
-  project: ["src/**/*.{ts,svelte,css}", "e2e/**/*.ts", "visual/**/*.ts", "*.ts", "public/*.js"],
+  project: [
+    "src/**/*.{ts,svelte,css}",
+    ".storybook/*.ts",
+    "e2e/**/*.ts",
+    "visual/**/*.ts",
+    "*.ts",
+    "public/*.js",
+  ],
   compilers: { svelte },
   ignoreDependencies: [
     // The compiler `svelte-check --tsgo` runs.

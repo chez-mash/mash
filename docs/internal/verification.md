@@ -210,8 +210,8 @@ regressions without paying mutation build costs on every push.
 
 ## Visual baselines
 
-The dashboard's and the site's main pages are kept as pictures in the
-repository, and a test compares what the pages look like now with those
+The dashboard's and the site's main pages, and every story in the
+dashboard's Storybook, are kept as pictures in the repository, and a test compares what the pages look like now with those
 pictures (Playwright's `toHaveScreenshot`). A page that drifts, such as a
 changed colour, a moved control or a font that stopped loading, fails that
 test instead of waiting for someone to notice. The pictures show the layout
@@ -222,10 +222,19 @@ and the theme; the ordinary browser tests still own behaviour.
 | | Pages | Variants | Pictures |
 | --- | --- | --- | --- |
 | Dashboard (`dashboard/visual/`) | Overview, search results for "checkout", the chat list, a chat from its top, a chat with subagents, memory, a record, machines, a machine, agents, an agent, projects, a project, services, settings, tools, export, the fleet manager, viewing history, setup's review step, the quick panel empty and typed, and three open states: a filter menu, the viewing switcher and Mashy's panel | 1280×860 light and dark, 390×844 light; the overview, a chat and memory also on a dark phone | 78 |
+| Stories (`dashboard/visual/stories.spec.ts`) | Every story in the static Storybook, found through its `index.json`: foundations, kit controls, building blocks and composed pieces, each in its states | 1280×860 light and dark; a story tagged `phone` at 390×844 instead | 2 per story |
 | Site (`site/visual/`) | The landing page (the hero, each band at rest, and the pinned quick search panel before and after its scene), a guide (Search across your machines), downloads, supported agents and the 404 page | 1440×900 light and dark, 390×844 light | 55 |
 
 The dashboard pictures come from the demo build (`pnpm build:demo`) and its
-made-up history, so they need no index and no `mash dash`. A picture is of
+made-up history, so they need no index and no `mash dash`. The story
+pictures come from the static Storybook (`pnpm storybook:build`), which
+`tools/visual.sh dashboard` builds after the demo and serves beside it; they
+are in `baselines/stories-light` and `baselines/stories-dark`, named by the
+story's id. A story's picture is of its whole page, or of the screen when it
+is tagged `screen` (a dialog, a menu, the rail, Mashy). A new story is
+pictured without being named anywhere: add it, run
+`bash tools/visual.sh dashboard --update -- --project stories-light --project stories-dark`
+and commit its two pictures. A picture is of
 the screen, not of the whole page: apart from the landing page, which is
 taken band by band to its footer, what is below the first screen is not
 compared.
@@ -236,11 +245,12 @@ compared.
 bash tools/visual.sh              # compare both; `pnpm visual` in dashboard/ or site/ compares one
 bash tools/visual.sh all --update # take every picture again; `pnpm visual:update` for one package
 bash tools/visual.sh dashboard -- -g chat   # only the pictures whose name matches
+bash tools/visual.sh dashboard -- --project stories-light --project stories-dark   # only the stories
 ```
 
 It needs `node_modules` in the package (`pnpm install --frozen-lockfile`) and
-Podman or Docker. Both packages together take about a minute on Xenia,
-builds included. It is not part of `tools/pre-push.sh`, which stays at a few
+Podman or Docker. Both packages together take about five minutes on Xenia,
+builds included; the stories' two pictures each are most of that. It is not part of `tools/pre-push.sh`, which stays at a few
 seconds; CI runs it.
 
 Fonts and antialiasing differ between systems, so a picture taken on a Mac
@@ -262,6 +272,12 @@ A picture is only worth comparing if nothing in it changes by itself:
   fixed too, at one device pixel per CSS pixel.
 - CSS animations and transitions are off and the caret is hidden. Fonts and
   images have arrived before a picture is taken.
+- A story is pictured once Storybook says it has drawn and its `play`
+  function has finished; a story that throws, or whose `play` does, fails
+  instead of being pictured. A menu or dialog that is open from the start
+  lets go of the focus first (`src/stories/play.ts`), so it is drawn as the
+  pointer opens it, without the ring a script's focus gets in a browser
+  nobody has clicked in.
 - The landing page's scenes are scripted motion, which no setting switches
   off. Its test installs a stopped clock before the page loads and plays
   each scene to its end by moving that clock, band by band; the pinned quick

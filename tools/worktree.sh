@@ -8,7 +8,7 @@
 #   tools/worktree.sh pr NAME          push the branch and open a pull request instead
 #   tools/worktree.sh done NAME [--force]
 #   tools/worktree.sh deploy-tree      a clean tree at origin/main for fleet.sh and releases
-#   tools/worktree.sh preview NAME [--site] [--real] [--local] [--stop]
+#   tools/worktree.sh preview NAME [--site|--storybook] [--real] [--local] [--stop]
 #                                      a live dev server on the tailnet (worktree-preview.sh)
 #   tools/worktree.sh previews         the previews that are recorded, and whether each answers
 #

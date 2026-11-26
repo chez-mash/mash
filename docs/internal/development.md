@@ -45,6 +45,108 @@ stylesheets define and no source names, and `--prune` removes the rules left
 dead; its header explains what it treats as used. Review its list before
 pruning, and compare screenshots before and after.
 
+### Storybook
+
+Storybook (`dashboard/.storybook`, Storybook 10 for Svelte and Vite, stories
+in Svelte CSF) is the reference for what the dashboard is made of: what
+exists, in every state it has. The wireframe canvas is for exploring new
+ideas; once an idea is built, its component's stories are where to look.
+
+```bash
+cd dashboard
+pnpm storybook         # the dev server, on 127.0.0.1:6006 only
+pnpm storybook:build   # the static site, to dashboard/storybook-static (ignored by Git)
+```
+
+What belongs in it:
+
+| Section | What | Where its stories live |
+|---|---|---|
+| Foundations | Colour roles (every colour in `tokens.css`, read from the file), type, radii and shadows, the icon weight specimen and state rules, status tones, memory kind tints | `src/stories/foundations/` |
+| Kit | Each control in `src/lib/components/ui`, in its states: on and off, disabled, open, focused | Beside the control: `ui/switch/switch.stories.svelte` |
+| Blocks | The building blocks pages are made of, in their states | Beside the component: `components/ChatRow.stories.svelte` |
+| Composed | The top bar, the rail, Mashy and the quick panel | `src/stories/composed/` |
+
+Whole pages are not stories; the page pictures in `dashboard/visual` cover
+those.
+
+A story is drawn with exactly what the dashboard is drawn with: Storybook
+uses the dashboard's Vite configuration, and its preview imports
+`src/styles.ts`, the same list of stylesheets and typefaces `main.ts` imports.
+The toolbar's theme switch sets `data-theme` on the document, as Settings
+does, and the viewport menu has the two sizes the baselines use (1280 and
+390). The accessibility panel is the a11y addon.
+
+To add a story, write `NAME.stories.svelte` beside the component:
+
+```svelte
+<script module lang="ts">
+import { defineMeta } from "@storybook/addon-svelte-csf";
+import Case from "../stories/Case.svelte";
+import Cases from "../stories/Cases.svelte";
+import StatusBadge from "./StatusBadge.svelte";
+
+const { Story } = defineMeta({
+  title: "Blocks/StatusBadge",
+  component: StatusBadge,
+  args: { tone: "ok", words: "Running" },
+});
+</script>
+
+<Story name="Default" />
+
+<Story name="Tones" asChild>
+  <Cases row>
+    <Case label="ok"><StatusBadge tone="ok" words="Running" /></Case>
+    <Case label="bad"><StatusBadge tone="bad" words="Failed" /></Case>
+  </Cases>
+</Story>
+```
+
+- **States are shown, not described.** One story per state worth looking at
+  alone, and a sheet (`Cases` and `Case` from `src/stories`) that puts the
+  states side by side under their names.
+- **Made-up data only, never real chat history.** `src/stories/fixtures.ts`
+  reads the demo's history (`src/demo`) through the dashboard's own parsers;
+  make up what the demo lacks there, in the demo's world.
+- **Components that read their own data** need nothing special: every story
+  is wrapped in a query cache of its own, and every request is answered in
+  the browser by the demo's transport (`src/stories/Frame.svelte`). A story
+  that needs an answer the demo never gives sets `parameters.data`
+  (`src/stories/answers.ts`): `answers` by route, `route` for where the
+  router is, `before` for state kept outside the components. See
+  `MachineCard.stories.svelte` and `composed/Mashy.stories.svelte`.
+- **Layout is the story's own.** Use scoped `<style>` with token roles, as a
+  component does. Tailwind does not scan stories (`@source not` in
+  `app.css`), so a utility class that only a story uses does nothing, and
+  the dashboard's stylesheet stays byte for byte what it was without them.
+- **Tags say how a story is pictured**: `phone` at 390×844, `screen` for a
+  subject placed on the screen (a dialog, a menu, the rail, Mashy). A state
+  that needs a step first, such as typing, takes it in `play`.
+
+`src/stories/coverage.test.ts` (part of `pnpm test`) fails when a control in
+`src/lib/components/ui` or a building block on its list has no story. A new
+building block is added to that list with its story. Every story is also
+compared with a committed picture in light and dark; see "Visual baselines"
+in `verification.md`. `pnpm knip` treats stories and `.storybook` as entry
+points. CI builds the static Storybook in the Front ends workflow and keeps
+it as the `dashboard-storybook` artifact for a week; it is not published.
+
+To look at it on the tailnet:
+
+```bash
+tools/worktree.sh preview NAME --storybook   # a worktree's stories, live while you edit
+tools/storybook-serve.sh                     # main's Storybook, built and kept served
+```
+
+`tools/storybook-serve.sh` builds in the deploy tree at `origin/main`, copies
+the static files to `~/.local/state/mash/storybook/site` and serves them with
+the user unit `mash-storybook.service` on this machine's Tailscale address at
+port 5400, tailnet only. Nothing refreshes it automatically: run it again
+after landing a dashboard change. The old files are served until the new
+build finishes, and a failed build leaves them. `--status` says which
+revision is served and `--stop` removes the unit.
+
 ### Linker
 
 On x86-64 Linux, `make iterate`, `make validate-dev`, `make dev-build` and the
@@ -483,8 +585,9 @@ with no build and no deploy:
 ```bash
 tools/worktree.sh preview search-fix          # the dashboard, with the demo's made-up history
 tools/worktree.sh preview search-fix --site   # the website
+tools/worktree.sh preview search-fix --storybook   # the dashboard's Storybook
 tools/worktree.sh previews                    # what is recorded, and whether each answers
-tools/worktree.sh preview search-fix --stop   # add --site for the website's
+tools/worktree.sh preview search-fix --stop   # add --site or --storybook for those
 ```
 
 `preview` prints the address twice on standard output, by Tailscale address
@@ -498,11 +601,16 @@ http://xenia.example.ts.net:5242/demo/
 - **Where it listens.** Only on this machine's Tailscale address
   (`tailscale ip -4`), never on every interface. Without Tailscale it refuses;
   `--local` uses `127.0.0.1` instead, for a browser on this machine.
-- **Port.** The dashboard uses 5200-5299, the website 5300-5399, and
-  5400-5499 are kept for Storybook (`--storybook` says it is not set up yet).
+- **Port.** The dashboard uses 5200-5299, the website 5300-5399 and
+  Storybook 5400-5499. Port 5400 itself is where main's built Storybook is
+  served (`tools/storybook-serve.sh`), so a preview finds it taken.
   The port is the checksum of the worktree's name within the range, so a
   worktree keeps its address from one day to the next; when that port is
   taken the next free one is used.
+- **Storybook.** `--storybook` runs `pnpm storybook` (`storybook dev`). Its
+  stories are drawn with made-up data only, so `--real` does not apply. Like
+  the other previews it listens on the Tailscale address; Storybook also
+  listens on `127.0.0.1` on the same port, which no other device reaches.
 - **Data.** The dashboard preview runs `pnpm dev:demo`: the demo's entry point
   and made-up history (`dashboard/src/demo`) under `/demo/`, with nothing
   private in it. `--real` runs `pnpm dev` instead and forwards `/api` to this
@@ -515,10 +623,12 @@ http://xenia.example.ts.net:5242/demo/
   `MASH_DASH_TOKEN`; the script never reads or prints it. A `--real` preview
   answers anything but `GET` and `HEAD` under `/api` with 405 itself.
 - **How it runs.** As the transient user unit `mash-preview-NAME` (or
-  `mash-preview-NAME-site`) under `systemd-run --user`, with
-  `MemoryMax=1500M` and no swap, so it outlives the session that started it.
-  A dashboard preview with a page open uses about 0.8 GB and a website
-  preview about 0.6 GB. State and logs are in
+  `mash-preview-NAME-site`, `mash-preview-NAME-storybook`) under
+  `systemd-run --user`, with `MemoryMax=1500M` and no swap, so it outlives
+  the session that started it. A dashboard preview with a page open uses
+  about 0.8 GB and a website preview about 0.6 GB. Storybook's dev server
+  uses about 1.2 GB once it has started, so its cap is 2500M.
+  `MASH_PREVIEW_MEMORY_MAX` sets another cap for any of them. State and logs are in
   `~/.local/state/mash/previews/` (`MASH_PREVIEW_STATE` moves them), outside
   the worktree. `done NAME` stops the worktree's previews before removing it.
   A missing `node_modules` is installed first, as `new --deps` does.
@@ -528,7 +638,9 @@ http://xenia.example.ts.net:5242/demo/
   `Host` header they were not told about: the address always passes, and the
   MagicDNS name is added for the run through
   `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` and `astro dev --allowed-hosts`,
-  not in the committed configuration. The website copies `docs/` and the
+  not in the committed configuration. Storybook checks the header itself as
+  well, and reads the name from `MASH_STORYBOOK_HOSTS`
+  (`dashboard/.storybook/main.ts`). The website copies `docs/` and the
   README when it starts (`pnpm prepare-content`), so a change to those needs
   the website preview stopped and started again.
 

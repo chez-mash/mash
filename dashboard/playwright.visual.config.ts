@@ -1,8 +1,8 @@
 import process from "node:process";
 import { defineConfig } from "@playwright/test";
 
-// The visual baselines: pictures of the demo build's main pages, compared
-// pixel by pixel. Fonts and antialiasing differ between systems, so the
+// The visual baselines: pictures of the demo build's main pages and of every
+// Storybook story, compared pixel by pixel. Fonts and antialiasing differ between systems, so the
 // pictures are only ever taken inside the Playwright container image that CI
 // uses: run `pnpm visual` or `pnpm visual:update` (tools/visual.sh), not this
 // configuration directly. See docs/internal/verification.md, "Visual baselines".
@@ -25,8 +25,13 @@ const tolerance = process.env.MASH_VISUAL_EXACT
 
 const port = 4181;
 const address = `http://127.0.0.1:${port}/demo/`;
+// The static Storybook (`pnpm storybook:build`), served beside the demo.
+const storiesPort = 4182;
+const storiesAddress = `http://127.0.0.1:${storiesPort}/`;
 const desktop = { width: 1280, height: 860 };
 const phone = { width: 390, height: 844 };
+const pages = "pages.spec.ts";
+const stories = "stories.spec.ts";
 
 export default defineConfig({
   testDir: "./visual",
@@ -58,16 +63,40 @@ export default defineConfig({
     launchOptions: { args: ["--hide-scrollbars"] },
   },
   projects: [
-    { name: "desktop-light", use: { viewport: desktop, colorScheme: "light" } },
-    { name: "desktop-dark", use: { viewport: desktop, colorScheme: "dark" } },
-    { name: "phone-light", use: { viewport: phone, colorScheme: "light" } },
+    { name: "desktop-light", testMatch: pages, use: { viewport: desktop, colorScheme: "light" } },
+    { name: "desktop-dark", testMatch: pages, use: { viewport: desktop, colorScheme: "dark" } },
+    { name: "phone-light", testMatch: pages, use: { viewport: phone, colorScheme: "light" } },
     // The phone's dark pictures cover three pages only, to keep the set small.
-    { name: "phone-dark", grep: /@phone-dark/, use: { viewport: phone, colorScheme: "dark" } },
+    {
+      name: "phone-dark",
+      testMatch: pages,
+      grep: /@phone-dark/,
+      use: { viewport: phone, colorScheme: "dark" },
+    },
+    // Every story, in each theme; a story tagged "phone" is taken at the
+    // phone's size (visual/stories.spec.ts).
+    {
+      name: "stories-light",
+      testMatch: stories,
+      use: { baseURL: storiesAddress, viewport: desktop, colorScheme: "light" },
+    },
+    {
+      name: "stories-dark",
+      testMatch: stories,
+      use: { baseURL: storiesAddress, viewport: desktop, colorScheme: "dark" },
+    },
   ],
-  webServer: {
-    // Through Node rather than pnpm, which the container does not have.
-    command: `node node_modules/vite/bin/vite.js preview --mode demo --host 127.0.0.1 --port ${port} --strictPort`,
-    url: address,
-    reuseExistingServer: false,
-  },
+  webServer: [
+    {
+      // Through Node rather than pnpm, which the container does not have.
+      command: `node node_modules/vite/bin/vite.js preview --mode demo --host 127.0.0.1 --port ${port} --strictPort`,
+      url: address,
+      reuseExistingServer: false,
+    },
+    {
+      command: `node node_modules/vite/bin/vite.js preview --outDir storybook-static --host 127.0.0.1 --port ${storiesPort} --strictPort`,
+      url: `${storiesAddress}index.json`,
+      reuseExistingServer: false,
+    },
+  ],
 });
