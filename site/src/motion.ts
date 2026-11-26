@@ -1,7 +1,7 @@
 /**
- * The landing page's motion: nine small scenes built around the product
- * windows, eight as the motion storyboard draws them and the surface
- * showcase's changes.
+ * The landing page's motion: ten small scenes built around the product
+ * windows: eight as the motion storyboard draws them, the surface
+ * showcase's changes and Ferris drawing himself.
  *
  * The page is complete as served. This script sets each scene's starting
  * state and plays it once as the scene scrolls into view; a scene that is
@@ -10,15 +10,16 @@
  * the showcase changes surface by itself (surfaces.ts) and this animates it.
  * One scene pins: the quick search panel, on a wide screen with a mouse, where
  * scrolling types the search and moves the selection. Everywhere else that
- * panel plays once. Scenes move transform, opacity, clip-path and
- * background-size only, so nothing on the page changes place.
+ * panel plays once. Scenes move transform, opacity, clip-path,
+ * background-size and a stroke's dash offset only, so nothing on the page
+ * changes place.
  */
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { closing, hero } from "./motion/hero";
 import { mashy } from "./motion/mashy";
 import { keepAnchor, quickSearch } from "./motion/quickSearch";
-import { agents, bands, memory, search, stats } from "./motion/sections";
+import { agents, bands, ferris, memory, search, stats } from "./motion/sections";
 import { all, type Screen, type Stop } from "./motion/stage";
 import { surfaces } from "./motion/surfaces";
 
@@ -62,6 +63,8 @@ export function mountMotion(page: ParentNode): Stop {
         if (remembering) memory(remembering, screen);
         const figures = welcome.querySelector<HTMLElement>(".stats");
         if (figures) stops.push(stats(figures));
+        const crab = welcome.querySelector<SVGElement>("svg.ferris");
+        if (crab) ferris(crab);
         const card = welcome.querySelector<HTMLElement>(".closing");
         if (card) closing(card, screen);
         if (screen.pins) keepAnchor(shortcuts?.querySelector(".desk") ?? null);

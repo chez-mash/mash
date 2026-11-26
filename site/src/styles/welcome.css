@@ -117,30 +117,20 @@
     flex-direction: column;
     gap: 1.125rem;
   }
-  .points {
-    display: grid;
-    gap: 0.75rem;
-    color: var(--text-strong);
-    font-size: 1.0625rem;
-    line-height: 1.45;
-  }
-  .points li {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  /* Numbered steps: the number in mono, in a round of butter light. */
-  .steps .ico {
-    width: 1.875rem;
-    height: 1.875rem;
-    border-radius: var(--radius-7);
-    font: 600 0.8125rem / 1 var(--type-mono);
-  }
   .blurb {
     max-width: 30rem;
     color: var(--text-muted);
     font-size: 1.0625rem;
     line-height: 1.6;
+  }
+  /* A key named in a sentence: a keycap, a little smaller than the words. */
+  .blurb kbd {
+    padding: 0.125rem 0.4375rem;
+    border-radius: var(--radius-3);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-kbd);
+    color: var(--text-strong);
+    font: 500 0.875em / 1 var(--type-mono);
   }
   .words .small {
     color: var(--text-faint);
@@ -163,13 +153,6 @@
     align-items: center;
     gap: 3.5rem;
   }
-  .shortcuts h2 {
-    max-width: 62rem;
-    text-align: center;
-  }
-  .shortcuts h2 > .quiet {
-    display: block;
-  }
   #welcome-shortcuts {
     padding-top: 3rem;
   }
@@ -185,10 +168,18 @@
     flex-direction: column;
     gap: 0.875rem;
   }
-  /* The two figures, side by side at every width. */
+  /* Over the desktop's picture the heading and its sentence are centred. */
+  .shortcuts .head {
+    align-items: center;
+    text-align: center;
+  }
+  .shortcuts .blurb {
+    max-width: none;
+    text-wrap: balance;
+  }
   .stats {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
   .stats > div,
@@ -206,13 +197,9 @@
     width: 2.375rem;
     height: 2.375rem;
   }
-  /* Two figures share the band's width, so each is set large in a roomy card. */
-  .stats > div {
-    padding: 2rem;
-  }
   .stats dt {
     color: var(--text-strong);
-    font-size: 4rem;
+    font-size: 2.75rem;
     font-weight: 600;
     line-height: 1;
     letter-spacing: -0.04em;
@@ -223,7 +210,7 @@
   }
   .stats dt small {
     color: var(--text-faint);
-    font-size: 0.4em;
+    font-size: 1.25rem;
     letter-spacing: 0;
   }
   .stats dd,
@@ -231,9 +218,6 @@
     color: var(--text-muted);
     font-size: 0.875rem;
     line-height: 1.6;
-  }
-  .stats dd {
-    font-size: 1rem;
   }
   .measured {
     padding: 0 1.125rem;
@@ -320,10 +304,27 @@
     padding: 1.5rem;
   }
 
-  /* Open source: the words beside the projects Mash is built on. */
+  /* Open source: the words beside Ferris, with the projects Mash is built on under him. */
+  .rust-art {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  /* Strokes only, in the page's ink; the eyes and the smile are solid. */
+  .ferris {
+    width: min(100%, 22rem);
+    height: auto;
+    color: var(--text-strong);
+  }
+  .ferris .dot {
+    fill: currentColor;
+    stroke: none;
+  }
   .built-with {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.75rem;
   }
   .built-with > p {
@@ -333,6 +334,7 @@
   .built {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.625rem;
   }
   .built li {
@@ -458,6 +460,7 @@
     .split .words {
       order: -1;
     }
+    .stats,
     .cards {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -472,17 +475,13 @@
     .shortcuts {
       gap: 2.5rem;
     }
-    .points {
-      font-size: 1rem;
-    }
-    .stats > div {
-      padding: 1.375rem;
-    }
     .stats dt {
-      font-size: 2.5rem;
+      font-size: 2.25rem;
     }
-    .stats dd {
-      font-size: 0.875rem;
+    /* As heavy at this size as on a wide screen. */
+    .ferris {
+      width: 15rem;
+      stroke-width: 15;
     }
     .cards {
       grid-template-columns: minmax(0, 1fr);

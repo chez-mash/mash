@@ -30,7 +30,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "One history. Everywhere you work.",
-    "Take shortcuts, not detours. Press ⌥ ⇧ Space, or click Mash in your menu bar or tray, and the chat you need is one line away.",
+    "Take shortcuts, not detours.",
     "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
@@ -39,10 +39,23 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Written with <3 in Rust.",
     "Give your agents their history back.",
   ]);
+  // A heading is a short claim; the sentence that explains one is a paragraph
+  // under it, with the keys it names as keycaps.
+  const shortcut = page.locator("#welcome-shortcuts .head p");
+  await expect(shortcut).toHaveText("Press ⌥ ⇧ Space and the chat you need is one line away.");
+  await expect(shortcut.locator("kbd")).toHaveText(["⌥", "⇧", "Space"]);
+  // The search and memory bands say what they do in a paragraph, with no list.
+  await expect(page.locator("#welcome-search .words > p")).toHaveText(
+    "Search by the exact words or by meaning, with optional local models, and across machines through a server you run.",
+  );
+  await expect(page.locator("#welcome-memory .words > p")).toHaveText(
+    "Say it once, then ask the plugin to save the decision with your message as evidence. It can come back in a later session.",
+  );
+  await expect(page.locator(".mash-welcome .words :is(ul, ol)")).toHaveCount(0);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
-  // Four of them are the showcase's surfaces, of which one shows at a time.
-  await expect(illustrations).toHaveCount(8);
+  // Five of them are the showcase's surfaces, of which one shows at a time.
+  await expect(illustrations).toHaveCount(9);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
@@ -50,10 +63,10 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   for (const mark of await marks.all()) await expect(mark).toBeVisible();
   // The conditions behind the figures are folded away, and open on request.
   const measured = page.locator(".mash-welcome .measured");
-  await expect(measured.locator("dd")).toBeHidden();
+  await expect(measured.locator("p")).toBeHidden();
   await measured.locator("summary").click();
-  await expect(measured.locator("dt")).toHaveText(["66 ms and 103k"]);
-  await expect(measured.locator("dd")).toContainText("A common word took up to a second there.");
+  await expect(measured.locator("dt")).toHaveText(["66 ms and 103k", "5× and 9×"]);
+  await expect(measured.locator("p")).toContainText("experimental and off until you");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
     "Try the demo",
@@ -145,37 +158,40 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   ).toHaveAttribute("href", "/guides/");
 });
 
-for (const [name, viewport] of [
-  ["a phone", { width: 390, height: 844 }],
-  ["a wide screen", { width: 1440, height: 900 }],
+for (const [name, viewport, columns] of [
+  ["a phone", { width: 390, height: 844 }, 2],
+  ["a wide screen", { width: 1440, height: 900 }, 4],
 ] as const) {
-  test(`on ${name} the performance band shows its two search figures side by side`, async ({
+  test(`on ${name} the performance band shows its four figures, ${columns} to a row`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
     const band = page.getByRole("region", { name: "Fast, and light on your machine." });
     const figures = band.locator(".stats > div");
-    await expect(figures).toHaveCount(2);
     await expect(figures.locator("dd")).toHaveText([
       "for an exact-phrase search, at its quickest",
       "messages from 1,137 chats, searched in one index on one machine",
+      "embedding throughput on a Windows GPU",
+      "embedding throughput with an experimental NVIDIA worker",
     ]);
-    await expect(figures.locator(".ico svg")).toHaveCount(2);
-    // One row of two cards of one size, which together fill the band's width.
-    const [first, second] = await figures.evaluateAll((all) =>
+    await expect(figures.locator("dt")).toHaveText(["66 ms", "103k", "5×", "9×"]);
+    await expect(figures.locator(".ico svg")).toHaveCount(4);
+    // Cards of one width in rows that fill the band, and no card wider than its text allows.
+    const boxes = await figures.evaluateAll((all) =>
       all.map((figure) => figure.getBoundingClientRect().toJSON()),
     );
     const row = await band.locator(".stats").boundingBox();
-    expect(second.y).toBe(first.y);
-    expect(second.width).toBeCloseTo(first.width, 0);
-    expect(second.height).toBeCloseTo(first.height, 0);
-    expect(second.x).toBeGreaterThan(first.x + first.width);
-    expect(first.x).toBeCloseTo(row?.x ?? -1, 0);
-    expect(second.x + second.width).toBeCloseTo((row?.x ?? 0) + (row?.width ?? 0), 0);
-    // What the figures were measured on says nothing of what the band no longer shows.
+    expect(new Set(boxes.map((box) => Math.round(box.y))).size).toBe(4 / columns);
+    for (const box of boxes) expect(box.width).toBeCloseTo(boxes[0].width, 0);
+    expect(boxes[0].x).toBeCloseTo(row?.x ?? -1, 0);
+    const last = boxes[columns - 1];
+    expect(last.x + last.width).toBeCloseTo((row?.x ?? 0) + (row?.width ?? 0), 0);
+    for (const figure of await figures.all())
+      expect(await figure.evaluate((card) => card.scrollWidth <= card.clientWidth)).toBe(true);
+    // What the figures were measured on, the GPU ones included.
     await band.locator(".measured summary").click();
-    await expect(band.locator(".measurement-copy dt")).toHaveText(["66 ms and 103k"]);
+    await expect(band.locator(".measurement-copy dt")).toHaveText(["66 ms and 103k", "5× and 9×"]);
   });
 }
 
@@ -453,10 +469,18 @@ for (const [name, viewport] of [
       await expect(part).toHaveCSS("opacity", "1");
       await expect.poll(() => part.getAttribute("style")).toBeFalsy();
     }
+    // Ferris: every stroke drawn, and the stylesheet's again.
+    const crab = welcome.locator("#welcome-rust svg.ferris");
+    await expect(crab).toBeVisible();
+    for (const stroke of await crab.locator("path").all()) {
+      await expect.poll(() => stroke.getAttribute("style")).toBeFalsy();
+      await expect(stroke).toHaveCSS("opacity", "1");
+      await expect(stroke).toHaveCSS("stroke-dasharray", "none");
+    }
     // The agents, the figures, Mashy's first answer and the closing card.
     for (const agent of await welcome.locator(".mash-agents li").all())
       await expect(agent).toHaveCSS("opacity", "1");
-    await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103"]);
+    await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
     await expect(welcome.locator('.example[data-example="1"] .answer p').first()).toHaveText(
       "A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:",
     );
@@ -573,7 +597,15 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
     await expect(part).toBeVisible();
     await expect(part).toHaveCSS("opacity", "1");
   }
-  await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103"]);
+  await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
+  // Ferris is served drawn: no stroke waits on a script.
+  const crab = welcome.locator("#welcome-rust svg.ferris");
+  await expect(crab).toBeVisible();
+  await expect(crab.locator("path")).toHaveCount(9);
+  for (const stroke of await crab.locator("path").all()) {
+    await expect(stroke).toHaveCSS("opacity", "1");
+    await expect(stroke).toHaveCSS("stroke-dasharray", "none");
+  }
   // The app icon is drawn inline, over the headline and the closing call to action.
   await expect(page.locator(".hero .app-icon svg")).toBeVisible();
   await expect(welcome.locator(".closing .app-icon svg")).toBeVisible();
@@ -604,12 +636,27 @@ test("the welcome page fits a phone in every section", async ({ page }) => {
   }
 });
 
-test("the stack chips have logos, and the close offers two buttons", async ({ page }) => {
+test("Ferris stands over the stack chips, which have logos, and the close offers two buttons", async ({
+  page,
+}) => {
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
+  // Ferris is decoration: hidden from assistive technology, in the page's ink, above the chips.
+  const crab = welcome.locator("#welcome-rust svg.ferris");
+  await expect(crab).toHaveAttribute("aria-hidden", "true");
+  const ink = await welcome
+    .locator("#welcome-rust h2")
+    .evaluate((heading) => getComputedStyle(heading).color);
+  await expect(crab.locator("path[pathLength]").first()).toHaveCSS("stroke", ink);
+  const [crabBox, chipsBox] = [
+    await crab.boundingBox(),
+    await welcome.locator(".built").boundingBox(),
+  ];
+  expect(crabBox?.width).toBeGreaterThan(200);
+  expect((crabBox?.y ?? 0) + (crabBox?.height ?? 0)).toBeLessThan(chipsBox?.y ?? 0);
   // The two closing actions are buttons of one size, each led by its icon.
   const actions = welcome.locator(".closing .actions a");
   await expect(actions).toHaveText(["Get started", "Read the docs"]);

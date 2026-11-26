@@ -8,6 +8,7 @@
 
 import { Image } from "astro:assets";
 import type { Agent } from "../../../dashboard/src/lib/types";
+import ferris from "../art/ferris.svg?raw";
 import mashy from "../art/mashy.webp";
 import "../styles/welcome.css";
 import "../styles/welcome-panels.css";
@@ -21,7 +22,7 @@ import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 import Surfaces from "./Surfaces.astro";
 
-/** The projects Mash is built on, each with its logo and linked to its own site. */
+/** The projects Mash is built on, shown under Ferris, each with its logo and linked to its own site. */
 const built = [
   { name: "Tauri", svg: tauri, colour: "var(--stack-tauri)", href: "https://tauri.app/" },
   { name: "Qdrant", svg: qdrant, colour: "var(--stack-qdrant)", href: "https://qdrant.tech/" },
@@ -96,7 +97,10 @@ const quick: {
 
   <section class="band" id="welcome-shortcuts" aria-labelledby="welcome-shortcuts-title">
     <div class="wrapper shortcuts" data-reveal>
-      <h2 id="welcome-shortcuts-title">Take shortcuts, not detours. <span class="quiet">Press ⌥ ⇧ Space, or click Mash in your menu bar or tray, and the chat you need is one line away.</span></h2>
+      <div class="head">
+        <h2 id="welcome-shortcuts-title">Take shortcuts, not detours.</h2>
+        <p class="blurb">Press <kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>Space</kbd> and the chat you need is one line away.</p>
+      </div>
       <div class="desk" role="img"
         aria-label="The Mash desktop app's search panel under the menu bar: the search ‘refresh token’ lists five chats from Claude Code, Codex, Cursor and GitHub Copilot across three machines.">
         <div class="desk-screen" aria-hidden="true">
@@ -150,11 +154,10 @@ const quick: {
       <div class="words">
         <span class="kicker">Search</span>
         <h2 id="welcome-search-title">Find it. <span class="quiet">However you remember it.</span></h2>
-        <ul class="points">
-          <li><span class="ico"><LineIcon name="message-square" /></span>By meaning, with optional local models.</li>
-          <li><span class="ico"><LineIcon name="search" /></span>By the exact words.</li>
-          <li><span class="ico"><LineIcon name="server" /></span>Across machines through a server you run.</li>
-        </ul>
+        <p class="blurb">
+          Search by the exact words or by meaning, with optional local models, and across machines
+          through a server you run.
+        </p>
         <a class="more" href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
       </div>
     </div>
@@ -256,11 +259,10 @@ const quick: {
       <div class="words">
         <span class="kicker">Memory</span>
         <h2 id="welcome-memory-title">Save the decision. <span class="quiet">Keep the source.</span></h2>
-        <ol class="points steps">
-          <li><span class="ico">1</span>You say it.</li>
-          <li><span class="ico">2</span>Ask the plugin to save the decision with your message as evidence.</li>
-          <li><span class="ico">3</span>The decision can come back in a later session.</li>
-        </ol>
+        <p class="blurb">
+          Say it once, then ask the plugin to save the decision with your message as evidence. It
+          can come back in a later session.
+        </p>
         <a class="more" href="/demo/#/record/record-sign-in-tokens?node=laptop" data-astro-reload>Follow the sign-in decision in the demo ›</a>
       </div>
     </div>
@@ -283,6 +285,16 @@ const quick: {
           <dt><b>103</b><small>k</small></dt>
           <dd>messages from 1,137 chats, searched in one index on one machine</dd>
         </div>
+        <div>
+          <span class="ico"><LineIcon name="chip" /></span>
+          <dt><b>5</b><small>×</small></dt>
+          <dd>embedding throughput on a Windows GPU</dd>
+        </div>
+        <div>
+          <span class="ico"><LineIcon name="rocket" /></span>
+          <dt><b>9</b><small>×</small></dt>
+          <dd>embedding throughput with an experimental NVIDIA worker</dd>
+        </div>
       </dl>
       <details class="measured">
         <summary>How these were measured</summary>
@@ -292,7 +304,15 @@ const quick: {
               <dt>66 ms and 103k</dt>
               <dd>One exact-phrase search across 1,137 chats and about 103,000 searchable messages in one index on one Linux machine. A common word took up to a second there.</dd>
             </div>
+            <div>
+              <dt>5× and 9×</dt>
+              <dd>Embedding throughput while indexing, on a Tesla T4 against four CPU cores. DirectML on Windows processed about 90 messages a second versus 17 on CPU. The experimental NVIDIA worker processed about 155 versus 18 on CPU.</dd>
+            </div>
           </dl>
+          <p>
+            The NVIDIA worker and GPU reranking are experimental and off until
+            you <a href="/configuration/">turn them on</a>.
+          </p>
         </div>
       </details>
     </div>
@@ -348,18 +368,22 @@ const quick: {
           <a class="more" href="https://github.com/mashhq/mash/blob/main/CONTRIBUTING.md">Contribute ›</a>
         </p>
       </div>
-      <div class="built-with">
-        <p>Built with</p>
-        <ul class="built" aria-label="Built with">
-          {built.map((part) => (
-            <li>
-              <a href={part.href}>
-                <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />
-                {part.name}
-              </a>
-            </li>
-          ))}
-        </ul>
+      <div class="rust-art">
+        <!-- Ferris, Rust's unofficial mascot, drawn in ink; the band's scene draws him a stroke at a time. -->
+        <Fragment set:html={ferris} />
+        <div class="built-with">
+          <p>Built with</p>
+          <ul class="built" aria-label="Built with">
+            {built.map((part) => (
+              <li>
+                <a href={part.href}>
+                  <span class="tile" aria-hidden="true" style={`color: ${part.colour}`} set:html={mark(part.svg)} />
+                  {part.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   </section>

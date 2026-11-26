@@ -1,0 +1,128 @@
+---
+// The desktop app in the menu bar: Mash's icon, and the panel it drops before
+// anything is typed, listing the chats most recently active. A made-up
+// history, as in the demo. The panel's own styles are with the page's other
+// windows, where the quick search band shows the same panel mid-search.
+import type { Agent } from "../../../../dashboard/src/lib/types";
+import AgentTile from "../AgentTile.astro";
+import LineIcon from "../LineIcon.astro";
+import OsMark from "../OsMark.astro";
+
+const recent: {
+  agent: Agent;
+  title: string;
+  project: string;
+  machine: string;
+  system: "macos" | "linux" | "windows";
+  when: string;
+}[] = [
+  {
+    agent: "claude-code",
+    title: "Ship the 0.2.0 release",
+    project: "storefront",
+    machine: "laptop",
+    system: "macos",
+    when: "11m",
+  },
+  {
+    agent: "claude-code",
+    title: "Move sign-in to short-lived tokens",
+    project: "storefront",
+    machine: "laptop",
+    system: "macos",
+    when: "2h",
+  },
+  {
+    agent: "codex",
+    title: "Fix the flaky checkout test",
+    project: "storefront",
+    machine: "workstation",
+    system: "linux",
+    when: "1d",
+  },
+  {
+    agent: "cursor",
+    title: "Speed up the product search page",
+    project: "storefront",
+    machine: "laptop",
+    system: "macos",
+    when: "3d",
+  },
+  {
+    agent: "opencode",
+    title: "Why are image uploads slow?",
+    project: "media",
+    machine: "build-box",
+    system: "windows",
+    when: "20d",
+  },
+];
+---
+
+<div class="bar-and-panel" aria-hidden="true">
+  <div class="bar">
+    <b>Mash</b><span>File</span><span>Edit</span><span>View</span><span class="wide">Window</span><span class="wide">Help</span>
+    <span class="tray"><img src="/mash-mark.svg" alt="" width="18" height="18" /></span>
+    <span class="wide">Wed 25 Nov 10:42</span>
+  </div>
+  <div class="quick recent">
+    <div class="quick-q"><LineIcon name="search" size="1rem" /><b>Search Mash</b><kbd>⌥</kbd><kbd>⇧</kbd><kbd>Space</kbd></div>
+    <p class="quick-h" data-in>Recent</p>
+    <ul>
+      {recent.map((row, index) => (
+        <li class:list={{ on: index === 0 }} data-in>
+          <AgentTile agent={row.agent} />
+          <b>{row.title}</b>
+          <span class="where"><LineIcon name="folder" size="0.75rem" />{row.project}<OsMark system={row.system} />{row.machine}</span>
+          <span class="when">{row.when}</span>
+        </li>
+      ))}
+    </ul>
+    <div class="quick-f"><span>Open chat <kbd>↵</kbd></span><i></i><span>Open Mash <kbd>⌘</kbd><kbd>O</kbd></span></div>
+  </div>
+</div>
+
+<style>
+  .bar-and-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    width: min(46.875rem, 100%);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    gap: 1.125rem;
+    height: 2.125rem;
+    padding: 0 0.875rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-strong);
+    font-size: 0.75rem;
+  }
+  /* Mash's icon, pressed: the panel below hangs from it. */
+  .tray {
+    display: grid;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.5rem;
+    margin-inline-start: auto;
+    border-radius: var(--radius-2);
+    background: var(--butter-soft);
+  }
+  .bar-and-panel .quick.recent {
+    width: min(41.25rem, 100%);
+    margin-top: 0;
+  }
+  .quick.recent .quick-q b {
+    color: var(--text-faint);
+  }
+  @media (width < 40rem) {
+    .wide {
+      display: none;
+    }
+  }
+</style>
