@@ -4,18 +4,22 @@
 # states, with made-up data.
 #
 #   tools/storybook-serve.sh            build main's Storybook and serve it (or refresh it)
+#   tools/storybook-serve.sh --refresh  refresh it if this machine serves it and main's
+#                                       dashboard/ differs from what is served
 #   tools/storybook-serve.sh --status   what is served, and whether it answers
 #   tools/storybook-serve.sh --stop     stop serving and remove the unit
 #
-# It builds in the deploy tree (`tools/worktree.sh deploy-tree`, a clean
-# checkout of origin/main), copies the static files out of it, and serves the
-# copy with the user unit `mash-storybook.service` on this machine's Tailscale
+# It builds in a tree of its own (`tools/worktree.sh deploy-tree storybook`, a
+# clean checkout of origin/main beside the deploy tree, so a build never moves
+# the tree a deploy is running from), copies the static files out of it, and
+# serves the copy with the user unit `mash-storybook.service` on this machine's Tailscale
 # address at port 5400: never on every interface, and nothing public. The unit
 # is enabled, so it comes back after a restart of the machine.
 #
-# Nothing refreshes it by itself. Run this again after landing a change to
-# the dashboard to serve the new main; the old files are served until the new
-# build has finished, and a failed build leaves them in place.
+# `tools/worktree.sh land NAME --wait` runs --refresh once its change is on
+# main, so the served Storybook follows the dashboard. A change that landed
+# another way needs this run again by hand. The old files are served until
+# the new build has finished, and a failed build leaves them in place.
 #
 # A worktree's own Storybook, live while you edit, is a preview instead:
 # tools/worktree.sh preview NAME --storybook.
@@ -74,6 +78,14 @@ stop() {
     say "Stopped $unit.service and removed its unit. The built files stay in $state/site."
 }
 
+# Two landings can finish together; the second waits, then finds the first
+# one's build current. The lock is held until this script exits.
+one_at_a_time() {
+    mkdir -p "$state"
+    exec 9> "$state/lock"
+    flock 9
+}
+
 serve() {
     local host tree revision waited=0 runner=()
     command -v systemctl > /dev/null || die 'systemd is needed to keep the Storybook served; this is a Linux tool'
@@ -83,7 +95,8 @@ serve() {
     if ! active && [[ -n $(ss -Hltn "sport = :$port" 2> /dev/null) ]]; then
         die "port $port is taken; stop what holds it (tools/worktree.sh previews) and run this again"
     fi
-    tree=$(bash "$tools/worktree.sh" deploy-tree) || die 'could not prepare the deploy tree'
+    one_at_a_time
+    tree=$(bash "$tools/worktree.sh" deploy-tree storybook) || die 'could not prepare the tree the Storybook is built in'
     revision=$(git -C "$tree" rev-parse --short HEAD)
     [[ -f $tree/dashboard/.storybook/main.ts ]] || die "main at $revision has no Storybook yet"
     say "Building the Storybook of main at $revision"
@@ -94,7 +107,6 @@ serve() {
     [[ -f $tree/dashboard/storybook-static/index.json ]] || die 'the build left no storybook-static/index.json'
     # The server reads a copy, so the deploy tree can move on, and the copy is
     # swapped in whole: a reader never gets half of one build and half of another.
-    mkdir -p "$state"
     rm -rf "${state:?}/site.new" "${state:?}/site.old"
     cp -R "$tree/dashboard/storybook-static" "$state/site.new"
     [[ ! -d $state/site ]] || mv "$state/site" "$state/site.old"
@@ -131,8 +143,25 @@ UNIT
     print_addresses "$host"
 }
 
+# After a landing. Silent where the Storybook is not served, which is every
+# machine but the one that ran this script without arguments.
+refresh() {
+    local served
+    [[ -f $units/$unit.service ]] || return 0
+    one_at_a_time
+    git -C "$tools" fetch --quiet origin || die 'git fetch origin failed'
+    served=$(cat "$state/revision" 2> /dev/null || true)
+    if [[ -n $served ]] && git -C "$tools" diff --quiet "$served" origin/main -- ':(top)dashboard' 2> /dev/null; then
+        say "The Storybook served at $served is current: main has not changed dashboard/ since."
+        return 0
+    fi
+    say "Refreshing the Storybook of main: dashboard/ changed since ${served:-it was built}."
+    serve
+}
+
 case "${1:-}" in
     '') [[ $# -eq 0 ]] || usage; serve ;;
+    --refresh) [[ $# -eq 1 ]] || usage; refresh ;;
     --status) [[ $# -eq 1 ]] || usage; status ;;
     --stop) [[ $# -eq 1 ]] || usage; stop ;;
     *) usage ;;

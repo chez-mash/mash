@@ -9,6 +9,9 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/worktree-test.XXXXXXXX")
 trap 'rm -rf "$scratch"' EXIT
 export GIT_AUTHOR_NAME=Fixture GIT_AUTHOR_EMAIL=fixture@example.invalid
 export GIT_COMMITTER_NAME=Fixture GIT_COMMITTER_EMAIL=fixture@example.invalid
+# A landing refreshes the Storybook this machine serves; keep the real one,
+# and the real user units, out of reach of every command here.
+export XDG_CONFIG_HOME=$scratch/config MASH_STORYBOOK_STATE=$scratch/storybook
 # The check must leave the tree clean without help from the environment.
 unset MASH_WORKTREES PYTHONDONTWRITEBYTECODE PYTHONPYCACHEPREFIX
 fail() {
@@ -336,7 +339,7 @@ preview done gamma > "$scratch/output" 2>&1 || fail 'done gamma with previews'
 preview previews > "$scratch/list" 2>&1
 grep -q 'No previews' "$scratch/list" || fail 'previews says when there are none'
 
-# The Storybook of main: built in the deploy tree, copied out of it and served
+# The Storybook of main: built in a tree of its own, copied out of it and served
 # by a user unit on the tailnet address only. The same stand-ins record it.
 serve() {
     PATH=$fakes:$PATH HOME=$scratch/home XDG_CONFIG_HOME=$scratch/config MASH_STORYBOOK_STATE=$scratch/storybook \
@@ -377,15 +380,55 @@ serve > "$scratch/addresses" 2> "$scratch/output" || fail 'storybook-serve'
 grep -q -- "-m http.server 5400 --bind 100.101.102.103 --directory $scratch/storybook/site\$" "$unit_file" || fail 'the unit serves the copied files on the tailnet address only'
 ! grep -q '0\.0\.0\.0' "$unit_file" || fail 'the unit listens on every interface'
 grep -q 'MemoryMax=200M' "$unit_file" || fail 'the unit has a memory cap'
-[[ $(cat "$served") == 'build 1' ]] || fail 'the built files are copied out of the deploy tree'
-[[ $(cat "$scratch/storybook/revision") == $(git -C "$deploy" rev-parse --short HEAD) ]] || fail 'the served revision is recorded'
-[[ -z $(git -C "$deploy" status --porcelain) ]] || fail 'serving leaves the deploy tree changed'
+[[ $(cat "$served") == 'build 1' ]] || fail 'the built files are copied out of the tree they were built in'
+built=$scratch/mash-worktrees/_storybook
+[[ $(cat "$scratch/storybook/revision") == $(git -C "$built" rev-parse --short HEAD) ]] || fail 'the served revision is recorded'
+[[ -z $(git -C "$built" status --porcelain) ]] || fail 'serving leaves its tree changed'
+[[ -d $built/dashboard/node_modules && ! -e $deploy/dashboard/node_modules ]] ||
+    fail 'the Storybook was not built in its own tree; a deploy may be running from the deploy tree'
 # A failed rebuild leaves what was served; a good one replaces it.
 if FAKE_BUILD_FAILS=1 serve > "$scratch/output" 2>&1; then fail 'a failed build was served'; fi
 [[ $(cat "$served") == 'build 1' ]] || fail 'a failed build replaced the served files'
 FAKE_BUILD=3 serve > /dev/null 2> "$scratch/output" || fail 'storybook-serve again'
 [[ $(cat "$served") == 'build 3' && ! -e $scratch/storybook/site.old ]] || fail 'a refresh swaps the new files in'
+
+# A landing that waits refreshes what is served, but only when main's
+# dashboard/ changed since the served build.
+builds() { grep -c ' storybook:build$' "$scratch/pnpm" || true; }
+land() { PATH=$fakes:$PATH HOME=$scratch/home worktree land "$@"; }
+echo merge > "$FAKE_QUEUE/verdict"
+tree=$(worktree new story 2> /dev/null)
+printf 'not the dashboard\n' > "$tree/story.md"
+git -C "$tree" add story.md
+git -C "$tree" commit -qm 'outside the dashboard'
+before=$(builds)
+land story --wait > "$scratch/output" 2>&1 || fail 'land story --wait'
+grep -q 'is current' "$scratch/output" || fail 'a landing outside dashboard/ does not say the Storybook is current'
+[[ $(builds) == "$before" ]] || fail 'a landing outside dashboard/ rebuilt the Storybook'
+printf 'export const story = 1;\n' > "$tree/dashboard/story.ts"
+git -C "$tree" add dashboard
+git -C "$tree" commit -qm 'in the dashboard'
+FAKE_BUILD=4 land story --wait > "$scratch/output" 2>&1 || fail 'land story --wait with a dashboard change'
+[[ $(cat "$served") == 'build 4' ]] || fail 'a landing that changed dashboard/ did not refresh the Storybook'
+[[ $(cat "$scratch/storybook/revision") == $(git -C "$scratch/remote.git" rev-parse --short main) ]] || fail 'the refresh does not record the landed revision'
+# A refresh that fails is a note; the change is on main and the landing succeeded.
+printf 'export const story = 2;\n' > "$tree/dashboard/story.ts"
+git -C "$tree" commit -qam 'in the dashboard again'
+FAKE_BUILD_FAILS=1 land story --wait > "$scratch/output" 2>&1 || fail 'a failed Storybook refresh failed the landing'
+grep -q 'Storybook of main was not refreshed' "$scratch/output" || fail 'a failed refresh is not reported'
+[[ $(git -C "$scratch/remote.git" show main:dashboard/story.ts) == 'export const story = 2;' ]] || fail 'the landing with a failed refresh is not on main'
+[[ $(cat "$served") == 'build 4' ]] || fail 'a failed refresh replaced the served files'
+worktree done story > /dev/null 2>&1 || fail 'done story'
 serve --stop > "$scratch/output" 2>&1 || fail 'storybook-serve --stop'
 [[ ! -e $unit_file ]] || fail '--stop leaves the unit file'
+# Where no Storybook is served, a landing builds nothing and says nothing of it.
+tree=$(worktree new quiet 2> /dev/null)
+printf 'export const story = 3;\n' > "$tree/dashboard/story.ts"
+git -C "$tree" commit -qam 'dashboard, nothing served'
+before=$(builds)
+land quiet --wait > "$scratch/output" 2>&1 || fail 'land quiet --wait'
+[[ $(builds) == "$before" ]] || fail 'a landing built a Storybook on a machine that serves none'
+! grep -qi storybook "$scratch/output" || fail 'a landing mentions the Storybook where none is served'
+worktree done quiet > /dev/null 2>&1 || fail 'done quiet'
 rm -f "${scratch:?}/output"
 echo 'worktree: ok'
