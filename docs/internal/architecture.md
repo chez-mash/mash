@@ -36,6 +36,11 @@ HTTP. Word and meaning candidates are fused with RRF and reranked within a
 bound. Query embeddings and the default reranker run locally on the models
 that `mash models install` downloads; Core ML (Apple Silicon) and DirectML
 (Windows GPU) accelerate embedding where available.
+The Windows programs load `directml.dll` and `d3d12.dll` on first use, not
+at start, so they run on a Windows without them (Server 2019, Windows 10
+before 2004): `build.rs` delay-loads both, `cli/delay_load.c` makes a failed
+load an ordinary error that ends in the CPU fallback, and
+`.github/scripts/check-windows-delay-load.py` holds the build to it.
 
 **Sharing (optional).** With a shared destination configured, the node-side
 facade in `crates/mash-sync` publishes exactly the local index to

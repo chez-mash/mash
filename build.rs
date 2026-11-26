@@ -1,4 +1,5 @@
-//! Stamps the commit into the `mash` and `mash-server` programs.
+//! Stamps the commit into the `mash` and `mash-server` programs, and on
+//! Windows has them load `DirectML` on first use; see `cli/delay_load.c`.
 //!
 //! This script belongs to the package that builds the programs, the last one
 //! compiled, so a new commit recompiles that package and nothing under it.
@@ -6,6 +7,7 @@
 use std::process::Command;
 
 fn main() {
+    delay_load_directml();
     let override_revision = std::env::var("MASH_BUILD_REVISION").ok();
     let revision = override_revision.clone().unwrap_or_else(|| {
         Command::new("git")
@@ -42,4 +44,27 @@ fn main() {
             }
         }
     }
+}
+
+/// On Windows, `DirectML` and Direct3D 12 are loaded when the GPU is first
+/// asked for, so the programs start on a Windows without them. Only the
+/// programs get the linker options; the hook that answers a failed load is
+/// compiled into the library they are built on.
+fn delay_load_directml() {
+    println!("cargo:rerun-if-changed=cli/delay_load.c");
+    let os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    let toolchain = std::env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+    if os != "windows" || toolchain != "msvc" {
+        return;
+    }
+    // Whole-archive, because nothing in Rust refers to the hook: the linker's
+    // delay-load helper does, and would otherwise take its own empty one.
+    cc::Build::new()
+        .file("cli/delay_load.c")
+        .link_lib_modifier("+whole-archive")
+        .compile("mash_delay_load");
+    for library in ["directml.dll", "d3d12.dll"] {
+        println!("cargo:rustc-link-arg-bins=/DELAYLOAD:{library}");
+    }
+    println!("cargo:rustc-link-arg-bins=delayimp.lib");
 }
