@@ -81,7 +81,8 @@ For the apt package the banner shows the `apt` command instead.
   **Main (latest build)**, every build of the development branch. The
   choice decides only which versions you are offered.
 - If you installed the `mash` command with **Install Command-Line Tool…**,
-  it runs the app's own `mash` and updates with the app. A `mash` you
+  or the Windows app installed it, it runs the app's own `mash` and updates
+  with the app. A `mash` you
   installed another way (the install script, Homebrew, Scoop) updates
   separately; the app tells you when the two differ and, on a Mac, offers to
   use its own everywhere.

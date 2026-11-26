@@ -22,6 +22,9 @@ mod size;
 mod stop;
 mod update;
 
+/// The Windows installer's requests for the `mash` command (cli/windows.rs).
+#[cfg(windows)]
+pub use cli::installer_request;
 use engine::Engine;
 use navigation::{Navigation, navigation};
 pub(crate) use navigation::{navigate, open_outside};
@@ -55,6 +58,10 @@ fn lock(state: &State) -> std::sync::MutexGuard<'_, Shared> {
 }
 
 pub fn run() {
+    // Something that replaced the app without its installer (a copied
+    // folder, a repair) may have left the `mash` command behind.
+    #[cfg(windows)]
+    cli::keep_in_step();
     let state = State::default();
     let builder = tauri::Builder::default();
     // A second launch hands over to the running app and quits. One that

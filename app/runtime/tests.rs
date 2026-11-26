@@ -224,3 +224,35 @@ fn started_executable_sees_its_file_replaced() {
     assert!(started.replaced());
     assert!(!StartedExecutable(None).replaced());
 }
+
+#[test]
+fn a_program_started_by_bare_name_is_found_as_the_lookup_found_it() {
+    let root = tempfile::tempdir().unwrap();
+    let folder = root.path().join("bin");
+    let name = if cfg!(windows) { "mash.exe" } else { "mash" };
+    let program = folder.join(name);
+    std::fs::create_dir_all(&folder).unwrap();
+    std::fs::write(&program, "fixture").unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let path = std::env::join_paths([root.path().join("empty"), folder.clone()]).unwrap();
+    // As an agent starts `mash mcp` with no shell: only the bare name.
+    assert_eq!(
+        invoked(Path::new("mash"), &path, root.path()),
+        Some(program.clone())
+    );
+    assert_eq!(
+        invoked(Path::new(name), &path, root.path()),
+        Some(program.clone())
+    );
+    assert_eq!(invoked(Path::new("other"), &path, root.path()), None);
+    // A path is taken as it is, a relative one from the working directory.
+    assert_eq!(invoked(&program, &path, root.path()), Some(program.clone()));
+    assert_eq!(
+        invoked(&Path::new("bin").join(name), &path, root.path()),
+        Some(program)
+    );
+}

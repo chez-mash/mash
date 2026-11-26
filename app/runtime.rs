@@ -59,32 +59,35 @@ fn superseded() -> AppError {
 // point into an immutable old release after the installed symlink is replaced.
 fn executable() -> Result<(PathBuf, Identity), AppError> {
     let argument = std::env::args_os().next().ok_or_else(superseded)?;
-    let argument = PathBuf::from(argument);
-    let path = if argument.is_absolute() {
-        argument
-    } else if argument.components().count() > 1 {
-        std::env::current_dir()
-            .map_err(|_| superseded())?
-            .join(argument)
-    } else {
-        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
-            .map(|directory| directory.join(&argument))
-            .find(|path| path.is_file())
-            .ok_or_else(superseded)?
-    };
-    let path = if path.is_absolute() {
-        path
-    } else {
-        std::env::current_dir()
-            .map_err(|_| superseded())?
-            .join(path)
-    };
+    let directory = std::env::current_dir().map_err(|_| superseded())?;
+    let path = invoked(
+        Path::new(&argument),
+        &std::env::var_os("PATH").unwrap_or_default(),
+        &directory,
+    )
+    .ok_or_else(superseded)?;
     let running = std::env::current_exe().map_err(|_| superseded())?;
     let running_identity = identity(&running)?;
     if identity(&path)? != running_identity {
         return Err(superseded());
     }
     Ok((path, running_identity))
+}
+
+/// The file `argument` (this process's first argument) names: itself when it
+/// is a path, otherwise the program a PATH lookup finds for it. A program
+/// started by bare name without a shell, as agents start `mash mcp`, has just
+/// `mash` there, which Windows found as `mash.exe`, so the lookup also tries
+/// the extensions Windows does.
+fn invoked(argument: &Path, path: &std::ffi::OsStr, directory: &Path) -> Option<PathBuf> {
+    if argument.components().count() > 1 || argument.is_absolute() {
+        return Some(directory.join(argument));
+    }
+    std::env::split_paths(path)
+        .map(|folder| folder.join(argument))
+        .find(|candidate| directory.join(candidate).is_file())
+        .or_else(|| crate::platform::find_program(&argument.to_string_lossy(), path, directory))
+        .map(|found| directory.join(found))
 }
 
 /// The executable a long-lived process started from, kept so it can tell

@@ -14,12 +14,24 @@
 //! moved or removed it says so in one line instead of failing as a dangling
 //! link would. On Linux it is a link, and only for an app installed at a
 //! fixed place: an AppImage's files move on every start, so there `mash`
-//! stays a separate install.
+//! stays a separate install. On Windows the command is a copy of the app's
+//! `mash.exe` in a folder of its own on the user's PATH, which the installer
+//! puts in place (`path_command`, `windows`).
+
+#[cfg(any(windows, test))]
+mod path_command;
+#[cfg(windows)]
+mod windows;
+
+#[cfg(windows)]
+pub use windows::{installer_request, keep_in_step};
 
 use crate::engine;
 use std::path::{Path, PathBuf};
 use tauri::AppHandle;
-use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+#[cfg(unix)]
+use tauri_plugin_dialog::MessageDialogButtons;
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 /// The command a reader types for this app's `mash`, quoted for their shell.
 pub fn command(program: &Path) -> String {
@@ -52,12 +64,14 @@ const MARK: &str = "# mash-desktop-command";
 
 /// The `mash` command for the app at `bundle`: run the `mash` inside it, or
 /// inside a Mash.app in one of the two usual places when it has moved.
+#[cfg(unix)]
 pub fn wrapper(bundle: &Path) -> String {
     wrapper_looking_in(bundle, "/Applications")
 }
 
 /// The command, with the system's applications folder named so a test can
 /// stand in its own.
+#[cfg(unix)]
 fn wrapper_looking_in(bundle: &Path, applications: &str) -> String {
     let recorded = bundle.to_string_lossy().replace('\'', r"'\''");
     format!(
@@ -125,8 +139,12 @@ fn same_file(one: &Path, other: &Path) -> bool {
         )
 }
 
-/// Where the command goes: `~/.local/bin/mash`.
+/// Where the command goes: `~/.local/bin/mash`, or on Windows the copy in
+/// the app's own `bin` folder.
 pub fn command_file() -> Option<PathBuf> {
+    #[cfg(windows)]
+    return windows::command_file();
+    #[cfg(not(windows))]
     std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local").join("bin").join("mash"))
 }
 
@@ -163,9 +181,19 @@ fn installable() -> Result<PathBuf, String> {
     Ok(program)
 }
 
+/// "Install Command-Line Tool…": put the app's `mash` command in place, or
+/// offer to remove it, and say what happened.
+pub fn install(app: &AppHandle) {
+    #[cfg(windows)]
+    windows::install(app);
+    #[cfg(unix)]
+    install_link(app);
+}
+
 /// Install the app's `mash` command in `~/.local/bin`, or offer to remove
 /// it, and say what happened.
-pub fn install(app: &AppHandle) {
+#[cfg(unix)]
+fn install_link(app: &AppHandle) {
     let program = match installable() {
         Ok(program) => program,
         Err(why) => return tell(app, MessageDialogKind::Info, &why),
@@ -287,15 +315,11 @@ fn place(file: &Path, program: &Path) -> std::io::Result<()> {
 }
 
 #[cfg(not(unix))]
-fn write_command(_file: &Path, _program: &Path) -> String {
-    "Installing the command-line tool from the app is available on macOS and Linux.".into()
-}
-
-#[cfg(not(unix))]
 fn place(_file: &Path, _program: &Path) -> std::io::Result<()> {
     Err(std::io::Error::other("not available on this system"))
 }
 
+#[cfg(unix)]
 fn offer_removal(app: &AppHandle, link: PathBuf, program: &Path) {
     let handle = app.clone();
     app.dialog()
@@ -331,8 +355,12 @@ fn tell(app: &AppHandle, kind: MessageDialogKind, message: &str) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Plan, command, plan, wrapper, wrapper_looking_in};
-    use std::path::{Path, PathBuf};
+    use super::command;
+    #[cfg(unix)]
+    use super::{Plan, plan, wrapper, wrapper_looking_in};
+    use std::path::Path;
+    #[cfg(unix)]
+    use std::path::PathBuf;
 
     #[test]
     fn names_the_bundled_program_ready_to_paste() {

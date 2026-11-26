@@ -73,7 +73,6 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     )?;
     let quit = MenuItem::with_id(app, "quit", "Quit Mash", true, app_shortcut("CmdOrCtrl+Q"))?;
     let menu = Menu::with_items(app, &[&search, &open, &separator, &settings])?;
-    #[cfg(unix)]
     menu.append(&command_line_item(app)?)?;
     crate::update::add_menu(app, crate::update::Holder::Menu(menu.clone()), None)?;
     menu.append_items(&[&PredefinedMenuItem::separator(app)?, &quit])?;
@@ -117,8 +116,8 @@ fn tray_icon() -> tauri::Result<Image<'static>> {
     }
 }
 
-/// The item that links the app's `mash` into `~/.local/bin` (cli.rs).
-#[cfg(unix)]
+/// The item that puts the app's `mash` command in place, or removes it
+/// (cli.rs).
 fn command_line_item(app: &AppHandle) -> tauri::Result<MenuItem<tauri::Wry>> {
     MenuItem::with_id(
         app,

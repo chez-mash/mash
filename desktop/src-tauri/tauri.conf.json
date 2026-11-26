@@ -40,6 +40,12 @@
       "files": {
         "Resources/Assets.car": "icons/Assets.car"
       }
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "./windows/hooks.nsh"
+      }
     }
   },
   "plugins": {

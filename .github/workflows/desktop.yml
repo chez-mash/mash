@@ -199,6 +199,18 @@ jobs:
           fi
           # The test step above already holds Cargo to the lock file.
           pnpm exec tauri build --ci "${channel[@]}"
+      # The installer brings the `mash` command, a new session runs it from
+      # cmd, PowerShell and with no shell (`mash mcp` answers initialize), and
+      # the uninstaller takes it away (docs/internal/desktop-app.md).
+      - name: Install the app and run its mash command
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem desktop/src-tauri/target/release/bundle/nsis/*-setup.exe).FullName
+          foreach ($step in 'install', 'probe', 'uninstall', 'gone') {
+            powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/windows-command-check.ps1 -Step $step -Installer $installer -FreshPath
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
       - name: Name the update files
         if: steps.channel.outputs.version
         env:
