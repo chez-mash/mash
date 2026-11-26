@@ -88,8 +88,11 @@ test("Escape closes a filter menu and returns focus to its chip", async ({ page 
   await chip.focus();
   await page.keyboard.press("Enter");
   await expect(chip).toHaveAttribute("aria-expanded", "true");
-  await page.keyboard.press("Tab");
-  expect(await page.evaluate(() => document.activeElement?.closest(".fmenu") !== null)).toBe(true);
+  // The menu takes focus and the arrow keys move through its choices.
+  await page.keyboard.press("ArrowDown");
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.closest(".fmenu") !== null))
+    .toBe(true);
   await page.keyboard.press("Escape");
   await expect(chip).toHaveAttribute("aria-expanded", "false");
   await expect(chip).toBeFocused();

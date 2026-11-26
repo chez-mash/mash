@@ -10,6 +10,7 @@ import FileText from "@lucide/svelte/icons/file-text";
 import PanelLeft from "@lucide/svelte/icons/panel-left";
 import Printer from "@lucide/svelte/icons/printer";
 import Search from "@lucide/svelte/icons/search";
+import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import type { ExportFormat } from "../lib/export";
 import { type Route, router } from "../lib/route.svelte";
 
@@ -47,21 +48,7 @@ const previous = $derived(router.previous);
 const back = $derived(previous ? (names[previous.page] ?? "Back") : "Overview");
 
 let open = $state(false);
-let root = $state<HTMLElement>();
-function act(action: () => void): void {
-  open = false;
-  action();
-}
 </script>
-
-<svelte:window
-  onkeydown={(event) => {
-    if (event.key === "Escape" && open) open = false;
-  }}
-  onpointerdown={(event) => {
-    if (open && event.target instanceof Node && !root?.contains(event.target)) open = false;
-  }}
-/>
 
 <div class="cpb">
   {#if previous}
@@ -69,18 +56,18 @@ function act(action: () => void): void {
   {:else}
     <a class="cpb-back" href="#/"><ChevronLeft size={18} aria-hidden="true" />{back}</a>
   {/if}
-  <span class="cpb-more" bind:this={root}>
-    <button class="cpb-b" type="button" aria-label="More chat actions" aria-expanded={open} onclick={() => (open = !open)}><Ellipsis size={18} aria-hidden="true" /></button>
-    {#if open}
-      <div class="menu cpb-m">
-        <button type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={() => act(ontogglesessions)}><PanelLeft size={15} aria-hidden="true" />Sessions</button>
-        <button type="button" aria-expanded={findOpen} onclick={() => act(onfind)}><Search size={15} aria-hidden="true" />Find in chat</button>
-        <button type="button" onclick={() => act(oncopy)}><Copy size={15} aria-hidden="true" />Copy session ID</button>
-        <button type="button" disabled={!canExport} onclick={() => act(() => onexport("pdf"))}><Printer size={15} aria-hidden="true" />Export to PDF</button>
-        <button type="button" disabled={!canExport} onclick={() => act(() => onexport("html"))}><FileCode size={15} aria-hidden="true" />Export to HTML</button>
-        <button type="button" disabled={!canExport} onclick={() => act(() => onexport("markdown"))}><FileText size={15} aria-hidden="true" />Export to Markdown</button>
-      </div>
-    {/if}
+  <span class="cpb-more">
+    <DropdownMenu.Root bind:open>
+      <DropdownMenu.Trigger class="cpb-b" aria-label="More chat actions"><Ellipsis size={18} aria-hidden="true" /></DropdownMenu.Trigger>
+      <DropdownMenu.ContentStatic class="right-0 min-w-[220px]" aria-label="More chat actions">
+        <DropdownMenu.Item aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" onSelect={ontogglesessions}><PanelLeft size={15} aria-hidden="true" />Sessions</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={onfind}><Search size={15} aria-hidden="true" />Find in chat</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={oncopy}><Copy size={15} aria-hidden="true" />Copy session ID</DropdownMenu.Item>
+        <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("pdf")}><Printer size={15} aria-hidden="true" />Export to PDF</DropdownMenu.Item>
+        <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("html")}><FileCode size={15} aria-hidden="true" />Export to HTML</DropdownMenu.Item>
+        <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("markdown")}><FileText size={15} aria-hidden="true" />Export to Markdown</DropdownMenu.Item>
+      </DropdownMenu.ContentStatic>
+    </DropdownMenu.Root>
   </span>
 </div>
 
@@ -105,7 +92,7 @@ function act(action: () => void): void {
   .cpb-more {
     position: relative;
   }
-  .cpb-b {
+  .cpb-more :global(.cpb-b) {
     display: grid;
     place-items: center;
     width: 40px;
@@ -113,15 +100,10 @@ function act(action: () => void): void {
     border-radius: var(--radius-5);
     color: var(--text-strong);
   }
-  .cpb-b[aria-expanded="true"],
-  .cpb-b:hover,
+  .cpb-more :global(.cpb-b[aria-expanded="true"]),
+  .cpb-more :global(.cpb-b:hover),
   .cpb-back:hover {
     background: var(--surface-hover);
     color: var(--text-strong);
-  }
-  .cpb-m {
-    right: 0;
-    left: auto;
-    min-width: 220px;
   }
 </style>

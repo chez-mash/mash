@@ -475,7 +475,7 @@ test("Export downloads the entire chat as safe HTML and Markdown", async ({ page
   for (const format of ["Markdown", "HTML"]) {
     await openExport.click();
     const downloaded = page.waitForEvent("download");
-    await page.getByRole("button", { name: `Export to ${format}`, exact: true }).click();
+    await page.getByRole("menuitem", { name: `Export to ${format}`, exact: true }).click();
     const download = await downloaded;
     const stream = await download.createReadStream();
     if (!stream) throw new Error("Missing export download");
@@ -493,12 +493,12 @@ test("Export downloads the entire chat as safe HTML and Markdown", async ({ page
     ).toBeVisible();
   }
   await openExport.click();
-  await expect(page.getByRole("button", { name: "Export to PDF", exact: true })).toBeEnabled();
+  await expect(page.getByRole("menuitem", { name: "Export to PDF", exact: true })).toBeEnabled();
   await page.context().addInitScript(() => {
     window.print = () => {};
   });
   const opened = page.waitForEvent("popup");
-  await page.getByRole("button", { name: "Export to PDF", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Export to PDF", exact: true }).click();
   const preview = await opened;
   await expect(preview.getByText("Last message on another page", { exact: true })).toBeVisible();
   await expect(preview.locator("script, img")).toHaveCount(0);

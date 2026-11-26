@@ -139,7 +139,7 @@ async function shoot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: `${directory}/${browser}-${name}-${width}.png`, fullPage: true });
 }
 
-const menu = (page: Page) => page.getByRole("group", { name: "Show chats and memory from" });
+const menu = (page: Page) => page.getByRole("menu", { name: "Show chats and memory from" });
 const option = (page: Page, name: RegExp) => menu(page).getByRole("menuitemradio", { name });
 async function openSwitcher(page: Page): Promise<void> {
   // It sits in the top bar; on a phone, at the top of the navigation sheet.

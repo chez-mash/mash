@@ -172,7 +172,7 @@ test("memory follows the viewing switcher, which names this machine once", async
   await page.goto("/#/records?");
   const switcher = page.locator("#top .vw-b");
   await switcher.click();
-  const menu = page.getByRole("group", { name: "Show chats and memory from" });
+  const menu = page.getByRole("menu", { name: "Show chats and memory from" });
   await expect(menu.getByRole("menuitemradio")).toHaveText([
     /^\s*This machine · laptop/,
     /^\s*All machines/,

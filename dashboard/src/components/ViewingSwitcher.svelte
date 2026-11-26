@@ -11,6 +11,7 @@ import Laptop from "@lucide/svelte/icons/laptop";
 import Network from "@lucide/svelte/icons/network";
 import Radio from "@lucide/svelte/icons/radio";
 import { createQuery } from "@tanstack/svelte-query";
+import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import { groupChats } from "../lib/browse";
 import { catalogOptions, liveOptions, reachOf } from "../lib/queries";
 import { type Scope, sameScope, scope, scopeName, scopeSentence } from "../lib/scope.svelte";
@@ -31,7 +32,6 @@ const whole = createQuery(() => catalogOptions);
 const liveList = createQuery(() => liveOptions);
 const scoped = createScoped();
 let open = $state(false);
-let root: HTMLElement | undefined = $state();
 
 const reach = $derived(whole.data ? reachOf(whole.data, liveList.data ?? []) : undefined);
 // When each machine last published, as the shared server reports it.
@@ -91,66 +91,65 @@ function choose(next: Scope): void {
   scope.choose(next);
   open = false;
 }
+/** One string per choice, for the menu's radio group. */
+const scopeKey = (candidate: Scope): string =>
+  candidate.kind === "node" ? `node:${candidate.node}` : candidate.kind;
+// A row here is taller than the kit's, at the page's own text size.
+const row =
+  "gap-2.5 rounded-(--radius-tile) px-2.5 py-[9px] text-[length:inherit] [font-weight:inherit]";
 const on = (candidate: Scope) => current !== undefined && sameScope(candidate, current);
 </script>
 
-<svelte:window
-  onkeydown={(event) => {
-    if (event.key === "Escape" && open) open = false;
-  }}
-  onpointerdown={(event) => {
-    const target = event.target;
-    if (!open || !(target instanceof Node)) return;
-    if (!root?.contains(target)) open = false;
-  }}
-/>
-
-<div class="vw vw-{place}" bind:this={root}>
+<div class="vw vw-{place}">
   <span class="vw-l" class:sr-only={place === "bar"} id={labelId}>Viewing</span>
-  <button class="vw-b" type="button" aria-haspopup="true" aria-expanded={open} aria-describedby={labelId} onclick={() => (open = !open)}>
-    {#if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
-    <span class="vw-n" title={name}>{label.text}</span>{#if label.pill}<span class="pill vw-p">{label.pill}</span>{/if}
-    <ChevronDown size={14} aria-hidden="true" class="vw-c" />
-  </button>
-  {#if open && reach}
-    <div class="vw-m" role="group" aria-label="Show chats and memory from">
-      {#if sentence}<p class="vw-d">{sentence}</p>{/if}
-      {#if !reach.sharedOnly}
-        <button type="button" role="menuitemradio" aria-checked={on({ kind: "local" })} onclick={() => choose({ kind: "local" })}>
-          <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<MachineIcon machine={reach.localNode} size={14} />{/if}</span>
-          <span class="vw-t"><b>This machine · {reach.localNode}</b></span>
-          <span class="vw-k">{(counts.get(reach.localNode) ?? 0).toLocaleString()}</span>
-        </button>
-      {/if}
-      {#if reach.joined || reach.sharedOnly}
-        <button type="button" role="menuitemradio" aria-checked={on({ kind: "all" })} onclick={() => choose({ kind: "all" })}>
-          <span class="vw-i">{#if on({ kind: "all" })}<Check size={14} aria-hidden="true" />{:else}<Globe size={14} aria-hidden="true" />{/if}</span>
-          <span class="vw-t"><b>All machines</b></span>
-          <span class="vw-k">{total.toLocaleString()}</span>
-        </button>
-      {/if}
-      {#if others.length}
-        <p class="vw-s">Other machines</p>
-        {#each others as machine (machine)}
-          {@const live = reach.live.includes(machine)}
-          {@const candidate = { kind: "node", node: machine } as const}
-          {@const stale = staleness(machine)}
-          <button type="button" role="menuitemradio" aria-checked={on(candidate)} onclick={() => choose(candidate)}>
-            <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else}<MachineIcon {machine} size={14} />{/if}</span>
-            <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill info vw-st" title="Read live from its own dashboard"><Radio size={11} aria-hidden="true" />live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}><Clock size={11} aria-hidden="true" />{stale.age}</span>{/if}</span>
-            {#if counts.has(machine)}<span class="vw-k">{(counts.get(machine) ?? 0).toLocaleString()}</span>{/if}
-          </button>
-        {/each}
-      {/if}
-      {#if !reach.joined && !reach.sharedOnly}
-        <div class="vw-j">
-          <p>See your other machines here by joining a shared index.</p>
-          <!-- The machines page has the join form. -->
-          <a class="btn sm" href="#/machines" onclick={() => (open = false)}><Network size={14} aria-hidden="true" />Join a shared index</a>
-        </div>
-      {/if}
-    </div>
-  {/if}
+  <DropdownMenu.Root bind:open>
+    <DropdownMenu.Trigger class="vw-b" aria-describedby={labelId}>
+      {#if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
+      <span class="vw-n" title={name}>{label.text}</span>{#if label.pill}<span class="pill vw-p">{label.pill}</span>{/if}
+      <ChevronDown size={14} aria-hidden="true" class="vw-c" />
+    </DropdownMenu.Trigger>
+    {#if reach}
+      <DropdownMenu.ContentStatic class="vw-m" aria-label="Show chats and memory from">
+        {#if sentence}<p class="vw-d">{sentence}</p>{/if}
+        <DropdownMenu.RadioGroup value={current ? scopeKey(current) : ""}>
+          {#if !reach.sharedOnly}
+            <DropdownMenu.RadioItem class={row} value="local" onSelect={() => choose({ kind: "local" })}>
+              <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<MachineIcon machine={reach.localNode} size={14} />{/if}</span>
+              <span class="vw-t"><b>This machine · {reach.localNode}</b></span>
+              <span class="vw-k">{(counts.get(reach.localNode) ?? 0).toLocaleString()}</span>
+            </DropdownMenu.RadioItem>
+          {/if}
+          {#if reach.joined || reach.sharedOnly}
+            <DropdownMenu.RadioItem class={row} value="all" onSelect={() => choose({ kind: "all" })}>
+              <span class="vw-i">{#if on({ kind: "all" })}<Check size={14} aria-hidden="true" />{:else}<Globe size={14} aria-hidden="true" />{/if}</span>
+              <span class="vw-t"><b>All machines</b></span>
+              <span class="vw-k">{total.toLocaleString()}</span>
+            </DropdownMenu.RadioItem>
+          {/if}
+          {#if others.length}
+            <p class="vw-s">Other machines</p>
+            {#each others as machine (machine)}
+              {@const live = reach.live.includes(machine)}
+              {@const candidate = { kind: "node", node: machine } as const}
+              {@const stale = staleness(machine)}
+              <DropdownMenu.RadioItem class={row} value={scopeKey(candidate)} onSelect={() => choose(candidate)}>
+                <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else}<MachineIcon {machine} size={14} />{/if}</span>
+                <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill info vw-st" title="Read live from its own dashboard"><Radio size={11} aria-hidden="true" />live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}><Clock size={11} aria-hidden="true" />{stale.age}</span>{/if}</span>
+                {#if counts.has(machine)}<span class="vw-k">{(counts.get(machine) ?? 0).toLocaleString()}</span>{/if}
+              </DropdownMenu.RadioItem>
+            {/each}
+          {/if}
+        </DropdownMenu.RadioGroup>
+        {#if !reach.joined && !reach.sharedOnly}
+          <div class="vw-j">
+            <p>See your other machines here by joining a shared index.</p>
+            <!-- The machines page has the join form. -->
+            <a class="btn sm" href="#/machines" onclick={() => (open = false)}><Network size={14} aria-hidden="true" />Join a shared index</a>
+          </div>
+        {/if}
+      </DropdownMenu.ContentStatic>
+    {/if}
+  </DropdownMenu.Root>
 </div>
 
 <style>
@@ -172,7 +171,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     align-items: center;
     pointer-events: none;
   }
-  .vw-b {
+  .vw :global(.vw-b) {
     display: flex;
     align-items: center;
     gap: 7px;
@@ -182,17 +181,17 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     font-weight: var(--weight-label);
     text-align: left;
   }
-  .vw.vw-bar .vw-b {
+  .vw.vw-bar :global(.vw-b) {
     height: 30px;
     max-width: 260px;
     padding: 0 10px;
   }
-  .vw.vw-bar .vw-b:hover,
-  .vw.vw-bar .vw-b[aria-expanded="true"] {
+  .vw.vw-bar :global(.vw-b:hover),
+  .vw.vw-bar :global(.vw-b[aria-expanded="true"]) {
     background: var(--surface-hover);
     color: var(--text-strong);
   }
-  .vw.vw-sheet .vw-b {
+  .vw.vw-sheet :global(.vw-b) {
     width: 100%;
     min-height: 44px;
     padding: 0 12px 0 72px;
@@ -221,16 +220,16 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     height: 18px;
     font-size: 11px;
   }
-  .vw-b :global(.vw-c) {
+  .vw :global(.vw-b) :global(.vw-c) {
     flex: none;
     color: var(--text-muted);
   }
-  .vw-b[aria-expanded="true"] :global(.vw-c) {
+  .vw :global(.vw-b[aria-expanded="true"] .vw-c) {
     transform: rotate(180deg);
   }
   /* The menu drops below the button: under the bar's right edge, or as wide
      as the sheet's field. */
-  .vw-m {
+  .vw :global(.vw-m) {
     position: absolute;
     z-index: 30;
     top: calc(100% + 6px);
@@ -248,34 +247,17 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
       var(--shadow-float),
       0 0 0 100vmax var(--scrim);
   }
-  .vw:has(> .vw-m) > .vw-b {
+  .vw:has(:global(.vw-m)) > :global(.vw-b) {
     position: relative;
     z-index: 31;
   }
-  .vw.vw-bar:has(> .vw-m) > .vw-b {
+  .vw.vw-bar:has(:global(.vw-m)) > :global(.vw-b) {
     background: var(--surface-raised);
   }
-  .vw.vw-sheet .vw-m {
+  .vw.vw-sheet :global(.vw-m) {
     left: 0;
     width: auto;
     max-width: none;
-  }
-  .vw-m button {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 44px;
-    padding: 9px 10px;
-    border-radius: var(--radius-tile);
-    text-align: left;
-  }
-  .vw-m button:hover {
-    background: var(--surface-hover);
-  }
-  .vw-m button[aria-checked="true"] {
-    background: var(--selected-bg);
-    color: var(--selected-text);
   }
   .vw-i {
     flex: none;

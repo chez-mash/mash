@@ -9,6 +9,7 @@ import Link2 from "@lucide/svelte/icons/link-2";
 import PanelLeft from "@lucide/svelte/icons/panel-left";
 import Printer from "@lucide/svelte/icons/printer";
 import Search from "@lucide/svelte/icons/search";
+import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import { agents } from "../lib/agents";
 import { whenLabel } from "../lib/browse";
 import type { ExportFormat } from "../lib/export";
@@ -119,14 +120,14 @@ const age = $derived.by(() => {
       <button class="btn" type="button" onclick={oncopy}><Copy size={15} aria-hidden="true" />Copy session ID</button>
       {#if chat}<OpenInAgent {chat} {local} {onnotice} />{/if}
       <span class="ch-x">
-        <button class="btn" type="button" aria-expanded={exportOpen} onclick={() => (exportOpen = !exportOpen)}><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</button>
-        {#if exportOpen}
-          <div class="menu">
-            <button type="button" disabled={!canExport} onclick={() => onexport("pdf")}><Printer size={15} aria-hidden="true" />Export to PDF</button>
-            <button type="button" disabled={!canExport} onclick={() => onexport("html")}><FileCode size={15} aria-hidden="true" />Export to HTML</button>
-            <button type="button" disabled={!canExport} onclick={() => onexport("markdown")}><FileText size={15} aria-hidden="true" />Export to Markdown</button>
-          </div>
-        {/if}
+        <DropdownMenu.Root bind:open={exportOpen}>
+          <DropdownMenu.Trigger class="btn"><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</DropdownMenu.Trigger>
+          <DropdownMenu.ContentStatic class="right-0 w-[210px]" aria-label="Export">
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("pdf")}><Printer size={15} aria-hidden="true" />Export to PDF</DropdownMenu.Item>
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("html")}><FileCode size={15} aria-hidden="true" />Export to HTML</DropdownMenu.Item>
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("markdown")}><FileText size={15} aria-hidden="true" />Export to Markdown</DropdownMenu.Item>
+          </DropdownMenu.ContentStatic>
+        </DropdownMenu.Root>
       </span>
     </div>
     {/if}

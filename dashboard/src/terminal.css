@@ -939,31 +939,6 @@ a.nav-group[aria-current="page"] {
   gap: 8px 10px;
   align-items: center;
 }
-.menu {
-  position: absolute;
-  z-index: 15;
-  top: calc(100% + 6px);
-  right: 0;
-  width: 210px;
-  padding: 4px;
-  border: var(--border-strong);
-  border-radius: var(--radius-6);
-  background: var(--surface-raised);
-}
-.menu button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: var(--radius-4);
-  font-size: 13.5px;
-  text-align: left;
-}
-.menu button:hover {
-  background: var(--surface-hover);
-}
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -1849,29 +1824,10 @@ h1:focus {
   border-radius: var(--radius-6);
   background: var(--surface-raised);
 }
-.fmenu button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 36px;
-  padding: 0 9px;
-  border-radius: var(--radius-4);
-  font-size: 13.5px;
-  text-align: left;
-}
-.fmenu button:hover {
-  background: var(--surface-hover);
-}
-.fmenu button[aria-checked="true"] {
-  background: var(--selected-bg);
-  color: var(--selected-text);
-  font-weight: var(--weight-strong);
-}
-.fmenu button[aria-checked="true"] :is(.oi, .n) {
+.fmenu [aria-checked="true"] :is(.oi, .n) {
   color: inherit;
 }
-.fmenu button[aria-checked="true"] .mark {
+.fmenu [aria-checked="true"] .mark {
   border-color: var(--line-on-accent);
 }
 .fmenu .oi {
@@ -2392,9 +2348,6 @@ h1:focus {
     max-width: none;
     max-height: 55vh;
   }
-  .fmenu button {
-    min-height: 44px;
-  }
   #rail.open {
     transform: none;
     visibility: visible;
@@ -2636,8 +2589,6 @@ button:disabled {
 /* Weights for a proportional face. At the same size it reads lighter than the
    monospace these rules were first tuned for, so labels, headings and controls
    carry more weight to sit level with message text. */
-.menu button,
-.fmenu button,
 .tabs button,
 .tl button,
 .back,

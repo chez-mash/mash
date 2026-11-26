@@ -246,7 +246,7 @@ for (const sourceNode of ["remote/one", "local"]) {
     ).toBeVisible();
     await page.getByRole("button", { name: "Export", exact: true }).click();
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export to Markdown" }).click();
+    await page.getByRole("menuitem", { name: "Export to Markdown" }).click();
     expect((await download).suggestedFilename()).toContain(".md");
     await expect(page.getByRole("status").filter({ hasText: "Exported" })).toContainText(
       "Exported 1 messages",
@@ -346,7 +346,7 @@ test("a shared-only dashboard names the shared machines and never calls one this
   await page.goto("/#/records?");
   await page.locator("#top .vw-b").click();
   const options = page
-    .getByRole("group", { name: "Show chats and memory from" })
+    .getByRole("menu", { name: "Show chats and memory from" })
     .getByRole("menuitemradio");
   await expect(options).toHaveText([/^\s*All machines/, /^\s*desk/, /^\s*phone/]);
   await expect(page.getByText(/This machine/)).toHaveCount(0);
@@ -403,7 +403,7 @@ test("the memory page reads the scope's index on every page", async ({ page }) =
   // Choosing this machine reads only what it saved: nothing, and it says so.
   await page.locator("#top .vw-b").click();
   await page
-    .getByRole("group", { name: "Show chats and memory from" })
+    .getByRole("menu", { name: "Show chats and memory from" })
     .getByRole("menuitemradio", { name: /^\s*This machine/ })
     .click();
   await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
