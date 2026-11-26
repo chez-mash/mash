@@ -3,8 +3,8 @@
 // the tools that manage Mash, the projects pinned for quick reach, and a
 // status line at the foot. On a phone it is a sheet that drops from the top,
 // with the viewing switcher above the pages.
-import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
+import Brain from "@lucide/svelte/icons/brain";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Clock from "@lucide/svelte/icons/clock";
 import Folder from "@lucide/svelte/icons/folder";
@@ -67,13 +67,13 @@ interface Row {
   readonly id: string;
   readonly label: string;
   readonly href: string;
-  readonly icon: typeof Bookmark;
+  readonly icon: typeof Brain;
 }
 const main: readonly Row[] = [
   { id: "overview", label: "Overview", href: "#/", icon: LayoutGrid },
   { id: "search", label: "Search", href: "#/search", icon: Search },
   { id: "chats", label: "Chats", href: "#/search", icon: MessageSquare },
-  { id: "memory", label: "Memory", href: "#/records?", icon: Bookmark },
+  { id: "memory", label: "Memory", href: "#/records?", icon: Brain },
   { id: "machines", label: "Machines", href: "#/machines", icon: Laptop },
   { id: "agents", label: "Agents", href: "#/agents", icon: Bot },
   { id: "services", label: "Services", href: "#/services", icon: Server },

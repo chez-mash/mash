@@ -1,5 +1,5 @@
 <script lang="ts">
-import Bookmark from "@lucide/svelte/icons/bookmark";
+import Brain from "@lucide/svelte/icons/brain";
 import { createQuery } from "@tanstack/svelte-query";
 import { type Scoped, stableRead } from "../lib/queries";
 import { scopeIcons } from "../lib/recordIcons";
@@ -33,7 +33,7 @@ const records = $derived(found.data?.page.records ?? []);
       {#if revision}
         {@const ScopeIcon = scopeIcons[record.scope.kind]}
         <a class="mm-r" href={recordHref(record.id, record.node, recordsHref(params))}>
-          <span class="mm-i" aria-hidden="true"><Bookmark size={13} /></span>
+          <span class="mm-i" aria-hidden="true"><Brain size={13} /></span>
           <span class="mm-t">
             <b><Highlight text={revision.statement} {query} /></b>
             <small><KindIcon kind={revision.details.kind} size={12} /><span>{label(revision.details.state).toLowerCase()}</span><span class="mm-s" title={scopeLabel(record.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(record.scope)}</span></small>

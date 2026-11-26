@@ -1,16 +1,16 @@
+import Bookmark from "@lucide/svelte/icons/bookmark";
 import Folder from "@lucide/svelte/icons/folder";
 import FolderGit2 from "@lucide/svelte/icons/folder-git-2";
-import Gavel from "@lucide/svelte/icons/gavel";
 import MessageSquare from "@lucide/svelte/icons/message-square";
-import NotepadText from "@lucide/svelte/icons/notepad-text";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
+import StickyNote from "@lucide/svelte/icons/sticky-note";
 import User from "@lucide/svelte/icons/user";
 
 /** The icon for each kind of memory, the same wherever a kind is shown. */
 export const kindIcons = {
-  decision: Gavel,
+  decision: Bookmark,
   preference: SlidersHorizontal,
-  note: NotepadText,
+  note: StickyNote,
 } as const;
 
 /** The icon for what a memory applies to. */

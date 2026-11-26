@@ -2,8 +2,8 @@
 // The overview's side column: memories waiting for a review (or, when none
 // are, the latest ones), then the machines and agents the history comes from.
 
-import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
+import Brain from "@lucide/svelte/icons/brain";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import CircleDashed from "@lucide/svelte/icons/circle-dashed";
 import Laptop from "@lucide/svelte/icons/laptop";
@@ -83,7 +83,7 @@ function state(machine: string): { words: string; title: string } {
     </section>
   {:else}
     <section class="os-sec">
-      <div class="os-h"><h2><Bookmark size={15} aria-hidden="true" />Recent memories</h2><a href="#/records?">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Brain size={15} aria-hidden="true" />Recent memories</h2><a href="#/records?">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
       {#if memoriesPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
       {#if recent?.length}
         <div class="card pad0 list">

@@ -1,5 +1,5 @@
 <script lang="ts">
-import Bookmark from "@lucide/svelte/icons/bookmark";
+import Brain from "@lucide/svelte/icons/brain";
 import { label, type NativeRecord } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 
@@ -22,7 +22,7 @@ function article(kind: string): string {
   {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
   {#if revision?.evidence.some((source) => source.messageId === messageId)}
     <a class="tv-mem" href={recordHref(record.id, record.node, recordsHref(memoryParams))}>
-      <span class="tv-mem-i" aria-hidden="true"><Bookmark size={14} /></span>
+      <span class="tv-mem-i" aria-hidden="true"><Brain size={14} /></span>
       <span class="tv-mem-t"><b>{revision.statement}</b><small>Saved as {article(label(revision.details.kind))} from this message</small></span>
       <span class="tv-mem-o">Open in Memory</span>
     </a>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import Bookmark from "@lucide/svelte/icons/bookmark";
+import Brain from "@lucide/svelte/icons/brain";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import SearchIcon from "@lucide/svelte/icons/search";
@@ -55,7 +55,7 @@ const offset = $derived(chats ? rows.length : 0);
 </script>
 
 {#snippet commandIcon(command: QuickCommand)}
-  {#if command.id === "memory"}<Bookmark size={12} aria-hidden="true" />{:else if command.id === "machines"}<Laptop size={12} aria-hidden="true" />{:else}<SearchIcon size={12} aria-hidden="true" />{/if}
+  {#if command.id === "memory"}<Brain size={12} aria-hidden="true" />{:else if command.id === "machines"}<Laptop size={12} aria-hidden="true" />{:else}<SearchIcon size={12} aria-hidden="true" />{/if}
 {/snippet}
 
 {#if chats}

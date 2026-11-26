@@ -4,7 +4,7 @@
 // from this chat. On a phone it takes the place of the transcript while open,
 // so it offers a way back. The subagents a chat started are listed beside
 // the transcript instead (see TranscriptView).
-import Bookmark from "@lucide/svelte/icons/bookmark";
+import Brain from "@lucide/svelte/icons/brain";
 import Folder from "@lucide/svelte/icons/folder";
 import ListOrdered from "@lucide/svelte/icons/list-ordered";
 import MessageSquare from "@lucide/svelte/icons/message-square";
@@ -91,7 +91,7 @@ const projectSessions = $derived.by(() => {
       </div>
     </div>
   {/if}
-  <h2 class="cs-h"><a href={recordsHref(memoryParams)}><Bookmark size={14} aria-hidden="true" /><span>Memory from this chat</span></a></h2>
+  <h2 class="cs-h"><a href={recordsHref(memoryParams)}><Brain size={14} aria-hidden="true" /><span>Memory from this chat</span></a></h2>
   {#if recordsError}<p class="meta" role="alert">{recordsError.message}</p>{/if}
   {#each records ?? [] as record (record.id)}
     {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}
