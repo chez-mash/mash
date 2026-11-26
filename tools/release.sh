@@ -177,7 +177,10 @@ if [[ $mode == dry-run ]]; then
     done
 else
     tree=$root
-    git -C "$tree" fetch --quiet origin main --tags
+    # Only the release tags: the main channel's tag moves with every build of
+    # main, and fetching every tag refuses to move a tag the clone already has.
+    git -C "$tree" fetch --quiet origin main 'refs/tags/v*:refs/tags/v*' ||
+        die 'could not fetch main and the release tags from origin.'
     base=$(git -C "$tree" rev-parse HEAD)
 fi
 git -C "$tree" rev-parse --verify --quiet "refs/tags/$tag" >/dev/null && [[ $mode != resume ]] && die "$tag already exists."
