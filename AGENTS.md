@@ -443,6 +443,28 @@ Do not treat a unit-only run as evidence for integration behavior or full accept
 
 Work on and push `main`; it is the repository's sole development branch.
 
+## Working in parallel
+
+Give every task or agent session its own worktree and short-lived branch:
+`tools/worktree.sh new NAME` creates `../mash-worktrees/NAME` on `work/NAME`
+from a fresh `origin/main` and prints its path. Work, commit and validate
+there. Never edit the main checkout while another session is active: sessions
+sharing one checkout stage each other's hunks, and a deploy or release run
+from it picks up half-done files. `main` stays the only long-lived branch.
+
+Land finished work with `tools/worktree.sh land NAME`, which rebases onto
+`origin/main`, runs `tools/pre-push.sh` and pushes to `main` as a fast-forward
+only, or open a pull request with `tools/worktree.sh pr NAME`. Then
+`tools/worktree.sh done NAME` removes the worktree and its merged branch. Deploy
+and release only from the `_deploy` tree (`tools/worktree.sh deploy-tree`, a
+detached checkout of `origin/main`) or another clean checkout at `origin/main`,
+running `bash tools/fleet.sh` inside it.
+
+Run `tools/install-hooks.sh` once per clone. Its pre-push hook runs the quick
+checks CI would fail on, for the files the push changes, in a few seconds.
+`git push --no-verify` skips it and is for emergencies only. The full procedure
+is in `docs/internal/development.md`.
+
 ## Deployment
 
 Deploy at an explicitly requested release or agreed stable-batch milestone, following

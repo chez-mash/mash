@@ -375,6 +375,109 @@ batch membership and vector generation. See the
 memory/throughput tradeoff and the manual worker-budget diagnostic. This is an
 inference workspace limit, not a total indexing memory limit.
 
+## Working in parallel
+
+Several agent sessions and people work on this repository at once. Each task
+gets its own worktree and short-lived branch, and `main` moves only by
+fast-forward. Sharing one checkout is what went wrong before: sessions staged
+each other's hunks, one push cancelled the CI run of another commit, and
+deploys built whatever half-done files were on disk.
+
+### One worktree per task
+
+```bash
+tools/install-hooks.sh                    # once per clone: the pre-push hook
+cd "$(tools/worktree.sh new search-fix)"  # ../mash-worktrees/search-fix on work/search-fix
+# edit, commit, make iterate ...
+tools/worktree.sh land search-fix         # or: tools/worktree.sh pr search-fix
+tools/worktree.sh done search-fix
+```
+
+- `new NAME [BASE] [--deps dashboard,site,raycast]` fetches, then creates
+  `../mash-worktrees/NAME` on branch `work/NAME` from `origin/main` (or `BASE`)
+  and prints the path. A new worktree has no `node_modules`; `--deps` installs
+  the named packages (`pnpm install --frozen-lockfile --prefer-offline` in
+  `dashboard/` and `site/`, `npm ci` in `raycast/`). Set `MASH_WORKTREES` to
+  keep worktrees somewhere else.
+- `list` shows every worktree of the clone.
+- `land NAME` fetches, rebases the branch onto `origin/main` inside its
+  worktree, runs `tools/pre-push.sh`, and pushes with
+  `git push origin work/NAME:main`. That push is never forced, so it is refused
+  unless it is a fast-forward; when `main` moved in between, run `land` again.
+  A rebase conflict is left in the worktree to resolve. The worktree stays
+  until `done`.
+- `pr NAME` pushes the branch and opens a pull request with
+  `gh pr create --fill` for work that wants review or CI before it lands.
+- `done NAME` removes the worktree and deletes the branch, and its pushed copy
+  once merged. It refuses while the worktree holds uncommitted or untracked
+  files, or commits that are not on `origin/main`; `--force` discards them
+  (a squash-merged pull request needs it, because its commits are not on
+  `main` under their own identity).
+
+Files Git ignores are not in a new worktree: `node_modules`, `dashboard/dist`,
+the skills under `.agents/skills/`, and `.beads/`. Read skills from the main
+checkout and run `bd` there. Do not switch branches, rebase or reset in the
+main checkout; keep it on `main`, and update it with `git pull --ff-only` when
+nobody is editing it.
+
+Rust builds need no per-worktree setup. The Makefile pins one absolute target
+directory (`DEV_TARGET_DIR`), so `make iterate`, `make dev-build` and
+`make validate-dev` in any worktree reuse the compiled dependencies, and
+`tools/build-dev-linux.sh` takes a lock in that directory, so builds from
+different worktrees queue instead of running at once. The debug binary at
+`$DEV_TARGET_DIR/debug/mash` is whichever worktree built last: pass
+`DEV_TARGET_DIR=/home/james/scratch/achi-targets/NAME` to keep one of your
+own, at the cost of a cold build. A raw `cargo` command without
+`CARGO_TARGET_DIR` builds everything again in the worktree's own `target/`.
+
+### The pre-push check
+
+`tools/pre-push.sh` runs the checks that most often turned CI red, only for the
+areas a push changes, and takes a few seconds:
+
+| Changed files | Check | Fix |
+|---|---|---|
+| Rust, TypeScript, Svelte, Python | `python3 tools/check_file_lines.py` | Split the file or write its growth review |
+| `dashboard/`, `site/` | Biome on the changed files | `pnpm exec biome check --write FILES` |
+| `dashboard/src/` | `src/theme/theme.test.ts` | Name a role token; remove unused ones |
+| Rust | `cargo fmt --check` (workspace, and `desktop/src-tauri`) | `cargo fmt` |
+| `raycast/src/` | Prettier and ESLint on the changed files | `npm run fix-lint` |
+
+It runs no test suite and no build. A missing tool or `node_modules` skips its
+check with a note, except that Biome falls back to the main checkout's copy.
+The hook compares the commits being pushed with what the remote has; run by
+hand, `tools/pre-push.sh [BASE [HEAD]]` compares with `origin/main`. The checks
+read the working tree, so run it where the pushed commit is checked out and
+clean. Each failure prints one line with the command that fixes it.
+
+`git push --no-verify` skips the hook. Keep it for emergencies, such as
+landing a fix while a tool is broken: CI runs the same checks on the commit.
+
+### CI on main
+
+Runs on `main` are not cancelled by a later push
+(`cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`), because a
+release needs a passing run for its exact commit. Pull request branches still
+cancel superseded runs. A run that has not started can still be replaced by a
+newer one in the same concurrency group, so land related commits together
+instead of one push per commit.
+
+### Deploying and releasing
+
+Deploy and release from a clean tree at `origin/main`, never from a checkout
+someone is editing:
+
+```bash
+cd "$(tools/worktree.sh deploy-tree)"   # ../mash-worktrees/_deploy, detached at origin/main
+bash tools/fleet.sh preflight TARGET...
+bash tools/fleet.sh deploy TARGET...
+```
+
+`deploy-tree` creates the tree or moves it to the current `origin/main`, and
+refuses when it holds local changes. `tools/fleet.sh` builds from the
+repository it is run in and checks that `HEAD` did not move during the build,
+so nothing else may commit in that tree.
+
 ## Dependency policy
 
 `deny.toml` is the policy for Rust dependencies, checked with
