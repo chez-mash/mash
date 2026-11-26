@@ -40,6 +40,7 @@ mod startup;
 mod usage;
 
 pub use assets::has_web_dashboard;
+pub use startup::run;
 
 struct Dash {
     paths: Paths,
@@ -66,83 +67,6 @@ pub struct Reach {
     pub access_token_env: Option<String>,
     /// Serve only the shared index.
     pub shared_only: bool,
-}
-
-pub async fn run(
-    paths: Paths,
-    reach: Reach,
-    services_config: Option<std::path::PathBuf>,
-    fleet_config: Option<std::path::PathBuf>,
-    fleet_node: Option<String>,
-) -> Result<(), AppError> {
-    let Reach {
-        listen,
-        hosts: names,
-        access_token_env,
-        shared_only,
-    } = reach;
-    let access = access::Access::load(access_token_env.as_deref())?;
-    if !names.is_empty() && !access.required() {
-        return Err(AppError::configuration(
-            "--allow-host makes the dashboard reachable from other devices; set --access-token-env as well",
-        ));
-    }
-    let services = tokio::task::spawn_blocking(move || {
-        if let Some(path) = fleet_config {
-            services::Services::load_fleet(&path, fleet_node.as_deref())
-        } else {
-            services::Services::load(services_config.as_deref())
-        }
-    })
-    .await
-    .map_err(|_| AppError::internal("load services configuration"))??;
-    let listener = tokio::net::TcpListener::bind(listen)
-        .await
-        .map_err(|error| startup::bind_error(listen, &error))?;
-    let address = listener
-        .local_addr()
-        .map_err(|_| AppError::internal("get dashboard address"))?;
-    let loopback = address.ip().is_loopback() && names.is_empty();
-    let mut hosts = allowed_hosts(address);
-    hosts.extend(names);
-    let warn_about_access = !loopback && !access.required();
-    // Live updates watch the local index and, when one is configured, listen
-    // to the shared one. A configuration that cannot be read leaves that out;
-    // the history routes report what is wrong with it.
-    let database =
-        (!shared_only).then(|| paths.db.clone().unwrap_or_else(core::default_database_path));
-    let config = paths.config.clone();
-    let upstream = tokio::task::spawn_blocking(move || crate::config::load(config.as_deref()))
-        .await
-        .ok()
-        .and_then(Result::ok)
-        .and_then(|config| config.shared)
-        .map(|config| live::Upstream {
-            config,
-            own: shared_only,
-        });
-    let state = Arc::new(Dash {
-        console: crate::mcp::console::Console::new(paths.clone()),
-        live: live::Live::new(database, upstream),
-        questions: Arc::new(tokio::sync::Semaphore::new(assistant::MAX_QUESTIONS)),
-        paths,
-        hosts,
-        loopback,
-        access,
-        shared_only,
-        model_work: std::sync::Arc::new(tokio::sync::Semaphore::new(1)),
-        services,
-    });
-    startup::report(address, warn_about_access)?;
-    let stopping = state.clone();
-    axum::serve(listener, router(state))
-        .with_graceful_shutdown(async move {
-            startup::stop_requested().await;
-            // Open event streams would otherwise hold the server open.
-            stopping.live.close();
-        })
-        .await
-        .map_err(|_| AppError::internal("dashboard server failed"))
 }
 
 /// Every API route with its description, and the contract document they add

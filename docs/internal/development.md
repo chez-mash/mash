@@ -957,10 +957,57 @@ then the whole job, in seconds. The workflow takes as long as its slowest job:
 | A commit that changes no source | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
 | The same commit again | under 4 / 105 | under 4 / 95 | not measured | not measured | |
 
-The dependencies are a fifth to a third of a build and our own crates the rest,
-because those compile one after another: each waits for the one below it. The
-second row is therefore the most a commit should cost, and what the first
-build after a change to `Cargo.lock` costs. The jobs spend about a minute and
+The dependencies are a fifth to a third of a build and our own crates the rest.
+The second row is therefore the most a commit should cost, and what the first
+build after a change to `Cargo.lock` costs. These rows were measured before
+the entry points were boxed (see below); measure them again before relying on
+them.
+
+Our crates do not wait long for each other. A crate above can start as soon as
+the one below has been checked, which takes 10 to 18 s each; in an optimized
+build the rest of a crate's time, nine tenths of it, is generating code, and
+all the crates share the same few processors for that. What a build costs is
+therefore how much code is generated, not how long the chain of crates is, and
+removing a dependency between two crates saves time only when it stops one of
+them being compiled again.
+
+What decides how much code is generated is where a future is compiled. An
+`async fn` is compiled in the crate that first polls it, not the one that
+declares it, together with every `async fn` it awaits. `mash_app::core::execute`
+was polled by `mash-mcp`, `mash-dash` and `mash`, so each compiled the whole
+indexing and search pipeline again, and `mash` compiled the server, the
+dashboard and the MCP server as well, for every commit. So a future that
+crosses into another crate is boxed where it is declared, in a plain function
+that returns `BoxFuture`: `core::execute` and `execute_with_model_limit`, the
+three `run` functions (`mash_server::run`, `mash_dash::run`, `mash_mcp::run`)
+and the dashboard console's `call`. Keep that when adding an entry point: an
+`async fn` that another crate drives with `block_on`, `spawn` or a request
+handler is compiled there, in full. `nm -C -S` on a crate's `.rlib` under the
+release target shows what it holds; functions of another crate with
+`{closure#0}` after their name are futures compiled in the wrong place.
+
+Optimized rebuilds on Xenia (`cargo build --release --timings`, four jobs
+under `agent-test`, other sessions building beside it), before and after
+boxing, on 26 November 2026; the reports are in
+`mash-artifacts/build-speed/crate-deps/`:
+
+| Rebuild after | Before | After |
+|---|---|---|
+| A commit that changes no source (`mash`, and `mash-dash` for its build script) | 148 s | 55 s |
+| A change to `mash-app` | 248 s | 151 s |
+| A change to `mash-search` | 301 s | 187 s |
+
+| Crate, when `mash-app` changed | Before | After |
+|---|---|---|
+| `mash-app` | 106 s | 145 s |
+| `mash-mcp` | 147 s | 70 s |
+| `mash-server` | 105 s | 126 s |
+| `mash-dash` | 169 s | 92 s |
+| `mash` | 141 s | 65 s |
+
+`mash-app` and `mash-server` now hold the code the crates above them used to
+compile, which is why they grew; they run beside the others, so the build ends
+when `mash-app` does. That crate is the next thing to shorten. The jobs spend about a minute and
 a half outside the build step whatever is cached: starting the container or
 runner, installing the toolchain, restoring the caches (about 20 s), building
 the dashboard and packaging. Hosted runners vary: the same uncached macOS
