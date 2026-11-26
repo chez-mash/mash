@@ -19,12 +19,19 @@ export function hero(root: HTMLElement, screen: Screen, entrance: boolean): void
       { opacity: 1, scale: 1, duration: 0.75, ease: "power2.out", clearProps: "opacity,transform" },
       0.15,
     );
-    rise(timeline, all(root, "h1 span"), 0.12, {
-      y,
-      duration: 0.5,
-      ease: "power3.out",
-      stagger: 0.1,
-    });
+    const lines = all(root, "h1 > span");
+    const lineRise = { at: 0.12, duration: 0.5, stagger: 0.1 };
+    rise(timeline, lines, lineRise.at, { y, ease: "power3.out", ...lineRise });
+    // The stroke under the last line is drawn from the left, a beat after that
+    // line has settled. It is on the same timeline at its own time, so nothing
+    // else waits for it. 310 is the dash that hides the whole line (Hero.astro).
+    const settled = lineRise.at + (lines.length - 1) * lineRise.stagger + lineRise.duration;
+    timeline.fromTo(
+      all<SVGPathElement>(root, "h1 .draw"),
+      { strokeDashoffset: 310 },
+      { strokeDashoffset: 0, duration: 0.7, ease: "power2.inOut", clearProps: "strokeDashoffset" },
+      settled + 0.15,
+    );
     rise(timeline, all(root, ".tagline"), 0.38, { y: 16, duration: 0.44 });
     rise(timeline, all(root, ".actions, .download-note"), 0.46, { y: 16, duration: 0.44 });
   }
