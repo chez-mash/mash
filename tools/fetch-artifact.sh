@@ -50,7 +50,7 @@ case "$source_kind" in
         tag=${source_kind#release:}
         [[ "$tag" =~ ^v[0-9][0-9A-Za-z.+-]*$ ]] || { echo 'Invalid release tag.' >&2; exit 2; }
         tagged=$(git rev-parse --verify --quiet "refs/tags/$tag^{commit}") ||
-            refuse "This checkout does not know the tag $tag; run git fetch --tags."
+            refuse "This checkout does not know the tag $tag; run git fetch origin "refs/tags/v*:refs/tags/v*"."
         [[ $tagged == "$revision" ]] ||
             refuse "$tag is commit ${tagged:0:12}, but this checkout is at ${revision:0:12}. Check out $tag in a clean tree and deploy from there."
         assets=$("$gh" release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' 2>/dev/null) ||
