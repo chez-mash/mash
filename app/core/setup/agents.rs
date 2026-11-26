@@ -26,6 +26,22 @@ pub fn which(program: &str) -> Option<PathBuf> {
     locate(program, None)
 }
 
+/// Every `program` in this process's PATH, in the order a lookup tries them,
+/// each file once (a link and the file it names are one).
+pub fn on_path(program: &str) -> Vec<PathBuf> {
+    let (Ok(base), Some(path)) = (std::env::current_dir(), std::env::var_os("PATH")) else {
+        return Vec::new();
+    };
+    let mut found: Vec<(PathBuf, PathBuf)> = Vec::new();
+    for candidate in crate::platform::find_programs(program, &path, &base) {
+        let identity = std::fs::canonicalize(&candidate).unwrap_or_else(|_| candidate.clone());
+        if !found.iter().any(|(_, seen)| *seen == identity) {
+            found.push((candidate, identity));
+        }
+    }
+    found.into_iter().map(|(candidate, _)| candidate).collect()
+}
+
 /// [`which`], or only `only` when given (a test's stand-in for the user's
 /// search path).
 pub(crate) fn locate(program: &str, only: Option<&OsStr>) -> Option<PathBuf> {
@@ -284,6 +300,28 @@ mod tests {
         assert_eq!(
             crate::platform::find_program("claude", &search, &base),
             Some(login.join(name))
+        );
+    }
+
+    #[test]
+    fn every_copy_is_found_in_the_order_a_lookup_tries_them() {
+        let root = tempfile::tempdir().unwrap();
+        let name = if cfg!(windows) { "mash.exe" } else { "mash" };
+        let (first, empty, second) = (
+            root.path().join("first"),
+            root.path().join("empty"),
+            root.path().join("second"),
+        );
+        executable(&first.join(name));
+        std::fs::create_dir_all(&empty).unwrap();
+        executable(&second.join(name));
+        let path = std::env::join_paths([&first, &empty, &second]).unwrap();
+        let base = std::env::current_dir().unwrap();
+        let found: Vec<PathBuf> = crate::platform::find_programs("mash", &path, &base).collect();
+        assert_eq!(found, [first.join(name), second.join(name)]);
+        assert_eq!(
+            crate::platform::find_program("mash", &path, &base),
+            Some(first.join(name))
         );
     }
 

@@ -57,9 +57,9 @@ the dashboard can do the job itself it offers that instead: setup's first
 index has an Index now button, and Settings points to the setup page rather
 than `mash init`.
 
-"Install Command-Line Tool…" (macOS app menu and tray menu; macOS and Linux)
-puts a `mash` command in `~/.local/bin` that runs the bundled `mash`, so one
-update covers the app and the command. It never replaces anything already
+"Install Command-Line Tool…" (macOS app menu and tray menu) puts a `mash`
+command in place that runs the bundled `mash`, so one update covers the app
+and the command. On macOS and Linux it goes in `~/.local/bin`. It never replaces anything already
 called `mash` there, such as the install script's copy, and says that copy
 updates separately; it says whether `~/.local/bin` is on the app's PATH (a
 terminal's may differ); choosing it again offers to remove the command.
@@ -76,8 +76,59 @@ line (`# mash-desktop-command`) is how the app knows the file is its own.
 On Linux the command stays a separate install. An AppImage's files move on
 every start, so nothing may point into it; the `mash-desktop` apt package
 depends on `mash-cli` at its own version and runs that package's
-`/usr/bin/mash`; and for any other copy the item makes a link as before. On
-Windows the item is not offered.
+`/usr/bin/mash`; and for any other copy the item makes a link as before.
+
+### On Windows
+
+The installer brings the command with it (`src-tauri/windows/hooks.nsh`,
+`src-tauri/src/cli/`). After installing the files it starts the app with
+`--command-line-tool installed`, and the app copies its `mash.exe` into a
+`bin` folder of the install folder (`%LOCALAPPDATA%\Mash\bin`) and appends
+that folder to the user's own PATH (`HKCU\Environment`, keeping the value's
+type and every other entry as written), then tells running programs that
+the environment changed (`WM_SETTINGCHANGE`), so terminals opened after it
+find `mash`. The install is per user, so none of this needs an administrator.
+Before the uninstaller removes the files it starts the app with
+`--command-line-tool uninstalling`, which takes the entry off PATH and
+deletes the copy and its folder; an install over an earlier version
+(`/UPDATE`) skips that and refreshes the copy instead. Neither request starts
+the app itself, and a failure never fails the installer: the menu item puts
+the command in place later.
+
+Why a real `.exe`, and why a copy:
+
+- A program started without a shell, as agents start `mash mcp` (a
+  long-lived stdio server), is found by `CreateProcess`, Node's `spawn` or
+  Rust's `Command`, which add `.exe` to a bare name but never run a `.cmd`
+  or `.ps1`. A `mash.cmd` shim would work in cmd and PowerShell and fail for
+  exactly the agents the command is for, and would put `cmd.exe` between an
+  agent and the server's input and output. A small launcher `.exe` would be
+  a second program to build, sign and keep transparent to Ctrl+C.
+- A folder of its own, because the install folder also holds the app and
+  `uninstall.exe`, which do not belong on PATH.
+- A copy rather than a hard link: a `mash mcp` running from the command
+  holds only the copy open, so the installer can always replace the app's
+  `mash.exe`. A copy that is running cannot be overwritten but can be
+  renamed, so it is moved aside (`mash.old-N`) and deleted the next time the
+  command is placed. The copy costs the disk space of a second `mash.exe`.
+- The copy carries the engine's size and modification time; at launch the
+  app replaces a copy that no longer matches, in case something replaced the
+  app without its installer.
+
+The folder is appended, never put first, so a `mash` already on PATH
+(winget's, Scoop's, the install script's) keeps winning and nothing is
+shadowed. The item then says, in the words the Mac app uses for a separate
+copy, that the other copy comes first and updates separately, and `mash
+doctor` reports both (One Mash on the machine). Chosen when the command is
+in place, the item offers to remove it; a removal is remembered
+(`command-line-tool-removed` in `%APPDATA%\io.getmash.desktop`), so a later
+install leaves the command off until the item is chosen again.
+
+The installer puts the command in place by default because the point of the
+Windows app is that one download gives a working `mash` for terminals and
+agents, and appending cannot take over another copy; the item is there to
+remove it. Only `mash` is exposed: the app does not carry `mash-server`,
+which belongs to the shared service and its own install.
 
 ## One Mash on the machine
 
@@ -89,8 +140,12 @@ what else is installed. `mash doctor` does, in its `copies` check
 the dashboard and watcher service definitions start, the build a dashboard
 service answers with, and each agent's registered command, each compared
 with the running copy by file and, failing that, by the build `mash
---version-info` reports. It names Homebrew, Scoop or apt when the path shows
-one installed the other copy. The existing `processes` and `watcher` checks
+--version-info` reports. Another `mash` later on the process's PATH is
+reported too, so whichever of two copies runs `mash doctor`, the other is
+named, such as the Windows app's command behind a winget copy. It names
+Homebrew, Scoop, winget or apt when the path shows one installed the other
+copy, and recognises the Windows app's command by its place (`bin\mash.exe`
+beside the app's `mash.exe` and `uninstall.exe`). The existing `processes` and `watcher` checks
 cover what is already running. The schema and contract refusals in the
 commands themselves are unchanged and remain what actually stops a mismatch.
 
@@ -298,7 +353,8 @@ lower version would be ignored by the apps that most need it.
 
 ### Testing
 
-`cargo test` covers the channel order, what the banner shows in each state,
+`cargo test` covers the channel order, the Windows command's PATH edits,
+its copy and the words it uses, what the banner shows in each state,
 reading a release's version, the settings, keeping and restoring
 the previous app, the command script (arguments with spaces, input, exit
 status, one process, a missing or moved app), the service and process
@@ -414,7 +470,10 @@ version is restated in `desktop/src-tauri/Cargo.toml`; a unit test fails when
 it differs from the workspace version. `.github/workflows/desktop.yml` builds
 installers on Linux (deb, AppImage), macOS (app, dmg) and Windows (NSIS) for
 pull requests and for main, and publishes the main update channel (see
-Updates). RPM and MSI refuse a version such as `0.1.1-alpha`, so they are
+Updates). On Windows it then installs the app silently, runs the `mash`
+command from cmd, PowerShell and with no shell, `mash mcp` included, and
+uninstalls it again (`.github/scripts/windows-command-check.ps1`, which also
+runs by hand on a Windows machine, one step per new session). RPM and MSI refuse a version such as `0.1.1-alpha`, so they are
 left out while releases are pre-releases.
 
 ## Releases and signing
@@ -460,23 +519,21 @@ and keeps the previous app until the new one has started. See
 
 ## Not done yet
 
-- Updates on Windows (see Updates), and a `mash` command installed by the
-  Windows app.
+- Updates on Windows (see Updates). When they come, the installer's
+  `/UPDATE` run already refreshes the `mash` command, but a running command
+  (an agent's `mash mcp`) keeps the build before until it restarts, as on
+  the other systems.
 - Publishing the app's winget package. The manifests exist
   (`packaging/winget/MashHQ.Mash`, checked against each release by
   `release-check.yml`'s `winget` job) and wait on Microsoft accepting the
   first submission; no user guide gives a winget command until then. In
-  winget the app is `MashHQ.Mash` and the command line is `MashHQ.Mash.CLI`,
-  and the app's package does not depend on the command line's until the app
-  installs a `mash` command. Distribution otherwise follows the Docker CLI
-  and Docker Desktop split: the CLI stays on install scripts, Homebrew, apt,
-  Scoop and its own winget package, and the app is a separate download that
-  carries its own engine, except under apt, where the app's package uses
+  winget the app is `MashHQ.Mash` and the command line is `MashHQ.Mash.CLI`;
+  the app's package needs no dependency on the command line's, since the app
+  installs its own `mash` command. Distribution otherwise follows the Docker
+  CLI and Docker Desktop split: the CLI stays on install scripts, Homebrew,
+  apt, Scoop and its own winget package, and the app is a separate download
+  that carries its own engine, except under apt, where the app's package uses
   `mash-cli`'s.
-- Two things about the Windows installer that winget shows (see
-  `packaging/winget/README.md`). It is not signed, so SmartScreen stops a
-  `winget install MashHQ.Mash` at "Windows protected your PC" until the user
-  chooses Run anyway. And it registers no `QuietUninstallString`, so
-  `winget uninstall MashHQ.Mash --silent` opens the uninstaller's window;
-  writing `"$INSTDIR\uninstall.exe" /S` as that value from the NSIS template
-  would make it silent.
+- The Windows installer is not signed, so SmartScreen stops a `winget
+  install MashHQ.Mash` at "Windows protected your PC" until the user chooses
+  Run anyway (see `packaging/winget/README.md`).

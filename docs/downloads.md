@@ -24,6 +24,16 @@ The Mac app is signed and notarized by Apple, so it opens like any other app.
 The Windows app is not signed yet, so Windows asks before opening it the first
 time: choose **More info**, then **Run anyway**. On Linux, make the AppImage
 executable (`chmod +x mash-desktop-linux-x86_64.AppImage`) and run it.
+
+The Windows app also gives you the `mash` command, for terminals and coding
+agents: open a new terminal after installing and run `mash --version`. It is
+the app's own `mash` and updates with the app. If you already have `mash`
+from winget, Scoop or the install script, that copy keeps running in
+terminals and updates separately; the app says so, and `mash doctor` names
+both. To remove the command, choose **Install Command-Line Tool…** in the
+menu of the Mash icon in the taskbar's notification area; uninstalling the
+app removes it too. On a Mac, the same menu item installs the command.
+
 On Debian and Ubuntu you can install the app with
 [apt](install-methods.md#apt-debian-or-ubuntu) instead (`mash-desktop`).
 
