@@ -56,6 +56,17 @@ literal colour, typeface, corner size or unknown token appears anywhere else.
 Tailwind's own palette and fonts are cleared in `app.css`, which maps
 Tailwind's names onto the roles.
 
+Interactive controls are [shadcn-svelte](https://shadcn-svelte.com) components
+over bits-ui, kept in `src/lib/components/ui`: the switch, dialog, dropdown
+menu, toggle group (segmented control), tooltip and select. `components.json`
+lets `pnpm dlx shadcn-svelte@latest add NAME` add another. A component arrives
+with shadcn's default look; restyle it before using it, so that it draws only
+with the roles: shadcn's colour names (`background`, `popover`, `primary`,
+`muted`, `accent`, `destructive`, `border`, `input`, `ring`) are mapped onto
+roles in `app.css`, and a role without such a name is written as a utility's
+value, `bg-(--toggle-on)`. Element resets in `terminal.css` sit in the base
+layer so these utilities can style a button. Layout is still plain CSS.
+
 ## Verification
 
 Run `pnpm run lint`, `pnpm run check`, `pnpm run test`, and `pnpm run build`.
