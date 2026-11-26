@@ -1,0 +1,132 @@
+---
+// Things to ask a connected agent, one card each: the question, and a short
+// answer that names the chat it came from. Made-up history, as in the demo.
+import type { Agent } from "../../../../dashboard/src/lib/types";
+import type { IconName } from "../../icons.ts";
+import AgentTile from "../AgentTile.astro";
+import LineIcon from "../LineIcon.astro";
+import RailCard from "../RailCard.astro";
+
+const find = "/agents/#ask-your-agent-to-find-past-work";
+const asks: {
+  name: string;
+  icon: IconName;
+  says: string;
+  href: string;
+  tint: string;
+  answer: string;
+  source: { agent: Agent; title: string; where: string };
+}[] = [
+  {
+    name: "What did we decide?",
+    icon: "bookmark",
+    says: "The agent finds the decision and shows the message behind it.",
+    href: find,
+    tint: "var(--butter)",
+    answer:
+      "One retry, and only when the payment provider times out. You agreed to keep it to one.",
+    source: { agent: "cursor", title: "Retry payments after a timeout", where: "laptop · 6d" },
+  },
+  {
+    name: "Where did we leave off?",
+    icon: "arrow-right",
+    says: "Pick up yesterday’s work, even if another agent did it.",
+    href: "/pick-up-work/",
+    tint: "var(--desk-sky)",
+    answer:
+      "The flaky checkout test is fixed. Next was giving each test its own cart, which is not started.",
+    source: { agent: "codex", title: "Fix the flaky checkout test", where: "workstation · 1d" },
+  },
+  {
+    name: "Have we seen this error?",
+    icon: "search",
+    says: "Search every agent’s chats for the earlier conversation.",
+    href: find,
+    tint: "var(--desk-peach)",
+    answer:
+      "Yes, last week. A migration held a lock on orders, so checkout requests failed until it finished.",
+    source: { agent: "claude-code", title: "Checkout outage review", where: "build-box · 2d" },
+  },
+  {
+    name: "Remember this.",
+    icon: "check",
+    says: "Ask, and the agent saves it with your message as evidence.",
+    href: "/records/#save-a-conclusion",
+    tint: "var(--pill-ok-text)",
+    answer: "Saved as a decision: this project keeps its refresh tokens in the device keychain.",
+    source: {
+      agent: "claude-code",
+      title: "Move sign-in to short-lived tokens",
+      where: "laptop · today",
+    },
+  },
+  {
+    name: "What did I do last week?",
+    icon: "message-square",
+    says: "A recap across agents and machines, with its sources.",
+    href: find,
+    tint: "var(--agent-copilot)",
+    answer:
+      "Three things: the sign-in tokens, the checkout outage, and a start on moving the cart service.",
+    source: { agent: "codex", title: "Plan the cart service move", where: "laptop · Nov 20" },
+  },
+];
+---
+
+{
+  asks.map(({ name, icon, says, href, tint, answer, source }) => (
+    <RailCard name={name} says={says} href={href} tint={tint}>
+      <span class="ico" slot="mark"><LineIcon name={icon} /></span>
+      <span class="asked">
+        <span class="you">{name}</span>
+        <span class="reply">{answer}</span>
+        <span class="source">
+          <AgentTile agent={source.agent} />
+          <b>{source.title}</b>
+          <i>{source.where}</i>
+        </span>
+      </span>
+    </RailCard>
+  ))
+}
+
+<style>
+  .asked {
+    display: grid;
+    gap: 0.5625rem;
+  }
+  .you {
+    justify-self: end;
+    max-width: 90%;
+    padding: 0.4375rem 0.75rem;
+    border-radius: var(--radius-7);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+  }
+  .reply {
+    color: var(--text-body);
+  }
+  .source {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.125rem 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-4);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-butter-quote);
+  }
+  .source b {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .source i {
+    grid-column: 2;
+    color: var(--text-faint);
+    font: 400 0.6875rem / 1.4 var(--type-mono);
+  }
+</style>

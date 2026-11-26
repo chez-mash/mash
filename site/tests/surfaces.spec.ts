@@ -173,7 +173,11 @@ test("a sideways swipe on the picture changes the surface, and a scroll does not
   await context.close();
 });
 
-test("the surfaces change by themselves until the reader chooses one", async ({ page }) => {
+test("the surfaces change by themselves, rest after a choice, and pick up again", async ({
+  page,
+}) => {
+  // The clock is run frame by frame for most of a minute of the page's time.
+  test.setTimeout(90_000);
   await page.clock.install();
   const band = await open(page);
   // Keep the pointer off the band: pointing at it holds the surface.
@@ -190,12 +194,20 @@ test("the surfaces change by themselves until the reader chooses one", async ({ 
   await page.clock.runFor(12_000);
   await band.locator(".stage").scrollIntoViewIfNeeded();
   await settled(band, 2);
-  // A choice ends it.
-  await band.getByRole("tab").nth(4).click();
+  // A choice rests it for twenty seconds, and then it goes on from there.
+  await band.getByRole("tab").nth(3).click();
   await page.mouse.move(0, 0);
   await page.clock.runFor(1500);
-  await settled(band, 4);
+  await settled(band, 3);
   await page.clock.runFor(12_000);
+  await settled(band, 3);
+  await page.clock.runFor(14_000);
+  await page.clock.runFor(1500);
+  await settled(band, 4);
+  // Marked held, it stays.
+  await band.locator("[data-surfaces]").evaluate((root) => root.setAttribute("data-hold", ""));
+  await page.clock.fastForward(30_000);
+  await page.clock.runFor(1500);
   await settled(band, 4);
 });
 

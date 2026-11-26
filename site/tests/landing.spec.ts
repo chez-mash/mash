@@ -32,6 +32,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "One history. Everywhere you work.",
     "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
     "Find it. However you remember it.",
+    "Every agent. One memory.",
     "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
     "Fast, and light on your machine.",
@@ -49,7 +50,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   }
   const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("link")).toHaveText([
-    "plugin for Claude Code, Codex and Copilot",
+    "Connect it over MCP",
     "Hybrid search",
     "shared index",
   ]);
@@ -158,7 +159,7 @@ test("every feature tile draws its icon in the same chip, the systems one each",
   await page.goto("/");
   const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("heading", { level: 3 })).toHaveText([
-    "Context, before you ask.",
+    "Any MCP client.",
     "RAG over your own history.",
     "macOS. Linux. Windows.",
     "Every machine.",
