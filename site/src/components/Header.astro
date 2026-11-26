@@ -10,10 +10,12 @@
 // is the logo alone: the hero and the footer lead to the guides. The other
 // pages without a sidebar (the guides directory and the missing page) get a
 // menu holding the links and both menus; docs pages keep Starlight's menu
-// button, which opens the sidebar with the same controls at its top.
+// button, which opens the sidebar with the same controls at its top. The two
+// buttons are one raised square at the left with the same three lines, and
+// the landing page keeps the theme and language menus in its footer.
+import { Icon } from "@astrojs/starlight/components";
 import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
-import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 import Search from "./Search.astro";
 import SocialIcons from "./SocialIcons.astro";
@@ -31,7 +33,7 @@ const t = Astro.locals.t;
     !hasSidebar && !home && (
       <details class="mash-menu">
         <summary aria-label={t("mash.menu")}>
-          <LineIcon name="equal" size="1.125rem" />
+          <Icon name="bars" />
         </summary>
         <div class="panel">
           <nav class="links"><SocialIcons /></nav>
@@ -193,12 +195,16 @@ const t = Astro.locals.t;
     .download {
       display: none;
     }
+    /* The menu leads, as Starlight's button does on the pages with a
+       sidebar, and the logo follows at the same distance. */
     .mash-menu {
       display: block;
-      order: 5;
+      margin-inline-end: -0.25rem;
     }
+    /* As wide as its button, so the button ends at the gutter rather than
+       hanging half out of an empty box and off the screen. */
     .search {
-      flex: 0;
+      flex: none;
       order: 3;
       margin-inline-start: auto;
     }
@@ -206,15 +212,19 @@ const t = Astro.locals.t;
       display: none;
     }
   }
+  /* Starlight's button, measure for measure: its glyph starts at the
+     padding rather than the middle, and this one sits where that one does. */
   .mash-menu summary {
-    display: grid;
-    place-items: center;
+    display: flex;
+    box-sizing: border-box;
     width: 2.25rem;
     height: 2.25rem;
+    padding: 0.5rem;
     border-radius: var(--radius-5);
     background: var(--surface-raised);
     box-shadow: var(--shadow-ring);
     color: var(--text-strong);
+    font-size: 1rem;
     list-style: none;
     cursor: pointer;
   }
