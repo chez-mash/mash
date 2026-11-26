@@ -35,8 +35,8 @@ body {
   outline-offset: 2px;
 }
 
-/* The landing page runs edge to edge, and its header sits on the hero's
-   light and scrolls away with it rather than staying pinned. */
+/* The landing page runs edge to edge, and its header is an island that
+   stays over it while the page scrolls (Header.astro draws the island). */
 .main-pane main:has(.mash-hero) .content-panel {
   padding: 0;
 }
@@ -47,11 +47,11 @@ main:has(.mash-hero) .sl-container > * + * {
   margin-top: 0;
 }
 .page:has(.mash-hero) > header.header {
-  position: absolute;
-  z-index: 3;
+  top: max(0.5rem, env(safe-area-inset-top));
+  padding-block: 0.25rem;
+  pointer-events: none;
   background: transparent;
   box-shadow: none;
-  border-bottom: 0;
   padding-inline: max(var(--mash-gutter), calc((100% - 71rem) / 2));
 }
 

@@ -1,0 +1,108 @@
+---
+// The mash command in a terminal: a search, printed as the command prints it
+// for a reader, and the command that reads one of the results. A made-up
+// history.
+const results = [
+  {
+    title: "Sign-in tokens for web and mobile",
+    from: "claude-code · node laptop",
+    line: "…with a server-held refresh token, so signing out reaches every device.",
+  },
+  {
+    title: "Mobile auth: keychain or secure storage",
+    from: "codex · node workstation",
+    line: "Keep the refresh token in the keychain, never in preferences.",
+  },
+  {
+    title: "Rotate webhook signing secrets",
+    from: "copilot · node laptop",
+    line: "…unlike the refresh token, the signing secret rotates on a schedule.",
+  },
+];
+---
+
+<div class="shell" aria-hidden="true">
+  <div class="window-h"><u></u><u></u><u></u><span>zsh · billing-api</span></div>
+  <div class="shell-b">
+    <p class="line"><i>$</i><b data-typed>mash search 'refresh token'</b></p>
+    <p class="head" data-in>Mash search — 3 results for refresh token</p>
+    {results.map((result, index) => (
+      <div class="hit" data-in>
+        <p><b>{index + 1}. {result.title}</b> <span>· {result.from}</span></p>
+        <p class="excerpt">{result.line}</p>
+      </div>
+    ))}
+    <p class="line" data-in><i>$</i><b>mash view 4f2a91c07be3 --context 2</b><u></u></p>
+  </div>
+</div>
+
+<style>
+  .shell {
+    display: flex;
+    flex-direction: column;
+    width: min(46rem, 100%);
+    height: 23.5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    color: var(--text-body);
+    font-size: 0.875rem;
+    border-radius: var(--radius-7);
+    background: var(--surface-code);
+  }
+  .shell-b {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem 1.375rem;
+    color: var(--text-secondary);
+    font: 400 0.875rem / 1.55 var(--type-mono);
+  }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--text-strong);
+  }
+  .line i {
+    color: var(--butter-icon);
+    font-style: normal;
+  }
+  .line b {
+    font-weight: 500;
+  }
+  /* The cursor waiting after the next command. */
+  .line u {
+    width: 0.5rem;
+    height: 1.1em;
+    margin-inline-start: -0.25rem;
+    background: var(--butter);
+  }
+  .head {
+    color: var(--text-faint);
+  }
+  .hit b {
+    color: var(--text-strong);
+    font-weight: 500;
+  }
+  .hit span {
+    color: var(--text-faint);
+  }
+  .hit .excerpt {
+    margin-inline-start: 0.625rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 2px solid var(--line-strong);
+  }
+  @media (width < 40rem) {
+    .shell {
+      height: 100%;
+    }
+    .shell-b {
+      gap: 0.5625rem;
+      padding: 0.875rem;
+      font-size: 0.71875rem;
+    }
+    .hit span {
+      display: block;
+    }
+  }
+</style>

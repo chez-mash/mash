@@ -29,6 +29,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Try the demo",
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
+    "One history. Everywhere you work.",
     "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
     "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
@@ -41,9 +42,10 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   ]);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
-  await expect(illustrations).toHaveCount(4);
+  // Five of them are the showcase's surfaces, of which one shows at a time.
+  await expect(illustrations).toHaveCount(9);
   for (const illustration of await illustrations.all()) {
-    await expect(illustration).toHaveAccessibleName(/\w/);
+    await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
   const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("link")).toHaveText([
@@ -114,7 +116,9 @@ test("the hero leads with the app download, then the other systems and ways in",
   await expect(note.locator(".ways > :last-child")).toHaveText("Raycast extension");
   // The header offers the Mac app beside the docs and the source.
   const header = page.locator("header.header");
-  await expect(header.getByRole("link", { name: "Download for Mac" })).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: /^Download for (Mac|Windows|Linux)$/ }),
+  ).toBeVisible();
   await expect(header.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
   await expect(header.getByRole("link", { name: "GitHub", exact: true })).toBeVisible();
 });
@@ -406,16 +410,18 @@ for (const [name, viewport] of [
 
     const welcome = page.locator(".mash-welcome");
     // Quick search: the whole query, every result, and the selection two rows down.
-    await expect(welcome.locator(".quick-q b")).toHaveText("refresh token");
-    await expect(welcome.locator(".quick li")).toHaveCount(5);
-    for (const row of await welcome.locator(".quick li").all())
+    await expect(welcome.locator("#welcome-shortcuts .quick-q b")).toHaveText("refresh token");
+    await expect(welcome.locator("#welcome-shortcuts .quick li")).toHaveCount(5);
+    for (const row of await welcome.locator("#welcome-shortcuts .quick li").all())
       await expect(row).toHaveCSS("opacity", "1");
     const rows = await welcome
-      .locator(".quick li")
+      .locator("#welcome-shortcuts .quick li")
       .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
     await expect
       .poll(() =>
-        welcome.locator(".quick-sel").evaluate((node) => node.getBoundingClientRect().top),
+        welcome
+          .locator("#welcome-shortcuts .quick-sel")
+          .evaluate((node) => node.getBoundingClientRect().top),
       )
       .toBeCloseTo(rows[2] ?? 0, 0);
     // Search: three results, and each match highlighted by the stylesheet again.
@@ -516,7 +522,8 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const page = await context.newPage();
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
-  const windows = welcome.locator("[role=img]");
+  // The showcase's surfaces aside (surfaces.spec.ts): one of those shows at a time.
+  const windows = welcome.locator("[role=img]:not(.picture)");
   await expect(windows).toHaveCount(4);
   await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
@@ -537,11 +544,11 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const stroke = page.locator(".hero h1 > span").nth(1).locator("svg.rule");
   await expect(stroke).toBeVisible();
   await expect(stroke.locator(".draw")).toHaveCSS("stroke-dashoffset", "0px");
-  await expect(welcome.locator(".quick-q b")).toHaveText("refresh token");
-  await expect(welcome.locator(".quick li.on")).toHaveCount(1);
+  await expect(welcome.locator("#welcome-shortcuts .quick-q b")).toHaveText("refresh token");
+  await expect(welcome.locator("#welcome-shortcuts .quick li.on")).toHaveCount(1);
   for (const part of await welcome
     .locator(
-      ".quick li, .search-window .result, .memory-thread > *, .mash-agents li, .stats > div, .closing > *",
+      "#welcome-shortcuts .quick li, .search-window .result, .memory-thread > *, .mash-agents li, .stats > div, .closing > *",
     )
     .all()) {
     await expect(part).toBeVisible();

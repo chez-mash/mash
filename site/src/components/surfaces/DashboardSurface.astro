@@ -1,0 +1,237 @@
+---
+// The dashboard in its window: a project's chats beside the one being read,
+// where the reader's own message was saved as a decision. Drawn as the
+// dashboard draws a chat, from the demo's made-up history. A phone keeps
+// the chat alone.
+import type { Agent } from "../../../../dashboard/src/lib/types";
+import AgentTile from "../AgentTile.astro";
+import LineIcon from "../LineIcon.astro";
+
+const chats: { agent: Agent; name: string; title: string; machine: string; age: string }[] = [
+  {
+    agent: "claude-code",
+    name: "Claude Code",
+    title: "Ship the 0.2.0 release",
+    machine: "laptop",
+    age: "11m",
+  },
+  {
+    agent: "claude-code",
+    name: "Claude Code",
+    title: "Move sign-in to short-lived tokens",
+    machine: "laptop",
+    age: "2h",
+  },
+  {
+    agent: "codex",
+    name: "Codex",
+    title: "Fix the flaky checkout test",
+    machine: "workstation",
+    age: "1d",
+  },
+  {
+    agent: "cursor",
+    name: "Cursor",
+    title: "Speed up the product search page",
+    machine: "laptop",
+    age: "3d",
+  },
+  { agent: "opencode", name: "OpenCode", title: "Add a dark theme", machine: "laptop", age: "27d" },
+];
+---
+
+<div class="dash" aria-hidden="true">
+  <div class="window-h"><u></u><u></u><u></u><span>Mash</span></div>
+  <div class="dash-b">
+    <div class="chats">
+      <p class="project"><b>storefront</b><span><LineIcon name="message-square" size="0.75rem" />5</span></p>
+      {chats.map((chat, index) => (
+        <div class:list={["chat", { on: index === 1 }]}>
+          <p><b>{chat.title}</b><span>{chat.age}</span></p>
+          <p class="from"><AgentTile agent={chat.agent} />{chat.name}<LineIcon name="laptop" size="0.75rem" />{chat.machine}</p>
+        </div>
+      ))}
+    </div>
+    <div class="reader">
+      <p class="title"><AgentTile agent="claude-code" /><b>Move sign-in to short-lived tokens</b><span>storefront · laptop</span></p>
+      <p class="said" data-in>
+        I’d switch to <b>access tokens that expire after fifteen minutes</b>, with a refresh token the
+        server keeps. Signing out then reaches every device within fifteen minutes.
+      </p>
+      <p class="you" data-in>OK, go with the tokens. Keep the mobile app on the same scheme.</p>
+      <div class="saved" data-in>
+        <span class="ico"><LineIcon name="bookmark" size="1rem" /></span>
+        <p><b>Sign-in uses fifteen-minute access tokens with a server-held refresh token.</b><span>Saved as a decision from this message</span></p>
+      </div>
+      <p class="calls" data-in><LineIcon name="wrench" size="0.875rem" />2 tool calls: Edit, Bash</p>
+      <p class="said" data-in>
+        Done. Sign-in now issues a fifteen-minute access token, and signing out removes the refresh
+        token on the server.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dash {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-card);
+    color: var(--text-body);
+    font-size: 0.875rem;
+    border-radius: var(--radius-7);
+  }
+  .dash-b {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 15.5rem minmax(0, 1fr);
+    min-height: 0;
+  }
+  .chats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: var(--surface-muted);
+    box-shadow: var(--shadow-ring-inset);
+  }
+  .chats .project {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.625rem 0.625rem;
+    color: var(--text-strong);
+  }
+  .project span,
+  .from {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .chat {
+    display: grid;
+    gap: 0.375rem;
+    padding: 0.5625rem 0.625rem;
+    border-radius: var(--radius-5);
+  }
+  .chat.on {
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+  }
+  .chat p:first-child {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    color: var(--text-strong);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+  .chat b {
+    font-weight: 600;
+  }
+  .chat p:first-child span {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .from :global(.agent-tile) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .from :global(svg:not(.agent-tile svg)) {
+    margin-inline-start: 0.25rem;
+  }
+  .reader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-width: 0;
+    padding: 1rem 1.5rem;
+    overflow: hidden;
+    line-height: 1.55;
+  }
+  .reader .title {
+    display: flex;
+    align-items: center;
+    gap: 0.5625rem;
+    padding-bottom: 0.75rem;
+    box-shadow: var(--shadow-menubar);
+    color: var(--text-strong);
+  }
+  .title b {
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .title span {
+    margin-inline-start: auto;
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  .said b {
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+  .reader .you {
+    align-self: flex-end;
+    max-width: 85%;
+    padding: 0.5625rem 0.875rem;
+    border-radius: var(--radius-7);
+    background: var(--surface-muted);
+    box-shadow: var(--shadow-butter-quote);
+    color: var(--text-strong);
+  }
+  .saved {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--radius-6);
+    box-shadow: var(--shadow-butter);
+  }
+  .saved p {
+    display: grid;
+    gap: 0.125rem;
+    color: var(--text-strong);
+    line-height: 1.35;
+  }
+  .saved b {
+    font-weight: 600;
+  }
+  .saved p span,
+  .calls {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .calls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  @media (width < 52rem) {
+    .dash-b {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chats {
+      display: none;
+    }
+  }
+  @media (width < 40rem) {
+    .reader {
+      gap: 0.625rem;
+      padding: 0.75rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+    .title span,
+    .calls + .said {
+      display: none;
+    }
+  }
+</style>

@@ -1,11 +1,13 @@
 /**
- * The landing page's motion: eight small scenes built around the product
- * windows, as the motion storyboard draws them.
+ * The landing page's motion: nine small scenes built around the product
+ * windows, eight as the motion storyboard draws them and the surface
+ * showcase's changes.
  *
  * The page is complete as served. This script sets each scene's starting
  * state and plays it once as the scene scrolls into view; a scene that is
  * already on screen when the script starts is left as it is. Only two things
- * loop, the hero's butter streaks and Mashy's bob, and both stop off screen.
+ * loop, the hero's butter streaks and Mashy's bob, and both stop off screen;
+ * the showcase changes surface by itself (surfaces.ts) and this animates it.
  * One scene pins: the quick search panel, on a wide screen with a mouse, where
  * scrolling types the search and moves the selection. Everywhere else that
  * panel plays once. Scenes move transform, opacity, clip-path and
@@ -18,6 +20,7 @@ import { mashy } from "./motion/mashy";
 import { keepAnchor, quickSearch } from "./motion/quickSearch";
 import { agents, bands, memory, search, stats } from "./motion/sections";
 import { all, type Screen, type Stop } from "./motion/stage";
+import { surfaces } from "./motion/surfaces";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -47,6 +50,8 @@ export function mountMotion(page: ParentNode): Stop {
         const list = welcome.querySelector<HTMLElement>(".mash-agents ul");
         if (list) agents(list);
         bands(welcome, screen);
+        const showcase = welcome.querySelector<HTMLElement>("[data-surfaces]");
+        if (showcase) stops.push(surfaces(showcase));
         const shortcuts = band("welcome-shortcuts");
         if (shortcuts) stops.push(quickSearch(shortcuts, screen));
         const searching = band("welcome-search");

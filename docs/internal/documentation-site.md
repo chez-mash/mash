@@ -80,6 +80,30 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 (`Agents.astro`) and everything below them (`Welcome.astro`, styled by
 `site/src/styles/welcome.css`).
 
+- **The header** is an island on this page: a rounded bar fixed at the top,
+  inset from the screen's edges (and from an iPhone's safe area), on a mostly
+  opaque surface with the page blurred behind it, so its words keep at least
+  4.5:1 whatever scrolls under them. `custom.css` places Starlight's header
+  and `Header.astro` draws the bar. A phone's island is the logo alone; once
+  the hero's buttons have scrolled away a short Download button fades in,
+  with the hero button's target. Links into the page stop under the island
+  (`scroll-padding-top`), and the pinned panel holds below it.
+- **The surface showcase** (`Surfaces.astro`, one file per surface in
+  `components/surfaces/`) is the first band: one of Mash's surfaces in its
+  window (the dashboard, the menu bar panel, the Raycast extension, an
+  agent's session with the plugin, the terminal), a dock of icon buttons
+  that chooses it, and a caption with a link. The dock is a tablist. As
+  served the first surface shows and each button is a link to that
+  surface's guide; `site/src/surfaces.ts` turns the links into tabs (click,
+  arrow keys, Home and End, a sideways swipe on the picture) and changes
+  the surface every five seconds while the picture is on screen and not
+  pointed at or focused, until the reader chooses one. Every surface lies
+  in one cell and every caption in another, so the band keeps its height.
+  Each surface shows a different moment from the bands below it: the menu
+  bar panel before a search, where the quick search band shows one typed.
+  Add a surface by adding its component and its entry in `Surfaces.astro`;
+  mark what should type itself `data-typed` and what should rise `data-in`.
+
 - **Bands.** Each idea is one full-width band: a stamped label, a heading,
   a few points with icons, and a small window or set of cards drawn the way
   the dashboard draws them (search results, Mashy's answer, a saved
@@ -88,7 +112,7 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   what it shows. On wide screens the copy sits beside the window and the side
   alternates; on narrow screens the copy comes first. Bands take the theme's
   surfaces (beige, cream, butter, and lilac only for Mashy).
-- **Motion** is eight small scenes built around the product windows
+- **Motion** is nine small scenes built around the product windows
   (`site/src/motion.ts`, with GSAP and ScrollTrigger), drawn first as the
   motion storyboard on the design canvas. `site/src/welcome.ts` fetches that
   script on this page only, after the page is drawn; no other page loads GSAP.
@@ -102,6 +126,10 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
     decision slides out from under the message it came from; the agents come
     in one by one; the figures count up; Mashy bobs and types his first
     answer; the closing card's icon rises as the hero's did.
+  - The surface showcase plays each change (`motion/surfaces.ts`): the
+    picture slides out the way the change goes and the next slides in, its
+    search types and its rows rise, the chosen dock button grows and lifts,
+    and the tag glides to it. Without the motion the change is simply made.
   - Every other band (`data-reveal`) fades up as it scrolls into view and
     gets the `shown` class.
 
@@ -121,7 +149,8 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
     its final width, and the quick search list keeps its height while empty.
   - Phones and narrow screens get entrances only: no pin, no loops, no
     typing in Mashy's answer. The quick search panel plays once there.
-  - Only the streaks and Mashy's bob loop, and both stop off screen.
+  - Only the streaks and Mashy's bob loop, and both stop off screen. The
+    showcase's own changes also stop off screen, on phones too.
   - The pinned panel adds its scroll distance to the page, so a page opened
     at a link below it goes to the link's target again once the pin exists.
 
