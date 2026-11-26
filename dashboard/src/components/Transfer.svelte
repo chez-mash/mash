@@ -2,11 +2,9 @@
 import Archive from "@lucide/svelte/icons/archive";
 import Bot from "@lucide/svelte/icons/bot";
 import Braces from "@lucide/svelte/icons/braces";
-import Check from "@lucide/svelte/icons/check";
 import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
 import Clock from "@lucide/svelte/icons/clock";
-import Copy from "@lucide/svelte/icons/copy";
 import FileText from "@lucide/svelte/icons/file-text";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
@@ -14,7 +12,6 @@ import Square from "@lucide/svelte/icons/square";
 import Upload from "@lucide/svelte/icons/upload";
 import { createQuery } from "@tanstack/svelte-query";
 import { onDestroy } from "svelte";
-import { Tip } from "$lib/components/ui/tooltip";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent } from "../lib/api";
 import { agoLabel, groupChats, projectLabel } from "../lib/browse";
@@ -26,6 +23,7 @@ import { type Applied, appliedHref, dateRanges, filtersOf, parseApplied } from "
 import { inDesktopApp } from "../lib/shareLink";
 import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
+import CommandLine from "./CommandLine.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
 import MachineIcon from "./MachineIcon.svelte";
@@ -196,16 +194,6 @@ async function start(kind: BulkFormat): Promise<void> {
 /** The one agent chosen, whose mark stands in for the chip's icon. */
 const onlyAgent = $derived(applied.agents.length === 1 ? applied.agents[0] : undefined);
 const backup = "mash export ~/mash-backup";
-let copied = $state(false);
-async function copy(): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(backup);
-    copied = true;
-    setTimeout(() => (copied = false), 1500);
-  } catch {
-    // Without clipboard access the command stays selectable on the page.
-  }
-}
 </script>
 
 <div><h1 class="h1">Export chats</h1><p class="meta" style:margin-top="6px">Copy many chats out of Mash at once.</p></div>
@@ -303,7 +291,7 @@ async function copy(): Promise<void> {
     <div class="card xcard">
       <b>Make a full backup on the machine itself</b>
       <p style:font-size="13px">A Mash archive always holds one machine’s whole history. Run this there, with a folder that does not exist yet:</p>
-      <div class="cmdline"><code>{backup}</code><Tip text={copied ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied ? "Copied" : "Copy the command"} onclick={copy}>{#if copied}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
+      <CommandLine text={backup} />
       <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}

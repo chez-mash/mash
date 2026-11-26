@@ -3,7 +3,6 @@ import ArrowLeft from "@lucide/svelte/icons/arrow-left";
 import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Copy from "@lucide/svelte/icons/copy";
 import Play from "@lucide/svelte/icons/play";
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
@@ -12,7 +11,6 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
-import { Tip } from "$lib/components/ui/tooltip";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { mashCommand } from "../lib/command";
@@ -39,6 +37,7 @@ import { inDesktopApp } from "../lib/shareLink";
 import { statusOptions } from "../lib/status";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
+import CommandLine from "./CommandLine.svelte";
 import SharedServer from "./SharedServer.svelte";
 import Skeleton from "./Skeleton.svelte";
 
@@ -158,15 +157,6 @@ $effect(() => {
   watched = state;
 });
 
-let copied = $state("");
-async function copy(command: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(command);
-    copied = command;
-  } catch {
-    copied = "";
-  }
-}
 function toggleConnect(agent: Integration): void {
   if (!answers) return;
   answers.connect = answers.connect.includes(agent)
@@ -176,7 +166,7 @@ function toggleConnect(agent: Integration): void {
 </script>
 
 {#snippet command(text: string)}
-  <div class="cmdline" style:margin-top="6px"><code>{text}</code><Tip text={copied === text ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied === text ? "Copied" : "Copy the command"} onclick={() => copy(text)}>{#if copied === text}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
+  <div style:margin-top="6px"><CommandLine {text} /></div>
 {/snippet}
 {#snippet searchServiceProblem(service: FirstRun["qdrant"])}
   <div class="card warn">
