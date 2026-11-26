@@ -6,10 +6,11 @@
 //
 // On the landing page the header sits on the hero's light (it scrolls away
 // with the page) and search is hidden, but kept mounted so its shortcut and
-// query survive moving between pages. On a phone, pages without a sidebar
-// (the landing page and the guides directory) get a menu holding the links
-// and both menus; docs pages keep Starlight's menu button, which opens the
-// sidebar with the same controls at its top.
+// query survive moving between pages. On a phone the landing page's header
+// is the logo alone: the hero and the footer lead to the guides. The other
+// pages without a sidebar (the guides directory and the missing page) get a
+// menu holding the links and both menus; docs pages keep Starlight's menu
+// button, which opens the sidebar with the same controls at its top.
 import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
 import LineIcon from "./LineIcon.astro";
@@ -27,7 +28,7 @@ const t = Astro.locals.t;
 <style is:inline set:html={`:root{--mash-copy-label:${JSON.stringify(t("mash.copy"))}}`}></style>
 <div class:list={["mash-header", { home }]}>
   {
-    !hasSidebar && (
+    !hasSidebar && !home && (
       <details class="mash-menu">
         <summary aria-label={t("mash.menu")}>
           <LineIcon name="equal" size="1.125rem" />
@@ -171,7 +172,11 @@ const t = Astro.locals.t;
   .home .download {
     order: 3;
   }
+  /* Over the hero's light the links take the strong text colour, and the
+     light is faded under the header (Hero.astro), so they stay readable
+     wherever a streak drifts. */
   .home .links a {
+    color: var(--text-strong);
     font-size: 0.875rem;
   }
 
@@ -186,15 +191,6 @@ const t = Astro.locals.t;
   @media (width < 50rem) {
     .wide,
     .download {
-      display: none;
-    }
-    /* The landing page keeps its link to the guides beside the menu. */
-    .home .links.wide {
-      display: flex;
-      order: 3;
-      margin-inline-start: auto;
-    }
-    .home .links.wide a + a {
       display: none;
     }
     .mash-menu {

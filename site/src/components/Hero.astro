@@ -1,7 +1,8 @@
 ---
 // The landing hero, as the wireframe draws it: streaks of butter light behind
 // the app icon and the headline, the page's own paragraph under it, the desktop
-// app for the visitor's system, where else Mash runs, and the terminal
+// app for the visitor's system with the page's own actions (the demo) as
+// quieter buttons beside it, where else Mash runs, and the terminal
 // install for each system in tabs. Other ways to install, including asking
 // an agent, are in the docs.
 import { headline } from "../brand.ts";
@@ -77,6 +78,9 @@ const installs = [
         {/* The desktop app for the visitor's system, chosen by the script
             below; without it, or on a phone, the link opens the downloads. */}
         <a class="download" href="/downloads/#desktop-app" data-download data-system="macos"><OsMark system="macos" /><OsMark system="windows" /><OsMark system="linux" /><span data-download-label>{t("mash.download.mac")}</span></a>
+        {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
+          <a class="try" href={link} {...attrs}><LineIcon name="play" size="1rem" />{text}</a>
+        ))}
       </div>
       <div class="download-note">
         <p>
@@ -87,12 +91,8 @@ const installs = [
           <a href="#install">Install with curl</a>
           <span aria-hidden="true">|</span>
           <a href="https://github.com/mashhq/mash/tree/main/raycast">Raycast extension</a>
-          {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
-            <>
-              <span aria-hidden="true">|</span>
-              <a href={link} {...attrs}>{text}</a>
-            </>
-          ))}
+          <span aria-hidden="true">|</span>
+          <a href="/guides/">Read the docs</a>
         </p>
       </div>
     </div>
@@ -196,11 +196,15 @@ const installs = [
     padding: calc(var(--sl-nav-height) + 3.5rem) var(--mash-gutter) 0;
     overflow: hidden;
   }
+  /* The light is faded where the header lies over it and returns to full
+     strength a little below, so the header's words keep their contrast
+     wherever a streak drifts. */
   .light {
     position: absolute;
     inset: 0 0 auto;
     height: 46rem;
     pointer-events: none;
+    mask-image: linear-gradient(#0000004d var(--sl-nav-height), #000 calc(var(--sl-nav-height) + 5rem));
   }
   /* Streaks of butter light, blurred and tilted, drawn in CSS. */
   .streak {
@@ -292,11 +296,16 @@ const installs = [
   }
   .actions {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
     margin-top: 0.625rem;
   }
-  .download {
+  .download,
+  .try {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5625rem;
     height: 3rem;
     padding: 0 1.375rem;
@@ -310,6 +319,16 @@ const installs = [
   }
   .download:hover {
     background: var(--action-hover-bg);
+  }
+  /* The demo, beside the download: the same size, on a raised surface with a
+     hairline ring instead of ink. */
+  .try {
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+  }
+  .try:hover {
+    background: var(--surface-muted);
   }
   .download :global(.os-mark) {
     width: 1.0625rem;
@@ -479,6 +498,19 @@ const installs = [
     }
     h1 {
       font-size: clamp(2.5rem, 12vw, 3rem);
+    }
+    /* The two buttons stack across the column, the download first. */
+    .actions {
+      flex-direction: column;
+      align-self: stretch;
+    }
+    /* The ways in wrap here, so a wider gap parts them instead of bars,
+       which would be left hanging at the end of a line. */
+    .ways {
+      gap: 0 1rem;
+    }
+    .ways span {
+      display: none;
     }
     .install {
       margin-top: 4.5rem;

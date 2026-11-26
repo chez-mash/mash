@@ -24,7 +24,10 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "content",
     `Mash: ${tagline}`,
   );
-  await expect(page.locator(".hero .actions a")).toHaveText([/^\s*Download for \w+$/]);
+  await expect(page.locator(".hero .actions a")).toHaveText([
+    /^\s*Download for \w+$/,
+    "Try the demo",
+  ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
     "Find it. However you remember it.",
@@ -90,16 +93,95 @@ test("the hero leads with the app download, then the other systems and ways in",
   await expect(also).toHaveText(/^(macOS|Windows) and\s+(Windows|Linux)$/, {
     useInnerText: true,
   });
+  // The demo is a button of its own beside the download, the same height.
+  const demo = page.locator(".hero .actions a").nth(1);
+  await expect(demo).toHaveText("Try the demo");
+  await expect(demo).toHaveAttribute("href", "/demo/");
+  await expect(demo.locator("svg")).toBeVisible();
+  const [downloadBox, demoBox] = [await download.boundingBox(), await demo.boundingBox()];
+  expect(demoBox?.height).toBe(downloadBox?.height);
+  expect(demoBox?.y).toBe(downloadBox?.y);
+  expect(demoBox?.x).toBeGreaterThan((downloadBox?.x ?? 0) + (downloadBox?.width ?? 0));
+  // The row of quieter ways in ends with the docs, with a bar only between links.
   await expect(note.locator(".ways a")).toHaveText([
     "Install with curl",
     "Raycast extension",
-    "Try the demo",
+    "Read the docs",
   ]);
+  await expect(note.locator(".ways > :last-child")).toHaveText("Read the docs");
+  await expect(note.getByRole("link", { name: "Read the docs" })).toHaveAttribute(
+    "href",
+    "/guides/",
+  );
   // The header offers the Mac app beside the docs and the source.
   const header = page.locator("header.header");
   await expect(header.getByRole("link", { name: "Download for Mac" })).toBeVisible();
   await expect(header.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
   await expect(header.getByRole("link", { name: "GitHub", exact: true })).toBeVisible();
+});
+
+test("on a phone the landing header is the logo alone, and the hero's buttons stack", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const header = page.locator("header.header");
+  await expect(header.locator("a.brand")).toBeVisible();
+  // No menu button and no links: the hero and the footer lead to the docs.
+  await expect(header.locator(".mash-menu, .sl-menu-button")).toHaveCount(0);
+  await expect(header.getByRole("link")).toHaveCount(1);
+  await expect(header.getByRole("button")).toHaveCount(0);
+  const buttons = page.locator(".hero .actions a");
+  await expect(buttons).toHaveText([/Download for (Linux|Mac|Windows)|Download/, "Try the demo"]);
+  const [first, second] = [await buttons.nth(0).boundingBox(), await buttons.nth(1).boundingBox()];
+  expect(second?.x).toBe(first?.x);
+  expect(second?.width).toBe(first?.width);
+  expect(second?.height).toBe(first?.height);
+  expect(second?.y).toBeGreaterThan((first?.y ?? 0) + (first?.height ?? 0));
+  expect(first?.width).toBeGreaterThan(300);
+  // The ways in wrap on a phone, so no bar is left hanging at a line's end.
+  const ways = page.locator(".hero .ways");
+  await expect(ways.getByRole("link", { name: "Read the docs" })).toBeVisible();
+  await expect(ways.locator("span")).toHaveCount(2);
+  for (const bar of await ways.locator("span").all()) await expect(bar).toBeHidden();
+  await expect(
+    page.getByRole("navigation", { name: "Footer" }).getByRole("link", { name: "Docs" }),
+  ).toHaveAttribute("href", "/guides/");
+});
+
+test("every feature tile draws its icon in the same chip, the systems one each", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const more = page.getByRole("region", { name: "Fits the way you work." });
+  await expect(more.getByRole("heading", { level: 3 })).toHaveText([
+    "Context, before you ask.",
+    "RAG over your own history.",
+    "macOS. Linux. Windows.",
+    "Every machine.",
+    "Your chats, exported.",
+  ]);
+  await expect(more.locator("article").last()).toContainText("Markdown, HTML or PDF");
+  const chips = more.locator(".tiles .ico");
+  await expect(chips).toHaveCount(7);
+  const systems = more.locator(".tiles .os-chips .ico");
+  await expect(systems).toHaveCount(3);
+  await expect(systems.locator("svg.os-mark")).toHaveCount(3);
+  const looks = await chips.evaluateAll((all) =>
+    all.map((chip) => {
+      const { width, height, borderRadius, backgroundColor, color } = getComputedStyle(chip);
+      const icon = chip.querySelector("svg")?.getBoundingClientRect();
+      return [width, height, borderRadius, backgroundColor, color, icon?.width, icon?.height];
+    }),
+  );
+  for (const each of looks) expect(each).toEqual(looks[0]);
+  // The three marks sit in a row.
+  const boxes = await systems.evaluateAll((all) =>
+    all.map((chip) => chip.getBoundingClientRect().toJSON()),
+  );
+  expect(new Set(boxes.map((box) => box.y)).size).toBe(1);
+  expect(boxes[1].x).toBeGreaterThan(boxes[0].x + boxes[0].width);
+  expect(boxes[2].x).toBeGreaterThan(boxes[1].x + boxes[1].width);
 });
 
 test("the install tabs show each system's command, and copy it", async ({ page, context }) => {
@@ -130,7 +212,7 @@ test("the install tabs show each system's command, and copy it", async ({ page, 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => scrollTo(0, 0));
   await expect(page.locator(".hero h1")).toBeInViewport();
-  await expect(page.locator(".hero .actions a")).toBeVisible();
+  await expect(page.locator(".hero .actions a").first()).toBeVisible();
 });
 
 test("a Homebrew visitor can review the package source and see what to do next", async ({
@@ -444,9 +526,9 @@ test("every feature tile has an icon, the stack chips have logos, and the close 
   const tiles = welcome.locator("#welcome-features article");
   await expect(tiles).toHaveCount(5);
   for (const tile of await tiles.all())
-    await expect(tile.locator(".ico svg, .systems svg").first()).toBeVisible();
-  // The systems' tile shows their three marks.
-  await expect(tiles.nth(2).locator(".systems svg")).toHaveCount(3);
+    await expect(tile.locator(".ico svg").first()).toBeVisible();
+  // The systems' tile shows their three marks, each in a chip.
+  await expect(tiles.nth(2).locator(".os-chips .ico svg")).toHaveCount(3);
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
