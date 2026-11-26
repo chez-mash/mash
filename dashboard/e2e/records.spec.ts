@@ -427,3 +427,42 @@ test("a chosen source never falls back to another one", async ({ page }) => {
   await expect(page.getByText(/No memory matches these filters/)).toBeVisible();
   await expect(page.getByText("From your other machines")).toHaveCount(0);
 });
+
+test("the memory kinds' highlight slides from the last kind to the one chosen", async ({
+  page,
+}) => {
+  await page.route("**/api/records?**", (route) =>
+    route.fulfill({ json: { records: [], next_offset: null } }),
+  );
+  await page.goto("/");
+  await followRail(page, "Memory");
+  const kind = (name: string) => kindNav(page).getByRole("link", { name, exact: true });
+  const highlight = kindNav(page).locator(".seg-on");
+  const left = (locator: typeof highlight) =>
+    locator.evaluate((element) => element.getBoundingClientRect().left);
+  const running = () => highlight.evaluate((element) => element.getAnimations().length);
+
+  // It starts in place under "All", without moving there.
+  await expect(kindNav(page)).toHaveAttribute("data-sliding", "");
+  expect(await running()).toBe(0);
+  expect(await left(highlight)).toBeCloseTo(await left(kind("All")), 1);
+
+  // Each kind is a link that draws the page again; the new page's highlight
+  // still starts where the last one stood. Stretched, to stop it half-way.
+  await page.addStyleTag({ content: ".mem-seg .seg-on { transition-duration: 20s !important; }" });
+  await kind("Preferences").click();
+  await expect(kind("Preferences")).toHaveAttribute("aria-current", "page");
+  await expect.poll(running).toBeGreaterThan(0);
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 10_000;
+    }
+  });
+  expect(await left(highlight)).toBeGreaterThan(await left(kind("All")));
+  expect(await left(highlight)).toBeLessThan(await left(kind("Preferences")));
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) animation.finish();
+  });
+  expect(await left(highlight)).toBeCloseTo(await left(kind("Preferences")), 1);
+});

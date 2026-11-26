@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { fitsViewport } from "./shell";
 
 const status = {
@@ -429,4 +429,78 @@ test("OpenAI is offered as a service and asks which model to use", async ({ page
   await expect(turnOn).toBeDisabled();
   await page.locator("#settings-mashy-model").fill("a-model");
   await expect(turnOn).toBeEnabled();
+});
+
+/** A box as the browser draws it inside its parent, rounded to a hundredth of a pixel. */
+const drawn = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const { left, top, width, height } = element.getBoundingClientRect();
+    const parent = element.parentElement?.getBoundingClientRect();
+    return [left - (parent?.left ?? 0), top - (parent?.top ?? 0), width, height].map(
+      (value) => Math.round(value * 100) / 100,
+    );
+  });
+
+test("a segmented control slides its highlight to the choice made", async ({ page }) => {
+  await mock(page, settings, []);
+  await page.goto("/#/settings");
+  const theme = page.getByRole("group", { name: "Theme" });
+  const highlight = theme.locator('[data-slot="toggle-group-indicator"]');
+  const choice = (name: string) => theme.getByRole("radio", { name, exact: true });
+  const running = () => highlight.evaluate((element) => element.getAnimations().length);
+
+  // It starts in place, on the choice already made, without moving there.
+  await expect(theme).toHaveAttribute("data-sliding", "");
+  expect(await running()).toBe(0);
+  const from = await drawn(choice("match the system"));
+  expect(await drawn(highlight)).toEqual(from);
+  const heightBefore = (await theme.boundingBox())?.height;
+
+  // Half-way through the slide it is between the two choices. The slide is
+  // short, so the test stretches it to stop it half-way without a race.
+  expect(await highlight.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
+    "0.2s",
+  );
+  await page.addStyleTag({
+    content: '[data-slot="toggle-group-indicator"] { transition-duration: 20s !important; }',
+  });
+  await choice("dark").click();
+  await expect.poll(running).toBeGreaterThan(0);
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 10_000;
+    }
+  });
+  const to = await drawn(choice("dark"));
+  const [left, , width] = await drawn(highlight);
+  expect(left).toBeGreaterThan(from[0] ?? 0);
+  expect(left).toBeLessThan(to[0] ?? 0);
+  expect(width).toBeLessThan(from[2] ?? 0);
+  expect(width).toBeGreaterThan(to[2] ?? 0);
+  // Only the highlight moves: the choices stay where they were.
+  expect(await drawn(choice("match the system"))).toEqual(from);
+
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) animation.finish();
+  });
+  expect(await drawn(highlight)).toEqual(to);
+  expect((await theme.boundingBox())?.height).toBe(heightBefore);
+
+  // The arrow keys move between the choices, and the highlight follows the one picked.
+  await page.keyboard.press("ArrowLeft");
+  await expect(choice("light")).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(choice("light")).toBeChecked();
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) animation.finish();
+  });
+  expect(await drawn(highlight)).toEqual(await drawn(choice("light")));
+
+  // With less motion it switches at once.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await choice("match the system").click();
+  await expect(choice("match the system")).toBeChecked();
+  expect(await running()).toBe(0);
+  expect(await drawn(highlight)).toEqual(await drawn(choice("match the system")));
 });

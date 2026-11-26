@@ -8,6 +8,7 @@ import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
 import SealCheckIcon from "phosphor-svelte/lib/SealCheckIcon";
 import { untrack } from "svelte";
 import Icon from "$lib/components/Icon.svelte";
+import { slideIndicator } from "$lib/components/ui/toggle-group/slide";
 import { asset } from "../lib/asset";
 import { groupByWeek, recordKey } from "../lib/memoryView";
 import { navigate } from "../lib/navigation";
@@ -120,6 +121,19 @@ const previewed = $derived(
   page.data?.records.find((record) => recordKey(record) === chosen) ?? page.data?.records[0],
 );
 const localNode = $derived(scoped.data?.reach.localNode ?? "");
+
+// The kinds are links, and each choice draws this page again: the highlight
+// slides from where it stood on the page before.
+let kindTrack = $state<HTMLElement | null>(null);
+let kindHighlight = $state<HTMLElement | null>(null);
+$effect(() => {
+  if (kindTrack && kindHighlight)
+    return slideIndicator(kindTrack, kindHighlight, {
+      chosen: ':scope > a[aria-current="page"]',
+      watch: ["aria-current"],
+      remember: "memory-kind",
+    });
+});
 </script>
 
 <div class="mem-page">
@@ -128,7 +142,8 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   <div class="mem-t"><h1 class="h1">Memory</h1><p class="meta">What your agents saved, with the messages behind it<ScopeNote scoped={scoped.data} fallback={result.data?.fallback} /></p></div>
 </header>
 <div class="mem-bar">
-  <nav class="mem-seg" aria-label="Memory kind">
+  <nav class="mem-seg" aria-label="Memory kind" bind:this={kindTrack}>
+    <span class="seg-on" aria-hidden="true" bind:this={kindHighlight}></span>
     <a href={kindHref("")} aria-current={!kind ? "page" : undefined}>All</a>
     {#each kinds as value (value)}
       {@const KindGlyph = kindIcons[value]}<a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><span class="ink-{value} seg-i"><Icon icon={KindGlyph} size={13} state={kind === value ? "on" : "rest"} /></span>{label(value)}s</a>
@@ -247,8 +262,10 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     max-width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
+    position: relative;
   }
   .mem-seg a {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -259,6 +276,7 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     font-weight: var(--weight-label);
     color: var(--text-muted);
     white-space: nowrap;
+    transition: color 200ms ease-out;
   }
   .mem-seg a:hover {
     color: var(--text-strong);
@@ -267,6 +285,34 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     background: var(--selected-bg);
     color: var(--text-strong);
     box-shadow: var(--shadow-pick);
+  }
+  /* The raised highlight, slid to the current kind (the kit's slide.ts); the
+     current link leaves its own background to it. */
+  .seg-on {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    border-radius: var(--radius-5);
+    background: var(--selected-bg);
+    box-shadow: var(--shadow-pick);
+    pointer-events: none;
+    transition:
+      transform 200ms ease-out,
+      width 200ms ease-out;
+  }
+  .mem-seg:global([data-sliding]) .seg-on {
+    display: block;
+  }
+  .mem-seg:global([data-sliding]) a[aria-current="page"] {
+    background: none;
+    box-shadow: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg-on,
+    .mem-seg a {
+      transition: none;
+    }
   }
   .seg-i {
     display: inline-flex;

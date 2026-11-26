@@ -175,13 +175,6 @@
     visibility: visible;
     opacity: 1;
   }
-  @media (prefers-reduced-motion: no-preference) {
-    .mashy-carousel[data-example] .example {
-      transition:
-        opacity 320ms ease-out,
-        visibility 320ms;
-    }
-  }
   .pager {
     display: flex;
     align-items: center;
@@ -223,6 +216,8 @@
     height: 0.5rem;
     border-radius: var(--radius-pill);
     background: var(--line-strong);
+    transition: 0.36s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition-property: width, background-color;
   }
   .pager .dot[aria-current="true"]::before {
     width: 1.375rem;

@@ -120,6 +120,7 @@ const installs = [
 
   <section class="install" id="install" aria-label="Install from the terminal" data-install>
     <div class="tabs" role="tablist" aria-label="System">
+      <span class="tab-on" aria-hidden="true" data-tab-on></span>
       {installs.map(({ system, label }) => (
         <button type="button" role="tab" id={`install-tab-${system}`} aria-controls={`install-${system}`}
           aria-selected={system === "macos" ? "true" : "false"} tabindex={system === "macos" ? 0 : -1} data-system={system}>
@@ -143,6 +144,7 @@ const installs = [
 
 <script>
   import { desktopDownload } from "../download.ts";
+  import { slideIndicator } from "../slide.ts";
 
   const keys: Record<string, string> = { macOS: "macos", Windows: "windows", Linux: "linux" };
   const names: Record<string, string> = { macos: "Mac", windows: "Windows", linux: "Linux" };
@@ -164,6 +166,14 @@ const installs = [
     choose(section, system);
     if (section.dataset.mounted) return;
     section.dataset.mounted = "true";
+    // The butter highlight slides to the tab chosen; it starts on this one.
+    const row = section.querySelector<HTMLElement>("[role=tablist]");
+    const highlight = row?.querySelector<HTMLElement>("[data-tab-on]");
+    if (row && highlight)
+      slideIndicator(row, highlight, {
+        chosen: ':scope > [aria-selected="true"]',
+        watch: ["aria-selected"],
+      });
     const tabs = () => [...section.querySelectorAll<HTMLButtonElement>("[role=tab]")];
     section.addEventListener("click", (event) => {
       const tab = (event.target as Element).closest<HTMLButtonElement>("[role=tab]");
@@ -469,6 +479,7 @@ const installs = [
     scroll-margin-top: 2rem;
   }
   .tabs {
+    position: relative;
     display: none;
     gap: 0.25rem;
     padding: 0.25rem;
@@ -480,6 +491,7 @@ const installs = [
     display: flex;
   }
   .tabs button {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.4375rem;
@@ -492,6 +504,7 @@ const installs = [
     color: var(--text-secondary);
     font: 500 0.8125rem / 1 var(--type-sans);
     cursor: pointer;
+    transition: color 200ms ease-out;
   }
   .tabs button:hover {
     color: var(--text-strong);
@@ -501,6 +514,28 @@ const installs = [
     box-shadow: var(--shadow-tab-on);
     color: var(--text-on-butter);
     font-weight: 600;
+  }
+  /* The chosen tab's highlight, slid across to it (slide.ts); the tab then
+     leaves its own background to it. On this page it moves for everyone. */
+  .tab-on {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    border-radius: var(--radius-4);
+    background: var(--butter);
+    box-shadow: var(--shadow-tab-on);
+    pointer-events: none;
+    transition:
+      transform 200ms ease-out,
+      width 200ms ease-out;
+  }
+  .tabs[data-sliding] .tab-on {
+    display: block;
+  }
+  .tabs[data-sliding] button[aria-selected="true"] {
+    background: none;
+    box-shadow: none;
   }
   .tabs :global(.os-mark) {
     width: 0.875rem;
