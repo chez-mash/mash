@@ -132,6 +132,10 @@ jobs:
           [ "$(mash --version)" = "mash ${TAG#v}" ]
           # The app's package depends on mash-cli at exactly its own version
           # and runs that package's mash, so the two always move together.
+          # The desktop package pulls system libraries from Ubuntu's archive, and
+          # the runner image's index of it is days old: refresh every source, or
+          # apt asks for package files the archive has already replaced.
+          sudo apt-get update
           sudo apt-get install -y mash-desktop
           [ "$(dpkg-query -W -f '${Version}' mash-desktop)" = "$expected" ]
           [ "$(dpkg-query -W -f '${Version}' mash-cli)" = "$expected" ]
