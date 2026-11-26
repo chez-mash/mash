@@ -18,9 +18,27 @@ an established repository require otherwise.
 - pnpm
 - Biome for formatting and linting
 - shadcn-svelte for reusable UI components
-- Lucide Svelte for interface icons
+- Phosphor Icons (`phosphor-svelte`) for interface icons
 
 Follow the repository's TypeScript conventions for TypeScript work.
+
+## Icons
+
+Import each Phosphor glyph from its own file (`phosphor-svelte/lib/NAMEIcon`),
+never the package root, so only the icons used are bundled. Draw icons through
+one wrapper component so weight is decided in one place from theme tokens, not
+per icon:
+
+- bold at 15px and under, regular from 16px to 27px, light for decorative
+  icons of 28px and over;
+- fill for the current navigation item, the selected tab or segment, and
+  "on" states;
+- bold for warning and failure icons and for icons on primary buttons;
+- one step heavier in a dark theme when lines look thin;
+- duotone only for large feature icons where it clearly reads well.
+
+Icons inherit `currentColor`. Outside Svelte, copy exact path data per weight
+from `@phosphor-icons/core`. Brand and product logos are not interface icons.
 
 For Svelte, run `svelte-check --tsgo`. If current `svelte-check` requires
 TypeScript 6 alongside 7, keep 6 only as its compatibility dependency and

@@ -239,14 +239,22 @@ remote credentials server-side. History routes remain read-only.
 dashboard (Beads mash-twg6; design mockup linked there). It uses Svelte 5, Vite,
 TypeScript 7 (`svelte-check --tsgo`, with TypeScript 6 kept only as its
 compatibility dependency), Tailwind CSS 4, shadcn-svelte components over bits-ui,
-Lucide Svelte, pnpm, Biome and Vitest;
+Phosphor icons (`phosphor-svelte`), pnpm, Biome and Vitest;
 follow `.agents/skills/frontend-development-prefs/SKILL.md` and
 `.agents/skills/typescript-coding-conventions/SKILL.md`. Interactive controls
 (switches, dialogs, menus, segmented controls, tooltips, selects) are the kit in
 `dashboard/src/lib/components/ui`: take a new one from there, adding it with
 `pnpm dlx shadcn-svelte@latest add NAME`, never hand-build one, and style it only
 through the theme's roles in `dashboard/src/theme/tokens.css`, never shadcn's
-default palette or a literal colour (`theme.test.ts` checks). TanStack Query owns
+default palette or a literal colour (`theme.test.ts` checks). Draw every icon
+through `dashboard/src/lib/components/Icon.svelte` with a glyph imported from
+`phosphor-svelte/lib/NAMEIcon`, never a hand-drawn SVG; it takes the text colour.
+Its weight is decided in `dashboard/src/lib/icon.svelte.ts` from the theme's
+`--icon-weight-*` roles and is not set per icon: bold up to 15px, regular above,
+light from 28px, and in dark one step heavier; `state="on"` fills the current
+navigation item, the selected tab or segment and anything switched on, and
+`state="strong"` bolds a warning, a failure and the icon on a primary button.
+The website draws the same glyphs from `site/src/icons.ts`. TanStack Query owns
 server-state caching and refresh; `dashboard/src/lib/api.ts` validates real API
 responses. Keep submitted search results and displayed transcript text stable
 until the reader requests an update, with one exception: live updates. The
