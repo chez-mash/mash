@@ -40,6 +40,22 @@ const installs = [
 ---
 
 <div class="mash-hero">
+  {/* The entrance belongs to the page's motion (motion.ts). This marks the
+      hero as waiting for it before the copy is drawn, so the copy does not
+      show and then hide; if the motion has not started in three seconds the
+      mark is dropped and the copy simply shows. Without scripting nothing
+      is marked. */}
+  <script is:inline data-astro-rerun>
+    {
+      const hero = document.currentScript?.parentElement ?? document.querySelector(".mash-hero");
+      if (hero) {
+        hero.dataset.motion = "pending";
+        setTimeout(() => {
+          if (hero.dataset.motion === "pending") delete hero.dataset.motion;
+        }, 3000);
+      }
+    }
+  </script>
   <div class="light" aria-hidden="true">
     <i class="streak s1"></i><i class="streak s2"></i><i class="streak s3"></i><i class="streak s4"></i>
     <i class="veil"></i>
@@ -262,6 +278,11 @@ const installs = [
   }
   h1 span {
     display: block;
+  }
+  /* Waiting for the entrance: only the script sets this, and it or the
+     motion takes it away again. */
+  .mash-hero[data-motion="pending"] :is(:global(.hero-icon), h1 span, .tagline, .actions, .download-note) {
+    opacity: 0;
   }
   .tagline {
     max-width: 42.5rem;

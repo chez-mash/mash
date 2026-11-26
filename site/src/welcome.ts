@@ -1,37 +1,35 @@
 /**
- * Brings each band of the welcome page in gently as it scrolls into view.
+ * Starts the welcome page: Mashy's examples, and the page's motion.
  *
- * Without this script, or when the reader prefers less motion, every band is
- * simply shown: the stylesheet only hides a band once the page has the
- * `reveal` class, and only when motion is welcome.
+ * The motion (`motion.ts`, with GSAP) is fetched here, on this page only and
+ * after the page has been drawn. Without this script the page is simply
+ * shown; the stylesheet hides nothing.
  */
+
+/** Lets the hero show if the motion never takes over its entrance. */
+function showHero(): void {
+  for (const hero of document.querySelectorAll<HTMLElement>(".mash-hero[data-motion]"))
+    delete hero.dataset.motion;
+}
 
 /** Starts the page; returns what stops it again. */
 export function mountWelcome(root: HTMLElement): () => void {
-  const groups = [...root.querySelectorAll<HTMLElement>("[data-reveal]")];
-  if (!("IntersectionObserver" in window)) return () => {};
-  const seen = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add("shown");
-        seen.unobserve(entry.target);
-      }
-    },
-    { rootMargin: "0px 0px -8% 0px" },
-  );
-  // A band already on screen, or above it after a jump to an anchor, shows at once.
-  for (const group of groups) {
-    if (group.getBoundingClientRect().top < innerHeight) group.classList.add("shown");
-    else seen.observe(group);
-  }
-  root.classList.add("reveal");
   const chats = [...root.querySelectorAll<HTMLElement>("[data-mashy-chat]")].map(mountMashyChat);
+  let stopped = false;
+  let stopMotion: (() => void) | undefined;
+  import("./motion.ts")
+    .then(({ mountMotion }) => {
+      if (stopped) return;
+      stopMotion = mountMotion(document);
+      root.classList.add("reveal");
+    })
+    .catch(showHero);
   return () => {
+    stopped = true;
+    stopMotion?.();
+    showHero();
     for (const stop of chats) stop();
-    seen.disconnect();
     root.classList.remove("reveal");
-    for (const group of groups) group.classList.remove("shown");
   };
 }
 

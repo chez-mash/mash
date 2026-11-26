@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -200,7 +200,7 @@ test("visitors can inspect the installer and read about privacy before setup", a
   await expect(page.getByRole("link", { name: "Keep Mash’s copy in place" })).toBeVisible();
 });
 
-test("each welcome band comes in as it scrolls into view, and at once without motion", async ({
+test("each welcome band comes in as it scrolls into view, whatever the motion preference", async ({
   browser,
 }) => {
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
@@ -211,12 +211,164 @@ test("each welcome band comes in as it scrolls into view, and at once without mo
     await expect(welcome).toHaveClass(/\breveal\b/);
     const band = page.locator("#welcome-rust [data-reveal]");
     const opacity = () => band.evaluate((node) => getComputedStyle(node).opacity);
-    expect(await opacity()).toBe(reducedMotion === "reduce" ? "1" : "0");
+    expect(await opacity()).toBe("0");
     await band.scrollIntoViewIfNeeded();
     await expect(band).toHaveClass(/\bshown\b/);
     await expect.poll(opacity).toBe("1");
+    // Once in, the band is the stylesheet's again.
+    await expect.poll(() => band.getAttribute("style")).toBeFalsy();
     await context.close();
   }
+});
+
+/** Scrolls to the bottom in small steps, as a reader would, so every scene plays. */
+async function scrollThrough(page: Page): Promise<void> {
+  for (;;) {
+    const left = await page.evaluate(
+      () => document.documentElement.scrollHeight - innerHeight - scrollY,
+    );
+    if (left <= 1) break;
+    await page.mouse.wheel(0, 240);
+    await page.waitForTimeout(60);
+  }
+}
+
+for (const [name, viewport] of [
+  ["a wide screen", { width: 1440, height: 900 }],
+  ["a phone", { width: 390, height: 844 }],
+] as const) {
+  test(`on ${name} every scene ends as the page is served, and nothing changes place`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const hero = page.locator(".mash-hero");
+    await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+    await expect(hero).not.toHaveAttribute("data-motion");
+    for (const line of await hero.locator("h1 span").all())
+      await expect(line).toHaveCSS("opacity", "1");
+    await expect(hero.locator(".actions")).toHaveCSS("opacity", "1");
+    // Count layout shifts from here on: the scenes themselves must add none.
+    await page.evaluate(() => {
+      const seen = { shift: 0 };
+      Object.assign(window, { mashShift: seen });
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as (PerformanceEntry & {
+          value: number;
+          hadRecentInput: boolean;
+        })[])
+          if (!entry.hadRecentInput) seen.shift += entry.value;
+      }).observe({ type: "layout-shift" });
+    });
+    const height = () => page.evaluate(() => document.documentElement.scrollHeight);
+    const before = await height();
+    await scrollThrough(page);
+
+    const welcome = page.locator(".mash-welcome");
+    // Quick search: the whole query, every result, and the selection two rows down.
+    await expect(welcome.locator(".quick-q b")).toHaveText("refresh token");
+    await expect(welcome.locator(".quick li")).toHaveCount(5);
+    for (const row of await welcome.locator(".quick li").all())
+      await expect(row).toHaveCSS("opacity", "1");
+    const rows = await welcome
+      .locator(".quick li")
+      .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
+    await expect
+      .poll(() =>
+        welcome.locator(".quick-sel").evaluate((node) => node.getBoundingClientRect().top),
+      )
+      .toBeCloseTo(rows[2] ?? 0, 0);
+    // Search: three results, and each match highlighted by the stylesheet again.
+    for (const result of await welcome.locator(".search-window .result").all())
+      await expect(result).toHaveCSS("opacity", "1");
+    for (const match of await welcome.locator(".search-window mark").all())
+      await expect.poll(() => match.getAttribute("style")).toBeFalsy();
+    // Memory: the decision, the two steps and the later session.
+    for (const part of await welcome.locator(".memory-thread > *").all()) {
+      await expect(part).toHaveCSS("opacity", "1");
+      await expect.poll(() => part.getAttribute("style")).toBeFalsy();
+    }
+    // The agents, the figures, Mashy's first answer and the closing card.
+    for (const agent of await welcome.locator(".mash-agents li").all())
+      await expect(agent).toHaveCSS("opacity", "1");
+    await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
+    await expect(welcome.locator('.example[data-example="1"] .answer p').first()).toHaveText(
+      "A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:",
+    );
+    for (const part of await welcome.locator(".closing > *").all())
+      await expect(part).toHaveCSS("opacity", "1");
+    // Nothing is left part of the way in.
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>(".mash-hero *, .mash-welcome [data-reveal]")]
+            .filter((node) => node.style.opacity !== "" && node.style.opacity !== "1")
+            .map((node) => node.className),
+        ),
+      )
+      .toEqual([]);
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { mashShift: { shift: number } }).mashShift.shift,
+      ),
+    ).toBeLessThan(0.001);
+    // Only the pinned panel adds to the page, and only on a wide screen.
+    expect(await height()).toBe(before);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+  });
+}
+
+test("the pinned search panel holds for a screen and a half, then lets the page go on", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+  const desk = page.locator("#welcome-shortcuts .desk");
+  const field = page.locator("#welcome-shortcuts .quick-q b");
+  const top = () => desk.evaluate((node) => Math.round(node.getBoundingClientRect().top));
+  // Before the pin the field waits empty; in it the page stays put while the search types.
+  await expect(field).toHaveText("Search every chat");
+  const start = await desk.evaluate(
+    (node) => node.getBoundingClientRect().top + scrollY - innerHeight * 0.12,
+  );
+  await page.evaluate((y) => scrollTo(0, y + 300), start);
+  await expect.poll(top).toBe(108);
+  await expect(field).toHaveText(/^refresh t?o?$/);
+  await page.evaluate((y) => scrollTo(0, y + 1000), start);
+  await expect.poll(top).toBe(108);
+  await expect(field).toHaveText("refresh token");
+  // Past a screen and a half the panel scrolls away and the next band arrives.
+  await page.evaluate((y) => scrollTo(0, y + 1350 + 400), start);
+  await expect.poll(top).toBe(108 - 400);
+  await page.locator("#welcome-search").scrollIntoViewIfNeeded();
+  await expect(page.locator("#welcome-search .search-window")).toBeInViewport();
+  // Scrolling back up runs it backwards.
+  await page.evaluate((y) => scrollTo(0, y - 200), start);
+  await expect(field).toHaveText("Search every chat");
+});
+
+test("links into the page land on their target with the pinned panel above it", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const id of ["install", "welcome-search", "welcome-memory"]) {
+    await page.goto(`/#${id}`);
+    await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+    await expect(page.locator(`#${id}`)).toBeInViewport();
+    const top = await page.locator(`#${id}`).evaluate((node) => node.getBoundingClientRect().top);
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top).toBeLessThan(200);
+  }
+  // A link followed on the page itself gets there too.
+  await page.goto("/");
+  await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+  await page.locator(".hero .ways").getByRole("link", { name: "Install with curl" }).click();
+  await expect(page.locator("#install")).toBeInViewport();
 });
 
 test("the welcome page shows everything without scripting", async ({ browser }) => {
@@ -233,6 +385,25 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect
     .poll(() => mashy.evaluate((img: HTMLImageElement) => img.naturalHeight))
     .toBeGreaterThan(0);
+  // Nothing waits for the motion: the hero is unmarked and every scene is in its final state.
+  await expect(page.locator(".mash-hero")).not.toHaveAttribute("data-motion");
+  for (const part of await page
+    .locator(".hero :is(h1 span, .tagline, .actions, .download-note)")
+    .all()) {
+    await expect(part).toBeVisible();
+    await expect(part).toHaveCSS("opacity", "1");
+  }
+  await expect(welcome.locator(".quick-q b")).toHaveText("refresh token");
+  await expect(welcome.locator(".quick li.on")).toHaveCount(1);
+  for (const part of await welcome
+    .locator(
+      ".quick li, .search-window .result, .memory-thread > *, .mash-agents li, .stats > div, .closing > *",
+    )
+    .all()) {
+    await expect(part).toBeVisible();
+    await expect(part).toHaveCSS("opacity", "1");
+  }
+  await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
   // The app icon is drawn inline, over the headline and the closing call to action.
   await expect(page.locator(".hero .app-icon svg")).toBeVisible();
   await expect(welcome.locator(".closing .app-icon svg")).toBeVisible();

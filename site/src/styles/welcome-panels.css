@@ -71,6 +71,8 @@
     background: var(--find-bg);
     box-shadow: var(--shadow-mark);
     color: inherit;
+    /* The glow returns softly after the highlight has swept across the match. */
+    transition: box-shadow 0.2s ease-out;
   }
   .fake-link {
     align-self: flex-start;
@@ -495,8 +497,41 @@
     color: var(--text-secondary);
     font: 500 0.6875rem / 1 var(--type-mono);
   }
+  /* While the page's motion plays the panel (`.live`, set by the script): a
+     caret after the search, the placeholder while it is empty, and one
+     highlight that slides between the rows in place of the selected row's
+     own background. */
+  .quick.live .quick-q b::after {
+    display: inline-block;
+    width: 1.5px;
+    height: 1.25em;
+    margin-inline-start: 1px;
+    background: var(--text-strong);
+    vertical-align: -0.25em;
+    content: "";
+  }
+  .quick.live .quick-q b.empty {
+    color: var(--text-faint);
+  }
+  .quick.live li.on {
+    background: none;
+  }
+  .quick.live ul {
+    position: relative;
+  }
+  .quick-sel {
+    position: absolute;
+    inset-inline: 0.5rem;
+    height: 2.625rem;
+    border-radius: var(--radius-5);
+    background: var(--desk-row-on);
+    pointer-events: none;
+  }
 
   @media (width < 40rem) {
+    .quick-sel {
+      height: 2.75rem;
+    }
     .record dl {
       grid-template-columns: minmax(0, 1fr);
     }

@@ -88,11 +88,46 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   what it shows. On wide screens the copy sits beside the window and the side
   alternates; on narrow screens the copy comes first. Bands take the theme's
   surfaces (beige, cream, butter, and lilac only for Mashy).
-- **Motion** is a gentle fade and rise as a band scrolls into view
-  (`site/src/welcome.ts`, an `IntersectionObserver`). Without scripting, or
-  when the reader prefers reduced motion, every band is simply shown: the
-  stylesheet hides a band only once the page has the `reveal` class and only
-  under `prefers-reduced-motion: no-preference`.
+- **Motion** is eight small scenes built around the product windows
+  (`site/src/motion.ts`, with GSAP and ScrollTrigger), drawn first as the
+  motion storyboard on the design canvas. `site/src/welcome.ts` fetches that
+  script on this page only, after the page is drawn; no other page loads GSAP.
+  - The hero's app icon settles and its headline rises a line at a time on
+    load; the butter streaks drift a few pixels.
+  - The quick search panel pins for a screen and a half while the scroll
+    types “refresh token”, brings the results in and moves the selection down
+    two rows. This is the only pinned scene, and only on a screen at least
+    64rem wide and 47.5rem tall with a mouse.
+  - The search results arrive and the highlight sweeps each match; the saved
+    decision slides out from under the message it came from; the agents come
+    in one by one; the figures count up; Mashy bobs and types his first
+    answer; the closing card's icon rises as the hero's did.
+  - Every other band (`data-reveal`) fades up as it scrolls into view and
+    gets the `shown` class.
+
+  The rules the scenes keep:
+  - The page is complete as served. The script sets each scene's starting
+    state, and a scene already on screen when it starts is left alone. The
+    stylesheet hides nothing, with one exception: an inline script in
+    `Hero.astro` marks the hero `data-motion="pending"` so its copy does not
+    show and then hide, and drops the mark after three seconds if the motion
+    has not taken over.
+  - The motion plays for everyone, including readers who prefer reduced
+    motion, so it stays small: no flashing, no parallax, no zooms. (Mashy's
+    own carousel still waits for a click under that preference.)
+  - Scenes move transform, opacity, clip-path and background-size only, and
+    hand each element back to the stylesheet when they finish. Nothing
+    changes place: typed text keeps its full width, a counting figure keeps
+    its final width, and the quick search list keeps its height while empty.
+  - Phones and narrow screens get entrances only: no pin, no loops, no
+    typing in Mashy's answer. The quick search panel plays once there.
+  - Only the streaks and Mashy's bob loop, and both stop off screen.
+  - The pinned panel adds its scroll distance to the page, so a page opened
+    at a link below it goes to the link's target again once the pin exists.
+
+  `site/tests/landing.spec.ts` scrolls the page on a wide screen and a phone
+  and checks that every scene ends as the page is served and adds no layout
+  shift.
 - **Agent marks** under the hero are `<img>` logos in ink on ivory tiles
   (`Agents.astro`). Do not draw them as CSS masks through an inline custom
   property: iPhone Safari rendered those tiles empty.
