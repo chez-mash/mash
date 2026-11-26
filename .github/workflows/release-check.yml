@@ -327,6 +327,24 @@ jobs:
           Invoke-Winget -Arguments 'settings', '--enable', 'LocalManifestFiles' -Minutes 5
           Invoke-Winget -Arguments 'validate', '--manifest', $env:APP_MANIFESTS -Minutes 5 -About 'app'
           Invoke-Winget -Arguments 'validate', '--manifest', $env:CLI_MANIFESTS -Minutes 5 -About 'command line'
+      # winget marks the installer it downloads as coming from the internet
+      # and starts it through the shell, so SmartScreen checks it first. The
+      # app's installer is not signed yet and has no reputation, so
+      # SmartScreen holds it at "Windows protected your PC" until someone
+      # clicks Run anyway, which nobody does on a runner: the install never
+      # starts (run 45906719031). A user installing with winget sees that
+      # prompt too. The command line's zip is unpacked by winget itself and
+      # is not checked this way.
+      - name: Turn off SmartScreen for the app's unsigned installer
+        run: |
+          $explorer = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
+          $policy = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System'
+          $was = (Get-ItemProperty -LiteralPath $explorer -Name SmartScreenEnabled -ErrorAction SilentlyContinue).SmartScreenEnabled
+          Set-ItemProperty -LiteralPath $explorer -Name SmartScreenEnabled -Value 'Off'
+          New-Item -Path $policy -Force | Out-Null
+          Set-ItemProperty -LiteralPath $policy -Name EnableSmartScreen -Value 0 -Type DWord
+          "| SmartScreen | was '$(if ($was) { $was } else { 'default' })', turned off for the unsigned app installer |" |
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
       - name: Install the app with winget
         timeout-minutes: 15
         run: |
