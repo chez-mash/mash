@@ -7,6 +7,7 @@ import Trash2 from "@lucide/svelte/icons/trash-2";
 import X from "@lucide/svelte/icons/x";
 import { createQuery } from "@tanstack/svelte-query";
 import { tick } from "svelte";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents, paintMark } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
@@ -388,8 +389,8 @@ function followed(event: MouseEvent): void {
     <header title="Drag to move" onpointerdown={grab} onpointermove={drag} onpointerup={drop} onpointercancel={drop} ondblclick={(event) => { if (!(event.target instanceof Element) || !event.target.closest("button")) place(0, 0); }}>
       {#if !(empty && unset)}<img src={asset("mashy.png")} alt="" />{/if}<!-- Unset, Mashy stands in the panel, so the header only names it. -->
       <div><strong>Mashy</strong></div>
-      {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/if}
-      <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><X size={18} /></button>
+      {#if mashy.turns.length}<Tip text="Start over">{#snippet children(tip)}<button {...tip} type="button" aria-label="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/snippet}</Tip>{/if}
+      <Tip text="Close">{#snippet children(tip)}<button {...tip} type="button" aria-label="Close Mashy" onclick={() => void close()}><X size={18} /></button>{/snippet}</Tip>
     </header>
     <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
       {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
@@ -464,9 +465,9 @@ function followed(event: MouseEvent): void {
         }}
       ></textarea>
       {#if mashy.busy}
-        <button class="go" type="button" aria-label="Stop" title="Stop" onclick={() => mashy.stop()}><Square size={15} /></button>
+        <Tip text="Stop">{#snippet children(tip)}<button {...tip} class="go" type="button" aria-label="Stop" onclick={() => mashy.stop()}><Square size={15} /></button>{/snippet}</Tip>
       {:else}
-        <button class="go" type="submit" aria-label="Send" title="Send" disabled={!draft.trim()}><ArrowUp size={17} /></button>
+        <Tip text="Send">{#snippet children(tip)}<button {...tip} class="go" type="submit" aria-label="Send" disabled={!draft.trim()}><ArrowUp size={17} /></button>{/snippet}</Tip>
       {/if}
     </form>
   </section>

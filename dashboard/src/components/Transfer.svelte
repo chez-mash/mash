@@ -14,6 +14,7 @@ import Square from "@lucide/svelte/icons/square";
 import Upload from "@lucide/svelte/icons/upload";
 import { createQuery } from "@tanstack/svelte-query";
 import { onDestroy } from "svelte";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent } from "../lib/api";
 import { agoLabel, groupChats, projectLabel } from "../lib/browse";
@@ -302,7 +303,7 @@ async function copy(): Promise<void> {
     <div class="card xcard">
       <b>Make a full backup on the machine itself</b>
       <p style:font-size="13px">A Mash archive always holds one machine’s whole history. Run this there, with a folder that does not exist yet:</p>
-      <div class="cmdline"><code>{backup}</code><button type="button" aria-label={copied ? "Copied" : "Copy the command"} title={copied ? "Copied" : "Copy"} onclick={copy}>{#if copied}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
+      <div class="cmdline"><code>{backup}</code><Tip text={copied ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied ? "Copied" : "Copy the command"} onclick={copy}>{#if copied}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
       <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}

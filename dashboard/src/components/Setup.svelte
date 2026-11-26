@@ -12,6 +12,7 @@ import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { mashCommand } from "../lib/command";
@@ -175,7 +176,7 @@ function toggleConnect(agent: Integration): void {
 </script>
 
 {#snippet command(text: string)}
-  <div class="cmdline" style:margin-top="6px"><code>{text}</code><button type="button" aria-label={copied === text ? "Copied" : "Copy the command"} title={copied === text ? "Copied" : "Copy"} onclick={() => copy(text)}>{#if copied === text}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
+  <div class="cmdline" style:margin-top="6px"><code>{text}</code><Tip text={copied === text ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied === text ? "Copied" : "Copy the command"} onclick={() => copy(text)}>{#if copied === text}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
 {/snippet}
 {#snippet searchServiceProblem(service: FirstRun["qdrant"])}
   <div class="card warn">

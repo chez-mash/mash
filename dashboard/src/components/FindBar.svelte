@@ -5,6 +5,7 @@ import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import ChevronUp from "@lucide/svelte/icons/chevron-up";
 import Search from "@lucide/svelte/icons/search";
 import X from "@lucide/svelte/icons/x";
+import { Tip } from "$lib/components/ui/tooltip";
 
 let {
   query = $bindable(),
@@ -44,10 +45,10 @@ let {
       }}
     />
     <span class="findn" role="status">{status}</span>
-    <button class="fb-b" type="button" aria-label="Previous match" title="Previous match" disabled={!matches} onclick={() => onstep(-1)}><ChevronUp size={16} /></button>
-    <button class="fb-b" type="button" aria-label="Next match" title="Next match" disabled={!matches} onclick={() => onstep(1)}><ChevronDown size={16} /></button>
+    <Tip text="Previous match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Previous match" disabled={!matches} onclick={() => onstep(-1)}><ChevronUp size={16} /></button>{/snippet}</Tip>
+    <Tip text="Next match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Next match" disabled={!matches} onclick={() => onstep(1)}><ChevronDown size={16} /></button>{/snippet}</Tip>
     <span class="fb-sep" aria-hidden="true"></span>
-    <button class="fb-b" type="button" aria-label="Close find" title="Close find" onclick={onclose}><X size={16} /></button>
+    <Tip text="Close find">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Close find" onclick={onclose}><X size={16} /></button>{/snippet}</Tip>
   </div>
   <span class="fb-k" aria-hidden="true"><kbd class="kbd">↵</kbd>next<kbd class="kbd">⇧</kbd><kbd class="kbd">↵</kbd>previous<kbd class="kbd">esc</kbd>close</span>
 </div>

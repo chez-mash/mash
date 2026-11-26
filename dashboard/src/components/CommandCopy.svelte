@@ -1,6 +1,7 @@
 <script lang="ts">
 import Check from "@lucide/svelte/icons/check";
 import Copy from "@lucide/svelte/icons/copy";
+import { Tip } from "$lib/components/ui/tooltip";
 
 // A command to run elsewhere, in a muted box that wraps it, with a button to
 // copy it. Long commands wrap instead of scrolling, so a narrow column shows
@@ -18,7 +19,7 @@ async function copy(): Promise<void> {
 }
 </script>
 
-<div class="cc"><code>{text}</code><button type="button" aria-label={copied ? "Copied" : `Copy ${text}`} title={copied ? "Copied" : "Copy"} onclick={copy}>{#if copied}<Check size={14} aria-hidden="true" />{:else}<Copy size={14} aria-hidden="true" />{/if}</button></div>
+<div class="cc"><code>{text}</code><Tip text={copied ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied ? "Copied" : `Copy ${text}`} onclick={copy}>{#if copied}<Check size={14} aria-hidden="true" />{:else}<Copy size={14} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
 
 <style>
   .cc {

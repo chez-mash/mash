@@ -1,5 +1,6 @@
 <script lang="ts">
 import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+import { Tip } from "$lib/components/ui/tooltip";
 
 // The dashboard's one way to read what is on screen again, shown at the foot
 // of the rail (see lib/updates.svelte.ts). Pages do not add their own copy;
@@ -23,7 +24,7 @@ const words = $derived(checking ? "Checking…" : "Check for updates");
 </script>
 
 {#if compact}
-  <button class="btn ghost sm icon" type="button" aria-label={words} title={words} disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" /></button>
+  <Tip text={words}>{#snippet children(tip)}<button {...tip} class="btn ghost sm icon" type="button" aria-label={words} disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" /></button>{/snippet}</Tip>
 {:else}
   <button class="btn ghost sm" type="button" disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" />{words}</button>
 {/if}

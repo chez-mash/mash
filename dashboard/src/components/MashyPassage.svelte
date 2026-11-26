@@ -4,6 +4,7 @@
 // questions to ask about it.
 import CornerDownRight from "@lucide/svelte/icons/corner-down-right";
 import X from "@lucide/svelte/icons/x";
+import { Tip } from "$lib/components/ui/tooltip";
 import { clipPassage, mashy, PASSAGE_QUESTIONS } from "../lib/mashy.svelte";
 
 let { ask }: { ask: (question: string) => void } = $props();
@@ -13,7 +14,7 @@ let { ask }: { ask: (question: string) => void } = $props();
   <div class="mashy-passage">
     <span>About this passage</span>
     <p>“{clipPassage(mashy.pendingPassage)}”</p>
-    <button type="button" aria-label="Stop asking about this passage" title="Remove" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>
+    <Tip text="Remove">{#snippet children(tip)}<button {...tip} type="button" aria-label="Stop asking about this passage" onclick={() => { mashy.passage = ""; }}><X size={14} /></button>{/snippet}</Tip>
   </div>
   {#if !mashy.busy}
     <div class="mashy-sugg next">

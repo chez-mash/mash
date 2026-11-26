@@ -6,6 +6,7 @@ const view: ProjectView = $state({ find: "", agent: "", machine: "", sort: "rece
 </script>
 
 <script lang="ts">
+import { Tip } from "$lib/components/ui/tooltip";
 import MachineIcon from "./MachineIcon.svelte";
 import ArrowDownAZ from "@lucide/svelte/icons/arrow-down-a-z";
 import Bot from "@lucide/svelte/icons/bot";
@@ -122,11 +123,11 @@ const now = Date.now();
     <!-- Beside the link rather than in it: a button cannot sit inside a link. -->
     {#if choices.editable}
       <span class="acts">
-        {#if !hidden}<button class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" title={pinned ? "Unpin" : "Pin to the top"} onclick={() => void choices.togglePin(project.key)}><Pin size={16} aria-hidden="true" /></button>{/if}
-        <button class="pin" class:on={hidden} type="button" aria-pressed={hidden} aria-label="{hidden ? 'Show' : 'Hide'} {projectLabel(project.key)}" title={hidden ? "Show in project lists again" : "Hide from project lists"} onclick={() => void choices.toggleHidden(project.key)}>{#if hidden}<Eye size={16} aria-hidden="true" />{:else}<EyeOff size={16} aria-hidden="true" />{/if}</button>
+        {#if !hidden}<Tip text={pinned ? "Unpin" : "Pin to the top"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" onclick={() => void choices.togglePin(project.key)}><Pin size={16} aria-hidden="true" /></button>{/snippet}</Tip>{/if}
+        <Tip text={hidden ? "Show in project lists again" : "Hide from project lists"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={hidden} type="button" aria-pressed={hidden} aria-label="{hidden ? 'Show' : 'Hide'} {projectLabel(project.key)}" onclick={() => void choices.toggleHidden(project.key)}>{#if hidden}<Eye size={16} aria-hidden="true" />{:else}<EyeOff size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip>
       </span>
     {:else if pinned}
-      <span class="acts"><span class="pin on" role="img" aria-label="Pinned" title="Pinned"><Pin size={16} aria-hidden="true" /></span></span>
+      <span class="acts"><Tip text="Pinned" passive>{#snippet children(tip)}<span {...tip} class="pin on" role="img" aria-label="Pinned"><Pin size={16} aria-hidden="true" /></span>{/snippet}</Tip></span>
     {/if}
     </div>
   {/each}

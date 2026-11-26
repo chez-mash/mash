@@ -6,6 +6,7 @@ import Copy from "@lucide/svelte/icons/copy";
 import ListChecks from "@lucide/svelte/icons/list-checks";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
 import type { RepairResult } from "../lib/pluginRepair";
 import { fleetHref } from "../lib/route.svelte";
@@ -54,7 +55,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
       <li>
         <span>{step}{#if fix.deploy && index === 0}{" "}<a class="a" href={fleetHref("deploy")}>Deploy it from Fleet manager</a>, or install it there yourself.{/if}</span>
         {#if fix.command && index === fix.commandStep}
-          <div class="cmd"><code>{fix.command}</code><button type="button" aria-label={copied === agent ? "Copied" : "Copy the command"} title={copied === agent ? "Copied" : "Copy"} onclick={() => copy(agent, fix.command ?? "")}>{#if copied === agent}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button></div>
+          <div class="cmd"><code>{fix.command}</code><Tip text={copied === agent ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied === agent ? "Copied" : "Copy the command"} onclick={() => copy(agent, fix.command ?? "")}>{#if copied === agent}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
         {/if}
       </li>
     {/each}

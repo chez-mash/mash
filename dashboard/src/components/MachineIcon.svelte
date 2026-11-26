@@ -4,6 +4,7 @@
 // system never starts a timer (see lib/machineOs), so the logo can go
 // wherever a machine is named.
 import Laptop from "@lucide/svelte/icons/laptop";
+import { Tip } from "$lib/components/ui/tooltip";
 import { createMachineOs } from "../lib/machineOs.svelte";
 import { osLogo, osName } from "../lib/os";
 
@@ -13,7 +14,7 @@ const os = $derived(systems.of(machine));
 </script>
 
 {#if os}
-  <span class="os" style:width="{size}px" style:height="{size}px" title={osName(os)}>{@html osLogo(os)}</span>
+  <Tip text={osName(os)} passive>{#snippet children(tip)}<span {...tip} class="os" style:width="{size}px" style:height="{size}px">{@html osLogo(os)}</span>{/snippet}</Tip>
 {:else}
   <Laptop {size} aria-hidden="true" />
 {/if}

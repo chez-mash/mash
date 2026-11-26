@@ -4,6 +4,7 @@ import FileIcon from "@lucide/svelte/icons/file";
 import FileX from "@lucide/svelte/icons/file-x";
 import X from "@lucide/svelte/icons/x";
 import * as Dialog from "$lib/components/ui/dialog";
+import { Tip } from "$lib/components/ui/tooltip";
 import { kind, size } from "../lib/attachments";
 import type { Attachment } from "../lib/types";
 
@@ -53,12 +54,13 @@ const others = $derived(attachments.filter((file) => !shownAsPicture(file)));
 <Dialog.Root bind:open={() => open !== undefined, (on) => { if (!on) open = undefined; }}>
   <Dialog.Content class="full flex h-[min(646px,94vh)] w-[min(520px,96vw)] flex-col" aria-describedby={undefined}>
     {#if open}
+      {@const file = open}
       <div class="viewbar">
-        <Dialog.Title class="viewname" level={2}>{open.name}</Dialog.Title>
-        <a class="btn icon" href={open.downloadUrl ?? open.url} download={open.name} aria-label="Download {open.name}" title="Download"><Download size={15} aria-hidden="true" /></a>
-        <Dialog.Close class="btn icon" aria-label="Close" title="Close"><X size={15} aria-hidden="true" /></Dialog.Close>
+        <Dialog.Title class="viewname" level={2}>{file.name}</Dialog.Title>
+        <Tip text="Download">{#snippet children(tip)}<a {...tip} class="btn icon" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Download size={15} aria-hidden="true" /></a>{/snippet}</Tip>
+        <Tip text="Close">{#snippet children(tip)}<Dialog.Close {...tip} class="btn icon" aria-label="Close"><X size={15} aria-hidden="true" /></Dialog.Close>{/snippet}</Tip>
       </div>
-      <div class="viewbody"><img src={open.url} alt={open.name} /></div>
+      <div class="viewbody"><img src={file.url} alt={file.name} /></div>
     {/if}
   </Dialog.Content>
 </Dialog.Root>

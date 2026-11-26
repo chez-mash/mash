@@ -10,6 +10,7 @@ import PanelLeft from "@lucide/svelte/icons/panel-left";
 import Printer from "@lucide/svelte/icons/printer";
 import Search from "@lucide/svelte/icons/search";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
 import { whenLabel } from "../lib/browse";
 import type { ExportFormat } from "../lib/export";
@@ -115,7 +116,7 @@ const age = $derived.by(() => {
       </div>
     {:else}
     <div class="acts ch-acts">
-      <button class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" title="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={ontogglesessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>
+      <Tip text="{sessionsShown ? 'Hide' : 'Show'} session list">{#snippet children(tip)}<button {...tip} class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={ontogglesessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>{/snippet}</Tip>
       <button class="btn" type="button" aria-expanded={findOpen} onclick={onfind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
       <button class="btn" type="button" onclick={oncopy}><Copy size={15} aria-hidden="true" />Copy session ID</button>
       {#if chat}<OpenInAgent {chat} {local} {onnotice} />{/if}

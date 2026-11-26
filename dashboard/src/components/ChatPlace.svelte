@@ -6,6 +6,7 @@
 // themselves stay readable text. A row that already leads with the agent's
 // tile (`led`) names the agent without a second tile.
 import Folder from "@lucide/svelte/icons/folder";
+import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
 import { projectLabel } from "../lib/browse";
 import type { Agent } from "../lib/types";
@@ -31,13 +32,13 @@ let {
 
 <span class="cpl">
   {#if agent}
-    <span class="cpl-i" title="Agent: {agents[agent].name}">{#if !led}<AgentMark {agent} size="sm" />{/if}{agents[agent].name}</span>
+    <Tip text="Agent: {agents[agent].name}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="agent">{#if !led}<AgentMark {agent} size="sm" />{/if}{agents[agent].name}</span>{/snippet}</Tip>
   {/if}
   {#if machine}
-    <span class="cpl-i" title="Machine: {machine}"><span class="cpl-g" aria-hidden="true"><MachineIcon {machine} {size} /></span>{machine}</span>
+    <Tip text="Machine: {machine}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="machine"><span class="cpl-g" aria-hidden="true"><MachineIcon {machine} {size} /></span>{machine}</span>{/snippet}</Tip>
   {/if}
   {#if project}
-    <span class="cpl-i" title="Project: {project}"><Folder {size} aria-hidden="true" />{projectLabel(project)}</span>
+    <Tip text="Project: {project}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="project"><Folder {size} aria-hidden="true" />{projectLabel(project)}</span>{/snippet}</Tip>
   {/if}
 </span>
 

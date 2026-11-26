@@ -163,8 +163,8 @@ test("the overview greets the reader and its chat rows name the agent, machine a
   // The agent's mark leads the row; where the chat ran is a line under its
   // title, each name after the icon of its kind.
   await expect(row.locator(".mark svg")).toHaveCount(1);
-  for (const kind of ["Agent", "Machine", "Project"])
-    await expect(row.locator(`.oc-m [title^="${kind}: "]`)).toHaveCount(1);
+  for (const kind of ["agent", "machine", "project"])
+    await expect(row.locator(`.oc-m [data-place="${kind}"]`)).toHaveCount(1);
 });
 
 test("memory follows the viewing switcher, which names this machine once", async ({ page }) => {
