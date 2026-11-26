@@ -1,12 +1,13 @@
 // The landing page's visual baselines. The page moves: the hero makes an
-// entrance, each band plays a scene as it scrolls into view, and on a wide
-// screen the quick search panel pins while the scroll types into it. A picture
+// entrance, each band plays a scene as it scrolls into view, the showcase
+// changes surface by itself, and on a wide screen the quick search panel pins
+// while the scroll types into it. A picture
 // of a page in motion never compares, so this test owns the page's clock. It
 // is installed stopped before the page loads, and every scene is then played
 // to its end by moving the clock on, which takes no real time and ends in the
 // same frame on every run.
 import { expect, type Page, test } from "@playwright/test";
-import { settle } from "./settle.ts";
+import { arrived, settle } from "./settle.ts";
 
 const now = new Date("2026-11-20T19:30:00Z");
 
@@ -22,6 +23,7 @@ async function play(page: Page): Promise<void> {
 /** The bands under the hero, in page order: a picture's name and what it is of. */
 const bands = [
   ["agents", ".mash-agents"],
+  ["surfaces", "#welcome-surfaces"],
   ["quick-search", "#welcome-shortcuts"],
   ["search", "#welcome-search"],
   ["mashy", "#welcome-mashy"],
@@ -119,6 +121,7 @@ async function pictureBand(page: Page, name: string, selector: string): Promise<
   const { tops } = await screensOf(page, selector);
   for (const [index, top] of tops.entries()) {
     await scrollAndPlay(page, top);
+    await arrived(page, selector);
     const clip = await page.locator(selector).evaluate((band) => {
       const box = band.getBoundingClientRect();
       const y = Math.max(0, box.top);
@@ -132,6 +135,44 @@ async function pictureBand(page: Page, name: string, selector: string): Promise<
   }
 }
 
+/** Chooses a surface in the showcase, as a click on its dock button would, without scrolling to it. */
+async function chooseSurface(page: Page, id: string): Promise<void> {
+  await page
+    .locator(`#surface-tab-${id}`)
+    .evaluate((tab) =>
+      tab.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })),
+    );
+  await play(page);
+}
+
+/**
+ * The showcase's other surfaces, one picture each: the surface, the dock with
+ * its button chosen and the caption. The band's own pictures show the first.
+ */
+async function pictureSurfaces(page: Page): Promise<void> {
+  const top = await pageTop(page, "#welcome-surfaces .stage");
+  for (const id of ["menu-bar", "raycast", "agents", "terminal"]) {
+    await chooseSurface(page, id);
+    await scrollAndPlay(page, top - 16);
+    await expect(page.locator(`#surface-${id}`)).toHaveClass(/\bon\b/);
+    const clip = await page.locator("#welcome-surfaces").evaluate((band) => {
+      const from = band.querySelector(".stage")?.getBoundingClientRect().top ?? 0;
+      const to = band.querySelector(".captions")?.getBoundingClientRect().bottom ?? innerHeight;
+      return {
+        x: 0,
+        y: Math.max(0, from - 16),
+        width: innerWidth,
+        height: Math.min(innerHeight, to + 16) - Math.max(0, from - 16),
+      };
+    });
+    await expect.soft(page).toHaveScreenshot(`landing-surface-${id}.png`, {
+      clip,
+      stylePath: ["./visual/still.css", "./visual/band.css"],
+    });
+  }
+  await chooseSurface(page, "dashboard");
+}
+
 test("landing", async ({ page }) => {
   await page.clock.install({ time: now });
   await page.clock.pauseAt(now);
@@ -139,8 +180,16 @@ test("landing", async ({ page }) => {
   // The motion is fetched after the page is drawn and marks the page once it runs.
   await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
   await settle(page);
-  await play(page);
+  // The showcase changes surface by itself until the reader chooses one; choosing
+  // the one that shows stops that, so every picture finds the same surface.
+  await chooseSurface(page, "dashboard");
   await expect.soft(page).toHaveScreenshot("landing-hero.png");
+  // The header island once the hero's buttons have scrolled away under it.
+  await scrollAndPlay(page, await pageTop(page, ".mash-agents"));
+  await expect(page.locator(".mash-header")).toHaveAttribute("data-past-hero", "");
+  await expect.soft(page).toHaveScreenshot("landing-island.png", {
+    clip: { x: 0, y: 0, width: page.viewportSize()?.width ?? 0, height: 96 },
+  });
 
   for (const [name, selector] of bands) {
     if (name === "quick-search" && (await page.locator(`${selector} .pin-spacer`).count())) {
@@ -149,5 +198,6 @@ test("landing", async ({ page }) => {
     }
     await playBand(page, selector);
     await pictureBand(page, name, selector);
+    if (name === "surfaces") await pictureSurfaces(page);
   }
 });

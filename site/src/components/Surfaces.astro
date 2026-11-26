@@ -1,0 +1,305 @@
+---
+// Where Mash works, as one band: one of Mash's surfaces in its window over
+// butter light, a dock of buttons under it that choose the surface, and a
+// caption for the one shown. The dock is a tablist and each surface a tab
+// panel. As served the first surface shows and every dock button is a plain
+// link to that surface's guide, so the band works without scripting;
+// src/surfaces.ts turns the links into tabs, and src/motion/surfaces.ts
+// animates each change. Every surface occupies the same place, and so does
+// every caption, so the band keeps its height whichever is shown.
+import type { IconName } from "../icons.ts";
+import LineIcon from "./LineIcon.astro";
+import AgentSurface from "./surfaces/AgentSurface.astro";
+import DashboardSurface from "./surfaces/DashboardSurface.astro";
+import MenuBarSurface from "./surfaces/MenuBarSurface.astro";
+import RaycastSurface from "./surfaces/RaycastSurface.astro";
+import TerminalSurface from "./surfaces/TerminalSurface.astro";
+
+interface Surface {
+  id: string;
+  /** The dock button's name and the tag over it. */
+  label: string;
+  icon: IconName;
+  /** The caption: a short claim, then one plain sentence. */
+  claim: string;
+  says: string;
+  /** Where to read more; also where the dock button leads without scripting. */
+  href: string;
+  more: string;
+  /** What the surface's picture shows, for a reader who cannot see it. */
+  shows: string;
+  Picture: typeof DashboardSurface;
+}
+
+const surfaces: Surface[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: "layout",
+    claim: "Read it all back.",
+    says: "Every chat from every agent and machine, in one local dashboard.",
+    href: "/dashboard/",
+    more: "See the dashboard",
+    shows:
+      "The Mash dashboard: a list of chats from Claude Code, Codex, Cursor and OpenCode beside one of them, where a decision about sign-in tokens was saved from the reader’s own message.",
+    Picture: DashboardSurface,
+  },
+  {
+    id: "menu-bar",
+    label: "Menu bar",
+    icon: "search",
+    claim: "Always within reach.",
+    says: "Mash sits in your menu bar or tray, with your recent chats one click away.",
+    href: "/downloads/#desktop-app",
+    more: "Get the desktop app",
+    shows:
+      "The desktop app’s panel under Mash’s icon in the menu bar, before anything is typed: the five most recent chats, from Claude Code, Codex, Cursor and OpenCode.",
+    Picture: MenuBarSurface,
+  },
+  {
+    id: "raycast",
+    label: "Raycast",
+    icon: "command",
+    claim: "Stay in your launcher.",
+    says: "Search your chats from Raycast and open one where it was written.",
+    href: "https://github.com/mashhq/mash/tree/main/raycast",
+    more: "Get the Raycast extension",
+    shows:
+      "The Mash extension in Raycast: the search ‘customers’ lists three chats, from Claude Code, Codex and OpenCode, with their projects and when they were last active.",
+    Picture: RaycastSurface,
+  },
+  {
+    id: "agents",
+    label: "Agent plugin",
+    icon: "plug",
+    claim: "Context, before you ask.",
+    says: "The plugin for Claude Code, Codex and Copilot brings earlier decisions into new sessions.",
+    href: "/plugin/",
+    more: "Set up the plugin",
+    shows:
+      "A Codex session asked to add sign-out to the mobile app: it searches Mash, finds the sign-in decision saved from a Claude Code chat, and follows it.",
+    Picture: AgentSurface,
+  },
+  {
+    id: "terminal",
+    label: "Terminal",
+    icon: "terminal",
+    claim: "Script your history.",
+    says: "The mash command prints text to read, and JSON when you pipe it.",
+    href: "/cli/",
+    more: "See the commands",
+    shows:
+      "A terminal where ‘mash search refresh token’ prints three chats, each with its agent, its machine and the matching line.",
+    Picture: TerminalSurface,
+  },
+];
+const [first] = surfaces;
+---
+
+<section class="band" id="welcome-surfaces" aria-labelledby="welcome-surfaces-title">
+  <div class="wrapper surfaces" data-surfaces data-reveal>
+    <h2 id="welcome-surfaces-title">One history. <span class="quiet">Everywhere you work.</span></h2>
+    <div class="stage">
+      <i class="halo" aria-hidden="true"></i>
+      {surfaces.map(({ id, shows, Picture }, index) => (
+        <div class:list={["surface", { on: index === 0 }]} role="tabpanel" id={`surface-${id}`}
+          aria-labelledby={`surface-tab-${id}`} aria-describedby={`surface-caption-${id}`} data-surface={id}>
+          <div class="picture" role="img" aria-label={shows}>
+            <Picture />
+          </div>
+        </div>
+      ))}
+    </div>
+    <div class="dock-area" style="--at: 0">
+      <p class="dock-tag" aria-hidden="true"><span data-dock-tag>{first?.label}</span></p>
+      <div class="dock" role="tablist" aria-label="Where Mash works">
+        {surfaces.map(({ id, label, icon, href }, index) => (
+          <a role="tab" id={`surface-tab-${id}`} href={href} aria-controls={`surface-${id}`}
+            aria-selected={index === 0 ? "true" : "false"} aria-label={label} title={label} data-surface={id}>
+            <LineIcon name={icon} size="1.375rem" />
+          </a>
+        ))}
+      </div>
+    </div>
+    <div class="captions">
+      {surfaces.map(({ id, claim, says, href, more }, index) => (
+        <p class:list={["caption", { on: index === 0 }]} id={`surface-caption-${id}`} data-surface={id}>
+          <span><b>{claim}</b> {says}</span>
+          <a class="more" href={href}>{more} ›</a>
+        </p>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* A picture slides a little sideways as it changes; the band clips that,
+     so the page never gains a sideways scroll. */
+  #welcome-surfaces {
+    padding-top: 3rem;
+    overflow-x: clip;
+  }
+  .surfaces {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .surfaces h2 {
+    max-width: 62rem;
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+  /* Every surface lies in the one cell, which keeps its height. A sideways
+     swipe on it changes the surface; the page still scrolls up and down. */
+  .stage {
+    position: relative;
+    display: grid;
+    width: 100%;
+    max-width: 58rem;
+    height: 30rem;
+    touch-action: pan-y;
+  }
+  /* Butter light behind the window. */
+  .halo {
+    position: absolute;
+    inset: -8% -4%;
+    background: var(--app-icon-halo);
+    pointer-events: none;
+  }
+  .surface {
+    grid-area: 1 / 1;
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    visibility: hidden;
+    opacity: 0;
+  }
+  /* The one shown, and the one a change is moving away. */
+  .surface.on,
+  .surface.leaving {
+    visibility: visible;
+    opacity: 1;
+  }
+  .picture {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    text-align: start;
+  }
+
+  /* The dock: a raised tray of icon tiles. The chosen one is butter, larger
+     and lifted, with its name on a tag above it. Tiles keep their places
+     (the chosen one grows by transform), so the tag's place follows from
+     the chosen tile's number, --at. */
+  .dock-area {
+    --tile: 3rem;
+    --gap: 0.5rem;
+    --pad: 0.5rem;
+    position: relative;
+    margin-top: 1rem;
+    padding-top: 2.875rem;
+  }
+  .dock {
+    display: flex;
+    gap: var(--gap);
+    padding: var(--pad);
+    border-radius: var(--radius-9);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+  }
+  .dock a {
+    display: grid;
+    place-items: center;
+    width: var(--tile);
+    height: var(--tile);
+    border-radius: var(--radius-6);
+    background: var(--surface-muted);
+    box-shadow: var(--shadow-ring-inset);
+    color: var(--text-secondary);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dock a:hover {
+    background: var(--surface-hover);
+    color: var(--text-strong);
+  }
+  .dock a[aria-selected="true"] {
+    background: var(--butter);
+    box-shadow: var(--shadow-tab-on);
+    color: var(--text-on-butter);
+    transform: translateY(-0.5rem) scale(1.18);
+  }
+  .dock a:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  /* A point over the chosen tile's centre, with the tag centred on it. */
+  .dock-tag {
+    position: absolute;
+    top: 0;
+    left: calc(var(--pad) + var(--at) * (var(--tile) + var(--gap)) + var(--tile) / 2);
+    display: flex;
+    justify-content: center;
+    width: 0;
+    pointer-events: none;
+  }
+  .dock-tag span {
+    flex: none;
+    padding: 0.4375rem 0.625rem;
+    border-radius: var(--radius-3);
+    background: var(--action-bg);
+    color: var(--action-text);
+    font: 500 0.6875rem / 1 var(--type-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Every caption lies in one cell, as tall as the longest. */
+  .captions {
+    display: grid;
+    max-width: 33rem;
+    margin-top: 1.5rem;
+  }
+  .caption {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    visibility: hidden;
+    color: var(--text-muted);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .caption.on {
+    visibility: visible;
+  }
+  .caption b {
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+  .caption .more {
+    align-self: center;
+  }
+
+  @media (width >= 40rem) {
+    .dock-area {
+      --tile: 3.25rem;
+    }
+  }
+  @media (width < 40rem) {
+    .surfaces h2 {
+      margin-bottom: 2rem;
+    }
+    .stage {
+      height: 25.5rem;
+    }
+  }
+</style>

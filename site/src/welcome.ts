@@ -1,10 +1,13 @@
 /**
- * Starts the welcome page: Mashy's examples, and the page's motion.
+ * Starts the welcome page: the surface showcase, Mashy's examples, and the
+ * page's motion.
  *
  * The motion (`motion.ts`, with GSAP) is fetched here, on this page only and
  * after the page has been drawn. Without this script the page is simply
  * shown; the stylesheet hides nothing.
  */
+
+import { mountSurfaces } from "./surfaces.ts";
 
 /** Lets the hero show if the motion never takes over its entrance. */
 function showHero(): void {
@@ -15,6 +18,7 @@ function showHero(): void {
 /** Starts the page; returns what stops it again. */
 export function mountWelcome(root: HTMLElement): () => void {
   const chats = [...root.querySelectorAll<HTMLElement>("[data-mashy-chat]")].map(mountMashyChat);
+  const showcases = [...root.querySelectorAll<HTMLElement>("[data-surfaces]")].map(mountSurfaces);
   let stopped = false;
   let stopMotion: (() => void) | undefined;
   import("./motion.ts")
@@ -28,7 +32,7 @@ export function mountWelcome(root: HTMLElement): () => void {
     stopped = true;
     stopMotion?.();
     showHero();
-    for (const stop of chats) stop();
+    for (const stop of [...chats, ...showcases]) stop();
     root.classList.remove("reveal");
   };
 }

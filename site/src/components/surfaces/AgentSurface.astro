@@ -1,0 +1,122 @@
+---
+// An agent's session with the Mash plugin: asked for something that depends
+// on an earlier decision, the agent searches Mash, finds the decision another
+// agent's chat left, and follows it. A made-up session, drawn as a terminal.
+import AgentTile from "../AgentTile.astro";
+import LineIcon from "../LineIcon.astro";
+---
+
+<div class="session" aria-hidden="true">
+  <div class="window-h"><u></u><u></u><u></u><span>codex · mobile</span></div>
+  <div class="session-b">
+    <p class="ask"><i>›</i><span data-typed>Add sign-out to the mobile app.</span></p>
+    <p class="call" data-in><LineIcon name="plug" size="0.875rem" /><b>mash</b> search “sign-in tokens”</p>
+    <div class="found" data-in>
+      <p class="pills"><span class="pill butter"><LineIcon name="bookmark" size="0.75rem" />decision</span><span class="pill ok">accepted</span></p>
+      <p class="statement">Sign-in uses fifteen-minute access tokens with a server-held refresh token.</p>
+      <p class="from"><AgentTile agent="claude-code" />Move sign-in to short-lived tokens · laptop · 2d</p>
+    </div>
+    <p class="reply" data-in>
+      <AgentTile agent="codex" /><span>You decided on fifteen-minute tokens in an earlier chat. Sign-out will remove
+      the refresh token on the server, so every device follows.</span>
+    </p>
+  </div>
+</div>
+
+<style>
+  .session {
+    display: flex;
+    flex-direction: column;
+    width: min(46rem, 100%);
+    height: 23.5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    color: var(--text-body);
+    font-size: 0.875rem;
+    border-radius: var(--radius-7);
+    background: var(--surface-code);
+  }
+  .session-b {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem 1.375rem;
+    font: 400 0.875rem / 1.6 var(--type-mono);
+  }
+  .session-b .ask {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-muted);
+    color: var(--text-strong);
+  }
+  .ask i {
+    color: var(--text-faint);
+    font-style: normal;
+  }
+  .call {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+  }
+  .call :global(svg) {
+    flex: none;
+    color: var(--butter-icon);
+  }
+  .call b {
+    color: var(--text-strong);
+    font-weight: 500;
+  }
+  .found {
+    display: grid;
+    gap: 0.625rem;
+    margin-inline-start: 1.375rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-6);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-butter);
+    font-family: var(--type-sans);
+  }
+  .session .found .statement {
+    font-size: 1.0625rem;
+  }
+  .from,
+  .reply {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .from {
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .from :global(.agent-tile) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .reply {
+    color: var(--text-body);
+  }
+  .reply :global(.agent-tile) {
+    margin-top: 0.0625rem;
+  }
+  @media (width < 40rem) {
+    .session {
+      height: 100%;
+    }
+    .session-b {
+      gap: 0.75rem;
+      padding: 0.875rem;
+      font-size: 0.75rem;
+    }
+    .found {
+      margin-inline-start: 0;
+      padding: 0.75rem;
+    }
+    .session .found .statement {
+      font-size: 0.875rem;
+    }
+  }
+</style>

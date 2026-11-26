@@ -4,10 +4,12 @@
 // search in the middle, then the guides and the source, the theme and
 // language menus, and the desktop app for the Mac in ink.
 //
-// On the landing page the header sits on the hero's light (it scrolls away
-// with the page) and search is hidden, but kept mounted so its shortcut and
-// query survive moving between pages. On a phone the landing page's header
-// is the logo alone: the hero and the footer lead to the guides. The other
+// On the landing page the header is an island: a rounded bar on a translucent
+// surface that stays at the top while the page scrolls under it. Search is
+// hidden there, but kept mounted so its shortcut and query survive moving
+// between pages. On a phone the island is the logo alone until the hero's
+// buttons have scrolled away, when a small download button fades in beside
+// it: the hero and the footer lead to the guides. The other
 // pages without a sidebar (the guides directory and the missing page) get a
 // menu holding the links and both menus; docs pages keep Starlight's menu
 // button, which opens the sidebar with the same controls at its top. The two
@@ -16,6 +18,7 @@
 import { Icon } from "@astrojs/starlight/components";
 import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
+import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 import Search from "./Search.astro";
 import SocialIcons from "./SocialIcons.astro";
@@ -59,10 +62,21 @@ const t = Astro.locals.t;
     <ThemeSelect />
     <LanguageSelect />
   </div>
-  <a class="download" href="/downloads/#desktop-app">
-    <OsMark system="macos" />
-    <span>{t("mash.download.mac")}</span>
-  </a>
+  {
+    home ? (
+      // The same download as the hero's button, which Hero.astro's script points at the visitor's system.
+      <a class="download" href="/downloads/#desktop-app" data-download data-system="macos">
+        <OsMark system="macos" /><OsMark system="windows" /><OsMark system="linux" />
+        <span class="long" data-download-label>{t("mash.download.mac")}</span>
+        <span class="short"><LineIcon name="download" size="0.875rem" />{t("mash.download.short")}</span>
+      </a>
+    ) : (
+      <a class="download" href="/downloads/#desktop-app">
+        <OsMark system="macos" />
+        <span>{t("mash.download.mac")}</span>
+      </a>
+    )
+  }
 </div>
 
 <style>
@@ -160,8 +174,26 @@ const t = Astro.locals.t;
     height: 0.8125rem;
   }
 
-  /* On the landing page: the links follow the name, search is hidden, and
-     the download sits at the far end. */
+  /* On the landing page the header is an island: a rounded bar, fixed over
+     the page (custom.css), on a surface the page shows through, blurred.
+     The surface is mostly opaque, so the words keep their contrast whatever
+     scrolls under them. */
+  .home {
+    padding-inline: 0.875rem 0.5rem;
+    border-radius: var(--radius-8);
+    background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
+    box-shadow: var(--shadow-float);
+    backdrop-filter: blur(18px) saturate(1.4);
+    pointer-events: auto;
+  }
+  .short,
+  .download[data-system="macos"] :global(.os-mark:not([data-system="macos"])),
+  .download[data-system="windows"] :global(.os-mark:not([data-system="windows"])),
+  .download[data-system="linux"] :global(.os-mark:not([data-system="linux"])) {
+    display: none;
+  }
+  /* The links follow the name, search is hidden, and the download sits at
+     the far end. */
   .home .search {
     order: 2;
     visibility: hidden;
@@ -211,6 +243,38 @@ const t = Astro.locals.t;
     .home .search {
       display: none;
     }
+    /* A phone's island gains its one action once the hero's buttons have
+       scrolled away (the script below marks the island then): a short
+       download button, with a tap target larger than it looks. */
+    .home .download {
+      position: relative;
+      display: inline-flex;
+      visibility: hidden;
+      height: 2.25rem;
+      margin-inline-start: auto;
+      opacity: 0;
+      transition:
+        opacity 0.2s ease-out,
+        visibility 0.2s;
+    }
+    .home .download::after {
+      position: absolute;
+      inset: -0.3125rem 0;
+      content: "";
+    }
+    .home[data-past-hero] .download {
+      visibility: visible;
+      opacity: 1;
+    }
+    .home .download .long,
+    .home .download > :global(.os-mark) {
+      display: none;
+    }
+    .home .short {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4375rem;
+    }
   }
   /* Starlight's button, measure for measure: its glyph starts at the
      padding rather than the middle, and this one sits where that one does. */
@@ -252,7 +316,29 @@ const t = Astro.locals.t;
   }
 </style>
 
+<style is:global>
+  /* A link into the landing page stops under the island, not behind it. */
+  html:has(.mash-header.home) {
+    scroll-padding-top: 5rem;
+  }
+</style>
+
 <script>
+  // The landing island's download button waits until the hero's own buttons
+  // have scrolled up out of view.
+  let watching: IntersectionObserver | undefined;
+  document.addEventListener("astro:page-load", () => {
+    watching?.disconnect();
+    const island = document.querySelector<HTMLElement>(".mash-header.home");
+    const actions = document.querySelector(".mash-hero .actions");
+    if (!island || !actions) return;
+    watching = new IntersectionObserver(([entry]) => {
+      const past = entry !== undefined && !entry.isIntersecting && entry.boundingClientRect.top < 0;
+      island.toggleAttribute("data-past-hero", past);
+    });
+    watching.observe(actions);
+  });
+
   // Copy buttons anywhere on the site, such as the prompt for an agent: one
   // listener serves every page change. The button says so once it has copied.
   document.addEventListener("click", async (event) => {
