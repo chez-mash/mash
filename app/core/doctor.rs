@@ -13,6 +13,8 @@ use serde::Serialize;
 use std::fmt::Write;
 use std::path::Path;
 
+mod copies;
+use copies::processes;
 mod retention;
 pub(in crate::core) use retention::claude_cleanup_advice;
 use retention::{claude_settings, retention};
@@ -34,6 +36,7 @@ pub enum Check {
     Models,
     Watcher,
     Processes,
+    Copies,
     SharedCopy,
     Integrations,
     Retention,
@@ -194,6 +197,7 @@ pub(super) async fn examine(
                 Finding::ok(Check::Processes, "Running processes were not inspected.")
             }),
     );
+    findings.extend(copies::copies().await);
     if configuration.providers.contains_key(&Provider::ClaudeCode) {
         findings.extend(
             crate::blocking(|| Ok(retention(claude_settings().as_deref())))
@@ -501,42 +505,6 @@ fn watcher(database: &Path, status: &StatusResponse) -> Finding {
             "A watcher service is installed; whether it is running could not be checked.",
         ),
     }
-}
-
-/// Long-lived Mash processes left running on a build that has been replaced.
-fn processes(inventory: &runtime::Inventory) -> Finding {
-    let stale = |kind: fn(&runtime::Kind) -> bool| {
-        inventory
-            .processes
-            .iter()
-            .filter(|process| process.state != runtime::State::Current && kind(&process.kind))
-            .map(|process| process.pid.to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
-    };
-    let watchers = stale(|kind| matches!(kind, runtime::Kind::IndexWatch));
-    let servers = stale(|kind| matches!(kind, runtime::Kind::Mcp));
-    if !watchers.is_empty() {
-        return Finding::found(
-            Check::Processes,
-            State::Problem,
-            format!("An index watcher (process {watchers}) is still running a build that has been replaced."),
-        )
-        .cause("A replaced watcher refuses new writes, so indexing has stopped until it restarts.")
-        .repair(restart_watcher());
-    }
-    if !servers.is_empty() {
-        return Finding::found(
-            Check::Processes,
-            State::Warning,
-            format!("An agent's Mash connection (process {servers}) is still running a build that has been replaced."),
-        )
-        .repair("Reconnect Mash in that agent, or restart the agent session.");
-    }
-    Finding::ok(
-        Check::Processes,
-        "Every running Mash process is this build.",
-    )
 }
 
 fn integrations(status: &StatusResponse) -> Finding {

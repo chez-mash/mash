@@ -17,6 +17,9 @@ pub(crate) enum Response {
     /// latter with an existing database's `user_version` before replacing it.
     Version {
         version: &'static str,
+        /// The commit this binary was built from: two copies of one version
+        /// can still be different builds.
+        build: &'static str,
         silver_schema: i64,
         silver_schema_min: i64,
         /// How `record` evidence may name its source. The plugin hooks read

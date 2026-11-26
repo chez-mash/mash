@@ -2,7 +2,7 @@
 # length then. Each may shrink but not grow; lower its entry as it shrinks
 # (python3 tools/check_file_lines.py --update). Do not add files.
 627 app/core.rs
-557 app/core/doctor.rs
+525 app/core/doctor.rs
 689 app/core/installation.rs
 711 app/core/installation/clients.rs
 506 app/core/installation/plugin.rs

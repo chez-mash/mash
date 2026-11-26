@@ -75,6 +75,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&search, &open, &separator, &settings])?;
     #[cfg(unix)]
     menu.append(&command_line_item(app)?)?;
+    crate::update::add_menu(app, crate::update::Holder::Menu(menu.clone()), None)?;
     menu.append_items(&[&PredefinedMenuItem::separator(app)?, &quit])?;
     TrayIconBuilder::with_id("mash")
         .icon(tray_icon()?)
@@ -143,6 +144,7 @@ fn app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             ],
             1,
         )?;
+        crate::update::add_menu(app, crate::update::Holder::Submenu(about.clone()), Some(4))?;
     }
     Ok(menu)
 }
@@ -155,7 +157,9 @@ pub fn choose(app: &AppHandle, id: &str) {
         "settings" => crate::open_route(app, "#/settings"),
         "command-line" => crate::cli::install(app),
         "quit" => app.exit(0),
-        _ => {}
+        id => {
+            crate::update::choose(app, id);
+        }
     }
 }
 
