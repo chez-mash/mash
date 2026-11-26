@@ -16,6 +16,97 @@ Mutation audits remain explicit because they rebuild and retest each variant.
 On Xenia all Make targets use `agent-test` for heavy work. No check installs
 embedding models or uses production backend data.
 
+## Fast loops
+
+Two commands in `dashboard/` run only the tests a change can affect. They are
+for the edit loop; neither replaces the checks before a change lands.
+
+```bash
+pnpm test:changed    # Vitest: the unit tests that import what changed since origin/main
+pnpm e2e:affected    # Playwright: the browser specs for the pages that changed
+```
+
+On Xenia run the second through `agent-test` (`agent-test pnpm e2e:affected`),
+as for any browser run. Both compare with `origin/main` and count uncommitted
+and untracked files. `pnpm e2e:affected --base HEAD~1` compares with another
+revision, `pnpm e2e:affected src/components/MemoryRow.svelte` answers for
+named files instead, and anything after `--` goes to Playwright
+(`-- --headed`). Without `--run`, `python3 tools/affected_tests.py` prints the
+selection and the reason for each file and runs nothing.
+
+Vitest follows imports from each test, so `test:changed` needs no upkeep. The
+browser specs drive the running dashboard and import none of its code, so
+nothing can be read from them. `tools/affected_tests.py` joins two things
+instead: the import graph of `dashboard/src` (every `import`, `export … from`
+and stylesheet `@import`), and `dashboard/e2e/affected.json`, which states the
+component each route mounts and the routes each spec visits. A changed file
+selects the specs that visit a route whose component imports it, directly or
+through other files.
+
+| Change | Selects |
+| --- | --- |
+| A spec | That spec |
+| A file some routes import | The specs that visit those routes |
+| A shared foundation (`everything` in `affected.json`): `src/theme/`, the top-level stylesheets, `App.svelte`, `main.ts`, the rail, top bar and its search, the assistant's button, `src/lib/components/` (the kit and the icon), `lib/api.ts`, `lib/route*`, `src/demo/`, `package.json`, the lockfile, the Playwright, Vite, Svelte and TypeScript configuration, `index.html`, `public/`, the specs' shared helpers and `affected.json` itself | Every spec |
+| A file the shell imports (the rail and top bar reach about forty files under `src/lib`, `queries.ts` among them) | Every spec |
+| A file no mapped route imports, a spec missing from `affected.json`, an import that resolves to no file, or anything else the tool cannot place | Every spec, with the reason printed |
+| A unit test, a `*.live.ts` check, `README.md`, the Biome and shadcn configuration | Nothing |
+| A file outside `dashboard/` | Nothing: the specs answer every API call themselves |
+
+Measured on Xenia on 2026-11-26, one file changed each time, against the whole
+suite of 225 tests in 32 specs:
+
+| Changed file | Specs | Tests | Time |
+| --- | --- | --- | --- |
+| The whole suite (`pnpm test:browser`) | 32 | 225 | 5.8 to 7.2 min |
+| `src/components/MemoryRow.svelte` | 16 | 131 | 3.0 min |
+| `src/components/SearchRow.svelte` | 11 | 94 | 2.2 min |
+| `src/components/ServiceRows.svelte` | 7 | 40 | 1.3 min |
+| `src/theme/tokens.css` | 32 | 225 | 7.2 min |
+| `e2e/quick.spec.ts` | 1 | 13 | 26 s |
+
+The machine was busy with other sessions' tests, so the times are slower than
+an idle run and comparable only with each other. Of the 227 source files, 128
+select part of the suite (ten specs at the median) and the rest select all of
+it.
+
+The whole suite is still required:
+
+- before landing a change that the table says selects every spec. The command
+  runs the whole suite for those by itself, so this only means: do not skip it;
+- before landing a change to a spec's routes that `affected.json` does not
+  yet describe;
+- always in CI. `frontends.yml` runs every spec, in four shards, on every push
+  to `main` and every pull request that touches `dashboard/`, whatever this
+  selection says. The selection is never used there.
+
+`tools/pre-push.sh` runs no browser spec, selected or not.
+
+### Keeping `affected.json` true
+
+The file is reviewed by hand, and the selection is only as good as it is.
+
+- **A new spec** must be added under `specs` with every route it reaches, by
+  address (`goto("/#/services")`) or by clicking through to it. Until then
+  `tools/test_affected_tests.py` fails and every selection is the whole suite.
+- **A spec that starts visiting another route** needs that route added. No
+  test can see this, so check it when reviewing a spec change. Listing a route
+  too many only costs time; a missing one skips the spec when it matters.
+- **A new route** needs an entry under `routes` naming the components
+  `App.svelte` mounts for it; a test compares the list with the router's.
+  `assistant` and `sign-in` are not addresses: they stand for the assistant's
+  panel and the sign-in screen, which `App.svelte` mounts outside the router.
+- **A component `App.svelte` mounts on every page** belongs under `shell`, and
+  under `everything` if its own change should select every spec.
+- Names under `everything` and `ignored` are patterns in which `*` also
+  crosses directories.
+
+The first version was taken from a run of the suite that recorded, for each
+spec, the addresses the page went to and the source files whose code ran, and
+then checked that changing any file a spec had run would select that spec.
+Routes reached only by clicking came from that run, not from reading the
+specs.
+
 ## Replay interruption
 
 `qdrant_replay_interruption_never_leaves_current_metadata_and_retry_repairs`

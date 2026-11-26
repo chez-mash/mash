@@ -10,6 +10,8 @@ Run `pnpm run lint`, `pnpm run check`, `pnpm run test`,
 `pnpm run test:browser`, and `pnpm run build` in `dashboard/`.
 The default browser suite uses mocked API responses to exercise UI behavior.
 It does not establish that a running dashboard can search its real index.
+While editing, `pnpm test:changed` and `pnpm e2e:affected` run only the tests
+a change can affect; see [Fast loops](verification.md#fast-loops).
 
 Before handing over a preview, run the live browser checks against its actual
 URL, including its network hostname and protocol. Choose a query that occurs
