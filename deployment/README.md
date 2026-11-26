@@ -206,7 +206,12 @@ bash tools/fleet.sh deploy --source-build shared-api xenia    # always compile
   for exactly the checkout's commit (`gh run download`) and checks it against
   the `.sha256` the same job wrote. It uses the artifact only when that
   workflow run succeeded and `ci.yml` passed for the commit, since the
-  download replaces the local build gates.
+  download replaces the local build gates. These builds start from what the
+  build before them compiled, so the artifacts are ready about 4 minutes after
+  a push that changes no Rust source, 6 after a dashboard change and about
+  13 after a change to a crate everything is built on; without the cache
+  every commit took 14 to 18. A release still compiles from nothing. See "The
+  per-commit binary builds" in `docs/internal/development.md`.
 - **A release.** `--release vX.Y.Z` downloads `mash-<target>.tar.gz` or `.zip`
   from the GitHub release and checks it against the release's `SHA256SUMS`.
   The tag must be the checkout's commit, because the readiness check expects

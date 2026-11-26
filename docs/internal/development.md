@@ -945,6 +945,26 @@ them:
 | A crate near the bottom (`mash-model`, `mash-silver`, `mash-query`, `mash-storage`) | Nearly every crate of ours; no dependency |
 | `Cargo.lock` | The changed dependencies and every crate of ours |
 
+Measured on GitHub's runners on 26 November 2026, as the `Build` step and
+then the whole job, in seconds. The workflow takes as long as its slowest job:
+
+| | Linux x86_64 | Linux aarch64 | macOS arm64 | Windows x64 | Workflow |
+|---|---|---|---|---|---|
+| Nothing cached: every build before, and a release | 416 / 490 | 420 / 485 | 773 / 816 | 784 / 847 | 14 to 18 min |
+| Dependencies cached, all of our crates compiled | 324 / 426 | 272 / 362 | 620 / 685 | 667 / 751 | 12 min 38 s |
+| A dashboard-only commit | 139 / 237 | 121 / 202 | 289 / 362 | 206 / 287 | 6 min 8 s |
+| A commit that changes no source | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
+| The same commit again | under 4 / 105 | under 4 / 95 | not measured | not measured | |
+
+The dependencies are a fifth to a third of a build and our own crates the rest,
+because those compile one after another: each waits for the one below it. The
+second row is therefore the most a commit should cost, and what the first
+build after a change to `Cargo.lock` costs. The jobs spend about a minute and
+a half outside the build step whatever is cached: starting the container or
+runner, installing the toolchain, restoring the caches (about 20 s), building
+the dashboard and packaging. Hosted runners vary: the same uncached macOS
+build took 773 s, 876 s and 894 s in three runs that day.
+
 Keep it that way: a value that differs for every commit belongs in the `mash`
 package, not in a library under it. `MASH_BUILD_REVISION` used to be compiled
 into `mash-app`, which recompiled it and the four crates above it, more than
@@ -956,6 +976,15 @@ each build the `prune-caches` job deletes the caches a newer one replaced, so
 the builds hold one pair per target, about 2 GB of the repository's 10 GB, and
 GitHub does not evict the test workflows' caches to make room. To start again
 from nothing, change `v1` in both keys.
+
+The dependencies' cache is saved when its key is new and never again, so it
+must be complete when it is saved. `cache-on-failure` keeps what a run built
+when it failed after compiling (the smoke check, packaging); a run that was
+cancelled or failed while compiling saves nothing. A build that compiles
+dependencies although the action reported a full match has a partial cache:
+delete that key (`gh cache delete KEY`) and the next build on `main` saves a
+whole one. None of the cache steps can fail a build; when one does not work
+the build compiles more.
 
 The workflow builds one commit at a time and, while one runs, keeps only the
 newest waiting commit. Each build starts from the crates the build before it
