@@ -4,9 +4,9 @@ use super::{AppError, MemoryPolicy, MemoryTier, PAYLOAD_MEMORY, PhysicalMemory, 
 use reqwest::{Method, StatusCode};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::collections::BTreeMap;
-use std::time::Duration;
 use tracing::Instrument;
 mod availability;
+mod connection;
 mod grpc;
 pub(super) use availability::unavailable_message;
 mod inventory;
@@ -615,16 +615,7 @@ impl Client {
             value.set_sensitive(true);
             headers.insert("api-key", value);
         }
-        let http = reqwest::Client::builder()
-            // Internal database reads usually stay on the same host. Keep
-            // their large snapshots free of compression CPU overhead.
-            .no_gzip()
-            .default_headers(headers)
-            .redirect(reqwest::redirect::Policy::none())
-            .connect_timeout(Duration::from_secs(5))
-            .timeout(Duration::from_secs(30))
-            .build()
-            .map_err(|_| AppError::configuration("could not configure Qdrant HTTP client"))?;
+        let http = connection::client(headers)?;
         Ok(Self {
             mutations: None,
             http,
