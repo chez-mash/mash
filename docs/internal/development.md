@@ -301,12 +301,12 @@ and the crates under `crates/`. These default commands cover all of them.
 | `mash-model` | Vocabulary every layer shares: roles, providers, tool activity, attachments, credential masking, platform helpers, the typed error | nothing of ours |
 | `mash-silver` | The provider-independent chat model and the native history adapters: discovery, parsing, reconciliation inputs. Never opens the index | `mash-model` |
 | `mash-storage` | The silver SQLite index and its migrations, memory records, portable export, and the search filter, result and catalogue types the layers above share. Deploy tooling reads `crates/mash-storage/src/storage/schema.rs` by path | `mash-query`, `mash-model`, `mash-silver` |
-| `mash-search` | Configuration, the embedding and reranking models, local and shared Qdrant views, ranking, tracing, and `blocking`. | `mash-query`, `mash-model`, `mash-silver`, `mash-storage` |
-| `mash-sync` | The shared index: the node-side client, sync and publication, shared retrieval, and the server's silver store and view synchronization. | `mash-query`, `mash-model`, `mash-silver`, `mash-storage`, `mash-search` |
-| `mash-app` (`app/`) | The application library: the indexing pipeline, the typed core the CLI, MCP and dashboard call, watching, runtime leases and service setup | `mash-query`, `mash-fleet`, `mash-model`, `mash-silver`, `mash-storage`, `mash-search`, `mash-sync` |
+| `mash-search` | Configuration, the embedding and reranking models, local and shared Qdrant views, ranking, tracing, and `blocking`. | `mash-model`, `mash-storage` |
+| `mash-sync` | The shared index: the node-side client, sync and publication, shared retrieval, and the server's silver store and view synchronization. | `mash-model`, `mash-silver`, `mash-storage`, `mash-search` |
+| `mash-app` (`app/`) | The application library: the indexing pipeline, the typed core the CLI, MCP and dashboard call, watching, runtime leases and service setup | `mash-model`, `mash-silver`, `mash-storage`, `mash-search`, `mash-sync` |
 | `mash-server` | The authenticated HTTP service for the shared index: routes, authorization, the sync protocol's endpoints and service setup. Its store is in `mash-sync` (`shared::server`) | `mash-app`, `mash-model` |
 | `mash-mcp` | The stdio MCP server, its tool contract, the dashboard's console and the generated history skill | `mash-app`, `mash-model`, `mash-silver` |
-| `mash-dash` | The local web dashboard served by `mash dash`, and the build script that embeds its front end | `mash-app`, `mash-mcp`, `mash-fleet`, `mash-model` |
+| `mash-dash` | The local web dashboard served by `mash dash`, and the build script that embeds its front end | `mash-app`, `mash-mcp`, `mash-fleet`, `mash-model`, `mash-silver` |
 | `mash-cli` (`cli/`) | Both command lines: argument parsing and output | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash-model` |
 | `mash` (the root; `build.rs`, `cli/main.rs`, `cli/server_main.rs`, `cli/tests/`) | Both executables, each a few lines over `mash-cli`, the commit stamped into them, the Windows delay-load hook, and the CLI contract tests | `mash-cli` |
 
@@ -315,7 +315,9 @@ own crate and the ones above it; the measurements under
 [The edit loop](#the-edit-loop) say why. The crates under `crates/` are
 internal: an item is `pub` there so another workspace crate can use it, not as
 a supported API, which is why they allow the Clippy lints that ask for
-published-API documentation. A lower crate never refers to a higher one. When
+published-API documentation. A crate lists only the crates it names in its own
+code, and one that only its tests use is a development dependency, so the table
+is the whole graph. A lower crate never refers to a higher one. When
 a function needs a type from above, it belongs with that type: masking a
 search result is `ChatMetadata::redact`, next to `ChatMetadata`, not in
 `mash-model`'s `redaction`. Inside `mash-app`, `crate::role`, `crate::AppError`
@@ -1001,7 +1003,7 @@ boxing, on 26 November 2026; the reports are in
 
 | Rebuild after | Before | After |
 |---|---|---|
-| A commit that changes no source (`mash`, and `mash-dash` for its build script) | 148 s | 55 s |
+| A commit that changes no source, while the command lines were still in the `mash` package | 148 s | 55 s |
 | A change to `mash-app` | 248 s | 151 s |
 | A change to `mash-search` | 301 s | 187 s |
 
@@ -1011,7 +1013,7 @@ boxing, on 26 November 2026; the reports are in
 | `mash-mcp` | 147 s | 70 s |
 | `mash-server` | 105 s | 126 s |
 | `mash-dash` | 169 s | 92 s |
-| `mash` | 141 s | 65 s |
+| `mash-cli` (then the `mash` package's library) | 141 s | 65 s |
 
 `mash-app` and `mash-server` now hold the code the crates above them used to
 compile, which is why they grew; they run beside the others, so the build ends
