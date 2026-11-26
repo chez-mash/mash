@@ -5,7 +5,7 @@
 import type { Answer as RouteAnswer } from "./routes";
 
 /** How a parameter is typed in the form. Anything structured is typed as JSON. */
-export type ParamKind = "string" | "integer" | "number" | "boolean" | "enum" | "json";
+type ParamKind = "string" | "integer" | "number" | "boolean" | "enum" | "json";
 export interface Param {
   readonly name: string;
   readonly kind: ParamKind;

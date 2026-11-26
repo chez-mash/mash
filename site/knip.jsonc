@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    // Run by package.json scripts with `node`.
+    "scripts/{content,translate-docs,demo,screenshots,stylesheets}.ts",
+    // Named by path in astro.config.mjs (routeMiddleware).
+    "src/routeData.ts",
+    // Read by the agentation-review command (`pnpm dev:review`).
+    "agentation-review.config.mjs"
+  ],
+  // src/content/docs is written by `pnpm prepare-content`; its pages import
+  // components, so `pnpm knip` prepares the content first.
+  "project": ["src/**/*.{ts,astro,mdx}", "scripts/**/*.ts", "tests/**/*.ts", "*.{ts,mjs}"],
+  "ignoreDependencies": [
+    // Stylesheets named as strings in astro.config.mjs (customCss).
+    "@fontsource/geist",
+    "@fontsource/geist-mono",
+    // scripts/icons.test.ts reads its files from node_modules by path.
+    "@phosphor-icons/core",
+    // Started by path for site review; see docs/internal/documentation-site.md.
+    "agentation-mcp"
+  ],
+  // The translator's own command-line tool, not an npm package.
+  "ignoreBinaries": ["codex"]
+}

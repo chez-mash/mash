@@ -16,7 +16,7 @@ function key(machine: string, agent: string, id: string): string {
 }
 
 /** Whether `chat` was started by `parent`. */
-export function startedBy(chat: ChatSummary, parent: ChatSummary): boolean {
+function startedBy(chat: ChatSummary, parent: ChatSummary): boolean {
   return (
     chat.subagent?.parentId === parent.id &&
     chat.machine === parent.machine &&

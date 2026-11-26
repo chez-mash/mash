@@ -112,9 +112,9 @@ export async function get<P extends ReadPath>(
 export async function post<P extends WritePath>(path: P, body: Sent<P>): Promise<Changed<P>> {
   return (await call(path, undefined, body)) as Changed<P>;
 }
-export type SetupComponent = Wire["Component"];
-export type SetupState = Wire["SetupState"];
-export interface SetupStep {
+type SetupComponent = Wire["Component"];
+type SetupState = Wire["SetupState"];
+interface SetupStep {
   component: SetupComponent;
   state: SetupState;
   message: string;
@@ -141,7 +141,7 @@ export function parseSetup(row: Answer<"/api/services/installation">): Setup {
   };
 }
 
-export type SetupPartState = "ok" | "attention" | "unverified";
+type SetupPartState = "ok" | "attention" | "unverified";
 export interface SetupPart {
   label: string;
   state: SetupPartState;
@@ -387,7 +387,7 @@ export async function serviceAction(
 }
 
 /** The service action route's target for a reinstall: every agent's plugin on the machine. */
-export const pluginTarget = "agent-plugins";
+const pluginTarget = "agent-plugins";
 /**
  * Starts `mash init --yes --no-index` on a machine, through the same route,
  * token and forwarding as a service action. It answers at once; the run's
@@ -467,7 +467,7 @@ export function parseFleetJob(row: Wire["Job"]) {
     })),
   };
 }
-export async function fleetCatalog(signal: AbortSignal) {
+async function fleetCatalog(signal: AbortSignal) {
   return parseFleetCatalog(await get("/api/services/fleet", signal));
 }
 export async function fleetHistory(signal: AbortSignal) {

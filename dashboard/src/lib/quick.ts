@@ -11,7 +11,7 @@ import type { Status } from "./status";
 import type { ChatSummary, SearchHit } from "./types";
 
 /** How many rows the panel shows. */
-export const QUICK_ROWS = 5;
+const QUICK_ROWS = 5;
 
 /** One row: a chat, at the message that matched when there was a search. */
 export interface QuickRow {

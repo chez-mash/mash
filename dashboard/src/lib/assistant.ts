@@ -23,7 +23,7 @@ export interface OpenChat {
   readonly shared?: boolean;
   readonly title?: string;
 }
-export type Reason = "unreachable" | "refused" | "limited" | "failed";
+type Reason = "unreachable" | "refused" | "limited" | "failed";
 export type AssistantEvent =
   | { readonly type: "searching" }
   | { readonly type: "text"; readonly delta: string }

@@ -14,7 +14,7 @@ import type { Scope } from "./scope.svelte";
 import { send } from "./transport";
 import type { SearchHit } from "./types";
 
-export type SourceName = "words" | "meaning" | "machines";
+type SourceName = "words" | "meaning" | "machines";
 
 export interface SourceState {
   readonly source: SourceName;

@@ -24,6 +24,7 @@
     "src/**/*.svelte",
     "e2e/**/*.ts",
     "vite.config.ts",
+    "knip.ts",
     "playwright.config.ts"
   ]
 }

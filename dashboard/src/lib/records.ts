@@ -275,21 +275,12 @@ export function standing(revision: { review: string; details: Details }): string
     : "established";
 }
 
-/** The fill of the pill that names a kind of memory (see .pill): a decision
- * is butter, a preference or a note plain paper. */
-export function kindPill(kind: Kind): "decision" | "" {
-  return kind === "decision" ? "decision" : "";
-}
 /** The fill of a pill for a lifecycle state: in force is mint, replaced or
  * taken back is red, proposed is plain. */
 export function statePill(state: Lifecycle): "ok" | "bad" | "" {
   if (state === "accepted" || state === "active") return "ok";
   if (state === "proposed") return "";
   return "bad";
-}
-/** The fill of a pill for how settled a memory is: unconfirmed needs attention. */
-export function standingPill(value: string): "warn" | "" {
-  return value === "unconfirmed" ? "warn" : "";
 }
 
 /** One page of saved decisions, newest first; shared with the memory page's

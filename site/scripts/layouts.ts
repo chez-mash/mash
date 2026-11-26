@@ -103,7 +103,7 @@ function nextContent(children: readonly RootContent[], index: number): RootConte
  * becomes the block's title, drawn in its window frame. On the quick start a
  * short note may sit between the two; it moves under the block.
  */
-export function titleCodeBlocks(tree: Root, allowNote: boolean): void {
+function titleCodeBlocks(tree: Root, allowNote: boolean): void {
   const children = tree.children;
   for (let index = 0; index < children.length; index += 1) {
     const label = children[index];
@@ -129,7 +129,7 @@ export function titleCodeBlocks(tree: Root, allowNote: boolean): void {
 }
 
 /** READ and WRITE in bold are the tool reference's two kinds: draw them as its pills. */
-export function badgePills(tree: Root): void {
+function badgePills(tree: Root): void {
   const visit = (node: Root | RootContent): void => {
     if (!("children" in node)) return;
     node.children = node.children.map((child) => {
@@ -307,7 +307,7 @@ const yesWith = /^(Yes|Oui|Sí|是|はい)[,，、]/;
  * word, in the page's language, is read aloud instead of "dash". Any other
  * cell, and a dash in a column with no yes, is left as it is.
  */
-export function answerCells(tree: Root, strings: LayoutStrings): void {
+function answerCells(tree: Root, strings: LayoutStrings): void {
   const answer = (kind: "yes" | "no", word: string, visible: boolean) =>
     html(
       `<span class="mash-answer ${kind}" title="${escapeHtml(word)}">${answerIcons[kind]}<span${visible ? "" : ' class="sr-only"'}>${escapeHtml(word)}</span></span>`,
@@ -367,7 +367,7 @@ function markSystem(cell: TableCell, system: string): void {
  * their words alone. A column headed by a system's name alone, as in the
  * supported agents' "Tested with", takes the mark in its heading.
  */
-export function systemTables(tree: Root): void {
+function systemTables(tree: Root): void {
   const systemOf = (cell: TableCell) =>
     systemMarks.find(([name]) => name.test(text(cell).trim()))?.[1];
   for (const table of tree.children.filter((node): node is Table => node.type === "table")) {

@@ -32,7 +32,7 @@ export interface Settings {
   /** The assistant's switch and model, when the file configures a service. */
   readonly assistant: AssistantChoice | null;
 }
-export interface AssistantChoice {
+interface AssistantChoice {
   readonly enabled: boolean;
   readonly model: string;
 }

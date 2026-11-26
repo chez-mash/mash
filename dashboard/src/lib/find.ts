@@ -17,9 +17,9 @@ export interface FindMatch {
 }
 
 /** More matches than anyone steps through; past this the count says "+". */
-export const MATCH_LIMIT = 5000;
+const MATCH_LIMIT = 5000;
 
-export function normalize(text: string): string {
+function normalize(text: string): string {
   return text.toLocaleLowerCase().replace(/\s+/g, " ");
 }
 

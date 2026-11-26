@@ -132,11 +132,11 @@ function htmlBody(message: Message): string {
   return `${markdown(message.dialogue)}<h2>${ADDED}</h2>${whole}`;
 }
 
-export function htmlExport(title: string, node: string, messages: readonly Message[]): string {
+function htmlExport(title: string, node: string, messages: readonly Message[]): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>${exportDocumentStyle}</style></head><body><header><h1>${escapeHtml(title)}</h1><p>Machine: ${escapeHtml(node)} · ${messages.length} messages</p></header>${messages.map((message) => `<article><h2>${escapeHtml(label(message))} · ${escapeHtml(message.at)}</h2>${htmlBody(message)}</article>`).join("\n")}</body></html>`;
 }
 
-export function downloadChat(content: string, format: "markdown" | "html"): void {
+function downloadChat(content: string, format: "markdown" | "html"): void {
   const url = URL.createObjectURL(
     new Blob([content], {
       type: format === "html" ? "text/html;charset=utf-8" : "text/markdown;charset=utf-8",

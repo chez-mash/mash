@@ -54,6 +54,8 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm lint
+          # Unused files, exports, types and dependencies (knip.ts).
+          pnpm knip
           pnpm check
           pnpm test
           pnpm build
@@ -116,6 +118,8 @@ jobs:
         run: |
           npm ci
           npm run lint
+          # Unused files, exports, types and dependencies (knip.json).
+          npm run knip
           npm run build
           npm test
 

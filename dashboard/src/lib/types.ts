@@ -32,24 +32,10 @@ export interface Subagent {
   readonly spawnCallId?: string;
 }
 
-export interface Machine {
-  readonly name: string;
-  readonly chats: number;
-  readonly lastIndexed: string;
-  readonly needsAttention: boolean;
-}
-
-export interface AgentSummary {
-  readonly agent: Agent;
-  readonly chats: number;
-  readonly lastChat: string;
-  readonly quiet: boolean;
-}
-
-export type ToolKind = "read" | "search" | "edit" | "run" | "web" | "agent";
+type ToolKind = "read" | "search" | "edit" | "run" | "web" | "agent";
 
 /** One tool call and what the provider kept of its result. */
-export interface ToolCall {
+interface ToolCall {
   readonly kind: ToolKind;
   readonly verb: string;
   readonly target: string;
@@ -62,7 +48,7 @@ export interface ToolCall {
   readonly missing?: string;
 }
 
-export type Block =
+type Block =
   | { readonly type: "text"; readonly markdown: string }
   | {
       readonly type: "code";
@@ -121,11 +107,6 @@ export interface Attachment {
   readonly image: boolean;
   /** Why no copy is kept, when none is. */
   readonly missing?: string;
-}
-
-export interface Transcript {
-  readonly chat: ChatSummary;
-  readonly messages: readonly Message[];
 }
 
 export interface SearchFilters {

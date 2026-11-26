@@ -49,6 +49,8 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm --silent translate-docs --status >> "$GITHUB_STEP_SUMMARY"
           pnpm lint
+          # Unused files, exports, types and dependencies (knip.jsonc).
+          pnpm knip
           pnpm check
           pnpm test
           pnpm build

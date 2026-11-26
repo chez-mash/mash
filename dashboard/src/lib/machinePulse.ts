@@ -18,7 +18,7 @@ import { reported, type ServerMachine, type ServerReport } from "./serverStatus"
 import { type Machine, machineState, stateLabel } from "./services.svelte";
 
 /** The dot's colour class, as `.dot` in terminal.css draws it. */
-export type PulseTone = "ok" | "warn" | "bad" | "none";
+type PulseTone = "ok" | "warn" | "bad" | "none";
 
 export interface Pulse {
   readonly tone: PulseTone;
@@ -37,7 +37,7 @@ export interface PulseEvidence {
 }
 
 /** A watcher checks in every minute; three missed check-ins is quiet. */
-export const QUIET_AFTER_SECONDS = 3 * 60;
+const QUIET_AFTER_SECONDS = 3 * 60;
 
 export function machinePulse(name: string, evidence: PulseEvidence): Pulse {
   const checked = evidence.fleet?.find((machine) => machine.id === name);

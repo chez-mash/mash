@@ -18,7 +18,7 @@ export const rankings = [
   { value: "relevance", label: "best match" },
   { value: "recent", label: "newest" },
 ] as const;
-export type Ranking = (typeof rankings)[number]["value"];
+type Ranking = (typeof rankings)[number]["value"];
 
 export const searchIntents = [
   { value: "default", label: "default" },

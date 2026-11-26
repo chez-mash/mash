@@ -9,7 +9,7 @@
 import type { ToolArgument, ToolCall } from "./toolcalls";
 
 /** The languages the dashboard can colour, by their Shiki names. */
-export const LANGUAGES = [
+const LANGUAGES = [
   "astro",
   "c",
   "cpp",

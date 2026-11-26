@@ -80,8 +80,8 @@ export function groupChats(
     .sort((a, b) => b.chats.length - a.chats.length || a.key.localeCompare(b.key));
 }
 
-export const projectSorts = ["chats", "recent", "name"] as const;
-export type ProjectSort = (typeof projectSorts)[number];
+const projectSorts = ["chats", "recent", "name"] as const;
+type ProjectSort = (typeof projectSorts)[number];
 /** What the Projects page is asked to show: a name to find, an agent and a
  * machine to keep, and an order. An empty string means no restriction. */
 export interface ProjectView {

@@ -10,7 +10,7 @@ import type { Agent } from "./types";
 
 /** An agent Mash connects itself to through that agent's own CLI. */
 export type Integration = Wire["SetupAgent"];
-export type IndexRun =
+type IndexRun =
   | { readonly state: "idle" }
   | { readonly state: "running" }
   | { readonly state: "skipped"; readonly reason: string }
@@ -117,7 +117,7 @@ export function answersOf(setup: FirstRun): Answers {
 }
 
 export const days = { least: 1, most: 36_500 } as const;
-export function validDays(value: number | null): boolean {
+function validDays(value: number | null): boolean {
   return (
     value === null || (Number.isSafeInteger(value) && value >= days.least && value <= days.most)
   );
@@ -181,7 +181,7 @@ export interface Outcome {
   }[];
   readonly next: readonly string[];
 }
-export function parseOutcome(report: Changed<"/api/services/setup">["report"]): Outcome {
+function parseOutcome(report: Changed<"/api/services/setup">["report"]): Outcome {
   return {
     path: report.config.path,
     written: report.config.written,

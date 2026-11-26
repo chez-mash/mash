@@ -14,7 +14,7 @@ export interface ScrollPlace {
 }
 
 /** How long the reader rests before the circle comes back, in milliseconds. */
-export const SETTLE_MS = 700;
+const SETTLE_MS = 700;
 
 /**
  * Whether the reader is going down the page after a scroll from `from` to

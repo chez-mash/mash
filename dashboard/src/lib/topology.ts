@@ -43,7 +43,7 @@ export interface Place {
 
 /** How a connection looks: working, broken by a fault at the end it needs,
  * or not confirmed because that end's state is unknown. */
-export type EdgeState = "ok" | "broken" | "unconfirmed";
+type EdgeState = "ok" | "broken" | "unconfirmed";
 
 export interface Edge {
   readonly from: PlaceId;
@@ -98,7 +98,7 @@ const severity: readonly ServiceState[] = ["failed", "unknown", "degraded", "sto
 
 /** The worst state among services; a sleeping agent session or an optional
  * watcher nobody supervises does not count against its place. */
-export function worst(services: readonly Service[]): ServiceState | null {
+function worst(services: readonly Service[]): ServiceState | null {
   const counted = services.filter((service) => !incidental(service));
   // Only incidental rows (say, an optional watcher nothing runs): no verdict.
   const states = counted.map((service) => service.state);

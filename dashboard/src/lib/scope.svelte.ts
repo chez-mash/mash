@@ -54,7 +54,7 @@ export function effectiveScope(chosen: Scope | null, reach: Reach): Scope {
 
 /** What is assumed when the catalogue cannot be read: this machine alone, so
  * memory still shows what this machine saved. */
-export const unknownReach: Reach = { localNode: "", joined: false, sharedOnly: false, live: [] };
+const unknownReach: Reach = { localNode: "", joined: false, sharedOnly: false, live: [] };
 
 /** The scope and reach a memory read uses: the catalogue's when it loaded,
  * the chosen scope over `unknownReach` when it failed, nothing while loading. */

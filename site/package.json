@@ -15,7 +15,8 @@
     "lint": "biome check .",
     "test": "vitest run scripts",
     "test:browser": "playwright test",
-    "test:review": "playwright test --config playwright.review.config.ts"
+    "test:review": "playwright test --config playwright.review.config.ts",
+    "knip": "pnpm prepare-content && knip"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.9",
@@ -39,6 +40,7 @@
     "agentation-mcp": "1.2.0",
     "agentation-review": "github:kojah/agentation-review#83c898448be197e8d9eb8539504ee9c522236a40",
     "github-slugger": "2.0.0",
+    "knip": "6.48.0",
     "mdast-util-to-string": "4.0.0",
     "vitest": "^5.1.0"
   }

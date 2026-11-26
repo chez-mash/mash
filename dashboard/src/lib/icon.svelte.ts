@@ -27,8 +27,8 @@ export interface IconWeights {
   readonly strong: IconWeight;
 }
 
-export const SMALL_MAX = 15;
-export const LARGE_MIN = 28;
+const SMALL_MAX = 15;
+const LARGE_MIN = 28;
 
 /** The roles in theme/tokens.css, by the field each one fills. */
 export const weightTokens = {

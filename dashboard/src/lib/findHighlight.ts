@@ -104,7 +104,7 @@ export function paintMatches(
  * Scrolls `target` to the middle of the window, first scrolling any box it
  * sits in that scrolls on its own (a long tool output, a wide command).
  */
-export function bringIntoView(target: Range | Element): void {
+function bringIntoView(target: Range | Element): void {
   const start = target instanceof Range ? target.startContainer.parentElement : target;
   for (let box = start; box && box !== document.body; box = box.parentElement) {
     const style = getComputedStyle(box);

@@ -190,7 +190,7 @@ export type IconName = keyof typeof icons;
 export type IconWeight = "regular" | "bold";
 
 /** Icons up to this many rem are drawn bold, as the dashboard draws its small icons. */
-export const SMALL_MAX_REM = 0.9375;
+const SMALL_MAX_REM = 0.9375;
 
 /** The weight for an icon of a CSS size: bold when small, regular otherwise (and for a size that is not in rem). */
 export function weightFor(size: string): IconWeight {

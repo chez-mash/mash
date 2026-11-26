@@ -49,7 +49,7 @@ export type Os = "macos" | "linux" | "windows";
 
 /** "missing", "stale" or "ready" for words and for meaning; meaning is null
  * when the server doesn't search by meaning. */
-export interface MachineSearch {
+interface MachineSearch {
   readonly words: Readiness;
   readonly meaning: Readiness | null;
 }

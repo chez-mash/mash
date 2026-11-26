@@ -270,7 +270,8 @@ reader is at the bottom of the chat and otherwise offers them; text already
 shown never changes or moves by itself. Keep the stream bounded (stream cap,
 heartbeats, capped IDs per event, client backoff) and behind the same sign-in
 and host checks as the history routes. Before completing front-end changes, run `pnpm run lint`,
-`pnpm run check`, `pnpm run test` and `pnpm run build` in `dashboard/`.
+`pnpm knip` (unused files, exports and dependencies), `pnpm run check`,
+`pnpm run test` and `pnpm run build` in `dashboard/`.
 While editing, `pnpm test:changed` and `pnpm e2e:affected` run only the tests a
 change can affect; see "Fast loops" in `docs/internal/verification.md`.
 Render all chat content as text or through a sanitizer; archived history is

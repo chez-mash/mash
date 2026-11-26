@@ -3,7 +3,7 @@
 import { type AssistantEvent, answer, ask, type OpenChat, type Turn } from "./assistant";
 import { settingsHref } from "./route.svelte";
 
-export interface Note {
+interface Note {
   readonly kind: "partial" | "error" | "stopped";
   readonly title: string;
   readonly text: string;
@@ -21,7 +21,7 @@ const titles: Record<string, string> = {
 };
 
 /** A turn as the panel shows it: a question keeps the passage it was about. */
-export interface ShownTurn extends Turn {
+interface ShownTurn extends Turn {
   readonly passage?: string;
 }
 

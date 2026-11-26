@@ -8,9 +8,7 @@ import { send } from "./transport";
 
 type Schemas = components["schemas"];
 export type ServerView = Schemas["ServerView"];
-export type GroupStatus = Schemas["SharedGroupStatus"];
 export type Machine = Schemas["SharedMachine"];
-export type Overview = Schemas["SharedServerOverview"];
 export type JoinView = Schemas["JoinAnswerView"];
 export type NewJoin = Schemas["JoinAnswer"];
 

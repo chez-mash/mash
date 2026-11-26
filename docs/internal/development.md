@@ -27,6 +27,24 @@ results, opening a matching transcript without a document reload, and browser
 errors. The target needs current Qdrant views and available query models.
 On Xenia, run these workloads through `agent-test` as for other tests.
 
+### Unused front-end code
+
+`pnpm knip` in `dashboard/` and `site/`, and `npm run knip` in `raycast/`, run
+[Knip](https://knip.dev) and fail on a file nothing imports, an export or type
+nothing uses, and a dependency nothing needs. CI runs them beside each
+package's lint. Each package's configuration (`dashboard/knip.ts`,
+`site/knip.jsonc`, `raycast/knip.json`) names the entry points Knip cannot
+find by itself and gives the reason for every ignored dependency. When it
+reports an export, remove the `export` if the file still uses the name and
+the code itself if nothing does (`knip --fix --fix-type exports,types` does
+the first). Add to an ignore list only for something Knip cannot see, such as
+a file named by path in a configuration string, and say why beside it.
+
+`python3 tools/unused_css.py` lists the class and id selectors the
+stylesheets define and no source names, and `--prune` removes the rules left
+dead; its header explains what it treats as used. Review its list before
+pruning, and compare screenshots before and after.
+
 ### Linker
 
 On x86-64 Linux, `make iterate`, `make validate-dev`, `make dev-build` and the

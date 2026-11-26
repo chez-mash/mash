@@ -10,7 +10,7 @@ import { get, post } from "./services.svelte";
 
 type Choices = Answer<"/api/projects/choices">;
 
-export const projectChoicesOptions = queryOptions({
+const projectChoicesOptions = queryOptions({
   ...stableRead,
   queryKey: ["project-choices"],
   queryFn: ({ signal }) => get("/api/projects/choices", signal),

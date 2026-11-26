@@ -7,7 +7,7 @@ import type { QueryClient, QueryKey } from "@tanstack/svelte-query";
 // reader's place, offers its own way here and names the queries it covers.
 
 /** A page's own way of reading its data again. */
-export interface PageCheck {
+interface PageCheck {
   /** Reads the page's data again. */
   check: () => Promise<unknown>;
   /** The queries `check` already covers, which the general reread leaves alone. */

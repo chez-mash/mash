@@ -32,7 +32,7 @@ export interface Hit {
 }
 
 /** One matching message in a chat result. */
-export interface Match {
+interface Match {
   readonly messageId: string;
   readonly passage: string;
 }
@@ -400,7 +400,7 @@ export function speaker(role: string, agent: string): string {
 
 export * from "./links";
 export { literal, quoted, rendered } from "./markdown";
-export { type Activity, type ActivityGroup, byActivity, lastActive } from "./activity";
+export { byActivity, lastActive } from "./activity";
 export { type ChatPosition, chatPosition, messageCount } from "./position";
 
 /** The agents Mash reads, by the IDs Mash gives them, with the names Mash shows. */
