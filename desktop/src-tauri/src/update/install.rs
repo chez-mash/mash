@@ -17,9 +17,12 @@ use tauri::AppHandle;
 /// the search panel both hidden at two looks in a row, so a search in either
 /// is never cut off.
 pub(super) fn install_if_idle(app: &AppHandle) {
+    // Asked before the state is locked: a window answers on the main
+    // thread, which may itself be waiting for the state.
+    let hidden = crate::nothing_showing(app);
     let mut inner = lock(app);
     let ready = matches!(inner.phase, Phase::Ready { .. });
-    if !ready || !inner.settings.installs_when_idle() || !crate::nothing_showing(app) {
+    if !ready || !inner.settings.installs_when_idle() || !hidden {
         inner.idle_ticks = 0;
         return;
     }
@@ -153,13 +156,12 @@ pub fn engine_started(app: &AppHandle) {
 /// The engine did not start. Right after an update, with the previous app
 /// still kept, the menus offer the way back.
 pub fn engine_failed(app: &AppHandle) {
-    let mut inner = lock(app);
-    let kept = inner
+    let kept = lock(app)
         .arrived
         .as_ref()
         .is_some_and(|pending| pending.previous.is_some());
     if kept {
-        inner.items.offer_going_back(app);
+        super::with_items(app, |app, items| items.offer_going_back(app));
     }
 }
 

@@ -60,10 +60,14 @@ struct Inner {
     notice: Option<String>,
     /// Ticks in a row with no window showing.
     idle_ticks: u8,
-    items: menu::Items,
 }
 
-pub struct Updates(Mutex<Inner>);
+/// The update state and, apart from it, the menu items. Changing a menu item
+/// waits for the main thread, and the main thread takes the state's lock to
+/// act on a menu choice, so the items have a lock of their own that only the
+/// main thread takes: nothing ever waits for the main thread while holding
+/// the state.
+pub struct Updates(Mutex<Inner>, Mutex<menu::Items>);
 
 fn lock(app: &AppHandle) -> MutexGuard<'_, Inner> {
     app.state::<Updates>()
@@ -136,14 +140,16 @@ pub fn prepare(app: &AppHandle) {
     } else {
         Phase::Off
     };
-    app.manage(Updates(Mutex::new(Inner {
-        settings,
-        phase,
-        arrived,
-        notice: None,
-        idle_ticks: 0,
-        items: menu::Items::default(),
-    })));
+    app.manage(Updates(
+        Mutex::new(Inner {
+            settings,
+            phase,
+            arrived,
+            notice: None,
+            idle_ticks: 0,
+        }),
+        Mutex::default(),
+    ));
 }
 
 /// Whether this start follows an update installed while the app was idle,
@@ -165,11 +171,26 @@ pub fn keep_separate(app: &AppHandle) {
     save(app, &inner.settings);
 }
 
-/// Add the update items to one of the app's menus.
+/// Change the menu items, on the main thread.
+fn with_items(app: &AppHandle, change: impl FnOnce(&AppHandle, &mut menu::Items) + Send + 'static) {
+    let handle = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        let updates = handle.state::<Updates>();
+        let mut items = updates.1.lock().unwrap_or_else(PoisonError::into_inner);
+        change(&handle, &mut items);
+    });
+}
+
+/// Add the update items to one of the app's menus. Called while the menus
+/// are built, on the main thread.
 pub fn add_menu(app: &AppHandle, holder: Holder, position: Option<usize>) -> tauri::Result<()> {
-    let mut inner = lock(app);
+    let inner = lock(app);
     let channels = !matches!(inner.phase, Phase::Off);
-    inner.items.add_to(app, holder, position, channels)?;
+    app.state::<Updates>()
+        .1
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .add_to(app, holder, position, channels)?;
     refresh(app, &inner);
     Ok(())
 }
@@ -191,12 +212,13 @@ fn refresh(app: &AppHandle, inner: &Inner) {
         Phase::Checking => ("Checking for Updates…".to_owned(), false),
         Phase::Idle | Phase::Off => (format!("Mash {version}"), false),
     };
-    inner.items.show(&menu::View {
+    let view = menu::View {
         status,
         actionable,
         channel: inner.settings.channel,
         installs_when_idle: inner.settings.installs_when_idle(),
-    });
+    };
+    with_items(app, move |_, items| items.show(&view));
 }
 
 /// Start checking: now, then every six hours, and look every half minute
