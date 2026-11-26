@@ -963,16 +963,19 @@ then the whole job, in seconds. The workflow takes as long as its slowest job:
 |---|---|---|---|---|---|
 | Nothing cached: every build before, and a release | 416 / 490 | 420 / 485 | 773 / 816 | 784 / 847 | 14 to 18 min |
 | Dependencies cached, all of our crates compiled | 324 / 426 | 272 / 362 | 620 / 685 | 667 / 751 | 12 min 38 s |
+| The same, with the entry points boxed (run 45868925921) | 185 / 332 | 185 / 307 | 335 / 420 | 535 / 661 | 11 min 1 s |
 | A dashboard-only commit | 139 / 237 | 121 / 202 | 289 / 362 | 206 / 287 | 6 min 8 s |
 | A commit that changes no source, while the command lines were in `mash` | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
 | A commit that changes no source, now: only `mash` is compiled | 3 / 105 | 7 / 97 | 14 / 69 | 42 / 132 | 2 min 16 s |
 | The same commit again | under 4 / 105 | under 4 / 95 | not measured | not measured | |
 
 The dependencies are a fifth to a third of a build and our own crates the rest.
-The second row is therefore the most a commit should cost, and what the first
-build after a change to `Cargo.lock` costs. These rows, except the
-fifth, were measured before the entry points were boxed (see below); measure
-them again before relying on them.
+The third row is therefore the most a commit should cost, and what the first
+build after a change to `Cargo.lock` costs. The first, second, fourth and
+fifth rows were measured before the entry points were boxed (see below);
+measure them again before relying on them. A change to `mash-app` and the
+three crates on it (run 45865549199) took 125 s on Linux x86_64, 126 s on
+Linux aarch64, 238 s on macOS and 272 s on Windows as the `Build` step.
 
 Our crates do not wait long for each other. A crate above can start as soon as
 the one below has been checked, which takes 10 to 18 s each; in an optimized
@@ -1018,7 +1021,33 @@ boxing, on 26 November 2026; the reports are in
 
 `mash-app` and `mash-server` now hold the code the crates above them used to
 compile, which is why they grew; they run beside the others, so the build ends
-when `mash-app` does. That crate is the next thing to shorten. The jobs spend about a minute and
+when `mash-app` does. Compiled alone on four processors it takes 65 s, of
+which generating code is 50 s; beside the three crates above it, 145 s.
+
+Dependencies between our crates that could still be removed, and why they
+have not been. Neither shortens a build of everything:
+
+- `mash-dash` on `mash-mcp`. The dashboard's console and the assistant run
+  the MCP tools in process (`mash_mcp::console`), so the dashboard is compiled
+  again when the MCP server changes, about 90 s of the processors' time
+  beside `mash-cli`. Removing it means the dashboard declaring what it needs
+  from a console and `mash-cli` handing it the MCP one, with the catalogue's
+  tool type still coming from `rmcp` so that `dashboard/openapi.json` does not
+  change.
+- `mash-server` on `mash-app`. The server's own code needs the shared store
+  (`mash-sync`) and five things of `mash-app`: `remote` and the `service`
+  module under it, `openapi::{settle, sorted}`, `write_json` and
+  `build_revision`; its tests index through the core. With those below
+  `mash-app`, a change to `mash-app` would leave the server alone, a quarter
+  of what such a change compiles. They have no common home yet: `remote` also
+  needs `core::Paths` and `core::setup::which`, and a crate holding all five
+  would be one of leftovers.
+
+The chain from `mash-model` up to `mash-app` is in use at every step:
+`mash-sync` names `mash-search`'s views, models, configuration and tracing in
+some sixty files, and `mash-app` all of them.
+
+The jobs spend about a minute and
 a half outside the build step whatever is cached: starting the container or
 runner, installing the toolchain, restoring the caches (about 20 s), building
 the dashboard and packaging. Hosted runners vary: the same uncached macOS
