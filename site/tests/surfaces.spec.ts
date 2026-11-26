@@ -1,9 +1,8 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
-const labels = ["Dashboard", "Menu bar", "Raycast", "Agent plugin", "Terminal"];
+const labels = ["Dashboard", "Raycast", "Agent plugin", "Terminal"];
 const claims = [
   "Read it all back.",
-  "Always within reach.",
   "Stay in your launcher.",
   "Context, before you ask.",
   "Script your history.",
@@ -82,11 +81,19 @@ test("the showcase is a tablist: one tab per surface, each with its panel and ca
     await expect(panel.locator(".picture[role=img]")).toHaveAttribute("aria-label", /\w{4}/);
     const caption = page.locator(`#${await panel.getAttribute("aria-describedby")}`);
     await expect(caption.locator("b")).toHaveText(claims[index] ?? "");
-    await expect(caption.locator("a")).toHaveAttribute(
+    // The caption's first link is where the dock button leads without scripting.
+    await expect(caption.locator("a").first()).toHaveAttribute(
       "href",
       (await tab.getAttribute("href")) ?? "",
     );
   }
+  // Two captions carry a second link, for what the page says nowhere else.
+  const second = (id: string) => band.locator(`#surface-caption-${id} a`).nth(1);
+  await expect(second("dashboard")).toHaveText("Export a chat ›");
+  await expect(second("dashboard")).toHaveAttribute("href", "/dashboard/#save-a-transcript");
+  await expect(second("agents")).toHaveText("or any MCP client ›");
+  await expect(second("agents")).toHaveAttribute("href", "/mcp/");
+  await expect(band.locator(".caption a")).toHaveCount(labels.length + 2);
   await expect(band.getByRole("tabpanel")).toHaveCount(1);
   await expect(band.locator(".dock-tag")).toHaveText(labels[0] ?? "");
 });
@@ -97,7 +104,7 @@ test("a click chooses a surface, and the tag and caption follow it", async ({ pa
   await tabs.nth(2).click();
   await expect(page).toHaveURL(/\/$/);
   await settled(band, 2);
-  await expect(band.locator(".dock-tag")).toHaveText("Raycast");
+  await expect(band.locator(".dock-tag")).toHaveText("Agent plugin");
   // The tag sits over the chosen tile.
   const centre = async (part: Locator) => {
     const box = await part.boundingBox();
@@ -123,12 +130,12 @@ test("the arrow keys, Home and End move between surfaces and wrap", async ({ pag
   await expect(tabs.nth(1)).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await page.keyboard.press("ArrowLeft");
-  await settled(band, 4);
-  await expect(tabs.nth(4)).toBeFocused();
+  await settled(band, 3);
+  await expect(tabs.nth(3)).toBeFocused();
   await page.keyboard.press("Home");
   await settled(band, 0);
   await page.keyboard.press("End");
-  await settled(band, 4);
+  await settled(band, 3);
   await page.keyboard.press("ArrowRight");
   await settled(band, 0);
   // The focus ring is drawn on the tab the keys reached.
@@ -169,7 +176,7 @@ test("a sideways swipe on the picture changes the surface, and a scroll does not
   await swipe(120, -10);
   await settled(band, 0);
   await swipe(120, 0);
-  await settled(band, 4);
+  await settled(band, 3);
   await context.close();
 });
 
@@ -194,7 +201,8 @@ test("the surfaces change by themselves, rest after a choice, and pick up again"
   await page.clock.runFor(12_000);
   await band.locator(".stage").scrollIntoViewIfNeeded();
   await settled(band, 2);
-  // A choice rests it for twenty seconds, and then it goes on from there.
+  // A choice rests it for twenty seconds, and then it goes on from there:
+  // after the last surface, round to the first.
   await band.getByRole("tab").nth(3).click();
   await page.mouse.move(0, 0);
   await page.clock.runFor(1500);
@@ -203,12 +211,12 @@ test("the surfaces change by themselves, rest after a choice, and pick up again"
   await settled(band, 3);
   await page.clock.runFor(14_000);
   await page.clock.runFor(1500);
-  await settled(band, 4);
+  await settled(band, 0);
   // Marked held, it stays.
   await band.locator("[data-surfaces]").evaluate((root) => root.setAttribute("data-hold", ""));
   await page.clock.fastForward(30_000);
   await page.clock.runFor(1500);
-  await settled(band, 4);
+  await settled(band, 0);
 });
 
 for (const [name, viewport] of [

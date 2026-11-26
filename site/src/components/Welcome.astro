@@ -96,7 +96,7 @@ const quick: {
 
   <section class="band" id="welcome-shortcuts" aria-labelledby="welcome-shortcuts-title">
     <div class="wrapper shortcuts" data-reveal>
-      <h2 id="welcome-shortcuts-title">Take shortcuts, not detours. <span class="quiet">Press ⌥ ⇧ Space and the chat you need is one line away.</span></h2>
+      <h2 id="welcome-shortcuts-title">Take shortcuts, not detours. <span class="quiet">Press ⌥ ⇧ Space, or click Mash in your menu bar or tray, and the chat you need is one line away.</span></h2>
       <div class="desk" role="img"
         aria-label="The Mash desktop app's search panel under the menu bar: the search ‘refresh token’ lists five chats from Claude Code, Codex, Cursor and GitHub Copilot across three machines.">
         <div class="desk-screen" aria-hidden="true">
@@ -283,16 +283,6 @@ const quick: {
           <dt><b>103</b><small>k</small></dt>
           <dd>messages from 1,137 chats, searched in one index on one machine</dd>
         </div>
-        <div>
-          <span class="ico"><LineIcon name="chip" /></span>
-          <dt><b>5</b><small>×</small></dt>
-          <dd>embedding throughput on a Windows GPU</dd>
-        </div>
-        <div>
-          <span class="ico"><LineIcon name="rocket" /></span>
-          <dt><b>9</b><small>×</small></dt>
-          <dd>embedding throughput with an experimental NVIDIA worker</dd>
-        </div>
       </dl>
       <details class="measured">
         <summary>How these were measured</summary>
@@ -302,15 +292,7 @@ const quick: {
               <dt>66 ms and 103k</dt>
               <dd>One exact-phrase search across 1,137 chats and about 103,000 searchable messages in one index on one Linux machine. A common word took up to a second there.</dd>
             </div>
-            <div>
-              <dt>5× and 9×</dt>
-              <dd>Embedding throughput while indexing, on a Tesla T4 against four CPU cores. DirectML on Windows processed about 90 messages a second versus 17 on CPU. The experimental NVIDIA worker processed about 155 versus 18 on CPU.</dd>
-            </div>
           </dl>
-          <p>
-            The NVIDIA worker and GPU reranking are experimental and off until you
-            <a href="/configuration/">turn them on</a>.
-          </p>
         </div>
       </details>
     </div>
@@ -349,43 +331,6 @@ const quick: {
           <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
         </li>
       </ul>
-    </div>
-  </section>
-
-  <section class="band tint" id="welcome-features" aria-labelledby="welcome-features-title">
-    <div class="wrapper stack" data-reveal>
-      <div class="head">
-        <span class="kicker">And more</span>
-        <h2 id="welcome-features-title">Fits the way you work.</h2>
-      </div>
-      <div class="tiles">
-        <article>
-          <span class="ico"><LineIcon name="plug" /></span>
-          <h3>Any MCP client.</h3>
-          <p>
-            No plugin for your agent? <a href="/mcp/">Connect it over MCP</a>, if it can start a
-            local MCP server.
-          </p>
-        </article>
-        <article>
-          <span class="ico"><LineIcon name="layers" /></span>
-          <h3>RAG over your own history.</h3>
-          <p>
-            <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
-            results with a cross-encoder.
-          </p>
-        </article>
-        <article>
-          <span class="os-chips"><span class="ico" title="macOS"><OsMark system="macos" /></span><span class="ico" title="Linux"><OsMark system="linux" /></span><span class="ico" title="Windows"><OsMark system="windows" /></span></span>
-          <h3>macOS. Linux. Windows.</h3>
-          <p>The same Mash on each, with the desktop app or the CLI.</p>
-        </article>
-        <article>
-          <span class="ico"><LineIcon name="download" /></span>
-          <h3>Your chats, exported.</h3>
-          <p>Save any chat as Markdown, HTML or PDF.</p>
-        </article>
-      </div>
     </div>
   </section>
 
@@ -431,14 +376,6 @@ const quick: {
     </div>
   </section>
 </div>
-
-<style>
-  /* The systems tile: each mark in an icon tile of its own, in a row. */
-  .os-chips {
-    display: flex;
-    gap: 0.5rem;
-  }
-</style>
 
 <script>
   import { mountWelcome } from "../welcome.ts";

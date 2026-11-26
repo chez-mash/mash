@@ -307,9 +307,21 @@ const installs = [
      words. The stroke hangs below the baseline, outside the flow: nothing
      moves to make room for it. */
   .accent {
+    /* On the light page the brand's butter is too pale to see as a line
+       (about 1.5:1), so the stroke takes the deep butter the icons use
+       (4:1). On the dark page it stays the brand's own. */
+    --rule: var(--butter-icon);
     position: relative;
     display: inline-block;
     white-space: nowrap;
+  }
+  :global(:root[data-theme="dark"]) .accent {
+    --rule: var(--brand-pat);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .accent {
+      --rule: var(--brand-pat);
+    }
   }
   .rule {
     position: absolute;
@@ -318,16 +330,16 @@ const installs = [
     width: 100%;
     height: 0.24em;
     overflow: visible;
-    fill: var(--brand-pat);
+    fill: var(--rule);
     pointer-events: none;
   }
   /* On a screen too narrow for the claim's one line the words wrap again,
-     and an ordinary underline in the same butter follows them line by line. */
+     and an ordinary underline in the same colour follows them line by line. */
   @media (width < 17.5rem) {
     .accent {
       display: inline;
       white-space: normal;
-      text-decoration: underline var(--brand-pat) 0.06em;
+      text-decoration: underline var(--rule) 0.06em;
       text-underline-offset: 0.1em;
     }
     .rule {

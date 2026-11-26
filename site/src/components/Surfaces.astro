@@ -11,7 +11,6 @@ import type { IconName } from "../icons.ts";
 import LineIcon from "./LineIcon.astro";
 import AgentSurface from "./surfaces/AgentSurface.astro";
 import DashboardSurface from "./surfaces/DashboardSurface.astro";
-import MenuBarSurface from "./surfaces/MenuBarSurface.astro";
 import RaycastSurface from "./surfaces/RaycastSurface.astro";
 import TerminalSurface from "./surfaces/TerminalSurface.astro";
 
@@ -26,6 +25,8 @@ interface Surface {
   /** Where to read more; also where the dock button leads without scripting. */
   href: string;
   more: string;
+  /** One more thing the surface does that the page says nowhere else, as a second link. */
+  also?: { href: string; label: string };
   /** What the surface's picture shows, for a reader who cannot see it. */
   shows: string;
   Picture: typeof DashboardSurface;
@@ -40,21 +41,10 @@ const surfaces: Surface[] = [
     says: "Every chat from every agent and machine, in one local dashboard.",
     href: "/dashboard/",
     more: "See the dashboard",
+    also: { href: "/dashboard/#save-a-transcript", label: "Export a chat" },
     shows:
       "The Mash dashboard: a list of chats from Claude Code, Codex, Cursor and OpenCode beside one of them, where a decision about sign-in tokens was saved from the reader’s own message.",
     Picture: DashboardSurface,
-  },
-  {
-    id: "menu-bar",
-    label: "Menu bar",
-    icon: "search",
-    claim: "Always within reach.",
-    says: "Mash sits in your menu bar or tray, with your recent chats one click away.",
-    href: "/downloads/#desktop-app",
-    more: "Get the desktop app",
-    shows:
-      "The desktop app’s panel under Mash’s icon in the menu bar, before anything is typed: the five most recent chats, from Claude Code, Codex, Cursor and OpenCode.",
-    Picture: MenuBarSurface,
   },
   {
     id: "raycast",
@@ -76,6 +66,7 @@ const surfaces: Surface[] = [
     says: "The plugin for Claude Code, Codex and Copilot brings earlier decisions into new sessions.",
     href: "/plugin/",
     more: "Set up the plugin",
+    also: { href: "/mcp/", label: "or any MCP client" },
     shows:
       "A Codex session asked to add sign-out to the mobile app: it searches Mash, finds the sign-in decision saved from a Claude Code chat, and follows it.",
     Picture: AgentSurface,
@@ -122,10 +113,13 @@ const [first] = surfaces;
       </div>
     </div>
     <div class="captions">
-      {surfaces.map(({ id, claim, says, href, more }, index) => (
+      {surfaces.map(({ id, claim, says, href, more, also }, index) => (
         <p class:list={["caption", { on: index === 0 }]} id={`surface-caption-${id}`} data-surface={id}>
           <span><b>{claim}</b> {says}</span>
-          <a class="more" href={href}>{more} ›</a>
+          <span class="links">
+            <a class="more" href={href}>{more} ›</a>
+            {also && <a class="more" href={also.href}>{also.label} ›</a>}
+          </span>
         </p>
       ))}
     </div>
@@ -196,9 +190,9 @@ const [first] = surfaces;
      (the chosen one grows by transform), so the tag's place follows from
      the chosen tile's number, --at. */
   .dock-area {
-    --tile: 3rem;
-    --gap: 0.5rem;
-    --pad: 0.5rem;
+    --tile: 3.25rem;
+    --gap: 0.625rem;
+    --pad: 0.625rem;
     position: relative;
     margin-top: 1rem;
     padding-top: 2.875rem;
@@ -285,13 +279,18 @@ const [first] = surfaces;
     color: var(--text-strong);
     font-weight: 600;
   }
-  .caption .more {
-    align-self: center;
+  /* The caption's link, and beside it the second one a surface may have. */
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
   }
 
   @media (width >= 40rem) {
     .dock-area {
-      --tile: 3.25rem;
+      --tile: 3.5rem;
+      --gap: 0.75rem;
     }
   }
   @media (width < 40rem) {
