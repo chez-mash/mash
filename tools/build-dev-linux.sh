@@ -80,7 +80,7 @@ if [[ $mode == focused ]]; then
 fi
 validation_key() {
     {
-        git ls-files --cached --others --exclude-standard -z -- app cli crates queries plugins deployment tools .cargo .config .github Cargo.toml Cargo.lock Makefile rust-toolchain.toml build.rs |
+        git ls-files --cached --others --exclude-standard -z -- app cli crates queries plugins deployment tools .cargo .config .github Cargo.toml Cargo.lock justfile Makefile rust-toolchain.toml build.rs |
             sort -zu | while IFS= read -r -d '' path; do
                 if [[ -f "$path" ]]; then sha256sum -- "$path" || return
                 else printf 'deleted %s\n' "$path"

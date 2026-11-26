@@ -1,119 +1,27 @@
-# Regenerate SQLite queries before Cargo resolves and compiles dependencies.
-# Example: make build CODEGEN=1 CARGO_ARGS='--release --locked'
-CODEGEN ?= 0
-CARGO_ARGS ?=
-COVERAGE_OUTPUT ?= target/llvm-cov/coverage.json
-DEV_TMPDIR ?= /home/james/scratch/achi-tmp
-DEV_TARGET_DIR ?= /home/james/scratch/achi-targets/integrated
-DEV_RUN ?= $(if $(wildcard /home/james/.local/bin/agent-test),/home/james/.local/bin/agent-test,)
-# `make iterate` builds library unit tests only; TARGETS=all adds the CLI
-# contract test, both executables and the example. It runs Clippy and the test
-# build at the same time, each as its own $(DEV_RUN) job.
-# It builds and runs one crate's unit tests: `mash-app` unless PACKAGE names
-# another (mash-dash, mash-silver, mash-model, mash, ...) or `all`. With
-# TARGETS=all it builds every crate unless PACKAGE names one. Clippy always
-# covers the workspace.
-TARGETS ?= lib
-PACKAGE ?=
-export FOCUS
+# A shim for the transition from Make to just. The justfile is the source of
+# truth: every target here runs the recipe of the same name and holds no
+# commands of its own. Use `just RECIPE` (`just` lists them); this file will
+# be removed.
+#
+# Variables given to make reach the recipe unchanged, because make exports
+# them and the justfile reads the same names from the environment:
+#
+#   make iterate FOCUS='test(changed_behavior)' PACKAGE=mash-dash
+#   make build CODEGEN=1 CARGO_ARGS='--release --locked'
+#   make protocol-check DEV_RUN=
+JUST ?= just
 
-.PHONY: mutation-tools mutation-check mutation-certification
-mutation-tools:
-	bash tools/mutation-check.sh --install-tools
+FORWARDED := mutation-tools mutation-check mutation-services \
+	mutation-certification mutation-runtime protocol-tools protocol-check \
+	release-tools deny test-cleanup iterate dev-build validate-dev build \
+	check-skills generate-skills generate-docs generate-queries \
+	check-generated coverage site-review
 
-mutation-check:
-	$(DEV_RUN) bash tools/mutation-check.sh
-
-.PHONY: mutation-services
-mutation-services:
-	$(DEV_RUN) bash tools/mutation-check.sh --services
-
-mutation-certification:
-	$(DEV_RUN) bash tools/mutation-check.sh --certification
-
-.PHONY: mutation-runtime
-mutation-runtime:
-	$(DEV_RUN) bash tools/mutation-check.sh --runtime
-
-.PHONY: protocol-tools protocol-check
-protocol-tools:
-	bash protocol/check.sh --install-tools
-
-protocol-check:
-	$(DEV_RUN) bash protocol/check.sh
-
-# cargo-release, at the version tools/release.sh is written against.
-.PHONY: release-tools
-release-tools:
-	bash tools/release.sh --install-tools
-
-# Dependency policy in deny.toml: advisories, licences, bans and sources.
-# Install the tool with `cargo binstall cargo-deny`.
-.PHONY: deny
-deny:
-	cargo deny check
-
-# Remove containers tests left running (labelled mash.test); never a real Qdrant.
-.PHONY: test-cleanup
-test-cleanup:
-	bash tools/clean-test-containers.sh $(OWNER)
-
-.PHONY: iterate validate-dev
-iterate:
-	@test -n "$${FOCUS}" || (echo 'Set FOCUS to a nextest filter for the changed behavior'; exit 2)
-	env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=1 RUSTC_WRAPPER= MASH_ITERATE_LAUNCHER="$(DEV_RUN)" MASH_ITERATE_PACKAGE="$(PACKAGE)" bash tools/build-dev-linux.sh --focused "$${FOCUS}" $(if $(filter all,$(TARGETS)),--all-targets,)
-
-# The same linker as `make iterate`, so both share one warm cache.
-DEV_LINKER := $(if $(shell command -v mold 2>/dev/null),CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=mold",)
-
-# A debug `mash` for trying a change by hand, with the same warm incremental
-# cache settings as `make iterate`. Prints the binary's path.
-.PHONY: dev-build
-dev-build:
-	$(DEV_RUN) env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=1 RUSTC_WRAPPER= $(DEV_LINKER) cargo build-clif --locked --bin mash $(CARGO_ARGS)
-	@echo "$(DEV_TARGET_DIR)/debug/mash"
-
-validate-dev:
-	$(DEV_RUN) env TMPDIR="$(DEV_TMPDIR)" CARGO_TARGET_DIR="$(DEV_TARGET_DIR)" CARGO_INCREMENTAL=0 bash tools/build-dev-linux.sh --validate-only
-
-.PHONY: build check-skills generate-skills generate-docs generate-queries check-generated coverage
-build: check-skills
-ifeq ($(CODEGEN),1)
-	$(MAKE) generate-queries
-endif
-	cargo build-clif $(CARGO_ARGS)
-
-check-skills:
-	bash tools/generate-history-skill.sh --check
-	cargo test-clif --locked --lib -E 'test(history_skill_)' --no-tests fail
-
-generate-skills:
-	bash tools/generate-history-skill.sh
-
-# Rewrites docs/tools.md from the MCP tool definitions.
-generate-docs:
-	MASH_WRITE_TOOL_REFERENCE=1 cargo test-clif --locked --lib -E 'test(tool_reference_is_current)' --no-tests fail
-
-generate-queries:
-	bash queries/generate.sh
-
-check-generated: generate-queries
-	git diff --exit-code -- crates/mash-storage/src/storage/generated crates/mash-sync/src/shared/silver_store/generated
-
-# Coverage includes the installed-model and disposable shared-backend contracts.
-# LLVM instrumentation is required here; ordinary development uses Cranelift.
-coverage:
-	@test -n "$${MASH_TEST_MODELS_DIR}" || (echo 'Set MASH_TEST_MODELS_DIR to explicitly installed test models'; exit 1)
-	@test -n "$${MASH_TEST_QDRANT_URL}" || (echo 'Set MASH_TEST_QDRANT_URL to disposable Qdrant 1.19+'; exit 1)
-	@test -n "$${MASH_TEST_QDRANT_GRPC_URL}" || (echo 'Set MASH_TEST_QDRANT_GRPC_URL to the same disposable Qdrant instance'; exit 1)
-	@test -n "$${MASH_TEST_SERVER_BINARY}" || (echo 'Set MASH_TEST_SERVER_BINARY to the coverage-target mash-server binary for database restart contracts'; exit 1)
-	@test -n "$${MASH_TEST_CLI_BINARY}" || (echo 'Set MASH_TEST_CLI_BINARY to the coverage-target mash binary for MCP probe contracts'; exit 1)
-	cargo llvm-cov clean --workspace
-	cargo llvm-cov nextest --no-report --run-ignored all -j 2 -E 'not test(benchmark)' $(CARGO_ARGS)
-	cargo llvm-cov report --json --ignore-filename-regex '/generated/|/(tests|benchmarks)(/|\.rs$$)|/test_support\.rs$$|/semantic/evaluation(/|\.rs$$)|/semantic/embeddings/cpu/sensitivity\.rs$$|/storage/indexing/memory\.rs$$' --output-path "$(COVERAGE_OUTPUT)"
-
-# The documentation site with the Agentation review toolbar: annotate a page in
-# the browser and submit it to an agent. See docs/internal/documentation-site.md.
-.PHONY: site-review
-site-review:
-	pnpm --dir site dev:review
+.PHONY: $(FORWARDED)
+$(FORWARDED):
+	@command -v $(JUST) >/dev/null 2>&1 || { \
+		echo 'make $@ now runs `just $@`, and just is not installed.' >&2; \
+		echo 'Install it: bash tools/install-just.sh (Linux, into ~/.local/bin), brew install just (macOS),' >&2; \
+		echo 'scoop install just or winget install --id Casey.Just --exact (Windows).' >&2; \
+		exit 127; }
+	@$(JUST) $@

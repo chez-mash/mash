@@ -1,4 +1,4 @@
-// `make site-review`: the Astro dev server plus the Agentation services that
+// `just site-review`: the Astro dev server plus the Agentation services that
 // turn annotations left on the page into queued agent work.
 import { defineConfig } from "agentation-review";
 import { reviewPorts } from "./src/agentation.ts";

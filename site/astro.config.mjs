@@ -16,7 +16,7 @@ export default defineConfig({
     }),
   ),
   integrations: [
-    // Adds the review toolbar in `astro dev` only (`make site-review`).
+    // Adds the review toolbar in `astro dev` only (`just site-review`).
     agentationReview(),
     starlight({
       title: "mash",

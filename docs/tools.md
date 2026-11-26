@@ -1,6 +1,6 @@
 # MCP tool reference
 
-<!-- Generated from Mash's tool definitions by `make generate-docs`; do not edit. -->
+<!-- Generated from Mash's tool definitions by `just generate-docs`; do not edit. -->
 
 These are the tools an agent sees once [Mash is connected](agents.md), or that
 [another MCP client](mcp.md) can call. You rarely call them yourself: ask your

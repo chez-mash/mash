@@ -8,13 +8,13 @@ The entry points are:
 
 | Check | Command | Setup |
 | --- | --- | --- |
-| Bounded protocol exploration | `make protocol-check` | Explicit `make protocol-tools` installation |
-| Revision/freshness mutation audit | `make mutation-check` | Explicit `make mutation-tools` installation |
-| Dashboard service auth/schema audit | `make mutation-services` | Explicit `make mutation-tools` installation |
+| Bounded protocol exploration | `just protocol-check` | Explicit `just protocol-tools` installation |
+| Revision/freshness mutation audit | `just mutation-check` | Explicit `just mutation-tools` installation |
+| Dashboard service auth/schema audit | `just mutation-services` | Explicit `just mutation-tools` installation |
 | Visual baselines of the dashboard and the site | `bash tools/visual.sh` | Podman or Docker, and `node_modules` in `dashboard/` and `site/` |
 
 Mutation audits remain explicit because they rebuild and retest each variant.
-On Xenia all Make targets use `agent-test` for heavy work. No check installs
+On Xenia the just recipes use `agent-test` for heavy work. No check installs
 embedding models or uses production backend data.
 
 ## Fast loops
@@ -175,14 +175,14 @@ origins alongside the existing JSONL message-boundary evidence tests.
 This is a narrow test-quality audit, not a workspace coverage score.
 
 ```bash
-make mutation-tools                  # Explicit pinned Linux x86_64 download.
+just mutation-tools                  # Explicit pinned Linux x86_64 download.
 bash tools/mutation-check.sh --list  # Review scope without building.
-make mutation-check                  # Baseline first; then isolated mutations.
+just mutation-check                  # Baseline first; then isolated mutations.
 ```
 
 For native chat certification, set the disposable `MASH_TEST_QDRANT_URL`, review
 `bash tools/mutation-check.sh --list-certification`, and run
-`make mutation-certification`. Its separate scope covers `Store::certify` with
+`just mutation-certification`. Its separate scope covers `Store::certify` with
 real-backend coverage-merge, stale-head and parallel-baseline regressions, plus
 common Qdrant freshness predicates and local reader identity checks. Set
 `MASH_MUTATION_DIFF` to an existing unified diff to bound any audit to changed
@@ -192,7 +192,7 @@ the baseline, source isolation, job limits or timeouts.
 
 The installer pins cargo-mutants 27.1.0 and verifies its release archive SHA-256.
 Requires Bash, curl, tar, sha256sum, flock, the repository nightly with Cranelift,
-and cargo-nextest. On Xenia `make` runs the audit through `agent-test`. Audits use
+and cargo-nextest. On Xenia `just` runs the audit through `agent-test`. Audits use
 one mutant at a time and four build tasks, a ten-minute build deadline and a
 two-minute test deadline per scenario. No automatic download happens during a
 check. Artifacts and a persistent build cache stay outside Git under

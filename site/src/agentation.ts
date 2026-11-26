@@ -1,4 +1,4 @@
-// The Agentation review toolbar for `make site-review`. In `astro dev` it adds
+// The Agentation review toolbar for `just site-review`. In `astro dev` it adds
 // the toolbar to every page and proxies the toolbar's requests to the review
 // services; in any other command (build, preview, check) it adds nothing, so
 // the published site never carries the toolbar or its React runtime.

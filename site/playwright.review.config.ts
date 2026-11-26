@@ -1,4 +1,4 @@
-// Browser tests for the `make site-review` toolbar: a half-typed note survives
+// Browser tests for the `just site-review` toolbar: a half-typed note survives
 // dev server reloads. They serve a one-page fixture site from a fresh copy in
 // tests/review/.fixture/ on its own port, edit only that copy, and answer the
 // review services' requests in the browser, so a running review is never

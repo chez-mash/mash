@@ -50,7 +50,7 @@ const GROUPS: &[(&str, &[&str])] = &[
 const INTRODUCTION: &str = "\
 # MCP tool reference
 
-<!-- Generated from Mash's tool definitions by `make generate-docs`; do not edit. -->
+<!-- Generated from Mash's tool definitions by `just generate-docs`; do not edit. -->
 
 These are the tools an agent sees once [Mash is connected](agents.md), or that
 [another MCP client](mcp.md) can call. You rarely call them yourself: ask your
@@ -316,7 +316,7 @@ fn generate_tool_reference() -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
-    /// `make generate-docs` sets `MASH_WRITE_TOOL_REFERENCE` to rewrite the page.
+    /// `just generate-docs` sets `MASH_WRITE_TOOL_REFERENCE` to rewrite the page.
     #[test]
     fn tool_reference_is_current() {
         let page = super::generate_tool_reference().unwrap();
@@ -327,7 +327,7 @@ mod tests {
         let published = std::fs::read_to_string(path).unwrap_or_default();
         assert!(
             page == published.replace("\r\n", "\n"),
-            "docs/tools.md is stale; regenerate it with make generate-docs"
+            "docs/tools.md is stale; regenerate it with just generate-docs"
         );
     }
 }

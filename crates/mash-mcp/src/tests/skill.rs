@@ -128,7 +128,7 @@ fn history_skill_examples_match_runtime_contracts() {
 #[test]
 fn history_skill_generation_is_current() {
     let (skill, stamp) = super::super::guidance::generate_history_skill().unwrap();
-    assert_eq!(skill, HISTORY, "regenerate with make generate-skills");
+    assert_eq!(skill, HISTORY, "regenerate with just generate-skills");
     assert_eq!(
         stamp,
         include_str!("../../../../plugins/mash/skills/mash-history/contract.json")

@@ -329,6 +329,13 @@ candidates separate. Do not rewrite historical studies just to add tracking.
 
 ## Verification
 
+Tasks run through `just`: `just` alone lists every recipe by group (develop,
+test, quality, deploy, release, design), and the recipes call the scripts in
+`tools/` and the packages' own scripts. Add a task to the `justfile`, never to
+the `Makefile`, which only forwards its old targets during the transition.
+Install just with `bash tools/install-just.sh`; see "Task runner" in
+`docs/internal/development.md`.
+
 ### Protocol models
 
 Use the bounded TLA+ models in `protocol/` when changing concurrency, retry or
@@ -346,8 +353,8 @@ model failures between separate durable writes. Do not assume extra locking,
 atomicity, fairness, delivery guarantees or writer fencing to make checks pass.
 If no model change is needed, record why in the change's validation evidence.
 
-Run `make protocol-check` for protocol changes; install the pinned checker
-explicitly with `make protocol-tools` when needed. The checker includes bounded
+Run `just protocol-check` for protocol changes; install the pinned checker
+explicitly with `just protocol-tools` when needed. The checker includes bounded
 safety/liveness checks and named expected counterexamples that verify the
 properties detect broken behavior. Keep source behavior, deliberate mutations,
 and proposed contracts clearly distinguished. Record implementation/model gaps
@@ -367,7 +374,7 @@ tests do not replace public API or disposable backend tests.
 Keep shrunk failures as named regressions. Run backend sequence tests against
 disposable Qdrant services with explicit resource limits.
 
-Use `make mutation-tools` then `make mutation-check` for focused test-quality
+Use `just mutation-tools` then `just mutation-check` for focused test-quality
 audits when changing critical validation/freshness guards or strengthening their
 tests. Scope lives in `.cargo/mutants.toml`; keep the selected tests aligned with
 the selected source. Inspect surviving mutants for missing assertions, invalid
@@ -380,32 +387,32 @@ For failure ordering, prefer small per-instance test-only hooks at actual
 durable boundaries. Assert persisted state and recovery after interruption;
 distinguish simulated failures from process termination and power loss.
 
-Use `make iterate FOCUS='test(changed_behavior)'` for the normal development loop:
+Use `just iterate 'test(changed_behavior)'` for the normal development loop:
 formatting, Clippy, then explicitly selected nextest regressions. A missing or
 empty selection fails; this mode never certifies full acceptance or builds an
 optimized release. Preserve passing evidence until relevant inputs change.
 Focused checks and relevant tooling fixtures are enough to commit and push.
 
-`make iterate` is the fast path; use it instead of raw Cargo commands. It keeps
+`just iterate` is the fast path; use it instead of raw Cargo commands. It keeps
 the warm incremental cache (the machine-wide Cargo configuration on Xenia turns
 incremental compilation off and adds a compiler cache wrapper, which makes a
 raw `cargo build-clif` after a one-line edit recompile the whole crate, about
 90 seconds instead of 25). After the formatting check it runs Clippy and the
 tests at the same time, as two `agent-test` jobs, and reports both; do not wrap
 it in `agent-test` yourself. It builds and runs the unit tests of one crate: `mash-app` by default, or the
-one `PACKAGE` names (`PACKAGE=mash-dash`, `mash-silver`, `mash-model`, `mash`,
+one `--package` names (`--package mash-dash`, `mash-silver`, `mash-model`, `mash`,
 or `all`). Name the crate the change and its tests are in: a dashboard edit
-with `PACKAGE=mash-dash` takes about 9 seconds and no crate more than about 21, and a filter that matches no
-test in the chosen crate fails. Add `TARGETS=all`,
+with `--package mash-dash` takes about 9 seconds and no crate more than about 21, and a filter that matches no
+test in the chosen crate fails. Add `--targets all`,
 or name a binary in the filter such as `binary(cli_contract)`, when the change
 touches the CLI contract or another integration target; do so for public CLI/MCP
-boundary changes. Use `make dev-build` for a debug `mash` to try by hand; it
+boundary changes. Use `just dev-build` for a debug `mash` to try by hand; it
 prints the binary's path. A dashboard-only change needs no Rust build: run
 `pnpm dev` in `dashboard/` against a running `mash dash` (see
 `dashboard/README.md`). Measurements and the reasons are in
 `docs/internal/development.md`.
 
-Run `make validate-dev` once for a stable release batch, after focused checks
+Run `just validate-dev` once for a stable release batch, after focused checks
 pass. It runs the broader gates without building a release binary. The release
 runner reuses a receipt for identical source, toolchain and effective validation
 inputs across commits; commit identity and `MASH_BUILD_REVISION` affect binary
@@ -458,7 +465,7 @@ not power-loss durability or failover.
 
 Use `cargo build-clif`, `cargo run-clif`, and `cargo test-clif` for directed
 diagnosis only, always with `CARGO_INCREMENTAL=1 RUSTC_WRAPPER=` and the
-persistent target directory; use `make iterate` and `make dev-build` for
+persistent target directory; use `just iterate` and `just dev-build` for
 iteration. Keep formatting and Clippy
 in that loop, and doctests at release milestones. On the installed
 August 2026 nightly, Clippy needs `RUSTFLAGS=-Znext-solver=no` to avoid its known
