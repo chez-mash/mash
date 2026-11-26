@@ -288,7 +288,7 @@
     margin-inline-start: 0.5ch;
   }
 
-  /* Privacy: the heading beside what it means, then four raised cards. */
+  /* Privacy: the heading beside the way onward, then four raised cards. */
   .privacy-head {
     display: flex;
     flex-wrap: wrap;
@@ -305,26 +305,6 @@
     gap: 0.875rem;
     color: var(--text-strong);
   }
-  .caps {
-    display: grid;
-    gap: 0.625rem;
-  }
-  /* Each point opens with the butter pat from the wordmark. */
-  .caps li {
-    display: flex;
-    gap: 0.625rem;
-    line-height: 1.5;
-  }
-  .caps li::before {
-    content: "";
-    flex: none;
-    width: 0.4375rem;
-    height: 0.4375rem;
-    margin-top: 0.5rem;
-    border-radius: var(--radius-1);
-    background: var(--butter);
-    transform: rotate(-9deg);
-  }
   .cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -336,7 +316,7 @@
     padding: 1.5rem;
   }
 
-  /* More about Mash: five raised cards in a grid. */
+  /* More about Mash: four raised cards in a grid. */
   .tiles {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

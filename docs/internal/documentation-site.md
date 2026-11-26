@@ -81,13 +81,18 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 `site/src/styles/welcome.css`).
 
 - **The header** is an island on this page: a rounded bar fixed at the top,
-  inset from the screen's edges (and from an iPhone's safe area), on a mostly
-  opaque surface with the page blurred behind it, so its words keep at least
-  4.5:1 whatever scrolls under them. `custom.css` places Starlight's header
-  and `Header.astro` draws the bar. A phone's island is the logo alone; once
-  the hero's buttons have scrolled away a short Download button fades in,
-  with the hero button's target. Links into the page stop under the island
-  (`scroll-padding-top`), and the pinned panel holds below it.
+  inset from the screen's edges (and from an iPhone's safe area), on a surface
+  that is all but opaque (94%), so its words keep at least 4.5:1 and nothing
+  under it reads as broken words, whether or not the browser blurs what is
+  behind. `custom.css` places Starlight's header and `Header.astro` draws the
+  bar. Once the hero has scrolled away the page's surface covers the strip
+  above the island and fades out below it: the bands' windows and cards start
+  at the island's own gutter, and without that cover a rounded corner
+  scrolling under showed around the island's corner as a stray curve
+  (`site/tests/island.spec.ts` reads those pixels). A phone's island is the
+  logo alone; once the hero's buttons have scrolled away a short Download
+  button fades in, with the hero button's target. Links into the page stop
+  under the island (`scroll-padding-top`), and the pinned panel holds below it.
 - **The surface showcase** (`Surfaces.astro`, one file per surface in
   `components/surfaces/`) is the first band: one of Mash's surfaces in its
   window (the dashboard, the menu bar panel, the Raycast extension, an
@@ -104,31 +109,6 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   Add a surface by adding its component and its entry in `Surfaces.astro`;
   mark what should type itself `data-typed` and what should rise `data-in`.
 
-- **Card rails.** `CardRail.astro` is a row of `RailCard.astro` cards that
-  scrolls sideways and snaps to each card, with the next card showing at the
-  edge, a link onward under it at the left and previous and next buttons at
-  the right. It is a plain scroll container, so it works without scripting;
-  `site/src/rails.ts` adds the buttons and steps a card on the arrow keys. A
-  card is one link: a mark, a name, an arrow, one line, and a picture on a
-  ground tinted with a role from the theme. Use a rail where a band has many
-  small parallel things that would otherwise be a long list.
-- **The agents band** (`AgentsBand.astro`, card sets in `components/agents/`)
-  puts three rails under tabs: the agents Mash reads, the tools a connected
-  agent can call, and things to ask one. As served each rail shows under its
-  name; an inline script marks the group live before it is drawn, and then
-  one rail shows at a time in the same place, so the band keeps its height,
-  and a rail that is not showing is not laid out. What the cards say follows
-  `docs/supported-agents.md` and the generated `docs/tools.md`; change a
-  card when those change.
-- **The order** goes from the overview to one band per capability: the
-  surface showcase, quick search, search, the agents band, memory, reading a
-  chat (`ReadingBand.astro`), search across machines (`MachinesBand.astro`),
-  privacy, Mashy, the figures, where it installs (`InstallBand.astro`), the
-  smaller things ("Fits the way you work"), open source, and the closing
-  card. A new band goes in its own component and says only what a guide in
-  `docs/` says, with a link to that guide; `site/tests/sections.spec.ts`
-  holds the order and each band's claims and links. The tiles under "Fits
-  the way you work" are for what has no band of its own.
 - **Bands.** Each idea is one full-width band: a stamped label, a heading,
   a few points with icons, and a small window or set of cards drawn the way
   the dashboard draws them (search results, Mashy's answer, a saved
