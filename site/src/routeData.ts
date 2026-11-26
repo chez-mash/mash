@@ -7,7 +7,17 @@ export const onRequest = defineRouteMiddleware((context) => {
   const route = context.locals.starlightRoute;
   if (route.isFallback) keepOutOfSearch(route);
   if (route.entry.data.template === "splash" && route.entry.data.hero) brandLanding(route);
+  if (isGuidesDirectory(route)) route.hasSidebar = true;
 });
+
+// The guides directory is a splash page, so Starlight leaves the sidebar out
+// of it. It is still a docs page, and on a phone the sidebar is the docs'
+// menu, so the page gets Starlight's own sidebar back: the same groups and
+// controls every guide shows. Sidebar.astro keeps it off wide screens, where
+// the directory's cards take the full width.
+function isGuidesDirectory(route: Route): boolean {
+  return route.entry.data.template === "splash" && route.id.split("/").at(-1) === "guides";
+}
 
 // A guide that is not translated yet still has a page in each language, which
 // shows the English text. Search keeps one index per language, so such a page

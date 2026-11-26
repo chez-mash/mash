@@ -248,9 +248,10 @@ test("direct links remain usable without JavaScript", async ({ browser }) => {
 test("the guides page groups guides in two parts, and the sidebar lists each section at the top level", async ({
   page,
 }) => {
-  // The guides directory is a page of cards, one per group, with no sidebar.
+  // The guides directory is a page of cards, one per group, across the full
+  // width: its sidebar is the phone's menu only.
   await page.goto("/guides/#find-past-work");
-  await expect(page.locator("nav.sidebar")).toHaveCount(0);
+  await expect(page.locator("nav.sidebar")).toBeHidden();
   const guide = page.locator(".sl-markdown-content");
   await expect(guide.locator(".mash-guide")).toHaveCount(8);
   await expect(guide.locator(".mash-guide").first().getByRole("heading")).toHaveText("Start here");
