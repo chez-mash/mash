@@ -126,6 +126,16 @@ pub fn is_executable(metadata: &fs::Metadata) -> bool {
 /// relative entries taken from `base`. Windows also tries each `PATHEXT`
 /// extension, which is how `claude` finds npm's `claude.cmd`.
 pub fn find_program(name: &str, path: &std::ffi::OsStr, base: &Path) -> Option<std::path::PathBuf> {
+    find_programs(name, path, base).next()
+}
+
+/// Every executable `name` resolves to in `path`, in the order a lookup
+/// tries them: [`find_program`] is the first.
+pub fn find_programs<'a>(
+    name: &'a str,
+    path: &'a std::ffi::OsStr,
+    base: &'a Path,
+) -> impl Iterator<Item = std::path::PathBuf> + 'a {
     let extensions: Vec<String> = if cfg!(windows) {
         std::env::var("PATHEXT")
             .unwrap_or_else(|_| ".EXE;.CMD;.BAT".to_owned())
@@ -137,13 +147,14 @@ pub fn find_program(name: &str, path: &std::ffi::OsStr, base: &Path) -> Option<s
         vec![String::new()]
     };
     std::env::split_paths(path)
-        .flat_map(|directory| {
+        .flat_map(move |directory| {
             let directory = base.join(directory);
             extensions
-                .iter()
+                .clone()
+                .into_iter()
                 .map(move |extension| directory.join(format!("{name}{extension}")))
         })
-        .find(|candidate| fs::metadata(candidate).is_ok_and(|metadata| is_executable(&metadata)))
+        .filter(|candidate| fs::metadata(candidate).is_ok_and(|metadata| is_executable(&metadata)))
 }
 
 /// The local path a `file://` URI names, as editors record workspaces.

@@ -52,17 +52,72 @@ async fn relation(path: &Path, this: &Path) -> Relation {
 
 /// Who installed the copy at `path`, and how that copy is updated, when the
 /// path says so.
-fn installer(path: &Path) -> Option<(&'static str, &'static str)> {
+struct Installer {
+    name: &'static str,
+    /// The command that updates it, or nothing when it follows something
+    /// else (the Mash app's own command).
+    update: Option<&'static str>,
+}
+
+fn installer(path: &Path) -> Option<Installer> {
     let resolved = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
     let text = resolved.to_string_lossy().replace('\\', "/");
+    let lower = text.to_lowercase();
+    let by = |name, update| {
+        Some(Installer {
+            name,
+            update: Some(update),
+        })
+    };
     if text.contains("/Cellar/") || text.contains("/homebrew/") || text.contains("/linuxbrew/") {
-        Some(("Homebrew", "brew upgrade mash"))
-    } else if text.contains("/scoop/") {
-        Some(("Scoop", "scoop update mash"))
+        by("Homebrew", "brew upgrade mash")
+    } else if lower.contains("/scoop/") {
+        by("Scoop", "scoop update mash")
+    } else if lower.contains("/microsoft/winget/") {
+        by("winget", "winget upgrade MashHQ.Mash")
     } else if text == "/usr/bin/mash" && Path::new("/var/lib/dpkg/info/mash-cli.list").exists() {
-        Some(("apt", "sudo apt install --only-upgrade mash-cli"))
+        by("apt", "sudo apt install --only-upgrade mash-cli")
+    } else if is_windows_app_command(&resolved) {
+        Some(Installer {
+            name: "The Mash app",
+            update: None,
+        })
     } else {
         None
+    }
+}
+
+/// The command the Windows app puts on PATH: a copy of its `mash.exe` in a
+/// `bin` folder inside the app's own folder, beside the app's uninstaller.
+fn is_windows_app_command(path: &Path) -> bool {
+    let named = |path: &Path, name: &str| {
+        path.file_name()
+            .is_some_and(|file| file.eq_ignore_ascii_case(name))
+    };
+    let Some(folder) = path.parent().filter(|folder| named(folder, "bin")) else {
+        return false;
+    };
+    named(path, "mash.exe")
+        && folder.parent().is_some_and(|app| {
+            app.join("mash.exe").is_file() && app.join("uninstall.exe").is_file()
+        })
+}
+
+/// Who put a copy in place and how it is updated, as a finding says it.
+fn attributed(finding: Finding, path: &Path) -> Finding {
+    match installer(path) {
+        Some(Installer {
+            name,
+            update: Some(update),
+        }) => finding
+            .cause(format!(
+                "{name} installed that copy and updates it separately; it is left in place."
+            ))
+            .repair(update),
+        Some(Installer { name, update: None }) => finding.cause(format!(
+            "{name} put that copy there and updates it with the app; Install Command-Line Tool… in the app removes it."
+        )),
+        None => finding.cause("That copy was installed separately and updates separately."),
     }
 }
 
@@ -92,34 +147,56 @@ pub(super) async fn copies() -> Vec<Finding> {
     findings
 }
 
-/// The `mash` a terminal would run, found the way a login shell finds it.
-async fn command(this: &Path) -> Option<Finding> {
-    let found = crate::blocking(|| Ok(crate::core::setup::which("mash")))
-        .await
-        .ok()
-        .flatten()?;
-    let Relation::Other(version) = relation(&found, this).await else {
-        return None;
-    };
-    let finding = Finding::found(
-        Check::Copies,
-        State::Warning,
-        format!(
-            "`mash` in a terminal runs {}{}, not this copy ({}, version {}).",
-            found.display(),
-            described(version.as_deref()),
-            this.display(),
-            env!("CARGO_PKG_VERSION"),
-        ),
-    );
-    Some(match installer(&found) {
-        Some((manager, update)) => finding
-            .cause(format!(
-                "{manager} installed that copy and updates it separately; it is left in place."
-            ))
-            .repair(update),
-        None => finding.cause("That copy was installed separately and updates separately."),
+/// The `mash` a terminal would run, found the way a login shell finds it,
+/// and any other `mash` behind it on this process's PATH: the copy a terminal
+/// does not run is still one that may be out of step, such as the Windows
+/// app's command behind a winget or Scoop copy.
+async fn command(this: &Path) -> Vec<Finding> {
+    let Ok((Some(first), listed)) = crate::blocking(|| {
+        Ok((
+            crate::core::setup::which("mash"),
+            crate::core::setup::on_path("mash"),
+        ))
     })
+    .await
+    else {
+        return Vec::new();
+    };
+    let mut findings = Vec::new();
+    if let Relation::Other(version) = relation(&first, this).await {
+        let finding = Finding::found(
+            Check::Copies,
+            State::Warning,
+            format!(
+                "`mash` in a terminal runs {}{}, not this copy ({}, version {}).",
+                first.display(),
+                described(version.as_deref()),
+                this.display(),
+                env!("CARGO_PKG_VERSION"),
+            ),
+        );
+        findings.push(attributed(finding, &first));
+    }
+    let first_file = std::fs::canonicalize(&first).unwrap_or_else(|_| first.clone());
+    for behind in listed {
+        if std::fs::canonicalize(&behind).unwrap_or_else(|_| behind.clone()) == first_file {
+            continue;
+        }
+        if let Relation::Other(version) = relation(&behind, this).await {
+            let finding = Finding::found(
+                Check::Copies,
+                State::Warning,
+                format!(
+                    "{}{} is another `mash` on PATH and not this copy; a terminal runs {} instead.",
+                    behind.display(),
+                    described(version.as_deref()),
+                    first.display(),
+                ),
+            );
+            findings.push(attributed(finding, &behind));
+        }
+    }
+    findings
 }
 
 /// The program a service definition starts: the first of a launch agent's
@@ -312,7 +389,7 @@ pub(super) fn processes(inventory: &runtime::Inventory) -> Finding {
 
 #[cfg(test)]
 mod tests {
-    use super::{installer, is_mash, service_program};
+    use super::{installer, is_mash, is_windows_app_command, service_program};
     use std::path::{Path, PathBuf};
 
     #[test]
@@ -352,17 +429,47 @@ mod tests {
     #[test]
     fn names_the_package_manager_only_when_the_path_shows_it() {
         assert_eq!(
-            installer(Path::new("/opt/homebrew/Cellar/mash/0.2.4/bin/mash")).map(|found| found.0),
+            installer(Path::new("/opt/homebrew/Cellar/mash/0.2.4/bin/mash"))
+                .map(|found| found.name),
             Some("Homebrew")
         );
         assert_eq!(
-            installer(Path::new("/home/linuxbrew/.linuxbrew/bin/mash")).map(|found| found.0),
+            installer(Path::new("/home/linuxbrew/.linuxbrew/bin/mash")).map(|found| found.name),
             Some("Homebrew")
         );
-        assert_eq!(installer(Path::new("/home/sam/.local/bin/mash")), None);
+        let name = |path: &str| installer(Path::new(path)).map(|found| found.name);
         assert_eq!(
-            installer(Path::new("/Applications/Mash.app/Contents/MacOS/mash")),
-            None
+            name(r"C:\Users\sam\AppData\Local\Microsoft\WinGet\Links\mash.exe"),
+            Some("winget")
         );
+        assert_eq!(name(r"C:\Users\sam\scoop\shims\mash.exe"), Some("Scoop"));
+        assert_eq!(name("/home/sam/.local/bin/mash"), None);
+        assert_eq!(name("/Applications/Mash.app/Contents/MacOS/mash"), None);
+    }
+
+    #[test]
+    fn knows_the_windows_apps_command_by_its_folder() {
+        let root = std::env::temp_dir().join(format!("mash copies {}", std::process::id()));
+        let app = root.join("Mash");
+        let command = app.join("bin").join("mash.exe");
+        std::fs::create_dir_all(command.parent().unwrap()).unwrap();
+        std::fs::write(&command, "a copy").unwrap();
+        assert!(!is_windows_app_command(&command), "no app beside it");
+        std::fs::write(app.join("mash.exe"), "the app's mash").unwrap();
+        assert!(
+            !is_windows_app_command(&command),
+            "no uninstaller: not an installed app"
+        );
+        std::fs::write(app.join("uninstall.exe"), "").unwrap();
+        assert!(is_windows_app_command(&command));
+        assert_eq!(
+            installer(&command).map(|found| (found.name, found.update)),
+            Some(("The Mash app", None))
+        );
+        assert!(
+            !is_windows_app_command(&app.join("mash.exe")),
+            "the app's own mash"
+        );
+        std::fs::remove_dir_all(&root).unwrap();
     }
 }

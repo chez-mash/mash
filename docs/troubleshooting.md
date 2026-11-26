@@ -27,8 +27,9 @@ things worth checking. `mash doctor` leaves your setup
 and history as they were.
 
 A `copies` warning means something on this computer runs a different copy of
-Mash from the one you ran: the `mash` your terminal finds, a background
-service, or an agent's connection. Two copies at different versions is a
+Mash from the one you ran: the `mash` your terminal finds, another `mash`
+behind it on your PATH (such as the Windows app's command behind a winget
+copy), a background service, or an agent's connection. Two copies at different versions is a
 common reason search stops after an update. Update the other copy with the
 command shown, or, in the Mac app, choose **Use the App’s Mash Everywhere**
 when it offers.

@@ -15,8 +15,8 @@ pub(super) mod backfill;
 mod join;
 mod terminal;
 pub(super) use agents::run;
-pub use agents::which;
 use agents::{display, step};
+pub use agents::{on_path, which};
 pub use join::join_plan;
 pub(super) use join::preflight_with_join;
 
