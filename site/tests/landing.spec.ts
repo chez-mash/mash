@@ -4,10 +4,8 @@ const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", 
 
 test("the landing page says what Mash is and which agents it reads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toHaveText("Supercharged context for your agents.");
+  await expect(page.locator("h1")).toHaveText("Your agents forget. Mash doesn’t.");
   await expect(page).toHaveTitle("Mash: Supercharged context for your agents.");
-  // The old headline is gone from the page.
-  await expect(page.getByText("Your agents forget", { exact: false })).toHaveCount(0);
   const marks = page.locator(".mash-agents li");
   await expect(marks).toHaveCount(agents.length);
   await expect(marks).toHaveText(agents);
