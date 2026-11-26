@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-latest, ubuntu-24.04-arm, macos-26, windows-latest]
+        runner: [ubuntu-latest, ubuntu-24.04-arm, macos-26, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     steps:
@@ -65,6 +65,15 @@ jobs:
           $env:MASH_VERSION = $env:TAG
           irm "https://raw.githubusercontent.com/$env:GITHUB_REPOSITORY/main/install.ps1" | iex
           Join-Path $HOME '.local\bin' | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          # The installer must choose the archive built for this machine: an
+          # x64 program also starts on ARM64, emulated, so a wrong choice
+          # would pass the version check below.
+          $expected = if ($env:RUNNER_ARCH -eq 'ARM64') { 'AA64' } else { '8664' }
+          foreach ($name in 'mash.exe', 'mash-server.exe') {
+            $bytes = [IO.File]::ReadAllBytes((Join-Path $HOME ".local\bin\$name"))
+            $machine = '{0:X4}' -f [BitConverter]::ToUInt16($bytes, [BitConverter]::ToInt32($bytes, 0x3c) + 4)
+            if ($machine -ne $expected) { throw "$name is built for machine $machine; this runner needs $expected." }
+          }
       - name: Run it
         shell: bash
         run: |
@@ -143,3 +152,189 @@ jobs:
           scoop install mashhq/mash
           $version = (mash --version).Trim()
           if ($version -ne "mash $($env:TAG.TrimStart('v'))") { throw "unexpected version: $version" }
+
+  # The manifests a maintainer submits to microsoft/winget-pkgs, filled from
+  # the release's SHA256SUMS exactly as release.yml's winget job fills them.
+  # After a release they come from the tagged commit. A manual run takes the
+  # templates of the branch it is started from, which is how a change to
+  # packaging/winget is tried against a published release.
+  winget-manifests:
+    needs: published
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Render the winget manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir dist
+          for template in packaging/winget/*.yaml.in; do
+            name=$(basename "$template" .in)
+            python3 packaging/render.py "$TAG" dist/SHA256SUMS "$template" "winget-manifests/$name"
+          done
+          cat winget-manifests/*
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: winget-manifests
+          path: winget-manifests
+          if-no-files-found: error
+
+  # Installs the package with winget itself from those manifests, on x64 and
+  # on ARM64, the way Microsoft's validation of a submission does. Every
+  # winget command has its own time limit, so one that never returns fails
+  # with the processes it left running and winget's logs, not with a
+  # cancelled job.
+  winget:
+    needs: winget-manifests
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      MANIFESTS: ${{ github.workspace }}\winget-manifests
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: winget-manifests
+          path: winget-manifests
+      - name: Find winget
+        timeout-minutes: 15
+        run: |
+          # Shared by the steps below: run one winget command with a time
+          # limit, print what it wrote, and record how long it took.
+          @'
+          $ErrorActionPreference = 'Stop'
+          function Invoke-Winget {
+              param([Parameter(Mandatory)] [string[]] $Arguments, [int] $Minutes = 12)
+              $output = Join-Path $env:RUNNER_TEMP ('winget-' + [Guid]::NewGuid().ToString('N'))
+              $started = Get-Date
+              $process = Start-Process -FilePath (Get-Command winget.exe).Source -ArgumentList $Arguments -NoNewWindow -PassThru `
+                  -RedirectStandardOutput "$output.out" -RedirectStandardError "$output.err"
+              $null = $process.Handle  # keeps the exit code readable after the process ends
+              $finished = $process.WaitForExit($Minutes * 60 * 1000)
+              $seconds = [int] ((Get-Date) - $started).TotalSeconds
+              Get-Content -LiteralPath "$output.out", "$output.err" | Where-Object { $_.Trim() }
+              $command = "winget $($Arguments[0])"
+              if (-not $finished) {
+                  "| $command | still running after $Minutes minutes |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+                  Write-Host "::group::Processes started since $command began"
+                  Get-CimInstance Win32_Process | Where-Object { $_.CreationDate -ge $started.AddSeconds(-5) } |
+                      Sort-Object CreationDate |
+                      Format-Table ProcessId, ParentProcessId, CreationDate, Name, CommandLine -AutoSize -Wrap | Out-String -Width 300
+                  Write-Host '::endgroup::'
+                  Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+                  throw "$command did not finish within $Minutes minutes."
+              }
+              $process.WaitForExit()
+              "| $command | ${seconds}s, exit code $($process.ExitCode) |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              Write-Host "$command took ${seconds}s and exited with $($process.ExitCode)."
+              if ($process.ExitCode -ne 0) { throw ("$command failed with exit code {0} (0x{0:X8})." -f $process.ExitCode) }
+          }
+          # What a newly opened terminal would search: the PATH stored for
+          # the machine and the user, not the one this job started with.
+          function Get-FreshPath {
+              @([Environment]::GetEnvironmentVariable('PATH', 'Machine'), [Environment]::GetEnvironmentVariable('PATH', 'User')) -join ';'
+          }
+          '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+
+          if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
+            # Microsoft's supported way to put App Installer on a machine
+            # that lacks it.
+            Write-Host 'winget is not on this runner image; installing App Installer.'
+            Install-Module -Name Microsoft.WinGet.Client -Force -Scope CurrentUser -Repository PSGallery
+            Repair-WinGetPackageManager -Latest -Force
+            $env:PATH = "$env:LOCALAPPDATA\Microsoft\WindowsApps;$env:PATH"
+            "$env:LOCALAPPDATA\Microsoft\WindowsApps" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+            if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
+              throw 'This runner cannot run winget: App Installer could not be installed.'
+            }
+          }
+          "### winget on $env:RUNNER_OS $env:RUNNER_ARCH`n`n| Step | Result |`n|---|---|" |
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Invoke-Winget -Arguments '--info' -Minutes 5
+          # Whether the Visual C++ runtime the manifest depends on is already
+          # here decides if the install below also has to install it.
+          Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\*',
+              'HKLM:\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\*' -ErrorAction SilentlyContinue |
+              Format-Table PSChildName, Version, Installed, PSParentPath -AutoSize | Out-String -Width 300
+      - name: Validate the manifests
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'settings', '--enable', 'LocalManifestFiles' -Minutes 5
+          Invoke-Winget -Arguments 'validate', '--manifest', $env:MANIFESTS -Minutes 5
+      - name: Install with winget
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'install', '--manifest', $env:MANIFESTS, '--accept-package-agreements',
+              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs'
+      - name: Run it from a new shell
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          # winget puts a portable package's commands on PATH as links in its
+          # Links directory, or by adding the package directory itself; either
+          # way only the stored PATH changes, so resolve the commands there.
+          $env:PATH = Get-FreshPath
+          $version = $env:TAG.TrimStart('v')
+          $machine = if ($env:RUNNER_ARCH -eq 'ARM64') { 'AA64' } else { '8664' }
+          foreach ($name in 'mash', 'mash-server') {
+            $command = Get-Command "$name.exe" -CommandType Application -ErrorAction Stop | Select-Object -First 1
+            Write-Host "$name resolves to $($command.Source)"
+            Get-Item -LiteralPath $command.Source | Format-List FullName, LinkType, Target | Out-String
+            $reported = (& $command.Source --version | Out-String).Trim()
+            if ($LASTEXITCODE -ne 0 -or $reported -ne "$name $version") { throw "unexpected version from ${name}: '$reported' (exit $LASTEXITCODE)" }
+            # winget must have chosen the installer for this machine.
+            $bytes = [IO.File]::ReadAllBytes($command.Source)
+            $built = '{0:X4}' -f [BitConverter]::ToUInt16($bytes, [BitConverter]::ToInt32($bytes, 0x3c) + 4)
+            if ($built -ne $machine) { throw "$name is built for machine $built; this runner needs $machine." }
+            "| $name --version | $reported, machine $built, $($command.Source) |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+          Invoke-Winget -Arguments 'list', '--id', 'MashHQ.Mash', '--exact', '--disable-interactivity' -Minutes 5
+      - name: Uninstall with winget
+        timeout-minutes: 15
+        run: |
+          . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs'
+          $env:PATH = Get-FreshPath
+          $left = Get-Command mash.exe, mash-server.exe -CommandType Application -ErrorAction SilentlyContinue
+          if ($left) { throw "winget uninstall left $($left.Source -join ', ') on PATH." }
+      - name: Collect winget's logs
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        run: |
+          $logs = Join-Path $env:RUNNER_TEMP 'winget-logs'
+          New-Item -ItemType Directory -Force -Path $logs | Out-Null
+          $sources = @(
+            Get-ChildItem "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_*\LocalState\DiagOutputDir" -File -ErrorAction SilentlyContinue
+            Get-ChildItem "$env:TEMP\WinGet" -Recurse -File -Filter *.log -ErrorAction SilentlyContinue
+          )
+          $sources | Copy-Item -Destination $logs -Force
+          Get-ChildItem $logs | Sort-Object LastWriteTime | Format-Table Name, Length, LastWriteTime -AutoSize | Out-String
+          Write-Host '::group::Processes still running from winget'
+          Get-CimInstance Win32_Process |
+              Where-Object { $_.Name -match 'winget|WindowsPackageManager|AppInstaller|vc_?redist|msiexec|mash' } |
+              Format-Table ProcessId, ParentProcessId, CreationDate, Name, CommandLine -AutoSize -Wrap | Out-String -Width 300
+          Write-Host '::endgroup::'
+          foreach ($log in Get-ChildItem $logs -Filter 'WinGet-*.log' | Sort-Object LastWriteTime) {
+            Write-Host "::group::$($log.Name) (last 80 lines)"
+            Get-Content -LiteralPath $log.FullName -Tail 80
+            Write-Host '::endgroup::'
+          }
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: winget-logs-${{ matrix.runner }}
+          path: ${{ runner.temp }}/winget-logs
+          if-no-files-found: warn
