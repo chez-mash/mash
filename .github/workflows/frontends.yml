@@ -85,7 +85,10 @@ jobs:
         working-directory: dashboard
         run: |
           pnpm install --frozen-lockfile
-          pnpm exec playwright install --with-deps --only-shell chromium
+          # No --with-deps: the runner image already has the libraries the
+          # headless shell needs, and installing them again through apt took
+          # from twenty seconds to over three minutes, more than the tests.
+          pnpm exec playwright install --only-shell chromium
           # One retry: a test that passes the second time is reported as
           # flaky in the merged report instead of failing the push.
           pnpm exec playwright test --shard=${{ matrix.shard }}/4 --reporter=blob,line --retries=1
