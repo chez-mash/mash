@@ -768,8 +768,8 @@ job that did not start:
 
 | Check | Workflow | What it covers | Typical time when its jobs run |
 |---|---|---|---|
-| `ci / required` | `ci.yml` | `file-lines`, `protocol`, `dependencies`, `rust` | 12 minutes |
-| `windows / required` | `windows.yml` | both Windows builds and the Linux import | 15 minutes |
+| `ci / required` | `ci.yml` | `file-lines`, `protocol`, `dependencies`, `rust`, `tooling` | 9 minutes |
+| `windows / required` | `windows.yml` | the x64 build and its tests, the ARM build, the Linux import | 6 to 11 minutes |
 | `front-ends` | `frontends.yml` | the dashboard, its browser shards, Raycast | 3 minutes |
 | `visual / required` | `visual.yml` | the dashboard's pictures | 2 minutes |
 | `docs / required` | `docs.yml` | the website's build, tests and pictures, never its deploy | 5 minutes |
@@ -780,21 +780,25 @@ and the website's deploy run only on a push to `main`.
 
 A change is on `main` roughly as long after `land` as its slowest required
 check takes, plus two minutes for the pull request's own run and the queue's
-bookkeeping: about eighteen minutes for a Rust change, about seven for a
+bookkeeping: about eleven minutes for a Rust change (up to thirteen when it
+changes a crate near the bottom, which Windows ARM then compiles all of ours
+on top of; see [The merge queue's caches](#the-merge-queues-caches)), about seven for a
 dashboard or website change, about two for `AGENTS.md`. The ruleset's
 five-minute wait applies only while fewer changes than its minimum group of
 one have passed, so it never delays anything. The queue does not
 wait for one change to finish before starting the next. Each queued change is
 tested on top of the ones ahead of it, up to three at once, so three changes
-landed together are all on `main` after about eighteen minutes, not fifty. If
+landed together are all on `main` after about eleven minutes, not thirty. If
 one of them fails, it leaves the queue and the ones behind it are tested
 again without it. Up to five that have passed merge in one step.
 
 The push to `main` that the queue makes starts the workflows once more for
 the same commit. The `changes` job finds the queue's passing run for that
-commit and skips everything, so the run concludes in under a minute and still
-counts for a release, which wants a passing `ci.yml` and `windows.yml` run for
-its exact commit.
+commit and skips every job that tests, so the run concludes in about a minute
+and still counts for a release, which wants a passing `ci.yml` and
+`windows.yml` run for its exact commit. The one job that does run there is
+`windows.yml`'s `warm`, which saves a cache when the queue needs a new one
+(see [The merge queue's caches](#the-merge-queues-caches)).
 
 **Reading a rejection.** `land --wait` prints why and exits 1:
 
@@ -865,7 +869,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 
 | Changed files | `ci.yml` | `windows.yml` | `frontends.yml` | `docs.yml` |
 |---|---|---|---|---|
-| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust` | both builds, import | nothing | nothing |
+| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust`, `tooling` | both builds, the library tests, import | nothing | nothing |
 | `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build, pictures |
 | `docs/internal/*.md` (read by no build and no test) | nothing | nothing | nothing | build, pictures |
 | `site/` | nothing | nothing | nothing | build, pictures |
@@ -981,11 +985,12 @@ from nothing, change `v1` in both keys.
 The same job deletes what merge queue groups saved. A group runs on a branch
 of its own (`gh-readonly-queue/main/pr-N-…`), a cache saved there can be read
 only from that branch, and the branch is deleted when the group merges.
-`ci.yml` and `windows.yml` save about 1.5 GB there for each group whose
-change touches `Cargo.lock` or a manifest, and since `main` skips the jobs
-the queue already ran, it never saves that key itself, so every later group
-does the same. Being the newest caches in the repository, they pushed out
-ones still in use within hours.
+`ci.yml` and `windows.yml` used to save about 1.5 GB there for each group
+whose change touched `Cargo.lock` or a manifest; being the newest caches in
+the repository, they pushed out ones still in use within hours. Those
+workflows no longer save from a group (see [The merge queue's
+caches](#the-merge-queues-caches)); what is left is the compiler cache's
+entries for the crates a group compiled, some tens of megabytes.
 
 The dependencies' cache is saved when its key is new and never again, so it
 must be complete when it is saved. `cache-on-failure` keeps what a run built
@@ -1001,6 +1006,121 @@ newest waiting commit. Each build starts from the crates the build before it
 saved, so running them side by side would save nothing and have them write
 over each other; and a deployment takes the head of `main`, which is always
 built.
+
+### The merge queue's caches
+
+A merge queue group can read a cache only when `main` saved it. A group runs
+on a branch of its own, so what it saves is lost with the branch, and on
+`main` the test workflows skip their jobs for every commit the queue already
+tested, so they save nothing there either. Left like that, the queue's runs
+start from whatever `main` last saved before the queue existed: stale after
+the next change to `Cargo.lock`, and useless for `ci.yml` after the next
+nightly compiler, which is a new one every day.
+
+So nothing in the queue saves, and jobs that run only on `main` save what the
+queue reads:
+
+| What a queue run starts from | Read by | Saved on `main` by | When |
+|---|---|---|---|
+| `mash-windows-v2-x64-…`: the Windows x64 debug dependencies (about 600 MB) | `windows.yml` `build`, `lib-tests` | `windows.yml` `warm` | A new `Cargo.lock`, manifest or stable Rust |
+| `mash-artifacts-v1-aarch64-pc-windows-msvc-release-…` and `mash-artifacts-crates-v1-aarch64-pc-windows-msvc-…`: the Windows ARM release dependencies and our own crates (about 550 MB) | `windows.yml` `build-arm64` | `queue-caches.yml` `windows-arm64` | Every commit that is not only `docs/`, `site/` or `raycast/` |
+| The compiler cache (`sccache/…`, one small cache per compiled crate) and `mash-Linux-cargo-sources-…` | `ci.yml` `rust` | `queue-caches.yml` `ci-compiler` | A new nightly or `Cargo.lock`; it also runs daily at 01:40 UTC |
+
+Each of the saving jobs first asks whether its cache exists, which takes about
+half a minute, and compiles only when it does not. `warm` asks
+`Swatinem/rust-cache` itself (`lookup-only`), because the key is that action's
+hash of the compiler, `Cargo.lock`, the manifests and the workflow's `CARGO_*`
+and `RUST*` variables; that is also why `warm` lives in `windows.yml`, where it
+shares those variables with the jobs that read the cache. `ci-compiler` keeps a
+marker cache named after the compiler and `Cargo.lock`
+(`mash-ci-warmed-v1-…`), since the compiler cache has no single key to ask
+for; it carries a copy of `ci.yml`'s variables, and the two must change
+together. None of these jobs is part of a required check, and a failure in one
+costs the queue compile time, nothing else: `warm` is marked
+`continue-on-error`, and no release or deployment looks at `queue-caches.yml`.
+
+After a change to `Cargo.lock` lands, the groups that start before the saving
+jobs finish (10 to 15 minutes) restore the previous cache and compile the
+dependencies that changed.
+
+`windows.yml` sets `RUSTUP_TOOLCHAIN: stable` for every job. Without it, the
+cache action's `rustc -vV` installed the nightly toolchain
+`rust-toolchain.toml` names (50 s on x64, 85 s on ARM, in every job), and the
+key held that nightly's version, so the cache was abandoned whenever a new
+nightly was installed.
+
+The prune job of `dev-artifacts.yml` keeps these within the repository's
+10 GB: it deletes every `mash-windows-` and `mash-artifacts-` cache a newer
+one of its family replaced, and compiler cache entries nothing has read for
+two days (GitHub would keep a retired nightly's for seven).
+
+With these the repository holds about 6 GB: 2 GB for the per-commit binary
+builds, 0.6 GB for each of the two Windows rows above, 1.6 GB of pnpm stores
+(`setup-node`), and about 0.4 GB of compiler cache for each nightly still
+being read. The Linux import is not cached at all: from nothing its build
+takes two minutes, and restoring 450 MB of dependencies saved half a minute
+of that.
+
+**What it bought.** Measured on GitHub's runners on 26 November 2026, for a
+change that runs the Rust jobs, as the time from the group entering the queue
+to the required check passing:
+
+| | Before | After |
+|---|---|---|
+| `windows.yml` | 13 to 17 min (sixteen runs that day) | Not yet measured with its caches saved; with none at all, on a branch: x64 jobs 9 to 10 min, Windows ARM 16 min |
+| `ci.yml` | 11 to 15 min (fourteen runs that day) | 8 min 40 s (`rust` 8 min 22 s, `tooling` 3 min) |
+
+Where the time went before, with the dependencies restored from a cache, in
+run 45816311226 (`windows.yml`, 15 min 21 s) and its `ci.yml` twin (13 min
+8 s):
+
+| Job | Total | Setup and caches | Compiling | Running tests and checks |
+|---|---|---|---|---|
+| `build` (Windows x64) | 13 min 24 s | 1 min 55 s, 50 s of it installing a nightly nothing used, 22 s saving a cache nothing could read | 4 min 10 s (programs 1 min 36 s, library tests 2 min 8 s, CLI tests 21 s) | 7 min 10 s (library tests 4 min 47 s, CLI tests 2 min 13 s) |
+| `build-arm64` | 13 min 13 s | 4 min, 85 s of it the nightly, 1 min 35 s Node and the dashboard | 8 min 29 s, all of it our own crates in the release profile | 10 s |
+| `linux-import` | 1 min 38 s, after `build` | 40 s | 52 s | 5 s |
+| `rust` (`ci.yml`) | 12 min 20 s | 30 s | about 5 min, with 98% of the compiler's requests answered from its cache | about 3 min 20 s of script suites, 4 min of Rust tests |
+
+What changed, in the order of what it saved:
+
+- The Windows x64 job became four: `build` (the programs and their smoke
+  checks, which `linux-import` waits for), `lib-tests` in two halves, and
+  `cli-tests`. Each compiles what it needs from the shared dependencies, so
+  the tests no longer run one suite after another, nor the import after all
+  of them.
+- `build-arm64` calls `build-binaries.yml` with `cache: true` and compiles
+  only the crates a change touched and those built on them (see [The
+  per-commit binary builds](#the-per-commit-binary-builds) for which those
+  are). Its Qdrant-under-emulation check needs no build and is the job
+  `qdrant-arm64`.
+- `ci.yml`'s script suites (deployment, pre-push, worktrees, Ansible,
+  releasing) moved from `rust` to `tooling`, which compiles nothing and runs
+  beside it.
+- No job installs the nightly toolchain to compile with stable, and none
+  saves a cache from a group.
+
+A change to `Cargo.lock` still costs a group the dependencies that changed,
+and a change to a crate near the bottom (`mash-model`, `mash-storage`) still
+compiles nearly all of ours, eight and a half minutes on Windows ARM in the
+release profile: that job is then the slowest again.
+
+Not done, and why:
+
+- Caching our own crates for the debug and test builds, as the binary builds
+  do. It would save a change that touches a top crate about two minutes in
+  each Windows x64 job, for about 1 GB more cache per commit on `main`.
+- Building Windows ARM in the debug profile in the queue. It would take two
+  minutes instead of up to nine, and would no longer be the build a release
+  makes; `release.yml` would be the first to compile that target optimized.
+- Pinning `ci.yml`'s nightly. Each new nightly makes the first groups of the
+  day compile everything (three to four minutes more) until `ci-compiler`
+  has run; a pinned date would make that a deliberate, occasional step, and
+  would stop a new nightly's lints from failing unrelated changes.
+- Keeping the compiler cache current for our own crates by compiling every
+  commit on `main`. Entries for crates a change does not touch would then be
+  cache hits in the queue, at about 100 MB of new entries per commit.
+- The installed-models cache in `ci.yml` is keyed on `Cargo.lock` and misses
+  after every change to it; the miss costs 11 s.
 
 ### Deploying and releasing
 

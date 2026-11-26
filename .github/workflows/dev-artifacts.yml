@@ -43,8 +43,9 @@ jobs:
       cache: true
 
   # Every build saves this repository's compiled crates under its own commit,
-  # and a change to Cargo.lock saves the dependencies under a new key. Only the
-  # newest of each is ever read again. The older ones are deleted here, so the
+  # and a change to Cargo.lock saves the dependencies under a new key, here, in
+  # queue-caches.yml and in windows.yml's `warm` job. Only the newest of each
+  # is ever read again. The older ones are deleted here, so the
   # repository's 10 GB of cache is not spent on them and GitHub does not evict
   # caches the test workflows still use to make room.
   prune-caches:
@@ -64,10 +65,13 @@ jobs:
           # of the compiler and of Cargo.lock) or one target's crates (the key
           # ends with a hash of Cargo.lock and the commit). The list comes
           # newest first, so every key after the first of its family has been
-          # replaced.
-          gh api --paginate \
-            "repos/$GITHUB_REPOSITORY/actions/caches?key=mash-artifacts-&ref=refs/heads/main&sort=created_at&direction=desc&per_page=100" \
-            --jq '.actions_caches[] | [.id, .key] | @tsv' |
+          # replaced. `mash-windows-` holds the dependencies windows.yml's
+          # `warm` job saves, named the same way.
+          for prefix in mash-artifacts- mash-windows-; do
+            gh api --paginate \
+              "repos/$GITHUB_REPOSITORY/actions/caches?key=$prefix&ref=refs/heads/main&sort=created_at&direction=desc&per_page=100" \
+              --jq '.actions_caches[] | [.id, .key] | @tsv'
+          done |
             awk -F '\t' '{
               family = $2
               sub(/-[^-]*-[^-]*$/, "", family)
@@ -78,6 +82,23 @@ jobs:
             gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/caches/$id" > /dev/null ||
               echo "::warning::Could not delete the cache $key"
           done < replaced.tsv
+      # ci.yml's compiler cache (sccache) keeps one small cache for each
+      # compiled crate, and its nightly compiler changes daily, which makes
+      # every one saved before useless. GitHub would keep those for a week;
+      # the ones nothing has read for two days go here. At most 400 a run, to
+      # stay inside this token's hourly allowance of requests.
+      - name: Delete compiler cache entries nothing reads any more
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          before=$(date -u -d '2 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/actions/caches?key=sccache/&ref=refs/heads/main&sort=last_accessed_at&direction=asc&per_page=100" \
+            --jq ".actions_caches[] | select(.last_accessed_at < \"$before\") | .id" > unread.txt
+          echo "$(wc -l < unread.txt) entries were last read before $before"
+          sed -n 1,400p unread.txt |
+            xargs -r -P 4 -I{} gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/caches/{}" > /dev/null ||
+            echo "::warning::Could not delete some compiler cache entries"
       # A merge queue group runs on a branch of its own. What the test
       # workflows save there can be read only from that branch, which is
       # deleted when the group merges, and a group whose change touches

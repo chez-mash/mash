@@ -21,6 +21,12 @@ env:
   CARGO_PROFILE_DEV_DEBUG: "0"
   # The lld that ships with Rust links several times faster than link.exe.
   CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: rust-lld
+  # Every job compiles with stable. Without this, any `cargo` or `rustc` that
+  # runs in the checkout without `+stable` installs the nightly toolchain
+  # rust-toolchain.toml names (the cache action's `rustc -vV` did: 50 s on
+  # x64), and the cache key would hold that nightly's version and change
+  # whenever a new one came out.
+  RUSTUP_TOOLCHAIN: stable
 
 jobs:
   # Whether this commit can affect the Rust build. The builds below are
@@ -41,6 +47,12 @@ jobs:
         with:
           workflow: windows.yml
 
+  # The programs: they build, start, and set up, search and export on a real
+  # Windows profile. These steps write configuration and an index into the
+  # runner's profile, which Mash's default paths would pick up, so the test
+  # suites run in jobs of their own (`lib-tests`, `cli-tests`), on clean
+  # profiles and side by side: in one job with this they took 10 of its 13
+  # minutes, and `linux-import` waited for all of them.
   build:
     needs: changes
     if: needs.changes.outputs.rust == 'true'
@@ -66,15 +78,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
           toolchain: stable
+      # The compiled dependencies, saved by the `warm` job on main; see there.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
-          prefix-key: mash-windows-v1
-          # A cold Windows build takes ~15 minutes; keep what a failing run built.
-          cache-on-failure: true
-      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
-        with:
-          tool: nextest
-      # A debug build shares its dependencies with the test builds below, which
+          prefix-key: mash-windows-v2
+          shared-key: x64
+          cache-bin: false
+          save-if: false
+      # A debug build shares its dependencies with the test builds, which
       # nearly halves a cold run; release.yml builds the release binary on
       # Windows before publishing.
       - name: Build
@@ -85,51 +96,7 @@ jobs:
         run: python .github/scripts/check-windows-delay-load.py target/debug/mash.exe target/debug/mash-server.exe
       - name: Start disposable native Qdrant
         shell: pwsh
-        run: |
-          $root = Join-Path $env:RUNNER_TEMP 'qdrant'
-          New-Item -ItemType Directory -Path $root -Force | Out-Null
-          $archive = Join-Path $root 'qdrant.zip'
-          Invoke-WebRequest 'https://github.com/qdrant/qdrant/releases/download/v1.20.0/qdrant-x86_64-pc-windows-msvc.zip' -OutFile $archive
-          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '6d13553584fd0411f00637519e293331ff0aa1fb79bd9e30db45839bb75de2be') {
-            throw 'Qdrant archive checksum mismatch'
-          }
-          Expand-Archive $archive -DestinationPath $root
-          # A process started from a step ends with that step on Windows
-          # runners. Create it through WMI so it lives outside the step's
-          # process tree and serves the later steps. WMI does not pass this
-          # shell's environment, so cmd sets the bind address and redirects
-          # the logs.
-          $command = 'cmd.exe /d /c "set QDRANT__SERVICE__HOST=127.0.0.1&& qdrant.exe > stdout.log 2> stderr.log"'
-          $created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $command; CurrentDirectory = $root }
-          if ($created.ReturnValue -ne 0) { throw "Could not start Qdrant: Win32_Process.Create returned $($created.ReturnValue)" }
-          $created.ProcessId | Set-Content (Join-Path $root 'pid')
-          for ($attempt = 0; $attempt -lt 60; $attempt++) {
-            if (-not (Get-Process -Id $created.ProcessId -ErrorAction SilentlyContinue)) { throw 'Qdrant exited before readiness' }
-            try {
-              Invoke-RestMethod 'http://127.0.0.1:6333/readyz' -TimeoutSec 2 | Out-Null
-              exit 0
-            } catch { Start-Sleep -Seconds 1 }
-          }
-          throw 'Qdrant did not become ready'
-      # The test suites run first, on a clean profile: the steps after them
-      # write configuration and an index into the runner's real profile, which
-      # Mash's default paths would pick up. Test processes start Mash
-      # constantly, so they keep the executable in place (no relocation).
-      # nextest runs each test in its own process, as on Linux: tracing caches
-      # callsite interest process-wide, so tests sharing one process can drop
-      # each other's captured events.
-      - name: Library tests
-        env:
-          MASH_KEEP_EXECUTABLE: "1"
-          # Linux CI runs proptest's full 256 cases. Here each SQLite-backed
-          # case is several times slower on NTFS, so a smaller sample checks
-          # the platform without exceeding nextest's timeout.
-          PROPTEST_CASES: "32"
-        run: cargo +stable nextest run --profile ci --locked --lib
-      - name: CLI contract tests
-        env:
-          MASH_KEEP_EXECUTABLE: "1"
-        run: cargo +stable nextest run --profile ci --locked --test cli_contract
+        run: ./.github/scripts/windows-qdrant.ps1 start
       - name: Smoke
         run: .github/scripts/deploy-smoke target/debug/mash.exe "$GITHUB_SHA"
       # The runner is disposable, so its real profile stands in for a user's:
@@ -158,43 +125,27 @@ jobs:
       - name: Show disposable Qdrant state after a failure
         if: failure()
         shell: pwsh
-        run: |
-          $root = Join-Path $env:RUNNER_TEMP 'qdrant'
-          $pidFile = Join-Path $root 'pid'
-          if (Test-Path $pidFile) {
-            $id = [int](Get-Content $pidFile)
-            $process = Get-Process -Id $id -ErrorAction SilentlyContinue
-            if ($process) { "Launcher process $id is still running." } else { "Launcher process $id has exited." }
-            $qdrant = Get-Process -Name qdrant -ErrorAction SilentlyContinue
-            if ($qdrant) { "qdrant.exe is running as $($qdrant.Id -join ', ')." } else { 'No qdrant.exe process is running.' }
-          } else { 'No Qdrant PID file.' }
-          try {
-            Invoke-RestMethod 'http://127.0.0.1:6333/readyz' -TimeoutSec 5 | Out-Null
-            'Qdrant answers on 127.0.0.1:6333.'
-          } catch { "Qdrant does not answer on 127.0.0.1:6333: $($_.Exception.Message)" }
-          foreach ($log in 'stdout.log', 'stderr.log') {
-            $path = Join-Path $root $log
-            "===== $log (last 80 lines) ====="
-            if (Test-Path $path) { Get-Content $path -Tail 80 } else { 'missing' }
-          }
+        run: ./.github/scripts/windows-qdrant.ps1 show
       - name: Stop disposable Qdrant
         if: always()
         shell: pwsh
-        run: |
-          $pidFile = Join-Path $env:RUNNER_TEMP 'qdrant/pid'
-          if (Test-Path $pidFile) {
-            # The recorded process is cmd; end Qdrant beneath it too.
-            taskkill /PID ([int](Get-Content $pidFile)) /T /F 2>&1 | Out-Null
-          }
+        run: ./.github/scripts/windows-qdrant.ps1 stop
 
-  # Windows on ARM (Snapdragon laptops and others) builds natively the way a
-  # release does, with the dashboard built in, and must pass the same smoke
-  # test as x64. The x64 build otherwise runs there only under emulation.
-  build-arm64:
+  # The library tests, in two halves: `count:N/2` deals the tests out in turn,
+  # so the halves together are exactly the whole suite.
+  lib-tests:
+    name: lib-tests (${{ matrix.half }}/2)
     needs: changes
     if: needs.changes.outputs.rust == 'true'
-    runs-on: windows-11-arm
-    timeout-minutes: 75
+    runs-on: windows-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        half: [1, 2]
+    env:
+      MASH_TEST_QDRANT_URL: http://127.0.0.1:6333
+      MASH_TEST_QDRANT_GRPC_URL: http://127.0.0.1:6334
     defaults:
       run:
         shell: bash
@@ -203,35 +154,112 @@ jobs:
       - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
           toolchain: stable
+      # The compiled dependencies, saved by the `warm` job on main; see there.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
-          prefix-key: mash-windows-arm64-v1
-          cache-on-failure: true
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+          prefix-key: mash-windows-v2
+          shared-key: x64
+          cache-bin: false
+          save-if: false
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
         with:
-          package_json_file: site/package.json
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: dashboard/pnpm-lock.yaml
-      - name: Build the dashboard
-        working-directory: dashboard
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-      - name: Build
+          tool: nextest
+      - name: Start disposable native Qdrant
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 start
+      # nextest runs each test in its own process, as on Linux: tracing caches
+      # callsite interest process-wide, so tests sharing one process can drop
+      # each other's captured events. Test processes start Mash constantly, so
+      # they keep the executable in place (no relocation).
+      - name: Library tests
         env:
-          MASH_BUILD_REVISION: ${{ github.sha }}
-          MASH_REQUIRE_DASHBOARD: 1
-        run: cargo +stable build --release --locked --bin mash --bin mash-server
-      - name: Smoke
-        run: |
-          .github/scripts/deploy-smoke target/release/mash.exe "$GITHUB_SHA"
-          target/release/mash-server.exe --version
-          python .github/scripts/check-windows-delay-load.py target/release/mash.exe target/release/mash-server.exe
-      # Qdrant has no Windows ARM build, so Mash installs the x64 one there;
-      # it must start and answer under Windows 11's emulator.
+          MASH_KEEP_EXECUTABLE: "1"
+          # Linux CI runs proptest's full 256 cases. Here each SQLite-backed
+          # case is several times slower on NTFS, so a smaller sample checks
+          # the platform without exceeding nextest's timeout.
+          PROPTEST_CASES: "32"
+        run: cargo +stable nextest run --profile ci --locked --lib --partition count:${{ matrix.half }}/2
+      - name: Show disposable Qdrant state after a failure
+        if: failure()
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 show
+      - name: Stop disposable Qdrant
+        if: always()
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 stop
+
+  cli-tests:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      MASH_TEST_QDRANT_URL: http://127.0.0.1:6333
+      MASH_TEST_QDRANT_GRPC_URL: http://127.0.0.1:6334
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: stable
+      # The compiled dependencies, saved by the `warm` job on main; see there.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          prefix-key: mash-windows-v2
+          shared-key: x64
+          cache-bin: false
+          save-if: false
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        with:
+          tool: nextest
+      - name: Start disposable native Qdrant
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 start
+      # Test processes start Mash constantly, so they keep the executable in
+      # place (no relocation).
+      - name: CLI contract tests
+        env:
+          MASH_KEEP_EXECUTABLE: "1"
+        run: cargo +stable nextest run --profile ci --locked --test cli_contract
+      - name: Show disposable Qdrant state after a failure
+        if: failure()
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 show
+      - name: Stop disposable Qdrant
+        if: always()
+        shell: pwsh
+        run: ./.github/scripts/windows-qdrant.ps1 stop
+
+  # Windows on ARM (Snapdragon laptops and others) builds natively with the
+  # release's own steps (build-binaries.yml): the dashboard built in, the
+  # release profile, the smoke test and the DirectML check. The x64 build
+  # otherwise runs there only under emulation.
+  #
+  # `cache: true` starts it from what the last build of main compiled
+  # (queue-caches.yml saves that for every commit), so it compiles the crates
+  # this change touched and the ones built on them; from the dependencies
+  # alone it took eight and a half minutes. A release still compiles this
+  # target from nothing.
+  build-arm64:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["aarch64-pc-windows-msvc"]'
+      cache: true
+      artifact-suffix: -check
+      retention-days: 1
+
+  # Qdrant has no Windows ARM build, so Mash installs the x64 one there;
+  # it must start and answer under Windows 11's emulator.
+  qdrant-arm64:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: windows-11-arm
+    timeout-minutes: 15
+    steps:
       - name: Run the x64 Qdrant under emulation
         shell: pwsh
         run: |
@@ -276,13 +304,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        with:
-          prefix-key: mash-windows-import-v1
-          cache-on-failure: true
+      # Nothing is cached here: from nothing this build takes two minutes on
+      # Linux, and restoring 450 MB of compiled dependencies saved half a
+      # minute of that.
       - name: Build
-        env:
-          CARGO_PROFILE_DEV_DEBUG: "0"
         run: cargo +stable build --locked --bin mash --bin mash-server
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -291,6 +316,66 @@ jobs:
       - name: Import, search and view the Windows history
         run: python3 .github/scripts/portability-smoke.py import target/debug/mash "$RUNNER_TEMP/portable"
 
+  # Saves the compiled dependencies `build`, `lib-tests` and `cli-tests` start
+  # from.
+  #
+  # Only a cache saved on main can be read by a merge queue group (a group
+  # runs on a branch of its own, and what it saves there is lost with the
+  # branch), and on main the jobs above are skipped for every commit the queue
+  # already tested. So they never save, and this job, which runs only on main,
+  # does: it asks whether the cache for this compiler and Cargo.lock exists
+  # (about half a minute) and compiles and saves it when it does not, which is
+  # after a change to Cargo.lock or a manifest and after a new stable Rust.
+  # Until it has finished, the queue's runs start from the previous cache and
+  # compile the dependencies that changed.
+  #
+  # It tests nothing, and its failure fails neither this workflow nor the
+  # required check: the next push to main tries again.
+  warm:
+    if: github.ref == 'refs/heads/main'
+    continue-on-error: true
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: stable
+      # The key is the action's own hash of the compiler, Cargo.lock, the
+      # manifests and this workflow's CARGO_* and RUST* variables, so only
+      # the action can say whether that cache exists.
+      - name: Ask whether this cache exists
+        id: saved
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          prefix-key: mash-windows-v2
+          shared-key: x64
+          cache-bin: false
+          lookup-only: true
+          save-if: false
+      # Starts from the previous cache when there is one, and saves when the
+      # steps below succeeded: a cache is saved once under its key and never
+      # again, so one from a build that stopped halfway would stay incomplete.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: steps.saved.outputs.cache-hit != 'true'
+        with:
+          prefix-key: mash-windows-v2
+          shared-key: x64
+          cache-bin: false
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        if: steps.saved.outputs.cache-hit != 'true'
+        with:
+          tool: nextest
+      - name: Compile what those jobs compile
+        if: steps.saved.outputs.cache-hit != 'true'
+        run: |
+          cargo +stable build --locked --bin mash --bin mash-server
+          cargo +stable nextest run --profile ci --locked --lib --no-run
+          cargo +stable nextest run --profile ci --locked --test cli_contract --no-run
+
   # The one status the ruleset for main requires of this workflow, on a pull
   # request and in the merge queue: it passes when every job above passed or
   # was skipped because its files did not change. A job that is skipped never
@@ -298,7 +383,7 @@ jobs:
   # waiting.
   required:
     name: windows / required
-    needs: [changes, build, build-arm64, linux-import]
+    needs: [changes, build, lib-tests, cli-tests, build-arm64, qdrant-arm64, linux-import]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -307,7 +392,7 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "changes, build, build-arm64, linux-import: $RESULTS"
+          echo "changes, build, lib-tests, cli-tests, build-arm64, qdrant-arm64, linux-import: $RESULTS"
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) exit 1 ;;
           esac

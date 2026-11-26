@@ -29,6 +29,9 @@ env:
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: mash-v1
   SCCACHE_BASEDIRS: ${{ github.workspace }}
+# queue-caches.yml compiles with a copy of these variables to fill the
+# compiler cache `rust` reads. Change them in both places: the compiler cache
+# keys on the flags, and a difference leaves `rust` compiling everything.
 
 jobs:
   # Which areas this commit can affect. The jobs below are skipped when theirs
@@ -143,14 +146,17 @@ jobs:
         with:
           toolchain: nightly
           components: rustfmt, clippy
+      # Saved on main by queue-caches.yml, as is what the compiler cache holds.
       - name: Restore Cargo cache
-        id: cargo-cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: mash-${{ runner.os }}-cargo-sources-${{ hashFiles('Cargo.lock') }}
+          # After a change to Cargo.lock, until queue-caches.yml has saved the new set:
+          # the previous one, and Cargo downloads the crates that changed.
+          restore-keys: mash-${{ runner.os }}-cargo-sources-
       - name: Configure compiler cache
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
         with:
@@ -174,52 +180,11 @@ jobs:
         run: python3 .github/scripts/first-run-smoke.py target/debug/mash
       - name: Index histories while their application writes them
         run: python3 .github/scripts/live-writer-smoke.py target/debug/mash
-      - name: Verify deployment gate
-        run: |
-          python3 .github/scripts/test-deploy-gate.py
-          python3 .github/scripts/test-deploy-credentials.py
       # The task runner, at the version and checksum tools/install-just.sh pins.
       - name: Install pinned just
         run: |
           bash tools/install-just.sh "$RUNNER_TEMP/just"
           echo "$RUNNER_TEMP/just" >> "$GITHUB_PATH"
-      - name: Verify development API deployment rollback
-        run: |
-          TMPDIR="$RUNNER_TEMP" bash tools/test-dev-api.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-dev-build.sh
-          bash tools/test-pr-labels.sh
-      - name: Verify the pre-push check, the worktree workflow and the justfile
-        run: |
-          TMPDIR="$RUNNER_TEMP" bash tools/test-pre-push.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-worktree.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-justfile.sh
-      - name: Verify Ansible fleet policy and cross-session exclusion
-        env:
-          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/mash-ansible-runtime
-        run: |
-          TMPDIR="$RUNNER_TEMP" bash tools/test-controller-environment.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-run-ansible.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-ansible.sh
-      # The version tools/release.sh pins (its cargo_release_version), from
-      # cargo-release's own release with a pinned checksum.
-      - name: Install pinned cargo-release
-        run: |
-          mkdir -p "$RUNNER_TEMP/cargo-release"
-          curl --fail --location --silent --show-error --retry 3 \
-            https://github.com/crate-ci/cargo-release/releases/download/v1.1.7/cargo-release-v1.1.7-x86_64-unknown-linux-musl.tar.gz \
-            --output "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz"
-          printf '%s  %s\n' \
-            9e04ae8b068f52788ce301cabaf34c4b3f0c945793d02c88442b561073f6bdb1 \
-            "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz" | sha256sum --check
-          tar --no-same-owner -xzf "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz" -C "$RUNNER_TEMP/cargo-release" ./cargo-release
-          echo "$RUNNER_TEMP/cargo-release" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/cargo-release/cargo-release" release --version
-      - name: Verify the release script against a throwaway remote
-        run: |
-          TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
-          TMPDIR="$RUNNER_TEMP" bash tools/test-updater-key.sh
-      - name: Verify offline search evaluation and benchmark witnesses
-        run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
       - name: Install pinned sqlc release
         run: |
           mkdir -p "$RUNNER_TEMP/mash-sqlc"
@@ -298,14 +263,78 @@ jobs:
         with:
           path: ${{ runner.temp }}/mash-test-models
           key: ${{ steps.model-cache.outputs.cache-primary-key }}
-      - name: Save Cargo cache
-        if: always() && steps.cargo-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+
+  # The suites that test this repository's own scripts: deployment, the
+  # pre-push check, worktrees, the fleet's Ansible policy, releasing. None of
+  # them compiles Mash, so they run beside `rust` instead of adding their four
+  # minutes to it.
+  tooling:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Mash is not compiled here, and the workflow's compiler cache is not
+      # installed in this job.
+      RUSTC_WRAPPER: ""
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      # The pre-push suite formats a Rust file with the toolchain the
+      # repository names, and skips that case when rustfmt is missing.
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: mash-${{ runner.os }}-cargo-sources-${{ hashFiles('Cargo.lock') }}
+          toolchain: nightly
+          components: rustfmt
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        with:
+          tool: uv@0.12.1
+          fallback: none
+      - name: Verify deployment gate
+        run: |
+          python3 .github/scripts/test-deploy-gate.py
+          python3 .github/scripts/test-deploy-credentials.py
+      # The task runner, at the version and checksum tools/install-just.sh pins.
+      - name: Install pinned just
+        run: |
+          bash tools/install-just.sh "$RUNNER_TEMP/just"
+          echo "$RUNNER_TEMP/just" >> "$GITHUB_PATH"
+      - name: Verify development API deployment rollback
+        run: |
+          TMPDIR="$RUNNER_TEMP" bash tools/test-dev-api.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-dev-build.sh
+          bash tools/test-pr-labels.sh
+      - name: Verify the pre-push check, the worktree workflow and the justfile
+        run: |
+          TMPDIR="$RUNNER_TEMP" bash tools/test-pre-push.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-worktree.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-justfile.sh
+      - name: Verify Ansible fleet policy and cross-session exclusion
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/mash-ansible-runtime
+        run: |
+          TMPDIR="$RUNNER_TEMP" bash tools/test-controller-environment.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-run-ansible.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-ansible.sh
+      # The version tools/release.sh pins (its cargo_release_version), from
+      # cargo-release's own release with a pinned checksum.
+      - name: Install pinned cargo-release
+        run: |
+          mkdir -p "$RUNNER_TEMP/cargo-release"
+          curl --fail --location --silent --show-error --retry 3 \
+            https://github.com/crate-ci/cargo-release/releases/download/v1.1.7/cargo-release-v1.1.7-x86_64-unknown-linux-musl.tar.gz \
+            --output "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz"
+          printf '%s  %s\n' \
+            9e04ae8b068f52788ce301cabaf34c4b3f0c945793d02c88442b561073f6bdb1 \
+            "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz" | sha256sum --check
+          tar --no-same-owner -xzf "$RUNNER_TEMP/cargo-release/cargo-release.tar.gz" -C "$RUNNER_TEMP/cargo-release" ./cargo-release
+          echo "$RUNNER_TEMP/cargo-release" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/cargo-release/cargo-release" release --version
+      - name: Verify the release script against a throwaway remote
+        run: |
+          TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-updater-key.sh
+      - name: Verify offline search evaluation and benchmark witnesses
+        run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
 
   # The one status the ruleset for main requires of this workflow, on a pull
   # request and in the merge queue: it passes when every job above passed or
@@ -314,7 +343,7 @@ jobs:
   # waiting.
   required:
     name: ci / required
-    needs: [changes, file-lines, protocol, dependencies, rust]
+    needs: [changes, file-lines, protocol, dependencies, rust, tooling]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -323,13 +352,13 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "changes, file-lines, protocol, dependencies, rust: $RESULTS"
+          echo "changes, file-lines, protocol, dependencies, rust, tooling: $RESULTS"
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) exit 1 ;;
           esac
 
   deploy:
-    needs: [rust, protocol]
+    needs: [rust, tooling, protocol]
     if: >-
       github.ref == 'refs/heads/main' &&
       github.event_name == 'workflow_dispatch' && inputs.deploy == true
