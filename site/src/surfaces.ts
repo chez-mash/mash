@@ -6,8 +6,10 @@
  * guide. This script takes the links over as tabs: a click, the arrow keys,
  * Home and End, or a sideways swipe on the picture choose a surface. The
  * surfaces also change by themselves every few seconds while the picture is
- * on screen and the reader is not pointing at or focused in the band, until
- * the reader chooses one. Each change is announced to the page's motion with
+ * on screen and the reader is not pointing at or focused in the band. A
+ * choice by the reader stops that for a while; it picks up again once the
+ * reader has left the showcase alone. A `data-hold` attribute on the showcase
+ * stops it for as long as it is there, which is how a picture is taken of it. Each change is announced to the page's motion with
  * a `surfaces:change` event; without the motion the change is simply made.
  */
 
@@ -21,6 +23,8 @@ export interface SurfaceChange {
 
 /** How long each surface stays before the next shows by itself. */
 const stayMs = 5000;
+/** How long the showcase waits after the reader's last choice before it changes by itself again. */
+const restMs = 20_000;
 /** How far a finger travels sideways, in pixels, before it counts as a swipe. */
 const swipePx = 40;
 
@@ -39,6 +43,7 @@ export function mountSurfaces(root: HTMLElement): () => void {
 
   let current = 0;
   let timer: number | undefined;
+  let rest: number | undefined;
   let playing = true;
   let seen = false;
   let held = false;
@@ -58,8 +63,10 @@ export function mountSurfaces(root: HTMLElement): () => void {
   const schedule = () => {
     clearTimeout(timer);
     timer = undefined;
-    if (playing && seen && !held && !document.hidden)
-      timer = window.setTimeout(() => show(current + 1, 1), stayMs);
+    if (playing && seen && !held && !document.hidden && !root.hasAttribute("data-hold"))
+      timer = window.setTimeout(() => {
+        if (!root.hasAttribute("data-hold")) show(current + 1, 1);
+      }, stayMs);
   };
   const show = (next: number, direction: 1 | -1) => {
     const index = (next + count) % count;
@@ -74,9 +81,14 @@ export function mountSurfaces(root: HTMLElement): () => void {
     }
     schedule();
   };
-  /** A choice by the reader, which ends the changes the page makes by itself. */
+  /** A choice by the reader, which rests the changes the page makes by itself. */
   const choose = (next: number, direction: 1 | -1, focus = false) => {
     playing = false;
+    clearTimeout(rest);
+    rest = window.setTimeout(() => {
+      playing = true;
+      schedule();
+    }, restMs);
     show(next, direction);
     if (focus) tabs[current]?.focus();
   };
@@ -133,6 +145,10 @@ export function mountSurfaces(root: HTMLElement): () => void {
   const onEnter = (event: PointerEvent) => {
     if (event.pointerType === "mouse") hold();
   };
+  // Focus from the keyboard holds the surface; the focus a click leaves behind does not.
+  const onFocus = (event: FocusEvent) => {
+    if ((event.target as Element).matches(":focus-visible")) hold();
+  };
   const watch = new IntersectionObserver(
     ([entry]) => {
       seen = entry?.isIntersecting ?? false;
@@ -149,7 +165,7 @@ export function mountSurfaces(root: HTMLElement): () => void {
   stage.addEventListener("pointercancel", onCancel);
   root.addEventListener("pointerenter", onEnter);
   root.addEventListener("pointerleave", release);
-  root.addEventListener("focusin", hold);
+  root.addEventListener("focusin", onFocus);
   root.addEventListener("focusout", release);
   document.addEventListener("visibilitychange", schedule);
   watch.observe(stage);
@@ -158,6 +174,7 @@ export function mountSurfaces(root: HTMLElement): () => void {
 
   return () => {
     clearTimeout(timer);
+    clearTimeout(rest);
     watch.disconnect();
     dock?.removeEventListener("click", onClick);
     dock?.removeEventListener("keydown", onKey);
@@ -166,7 +183,7 @@ export function mountSurfaces(root: HTMLElement): () => void {
     stage.removeEventListener("pointercancel", onCancel);
     root.removeEventListener("pointerenter", onEnter);
     root.removeEventListener("pointerleave", release);
-    root.removeEventListener("focusin", hold);
+    root.removeEventListener("focusin", onFocus);
     root.removeEventListener("focusout", release);
     document.removeEventListener("visibilitychange", schedule);
     draw(0);

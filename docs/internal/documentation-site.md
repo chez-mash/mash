@@ -97,13 +97,29 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   surface's guide; `site/src/surfaces.ts` turns the links into tabs (click,
   arrow keys, Home and End, a sideways swipe on the picture) and changes
   the surface every five seconds while the picture is on screen and not
-  pointed at or focused, until the reader chooses one. Every surface lies
+  pointed at or focused. A choice rests that for twenty seconds. Every surface lies
   in one cell and every caption in another, so the band keeps its height.
   Each surface shows a different moment from the bands below it: the menu
   bar panel before a search, where the quick search band shows one typed.
   Add a surface by adding its component and its entry in `Surfaces.astro`;
   mark what should type itself `data-typed` and what should rise `data-in`.
 
+- **Card rails.** `CardRail.astro` is a row of `RailCard.astro` cards that
+  scrolls sideways and snaps to each card, with the next card showing at the
+  edge, a link onward under it at the left and previous and next buttons at
+  the right. It is a plain scroll container, so it works without scripting;
+  `site/src/rails.ts` adds the buttons and steps a card on the arrow keys. A
+  card is one link: a mark, a name, an arrow, one line, and a picture on a
+  ground tinted with a role from the theme. Use a rail where a band has many
+  small parallel things that would otherwise be a long list.
+- **The agents band** (`AgentsBand.astro`, card sets in `components/agents/`)
+  puts three rails under tabs: the agents Mash reads, the tools a connected
+  agent can call, and things to ask one. As served each rail shows under its
+  name; an inline script marks the group live before it is drawn, and then
+  one rail shows at a time in the same place, so the band keeps its height,
+  and a rail that is not showing is not laid out. What the cards say follows
+  `docs/supported-agents.md` and the generated `docs/tools.md`; change a
+  card when those change.
 - **Bands.** Each idea is one full-width band: a stamped label, a heading,
   a few points with icons, and a small window or set of cards drawn the way
   the dashboard draws them (search results, Mashy's answer, a saved

@@ -1,0 +1,145 @@
+---
+import type { IconName } from "../../icons.ts";
+// What a connected agent can call: one card per tool, with a made-up call and
+// what comes back. The names, arguments and one-line descriptions follow the
+// tool reference, which is generated from Mash's own tool definitions.
+import LineIcon from "../LineIcon.astro";
+import RailCard from "../RailCard.astro";
+
+const tools: {
+  name: string;
+  icon: IconName;
+  says: string;
+  write?: boolean;
+  call: string;
+  back: { strong: string; quiet?: string }[];
+}[] = [
+  {
+    name: "search",
+    icon: "search",
+    says: "Find past chats or messages, by exact words or by meaning.",
+    call: 'query: "retry after a timeout"',
+    back: [
+      { strong: "Retry payments after a timeout", quiet: "cursor · laptop · 6d" },
+      { strong: "Checkout outage review", quiet: "claude-code · build-box · 2d" },
+      { strong: "Fix the flaky checkout test", quiet: "codex · workstation · 1d" },
+    ],
+  },
+  {
+    name: "view",
+    icon: "book-open",
+    says: "Read a message in full, with the messages around it.",
+    call: 'id: "4f2a91c07be3", context: 1',
+    back: [
+      { quiet: "user", strong: "Can checkout retry when the provider times out?" },
+      {
+        quiet: "assistant",
+        strong: "Added one retry when the payment provider times out during checkout.",
+      },
+      { quiet: "user", strong: "Good. Keep it to one." },
+    ],
+  },
+  {
+    name: "list_chats",
+    icon: "message-square",
+    says: "List chats by agent, machine, title or time, most recent first.",
+    call: 'provider: ["codex"], limit: 3',
+    back: [
+      { strong: "Fix the flaky checkout test", quiet: "workstation · 1d" },
+      { strong: "Mobile auth: keychain or secure storage", quiet: "workstation · 5d" },
+      { strong: "Plan the cart service move", quiet: "laptop · Nov 20" },
+    ],
+  },
+  {
+    name: "record",
+    icon: "bookmark",
+    says: "Save a decision, a preference or a note, with its evidence.",
+    write: true,
+    call: 'statement: "Retry a payment once."',
+    back: [
+      { quiet: "decision · accepted", strong: "Checkout retries a timed-out payment once." },
+      { quiet: "evidence", strong: "“Good. Keep it to one.”" },
+    ],
+  },
+  {
+    name: "recall_records",
+    icon: "layers",
+    says: "Recall the records that apply to this project, most relevant first.",
+    call: 'query: "sign-in tokens"',
+    back: [
+      {
+        quiet: "decision",
+        strong: "Sign-in uses fifteen-minute access tokens with a server-held refresh token.",
+      },
+      { quiet: "preference", strong: "Keep refresh tokens in the device keychain." },
+    ],
+  },
+  {
+    name: "get_attachment",
+    icon: "download",
+    says: "Fetch a picture or a file that was attached to a message.",
+    call: 'message_id: "9c1e…", attachment_id: "a1"',
+    back: [{ strong: "checkout-error.png", quiet: "image · 212 KB" }],
+  },
+];
+---
+
+{
+  tools.map(({ name, icon, says, write, call, back }) => (
+    <RailCard name={name} says={says} href={`/tools/#tool-${name}`} tint={write ? "var(--butter)" : "var(--desk-sky)"} mono>
+      <span class="ico" slot="mark"><LineIcon name={icon} /></span>
+      <span class="exchange">
+        <span class="call"><b>{name}</b> {`{ ${call} }`}</span>
+        {back.map((row) => (
+          <span class="back"><b>{row.strong}</b>{row.quiet && <i>{row.quiet}</i>}</span>
+        ))}
+        <span class:list={["kind", { write }]}>{write ? "writes to your index" : "read only"}</span>
+      </span>
+    </RailCard>
+  ))
+}
+
+<style>
+  .exchange {
+    display: grid;
+    gap: 0.4375rem;
+  }
+  .call {
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-4);
+    background: var(--surface-code);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-secondary);
+    font: 400 0.75rem / 1.5 var(--type-mono);
+    overflow-wrap: anywhere;
+  }
+  .call b {
+    color: var(--text-strong);
+    font-weight: 500;
+  }
+  .back {
+    display: grid;
+    gap: 0.0625rem;
+    padding: 0.4375rem 0.625rem;
+    border-radius: var(--radius-4);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+  }
+  .back b {
+    color: var(--text-strong);
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .back i,
+  .kind {
+    color: var(--text-faint);
+    font: 400 0.6875rem / 1.5 var(--type-mono);
+  }
+  .kind {
+    justify-self: start;
+    padding-top: 0.125rem;
+  }
+  .kind.write {
+    color: var(--text-kicker);
+  }
+</style>

@@ -15,6 +15,7 @@ import qdrant from "../art/stack/qdrant.svg?raw";
 import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
+import AgentsBand from "./AgentsBand.astro";
 import AgentTile from "./AgentTile.astro";
 import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
@@ -159,6 +160,8 @@ const quick: {
       </div>
     </div>
   </section>
+
+  <AgentsBand />
 
   <section class="band tint mashy-band" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
     <div class="wrapper split reverse" data-reveal>
@@ -365,10 +368,10 @@ const quick: {
       <div class="tiles">
         <article>
           <span class="ico"><LineIcon name="plug" /></span>
-          <h3>Context, before you ask.</h3>
+          <h3>Any MCP client.</h3>
           <p>
-            The <a href="/plugin/">plugin for Claude Code, Codex and Copilot</a> brings earlier
-            decisions and discussions into new sessions.
+            No plugin for your agent? <a href="/mcp/">Connect it over MCP</a>, if it runs local
+            servers over standard input and output.
           </p>
         </article>
         <article>

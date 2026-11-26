@@ -1,0 +1,115 @@
+---
+// One card of a CardRail: a mark and a name, an arrow in the corner, one
+// line about it, and a picture on a tinted ground. The whole card is a link.
+// The mark goes in the `mark` slot and the picture in the default slot; the
+// picture is an illustration, so the link is named by the name and the line.
+import LineIcon from "./LineIcon.astro";
+
+interface Props {
+  name: string;
+  says: string;
+  href: string;
+  /** The colour the picture's ground is tinted with: a role from the theme. */
+  tint?: string;
+  /** Draws the name in the mono face, for a tool or a command. */
+  mono?: boolean;
+}
+const { name, says, href, tint = "var(--butter)", mono = false } = Astro.props;
+---
+
+<li class="rail-card" style={`--tint: ${tint}`}>
+  <a href={href}>
+    <span class="card-head">
+      <span class="card-mark"><slot name="mark" /></span>
+      <b class:list={{ mono }}>{name}</b>
+      <span class="card-go" aria-hidden="true"><LineIcon name="arrow-right" size="0.875rem" /></span>
+    </span>
+    <span class="card-says">{says}</span>
+    <span class="card-picture" aria-hidden="true"><slot /></span>
+  </a>
+</li>
+
+<style>
+  .rail-card {
+    flex: 0 0 min(19.5rem, 84%);
+    scroll-snap-align: start;
+  }
+  .rail-card a {
+    display: flex;
+    flex-direction: column;
+    height: 25.5rem;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-body);
+    text-decoration: none;
+  }
+  .rail-card a:hover .card-go {
+    background: var(--butter);
+    color: var(--text-on-butter);
+  }
+  .rail-card a:focus-visible {
+    outline-offset: -2px;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1rem 1rem 0;
+    color: var(--text-strong);
+  }
+  .card-mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+  }
+  .card-mark:empty {
+    display: none;
+  }
+  .card-head b {
+    overflow: hidden;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-head b.mono {
+    font: 500 1rem / 1.4 var(--type-mono);
+    letter-spacing: 0;
+  }
+  .card-go {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    margin-inline-start: auto;
+    border-radius: var(--radius-round);
+    background: var(--surface-muted);
+    color: var(--text-strong);
+  }
+  .card-says {
+    min-height: 2.625rem;
+    padding: 0.5rem 1rem 0.875rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  /* The picture's ground: the card's tint, washed into the quiet surface. */
+  .card-picture {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    margin: 0 0.5rem 0.5rem;
+    padding: 0.875rem;
+    overflow: hidden;
+    border-radius: var(--radius-6);
+    background: color-mix(in srgb, var(--tint, var(--butter)) 16%, var(--surface-muted));
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+</style>

@@ -26,6 +26,7 @@ const bands = [
   ["surfaces", "#welcome-surfaces"],
   ["quick-search", "#welcome-shortcuts"],
   ["search", "#welcome-search"],
+  ["agents-band", "#welcome-agents"],
   ["mashy", "#welcome-mashy"],
   ["memory", "#welcome-memory"],
   ["speed", "#welcome-speed"],
@@ -173,6 +174,26 @@ async function pictureSurfaces(page: Page): Promise<void> {
   await chooseSurface(page, "dashboard");
 }
 
+/** The agents band's other rails, one picture each of the tabs and the rail under them. */
+async function pictureRails(page: Page): Promise<void> {
+  const top = await pageTop(page, "#welcome-agents .rail-tabs");
+  for (const id of ["tools", "ask"]) {
+    await page.locator(`#agents-tab-${id}`).evaluate((tab: HTMLElement) => tab.click());
+    await scrollAndPlay(page, top - 16);
+    await arrived(page, "#welcome-agents");
+    const clip = await page.locator("#welcome-agents .rails").evaluate((rails) => {
+      const box = rails.getBoundingClientRect();
+      const y = Math.max(0, box.top - 16);
+      return { x: 0, y, width: innerWidth, height: Math.min(innerHeight, box.bottom + 16) - y };
+    });
+    await expect.soft(page).toHaveScreenshot(`landing-agents-band-${id}.png`, {
+      clip,
+      stylePath: ["./visual/still.css", "./visual/band.css"],
+    });
+  }
+  await page.locator("#agents-tab-agents").evaluate((tab: HTMLElement) => tab.click());
+}
+
 test("landing", async ({ page }) => {
   await page.clock.install({ time: now });
   await page.clock.pauseAt(now);
@@ -180,9 +201,9 @@ test("landing", async ({ page }) => {
   // The motion is fetched after the page is drawn and marks the page once it runs.
   await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
   await settle(page);
-  // The showcase changes surface by itself until the reader chooses one; choosing
-  // the one that shows stops that, so every picture finds the same surface.
-  await chooseSurface(page, "dashboard");
+  // The showcase changes surface by itself; held, it keeps the surface it shows,
+  // so every picture finds the same one.
+  await page.locator("[data-surfaces]").evaluate((root) => root.setAttribute("data-hold", ""));
   await expect.soft(page).toHaveScreenshot("landing-hero.png");
   // The header island once the hero's buttons have scrolled away under it.
   await scrollAndPlay(page, await pageTop(page, ".mash-agents"));
@@ -199,5 +220,6 @@ test("landing", async ({ page }) => {
     await playBand(page, selector);
     await pictureBand(page, name, selector);
     if (name === "surfaces") await pictureSurfaces(page);
+    if (name === "agents-band") await pictureRails(page);
   }
 });

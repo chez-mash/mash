@@ -1,0 +1,145 @@
+---
+// The agents band: which agents Mash reads, what a connected agent can call,
+// and what to ask one, as three rails of cards under tabs. As served every
+// rail shows under its own name. The inline script marks the group live
+// before it is drawn, and then one rail shows at a time, each in the same
+// place, so the band keeps its height; src/rails.ts makes the tabs work.
+// A rail that is not showing is not laid out or painted until it is chosen.
+import AgentCards from "./agents/AgentCards.astro";
+import AskCards from "./agents/AskCards.astro";
+import ToolCards from "./agents/ToolCards.astro";
+import CardRail from "./CardRail.astro";
+
+const rails = [
+  {
+    id: "agents",
+    name: "Agents",
+    label: "Agents Mash reads",
+    href: "/supported-agents/",
+    more: "See every agent",
+    Cards: AgentCards,
+  },
+  {
+    id: "tools",
+    name: "Tools",
+    label: "Tools a connected agent can call",
+    href: "/tools/",
+    more: "All tools",
+    Cards: ToolCards,
+  },
+  {
+    id: "ask",
+    name: "Ask",
+    label: "Things to ask your agent",
+    href: "/agents/#ask-your-agent-to-find-past-work",
+    more: "How to ask",
+    Cards: AskCards,
+  },
+];
+---
+
+<section class="band tint" id="welcome-agents" aria-labelledby="welcome-agents-title">
+  <div class="wrapper agents-band" data-reveal>
+    <div class="head">
+      <span class="kicker">Agents</span>
+      <h2 id="welcome-agents-title">Every agent. <span class="quiet">One memory.</span></h2>
+      <p class="blurb">
+        Mash reads the chats six coding agents already keep on your machine. Connect Claude Code,
+        Codex or Copilot, and it can search all of them, whichever agent wrote them. The plugin
+        brings earlier decisions into a new session before you ask.
+      </p>
+    </div>
+    <div class="rails" data-rail-tabs>
+      <script is:inline>
+        document.currentScript.parentElement.dataset.live = "";
+      </script>
+      <div class="rail-tabs" role="tablist" aria-label="What to see about agents">
+        {rails.map(({ id, name }, index) => (
+          <button type="button" role="tab" id={`agents-tab-${id}`} aria-controls={`agents-rail-${id}`}
+            aria-selected={index === 0 ? "true" : "false"}>{name}</button>
+        ))}
+      </div>
+      <div class="rail-panels">
+        {rails.map(({ id, name, label, href, more, Cards }, index) => (
+          <div class:list={["rail-panel", { on: index === 0 }]} role="tabpanel" id={`agents-rail-${id}`} aria-labelledby={`agents-tab-${id}`}>
+            <h3 class="rail-name">{name}</h3>
+            <CardRail label={label} href={href} more={more}>
+              <Cards />
+            </CardRail>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .agents-band {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .agents-band .blurb {
+    max-width: 38rem;
+  }
+  .rails {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+  /* The tabs: a pill row, the chosen one in butter. Without scripting they
+     are not shown and each rail carries its name instead. */
+  .rail-tabs {
+    display: none;
+    align-self: flex-start;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-pill);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+  }
+  .rails[data-live] .rail-tabs {
+    display: flex;
+  }
+  .rail-tabs button {
+    height: 2.75rem;
+    margin: 0;
+    padding: 0 1.125rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-secondary);
+    font: 500 0.9375rem / 1 var(--type-sans);
+    cursor: pointer;
+  }
+  .rail-tabs button:hover {
+    color: var(--text-strong);
+  }
+  .rail-tabs button[aria-selected="true"] {
+    background: var(--butter);
+    box-shadow: var(--shadow-tab-on);
+    color: var(--text-on-butter);
+  }
+  .rail-panels {
+    display: grid;
+    gap: 2rem;
+    min-width: 0;
+  }
+  .rail-panel {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  /* Live: every rail in one cell, and only the chosen one drawn. */
+  .rails[data-live] .rail-name {
+    display: none;
+  }
+  .rails[data-live] .rail-panel {
+    grid-area: 1 / 1;
+  }
+  .rails[data-live] .rail-panel:not(.on) {
+    visibility: hidden;
+    content-visibility: hidden;
+  }
+</style>
