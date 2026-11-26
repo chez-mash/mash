@@ -1,4 +1,5 @@
 <script lang="ts">
+import { Switch } from "$lib/components/ui/switch";
 import { agents as agentInfo } from "../lib/agents";
 import { whenLabel } from "../lib/browse";
 import { agentHref } from "../lib/route.svelte";
@@ -55,7 +56,7 @@ const status = $derived(
       {#if status}<span class="ac-s {status.tone}"><ToneIcon tone={status.tone === "ok" ? "ok" : "idle"} size={12} />{status.words}</span>{/if}
     </span>
     {#if onindex && setting}
-      <button class="sw ac-sw" type="button" role="switch" aria-checked={setting.indexed} aria-label="Index {agentInfo[agent].name} on this machine" disabled={busy} onclick={() => onindex(!setting.indexed)}><i></i></button>
+      <Switch class="relative z-1 ml-auto min-h-0 flex-none self-start" aria-label="Index {agentInfo[agent].name} on this machine" disabled={busy} bind:checked={() => setting.indexed, (on) => onindex(on)} />
     {/if}
   </span>
   <span class="ac-c">
@@ -100,18 +101,6 @@ const status = $derived(
     position: absolute;
     inset: 0;
     border-radius: inherit;
-  }
-  .ac-sw {
-    position: relative;
-    z-index: 1;
-    flex: none;
-    min-height: 0;
-    margin-left: auto;
-    align-self: flex-start;
-    border: 0;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
   }
   .ac.quiet {
     background: var(--surface-rail);

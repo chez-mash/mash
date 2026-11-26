@@ -3,6 +3,7 @@ import Save from "@lucide/svelte/icons/save";
 import Send from "@lucide/svelte/icons/send";
 import Upload from "@lucide/svelte/icons/upload";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import { Switch } from "$lib/components/ui/switch";
 import { agents as agentInfo } from "../lib/agents";
 import { catalogOptions } from "../lib/queries";
 import { draftOf, saveSettings, settingsOptions } from "../lib/settings";
@@ -91,7 +92,7 @@ async function save(publish: boolean): Promise<void> {
           <span class="share-name"><strong>{agentInfo[row.agent].name}</strong></span>
           <span class="meta share-count">{row.chats.toLocaleString()} chat{row.chats === 1 ? "" : "s"}</span>
           <span class="meta share-fate" class:on={row.shared}>{row.shared ? "shared" : `stays on ${server.node_id}`}</span>
-          <button class="sw" type="button" role="switch" aria-checked={row.shared} aria-label="Share {agentInfo[row.agent].name}" disabled={saving !== null} onclick={() => toggle(row.agent)}><i></i></button>
+          <Switch aria-label="Share {agentInfo[row.agent].name}" disabled={saving !== null} bind:checked={() => row.shared, () => toggle(row.agent)} />
         </li>
       {/each}
     </ul>
@@ -110,7 +111,7 @@ async function save(publish: boolean): Promise<void> {
       </div>
       <p class="meta">The range picks which history files Mash reads. Chats already in {server.node_id}’s index count too, and are shared too.</p>
       <label class="share-mask">
-        <button class="sw" type="button" role="switch" aria-checked={masking} aria-label="Hide credentials when publishing" onclick={() => (hide = !masking)}><i></i></button>
+        <Switch aria-label="Hide credentials when publishing" bind:checked={() => masking, (on) => (hide = on)} />
         <span><strong>Hide credentials when publishing</strong><br /><span class="meta">API keys and passwords Mash recognises are replaced in the shared copy. {server.node_id}’s own copy is unchanged.</span></span>
       </label>
     </div>
@@ -215,7 +216,7 @@ async function save(publish: boolean): Promise<void> {
       grid-column: 2;
       text-align: left;
     }
-    .share-row .sw {
+    .share-row :global([data-slot="switch"]) {
       grid-column: 3;
       grid-row: 1 / span 3;
     }

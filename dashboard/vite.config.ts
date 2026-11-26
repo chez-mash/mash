@@ -1,4 +1,5 @@
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vitest/config";
@@ -27,6 +28,11 @@ export default defineConfig(({ mode }) => {
           ]
         : []),
     ],
+    // `$lib` is where shadcn-svelte's components and their helpers live.
+    resolve: { alias: { $lib: fileURLToPath(new URL("./src/lib", import.meta.url)) } },
+    // Found before the first page load, so the dev server does not stop to
+    // bundle the kit the first time a page that uses it opens.
+    optimizeDeps: { include: ["bits-ui", "clsx", "tailwind-merge"] },
     build: { outDir: demo ? "dist-demo" : "dist", emptyOutDir: true, sourcemap: false },
     server: {
       proxy: demo

@@ -41,11 +41,15 @@ select {
   font: inherit;
   color: inherit;
 }
-button {
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
+/* In the base layer, so a utility class on a kit component's button
+   (src/lib/components/ui) can give it a fill, a line and padding. */
+@layer base {
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
 }
 :focus-visible {
   outline: 2px solid var(--focus);
@@ -2135,45 +2139,6 @@ h1:focus {
 .tool .nm {
   overflow-wrap: anywhere;
 }
-/* A switch: a quiet grey track and knob when off; butter with a light knob when on. */
-.sw {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-}
-.sw i {
-  position: relative;
-  display: block;
-  width: 40px;
-  height: 22px;
-  border: var(--border-strong);
-  border-color: var(--line-ink);
-  border-radius: var(--radius-pill);
-  background: var(--surface-muted);
-  transition: background 0.12s;
-}
-.sw i::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--radius-round);
-  background: var(--text-faint);
-  box-shadow: var(--shadow-knob);
-  transition: left 0.12s;
-}
-.sw[aria-checked="true"] i {
-  background: var(--toggle-on);
-}
-.sw[aria-checked="true"] i::after {
-  left: 20px;
-  background: var(--toggle-knob);
-}
-.sw[disabled] i {
-  opacity: 0.55;
-}
 .field {
   min-height: 40px;
   padding: 0 10px;
@@ -4087,7 +4052,7 @@ summary.rw::-webkit-details-marker {
     justify-content: flex-start;
     text-align: left;
   }
-  .set-row:has(> .set-c > .sw:only-child) {
+  .set-row:has(> .set-c > [data-slot="switch"]:only-child) {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }

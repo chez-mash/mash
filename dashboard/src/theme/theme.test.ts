@@ -84,10 +84,19 @@ describe("the theme is defined in one place", () => {
         [...text.matchAll(/(?:^|[\s;{"':(])--([a-z][a-z0-9-]*)\s*[:="]/g)].map((m) => m[1]),
       ),
     );
+    // A role is named as var(--role) in CSS and as a Tailwind utility's value,
+    // bg-(--role) or border-(length:--role), on a kit component. The --bits-
+    // values are sizes bits-ui measures for a floating panel.
     const unknown = sources.flatMap(({ path, text }) =>
-      [...text.matchAll(/var\(--([a-z0-9-]+)/g)]
+      [...text.matchAll(/(?:var\(|-\((?:[a-z-]+:)?)--([a-z0-9-]+)/g)]
         .map((m) => m[1] ?? "")
-        .filter((name) => !roles.has(name) && !local.has(name) && !name.startsWith("tw-"))
+        .filter(
+          (name) =>
+            !roles.has(name) &&
+            !local.has(name) &&
+            !name.startsWith("tw-") &&
+            !name.startsWith("bits-"),
+        )
         .map((name) => `${path}: --${name}`),
     );
     expect(unknown).toEqual([]);
@@ -96,7 +105,7 @@ describe("the theme is defined in one place", () => {
   it("defines no role that nothing uses", () => {
     const used = new Set(
       [...sources.map(({ text }) => text), tokens].flatMap((text) =>
-        [...text.matchAll(/var\(--([a-z0-9-]+)/g)].map((m) => m[1]),
+        [...text.matchAll(/(?:var\(|-\((?:[a-z-]+:)?)--([a-z0-9-]+)/g)].map((m) => m[1]),
       ),
     );
     expect([...roles.keys()].filter((name) => !used.has(name))).toEqual([]);

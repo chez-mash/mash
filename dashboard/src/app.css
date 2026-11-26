@@ -26,4 +26,32 @@
   --color-ok: var(--status-ok);
   --color-warn: var(--status-warn);
   --color-bad: var(--status-bad);
+
+  /* shadcn-svelte's names, for the components in src/lib/components/ui. Each
+     is one of the theme's roles, so the light theme and both dark selectors
+     in tokens.css already cover them; the kit brings no palette of its own.
+     `muted` and `accent` are surfaces only as backgrounds: as text and lines
+     they stay the roles named above. */
+  --color-background: var(--surface-page);
+  --color-foreground: var(--text-body);
+  --color-card: var(--surface-raised);
+  --color-card-foreground: var(--text-body);
+  --color-popover: var(--surface-raised);
+  --color-popover-foreground: var(--text-strong);
+  --color-primary: var(--action-bg);
+  --color-primary-foreground: var(--action-text);
+  --color-secondary: var(--surface-muted);
+  --color-secondary-foreground: var(--text-strong);
+  --background-color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--text-muted);
+  --background-color-accent: var(--surface-hover);
+  --color-accent-foreground: var(--text-strong);
+  --color-destructive: var(--status-bad);
+  --color-border: var(--line-outline);
+  --color-input: var(--line-strong);
+  --color-ring: var(--focus);
+  --radius-sm: var(--radius-4);
+  --radius-md: var(--radius-5);
+  --radius-lg: var(--radius-6);
+  --radius-xl: var(--radius-7);
 }

@@ -10,6 +10,7 @@ import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
+import { Switch } from "$lib/components/ui/switch";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { mashCommand } from "../lib/command";
@@ -189,7 +190,7 @@ function toggleConnect(agent: Integration): void {
   </div>
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, disabled = false)}
-  <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} {disabled} onclick={flip}><i></i></button>
+  <Switch aria-label={label} {disabled} bind:checked={() => on, flip} />
 {/snippet}
 {#snippet connectAgent(entry: FirstRun["integrations"][number], on: boolean, editable: boolean)}
   <div class="setup-row" class:off={!entry.installed}>

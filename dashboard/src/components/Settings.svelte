@@ -4,6 +4,7 @@ import Copy from "@lucide/svelte/icons/copy";
 import Pencil from "@lucide/svelte/icons/pencil";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import { Switch } from "$lib/components/ui/switch";
 import { agents as agentInfo } from "../lib/agents";
 import { appearance, appearances } from "../lib/appearance.svelte";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
@@ -140,7 +141,7 @@ async function save(): Promise<void> {
   {#if path}<button class="btn sm" type="button" onclick={copyConfigPath}>{#if copied}<Check size={13} aria-hidden="true" />Copied{:else}<Copy size={13} aria-hidden="true" />Copy path{/if}</button>{/if}
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
-  <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>
+  <Switch aria-label={label} aria-describedby={description} bind:checked={() => on, () => { saved = 0; flip(); }} />
 {/snippet}
 {#snippet changedPill(key: string)}
   {#if touched.has(key)}<span class="pill warn"><Pencil size={11} aria-hidden="true" />changed</span>{/if}

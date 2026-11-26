@@ -36,8 +36,9 @@
  *   #main.narrow     a detail page at a reading measure (976px)
  *
  * Tables (.rws > .rw with a .rw.head header, the services .matrix), the
- * switch (.sw), the tool explorer (.mop) and settings rows (.set-a, .set-r)
- * stay in terminal.css beside the older rules they replaced.
+ * tool explorer (.mop) and settings rows (.set-a, .set-r) stay in
+ * terminal.css beside the older rules they replaced. Interactive controls
+ * (switches, menus, dialogs, tooltips) are the kit in src/lib/components/ui.
  *
  * Pills (.pill), buttons (.btn), filter chips (.chip), agent marks (.mark),
  * section labels (.h2), page titles (.h1) and text links (.a) are defined in
