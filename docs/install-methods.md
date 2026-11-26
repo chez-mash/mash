@@ -43,6 +43,14 @@ The package is `mash-cli` because Debian and Ubuntu already have an unrelated
 package named `mash`; the command it installs is still `mash`. The two cannot
 be installed together, and apt offers to remove the other one.
 
+The same repository has the [desktop app](downloads.md#desktop-app) as
+`mash-desktop`. It uses the `mash` that `mash-cli` installs, at the same
+version, so `apt upgrade` updates the app and the command together:
+
+```sh
+sudo apt install mash-desktop
+```
+
 ### Scoop, Windows
 
 On Windows x64 or ARM64 with Scoop installed, open PowerShell, add MashHQ's bucket

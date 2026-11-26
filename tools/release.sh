@@ -28,6 +28,9 @@
 #      published from here: the commands to do so are printed.
 #   6. Render the Scoop manifest (bucket/mash.json) from the release's
 #      SHA256SUMS and land "Scoop: mash vX.Y.Z" through the merge queue.
+# The release workflow also publishes latest.json, which installed desktop
+# apps on the stable channel read to update themselves (see "Updates" in
+# docs/internal/desktop-app.md).
 set -euo pipefail
 cargo_release_version=1.1.7
 usage() { sed -n '2,/^set -euo/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \{0,1\}//' >&2; exit 2; }
@@ -270,4 +273,8 @@ Left for you:
   3. Deploy when you want it on the fleet (the release's own binaries):
        bash tools/fleet.sh deploy --release $tag shared-api xenia
 Scoop: $scoop
+Desktop apps on the stable channel update themselves from this release's
+latest.json; check it is among the assets (it is missing when the updater
+key is not set up: tools/updater-key.sh):
+       gh release view $tag --repo $repo --json assets -q '.assets[].name' | grep -x latest.json
 DONE

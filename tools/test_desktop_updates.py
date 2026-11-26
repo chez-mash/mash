@@ -1,7 +1,7 @@
 import json
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import desktop_updates
@@ -13,7 +13,10 @@ def order(version: str) -> tuple:
     numbers = tuple(int(part) for part in core.split("."))
     if not prerelease:
         return (numbers, 1, ())
-    identifiers = tuple((0, int(part), "") if part.isdigit() else (1, 0, part) for part in prerelease.split("."))
+    identifiers = tuple(
+        (0, int(part), "") if part.isdigit() else (1, 0, part)
+        for part in prerelease.split(".")
+    )
     return (numbers, 0, identifiers)
 
 
@@ -26,11 +29,17 @@ class MainVersionTests(unittest.TestCase):
         self.assertLess(order(build), order("0.3.0"))
 
     def test_builds_order_by_number_not_by_text(self):
-        ninth, tenth = (desktop_updates.main_version("0.2.4", number) for number in (9, 10))
+        ninth, tenth = (
+            desktop_updates.main_version("0.2.4", number) for number in (9, 10)
+        )
         self.assertLess(order(ninth), order(tenth))
-        self.assertLess(order(desktop_updates.main_version("0.2.4", 999)), order("0.2.5"))
+        self.assertLess(
+            order(desktop_updates.main_version("0.2.4", 999)), order("0.2.5")
+        )
         # The release is cut; the builds after it are newer than it.
-        self.assertLess(order("0.2.5"), order(desktop_updates.main_version("0.2.5", 1000)))
+        self.assertLess(
+            order("0.2.5"), order(desktop_updates.main_version("0.2.5", 1000))
+        )
 
     def test_a_prerelease_keeps_its_place_among_its_builds(self):
         build = desktop_updates.main_version("0.3.0-alpha", 7)
@@ -61,12 +70,16 @@ class ManifestTests(unittest.TestCase):
             "0.2.5-main.118",
             "https://github.com/mashhq/mash/releases/download/main-channel/",
             {
-                "darwin-aarch64": self.signed("mash-desktop-macos-arm64-0.2.5-main.118.app.tar.gz"),
-                "linux-x86_64": self.signed("mash-desktop-linux-x86_64-0.2.5-main.118.AppImage"),
+                "darwin-aarch64": self.signed(
+                    "mash-desktop-macos-arm64-0.2.5-main.118.app.tar.gz"
+                ),
+                "linux-x86_64": self.signed(
+                    "mash-desktop-linux-x86_64-0.2.5-main.118.AppImage"
+                ),
                 "windows-x86_64": self.signed("unsigned-setup.exe", signature=None),
                 "linux-aarch64": self.folder / "never-built.AppImage",
             },
-            published=datetime(2026, 11, 26, 9, 30, tzinfo=UTC),
+            published=datetime(2026, 11, 26, 9, 30, tzinfo=timezone.utc),
         )
         self.assertEqual(written["version"], "0.2.5-main.118")
         self.assertEqual(written["pub_date"], "2026-11-26T09:30:00Z")
@@ -88,7 +101,16 @@ class ManifestTests(unittest.TestCase):
         output = self.folder / "latest.json"
         unsigned = self.signed("Mash.app.tar.gz", signature=None)
         status = desktop_updates.main(
-            ["manifest", "--version", "0.2.5", "--base-url", "https://example.invalid", "--output", str(output), f"darwin-aarch64={unsigned}"]
+            [
+                "manifest",
+                "--version",
+                "0.2.5",
+                "--base-url",
+                "https://example.invalid",
+                "--output",
+                str(output),
+                f"darwin-aarch64={unsigned}",
+            ]
         )
         self.assertEqual(status, 3)
         self.assertFalse(output.exists())
@@ -97,12 +119,38 @@ class ManifestTests(unittest.TestCase):
         output = self.folder / "latest.json"
         signed = self.signed("Mash.app.tar.gz")
         status = desktop_updates.main(
-            ["manifest", "--version", "0.2.5", "--base-url", "https://example.invalid/v0.2.5", "--output", str(output), f"darwin-aarch64={signed}"]
+            [
+                "manifest",
+                "--version",
+                "0.2.5",
+                "--base-url",
+                "https://example.invalid/v0.2.5",
+                "--output",
+                str(output),
+                f"darwin-aarch64={signed}",
+            ]
         )
         self.assertEqual(status, 0)
         written = json.loads(output.read_text(encoding="utf-8"))
-        self.assertEqual(written["platforms"]["darwin-aarch64"]["url"], "https://example.invalid/v0.2.5/Mash.app.tar.gz")
-        self.assertEqual(desktop_updates.main(["manifest", "--version", "0.2.5", "--base-url", "x", "--output", str(output), "plan9-mips=x"]), 2)
+        self.assertEqual(
+            written["platforms"]["darwin-aarch64"]["url"],
+            "https://example.invalid/v0.2.5/Mash.app.tar.gz",
+        )
+        self.assertEqual(
+            desktop_updates.main(
+                [
+                    "manifest",
+                    "--version",
+                    "0.2.5",
+                    "--base-url",
+                    "x",
+                    "--output",
+                    str(output),
+                    "plan9-mips=x",
+                ]
+            ),
+            2,
+        )
         self.assertEqual(desktop_updates.main(["main-version", "nope", "1"]), 2)
 
 

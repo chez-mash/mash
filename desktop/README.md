@@ -44,6 +44,13 @@ xcrun actool icons/Mash.icon --compile /tmp/mash-icon --app-icon Mash \
 cp /tmp/mash-icon/Assets.car src-tauri/icons/Assets.car
 ```
 
+## Updates
+
+The app updates itself from a stable or a main channel once a signing key
+exists; until then a build has updates off. Channels, the key, testing with
+a throwaway key and taking a bad build back are in
+`docs/internal/desktop-app.md` under Updates.
+
 ## Try a link
 
 With the app installed, open `mash://search?q=deploy` from a browser or a

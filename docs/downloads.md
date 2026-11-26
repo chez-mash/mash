@@ -24,6 +24,10 @@ The Mac app is signed and notarized by Apple, so it opens like any other app.
 The Windows app is not signed yet, so Windows asks before opening it the first
 time: choose **More info**, then **Run anyway**. On Linux, make the AppImage
 executable (`chmod +x mash-desktop-linux-x86_64.AppImage`) and run it.
+On Debian and Ubuntu you can install the app with
+[apt](install-methods.md#apt-debian-or-ubuntu) instead (`mash-desktop`).
+
+The Mac app and the AppImage [update themselves](upgrades.md#the-desktop-app-updates-itself).
 
 ## Choose your download
 

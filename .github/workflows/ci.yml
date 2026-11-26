@@ -215,7 +215,9 @@ jobs:
           echo "$RUNNER_TEMP/cargo-release" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/cargo-release/cargo-release" release --version
       - name: Verify the release script against a throwaway remote
-        run: TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
+        run: |
+          TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
+          TMPDIR="$RUNNER_TEMP" bash tools/test-updater-key.sh
       - name: Verify offline search evaluation and benchmark witnesses
         run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
       - name: Install pinned sqlc release

@@ -56,6 +56,28 @@ If you publish history across machines, read the
 Mash keeps chat and message IDs and reuses compatible search data. The
 indexing pass also picks up history saved since the last pass.
 
+### The desktop app updates itself
+
+On macOS, and on Linux when you run the AppImage, the Mash app downloads new
+versions in the background and shows **Update Ready — Restart to Update** in
+its menu bar menu. Restarting installs the update, upgrades the index if the
+new version needs it, and restarts Mash's background services that run the
+app's `mash`. **Check for Updates…** checks now.
+
+- **Updates** in the same menu chooses **Stable**, the published releases, or
+  **Main (latest build)**, every build of the development branch. On Main,
+  **Install Automatically When Idle** installs an update while the app's
+  windows are closed.
+- If you installed the `mash` command with **Install Command-Line Tool…**,
+  it runs the app's own `mash` and updates with the app. A `mash` you
+  installed another way (the install script, Homebrew, Scoop) updates
+  separately; the app tells you when the two differ and, on a Mac, offers to
+  use its own everywhere.
+- If a new version cannot start, choose **Go Back to Previous Version** in
+  the menu.
+- The apt package `mash-desktop` is updated by `apt`, together with
+  `mash-cli`. On Windows, install the new version over the old one.
+
 ### Install the new version
 
 Choose the method you already use. For the shell or PowerShell script, rerun
