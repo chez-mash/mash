@@ -1,0 +1,58 @@
+name: Changed areas
+description: >-
+  Says which areas of CI (rust, dashboard, raycast) the commit under test can
+  affect, so jobs for the others are skipped while the workflow still runs and
+  concludes. See tools/ci_changes.py and docs/internal/verification.md.
+
+inputs:
+  workflow:
+    description: The calling workflow's file name, for example ci.yml
+    required: true
+
+outputs:
+  rust:
+    description: Whether the Rust build and its tests are affected
+    value: ${{ steps.areas.outputs.rust }}
+  dashboard:
+    description: Whether the dashboard and its browser tests are affected
+    value: ${{ steps.areas.outputs.dashboard }}
+  raycast:
+    description: Whether the Raycast extension is affected
+    value: ${{ steps.areas.outputs.raycast }}
+
+runs:
+  using: composite
+  steps:
+    - id: areas
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        WORKFLOW: ${{ inputs.workflow }}
+        EVENT: ${{ github.event_name }}
+        PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+      run: |
+        # On main the comparison is with the last commit this workflow passed
+        # for, not with the previous push. A release trusts a successful run
+        # for its commit, so a skipped job must mean "unchanged since it last
+        # passed": comparing with the previous push would let a site-only
+        # commit report success on top of a Rust change whose run failed or
+        # was replaced while waiting. Anything that cannot be compared, a
+        # manual run included, runs everything.
+        base=
+        case "$EVENT" in
+          pull_request) base=$PULL_REQUEST_BASE ;;
+          push)
+            if [ "$GITHUB_REF" = refs/heads/main ]; then
+              base=$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$WORKFLOW" --branch main \
+                --status success --limit 1 --json headSha -q '.[0].headSha // ""') || base=
+            fi ;;
+        esac
+        changed="$RUNNER_TEMP/changed-files"
+        if [ -n "$base" ] && git fetch --quiet --depth=1 origin "$base" \
+            && git diff --name-only "$base" HEAD > "$changed"; then
+          echo "Comparing with $base: $(wc -l < "$changed") changed files"
+          python3 tools/ci_changes.py < "$changed" | tee -a "$GITHUB_OUTPUT"
+        else
+          echo "Nothing to compare with; every area runs"
+          python3 tools/ci_changes.py --all | tee -a "$GITHUB_OUTPUT"
+        fi

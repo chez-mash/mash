@@ -471,6 +471,48 @@ cancel superseded runs. A run that has not started can still be replaced by a
 newer one in the same concurrency group, so land related commits together
 instead of one push per commit.
 
+### What CI runs for a change
+
+`ci.yml`, `windows.yml` and `frontends.yml` start for every push to `main` and
+every pull request, and skip the jobs a change cannot affect. Their first job,
+`changes`, lists the changed files and asks `tools/ci_changes.py` which areas
+they reach; each expensive job carries an `if` on the answer. The workflows are
+not filtered with `paths:`, because a workflow that does not start has no run,
+and a release requires a successful `ci.yml` and `windows.yml` run for its
+exact commit. A run whose jobs were skipped still concludes successfully.
+
+| Changed files | `ci.yml` | `windows.yml` | `frontends.yml` | `docs.yml` |
+|---|---|---|---|---|
+| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust` | both builds, import | nothing | not started |
+| `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build and publish |
+| `site/` | nothing | nothing | nothing | build and publish |
+| `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build and publish (the demo) |
+| `raycast/` | nothing | nothing | `raycast` (lint, build, test) | not started |
+| `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md` | nothing | nothing | nothing | not started |
+| `.github/`, `tools/`, `Makefile`, anything not listed | everything | everything | everything | by its own `paths:` |
+
+"Nothing" still runs `changes` and, in `ci.yml`, the `file-lines` job, which
+counts every area's source. Three files inside the front-end directories also
+run the Rust jobs, because the Rust build reads them: `site/public/setup.md`,
+`site/package.json` and `dashboard/openapi.json`. A test in
+`tools/test_ci_changes.py` searches the Rust source for paths into those
+directories and fails when one is not listed. A path no rule claims runs
+everything. `desktop.yml`, `spec.yml` and `dependencies.yml` keep their own
+`paths:` filters; nothing depends on their having a run.
+
+On `main` the changed files are those since the last commit the same workflow
+passed for, not since the previous push. A skipped job therefore means "these
+files are as they were when this job last passed", which is what lets a release
+trust a run in which the Rust jobs were skipped. Comparing with the previous
+push would let a site-only commit report success on top of a Rust change whose
+own run failed, or was replaced while it waited. A pull request is compared
+with its base, and a manual run (`workflow_dispatch`) runs everything.
+
+`frontends.yml` ends with one job, `front-ends`, that passes when every job
+before it passed or was skipped; require that one if branch protection is
+turned on. It also merges the browser shards' reports into one HTML report,
+kept for a week as the `dashboard-browser-report` artifact.
+
 ### Deploying and releasing
 
 Deploy and release from a clean tree at `origin/main`, never from a checkout

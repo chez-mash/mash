@@ -22,7 +22,27 @@ env:
   CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: rust-lld
 
 jobs:
+  # Whether this commit can affect the Rust build. The builds below are
+  # skipped when it cannot; the workflow itself always runs and concludes,
+  # because a release requires a successful run for its exact commit.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        uses: ./.github/actions/changes
+        with:
+          workflow: windows.yml
+
   build:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: windows-latest
     timeout-minutes: 60
     env:
@@ -166,6 +186,8 @@ jobs:
   # release does, with the dashboard built in, and must pass the same smoke
   # test as x64. The x64 build otherwise runs there only under emulation.
   build-arm64:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: windows-11-arm
     timeout-minutes: 75
     defaults:

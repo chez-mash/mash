@@ -28,7 +28,48 @@ env:
   SCCACHE_BASEDIRS: ${{ github.workspace }}
 
 jobs:
+  # Which areas this commit can affect. The jobs below are skipped when theirs
+  # is untouched; the workflow itself always runs and concludes, because a
+  # release requires a successful run for its exact commit.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        uses: ./.github/actions/changes
+        with:
+          workflow: ci.yml
+
+  # Every area's source counts toward the line limit, so this runs for every
+  # change rather than inside a job that a front-end change skips.
+  file-lines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Keep source files within the 500-line limit and review growth past 450
+        env:
+          # Growth is measured from what the branch was before this push, or
+          # from a pull request's base. The checkout holds one commit, so the
+          # base is fetched; a first push has none and skips the review.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE" ] && [ "$BASE" != 0000000000000000000000000000000000000000 ]; then
+            git fetch --quiet --depth=1 origin "$BASE" || true
+            python3 tools/check_file_lines.py --against "$BASE"
+          else
+            python3 tools/check_file_lines.py
+          fi
+
   protocol:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -46,6 +87,8 @@ jobs:
     # Licences, banned and wildcard dependencies, and where crates come from.
     # Security advisories change without a commit, so they have their own
     # workflow (dependencies.yml) and do not fail an unrelated push.
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -70,6 +113,8 @@ jobs:
     concurrency:
       group: mash-ci-rust-${{ github.ref }}
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -147,19 +192,6 @@ jobs:
         run: TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
       - name: Verify offline search evaluation and benchmark witnesses
         run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
-      - name: Keep source files within the 500-line limit and review growth past 450
-        env:
-          # Growth is measured from what the branch was before this push, or
-          # from a pull request's base. The checkout holds one commit, so the
-          # base is fetched; a first push has none and skips the review.
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          if [ -n "$BASE" ] && [ "$BASE" != 0000000000000000000000000000000000000000 ]; then
-            git fetch --quiet --depth=1 origin "$BASE" || true
-            python3 tools/check_file_lines.py --against "$BASE"
-          else
-            python3 tools/check_file_lines.py
-          fi
       - name: Install pinned sqlc release
         run: |
           mkdir -p "$RUNNER_TEMP/mash-sqlc"

@@ -1,0 +1,167 @@
+name: Front ends
+
+# The dashboard's checks and browser suite, and the Raycast extension's. Each
+# runs only when its own files changed (see tools/ci_changes.py); the workflow
+# itself always runs, so its last job is one status that can be required.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: front-ends-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      dashboard: ${{ steps.changes.outputs.dashboard }}
+      raycast: ${{ steps.changes.outputs.raycast }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        uses: ./.github/actions/changes
+        with:
+          workflow: frontends.yml
+
+  dashboard:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Lint, check, test and build the dashboard
+        working-directory: dashboard
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm lint
+          pnpm check
+          pnpm test
+          pnpm build
+      - name: Check that every browser spec is mapped to the pages it covers
+        run: python3 -m unittest discover -s tools -p 'test_affected_tests.py'
+
+  # The whole browser suite, split by file across runners. Each shard writes a
+  # blob report; the last job merges them into one.
+  dashboard-browser:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Run shard ${{ matrix.shard }} of 4
+        working-directory: dashboard
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps --only-shell chromium
+          # One retry: a test that passes the second time is reported as
+          # flaky in the merged report instead of failing the push.
+          pnpm exec playwright test --shard=${{ matrix.shard }}/4 --reporter=blob,line --retries=1
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: dashboard-browser-blob-${{ matrix.shard }}
+          path: dashboard/blob-report
+          retention-days: 1
+
+  raycast:
+    needs: changes
+    if: needs.changes.outputs.raycast == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: raycast/package-lock.json
+      - name: Lint, build and test the Raycast extension
+        working-directory: raycast
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+          npm test
+
+  # One status for the whole workflow: it passes when every job above passed
+  # or was skipped because its files did not change.
+  front-ends:
+    needs: [changes, dashboard, dashboard-browser, raycast]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        if: needs.changes.outputs.dashboard == 'true'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        if: needs.changes.outputs.dashboard == 'true'
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        if: needs.changes.outputs.dashboard == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        if: needs.changes.outputs.dashboard == 'true'
+        with:
+          pattern: dashboard-browser-blob-*
+          path: dashboard/all-blob-reports
+          merge-multiple: true
+      - name: Merge the shards' browser reports
+        if: needs.changes.outputs.dashboard == 'true'
+        working-directory: dashboard
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright merge-reports --reporter=html,github,list ./all-blob-reports
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: needs.changes.outputs.dashboard == 'true'
+        with:
+          name: dashboard-browser-report
+          path: dashboard/playwright-report
+          retention-days: 7
+      - name: Require every job that ran to have passed
+        if: always()
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "changes, dashboard, dashboard-browser, raycast: $RESULTS"
+          case " $RESULTS " in
+            *" failure "*|*" cancelled "*) exit 1 ;;
+          esac
