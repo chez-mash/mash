@@ -10,7 +10,6 @@ publish = false
 mash-app = { path = "../../app" }
 mash-model = { path = "../mash-model" }
 mash-silver = { path = "../mash-silver" }
-base64 = "0.22.1"
 blake3 = "1.8.5"
 futures-util = "0.3"
 rmcp = { version = "3.4.0", default-features = false, features = ["client", "server", "macros", "transport-io", "transport-child-process"] }
@@ -18,7 +17,6 @@ schemars = "1.2"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.149", features = ["raw_value"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "fs", "net", "io-util", "process"] }
-tracing = "0.1"
 
 [dev-dependencies]
 mash-model = { path = "../mash-model", features = ["test-support"] }
@@ -27,8 +25,8 @@ mash-app = { path = "../../app", features = ["test-support"] }
 pulldown-cmark = { version = "0.13.4", default-features = false }
 shlex = "2.0.1"
 tempfile = "3.27.0"
-axum = { version = "0.8", features = ["ws"] }
 rusqlite = { version = "0.41.0", features = ["bundled", "modern_sqlite", "blob", "functions", "hooks"] }
+base64 = "0.22.1"
 
 [lints.rust]
 unsafe_code = "forbid"

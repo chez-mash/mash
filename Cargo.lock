@@ -2165,7 +2165,6 @@ dependencies = [
  "insta",
  "jiff 1.0.1",
  "mash-model",
- "mash-query",
  "mash-search",
  "mash-silver",
  "mash-storage",
@@ -2232,10 +2231,8 @@ dependencies = [
  "schemars 1.2.2",
  "serde",
  "serde_json",
- "sha2",
  "tempfile",
  "tokio",
- "tokio-util",
  "toml",
  "tower-http",
  "tracing",
@@ -2261,7 +2258,6 @@ dependencies = [
 name = "mash-mcp"
 version = "0.2.4"
 dependencies = [
- "axum",
  "base64 0.22.1",
  "blake3",
  "futures-util",
@@ -2277,7 +2273,6 @@ dependencies = [
  "shlex",
  "tempfile",
  "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -2326,7 +2321,6 @@ dependencies = [
  "getrandom 0.4.3",
  "hf-hub",
  "mash-model",
- "mash-query",
  "mash-silver",
  "mash-storage",
  "ort",
@@ -2366,7 +2360,6 @@ dependencies = [
  "mash-app",
  "mash-model",
  "mash-silver",
- "proptest",
  "prost",
  "reqwest",
  "rusqlite",
@@ -2376,10 +2369,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-tungstenite 0.30.0",
- "tokio-util",
  "toml",
- "tonic",
- "tonic-prost",
  "tower-http",
  "tracing",
 ]
@@ -2439,12 +2429,10 @@ dependencies = [
  "axum",
  "base64 0.22.1",
  "blake3",
- "console-subscriber",
  "futures-util",
  "getrandom 0.4.3",
  "jiff 1.0.1",
  "mash-model",
- "mash-query",
  "mash-search",
  "mash-silver",
  "mash-storage",
