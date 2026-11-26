@@ -44,10 +44,18 @@ describe("finding mash", () => {
     expect(findMash("/opt/mash", home, () => true)).toBe("/opt/mash");
     expect(findMash("/opt/mash", home, () => false)).toBeUndefined();
   });
+  it("reads a chosen location under the home folder", () => {
+    const installed = (path: string) => path === "/Users/ada/tools/mash";
+    expect(findMash("~/tools/mash", home, installed)).toBe("/Users/ada/tools/mash");
+    expect(findMash(" /Users/ada/tools/mash ", home, installed)).toBe("/Users/ada/tools/mash");
+    expect(findMash("~/elsewhere/mash", home, installed)).toBeUndefined();
+    expect(findMash("~other/mash", home, () => false)).toBeUndefined();
+  });
   it("otherwise tries the install locations in order", () => {
     const installed = new Set(["/opt/homebrew/bin/mash", "/Applications/Mash.app/Contents/MacOS/mash"]);
     expect(findMash(undefined, home, (path) => installed.has(path))).toBe("/opt/homebrew/bin/mash");
     expect(findMash("  ", home, () => false)).toBeUndefined();
+    expect(findMash("", home, (path) => installed.has(path))).toBe("/opt/homebrew/bin/mash");
     expect(installLocations(home)[0]).toBe("/Users/ada/.local/bin/mash");
     expect(installLocations(home)).toContain("/Users/ada/Applications/Mash.app/Contents/MacOS/mash");
   });
