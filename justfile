@@ -399,7 +399,7 @@ release version dry_run='' resume='':
 
 # ---- design -----------------------------------------------------------------
 
-# Build and serve main's Storybook on the tailnet, or refresh it (--status, --stop)
+# Build and serve main's Storybook on the tailnet, or refresh it (--status, --stop, --refresh)
 [group('design')]
 [positional-arguments]
 storybook-serve *args:

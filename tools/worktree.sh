@@ -13,7 +13,9 @@
 #                                      to main, past the queue and its checks
 #   tools/worktree.sh pr NAME          push the branch and open a pull request without queueing it
 #   tools/worktree.sh done NAME [--force]
-#   tools/worktree.sh deploy-tree      a clean tree at origin/main for fleet.sh and releases
+#   tools/worktree.sh deploy-tree [NAME]
+#                                      a clean tree at origin/main for fleet.sh and releases;
+#                                      NAME gives a job its own (_NAME), away from deploys
 #   tools/worktree.sh preview NAME [--site|--storybook] [--real] [--local] [--stop]
 #                                      a live dev server on the tailnet (worktree-preview.sh)
 #   tools/worktree.sh previews         the previews that are recorded, and whether each answers
@@ -181,12 +183,21 @@ command_land() {
     if [[ -n $wait ]]; then
         repo fetch --quiet --prune origin
         say "Landed $branch on origin/main. Remove the worktree with: tools/worktree.sh done $name"
+        refresh_storybook
     else
         say "$branch is in the merge queue; nothing is on main until the queue's checks pass."
         say "Follow it with the pull request's number: tools/merge-queue.sh wait NUMBER   then: tools/worktree.sh done $name"
     fi
 }
 queue_tool() { bash "$(dirname "${BASH_SOURCE[0]}")/merge-queue.sh" "$@"; }
+# Where this machine serves main's Storybook on the tailnet, a landing that
+# changed dashboard/ builds it again; the script decides both, and does
+# nothing elsewhere. The change is on main by now, so a refresh that fails is
+# reported and the landing still succeeded.
+refresh_storybook() {
+    bash "$(dirname "${BASH_SOURCE[0]}")/storybook-serve.sh" --refresh > /dev/null ||
+        say 'Note: the Storybook of main was not refreshed; run tools/storybook-serve.sh when convenient.'
+}
 
 command_pr() {
     [[ $# -eq 1 ]] || usage
@@ -239,8 +250,8 @@ command_done() {
 }
 
 command_deploy_tree() {
-    [[ $# -eq 0 ]] || usage
-    tree=$trees/_deploy
+    [[ $# -le 1 && ${1:-deploy} =~ ^[a-z][a-z0-9-]*$ ]] || usage
+    tree=$trees/_${1:-deploy}
     fetch
     if [[ -d $tree ]]; then
         ! dirty "$tree" all || die "$tree has local changes; a deploy tree must stay clean (inspect it, then git -C $tree clean/checkout by hand)"
@@ -249,7 +260,9 @@ command_deploy_tree() {
         mkdir -p "$trees"
         repo worktree add --quiet --detach "$tree" origin/main >&2
     fi
-    say "Deploy tree at origin/main $(git -C "$tree" rev-parse --short HEAD). Run fleet commands from it: (cd $tree && bash tools/fleet.sh ...)"
+    if [[ $# -eq 0 ]]; then
+        say "Deploy tree at origin/main $(git -C "$tree" rev-parse --short HEAD). Run fleet commands from it: (cd $tree && bash tools/fleet.sh ...)"
+    fi
     printf '%s\n' "$tree"
 }
 

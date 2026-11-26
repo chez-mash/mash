@@ -170,13 +170,19 @@ tools/worktree.sh preview NAME --storybook   # a worktree's stories, live while 
 tools/storybook-serve.sh                     # main's Storybook, built and kept served
 ```
 
-`tools/storybook-serve.sh` builds in the deploy tree at `origin/main`, copies
-the static files to `~/.local/state/mash/storybook/site` and serves them with
-the user unit `mash-storybook.service` on this machine's Tailscale address at
-port 5400, tailnet only. Nothing refreshes it automatically: run it again
-after landing a dashboard change. The old files are served until the new
-build finishes, and a failed build leaves them. `--status` says which
-revision is served and `--stop` removes the unit.
+`tools/storybook-serve.sh` (`just storybook-serve`) builds in a tree of its
+own at `origin/main` (`../mash-worktrees/_storybook`, so a build never moves
+the deploy tree under a running deploy), copies the static files to
+`~/.local/state/mash/storybook/site` and serves them with the user unit
+`mash-storybook.service` on this machine's Tailscale address at port 5400,
+tailnet only. `tools/worktree.sh land NAME --wait` refreshes it once the
+change is on `main`: it runs `storybook-serve.sh --refresh`, which builds
+again only on a machine that has the unit, and only when `dashboard/` on
+`main` differs from the revision served. A refresh that fails prints a note
+and never fails the landing. After a change that landed another way, run
+`just storybook-serve` by hand. The old files are served until the new build
+finishes, and a failed build leaves them. `--status` says which revision is
+served and `--stop` removes the unit.
 
 ### Linker
 
@@ -594,6 +600,9 @@ tools/worktree.sh done search-fix
   later.
 - `preview NAME` and `previews` start, stop and list live dev servers of a
   worktree on the tailnet; see Previews below.
+- `deploy-tree [NAME]` prints a clean, detached tree at `origin/main`:
+  `_deploy` for deploys and releases, or `_NAME` for a job that must not move
+  that one (the Storybook build uses `_storybook`).
 - `done NAME` removes the worktree and deletes the branch, and its pushed copy
   once merged if GitHub has not already deleted it. It refuses while the
   worktree holds uncommitted or untracked files, or commits that are not on
