@@ -246,7 +246,13 @@ follow `.agents/skills/frontend-development-prefs/SKILL.md` and
 `dashboard/src/lib/components/ui`: take a new one from there, adding it with
 `pnpm dlx shadcn-svelte@latest add NAME`, never hand-build one, and style it only
 through the theme's roles in `dashboard/src/theme/tokens.css`, never shadcn's
-default palette or a literal colour (`theme.test.ts` checks). Draw every icon
+default palette or a literal colour (`theme.test.ts` checks). New styling goes
+in Tailwind utility classes or a component's scoped `<style>`, using token
+roles; the global stylesheets (`terminal.css`, `kit.css`, `semantics.css`,
+`reading.css`, and the website's `site/src/styles/`) only shrink, which
+`tools/check_css_budget.py` enforces against `tools/css-budget.json`: after
+removing CSS run it with `--update`, and never raise a number without
+`--allow-growth` and its reason. Draw every icon
 through `dashboard/src/lib/components/Icon.svelte` with a glyph imported from
 `phosphor-svelte/lib/NAMEIcon`, never a hand-drawn SVG; it takes the text colour.
 Its weight is decided in `dashboard/src/lib/icon.svelte.ts` from the theme's

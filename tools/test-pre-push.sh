@@ -36,13 +36,16 @@ work=$scratch/work
 git init -q "$work"
 mkdir -p "$work/tools" "$work/.githooks" "$work/src" "$work/dashboard/src/lib" "$work/dashboard/node_modules/.bin"
 cp "$repository/tools/pre-push.sh" "$repository/tools/install-hooks.sh" \
-    "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" "$work/tools/"
+    "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" \
+    "$repository/tools/check_css_budget.py" "$work/tools/"
 cp "$repository/.githooks/pre-push" "$work/.githooks/"
 : > "$work/tools/file-lines-baseline.txt"
 printf '[package]\nname = "fixture"\nversion = "0.0.0"\nedition = "2021"\n' > "$work/Cargo.toml"
 printf 'pub fn one() -> u8 {\n    1\n}\n' > "$work/src/lib.rs"
 printf 'export const a = 1;\n' > "$work/dashboard/src/lib/a.ts"
 printf 'export const b = 1;\n' > "$work/dashboard/src/lib/b.ts"
+printf '.a {\n  margin: 0;\n}\n' > "$work/dashboard/src/global.css"
+printf '{"watched": ["dashboard/src/*.css"], "files": {"dashboard/src/global.css": 3}}\n' > "$work/tools/css-budget.json"
 printf 'node_modules/\n' > "$work/.gitignore"
 # A stand-in Biome: records the files it was given and rejects a marked one.
 cat > "$work/dashboard/node_modules/.bin/biome" <<'BIOME'
@@ -100,6 +103,19 @@ if (cd "$work" && cargo fmt --version) > /dev/null 2>&1; then
 else
     echo 'pre-push: skipped the rustfmt case; cargo fmt is not installed'
 fi
+
+printf '.b {\n  margin: 0;\n}\n' >> "$work/dashboard/src/global.css"
+commit css
+expect 1 'a global stylesheet that grew' 'pre-push FAILED +css budget .*Tailwind utilities'
+grep -q 'dashboard/src/global.css: 6 lines, 3 over its budget of 3' "$scratch/output" || fail 'the grown stylesheet is named'
+reset_work
+printf '.a {\n}\n' > "$work/dashboard/src/global.css"
+commit css
+expect 1 'a global stylesheet that shrank without its budget' 'check_css_budget.py --update'
+(cd "$work" && python3 -B tools/check_css_budget.py --update) > /dev/null || fail 'the budget is lowered'
+commit budget
+expect 0 'a global stylesheet that shrank with its budget' 'css budget'
+reset_work
 
 : > "$BIOME_CALLS"
 printf 'export const a = 2; // MISFORMATTED\n' > "$work/dashboard/src/lib/a.ts"

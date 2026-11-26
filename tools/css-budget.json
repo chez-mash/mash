@@ -1,0 +1,23 @@
+{
+  "about": "Line counts of the hand-written global stylesheets; read by tools/check_css_budget.py. A file may shrink but not grow: new styling goes in Tailwind utilities or a component's scoped styles, with token roles. Lower a number with --update; raising one needs --allow-growth and a reason, recorded under growth.",
+  "watched": [
+    "dashboard/src/**/*.css",
+    "site/src/styles/*.css"
+  ],
+  "exempt": {
+    "dashboard/src/app.css": "Tailwind's names for the theme's roles; it gains a line when a role does.",
+    "dashboard/src/theme/tokens.css": "The theme's roles themselves; theme.test.ts keeps unused ones out."
+  },
+  "files": {
+    "dashboard/src/components/reading.css": 360,
+    "dashboard/src/kit.css": 1201,
+    "dashboard/src/semantics.css": 195,
+    "dashboard/src/terminal.css": 4460,
+    "site/src/styles/custom.css": 495,
+    "site/src/styles/docs.css": 852,
+    "site/src/styles/theme.css": 450,
+    "site/src/styles/welcome-panels.css": 561,
+    "site/src/styles/welcome.css": 530
+  },
+  "growth": []
+}

@@ -86,6 +86,27 @@ Functions get the same treatment: suppress `clippy::too_many_lines` or
 `clippy::too_many_arguments` with `#[expect(..., reason = "...")]`, never
 `#[allow]`, so Clippy fails once a function no longer needs it.
 
+### Global CSS budget
+
+The hand-written global stylesheets only shrink. `tools/css-budget.json`
+records the line count of each one: the dashboard's `terminal.css`, `kit.css`,
+`semantics.css` and `components/reading.css`, and every file in
+`site/src/styles/`. `python3 tools/check_css_budget.py` fails when one is
+longer than its number, and when a new stylesheet appears beside them. It
+runs in CI next to the line limit and in the pre-push check.
+
+Put new styling in Tailwind utility classes on the element, or in the
+component's scoped `<style>`, and take every colour, line, corner and shadow
+from a token role. The dashboard's `app.css` and `theme/tokens.css` are
+exempt, since a new role adds a line to each.
+
+When a stylesheet shrinks, run `python3 tools/check_css_budget.py --update`
+to lower its number; the check fails until you do, so the budget only
+tightens. `--update` never raises a number. A rule that can only be global
+(a print rule, a third-party element the site cannot put a class on) needs
+`--update --allow-growth "REASON"`, which records the file, the change and
+the reason under `growth` in the budget file for review.
+
 ### Rust checks
 
 [Correctness checks](verification.md) describes generated Proptest
@@ -522,6 +543,7 @@ areas a push changes, and takes a few seconds:
 | Changed files | Check | Fix |
 |---|---|---|
 | Rust, TypeScript, Svelte, Python | `python3 tools/check_file_lines.py` | Split the file or write its growth review |
+| CSS | `python3 tools/check_css_budget.py` | Use Tailwind utilities or scoped styles; after removing CSS, `--update` |
 | `dashboard/`, `site/` | Biome on the changed files | `pnpm exec biome check --write FILES` |
 | `dashboard/src/` | `src/theme/theme.test.ts` | Name a role token; remove unused ones |
 | Rust | `cargo fmt --check` (workspace, and `desktop/src-tauri`) | `cargo fmt` |

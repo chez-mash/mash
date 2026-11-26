@@ -66,6 +66,8 @@ jobs:
           else
             python3 tools/check_file_lines.py
           fi
+      - name: Keep the global stylesheets from growing
+        run: python3 tools/check_css_budget.py
 
   protocol:
     needs: changes

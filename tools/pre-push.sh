@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The cheap checks CI would fail a push on, for the files that push changes:
-# the line limit, the dashboard theme test, Biome, rustfmt and the Raycast
-# lint's Prettier and ESLint. No test suites and no builds, so a typical change
+# the line limit, the global CSS budget, the dashboard theme test, Biome,
+# rustfmt and the Raycast lint's Prettier and ESLint. No test suites and no builds, so a typical change
 # takes a few seconds. A missing tool or node_modules skips its check with a
 # note; CI still runs everything.
 #
@@ -151,6 +151,15 @@ if any '\.(rs|ts|svelte|py)$|^tools/(file-lines-baseline\.txt|file-reviews/)'; t
             in_dir . python3 -B tools/check_file_lines.py "${against[@]}"
     else
         skip 'line limit: python3 is not installed'
+    fi
+fi
+
+if any '\.css$|^tools/(css-budget\.json|check_css_budget\.py)$'; then
+    if command -v python3 >/dev/null; then
+        check 'css budget' "use Tailwind utilities or the component's scoped styles (token roles only) instead of global CSS; after removing CSS run python3 tools/check_css_budget.py --update" \
+            in_dir . python3 -B tools/check_css_budget.py
+    else
+        skip 'css budget: python3 is not installed'
     fi
 fi
 
