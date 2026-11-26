@@ -26,6 +26,13 @@ The command exits 1 if it finds a problem. Entries marked `warning` point out
 things worth checking. `mash doctor` leaves your setup
 and history as they were.
 
+A `copies` warning means something on this computer runs a different copy of
+Mash from the one you ran: the `mash` your terminal finds, a background
+service, or an agent's connection. Two copies at different versions is a
+common reason search stops after an update. Update the other copy with the
+command shown, or, in the Mac app, choose **Use the App’s Mash Everywhere**
+when it offers.
+
 To inspect a particular part of your setup, use the matching status command.
 
 ```sh
