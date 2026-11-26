@@ -65,124 +65,14 @@ jobs:
             fi
           done
 
+  # The same steps build every main commit's fleet artifacts; see
+  # build-binaries.yml.
   build:
     needs: validated
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          # The Linux builds run in a glibc 2.34 image so the binaries load on
-          # that release and later; see crates/mash-search/glibc_compat.c.
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-latest
-            container: quay.io/pypa/manylinux_2_34_x86_64
-            archive: tar.gz
-          - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-24.04-arm
-            container: quay.io/pypa/manylinux_2_34_aarch64
-            archive: tar.gz
-          - target: aarch64-apple-darwin
-            runner: macos-26
-            archive: tar.gz
-          - target: x86_64-pc-windows-msvc
-            runner: windows-latest
-            archive: zip
-          - target: aarch64-pc-windows-msvc
-            runner: windows-11-arm
-            archive: zip
-    runs-on: ${{ matrix.runner }}
-    container: ${{ matrix.container }}
-    timeout-minutes: 60
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
-      # `mash dash` serves pages embedded at compile time (see app/build.rs), so
-      # they are built first and the compile fails without them.
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
-        with:
-          package_json_file: site/package.json
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: dashboard/pnpm-lock.yaml
-      - name: Build the dashboard
-        working-directory: dashboard
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-      - name: Build
-        env:
-          MASH_BUILD_REVISION: ${{ github.sha }}
-          MASH_REQUIRE_DASHBOARD: 1
-        run: cargo +stable build --release --locked --bin mash --bin mash-server
-      - name: Check the glibc floor
-        if: contains(matrix.target, 'linux')
-        run: .github/scripts/check-glibc-floor 2.34 target/release/mash target/release/mash-server
-      - name: Smoke
-        run: |
-          binary=target/release/mash
-          [ -f "$binary.exe" ] && binary="$binary.exe"
-          .github/scripts/deploy-smoke "$binary" "$GITHUB_SHA"
-          server=target/release/mash-server
-          [ -f "$server.exe" ] && server="$server.exe"
-          "$server" --version
-          "$server" --help
-      # With the Apple secrets set, the Mac binaries are signed with the
-      # hardened runtime and notarized, so macOS opens them without a warning.
-      - name: Prepare Mac signing
-        if: runner.os == 'macOS'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        run: .github/scripts/macos-signing-setup
-      - name: Sign and notarize the Mac binaries
-        if: runner.os == 'macOS' && env.MASH_SIGN == '1'
-        env:
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        run: |
-          for binary in target/release/mash target/release/mash-server; do
-            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$binary"
-            codesign --verify --strict "$binary"
-            .github/scripts/macos-notarize "$binary"
-          done
-      # With the Azure secrets set, the Windows programs are signed with Azure
-      # Trusted Signing, so Windows names their publisher.
-      - name: Sign the Windows binaries
-        if: runner.os == 'Windows'
-        shell: pwsh
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
-          AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
-          AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
-        run: .github/scripts/windows-sign.ps1 target/release/mash.exe target/release/mash-server.exe
-      - name: Package
-        run: |
-          archive="mash-${{ matrix.target }}.${{ matrix.archive }}"
-          if [ "${{ matrix.archive }}" = zip ]; then
-            (cd target/release && 7z a -tzip "$GITHUB_WORKSPACE/$archive" mash.exe mash-server.exe)
-          else
-            tar -C target/release -czf "$archive" mash mash-server
-          fi
-          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: mash-${{ matrix.target }}
-          path: ${{ env.ARCHIVE }}
-          if-no-files-found: error
-          retention-days: 7
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      sign: true
+    secrets: inherit
 
   # The desktop app, which bundles the engine the build job made for the same
   # platform, so the app has the same compatibility floor as the archives.

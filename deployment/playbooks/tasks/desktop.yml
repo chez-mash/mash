@@ -1,0 +1,28 @@
+# The desktop app comes only from a published release's installer, so this
+# runs only for `deploy --release`. Each command is the machine's own
+# mash_desktop_install entry, for example tools/install-desktop-macos.sh.
+- name: Install the release's desktop app
+  block:
+    - name: Run the configured desktop installer
+      ansible.builtin.command:
+        argv: "{{ item }}"
+        chdir: "{{ mash_repository }}"
+      loop: "{{ mash_desktop_install }}"
+      delegate_to: localhost
+      register: mash_desktop_result
+    - name: Record what the installer did
+      ansible.builtin.copy:
+        dest: "{{ mash_job_directory }}/{{ inventory_hostname }}.desktop.txt"
+        mode: '0600'
+        content: "{{ mash_desktop_result.results | map(attribute='stdout') | join('\n') }}\n"
+      delegate_to: localhost
+  rescue:
+    - name: Record that the desktop app was not replaced
+      ansible.builtin.copy:
+        dest: "{{ mash_job_directory }}/{{ inventory_hostname }}.desktop.txt"
+        mode: '0600'
+        content: "The desktop app was not updated; the previous app is still installed. The command line tools were installed and verified.\n"
+      delegate_to: localhost
+    - name: Fail the desktop step
+      ansible.builtin.fail:
+        msg: "The desktop app installer failed for {{ inventory_hostname }}."

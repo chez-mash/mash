@@ -94,6 +94,12 @@
       ansible.builtin.include_tasks: tasks/probe.yml
       vars:
         mash_probe_mode: check
+    - name: Restart supervised Mash processes still running the replaced binary
+      ansible.builtin.include_tasks: tasks/stale-processes.yml
+      when: mash_processes is defined and mash_platform != 'windows'
+    - name: Install the desktop app from the release's installer
+      ansible.builtin.include_tasks: tasks/desktop.yml
+      when: mash_release_tag is defined and (mash_desktop_install | default([]) | length > 0)
     - name: Restart the machine's dashboard on the installed release
       ansible.builtin.include_tasks: tasks/dashboard-restart.yml
       when: mash_dashboard_restart is defined

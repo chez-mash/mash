@@ -1,0 +1,39 @@
+name: Dev artifacts
+
+# Keeps installable release-profile builds of each main commit for two weeks,
+# so `tools/fleet.sh deploy` can install them instead of compiling on every
+# machine (see deployment/README.md). The builds are the release's own steps,
+# unsigned. Each artifact is named mash-<target>-<commit> and holds the
+# archive with its .sha256.
+#
+# A commit that changes only the documentation, the website or the Raycast
+# extension builds nothing; a deployment of such a commit compiles from source.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - docs/**
+      - site/**
+      - raycast/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One build at a time. While one runs, only the newest waiting commit is kept,
+# so a burst of landed commits builds the first and the last of them and the
+# head of main always gets its artifacts.
+concurrency:
+  group: dev-artifacts-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: >-
+        ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin",
+        "x86_64-pc-windows-msvc"]
+      artifact-suffix: -${{ github.sha }}
+      checksum: true
+      retention-days: 14

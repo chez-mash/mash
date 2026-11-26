@@ -119,8 +119,9 @@ target directory. Release archives and public installers include both binaries.
 
 ### Windows machines
 
-A Windows machine builds its own release, since there is no cross-built
-Windows artifact, and every step is a command the controller runs over SSH.
+A Windows machine builds its own release unless the inventory gives the
+`windows` platform a `mash_artifacts` entry (see Deploying built artifacts),
+and every step is a command the controller runs over SSH.
 It needs OpenSSH Server, Git, stable Rust with the Microsoft C++ build tools,
 Node.js and pnpm, a checkout of the published repository, and a `C:\tools\logs`
 folder. Give the inventory a `windows` build and the machine a preflight and
@@ -182,6 +183,112 @@ bash tools/fleet.sh sync xenia
 bash tools/fleet.sh local-views xenia
 bash tools/fleet.sh replay-views shared-api
 ```
+
+### Deploying built artifacts
+
+A deployment installs binaries that CI already built whenever it can, and
+compiles only when it cannot. The install steps, index upgrade, service
+restarts and readiness check are the same either way: the download is put
+where the platform's source build would have left its binaries, and the
+inventory's `mash_install` commands run unchanged.
+
+```bash
+bash tools/fleet.sh deploy shared-api xenia                   # this commit's CI build, else compile
+bash tools/fleet.sh deploy --release v0.2.5 shared-api xenia  # a published release's assets
+bash tools/fleet.sh deploy --source-build shared-api xenia    # always compile
+```
+
+- **A commit on main.** The `Dev artifacts` workflow builds `mash` and
+  `mash-server` in the release profile for Linux x86_64 and aarch64, macOS
+  arm64 and Windows x64 on each push to main, with the release workflow's own
+  build steps (`.github/workflows/build-binaries.yml`), unsigned, and keeps
+  them for 14 days as `mash-<target>-<commit>`. `deploy` downloads the artifact
+  for exactly the checkout's commit (`gh run download`) and checks it against
+  the `.sha256` the same job wrote. It uses the artifact only when that
+  workflow run succeeded and `ci.yml` passed for the commit, since the
+  download replaces the local build gates.
+- **A release.** `--release vX.Y.Z` downloads `mash-<target>.tar.gz` or `.zip`
+  from the GitHub release and checks it against the release's `SHA256SUMS`.
+  The tag must be the checkout's commit, because the readiness check expects
+  the installed build to be the commit being deployed: check out the tag in a
+  clean tree first. Right after `tools/release.sh` the deploy tree already is.
+- **Falling back.** With no artifact (a commit that changed only `docs/`,
+  `site/` or `raycast/`, which builds none; a build still running, superseded
+  while it waited, or expired; CI not passed; a platform the workflow does not
+  build) the platform is compiled as before. The launcher says which happened
+  for each platform on standard error, for example
+  `Binaries: aarch64-apple-darwin: using CI build 123 of 0a1b2c3d4e5f` or
+  `Binaries: ...: CI has no finished artifact build for 0a1b2c3d4e5f; building from source.`
+- **Refusing.** A download that does not match its checksum, lists none, or is
+  not a program for that platform stops the deployment before anything is
+  installed. It never falls back to compiling over a bad download.
+
+Tell the inventory where each platform's binaries belong with `mash_artifacts`,
+beside `mash_builds`; a platform without an entry is always compiled:
+
+```yaml
+mash_artifacts:
+  linux:
+    asset: x86_64-unknown-linux-gnu
+    mash: /persistent/target/release/mash            # what mash_install installs
+    mash_server: /persistent/target/release/mash-server
+  darwin:
+    asset: aarch64-apple-darwin
+    mash: /absolute/artifacts/mash-darwin-arm64
+    mash_server: /absolute/artifacts/mash-darwin-arm64-server
+  windows:
+    asset: x86_64-pc-windows-msvc
+    windows_host: winbox          # staged where install-dev-windows.sh reads
+    windows_checkout: 'C:\mash-src'
+```
+
+The controller needs `gh`, signed in with access to the repository. The
+artifacts hold `mash` and `mash-server` only: after changing the `mash-fleet`
+crate, rebuild the controller's probe with `cargo build --release -p mash-fleet`.
+The typed TOML inventory used by `mash-fleet` and the dashboard has no
+`artifacts` table yet, so deployments started there still compile.
+
+After a history machine's install and readiness check, the deployment looks
+for processes still running the binary it replaced. Name the installed paths:
+
+```yaml
+mash_processes:
+  binaries: [/absolute/installed/mash]
+  restart:                         # optional; see below
+    - match: 'dash --bind 127.0.0.1:8790'
+      start: /absolute/installed/start-dashboard
+```
+
+`tools/restart-stale-processes.sh` runs on the machine. A process counts when
+its executable is one of those paths but no longer the file there (a
+different inode on Linux; started before the file was put in place on macOS).
+A systemd user unit or launchd job whose own process it is gets restarted
+through its supervisor. Everything else is listed in the target's
+`stale_processes` and left running: a `mash mcp` an agent started, a
+`mash dash` in a terminal, a process inside another program's unit, a system
+service. A hand-started process is stopped and started again only when a
+`restart` entry's `match` is part of its command line. Development builds and
+the desktop app's own engine live at other paths and are never touched. Run it
+with `--dry-run` to see what it would do. Windows machines are skipped: their
+installer already stops and starts the scheduled tasks.
+
+A release deployment can also install the desktop app. Give a Mac
+
+```yaml
+mash_desktop_install:
+  - [bash, tools/install-desktop-macos.sh, dev-macbook, '{{ mash_release_tag }}']
+```
+
+and `deploy --release` downloads the release's
+`mash-desktop-macos-arm64.dmg`, checks it against `SHA256SUMS`, and on the Mac
+requires that Gatekeeper accepts the app (`spctl -a -t exec`) and that it is
+signed by team `JZ665W692Z`. It then quits the running app
+(`io.getmash.desktop`), moves `/Applications/Mash.app` to `Mash.app.previous`,
+copies the new app in and opens it. The previous app is removed once the new
+one has started, and put back if it does not. An app that was not open is
+closed again; one already at that version is left alone. Without `--release`
+the step does not run: there are no desktop builds of unreleased commits.
+Only macOS has an installer step so far.
 
 `replay-views` invokes the API target's explicit `mash_replay_views` commands,
 between its existing authenticated `mash_verify` checks. Configure that hook to
@@ -319,9 +426,13 @@ argument is the explicit database path (or empty for the platform default).
 This selects an exporter, not an alternative installed release. Retain the old
 database and export until the current importer and explicit refresh pass.
 
-Local gates are authoritative; hosted CI is optional. Validation includes probe
+Local gates are authoritative for a source build; hosted CI is optional there.
+A deployment from a commit's artifact relies on that commit's CI run instead.
+Validation includes probe
 unit tests and real Ansible fixtures through `tools/test-ansible.sh`, plus fleet
-lock, API rollback and build-gate regression scripts.
+lock, API rollback and build-gate regression scripts. `tools/test-fleet-artifacts.sh`
+covers artifact deployment against a fake `gh`: checksum refusal, fallback,
+stale processes and the desktop app swap.
 # Full-history refresh after upgrades
 
 Schema upgrades run the refresh probe with `--all-history`, so sources outside

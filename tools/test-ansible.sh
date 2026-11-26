@@ -197,3 +197,4 @@ echo 'Ansible build reuse, ordering, skips, failure blocking, target selection a
 bash "$repository/tools/test-fleet-systemd.sh"
 bash "$repository/tools/test-fleet-launchd.sh"
 bash "$repository/tools/test-fleet-dashboard.sh"
+bash "$repository/tools/test-fleet-artifacts.sh"

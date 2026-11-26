@@ -1,0 +1,21 @@
+# Replacing a binary leaves every process started from the old one running it.
+# The machine lists its own: a process whose executable is one of the
+# inventory's installed paths but no longer the file at that path. A job that
+# systemd or launchd runs directly is restarted through its supervisor. A
+# process someone started by hand is only listed, unless the inventory names
+# it with the command that starts it again. A failure here leaves the verified
+# installation in place and is shown in the report.
+- name: Find and restart processes on the replaced binary
+  ansible.builtin.script:
+    cmd: >-
+      {{ mash_repository }}/tools/restart-stale-processes.sh
+      {% for binary in mash_processes.binaries %}--binary {{ binary | quote }} {% endfor %}
+      {% for entry in mash_processes.restart | default([]) %}--restart {{ entry.match | quote }} {{ entry.start | quote }} {% endfor %}
+  register: mash_stale
+  failed_when: false
+- name: Keep the list with the job's private reports
+  ansible.builtin.copy:
+    dest: "{{ mash_job_directory }}/{{ inventory_hostname }}.processes.tsv"
+    mode: '0600'
+    content: "{{ mash_stale.stdout | default('') if (mash_stale.rc | default(1)) == 0 else 'failed\t0\t-\t-\tThe machine could not list its Mash processes.\n' }}"
+  delegate_to: localhost

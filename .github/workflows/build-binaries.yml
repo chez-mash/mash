@@ -1,0 +1,162 @@
+name: Build binaries
+
+# The one place that builds, smokes and packages `mash` and `mash-server` for
+# each platform. A release calls it signed (release.yml); every main commit
+# calls it unsigned to keep installable builds for the fleet
+# (dev-artifacts.yml). Each target becomes one workflow artifact holding
+# mash-<target>.tar.gz or .zip.
+on:
+  workflow_call:
+    inputs:
+      targets:
+        description: JSON list of the target triples to build
+        type: string
+        default: >-
+          ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin",
+          "x86_64-pc-windows-msvc", "aarch64-pc-windows-msvc"]
+      sign:
+        description: Sign the Mac and Windows programs when the signing secrets are set
+        type: boolean
+        default: false
+      artifact-suffix:
+        description: Appended to each artifact name (mash-<target><suffix>), for example -<commit>
+        type: string
+        default: ""
+      checksum:
+        description: Put <archive>.sha256 beside the archive in the artifact
+        type: boolean
+        default: false
+      retention-days:
+        type: number
+        default: 7
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        target: ${{ fromJSON(inputs.targets) }}
+    # A matrix built from an input cannot carry per-target values, so the
+    # runner and container are looked up by target here.
+    # The Linux builds run in a glibc 2.34 image so the binaries load on
+    # that release and later; see crates/mash-search/glibc_compat.c.
+    runs-on: >-
+      ${{ fromJSON('{
+        "x86_64-unknown-linux-gnu": "ubuntu-latest",
+        "aarch64-unknown-linux-gnu": "ubuntu-24.04-arm",
+        "aarch64-apple-darwin": "macos-26",
+        "x86_64-pc-windows-msvc": "windows-latest",
+        "aarch64-pc-windows-msvc": "windows-11-arm"
+      }')[matrix.target] }}
+    container: >-
+      ${{ fromJSON('{
+        "x86_64-unknown-linux-gnu": "quay.io/pypa/manylinux_2_34_x86_64",
+        "aarch64-unknown-linux-gnu": "quay.io/pypa/manylinux_2_34_aarch64"
+      }')[matrix.target] }}
+    timeout-minutes: 60
+    env:
+      ARCHIVE: mash-${{ matrix.target }}.${{ contains(matrix.target, 'windows') && 'zip' || 'tar.gz' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: stable
+      # `mash dash` serves pages embedded at compile time (see app/build.rs), so
+      # they are built first and the compile fails without them.
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Build the dashboard
+        working-directory: dashboard
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Build
+        env:
+          MASH_BUILD_REVISION: ${{ github.sha }}
+          MASH_REQUIRE_DASHBOARD: 1
+        run: cargo +stable build --release --locked --bin mash --bin mash-server
+      - name: Check the glibc floor
+        if: contains(matrix.target, 'linux')
+        run: .github/scripts/check-glibc-floor 2.34 target/release/mash target/release/mash-server
+      - name: Smoke
+        run: |
+          binary=target/release/mash
+          [ -f "$binary.exe" ] && binary="$binary.exe"
+          .github/scripts/deploy-smoke "$binary" "$GITHUB_SHA"
+          server=target/release/mash-server
+          [ -f "$server.exe" ] && server="$server.exe"
+          "$server" --version
+          "$server" --help
+      # With the Apple secrets set, the Mac binaries are signed with the
+      # hardened runtime and notarized, so macOS opens them without a warning.
+      - name: Prepare Mac signing
+        if: inputs.sign && runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: .github/scripts/macos-signing-setup
+      - name: Sign and notarize the Mac binaries
+        if: inputs.sign && runner.os == 'macOS' && env.MASH_SIGN == '1'
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          for binary in target/release/mash target/release/mash-server; do
+            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$binary"
+            codesign --verify --strict "$binary"
+            .github/scripts/macos-notarize "$binary"
+          done
+      # With the Azure secrets set, the Windows programs are signed with Azure
+      # Trusted Signing, so Windows names their publisher.
+      - name: Sign the Windows binaries
+        if: inputs.sign && runner.os == 'Windows'
+        shell: pwsh
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
+        run: .github/scripts/windows-sign.ps1 target/release/mash.exe target/release/mash-server.exe
+      - name: Package
+        run: |
+          mkdir packaged
+          if [ "${ARCHIVE##*.}" = zip ]; then
+            (cd target/release && 7z a -tzip "$GITHUB_WORKSPACE/packaged/$ARCHIVE" mash.exe mash-server.exe)
+          else
+            tar -C target/release -czf "packaged/$ARCHIVE" mash mash-server
+          fi
+      # The checksum is taken where the archive is made, so a download can be
+      # checked against what this job built. shasum is the tool every runner has.
+      - name: Record the archive's checksum
+        if: inputs.checksum
+        working-directory: packaged
+        run: |
+          if command -v sha256sum >/dev/null; then sha256sum "$ARCHIVE"; else shasum -a 256 "$ARCHIVE"; fi > "$ARCHIVE.sha256"
+          cat "$ARCHIVE.sha256"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: mash-${{ matrix.target }}${{ inputs.artifact-suffix }}
+          path: packaged/*
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention-days }}

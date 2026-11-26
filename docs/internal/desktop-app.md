@@ -189,6 +189,13 @@ otherwise:
   and `mash-server.exe`, and Tauri calls it as its sign command for the app and
   the installer. It checks every signature it makes.
 
+A fleet deployment of a release can put the signed Mac app on a machine:
+`tools/fleet.sh deploy --release vX.Y.Z` runs `tools/install-desktop-macos.sh`
+for Macs whose inventory entry asks for it. It checks the disk image against
+the release's checksums, requires Gatekeeper's approval and Mash's team ID,
+and keeps the previous app until the new one has started. See
+[deployment/README.md](../../deployment/README.md#deploying-built-artifacts).
+
 ## Not done yet
 
 - A Homebrew cask and a winget package for the app. Distribution follows the

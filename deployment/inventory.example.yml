@@ -8,6 +8,17 @@ all:
         - [/absolute/agent-test, env, TMPDIR=/persistent/temp, CARGO_TARGET_DIR=/persistent/target, CARGO_INCREMENTAL=0, bash, tools/build-dev-linux.sh]
       darwin:
         - [bash, tools/build-dev-macos.sh, '{{ mash_darwin_build_host }}', '{{ hostvars[mash_darwin_build_host].mash_build_root }}', /absolute/artifacts/mash-darwin-arm64]
+    # Where a download of CI's build, or of a release's assets, is put so the
+    # install commands below find it. A platform without an entry is compiled.
+    mash_artifacts:
+      linux:
+        asset: x86_64-unknown-linux-gnu
+        mash: /persistent/target/release/mash
+        mash_server: /persistent/target/release/mash-server
+      darwin:
+        asset: aarch64-apple-darwin
+        mash: /absolute/artifacts/mash-darwin-arm64
+        mash_server: /absolute/artifacts/mash-darwin-arm64-server
   children:
     mash_api:
       hosts:
@@ -38,6 +49,9 @@ all:
             - [bash, tools/upgrade-local-index.sh, /absolute/installed/mash, /absolute/artifacts/mash, /absolute/data/mash.sqlite3, /private/index-backups]
             - [bash, tools/install-dev-binary.sh, /absolute/artifacts/mash, /absolute/installed/mash]
           mash_mcp: [/absolute/credential-loading-launcher, mcp]
+          # Restart supervised jobs still running the replaced binary; list the rest.
+          mash_processes:
+            binaries: [/absolute/installed/mash]
         dev-macbook:
           ansible_connection: ssh
           ansible_host: dev-macbook
@@ -55,6 +69,11 @@ all:
             - [bash, tools/upgrade-remote-index.sh, dev-macbook, /absolute/artifacts/mash-darwin-arm64, /Users/operator/.local/bin/mash]
             - [bash, tools/install-dev-remote.sh, dev-macbook, /absolute/artifacts/mash-darwin-arm64, /Users/operator/.local/bin/mash]
           mash_mcp: [ssh, -o, ControlPath=none, -o, BatchMode=yes, -o, ConnectTimeout=10, dev-macbook, /Users/operator/.local/bin/mash-node-mcp]
+          mash_processes:
+            binaries: [/Users/operator/.local/bin/mash]
+          # Only for `deploy --release`: replace /Applications/Mash.app from the release's disk image.
+          mash_desktop_install:
+            - [bash, tools/install-desktop-macos.sh, dev-macbook, '{{ mash_release_tag }}']
     mash_darwin:
       hosts:
         dev-macbook: {}

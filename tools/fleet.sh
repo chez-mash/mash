@@ -1,9 +1,31 @@
 #!/usr/bin/env bash
 # Invoke the existing Ansible policy directly; retain private reports for review.
 set -euo pipefail
-[[ $# -ge 2 ]] || { echo 'usage: fleet.sh OPERATION TARGET...|--all' >&2; exit 2; }
+usage() {
+    echo 'usage: fleet.sh OPERATION TARGET...|--all' >&2
+    echo '       fleet.sh deploy [--release vX.Y.Z | --source-build] TARGET...|--all' >&2
+    exit 2
+}
+[[ $# -ge 2 ]] || usage
 operation=$1
 shift
+# A deployment installs the binaries CI built for this commit when it kept
+# them, and compiles otherwise. --release installs a published release's
+# assets (and its desktop app where the inventory asks); --source-build
+# always compiles.
+artifact_source=''
+release_tag=''
+if [[ $operation == deploy ]]; then
+    artifact_source=commit
+    case "$1" in
+        --release)
+            [[ $# -ge 3 && "$2" =~ ^v[0-9][0-9A-Za-z.+-]*$ ]] || usage
+            release_tag=$2 artifact_source="release:$2"
+            shift 2 ;;
+        --source-build) artifact_source=source; shift ;;
+    esac
+    [[ $# -ge 1 ]] || usage
+fi
 case "$operation" in
     preflight|deploy|check|doctor) playbook=$operation ;;
     sync|local-views) playbook=refresh ;;
@@ -51,8 +73,11 @@ if [[ $# == 1 && "$1" == --all ]]; then
     done
 fi
 jq -n --arg operation "$operation" --arg repository "$repository" --arg job "$job" \
-    --arg fleet "${MASH_FLEET_BINARY:-}" \
-    --args '{mash_operation:$operation,mash_repository:$repository,mash_job_directory:$job,mash_selected_nodes:$ARGS.positional} + (if $fleet == "" then {} else {mash_fleet:$fleet} end)' \
+    --arg fleet "${MASH_FLEET_BINARY:-}" --arg artifact_source "$artifact_source" --arg release_tag "$release_tag" \
+    --args '{mash_operation:$operation,mash_repository:$repository,mash_job_directory:$job,mash_selected_nodes:$ARGS.positional}
+        + (if $fleet == "" then {} else {mash_fleet:$fleet} end)
+        + (if $artifact_source == "" then {} else {mash_artifact_source:$artifact_source} end)
+        + (if $release_tag == "" then {} else {mash_release_tag:$release_tag} end)' \
     "$@" > "$job/env/extravars"
 result=0
 bash "$repository/tools/run-ansible.sh" "$logs/fleet.lock" \
@@ -60,8 +85,22 @@ bash "$repository/tools/run-ansible.sh" "$logs/fleet.lock" \
     ansible-runner run "$job" --project-dir "$repository" --inventory "$inventory" \
     --playbook "deployment/playbooks/$playbook.yml" --ident job --json \
     > "$job/runner.log" 2>&1 || result=$?
+# Where each platform's binaries came from: CI's build, a release, or a
+# source build with the reason no artifact was used.
+for note in "$job"/build-*.txt; do
+    [[ -f $note ]] && sed 's/^/Binaries: /' "$note" >&2
+done
 for target in "$@"; do
     report="$job/$target.json"
+    if [[ -f "$job/$target.desktop.txt" ]]; then sed "s/^/Desktop app on $target: /" "$job/$target.desktop.txt" >&2; fi
+    # Processes that were still running the replaced binary. The private file
+    # keeps their command lines; only the program and its command are shown.
+    if [[ -s "$job/$target.processes.tsv" ]]; then
+        jq -Rn --arg target "$target" '{target:$target, stale_processes: [inputs | split("\t") | select(length >= 5) | {
+            state: .[0], pid: (.[1] | tonumber? // 0), supervisor: .[2], unit: .[3],
+            command: (.[4] | split(" ") | [(.[0] | split("/") | last)] + [.[1:][] | select(test("^[a-z][a-z-]*$"))][:1] | join(" "))}]}' \
+            "$job/$target.processes.tsv"
+    fi
     if [[ -f "$report" ]]; then
         jq --arg target "$target" '{target:$target,state,error}
             + (if has("process") then {process,readiness,logs} else {} end)

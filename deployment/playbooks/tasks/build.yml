@@ -1,6 +1,30 @@
+# Binaries CI already built for this commit, or a release's assets, replace the
+# platform's source build when the inventory says where they belong
+# (mash_artifacts). A download that fails its checksum stops the deployment;
+# only a missing one falls back to compiling.
+- name: Look for binaries already built for this platform
+  ansible.builtin.command:
+    argv:
+      - bash
+      - tools/fetch-artifact.sh
+      - "{{ mash_artifact_source }}"
+      - "{{ mash_artifacts[mash_platform] | to_json | b64encode }}"
+      - "{{ mash_job_directory }}/build-{{ mash_platform }}.txt"
+    chdir: "{{ mash_repository }}"
+  register: mash_artifact
+  failed_when: mash_artifact.rc not in [0, 3]
+  changed_when: mash_artifact.rc == 0
+  when: (mash_artifact_source | default('source')) != 'source' and mash_platform in (mash_artifacts | default({}))
+- name: Say why a platform without an artifact location is compiled
+  ansible.builtin.copy:
+    dest: "{{ mash_job_directory }}/build-{{ mash_platform }}.txt"
+    mode: '0600'
+    content: "{{ mash_platform }}: the inventory has no mash_artifacts entry for this platform; building from source.\n"
+  when: (mash_artifact_source | default('source')) != 'source' and mash_platform not in (mash_artifacts | default({}))
 - name: Build and validate the selected platform artifact
   ansible.builtin.command:
     argv: "{{ item }}"
     chdir: "{{ mash_repository }}"
   loop: "{{ mash_builds[mash_platform] }}"
   no_log: true
+  when: (mash_artifact.rc | default(3)) != 0
