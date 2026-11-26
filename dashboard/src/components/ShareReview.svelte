@@ -4,6 +4,7 @@ import Send from "@lucide/svelte/icons/send";
 import Upload from "@lucide/svelte/icons/upload";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { Switch } from "$lib/components/ui/switch";
+import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
 import { catalogOptions } from "../lib/queries";
 import { draftOf, saveSettings, settingsOptions } from "../lib/settings";
@@ -101,10 +102,10 @@ async function save(publish: boolean): Promise<void> {
     <div class="card tight cream share-range">
       <div class="share-when">
       <span class="set-l">History range</span>
-      <span class="seg" role="group" aria-label="History range">
-        <button type="button" aria-pressed={range !== null} onclick={() => (since = range ?? 90)}>recent updates</button>
-        <button type="button" aria-pressed={range === null} onclick={() => (since = null)}>all history</button>
-      </span>
+      <ToggleGroup.Root type="single" aria-label="History range" bind:value={() => (range === null ? "all" : "recent"), (next) => { if (next === "all") since = null; else if (next === "recent") since = range ?? 90; }}>
+        <ToggleGroup.Item value="recent">recent updates</ToggleGroup.Item>
+        <ToggleGroup.Item value="all">all history</ToggleGroup.Item>
+      </ToggleGroup.Root>
       {#if range !== null}
         <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" style:width="72px" style:margin="0 4px" value={range} oninput={(event) => { const value = event.currentTarget.valueAsNumber; since = Number.isNaN(value) ? range : value; }} /> days</span>
       {/if}

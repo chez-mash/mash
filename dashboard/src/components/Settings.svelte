@@ -5,6 +5,7 @@ import Pencil from "@lucide/svelte/icons/pencil";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { Switch } from "$lib/components/ui/switch";
+import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
 import { appearance, appearances } from "../lib/appearance.svelte";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
@@ -228,10 +229,10 @@ async function save(): Promise<void> {
         <div class="set-row stack" class:changed={touched.has("range")}>
           {@render title("History range", "How far back Mash reads.")}
           <span class="set-c">
-            <span class="seg" role="group" aria-label="History range" aria-describedby="history-range-help">
-              <button type="button" aria-pressed={draft.sinceDays === null} onclick={() => { saved = 0; if (draft) draft.sinceDays = null; }}>all history</button>
-              <button type="button" aria-pressed={draft.sinceDays !== null} onclick={() => { saved = 0; if (draft && draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>recent updates</button>
-            </span>
+            <ToggleGroup.Root type="single" aria-label="History range" aria-describedby="history-range-help" bind:value={() => (draft?.sinceDays === null ? "all" : "recent"), (range) => { if (!draft || !range) return; saved = 0; if (range === "all") draft.sinceDays = null; else if (draft.sinceDays === null) draft.sinceDays = file.sinceDays ?? days; }}>
+              <ToggleGroup.Item value="all">all history</ToggleGroup.Item>
+              <ToggleGroup.Item value="recent">recent updates</ToggleGroup.Item>
+            </ToggleGroup.Root>
             {#if draft.sinceDays !== null}
               <span class="meta">the last <input class="field" type="number" min="1" max="36500" aria-label="Days of history" aria-describedby="history-range-help" style:width="72px" style:margin="0 4px" value={draft.sinceDays} oninput={(event) => { saved = 0; days = event.currentTarget.valueAsNumber; if (draft) draft.sinceDays = Number.isNaN(days) ? 0 : days; }} /> days</span>
             {/if}
@@ -246,10 +247,10 @@ async function save(): Promise<void> {
           {@render title("Index into", "Where this machine writes its index.")}
           <span class="set-c">
             {#if file.shared}
-              <span class="seg" role="group" aria-label="Index into">
-                <button type="button" aria-pressed={draft.destination === "both"} onclick={() => { saved = 0; if (draft) draft.destination = "both"; }}>this machine and the shared server</button>
-                <button type="button" aria-pressed={draft.destination === "local"} onclick={() => { saved = 0; if (draft) draft.destination = "local"; }}>this machine only</button>
-              </span>
+              <ToggleGroup.Root type="single" aria-label="Index into" bind:value={() => draft?.destination ?? "both", (destination) => { if (!draft || (destination !== "both" && destination !== "local")) return; saved = 0; draft.destination = destination; }}>
+                <ToggleGroup.Item value="both">this machine and the shared server</ToggleGroup.Item>
+                <ToggleGroup.Item value="local">this machine only</ToggleGroup.Item>
+              </ToggleGroup.Root>
               {@render changedPill("destination")}
               {#if draft.destination === "local" && file.destination === "both"}<span class="set-h">History already on the shared server stays there.</span>{/if}
             {:else}
@@ -395,11 +396,11 @@ async function save(): Promise<void> {
     <div class="set-row">
       {@render title("Theme", "Kept in this browser only; other browsers and the desktop app keep their own choice.")}
       <span class="set-c">
-        <span class="seg" role="group" aria-label="Theme">
+        <ToggleGroup.Root type="single" aria-label="Theme" bind:value={() => appearance.current, (choice) => { const next = appearances.find((known) => known === choice); if (next) appearance.set(next); }}>
           {#each appearances as choice (choice)}
-            <button type="button" aria-pressed={appearance.current === choice} onclick={() => appearance.set(choice)}>{choice === "system" ? "match the system" : choice}</button>
+            <ToggleGroup.Item value={choice}>{choice === "system" ? "match the system" : choice}</ToggleGroup.Item>
           {/each}
-        </span>
+        </ToggleGroup.Root>
       </span>
     </div>
   </div>

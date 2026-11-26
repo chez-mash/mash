@@ -236,7 +236,7 @@ test("custom setup keeps the chosen paths, range and connections when checking Q
   ).toBeFocused();
   await page.getByRole("switch", { name: "Index Codex" }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: "another number of days" }).click();
+  await page.getByRole("radio", { name: "another number of days" }).click();
   await page.getByRole("spinbutton", { name: "Days of history" }).fill("7");
   await expect(page.getByText(rangeNotice)).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();

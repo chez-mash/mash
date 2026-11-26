@@ -3739,31 +3739,6 @@ summary.rw::-webkit-details-marker {
   font-size: 12.5px;
   color: var(--status-warn);
 }
-/* A segmented control: a muted track with the chosen option raised on it. */
-.seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 3px;
-  border-radius: var(--radius-5);
-  background: var(--surface-muted);
-}
-.seg button {
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: var(--radius-4);
-  font-size: 13px;
-  font-weight: var(--weight-label);
-  color: var(--text-muted);
-}
-.seg button:hover {
-  color: var(--text-strong);
-}
-.seg button[aria-pressed="true"] {
-  background: var(--selected-bg);
-  box-shadow: var(--shadow-pick);
-  color: var(--selected-text);
-}
 .set-bar {
   position: sticky;
   bottom: 0;

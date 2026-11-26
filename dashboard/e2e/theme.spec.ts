@@ -28,9 +28,9 @@ test("a theme chosen in Settings overrides the system and is remembered", async 
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/#/settings");
   const themes = page.getByRole("group", { name: "Theme" });
-  await themes.getByRole("button", { name: "light", exact: true }).click();
-  await expect(themes.getByRole("button", { name: "light", exact: true })).toHaveAttribute(
-    "aria-pressed",
+  await themes.getByRole("radio", { name: "light", exact: true }).click();
+  await expect(themes.getByRole("radio", { name: "light", exact: true })).toHaveAttribute(
+    "aria-checked",
     "true",
   );
   expect(await scheme(page)).toBe("light");
@@ -38,7 +38,7 @@ test("a theme chosen in Settings overrides the system and is remembered", async 
   expect(await scheme(page)).toBe("light");
   await page
     .getByRole("group", { name: "Theme" })
-    .getByRole("button", { name: "match the system" })
+    .getByRole("radio", { name: "match the system" })
     .click();
   expect(await scheme(page)).toBe("dark");
 });

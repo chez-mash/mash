@@ -167,7 +167,7 @@ for (const width of [390, 1280]) {
       "https://getmash.io/agents/#disconnect-an-agent",
     );
     await cursor.click();
-    await page.getByRole("button", { name: "recent updates" }).click();
+    await page.getByRole("radio", { name: "recent updates" }).click();
     const range = page.getByRole("spinbutton", { name: "Days of history" });
     await expect(range).toHaveAccessibleDescription(/Chats already indexed stay searchable/);
     await expect(page.getByRole("link", { name: "How to remove an indexed chat" })).toHaveAttribute(

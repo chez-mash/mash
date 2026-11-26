@@ -11,6 +11,7 @@ import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { tick } from "svelte";
 import { Switch } from "$lib/components/ui/switch";
+import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { mashCommand } from "../lib/command";
@@ -256,11 +257,11 @@ function toggleConnect(agent: Integration): void {
           {/if}
         {:else if step === "range"}
           <div class="setup-pick">
-            <span class="seg" role="group" aria-label="History range">
-              <button type="button" aria-pressed={answers.sinceDays === 90} onclick={() => { if (answers) answers.sinceDays = 90; }}>last 90 days</button>
-              <button type="button" aria-pressed={answers.sinceDays === null} onclick={() => { if (answers) answers.sinceDays = null; }}>all history</button>
-              <button type="button" aria-pressed={answers.sinceDays !== null && answers.sinceDays !== 90} onclick={() => { if (answers) answers.sinceDays = custom === 90 ? 30 : custom; }}>another number of days</button>
-            </span>
+            <ToggleGroup.Root type="single" aria-label="History range" bind:value={() => (answers?.sinceDays === 90 ? "90" : answers?.sinceDays === null ? "all" : "other"), (range) => { if (answers && range) answers.sinceDays = range === "90" ? 90 : range === "all" ? null : custom === 90 ? 30 : custom; }}>
+              <ToggleGroup.Item value="90">last 90 days</ToggleGroup.Item>
+              <ToggleGroup.Item value="all">all history</ToggleGroup.Item>
+              <ToggleGroup.Item value="other">another number of days</ToggleGroup.Item>
+            </ToggleGroup.Root>
             {#if answers.sinceDays !== null && answers.sinceDays !== 90}
               <span class="meta">the last <input class="field" type="number" min={dayLimits.least} max={dayLimits.most} aria-label="Days of history" style:width="92px" style:margin="0 4px" value={answers.sinceDays} oninput={(event) => { custom = event.currentTarget.valueAsNumber; if (answers) answers.sinceDays = Number.isNaN(custom) ? 0 : custom; }} /> days</span>
             {/if}
