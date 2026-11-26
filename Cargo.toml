@@ -32,7 +32,7 @@ pre-release-replacements = [
 ]
 
 [workspace.package]
-version = "0.2.4"
+version = "0.3.0"
 
 [workspace]
 members = ["app", "cli", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
