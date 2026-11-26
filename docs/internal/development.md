@@ -1501,8 +1501,9 @@ What it leaves to a person, with the commands printed at the end:
   never publishes it. Rewrite it in the reader's terms, then
   `gh release edit vX.Y.Z --notes-file ...`.
 - **winget.** It downloads the release run's `winget-manifests` artifact and
-  prints how to submit it to `microsoft/winget-pkgs`
-  (`packaging/winget/README.md`).
+  prints how to submit its two packages to `microsoft/winget-pkgs`:
+  `MashHQ.Mash`, the desktop app, and `MashHQ.Mash.CLI`, the command-line
+  programs (`packaging/winget/README.md`).
 - **The fleet.** `bash tools/fleet.sh deploy --release vX.Y.Z TARGET...`.
 
 When `release.yml` succeeds for a tag, `release-check.yml` installs the
@@ -1514,8 +1515,8 @@ release.
 |---|---|---|
 | `installer` | Linux x64 and ARM64, macOS, Windows x64 (`windows-latest`) and ARM64 (`windows-11-arm`) | `install.sh` or `install.ps1` from `main` installs the tag; `mash` and `mash-server` report its version. On Windows the installed programs must be built for the runner's architecture, because an x64 program also starts on ARM64 and would pass the version check. |
 | `homebrew`, `apt`, `scoop` | macOS and Linux; Linux; Windows x64 | The tap, the apt repository and the Scoop bucket offer the tag and install it. |
-| `winget-manifests` | Linux | Fills `packaging/winget/*.yaml.in` from the release's `SHA256SUMS`, as `release.yml` does. After a release the templates are the tagged commit's; a manual run uses the branch it was started from (`--ref BRANCH`), which tries a manifest change against a published release before anything is submitted. |
-| `winget` | Windows x64 and ARM64 | `winget validate`, then `winget install --manifest` with local manifests enabled, both programs run from the PATH a new terminal would get and checked for the runner's architecture, then `winget uninstall`. |
+| `winget-manifests` | Linux | Fills the templates of both packages under `packaging/winget/` from the release's `SHA256SUMS` (`packaging/render.py --winget`), as `release.yml` does. After a release the templates are the tagged commit's; a manual run uses the branch it was started from (`--ref BRANCH`), which tries a manifest change against a published release before anything is submitted. |
+| `winget` | Windows x64 and ARM64 | For each package, `winget validate`, `winget install --manifest` with local manifests enabled, and `winget uninstall`. The app (`MashHQ.Mash`): the Uninstall registry key its installer wrote agrees with the manifest's `ProductCode` and `AppsAndFeaturesEntries`, `winget list` shows the version, the app and its engine are built for the runner's architecture and the engine reports the version, uninstalling leaves no key, directory, shortcut or `mash://` handler, and a second install without `--silent` exercises the progress-only switch. The command line (`MashHQ.Mash.CLI`): both programs run from the PATH a new terminal would get and are checked for the runner's architecture. |
 
 Every winget command in the `winget` job has its own time limit (12 minutes
 inside a 15-minute step), so a command that never returns fails the job and
@@ -1525,7 +1526,7 @@ exit code, and winget's own logs are kept as the `winget-logs-RUNNER`
 artifacts whether the job passed or not. `windows-11-arm` has no winget, so
 the job first installs App Installer there with Microsoft's
 `Repair-WinGetPackageManager`. Both runner images already carry the Visual C++
-runtime the manifest depends on. On x64 winget finds it and installs nothing;
+runtime both manifests depend on. On x64 winget finds it and installs nothing;
 on ARM64 it still runs Microsoft's runtime installer, which finds the runtime
 present and only registers itself. Neither shows how long the dependency takes
 on a machine without the runtime.

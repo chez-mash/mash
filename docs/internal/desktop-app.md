@@ -462,7 +462,14 @@ and keeps the previous app until the new one has started. See
 
 - Updates on Windows (see Updates), and a `mash` command installed by the
   Windows app.
-- A winget package for the app. Elsewhere distribution follows the Docker
-  CLI and Docker Desktop split: the CLI stays on install scripts, Homebrew,
-  apt, Scoop and winget, and the app is a separate download that carries its
-  own engine, except under apt, where the app's package uses `mash-cli`'s.
+- Publishing the app's winget package. The manifests exist
+  (`packaging/winget/MashHQ.Mash`, checked against each release by
+  `release-check.yml`'s `winget` job) and wait on Microsoft accepting the
+  first submission; no user guide gives a winget command until then. In
+  winget the app is `MashHQ.Mash` and the command line is `MashHQ.Mash.CLI`,
+  and the app's package does not depend on the command line's until the app
+  installs a `mash` command. Distribution otherwise follows the Docker CLI
+  and Docker Desktop split: the CLI stays on install scripts, Homebrew, apt,
+  Scoop and its own winget package, and the app is a separate download that
+  carries its own engine, except under apt, where the app's package uses
+  `mash-cli`'s.

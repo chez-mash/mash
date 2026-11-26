@@ -4,6 +4,11 @@
 
 Templates name values as @VERSION@ and @SHA256:<archive>@ (lowercase hex) or
 @SHA256_UPPER:<archive>@. Standard library only, for stock release runners.
+
+The winget manifests are several packages of three files each, so one command
+fills them all, each package into a directory named for its identifier:
+
+    python3 packaging/render.py --winget 0.8.0 dist/SHA256SUMS winget-manifests
 """
 
 from __future__ import annotations
@@ -33,7 +38,41 @@ def render(template: str, version: str, sums: str) -> str:
     return TOKEN.sub(value, template)
 
 
+def render_winget(templates: Path, version: str, sums: str, output: Path) -> list[Path]:
+    """Fill every package under `templates`; returns the manifests written.
+
+    A package is a directory named for its identifier holding
+    `<identifier>*.yaml.in`. A template that names another package is refused,
+    because winget reads the identifier from the file and the path alike.
+    """
+    written = []
+    for template in sorted(templates.glob("*/*.yaml.in")):
+        identifier = template.parent.name
+        text = render(template.read_text(), version, sums)
+        if (
+            not template.name.startswith(f"{identifier}.")
+            or f"\nPackageIdentifier: {identifier}\n" not in text
+        ):
+            raise SystemExit(f"{template} is not a manifest of {identifier}")
+        manifest = output / identifier / template.name.removesuffix(".in")
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(text)
+        written.append(manifest)
+    if not written:
+        raise SystemExit(f"no winget templates under {templates}")
+    return written
+
+
 def main() -> int:
+    if sys.argv[1:2] == ["--winget"]:
+        version, sums, output = sys.argv[2:5]
+        render_winget(
+            Path(__file__).parent / "winget",
+            version.removeprefix("v"),
+            Path(sums).read_text(),
+            Path(output),
+        )
+        return 0
     version, sums, template, output = sys.argv[1:5]
     text = render(
         Path(template).read_text(), version.removeprefix("v"), Path(sums).read_text()

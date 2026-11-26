@@ -1,0 +1,31 @@
+# winget default locale manifest for the Mash desktop app, filled by packaging/render.py.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
+PackageIdentifier: MashHQ.Mash
+PackageVersion: @VERSION@
+PackageLocale: en-US
+Publisher: MashHQ
+PublisherUrl: https://github.com/mashhq
+PublisherSupportUrl: https://github.com/mashhq/mash/issues
+PackageName: Mash
+PackageUrl: https://getmash.io/
+License: MIT OR Apache-2.0
+LicenseUrl: https://github.com/mashhq/mash/blob/v@VERSION@/LICENSE-MIT
+ShortDescription: Search the history of your coding agents
+Description: |-
+  Mash indexes the chat histories of your coding agents and finds past chats,
+  decisions and records across agents and machines. The app opens the Mash
+  dashboard in its own window, keeps search a shortcut away and opens mash://
+  links. It carries its own copy of the Mash engine.
+  The command-line programs alone, mash and mash-server, are the package
+  MashHQ.Mash.CLI.
+Moniker: mash
+Tags:
+  - ai
+  - coding-agents
+  - search
+  - history
+  - mcp
+  - desktop
+ReleaseNotesUrl: https://github.com/mashhq/mash/releases/tag/v@VERSION@
+ManifestType: defaultLocale
+ManifestVersion: 1.10.0
