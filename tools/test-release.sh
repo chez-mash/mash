@@ -51,22 +51,24 @@ export FAKE_GH="$scratch" MASH_GH="$scratch/bin/gh"
 export MASH_RELEASE_POLL=0 MASH_RELEASE_WAIT=2 MASH_RELEASE_OUTPUT="$scratch/out"
 mark() { mkdir -p "$scratch/runs/$1"; echo "$3" > "$scratch/runs/$1/$2"; }
 
-# A clone holding this checkout's files as they are now, committed or not, so
-# the test judges the release configuration being changed.
+# A repository of its own holding this checkout's files as they are now,
+# committed or not, so the test judges the release configuration being
+# changed. It starts a new history: CI's checkout is shallow, and a shallow
+# history cannot be pushed to the throwaway remote.
 tree="$scratch/mash"
-git clone --quiet "$repository" "$tree"
-(cd "$repository" && git ls-files --cached --others --exclude-standard -z -- \
-    Cargo.toml Cargo.lock release.toml 'crates/*/Cargo.toml' app/Cargo.toml desktop/src-tauri/Cargo.toml \
-    desktop/src-tauri/Cargo.lock tools/release.sh tools/release-notes-draft.sh |
-    xargs -0 -I{} cp --parents {} "$tree/")
+git init --quiet -b main "$tree"
+(cd "$repository" && git ls-files --cached --others --exclude-standard -z |
+    while IFS= read -r -d '' path; do
+        if [[ -f $path || -L $path ]]; then printf '%s\0' "$path"; fi
+    done | xargs -0 cp --parents -P -t "$tree")
+git -C "$tree" remote add origin "$scratch/remote.git"
 git -C "$tree" add -A
-git -C "$tree" commit --quiet --allow-empty -m 'Fixture: the checkout under test'
+git -C "$tree" commit --quiet -m 'Fixture: the checkout under test'
 current=$(sed -n 's/^version = "\(.*\)"$/\1/p' "$tree/Cargo.toml")
 git -C "$tree" tag --force "v$current" HEAD~0 >/dev/null
 printf 'A change since the last release\n' >> "$tree/README.md"
 git -C "$tree" commit --quiet -am 'Explain the fixture in the README'
 git init --quiet --bare -b main "$scratch/remote.git"
-git -C "$tree" remote set-url origin "$scratch/remote.git"
 git -C "$tree" push --quiet origin HEAD:refs/heads/main "v$current"
 git -C "$tree" fetch --quiet origin
 git -C "$tree" checkout --quiet --detach origin/main
