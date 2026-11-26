@@ -93,9 +93,9 @@ async function copy(text: string): Promise<void> {
             <span class="adm-acts">
             <button class="btn sm" type="button" disabled={busy} onclick={() => act("replace", machine.group_id, machine.node_id)}><KeyRound size={14} aria-hidden="true" />Replace credential</button>
             {#if machine.state === "removed"}
-              <button class="btn sm" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}><Trash size={14} aria-hidden="true" />Delete what it published</button>
+              <button class="btn sm danger" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}><Trash size={14} aria-hidden="true" />Delete what it published</button>
             {:else}
-              <button class="btn sm" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}><CircleMinus size={14} aria-hidden="true" />Remove</button>
+              <button class="btn sm danger" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}><CircleMinus size={14} aria-hidden="true" />Remove</button>
             {/if}
             </span>
           {/if}
@@ -109,7 +109,7 @@ async function copy(text: string): Promise<void> {
         <label class="adm-l" for="confirm-delete">Type {target.node} to confirm</label>
         <input id="confirm-delete" class="field" autocomplete="off" spellcheck="false" bind:value={typed} />
         <div class="adm-acts">
-          <button class="btn p" type="submit" disabled={typed !== target.node || busy}><Trash size={14} aria-hidden="true" />Delete what {target.node} published</button>
+          <button class="btn p danger" type="submit" disabled={typed !== target.node || busy}><Trash size={14} aria-hidden="true" />Delete what {target.node} published</button>
           <button class="btn" type="button" onclick={() => (deleting = null)}>Cancel</button>
         </div>
       </form>
@@ -148,11 +148,11 @@ async function copy(text: string): Promise<void> {
   }
   .adm-l,
   .adm-t {
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .adm-t {
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   .adm-row {
     display: flex;
@@ -189,7 +189,7 @@ async function copy(text: string): Promise<void> {
   .adm-h {
     margin-bottom: -8px !important;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .adm-list li {

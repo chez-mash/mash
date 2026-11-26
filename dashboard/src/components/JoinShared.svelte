@@ -94,12 +94,12 @@ async function save(): Promise<void> {
     align-items: center;
     gap: 9px;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .join-l {
     margin-top: 4px !important;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .join-t {
@@ -131,7 +131,7 @@ async function save(): Promise<void> {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .join-yes :global(svg) {

@@ -1,13 +1,15 @@
 <script lang="ts">
 // A machine's icon: the mark of the system it runs when that is known, the
-// plain laptop otherwise. The system's name is in the tooltip.
+// plain laptop otherwise. The system's name is in the tooltip. Reading the
+// system never starts a timer (see lib/machineOs), so the logo can go
+// wherever a machine is named.
 import Laptop from "@lucide/svelte/icons/laptop";
-import { createMachineEvidence } from "../lib/machineEvidence.svelte";
-import { machineOs, osLogo, osName } from "../lib/os";
+import { createMachineOs } from "../lib/machineOs.svelte";
+import { osLogo, osName } from "../lib/os";
 
 let { machine, size = 20 }: { machine: string; size?: number } = $props();
-const evidence = createMachineEvidence();
-const os = $derived(machineOs(machine, evidence.fleet, evidence.report));
+const systems = createMachineOs();
+const os = $derived(systems.of(machine));
 </script>
 
 {#if os}

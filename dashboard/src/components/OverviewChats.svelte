@@ -5,6 +5,7 @@ import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
+import { recency } from "../lib/tone";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
@@ -30,11 +31,11 @@ function hrefOf(chat: ChatSummary): string {
       <AgentMark agent={chat.agent} size="sm" />
       <span class="oc-t">
         <b>{plainTitle(chat.title)}</b>
-        <span class="oc-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} os /></span>
+        <span class="oc-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} led /></span>
       </span>
       <SubagentPill {chat} />
       {#if decisions}<span class="oc-badge"><DecisionCount count={decisions} /></span>{/if}
-      <span class="oc-w">{whenLabel(chat.updatedMs, now)}</span>
+      <span class="oc-w {recency(chat.updatedMs, now)}">{whenLabel(chat.updatedMs, now)}</span>
     </a>
   {/each}
 </div>
@@ -73,7 +74,7 @@ function hrefOf(chat: ChatSummary): string {
   }
   .oc-t b {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -96,7 +97,7 @@ function hrefOf(chat: ChatSummary): string {
     box-shadow: var(--find-glow);
     color: var(--find-text);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .oc-w {
     flex: none;

@@ -19,6 +19,7 @@ import { chatHref, router, searchHref } from "../lib/route.svelte";
 import { createScoped } from "../lib/scoped.svelte";
 import { type Applied, appliedHref, dateRanges, parseApplied } from "../lib/search";
 import AgentMark from "./AgentMark.svelte";
+import MachineIcon from "./MachineIcon.svelte";
 
 /** The key the shortcut hint names: ⌘ on a Mac, Ctrl elsewhere. */
 let { modifier }: { modifier: string } = $props();
@@ -165,7 +166,7 @@ function submit(event: SubmitEvent): void {
       {#if suggestions.filters.length}
         <h4>Filters</h4>
         {#each suggestions.filters as filter (filter.kind + filter.value)}
-          <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Bot size={14} aria-hidden="true" />{:else if filter.kind === "machine"}<Laptop size={14} aria-hidden="true" />{:else}<Folder size={14} aria-hidden="true" />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
+          <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Bot size={14} aria-hidden="true" />{:else if filter.kind === "machine"}<MachineIcon machine={filter.value} size={14} />{:else}<Folder size={14} aria-hidden="true" />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
         {/each}
       {/if}
       {#if said.length}
@@ -203,7 +204,7 @@ function submit(event: SubmitEvent): void {
   .drop h4 {
     margin: 4px 10px 2px;
     font-size: 12px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     color: var(--text-faint);
     text-transform: lowercase;
   }

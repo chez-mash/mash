@@ -11,7 +11,6 @@ import FileText from "@lucide/svelte/icons/file-text";
 import Folder from "@lucide/svelte/icons/folder";
 import Laptop from "@lucide/svelte/icons/laptop";
 import Square from "@lucide/svelte/icons/square";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import Upload from "@lucide/svelte/icons/upload";
 import { createQuery } from "@tanstack/svelte-query";
 import { onDestroy } from "svelte";
@@ -28,8 +27,10 @@ import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
 import EmptyState from "./EmptyState.svelte";
 import FilterMenu from "./FilterMenu.svelte";
+import MachineIcon from "./MachineIcon.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // Bulk export of the chats a set of filters matches. The export is built in the
 // browser from the same read-only pages a single chat uses, so nothing here
@@ -221,6 +222,7 @@ async function copy(): Promise<void> {
     </FilterMenu>
     <FilterMenu label={chipLabel("machines", "machine")} active={applied.machines.length > 0} multiple options={options.machines} selected={applied.machines} choose={(value) => toggleFilter("machines", value)}>
       {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Laptop size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={chipLabel("projects", "project")} active={applied.projects.length > 0} multiple options={options.projects} selected={applied.projects} choose={(value) => toggleFilter("projects", value)}>
       {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
@@ -304,7 +306,7 @@ async function copy(): Promise<void> {
       <p style:font-size="13px">Restoring one is covered in <a class="a" href="https://getmash.io/upgrades/" rel="noreferrer">backups and upgrades</a>.</p>
     </div>
   {:else}
-    <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>The download holds these chats in full, including any passwords or private details said in them. {inDesktopApp() ? "Mash saves it in your Downloads folder" : "Your browser saves it"} as one .zip file; attachments are not included.</span></p>
+    <p style:display="flex" style:gap="10px" style:font-size="13px" style:color="var(--text-strong)"><ToneIcon tone="warn" size={16} /><span>The download holds these chats in full, including any passwords or private details said in them. {inDesktopApp() ? "Mash saves it in your Downloads folder" : "Your browser saves it"} as one .zip file; attachments are not included.</span></p>
   {/if}
   </section>
 
@@ -324,12 +326,12 @@ async function copy(): Promise<void> {
           <p style:font-size="13px">Reading chat {Math.min(job.chats + 1, job.total).toLocaleString()} of {job.total.toLocaleString()} · {count(job.messages, "message")} so far. Keep this page open.</p>
         </div>
       {:else if job.state === "stopped"}
-        <p class="meta" role="status">Export stopped. Nothing was saved.</p>
+        <p class="meta st-l" role="status"><ToneIcon tone="pause" size={15} />Export stopped. Nothing was saved.</p>
       {:else if job.state === "failed"}
-        <p class="xfail" role="alert"><TriangleAlert size={15} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{job.reason}</span></p>
+        <p class="card tight bad xfail" role="alert"><ToneIcon tone="bad" size={16} /><span><strong>Export failed.</strong> {job.reason}</span></p>
       {/if}
       {#if job.state === "done"}
-        <p class="ok" role="status" style:display="flex" style:gap="10px" style:align-items="flex-start" style:font-size="13px"><Check size={16} aria-hidden="true" style="flex:none;margin-top:2px" />Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</p>
+        <p class="card tight ok xdone" role="status"><ToneIcon tone="ok" size={16} /><span>Exported {count(job.chats, "chat")} and {count(job.messages, "message")} to {job.file}.</span></p>
       {/if}
       </div>
     </div>
@@ -338,17 +340,15 @@ async function copy(): Promise<void> {
 {/if}
 
 <style>
-  /* A failed export: the reason in red at the size of the line beside it. */
-  .xfail {
-    display: flex;
-    gap: 8px;
+  /* The export's outcome: a tinted card that leads with its tone's icon. */
+  .xfail,
+  .xdone {
     margin: 0;
     font-size: 13px;
-    color: var(--status-bad-text);
     overflow-wrap: anywhere;
   }
   .xrow-t > b {
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .xrow-m {
     display: flex;

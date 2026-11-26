@@ -93,6 +93,7 @@ const now = Date.now();
     </FilterMenu>
     <FilterMenu label={view.machine || "any machine"} active={!!view.machine} options={[{ value: "", label: "any machine" }, ...machineChoices.map((machine) => ({ value: machine, label: machine }))]} selected={[view.machine]} choose={(value) => (view.machine = value)}>
       {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Laptop size={15} aria-hidden="true" />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label="sort: {sorts.find((sort) => sort.value === view.sort)?.label}" options={sorts} selected={[view.sort]} choose={(value) => { const sort = sorts.find((sort) => sort.value === value); if (sort) view.sort = sort.value; }}>
       {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
@@ -209,12 +210,12 @@ const now = Date.now();
   }
   .pinned-card :global(.sum-h b) {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: 0;
   }
   .pinned-card :global(.big b) {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.02em;
   }
   .pinned-card :global(.big span) {
@@ -238,7 +239,7 @@ const now = Date.now();
     border-radius: var(--radius-3);
     background: var(--selected-surface);
     font-size: 12px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     color: var(--text-muted);
   }
   .pinned-card :global(.sum-f) {

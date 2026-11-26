@@ -5,6 +5,7 @@ import { agentHref } from "../lib/route.svelte";
 import type { Agent } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // One agent as a card: its mark and name, whether this machine indexes it
 // (from this machine's settings, when they can be read), how many chats it
@@ -51,7 +52,7 @@ const status = $derived(
     <AgentMark {agent} />
     <span class="ac-n">
       <a class="ac-a" href={agentHref(agent)}><b>{agentInfo[agent].name}</b></a>
-      {#if status}<span class="ac-s {status.tone}"><i class="dot {status.tone}" aria-hidden="true"></i>{status.words}</span>{/if}
+      {#if status}<span class="ac-s {status.tone}"><ToneIcon tone={status.tone === "ok" ? "ok" : "idle"} size={12} />{status.words}</span>{/if}
     </span>
     {#if onindex && setting}
       <button class="sw ac-sw" type="button" role="switch" aria-checked={setting.indexed} aria-label="Index {agentInfo[agent].name} on this machine" disabled={busy} onclick={() => onindex(!setting.indexed)}><i></i></button>
@@ -133,13 +134,14 @@ const status = $derived(
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .ac-s {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    font-weight: var(--weight-label);
     font-size: 12px;
     color: var(--text-muted);
   }
@@ -154,7 +156,7 @@ const status = $derived(
   }
   .ac-c :global(.big b) {
     font-size: 28px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.03em;
   }
   .ac-c :global(.big span) {

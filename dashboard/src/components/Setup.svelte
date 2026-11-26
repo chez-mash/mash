@@ -177,7 +177,7 @@ function toggleConnect(agent: Integration): void {
 {/snippet}
 {#snippet searchServiceProblem(service: FirstRun["qdrant"])}
   <div class="card warn">
-    <p style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-weight="700"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
+    <p style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-weight="var(--weight-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
     {#if service.state === "rejected"}
       {#if service.message}<p class="meta" style:overflow-wrap="anywhere">{service.message}</p>{/if}
       <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>

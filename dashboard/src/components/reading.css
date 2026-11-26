@@ -99,7 +99,7 @@ html body #app #main:has(> .chat) {
   padding: 11px 16px;
 }
 .log .hitbox.hit > .you {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   border-color: var(--chip-on-line);
   box-shadow: var(--memory-glow);
 }
@@ -110,7 +110,7 @@ html body #app #main:has(> .chat) {
   border: 0;
   background: none;
   color: var(--text-faint);
-  font: 500 12px / 1.4 var(--type-sans);
+  font: var(--weight-label) 12px / 1.4 var(--type-sans);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -171,7 +171,7 @@ html body #app #main:has(> .chat) {
 }
 .tv-mem-t b {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .tv-mem-t small {
   font-size: 12px;
@@ -180,7 +180,7 @@ html body #app #main:has(> .chat) {
 .tv-mem-o {
   flex: none;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 /* A run of steps reads as a quiet line until it is opened; open, it is a
@@ -192,7 +192,7 @@ html body #app #main:has(> .chat) {
 .tv-msgs > details.fold:not(.spawn) > summary {
   padding-inline: 0;
   color: var(--text-muted);
-  font: 400 13.5px / 1.4 var(--type-sans);
+  font: var(--weight-regular) 13.5px / 1.4 var(--type-sans);
 }
 .tv-msgs > details.fold[open]:not(.spawn) {
   border-color: var(--line-outline);

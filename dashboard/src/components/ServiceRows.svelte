@@ -97,7 +97,7 @@ let {
   }
   .sv-n strong {
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .sv-n small {

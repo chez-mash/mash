@@ -3,6 +3,7 @@ import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
 import { whenLabel } from "../lib/browse";
 import { reported, serverReport, serverViewOptions } from "../lib/serverStatus";
+import ToneIcon from "./ToneIcon.svelte";
 
 // The shared server in one strip above the machines: its address and group,
 // then three numbers from its own report: the chats its machines published,
@@ -37,7 +38,7 @@ const search = $derived.by(() => {
   <div class="card srv">
     <span class="srv-i" aria-hidden="true"><Server size={16} /></span>
     <span class="srv-n">
-      <b>Shared server<i class="dot {report.kind === 'reported' ? 'ok' : 'warn'}" aria-hidden="true"></i></b>
+      <b>Shared server<ToneIcon tone={report.kind === "reported" ? "ok" : "warn"} size={14} /></b>
       <code>{host(report.address)}{#if report.kind === "reported"} · group {report.group}{/if}</code>
     </span>
     {#if report.kind === "reported"}
@@ -45,7 +46,7 @@ const search = $derived.by(() => {
       {#if own?.publishedAt != null}<span class="srv-s"><b>{whenLabel(own.publishedAt * 1000, report.now * 1000)}</b><small>since this machine published</small></span>{/if}
       {#if search}<span class="srv-s"><b>{search.value}</b><small>{search.note}</small></span>{/if}
     {:else}
-      <span class="srv-s warn"><small>{report.message}</small></span>
+      <span class="srv-s warn"><small class="st-l"><ToneIcon tone="warn" size={13} />{report.message}</small></span>
     {/if}
   </div>
 {/if}
@@ -84,7 +85,7 @@ const search = $derived.by(() => {
     align-items: center;
     gap: 8px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .srv-n code {
@@ -104,7 +105,7 @@ const search = $derived.by(() => {
   }
   .srv-s b {
     font-size: 20px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     letter-spacing: -0.02em;
     color: var(--text-strong);
   }

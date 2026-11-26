@@ -5,8 +5,10 @@ import { chatOf, currentOf } from "../lib/memoryView";
 import { kindIcons } from "../lib/recordIcons";
 import { label, type NativeRecord, standing } from "../lib/records";
 import { recordHref } from "../lib/route.svelte";
+import { lifecycleTone, standingTone } from "../lib/tone";
 import type { ChatSummary } from "../lib/types";
 import EvidenceCard from "./EvidenceCard.svelte";
+import StatusBadge from "./StatusBadge.svelte";
 
 // The memory the reader is pointing at in the list, beside it: what it says
 // and pv-why, the first message behind it, and its revisions, with the way to
@@ -30,8 +32,9 @@ const EVIDENCE = 2;
   {@const Icon = kindIcons[current.details.kind]}
   <aside class="pv" aria-label="Selected memory">
     <div class="pv-h">
-      <span class="pv-k"><Icon size={14} aria-hidden="true" />{label(current.details.kind)}</span>
-      <span class="meta">{label(current.details.state)} · {standing(current)}</span>
+      <span class="pv-k"><span class="ink-{current.details.kind} pv-ki"><Icon size={14} aria-hidden="true" /></span>{label(current.details.kind)}</span>
+      <StatusBadge tone={lifecycleTone(current.details.state)} words={label(current.details.state)} size={12} />
+      <StatusBadge tone={standingTone(standing(current))} words={standing(current)} size={12} />
     </div>
     <p class="pv-st">{current.statement}</p>
     {#if current.rationale}<p class="pv-why">{current.rationale}</p>{/if}
@@ -88,12 +91,18 @@ const EVIDENCE = 2;
     border-radius: var(--radius-5);
     background: var(--surface-raised);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
+  }
+  .pv-ki {
+    display: inline-flex;
+  }
+  .pv-h :global(.st) {
+    font-size: 12px;
   }
   .pv-st {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     line-height: 1.35;
     letter-spacing: -0.02em;
     color: var(--text-strong);
@@ -114,7 +123,7 @@ const EVIDENCE = 2;
   }
   .lbl {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   .hist {
@@ -146,7 +155,7 @@ const EVIDENCE = 2;
   .hist b {
     display: block;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     line-height: 1.3;
     color: var(--text-strong);
   }
@@ -163,7 +172,7 @@ const EVIDENCE = 2;
     gap: 2px;
     align-self: flex-start;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .pv-open:hover {

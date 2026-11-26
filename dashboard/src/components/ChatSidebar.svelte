@@ -14,6 +14,7 @@ import { plainTitle } from "../lib/markdown";
 import { saidText } from "../lib/message";
 import { label, type NativeRecord } from "../lib/records";
 import { chatHref, projectHref, recordHref, recordsHref } from "../lib/route.svelte";
+import { recency } from "../lib/tone";
 import type { ChatSummary, Message } from "../lib/types";
 import ChatPlace from "./ChatPlace.svelte";
 import KindIcon from "./KindIcon.svelte";
@@ -74,8 +75,8 @@ const projectSessions = $derived.by(() => {
       {#each projectSessions as session (session.machine + session.id)}
         {@const current = session.id === id && session.machine === machine}
         <a class="cs-r" class:on={current} href={chatHref(session.id, session.machine)} aria-current={current ? "page" : undefined}>
-          <span class="cs-t"><b>{plainTitle(session.title)}</b><small>{whenLabel(session.updatedMs, now)}</small></span>
-          <span class="cs-m"><ChatPlace agent={session.agent} machine={session.machine} mark /><SubagentPill chat={session} /></span>
+          <span class="cs-t"><b>{plainTitle(session.title)}</b><small class={recency(session.updatedMs, now)}>{whenLabel(session.updatedMs, now)}</small></span>
+          <span class="cs-m"><ChatPlace agent={session.agent} machine={session.machine} /><SubagentPill chat={session} /></span>
         </a>
       {/each}
     </div>
@@ -112,13 +113,13 @@ const projectSessions = $derived.by(() => {
     min-height: 32px;
     padding: 6px 8px 4px;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .cs-h:not(.sess > :first-child) {
     margin-top: 14px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   .cs-h > a,
@@ -156,7 +157,7 @@ const projectSessions = $derived.by(() => {
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     color: var(--text-faint);
   }
   .cs-l {
@@ -188,7 +189,7 @@ const projectSessions = $derived.by(() => {
     flex: 1;
     min-width: 0;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     line-height: 1.4;
     display: -webkit-box;
     -webkit-box-orient: vertical;

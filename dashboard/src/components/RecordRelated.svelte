@@ -6,6 +6,7 @@ import { scopeIcons } from "../lib/recordIcons";
 import { getRecord, type NativeRecord, scopeLabel, scopeName } from "../lib/records";
 import { recordHref } from "../lib/route.svelte";
 import KindIcon from "./KindIcon.svelte";
+import StatusBadge from "./StatusBadge.svelte";
 
 // The records a memory is linked to, each by what it says. A related record
 // is read the way its own page reads it, so opening it costs nothing more;
@@ -33,7 +34,7 @@ const reads = createQueries(() => ({
     {@const current = other ? currentOf(other) : undefined}
     {@const relation = item.link.relation}
     <a class="card rel-c" href={recordHref(item.id, record.node, back)}>
-      <span class="pill {relation === 'supports' ? 'ok' : relation === 'contradicts' ? 'bad' : ''}">{item.outgoing ? `this record ${relation}` : `${relation} this record`}</span>
+      {#if relation === "supports" || relation === "contradicts"}<StatusBadge pill tone={relation === "supports" ? "ok" : "bad"} words={item.outgoing ? `this record ${relation}` : `${relation} this record`} size={12} />{:else}<span class="pill">{item.outgoing ? `this record ${relation}` : `${relation} this record`}</span>{/if}
       {#if current && other}
         {@const ScopeIcon = scopeIcons[other.scope.kind]}
         <b>{current.statement}</b>
@@ -65,7 +66,7 @@ const reads = createQueries(() => ({
   }
   b {
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     line-height: 1.4;
     color: var(--text-strong);
     overflow-wrap: anywhere;

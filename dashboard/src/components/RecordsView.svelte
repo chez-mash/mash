@@ -11,6 +11,7 @@ import { asset } from "../lib/asset";
 import { groupByWeek, recordKey } from "../lib/memoryView";
 import { navigate } from "../lib/navigation";
 import { stableRead } from "../lib/queries";
+import { kindIcons } from "../lib/recordIcons";
 import { kinds, label, scopedRecordPage, states } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import { readingScope, scope, scopeText } from "../lib/scope.svelte";
@@ -129,7 +130,7 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   <nav class="mem-seg" aria-label="Memory kind">
     <a href={kindHref("")} aria-current={!kind ? "page" : undefined}>All</a>
     {#each kinds as value (value)}
-      <a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}>{label(value)}s</a>
+      {@const KindGlyph = kindIcons[value]}<a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><span class="ink-{value} seg-i"><KindGlyph size={13} aria-hidden="true" /></span>{label(value)}s</a>
     {/each}
   </nav>
   <form onsubmit={submit} class="mem-f" aria-label="Memory filters">
@@ -249,11 +250,12 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   .mem-seg a {
     display: flex;
     align-items: center;
+    gap: 6px;
     height: 28px;
     padding: 0 11px;
     border-radius: var(--radius-5);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-muted);
     white-space: nowrap;
   }
@@ -264,6 +266,9 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     background: var(--selected-bg);
     color: var(--text-strong);
     box-shadow: var(--shadow-pick);
+  }
+  .seg-i {
+    display: inline-flex;
   }
   .mem-f {
     display: flex;
@@ -297,7 +302,7 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   .mem-g {
     padding: 8px 12px 4px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   .mem-c + .mem-g {

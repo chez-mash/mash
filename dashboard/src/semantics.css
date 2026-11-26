@@ -1,0 +1,206 @@
+/*
+ * Meaning at a glance: the colours, icons and weights that say what a state,
+ * a kind of memory or a time means, shared by every page. Values come from
+ * the roles in theme/tokens.css; which tone a state takes is decided in
+ * lib/tone.ts. Colour never stands alone: each tone has its icon, and its
+ * word stays beside it.
+ */
+
+/* Tones: the icon and word take the tone's text colour. */
+.tone-ok {
+  color: var(--status-ok-text);
+}
+.tone-warn,
+.tone-run {
+  color: var(--status-warn-text);
+}
+.tone-bad {
+  color: var(--status-bad-text);
+}
+.tone-info {
+  color: var(--status-info-text);
+}
+.tone-pause,
+.tone-idle,
+.tone-unknown {
+  color: var(--status-neutral-text);
+}
+.tone-i {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tone-i.tone-run > svg {
+    animation: tone-spin 1.6s linear infinite;
+  }
+}
+@keyframes tone-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A state as icon and word, inline or as a pill on the tone's soft fill. */
+.st {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-weight: var(--weight-label);
+}
+.st-w {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st.pill.tone-ok {
+  background: var(--status-ok-bg);
+  color: var(--status-ok-text);
+}
+.st.pill.tone-warn,
+.st.pill.tone-run {
+  background: var(--status-warn-bg);
+  color: var(--status-warn-text);
+}
+.st.pill.tone-bad {
+  background: var(--status-bad-bg);
+  color: var(--status-bad-text);
+}
+.st.pill.tone-info,
+.pill.info {
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
+}
+.st.pill:is(.tone-pause, .tone-idle, .tone-unknown) {
+  background: var(--status-neutral-bg);
+  color: var(--status-neutral-text);
+}
+.pill > .tone-i {
+  margin-left: -2px;
+}
+
+/* Memory kinds: the same tint on a pill, a tile and a lone icon. */
+.pill.kind-decision,
+.tile.kind-decision {
+  background: var(--kind-decision-bg);
+  color: var(--kind-decision-text);
+}
+.pill.kind-preference,
+.tile.kind-preference {
+  background: var(--kind-preference-bg);
+  color: var(--kind-preference-text);
+}
+.pill.kind-note,
+.tile.kind-note {
+  background: var(--kind-note-bg);
+  color: var(--kind-note-text);
+}
+.ink-decision {
+  color: var(--kind-decision-text);
+}
+.ink-preference {
+  color: var(--kind-preference-text);
+}
+.ink-note {
+  color: var(--kind-note-text);
+}
+
+/* Recency: what happened today stands out, what is a month old steps back.
+   The element and attribute raise these over a row's own scoped time style. */
+:is(span, small)[class].when-fresh {
+  color: var(--text-strong);
+  font-weight: var(--weight-label);
+}
+:is(span, small)[class].when-old {
+  color: var(--text-faint);
+}
+
+/* An action that removes or stops something: red words on the plain button. */
+.btn.danger {
+  color: var(--status-bad-text);
+}
+.btn.danger:hover:not(:disabled) {
+  background: var(--status-bad-bg);
+  color: var(--status-bad-text);
+}
+/* The one confirming step of a destructive action: filled red. */
+.btn.p.danger,
+.btn.p.danger:hover:not(:disabled) {
+  border-color: var(--status-bad-text);
+  background: var(--status-bad-text);
+  color: var(--surface-raised);
+}
+
+/* A line of text that leads with its tone's icon. */
+.st-l {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.st-l > .tone-i {
+  margin-top: 0.2em;
+}
+
+/* A notice card that leads with its tone's icon. */
+.card.tight:has(> .tone-i) {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.card.tight > .tone-i {
+  margin-top: 2px;
+}
+
+/* Weight. */
+.meta,
+.n {
+  font-weight: var(--weight-meta);
+}
+/* Lucide's stroke is set per icon size, so a 12px glyph is not drawn in hairlines. */
+svg.lucide-icon {
+  stroke-width: var(--icon-stroke);
+}
+svg.lucide-icon:is([width="10"], [width="11"], [width="12"], [width="13"], [width="14"]) {
+  stroke-width: var(--icon-stroke-sm);
+}
+svg.lucide-icon:is([width="20"], [width="22"], [width="24"], [width="28"], [width="32"]) {
+  stroke-width: var(--icon-stroke-lg);
+}
+
+/* Setup: a finished step is a green check, the current one keeps its butter ring. */
+.setup-steps li.done .n {
+  border-color: transparent;
+  background: var(--status-ok-bg);
+  color: var(--status-ok-text);
+}
+
+/* Notices written as plain paragraphs (a failure, a warning, a success line)
+   lead with their tone's icon too, drawn here so every such line gets one.
+   A line that already holds an icon keeps its own. */
+:root {
+  --glyph-warn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+  --glyph-bad: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m15 9-6 6'/%3E%3Cpath d='m9 9 6 6'/%3E%3C/svg%3E");
+  --glyph-ok: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m16 9-5.5 5.5L8 12'/%3E%3C/svg%3E");
+}
+:is(p.warn, p.card.tight.warn, p.fail, p.card.tight.bad, p.ok[role="status"]):not(
+  :has(svg)
+)::before {
+  content: "";
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 6px;
+  vertical-align: -0.17em;
+  background: var(--status-warn-text);
+  mask: var(--glyph-warn) center / contain no-repeat;
+}
+:is(p.fail, p.card.tight.bad):not(:has(svg))::before {
+  background: var(--status-bad-text);
+  mask-image: var(--glyph-bad);
+}
+p.ok[role="status"]:not(:has(svg))::before {
+  background: var(--status-ok-text);
+  mask-image: var(--glyph-ok);
+}

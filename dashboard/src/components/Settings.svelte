@@ -1,6 +1,7 @@
 <script lang="ts">
 import Check from "@lucide/svelte/icons/check";
 import Copy from "@lucide/svelte/icons/copy";
+import Pencil from "@lucide/svelte/icons/pencil";
 import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
@@ -27,6 +28,7 @@ import SettingsNav from "./SettingsNav.svelte";
 import SettingsSaveBar from "./SettingsSaveBar.svelte";
 import SharedServer from "./SharedServer.svelte";
 import Skeleton from "./Skeleton.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 import Wrapped from "./Wrapped.svelte";
 
 // Settings a person has a reason to change are controls; the rest of the
@@ -141,7 +143,7 @@ async function save(): Promise<void> {
   <button class="sw" type="button" role="switch" aria-checked={on} aria-label={label} aria-describedby={description} onclick={() => { saved = 0; flip(); }}><i></i></button>
 {/snippet}
 {#snippet changedPill(key: string)}
-  {#if touched.has(key)}<span class="pill warn">changed</span>{/if}
+  {#if touched.has(key)}<span class="pill warn"><Pencil size={11} aria-hidden="true" />changed</span>{/if}
 {/snippet}
 {#snippet heading(name: string, note?: string)}
   <div class="hd set-hd"><h2 class="h2">{name}</h2>{#if note}<span class="meta">{note}</span>{/if}</div>
@@ -170,19 +172,19 @@ async function save(): Promise<void> {
 
 {#if status.isPending || settings.isPending}<Skeleton rows={5} />{/if}
 <QueryError title="Couldn’t load settings" query={status} />
-{#if settings.error}<p class="meta warn" role="alert">Settings can't be changed right now: {settings.error.message}</p>{/if}
+{#if settings.error}<p class="meta warn st" role="alert"><ToneIcon tone="warn" size={13} /><span>Settings can't be changed right now: {settings.error.message}</span></p>{/if}
 {#if status.data && config}
   {#if !config.loaded}
-    <p class="card tight warn">Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable" && !desktop} or run <code class="i">mash init</code> in a terminal{/if}.</p>
+    <p class="card tight warn"><ToneIcon tone="warn" size={15} /><span>Mash has no configuration file yet. <a class="a" href="#/setup">Set up Mash here</a>{#if status.data.searchService === "reachable" && !desktop} or run <code class="i">mash init</code> in a terminal{/if}.</span></p>
   {/if}
   {#if status.data.searchService === "unreachable"}
-    <p class="card tight warn">Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Start or repair the search service</a>.</p>
+    <p class="card tight warn"><ToneIcon tone="warn" size={15} /><span>Mash could not reach the local search service at <code class="i">{config.searchStore}</code>. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Start or repair the search service</a>.</span></p>
   {:else if status.data.searchService === "rejected"}
-    <p class="card tight warn">The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Check the search service</a>.</p>
+    <p class="card tight warn"><ToneIcon tone="warn" size={15} /><span>The search service at <code class="i">{config.searchStore}</code> responded, but Mash could not use it. <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed" target="_blank" rel="noreferrer">Check the search service</a>.</span></p>
   {:else if status.data.nextStep === "index"}
-    <p class="card tight warn">Run <code class="i">{mashCommand("index")}</code> in a terminal on this machine to update local search.</p>
+    <p class="card tight warn"><ToneIcon tone="warn" size={15} /><span>Run <code class="i">{mashCommand("index")}</code> in a terminal on this machine to update local search.</span></p>
   {:else if status.data.nextStep === "models install"}
-    <p class="card tight warn">Search by meaning needs local models. Run <code class="i">{mashCommand("models install")}</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</p>
+    <p class="card tight warn"><ToneIcon tone="warn" size={15} /><span>Search by meaning needs local models. Run <code class="i">{mashCommand("models install")}</code> on this machine. <a class="a" href="https://getmash.io/indexing/#enable-semantic-search" target="_blank" rel="noreferrer">Finish setting up search by meaning</a>.</span></p>
   {/if}
 
   <section class="sec" id="set-agents">
@@ -199,7 +201,7 @@ async function save(): Promise<void> {
               <AgentMark agent={entry.agent} />
               <span class="set-n">{agentInfo[entry.agent].name}</span>
               <span class="set-p"><Wrapped value={entry.roots.join(", ")} /></span>
-              <span class="set-s">{@render changedPill(`agent:${entry.agent}`)}<span class="meta set-st" class:set-on={on}><i class="dot {on ? 'ok' : 'none'}" aria-hidden="true"></i>{on ? "indexed" : "not indexed"}</span>{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{/if}</span>
+              <span class="set-s">{@render changedPill(`agent:${entry.agent}`)}<span class="meta set-st" class:set-on={on}><ToneIcon tone={on ? "ok" : "idle"} size={13} />{on ? "indexed" : "not indexed"}</span>{#if file.editable}{@render toggle(`Index ${agentInfo[entry.agent].name}`, on, () => { if (draft) draft.agents[entry.agent] = !on; }, "history-sources-help")}{/if}</span>
             </div>
           {/each}
         </div>
@@ -413,6 +415,10 @@ async function save(): Promise<void> {
   .set-st {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    font-weight: var(--weight-label);
+  }
+  .set-st.set-on {
+    color: var(--status-ok-text);
   }
 </style>

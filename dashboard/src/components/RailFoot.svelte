@@ -5,8 +5,11 @@
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 import { catalogOptions } from "../lib/queries";
 import { statusOptions } from "../lib/status";
+import type { Tone } from "../lib/tone";
 import { updates } from "../lib/updates.svelte";
 import CheckUpdates from "./CheckUpdates.svelte";
+import MachineIcon from "./MachineIcon.svelte";
+import StatusBadge from "./StatusBadge.svelte";
 
 let { unavailable }: { unavailable: boolean } = $props();
 const client = useQueryClient();
@@ -17,15 +20,27 @@ const machine = $derived(
 );
 // Only what the status says: a watcher running for this machine's index.
 const watching = $derived(status.data?.watching);
-const words = $derived.by(() => {
-  if (unavailable) return "history unavailable";
-  if (watching === undefined) return machine;
-  const state = watching ? "watching" : "not watching";
-  return machine ? `${machine} · ${state}` : state;
+// The state reads at a glance: a green check while watching, a dashed ring
+// when not (not a fault: indexing can be run by hand), amber when history
+// cannot be read at all.
+const state = $derived.by((): { tone: Tone; words: string } | undefined => {
+  if (unavailable) return { tone: "warn", words: "history unavailable" };
+  if (watching === undefined) return undefined;
+  return watching ? { tone: "ok", words: "watching" } : { tone: "idle", words: "not watching" };
 });
 </script>
 
 <div class="status">
-  <span class="status-t"><i class="status-dot" class:on={watching === true} aria-hidden="true"></i><span>{words}</span></span>
+  <span class="status-t">{#if machine && !unavailable}<span class="rf-m" title="This machine: {machine}"><MachineIcon {machine} size={12} />{machine}</span>{/if}{#if state}<StatusBadge tone={state.tone} words={state.words} size={12} />{/if}</span>
   <CheckUpdates compact checking={updates.checking} check={() => updates.check(client)} />
 </div>
+
+<style>
+  .rf-m {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-weight: var(--weight-label);
+  }
+</style>

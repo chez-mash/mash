@@ -83,7 +83,7 @@ const here = $derived(node || "this machine");
     align-items: center;
     gap: 8px;
     font-size: 13.5px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .sh-steps {

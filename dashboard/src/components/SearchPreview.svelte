@@ -109,7 +109,7 @@ function passage(text: string, limit: number): string {
   }
   .pv-h h2 {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.015em;
     line-height: 1.3;
   }

@@ -199,7 +199,7 @@ function host(url: string): string {
   }
   .bt-l {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-muted);
   }
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { stateLabel } from "../lib/subagents";
 import type { ChatSummary } from "../lib/types";
+import ToneIcon from "./ToneIcon.svelte";
 
 // In a subagent's header: its role and, when the agent recorded it, its state.
 let { chat }: { chat: ChatSummary } = $props();
@@ -11,5 +12,5 @@ const kind = $derived(["subagent", chat.subagent?.role].filter(Boolean).join(" Â
 {#if chat.sshCopy}<span class="pill">ran over SSH on another machine</span>{/if}
 {#if chat.subagent}
   <span class="pill fork">{kind}</span>
-  {#if state}<span class="pill" class:ok={state === "done"} class:busy={state === "running"}>{state}</span>{/if}
+  {#if state}<span class="pill st tone-{state === 'done' ? 'ok' : 'run'}" class:ok={state === "done"} class:busy={state === "running"}><ToneIcon tone={state === "done" ? "ok" : "run"} size={12} />{state}</span>{/if}
 {/if}

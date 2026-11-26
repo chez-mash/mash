@@ -35,7 +35,7 @@ const now = Date.now();
     align-items: center;
     gap: 7px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .sl-l {
@@ -72,7 +72,7 @@ const now = Date.now();
   }
   .sl-r b {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     line-height: 1.4;
   }
   .sl-r small {

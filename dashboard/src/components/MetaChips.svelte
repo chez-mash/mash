@@ -1,5 +1,4 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
 import Folder from "@lucide/svelte/icons/folder";
 import { agents } from "../lib/agents";
 import { projectLabel, whenLabel } from "../lib/browse";
@@ -29,7 +28,7 @@ const now = Date.now();
     <a class="mt chip" href={machineHref(chat.machine)}><MachineIcon machine={chat.machine} size={14} />{chat.machine}</a>
     {#if chat.project}<a class="mt chip" href={projectHref(chat.project)}><Folder size={14} aria-hidden="true" />{projectLabel(chat.project)}</a>{/if}
   {:else}
-    <span class="mt"><Bot size={12} aria-hidden="true" />{agents[chat.agent].name}</span>
+    <span class="mt"><AgentMark agent={chat.agent} size="sm" />{agents[chat.agent].name}</span>
     <span class="mt"><MachineIcon machine={chat.machine} size={12} />{chat.machine}</span>
     {#if chat.project}<span class="mt"><Folder size={12} aria-hidden="true" />{projectLabel(chat.project)}</span>{/if}
   {/if}

@@ -1,5 +1,4 @@
 <script lang="ts">
-import Bookmark from "@lucide/svelte/icons/bookmark";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents } from "../lib/agents";
 import { context } from "../lib/api";
@@ -9,10 +8,12 @@ import { saidText } from "../lib/message";
 import { passageAround, plainPassage } from "../lib/passage";
 import { stableRead } from "../lib/queries";
 import { chatMemoryParams, pageTarget, type QuickRow } from "../lib/quick";
-import { label, recordPage } from "../lib/records";
+import { recordPage } from "../lib/records";
 import { recordHref, recordsHref } from "../lib/route.svelte";
 import ChatPlace from "./ChatPlace.svelte";
 import Highlight from "./Highlight.svelte";
+import KindIcon from "./KindIcon.svelte";
+import KindPill from "./KindPill.svelte";
 
 // Beside the quick panel's list when the panel is wide enough: the selected
 // chat, and for a search result the message it matched, read around that
@@ -58,7 +59,7 @@ const card = $derived.by(() => {
   const back = recordsHref(memoryParams);
   return {
     statement: revision.statement,
-    kind: label(revision.details.kind),
+    kind: revision.details.kind,
     href: pageTarget(recordHref(record.id, record.node, back), desktop),
   };
 });
@@ -75,7 +76,7 @@ const when = $derived(agoLabel(chat.updatedMs, now));
 <aside class="qp" aria-label="Preview">
   <div class="qp-h">
     <h2><Highlight text={plainTitle(chat.title)} {query} /></h2>
-    <p class="qp-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} mark />{#if when}<span>{when}</span>{/if}</p>
+    <p class="qp-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} />{#if when}<span>{when}</span>{/if}</p>
   </div>
   {#if row.messageId}
     {#if position}<span class="qp-n">{position}</span>{/if}
@@ -93,9 +94,9 @@ const when = $derived(agoLabel(chat.updatedMs, now));
   {/if}
   {#if memory && card}
     <a class="qp-mem" href={card.href}>
-      <Bookmark size={14} aria-hidden="true" />
+      <KindIcon kind={card.kind} size={14} />
       <span class="qp-mem-t">{card.statement}</span>
-      <span class="qp-mem-k">{card.kind}</span>
+      <KindPill kind={card.kind} />
     </a>
   {/if}
 </aside>
@@ -119,7 +120,7 @@ const when = $derived(agoLabel(chat.updatedMs, now));
     margin: 0;
     color: var(--text-strong);
     font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     line-height: 1.3;
     letter-spacing: -0.015em;
   }
@@ -147,7 +148,7 @@ const when = $derived(agoLabel(chat.updatedMs, now));
   }
   .qp-n {
     color: var(--text-faint);
-    font: 400 11px / 1 var(--type-mono);
+    font: var(--weight-regular) 11px / 1 var(--type-mono);
   }
   .qp-said {
     display: flex;
@@ -191,15 +192,10 @@ const when = $derived(agoLabel(chat.updatedMs, now));
     display: -webkit-box;
     overflow: hidden;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-  }
-  .qp-mem-k {
-    flex: none;
-    color: var(--text-faint);
-    font-size: 12px;
   }
   .qp-said :global(mark) {
     box-shadow: var(--find-glow);

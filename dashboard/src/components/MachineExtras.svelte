@@ -34,7 +34,7 @@ const issues = $derived(problems(machine ? [machine] : []));
   {#if machine?.reachable}
     <ServiceRows machines={[machine]} showMachine={false} />
     {#each issues.filter((issue) => issue.service) as issue (issue.service?.id)}
-      <p class="meta"><strong style:font-weight="600">{issue.service?.name}:</strong> {issue.fix}{issue.actions.length ? " Open it to do that." : ""}</p>
+      <p class="meta"><strong style:font-weight="var(--weight-strong)">{issue.service?.name}:</strong> {issue.fix}{issue.actions.length ? " Open it to do that." : ""}</p>
     {/each}
     {#each machine.warnings as warning (warning)}<p class="meta">{warning}</p>{/each}
   {/if}

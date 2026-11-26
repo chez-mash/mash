@@ -115,7 +115,7 @@ const diffLines = $derived(
 }
 .hl-line.head {
   color: var(--text-muted);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .tone-removed {
   box-shadow: inset 3px 0 0 var(--status-bad);

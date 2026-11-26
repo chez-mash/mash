@@ -131,7 +131,7 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
 <style>
   /* The build and contract are reference numbers, so they read quietly. */
   .pills .pill.mono {
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     color: var(--text-muted);
   }
 </style>

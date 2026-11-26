@@ -7,33 +7,35 @@ import Clock from "@lucide/svelte/icons/clock";
 import FileText from "@lucide/svelte/icons/file-text";
 import Laptop from "@lucide/svelte/icons/laptop";
 import Lightbulb from "@lucide/svelte/icons/lightbulb";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
 import { agentNamed } from "../lib/agents";
 import { agoLabel } from "../lib/browse";
 import { chatOf } from "../lib/memoryView";
 import { catalogOptions, stableRead } from "../lib/queries";
-import { kindIcons, scopeIcons } from "../lib/recordIcons";
+import { scopeIcons } from "../lib/recordIcons";
 import {
   type Evidence,
   getRecord,
-  kindPill,
   label,
   type Revision,
   scopeLabel,
   scopeName,
   standing,
-  statePill,
   timingLabel,
 } from "../lib/records";
 
+import { lifecycleTone, standingTone } from "../lib/tone";
 import { updates } from "../lib/updates.svelte";
 import AgentMark from "./AgentMark.svelte";
 import EvidenceCard from "./EvidenceCard.svelte";
+import KindPill from "./KindPill.svelte";
 import LoadError from "./LoadError.svelte";
+import MachineIcon from "./MachineIcon.svelte";
 import RecordFacts from "./RecordFacts.svelte";
 import RecordRelated from "./RecordRelated.svelte";
 import Skeleton from "./Skeleton.svelte";
+import StatusBadge from "./StatusBadge.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 let { id, node, back }: { id: string; node: string; back: string } = $props();
 // The chat list names this machine, as the memory list does.
@@ -96,34 +98,33 @@ function date(value: number | null): string {
 {#if page.error && !latest.error}<LoadError title="Couldn’t load memory history" message={page.error.message} retry={() => page.refetch()} busy={page.isFetching} retryLabel="Retry history"/>{/if}
 {#if record && current && !latest.error && !page.error}
   {@const settled = standing(current)}
-  {@const Kind = kindIcons[current.details.kind]}
   {@const ScopeIcon = scopeIcons[record.scope.kind]}
   {@const recorder = agentNamed(current.recordedBy)}
   <div class="rec">
   <div class="rec-m">
   <header class="rec-h">
     <p class="pills">
-      <span class="pill {kindPill(current.details.kind)}"><Kind size={12} aria-hidden="true" />{label(current.details.kind)}</span>
-      <span class="pill {statePill(current.details.state)}">{label(current.details.state)}</span>
-      <span class="pill {settled === 'established' ? '' : 'warn'}">{label(settled)}</span>
+      <KindPill kind={current.details.kind} />
+      <StatusBadge pill tone={lifecycleTone(current.details.state)} words={label(current.details.state)} size={12} />
+      <StatusBadge pill tone={standingTone(settled)} words={label(settled)} size={12} />
     </p>
     <h1 class="h1">{current.statement}</h1>
     <p class="mts">
       <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={13} aria-hidden="true" />{scopeName(record.scope)}</span>
-      <span class="mt"><Laptop size={13} aria-hidden="true" />{record.node || catalogue.data?.localNode || "this machine"}</span>
+      <span class="mt">{#if record.node || catalogue.data?.localNode}<MachineIcon machine={record.node || catalogue.data?.localNode || ""} size={13} />{:else}<Laptop size={13} aria-hidden="true" />{/if}{record.node || catalogue.data?.localNode || "this machine"}</span>
       <span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}Recorded by {current.recordedBy}</span>
       <span class="mt">{@render ago(current.recordedAt)}</span>
     </p>
     {#if settled === "unconfirmed"}
       <!-- The dashboard only reads memory: there is no way to confirm a record
            from here. An agent confirms or corrects it in a review. -->
-      <p class="card tight cream rec-u" role="note"><CircleDashed size={16} aria-hidden="true" /><span>To confirm this, ask your agent to review your memory (<code>/mash:review</code> in Claude Code); opening it here leaves it unconfirmed. <a class="a" href="https://getmash.io/records/#correct-or-replace" target="_blank" rel="noreferrer">How review works</a></span></p>
+      <p class="card tight cream rec-u" role="note"><span class="tone-i tone-warn"><CircleDashed size={16} aria-hidden="true" /></span><span>To confirm this, ask your agent to review your memory (<code>/mash:review</code> in Claude Code); opening it here leaves it unconfirmed. <a class="a" href="https://getmash.io/records/#correct-or-replace" target="_blank" rel="noreferrer">How review works</a></span></p>
     {/if}
     {#if timingLabel(current, Date.now()) || record.conflicted || !current.evidenceCurrent}
       <div class="g3 rec-w">
-        {#if timingLabel(current, Date.now())}<p class="card tight warn" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>{timingLabel(current, Date.now())}. Check the effective date before relying on this.</span></p>{/if}
-        {#if record.conflicted}<p class="card tight bad" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>Another record contradicts this one. Look at the related records before relying on it.</span></p>{/if}
-        {#if !current.evidenceCurrent}<p class="card tight bad" role="status"><TriangleAlert size={16} aria-hidden="true" /><span>The quoted messages have changed or are missing. Review the sources before relying on this.</span></p>{/if}
+        {#if timingLabel(current, Date.now())}<p class="card tight warn" role="status"><ToneIcon tone="warn" size={16} /><span>{timingLabel(current, Date.now())}. Check the effective date before relying on this.</span></p>{/if}
+        {#if record.conflicted}<p class="card tight bad" role="status"><ToneIcon tone="bad" size={16} /><span>Another record contradicts this one. Look at the related records before relying on it.</span></p>{/if}
+        {#if !current.evidenceCurrent}<p class="card tight bad" role="status"><ToneIcon tone="bad" size={16} /><span>The quoted messages have changed or are missing. Review the sources before relying on this.</span></p>{/if}
       </div>
     {/if}
   </header>
@@ -210,7 +211,7 @@ function date(value: number | null): string {
   }
   .rec-l {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   .evs {
@@ -267,7 +268,7 @@ function date(value: number | null): string {
   }
   .rec-tl :global(.rev-t b) {
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .rev-by {

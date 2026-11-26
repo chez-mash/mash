@@ -14,6 +14,7 @@ import {
   type QuickRow,
   rowTarget,
 } from "../lib/quick";
+import { recency } from "../lib/tone";
 import AgentMark from "./AgentMark.svelte";
 import Highlight from "./Highlight.svelte";
 import Keycaps from "./Keycaps.svelte";
@@ -69,7 +70,7 @@ const offset = $derived(chats ? rows.length : 0);
             {#if row.passage}<span class="q-passage"><Highlight text={plainPassage(row.passage)} {query} /></span>{/if}
           </span>
           {#if row.byMeaning}<span class="q-age">by meaning</span>{/if}
-          <span class="q-age">{whenLabel(row.chat.updatedMs, now)}</span>
+          <span class="q-age {recency(row.chat.updatedMs, now)}">{whenLabel(row.chat.updatedMs, now)}</span>
         </a>
       </li>
     {/each}
@@ -96,7 +97,7 @@ const offset = $derived(chats ? rows.length : 0);
     padding: 10px 10px 6px;
     color: var(--text-faint);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   ul {
     margin: 0;
@@ -138,7 +139,7 @@ const offset = $derived(chats ? rows.length : 0);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .q-sub,
   .q-age {

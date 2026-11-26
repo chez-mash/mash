@@ -4,7 +4,9 @@ import { createMachineEvidence } from "../lib/machineEvidence.svelte";
 import { machinePulse } from "../lib/machinePulse";
 import { machineOs, osName } from "../lib/os";
 import { machineHref } from "../lib/route.svelte";
+import { pulseTone } from "../lib/tone";
 import MachineIcon from "./MachineIcon.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // One machine as a card: its system's mark, its name and what its status dot
 // says, the system's name, a line on how it was last heard from, then its
@@ -28,7 +30,7 @@ const line = $derived(
     <span class="mc-i" aria-hidden="true"><MachineIcon machine={group.key} size={16} /></span>
     <span class="mc-n">
       <b>{group.key}</b>
-      <span class="mc-s {pulse.tone}" title={pulse.words}><i class="dot {pulse.tone}" aria-hidden="true"></i>{state}</span>
+      <span class="mc-s st tone-{pulseTone(pulse)}" title={pulse.words}><ToneIcon tone={pulseTone(pulse)} size={12} />{state}</span>
     </span>
     {#if os}<span class="mc-os">{osName(os)}</span>{/if}
   </span>
@@ -89,7 +91,7 @@ const line = $derived(
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .mc-s {
@@ -99,12 +101,14 @@ const line = $derived(
     font-size: 12px;
     color: var(--text-muted);
   }
-  .mc-s.ok {
+  .mc-s.tone-ok {
     color: var(--status-ok-text);
   }
-  .mc-s.warn,
-  .mc-s.bad {
+  .mc-s.tone-warn {
     color: var(--status-warn-text);
+  }
+  .mc-s.tone-bad {
+    color: var(--status-bad-text);
   }
   .mc-os {
     align-self: flex-start;
@@ -133,7 +137,7 @@ const line = $derived(
   }
   .mc-f b {
     font-size: 17px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .mc-f small {

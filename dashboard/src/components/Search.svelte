@@ -451,7 +451,7 @@ function step(event: KeyboardEvent): void {
   :global(.sx-label) {
     padding: 4px 8px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   :global(.sx-label a) {

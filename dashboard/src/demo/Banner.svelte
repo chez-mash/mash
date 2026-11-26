@@ -42,7 +42,7 @@ import { localMachine } from "./history";
     align-items: center;
     min-height: 44px;
     color: inherit;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     text-decoration: underline;
     text-underline-offset: 3px;
   }

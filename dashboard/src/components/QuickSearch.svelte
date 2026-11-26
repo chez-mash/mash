@@ -351,7 +351,7 @@ function hover(index: number): void {
     background: none;
     color: var(--text-strong);
     caret-color: var(--accent-strong);
-    font: 400 16px / 1 var(--type-sans);
+    font: var(--weight-regular) 16px / 1 var(--type-sans);
     letter-spacing: -0.01em;
   }
   .wide .q-field input {
@@ -369,7 +369,7 @@ function hover(index: number): void {
     overflow: hidden;
     color: var(--text-muted);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

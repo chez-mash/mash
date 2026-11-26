@@ -165,7 +165,7 @@ const tiles = $derived([
   }
   .ov-h1 {
     font-size: 24px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.03em;
   }
   .ov-sum {
@@ -199,7 +199,7 @@ const tiles = $derived([
   }
   .ov-tile b {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
@@ -242,7 +242,7 @@ const tiles = $derived([
     gap: 8px;
     margin: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .ov-h a {

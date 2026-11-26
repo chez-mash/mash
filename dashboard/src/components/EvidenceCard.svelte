@@ -26,7 +26,7 @@ const mine = $derived(source.sourceRole === "user");
   <blockquote>“{source.quote}”</blockquote>
   {#if brief}
     <figcaption>
-      <span class="ev-who"><span>{who}</span><ChatPlace agent={chat?.agent} machine={chat?.machine || node} mark /></span>
+      <span class="ev-who"><span>{who}</span><ChatPlace agent={chat?.agent} machine={chat?.machine || node} /></span>
       <a class="ev-go" {href} aria-label="Open the quoted message">Open<ChevronRight size={14} aria-hidden="true" /></a>
     </figcaption>
   {:else}
@@ -61,7 +61,7 @@ const mine = $derived(source.sourceRole === "user");
     padding: 0;
     border: 0;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     line-height: 1.5;
     color: var(--text-strong);
     white-space: pre-wrap;
@@ -69,7 +69,7 @@ const mine = $derived(source.sourceRole === "user");
   }
   .brief blockquote {
     font-size: 14px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
   }
   figcaption {
     display: flex;
@@ -92,7 +92,7 @@ const mine = $derived(source.sourceRole === "user");
     flex: 1;
   }
   .ev-who b {
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-body);
   }
   .ev-chat {
@@ -115,7 +115,7 @@ const mine = $derived(source.sourceRole === "user");
     gap: 2px;
     margin-left: auto;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
     white-space: nowrap;
   }

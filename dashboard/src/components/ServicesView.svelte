@@ -31,6 +31,7 @@ import {
   servicesHref,
 } from "../lib/services.svelte";
 import { statusOptions } from "../lib/status";
+import { serviceTone } from "../lib/tone";
 import { machineMap, type PlaceId } from "../lib/topology";
 import { updates } from "../lib/updates.svelte";
 import LoadError from "./LoadError.svelte";
@@ -43,6 +44,7 @@ import { kindIcon } from "./ServiceRows.svelte";
 import ServicesMap from "./ServicesMap.svelte";
 import SetupLink from "./SetupLink.svelte";
 import Skeleton from "./Skeleton.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 let { params }: { params: string } = $props();
 const queryClient = useQueryClient();
@@ -246,7 +248,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
   <div class="hd">
     <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check{checked ? `, ${agoLabel(checked * 1000, Date.now())}` : ""}. This page does not refresh on its own.</p></div>
     <span class="acts">
-      <span role="status">{#if fleet.data}<span class="pill svc-health" class:ok={allHealthy} class:warn={!allHealthy}><i class="dot" aria-hidden="true"></i>{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
+      <span role="status">{#if fleet.data}<span class="pill svc-health st tone-{allHealthy ? 'ok' : 'warn'}"><ToneIcon tone={allHealthy ? "ok" : "warn"} size={12} />{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
       {#if enabled}<button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>{/if}
     </span>
   </div>
@@ -254,9 +256,9 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
 {#if serviceId}<p class="meta">Statuses are from the last check. This page does not refresh on its own.</p>{/if}
 <QueryError title="Couldn’t connect to services" query={access} />
 {#if enabled && fleet.isPending}<Skeleton rows={3} />{/if}
-{#if enabled && fleet.error}<LoadError title="Couldn’t check service status" message={fleet.error.message} retry={refresh} busy={fleet.isFetching}/><p class="meta warn">Statuses shown earlier have not been verified.</p>{/if}
+{#if enabled && fleet.error}<LoadError title="Couldn’t check service status" message={fleet.error.message} retry={refresh} busy={fleet.isFetching}/><p class="meta warn st"><ToneIcon tone="warn" size={13} />Statuses shown earlier have not been verified.</p>{/if}
 {#if pending}<p class="meta" role="status">Service action in progress. Check recent activity if the connection is interrupted.</p>{/if}
-{#if actionError}<p class="fail" role="alert">{actionError}</p>{/if}
+{#if actionError}<p class="fail st" role="alert"><ToneIcon tone="bad" size={14} /><span>{actionError}</span></p>{/if}
 {#if result}<p class="ok" role="status" style:font-size="13.5px"><strong>{actionLabel[result.request.action]} on {result.request.machine}: {result.outcome}.</strong> {result.message}</p>{/if}
 
 {#if enabled && fleet.data && serviceId}
@@ -265,9 +267,9 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
   {#if machine && service}
     {@const compatibility = service.compatibility}
     <dl class="stats">
-      <div><dt class="eyebrow">status</dt><dd><b><i class="dot" class:warn={service.state !== "healthy"} aria-hidden="true"></i>{machine.reachable ? service.summary : "Machine unreachable"}</b><small title={checkedTime(service.checked_at)}>checked {agoLabel(service.checked_at * 1000, Date.now())}{service.pid ? ` / PID ${service.pid}` : ""}</small></dd></div>
+      <div><dt class="eyebrow">status</dt><dd><b class="st tone-{machine.reachable ? serviceTone(service.state) : 'unknown'}"><ToneIcon tone={machine.reachable ? serviceTone(service.state) : "unknown"} />{machine.reachable ? service.summary : "Machine unreachable"}</b><small title={checkedTime(service.checked_at)}>checked {agoLabel(service.checked_at * 1000, Date.now())}{service.pid ? ` / PID ${service.pid}` : ""}</small></dd></div>
       {#if compatibility}
-        <div><dt class="eyebrow">schema</dt><dd><b><i class="dot" class:warn={compatibility.state !== "healthy"} aria-hidden="true"></i>{compatibility.state === "healthy" ? "Compatible" : "Needs attention"}</b><small>database {compatibility.database_schema ?? "unknown"} / supported {compatibility.supported_schema ?? "unknown"}</small></dd></div>
+        <div><dt class="eyebrow">schema</dt><dd><b class="st tone-{compatibility.state === 'healthy' ? 'ok' : 'warn'}"><ToneIcon tone={compatibility.state === "healthy" ? "ok" : "warn"} />{compatibility.state === "healthy" ? "Compatible" : "Needs attention"}</b><small>database {compatibility.database_schema ?? "unknown"} / supported {compatibility.supported_schema ?? "unknown"}</small></dd></div>
         <div><dt class="eyebrow">build</dt><dd><b class="mono">{compatibility.running_build.slice(0, 12) || "unknown"}</b><small>dashboard {compatibility.observer_build.slice(0, 12)}</small></dd></div>
       {/if}
     </dl>

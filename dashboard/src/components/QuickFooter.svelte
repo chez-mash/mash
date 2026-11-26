@@ -2,10 +2,12 @@
 import { asset } from "../lib/asset";
 import { ariaShortcut, type QuickKeys, type QuickStatus } from "../lib/quick";
 import Keycaps from "./Keycaps.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // The quick panel's footer: Mash's mark and what search can do right now (or
 // what was just copied), then opening the selection and the actions menu.
-// The dot shows only when something is not as it should be.
+// The status leads with its tone's icon: a check when search is ready, amber
+// when it works only in part, a loader while checking, red when it cannot.
 let {
   label,
   tone,
@@ -26,11 +28,12 @@ let {
   ontoggle: () => void;
   actionsButton?: HTMLButtonElement | undefined;
 } = $props();
+const toneOf = { ready: "ok", busy: "warn", checking: "run", problem: "bad" } as const;
 </script>
 
 <footer>
   <img class="q-mark" src={asset("mash-mark.svg")} alt="" width="20" height="20" />
-  <span class="q-status" role="status">{#if tone !== "ready"}<span class="q-dot" data-tone={tone} aria-hidden="true"></span>{/if}<span class="q-label">{label}</span></span>
+  <span class="q-status tone-{toneOf[tone]}" role="status"><ToneIcon tone={toneOf[tone]} size={13} /><span class="q-label">{label}</span></span>
   <span class="q-end">
     {#if open}
       <button type="button" class="q-ghost q-open" onclick={onopen}>{open}<Keycaps shortcut="↵" /></button>
@@ -67,6 +70,7 @@ let {
     align-items: center;
     gap: 6px;
     min-width: 0;
+    font-weight: var(--weight-label);
   }
   .q-label {
     min-width: 0;
@@ -74,18 +78,8 @@ let {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .q-dot {
-    flex: none;
-    width: 7px;
-    height: 7px;
-    border-radius: var(--radius-round);
-    background: var(--text-faint);
-  }
-  .q-dot[data-tone="busy"] {
-    background: var(--status-warn-dot);
-  }
-  .q-dot[data-tone="problem"] {
-    background: var(--status-bad-dot);
+  .q-status.tone-ok .q-label {
+    color: var(--text-muted);
   }
   .q-end {
     display: flex;
@@ -103,7 +97,7 @@ let {
     border-radius: var(--radius-5);
     background: none;
     color: var(--text-strong);
-    font: 500 12px / 1 var(--type-sans);
+    font: var(--weight-label) 12px / 1 var(--type-sans);
     cursor: pointer;
   }
   .q-ghost:hover,

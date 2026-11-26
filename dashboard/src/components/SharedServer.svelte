@@ -212,7 +212,7 @@ async function forgetKey(): Promise<void> {
     align-items: center;
     gap: 9px;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .ss-kv {

@@ -86,7 +86,7 @@ const records = $derived(found.data?.page.records ?? []);
   }
   .mm-t b {
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     line-height: 1.4;
   }
   .mm-t small,

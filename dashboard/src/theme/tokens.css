@@ -116,7 +116,7 @@
   --status-warn: #8a5a00;
   --status-bad: #b3402a;
   --status-ok-bg: rgba(47, 125, 85, 0.12);
-  --status-ok-text: #2f7d55;
+  --status-ok-text: #286b48;
   --status-warn-bg: rgba(232, 176, 42, 0.18);
   --status-warn-text: #8a5a00;
   --status-bad-bg: rgba(179, 64, 42, 0.1);
@@ -125,6 +125,34 @@
   --status-warn-dot: #e8b02a;
   --status-bad-dot: #b3402a;
   --status-running-dot: #e8b02a;
+  /* More status roles: blue for information (a match by meaning, something live), and a neutral
+     tone for states that are not faults (quiet, not indexed, unknown). Each state also carries an
+     icon and its word, so colour never stands alone (see lib/tone.ts). */
+  --status-info-bg: rgba(42, 95, 179, 0.1);
+  --status-info-text: #2a5fb3;
+  --status-neutral-bg: var(--surface-muted);
+  --status-neutral-text: var(--text-muted);
+  /* Memory kinds: a decision is butter, a preference blue, a note teal; the same tint on the tile,
+     the pill and the icon wherever a kind is shown, always beside its icon. */
+  --kind-decision-bg: rgba(245, 200, 75, 0.3);
+  --kind-decision-text: #6b4e00;
+  --kind-preference-bg: rgba(52, 80, 158, 0.11);
+  --kind-preference-text: #34509e;
+  --kind-note-bg: rgba(29, 107, 107, 0.11);
+  --kind-note-text: #1d6b6b;
+  /* Weight: Geist ships at 400, 500 and 600. Labels, nav and row titles are 500 and headings 600,
+     as on the boards. Small muted text is 400 in light and 500 in dark, where light-on-dark text
+     thins. Smoothing stays the platform's own in light (antialiased thins dark text on macOS). */
+  --weight-regular: 400;
+  --weight-label: 500;
+  --weight-strong: 600;
+  --weight-meta: 400;
+  --font-smoothing: auto;
+  /* Icon line weight: Lucide draws in a 24px box, so a stroke of 2 is a 1px line at 12px. Small
+     icons get a heavier stroke so they sit with the text beside them; large ones a lighter one. */
+  --icon-stroke-sm: 2.25;
+  --icon-stroke: 2;
+  --icon-stroke-lg: 1.75;
   /* Mashy: the lavender of Mashy's bowl is Mashy's alone. */
   --mashy-pick-bg: #dce3fa;
   --mashy-pick-text: #1a1915;
@@ -261,6 +289,16 @@
     --status-bad-text: #f08a6c;
     --status-ok-dot: #5bc48c;
     --status-bad-dot: #f08a6c;
+    --status-info-bg: rgba(142, 168, 230, 0.15);
+    --status-info-text: #8ea8e6;
+    --kind-decision-bg: rgba(245, 200, 75, 0.18);
+    --kind-decision-text: #f5c84b;
+    --kind-preference-bg: rgba(157, 176, 238, 0.15);
+    --kind-preference-text: #9db0ee;
+    --kind-note-bg: rgba(111, 194, 194, 0.14);
+    --kind-note-text: #6fc2c2;
+    --weight-meta: 500;
+    --font-smoothing: antialiased;
     --mashy-pick-bg: #2c3350;
     --mashy-pick-text: #f3efe6;
     --mashy-dot: #8e9dd6;
@@ -358,6 +396,16 @@
   --status-bad-text: #f08a6c;
   --status-ok-dot: #5bc48c;
   --status-bad-dot: #f08a6c;
+  --status-info-bg: rgba(142, 168, 230, 0.15);
+  --status-info-text: #8ea8e6;
+  --kind-decision-bg: rgba(245, 200, 75, 0.18);
+  --kind-decision-text: #f5c84b;
+  --kind-preference-bg: rgba(157, 176, 238, 0.15);
+  --kind-preference-text: #9db0ee;
+  --kind-note-bg: rgba(111, 194, 194, 0.14);
+  --kind-note-text: #6fc2c2;
+  --weight-meta: 500;
+  --font-smoothing: antialiased;
   --mashy-pick-bg: #2c3350;
   --mashy-pick-text: #f3efe6;
   --mashy-dot: #8e9dd6;

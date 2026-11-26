@@ -122,7 +122,7 @@ summary::-webkit-details-marker {
   border-radius: var(--radius-field);
   background: var(--selected-bg);
   color: var(--selected-text);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   transform: translateY(calc(-100% - 20px));
 }
 .skip:focus {
@@ -147,7 +147,7 @@ summary::-webkit-details-marker {
   gap: 9px;
   padding: 0 8px 16px;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   letter-spacing: -0.035em;
   color: var(--brand-name);
 }
@@ -193,7 +193,7 @@ summary::-webkit-details-marker {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--tile-icon);
+  color: inherit;
 }
 .nav-link {
   flex: 1;
@@ -205,6 +205,7 @@ summary::-webkit-details-marker {
   padding: 0 10px;
   border-radius: var(--radius-5);
   font-size: 13px;
+  font-weight: var(--weight-label);
   color: var(--text-body);
   text-align: left;
 }
@@ -218,7 +219,7 @@ summary::-webkit-details-marker {
 /* A section's count, quiet and in figures that line up. */
 .nav-count {
   flex: none;
-  font: 400 12px / 1 var(--type-mono);
+  font: var(--weight-regular) 12px / 1 var(--type-mono);
   color: var(--text-faint);
 }
 /* A group's name over its rows: Manage, and the projects heading, which
@@ -227,7 +228,7 @@ summary::-webkit-details-marker {
   margin: 0;
   padding: 16px 10px 6px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   color: var(--text-faint);
 }
 a.nav-group:hover,
@@ -236,7 +237,7 @@ a.nav-group[aria-current="page"] {
 }
 .nav-row.on .nav-link {
   color: var(--selected-text);
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .chev {
   flex: none;
@@ -336,7 +337,7 @@ a.nav-group[aria-current="page"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .prog-t span {
   color: var(--accent);
@@ -436,7 +437,7 @@ a.nav-group[aria-current="page"] {
 }
 .prompt {
   color: var(--accent);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .box input {
   flex: 1 1 100px;
@@ -506,7 +507,7 @@ a.nav-group[aria-current="page"] {
 .drop h4 {
   margin: 6px 10px 2px;
   font-size: 13px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }
 .opt {
@@ -564,7 +565,7 @@ a.nav-group[aria-current="page"] {
 /* A page's title. */
 .h1 {
   font-size: 30px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   line-height: 1.12;
   letter-spacing: -0.035em;
   color: var(--text-strong);
@@ -581,7 +582,7 @@ a.nav-group[aria-current="page"] {
   gap: 8px;
   min-height: 24px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .h2 a {
@@ -726,7 +727,7 @@ a.nav-group[aria-current="page"] {
 .job header b {
   flex: 1;
   min-width: 0;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .jts {
@@ -747,7 +748,7 @@ a.nav-group[aria-current="page"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   color: var(--text-strong);
 }
 .jbar {
@@ -793,7 +794,7 @@ a.nav-group[aria-current="page"] {
   flex: 1;
 }
 .card.tick.ft b {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .ft-os {
   display: inline-grid;
@@ -833,7 +834,7 @@ a.nav-group[aria-current="page"] {
 }
 .big b {
   font-size: 34px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--text-strong);
@@ -871,7 +872,7 @@ a.nav-group[aria-current="page"] {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   white-space: nowrap;
 }
 .btn:hover {
@@ -977,7 +978,7 @@ a.nav-group[aria-current="page"] {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   line-height: 1;
   white-space: nowrap;
 }
@@ -1006,7 +1007,7 @@ a.nav-group[aria-current="page"] {
   align-items: center;
   gap: 10px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .res-s {
   display: block;
@@ -1052,13 +1053,13 @@ mark {
 .ses.on {
   background: var(--surface-muted);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .ses small {
   display: block;
   margin-top: 4px;
   font-size: 11.5px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }
 .log {
@@ -1089,7 +1090,7 @@ mark {
   border-radius: var(--radius-tile);
   background: var(--selected-bg);
   color: var(--selected-text);
-  font: 700 12px / 1.4 var(--type-mono);
+  font: var(--weight-strong) 12px / 1.4 var(--type-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1104,7 +1105,7 @@ code.i {
 /* A text link or text action: ink words over a peach rule. */
 .a {
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   text-decoration: underline var(--stroke-strong) var(--link-line);
   text-underline-offset: 3px;
 }
@@ -1132,7 +1133,7 @@ code.i {
   overflow-wrap: anywhere;
 }
 .tool .nm b {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .tool svg {
   transform: translateY(3px);
@@ -1246,7 +1247,7 @@ code.i {
   gap: 9px;
   min-height: 36px;
   padding: 6px 12px;
-  font: 600 12.5px / 1.5 var(--type-mono);
+  font: var(--weight-strong) 12.5px / 1.5 var(--type-mono);
   color: var(--text-strong);
 }
 .fold > summary:hover {
@@ -1267,7 +1268,7 @@ code.i {
 }
 .fold > summary .mtx {
   margin-left: auto;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 .fold > summary .mtx + .cv {
   margin-left: 6px;
@@ -1308,7 +1309,7 @@ code.i {
 }
 .tbl th {
   padding: 8px 12px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
   text-align: left;
 }
@@ -1374,7 +1375,7 @@ blockquote {
   border-bottom: var(--border-strong);
   background: var(--surface-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1387,7 +1388,7 @@ blockquote {
   align-items: center;
   gap: 9px;
   padding-left: 16px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .cell {
@@ -1461,7 +1462,7 @@ blockquote {
   color: inherit;
 }
 .svc-n {
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .fld {
   display: flex;
@@ -1473,11 +1474,11 @@ blockquote {
   align-items: baseline;
   gap: 10px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .nb {
   font-size: 12px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }
 .notes {
@@ -1655,7 +1656,7 @@ h1:focus {
   border-color: var(--line-ink);
   background: var(--selected-bg);
   color: var(--selected-text);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 /* Inside the cream bubble everything takes the bubble's ink; code and quotes
    sit on a slightly deeper cream instead of the page's dark fills. */
@@ -1861,7 +1862,7 @@ h1:focus {
 .fmenu button[aria-checked="true"] {
   background: var(--selected-bg);
   color: var(--selected-text);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .fmenu button[aria-checked="true"] :is(.oi, .n) {
   color: inherit;
@@ -1897,7 +1898,7 @@ h1:focus {
 }
 .tool .nm b {
   color: var(--text-strong);
-  font-weight: 500;
+  font-weight: var(--weight-label);
   margin-right: 8px;
 }
 .tool[open] .nm {
@@ -1974,7 +1975,7 @@ h1:focus {
   border-color: var(--line-strong);
   background: var(--surface-muted);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .outl button:hover {
   background: var(--surface-hover);
@@ -2087,7 +2088,7 @@ h1:focus {
   overflow-wrap: anywhere;
 }
 .mdh {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   margin-top: 6px;
 }
 .mdl {
@@ -2114,7 +2115,7 @@ h1:focus {
 }
 .mdt th {
   color: var(--text-muted);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 /* Inline code is set apart by its typeface alone: a box around it breaks
    the line it sits in, most of all where it wraps. */
@@ -2231,7 +2232,7 @@ h1:focus {
 .tl button.on {
   background: var(--selected-surface);
   color: var(--selected-text);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .tabs {
   display: flex;
@@ -2245,13 +2246,14 @@ h1:focus {
   padding: 0 10px;
   font-size: 13px;
   color: var(--text-muted);
+  font-weight: var(--weight-label);
 }
 .tabs button.on {
   border-radius: var(--radius-5);
   background: var(--selected-surface);
   box-shadow: inset 0 0 0 var(--stroke-fill) var(--line-ink);
   color: var(--selected-text);
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .tabs .r {
   margin-left: auto;
@@ -2592,7 +2594,7 @@ html {
   /* Prevent scroll chaining into browser pull-to-refresh on touch devices. */
   overscroll-behavior-y: none;
   background: var(--surface-page);
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: var(--font-smoothing);
 }
 body {
   margin: 0;
@@ -2637,7 +2639,7 @@ button:disabled {
 .mashy-unset > strong {
   color: var(--text-strong);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   letter-spacing: -0.01em;
 }
 /* What leaves the machine, said in a quiet box under the form. */
@@ -2656,7 +2658,7 @@ button:disabled {
 .mashy-sends strong {
   color: var(--text-strong);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .mashy-sends .a {
   display: inline-flex;
@@ -2680,7 +2682,7 @@ button:disabled {
 .mx-n,
 .mx-r.head,
 .grp > summary {
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .res-t,
 .svc-n,
@@ -2689,7 +2691,7 @@ button:disabled {
 .mdt th,
 .drop h4,
 .fld-l {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 /* The navigation's right edge can be dragged to set its width. */
@@ -2718,11 +2720,11 @@ button:disabled {
 /* Navigation words are regular; the current page is medium, as in the wireframes. */
 #rail .nav-link,
 #rail .sub {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 #rail .nav-row.on .nav-link,
 #rail .sub.on {
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 #rail .status button {
   color: var(--text-faint);
@@ -2829,7 +2831,7 @@ button:disabled {
   gap: 6px;
   padding: 6px 8px 4px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   color: var(--text-muted);
 }
 .opl {
@@ -2860,11 +2862,11 @@ button:disabled {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 .op-n {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 /* Whether a tool only reads: a small word, green for reading, quiet for
@@ -2902,7 +2904,7 @@ button:disabled {
 }
 .op-top > .op-n {
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .op-lead {
   margin: 0;
@@ -2970,7 +2972,7 @@ button:disabled {
 .op-e {
   margin-bottom: 8px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .prms {
   display: flex;
@@ -2990,7 +2992,7 @@ button:disabled {
   gap: 2px 9px;
 }
 .prm-n code {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .prm-n small {
@@ -3077,7 +3079,7 @@ select.prm-i option {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   line-height: 1;
   white-space: nowrap;
 }
@@ -3144,7 +3146,7 @@ select.prm-i option {
   color: var(--accent);
   font-family: var(--type-sans);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   min-height: 30px;
 }
 
@@ -3181,7 +3183,7 @@ select.prm-i option {
 }
 .svc-th strong {
   min-width: 0;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   overflow-wrap: anywhere;
 }
 
@@ -3210,7 +3212,7 @@ select.prm-i option {
   display: flex;
   gap: 8px;
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .fix .why svg {
   flex: none;
@@ -3243,7 +3245,7 @@ select.prm-i option {
   background: var(--line-outline);
   color: var(--surface-raised);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .fix .cmd {
   grid-column: 2;
@@ -3304,13 +3306,13 @@ select.prm-i option {
   border-bottom: var(--border-divider);
   background: transparent;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   letter-spacing: 0;
   text-transform: none;
 }
 .rws.agentset .rw-n strong {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .rws.agentset .rw > :last-child {
   justify-self: end;
@@ -3331,7 +3333,7 @@ select.prm-i option {
   border-bottom: var(--border-strong);
   background: var(--surface-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -3375,7 +3377,7 @@ summary.rw::-webkit-details-marker {
   margin-right: 0;
 }
 .rw-n strong {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3457,7 +3459,7 @@ summary.rw::-webkit-details-marker {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .xrow-m {
   overflow: hidden;
@@ -3534,7 +3536,7 @@ summary.rw::-webkit-details-marker {
   padding: 7px 12px;
   list-style: none;
   cursor: pointer;
-  font: 600 12.5px / 1.5 var(--type-mono);
+  font: var(--weight-strong) 12.5px / 1.5 var(--type-mono);
   color: var(--text-strong);
 }
 .tc > summary:hover {
@@ -3568,7 +3570,7 @@ summary.rw::-webkit-details-marker {
   transform: rotate(90deg);
 }
 .tc-n {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 .tc-s {
   flex: 1 1 160px;
@@ -3576,7 +3578,7 @@ summary.rw::-webkit-details-marker {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 /* An open step shows its whole description. */
 .tc[open] > summary .tc-s {
@@ -3637,7 +3639,7 @@ summary.rw::-webkit-details-marker {
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -3686,7 +3688,7 @@ summary.rw::-webkit-details-marker {
 }
 .set-a .set-n {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .set-a.changed {
@@ -3699,14 +3701,14 @@ summary.rw::-webkit-details-marker {
 }
 .set-n,
 .set-l {
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .set-l small {
   display: block;
   margin-top: 2px;
   font-size: 12.5px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }
 .set-p {
@@ -3778,7 +3780,7 @@ summary.rw::-webkit-details-marker {
   border-radius: var(--radius-field);
   background: var(--surface-raised);
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   cursor: pointer;
 }
 .service-tile:hover {
@@ -3834,7 +3836,7 @@ summary.rw::-webkit-details-marker {
   padding: 0 12px;
   border-radius: var(--radius-4);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   color: var(--text-muted);
 }
 .seg button:hover {
@@ -3866,7 +3868,7 @@ summary.rw::-webkit-details-marker {
 }
 .set-bt strong {
   flex: 1 1 160px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .set-d {
   display: flex;
@@ -3887,7 +3889,7 @@ summary.rw::-webkit-details-marker {
 }
 .set-d li > span:first-child {
   flex: 0 1 260px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
 }
 .set-d .was {
   color: var(--status-bad);
@@ -3953,7 +3955,7 @@ summary.rw::-webkit-details-marker {
 .set-nav a[aria-current] {
   background: var(--surface-muted);
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .set-nav a[aria-current]::before {
   content: "";
@@ -4004,14 +4006,14 @@ summary.rw::-webkit-details-marker {
   display: block;
   min-width: 0;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .set-t small {
   display: block;
   margin-top: 2px;
   font-size: 12.5px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--text-muted);
 }
 .set-row > .set-c {
@@ -4149,7 +4151,7 @@ summary.rw::-webkit-details-marker {
 .signin-l {
   margin-top: 6px !important;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   color: var(--text-strong);
 }
 .signin .field {
@@ -4182,7 +4184,7 @@ summary.rw::-webkit-details-marker {
   align-items: center;
   gap: 8px;
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   color: var(--text-strong);
 }
 .signin-help code.i {
@@ -4261,7 +4263,7 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-raised);
   box-shadow: var(--shadow-pick);
   color: var(--text-muted);
-  font: 500 11px / 1.4 var(--type-mono);
+  font: var(--weight-label) 11px / 1.4 var(--type-mono);
   text-align: center;
 }
 @media (hover: none) {
@@ -4370,7 +4372,7 @@ summary.rw::-webkit-details-marker {
   display: block;
   color: var(--text-strong);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
 }
 #mashy > header button {
   display: grid;
@@ -4509,7 +4511,7 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   text-decoration: none;
 }
 #mashy .mashy-a a.mashy-all:hover {
@@ -4588,7 +4590,7 @@ summary.rw::-webkit-details-marker {
 .mashy-passage span {
   color: var(--text-muted);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -4626,7 +4628,7 @@ summary.rw::-webkit-details-marker {
   background: var(--mashy-pick-bg);
   color: var(--mashy-pick-text);
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
   box-shadow: var(--shadow-pick);
 }
 #mashy-pick img {
@@ -4702,7 +4704,7 @@ summary.rw::-webkit-details-marker {
 }
 .mashy-note strong {
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .mashy-note .btn {
   min-height: 32px;
@@ -4753,7 +4755,7 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-muted);
   color: var(--text-strong);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-label);
   text-align: left;
 }
 /* The arrow stays beside the first line of a question that wraps. */
@@ -5042,7 +5044,7 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-raised);
   color: var(--text-muted);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .setup-steps li.done {
   color: var(--text-strong);
@@ -5057,7 +5059,7 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-raised);
   box-shadow: var(--shadow-pick);
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .setup-steps li[aria-current="step"] .n {
   border-color: var(--accent-strong);
@@ -5073,7 +5075,7 @@ summary.rw::-webkit-details-marker {
 .setup-q {
   margin: 0;
   font-size: 30px;
-  font-weight: 700;
+  font-weight: var(--weight-strong);
   line-height: 1.12;
   letter-spacing: -0.035em;
   color: var(--text-strong);
@@ -5166,7 +5168,7 @@ summary.rw::-webkit-details-marker {
   min-width: 0;
 }
 .setup-who strong {
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 .setup-who small {
   overflow: hidden;
@@ -5237,7 +5239,7 @@ summary.rw::-webkit-details-marker {
   gap: 9px;
   min-height: 36px;
   padding: 6px 12px;
-  font: 600 12.5px / 1.5 var(--type-mono);
+  font: var(--weight-strong) 12.5px / 1.5 var(--type-mono);
   color: var(--text-strong);
 }
 .spawn-t {

@@ -108,7 +108,7 @@ async function save(): Promise<void> {
      with a firmer ring, and each provider's mark on its own colour. */
   .service-tile {
     border-color: var(--line-outline);
-    font-weight: 500;
+    font-weight: var(--weight-label);
     font-size: 13px;
   }
   .service-tile.on {
@@ -116,7 +116,7 @@ async function save(): Promise<void> {
     background: var(--selected-surface);
     color: var(--text-strong);
     box-shadow: 0 0 0 1.5px var(--selected-ring);
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   .service-tile input {
     position: static;

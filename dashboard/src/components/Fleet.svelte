@@ -32,6 +32,8 @@ import {
 import MachineIcon from "./MachineIcon.svelte";
 import QueryError from "./QueryError.svelte";
 import Skeleton from "./Skeleton.svelte";
+import StatusBadge from "./StatusBadge.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // Fleet actions run through the controller's allowlist. The list page shows
 // what this dashboard may start; an action's page picks its machines.
@@ -156,20 +158,15 @@ async function submit(request: FleetRequest): Promise<void> {
 }
 // The outcome as a pill: mint done, mustard partial, red failed, plain
 // paper while it runs or when the outcome is unknown.
-const outcomeClass = {
-  running: "",
+// Each outcome as a tone: a turning loader while it runs, a green check when
+// it succeeded, amber when only some targets did, red when it failed, and a
+// question mark when completion could not be confirmed.
+const outcomeTone = {
+  running: "run",
   succeeded: "ok",
   partial: "warn",
   failed: "bad",
-  unknown: "",
-} as const;
-// The dot inside the pill: amber while it runs, hollow when unknown.
-const outcomeDot = {
-  running: "run",
-  succeeded: "",
-  partial: "warn",
-  failed: "bad",
-  unknown: "none",
+  unknown: "unknown",
 } as const;
 const isService = (id: string) => services.some((service) => service.id === id);
 const local = $derived(access.data?.localNode ?? "");
@@ -208,9 +205,9 @@ function percent(target: FleetJob["targets"][number]): number | null {
       {#each jobs as job (job.request.id)}
         <article class="lrow">
           <b>{fleetActionLabel[job.request.action]}</b>
-          <span class="sp">{@render when(job, true)}<span class="pill jb {outcomeClass[job.outcome]}"><span class="dot {outcomeDot[job.outcome]}"></span>{job.outcome}</span></span>
+          <span class="sp">{@render when(job, true)}<StatusBadge pill class="jb" tone={outcomeTone[job.outcome]} words={job.outcome} size={12} /></span>
           {#if detailed(job)}<p>{job.targets.map((target) => `${targetName(target.id)}: ${targetNote(job, target)}`).join("; ")}</p>{/if}
-          {#if job.outcome === "unknown"}<p class="warn">Completion could not be confirmed. Inspect the affected machines before starting another operation.</p>{/if}
+          {#if job.outcome === "unknown"}<p class="warn st-l"><ToneIcon tone="warn" size={13} />Completion could not be confirmed. Inspect the affected machines before starting another operation.</p>{/if}
         </article>
       {/each}
     </div>
@@ -218,7 +215,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
     {#each jobs as job (job.request.id)}
       {@const open = detailed(job)}
       <article class="card job">
-        <header><b>{fleetActionLabel[job.request.action]}</b><span class="pill jb {outcomeClass[job.outcome]}"><span class="dot {outcomeDot[job.outcome]}"></span>{job.outcome}</span></header>
+        <header><b>{fleetActionLabel[job.request.action]}</b><StatusBadge pill class="jb" tone={outcomeTone[job.outcome]} words={job.outcome} size={12} /></header>
         <p class="meta">{@render when(job, !open)}</p>
         {#if open}
           <div class="jts">

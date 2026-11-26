@@ -25,6 +25,7 @@ import MapNode from "./MapNode.svelte";
 import { bandCards, bandWords, publishes, publishVerb } from "../lib/mapBand";
 import { reported, type ServerReport } from "../lib/serverStatus";
 import type { Machine } from "../lib/services.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 import { type Edge, type MachineMap, type Place, placeHref, placeLabel } from "../lib/topology";
 
 // Every machine's services as one picture: the chosen machine's pipeline in
@@ -209,7 +210,7 @@ const verbText = (edge: Edge) =>
     {#each map.edges as edge (`${edge.from}>${edge.to}`)}<li>{edgeWords(edge)}</li>{/each}
   </ul>
   <footer class="legend meta" aria-hidden="true">
-    <span><i class="dot ok"></i>healthy</span><span><i class="dot warn"></i>stopped or needs attention</span><span><i class="dot bad"></i>failed</span><span><i class="dot none"></i>unknown</span>
+    <span><ToneIcon tone="ok" size={13} />healthy</span><span><ToneIcon tone="warn" size={13} />stopped or needs attention</span><span><ToneIcon tone="bad" size={13} />failed</span><span><ToneIcon tone="unknown" size={13} />unknown</span>
     {#each [["ok", "works"], ["unconfirmed", "not confirmed"], ["broken", "broken by a fault"]] as [kind, words] (kind)}
       <span><svg width="24" height="6"><line class="edge {kind}" x1="0" y1="3" x2="24" y2="3" /></svg>{words}</span>
     {/each}
@@ -231,7 +232,7 @@ const verbText = (edge: Edge) =>
     margin: 0;
     color: var(--text-strong);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   .smap-h .meta {
     color: var(--text-faint);
@@ -257,7 +258,7 @@ const verbText = (edge: Edge) =>
     display: block;
     padding: 10px 12px;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .edges {
@@ -282,7 +283,7 @@ const verbText = (edge: Edge) =>
     fill: var(--text-faint);
   }
   .edge-l {
-    font: 400 11px var(--type-sans);
+    font: var(--weight-regular) 11px var(--type-sans);
     fill: var(--text-faint);
   }
   .edge-l.broken {
@@ -290,19 +291,6 @@ const verbText = (edge: Edge) =>
   }
   .spot {
     position: absolute;
-  }
-  /* The legend's shapes: a square needs attention, a diamond failed, so the
-     state reads without its colour. */
-  .smap .dot {
-    width: 8px;
-    height: 8px;
-  }
-  .smap .dot.warn {
-    border-radius: var(--radius-1);
-  }
-  .smap .dot.bad {
-    border-radius: 0;
-    transform: rotate(45deg) scale(0.85);
   }
   .flow-list,
   .sr-only {
@@ -328,7 +316,7 @@ const verbText = (edge: Edge) =>
   .also {
     margin: 12px 0 6px;
     color: var(--text-muted);
-    font: 700 11px var(--type-mono);
+    font: var(--weight-strong) 11px var(--type-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -342,7 +330,7 @@ const verbText = (edge: Edge) =>
     padding: 6px 0 6px 12px;
     border-left: 2px solid var(--line-ink);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-muted);
   }
   .link.broken {

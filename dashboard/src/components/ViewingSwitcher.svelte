@@ -5,6 +5,7 @@
 // about the machines themselves, so they show every machine whatever it says.
 import Check from "@lucide/svelte/icons/check";
 import ChevronDown from "@lucide/svelte/icons/chevron-down";
+import Clock from "@lucide/svelte/icons/clock";
 import Globe from "@lucide/svelte/icons/globe";
 import Laptop from "@lucide/svelte/icons/laptop";
 import Network from "@lucide/svelte/icons/network";
@@ -21,6 +22,7 @@ import {
   serverViewOptions,
   staleWords,
 } from "../lib/serverStatus";
+import MachineIcon from "./MachineIcon.svelte";
 
 /** Where it is drawn: the top bar's compact button, or the phone sheet's full-width field. */
 let { place }: { place: "bar" | "sheet" } = $props();
@@ -115,7 +117,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
       {#if sentence}<p class="vw-d">{sentence}</p>{/if}
       {#if !reach.sharedOnly}
         <button type="button" role="menuitemradio" aria-checked={on({ kind: "local" })} onclick={() => choose({ kind: "local" })}>
-          <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<Laptop size={14} aria-hidden="true" />{/if}</span>
+          <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<MachineIcon machine={reach.localNode} size={14} />{/if}</span>
           <span class="vw-t"><b>This machine · {reach.localNode}</b></span>
           <span class="vw-k">{(counts.get(reach.localNode) ?? 0).toLocaleString()}</span>
         </button>
@@ -134,8 +136,8 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
           {@const candidate = { kind: "node", node: machine } as const}
           {@const stale = staleness(machine)}
           <button type="button" role="menuitemradio" aria-checked={on(candidate)} onclick={() => choose(candidate)}>
-            <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else if live}<Radio size={14} aria-hidden="true" />{:else}<Laptop size={14} aria-hidden="true" />{/if}</span>
-            <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill vw-st" title="Read live from its own dashboard">live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}>{stale.age}</span>{/if}</span>
+            <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else}<MachineIcon {machine} size={14} />{/if}</span>
+            <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill info vw-st" title="Read live from its own dashboard"><Radio size={11} aria-hidden="true" />live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}><Clock size={11} aria-hidden="true" />{stale.age}</span>{/if}</span>
             {#if counts.has(machine)}<span class="vw-k">{(counts.get(machine) ?? 0).toLocaleString()}</span>{/if}
           </button>
         {/each}
@@ -177,7 +179,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
     border-radius: var(--radius-5);
     color: var(--text-body);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     text-align: left;
   }
   .vw.vw-bar .vw-b {
@@ -308,7 +310,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   .vw-s {
     margin: 10px 10px 4px;
     color: var(--text-muted);
-    font: 700 11px var(--type-mono);
+    font: var(--weight-strong) 11px var(--type-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }

@@ -17,6 +17,7 @@ import {
   setupBuild,
   submitFleetJob,
 } from "../lib/services.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // The button that does the plugin fix on the machine: update Mash there when
 // Fleet manager may, reinstall the plugin, then say the one step left, which
@@ -127,9 +128,8 @@ const busy = $derived(stage !== null);
 
 {#snippet mark(state: Mark)}
   {#if state !== "todo"}
-    <span class="rp-mark" class:ok={state === "done"} class:warn={state === "failed"} role={state === "running" ? "status" : undefined}>
-      {#if state === "done"}<Check size={14} aria-hidden="true" />{:else if state === "failed"}<TriangleAlert size={14} aria-hidden="true" />{/if}{word[state]}
-    </span>
+    {@const tone = state === "done" ? "ok" : state === "failed" ? "warn" : "run"}
+    <span class="rp-mark tone-{tone}" role={state === "running" ? "status" : undefined}><ToneIcon {tone} size={14} />{word[state]}</span>
   {/if}
 {/snippet}
 
@@ -182,7 +182,7 @@ const busy = $derived(stage !== null);
     gap: 4px;
     margin-left: 4px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     vertical-align: middle;
   }
   .rp-detail {

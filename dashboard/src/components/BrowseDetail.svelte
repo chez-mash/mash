@@ -24,6 +24,7 @@ import ChatPlace from "./ChatPlace.svelte";
 import ChatRow from "./ChatRow.svelte";
 import DecisionCount from "./DecisionCount.svelte";
 import EmptyState from "./EmptyState.svelte";
+import MachineIcon from "./MachineIcon.svelte";
 import QueryError from "./QueryError.svelte";
 import ScopeNote from "./ScopeNote.svelte";
 import Skeleton from "./Skeleton.svelte";
@@ -135,7 +136,7 @@ function rowHref(chat: ChatSummary): string {
       {#if field !== "machine"}
         <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2>
           <div class="card tight tally bd-card">
-            {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><Laptop size={15} aria-hidden="true" /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+            {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><MachineIcon {machine} size={15} /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
@@ -185,7 +186,7 @@ function rowHref(chat: ChatSummary): string {
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.02em;
     line-height: 1.15;
     color: var(--text-strong);
@@ -201,7 +202,7 @@ function rowHref(chat: ChatSummary): string {
   /* Names in the side lists and chat titles at a medium weight, as drawn. */
   .bd-card .g,
   .bd-card :global(.chatrow-t > b) {
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   /* A decision badge sits right after the title, in a soft butter tint. */
   .bd-card :global(.chatrow-t > .pill.decision),
@@ -232,7 +233,7 @@ function rowHref(chat: ChatSummary): string {
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .bd-w {

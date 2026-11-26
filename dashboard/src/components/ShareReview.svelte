@@ -151,7 +151,7 @@ async function save(publish: boolean): Promise<void> {
     gap: 9px;
     margin: 0;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .share-fate.on {
@@ -164,7 +164,7 @@ async function save(publish: boolean): Promise<void> {
     gap: 8px 14px;
   }
   .share-when .set-l {
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .share-range > :global(p) {

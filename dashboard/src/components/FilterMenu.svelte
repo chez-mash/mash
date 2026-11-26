@@ -88,7 +88,7 @@ let trigger: HTMLButtonElement;
     box-shadow: 0 0 0 var(--stroke-outline) var(--line-strong);
     color: var(--text-strong);
     font-size: 13px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
   }
   .fwrap > :global(.chip:hover) {
     background: var(--surface-hover);
@@ -97,10 +97,10 @@ let trigger: HTMLButtonElement;
   .fwrap > :global(.chip[aria-expanded="true"].on) {
     background: var(--chip-on-bg);
     box-shadow: 0 0 0 var(--stroke-outline) var(--chip-on-line);
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .fwrap > :global(.chip[aria-expanded="true"]) {
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .fwrap > :global(.chip > svg:last-child) {
     color: var(--text-muted);
@@ -132,7 +132,7 @@ let trigger: HTMLButtonElement;
   }
   .fmenu button[aria-checked="true"] {
     background: var(--selected-surface);
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .fmenu .n {
     font-size: 12px;

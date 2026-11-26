@@ -4,6 +4,7 @@ import "./theme/tokens.css";
 import "./app.css";
 import "./terminal.css";
 import "./kit.css";
+import "./semantics.css";
 
 import App from "./App.svelte";
 import { installAppearance } from "./lib/appearance.svelte";

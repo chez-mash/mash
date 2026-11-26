@@ -157,7 +157,7 @@ const age = $derived.by(() => {
   }
   .ch-id .h1 {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.02em;
     line-height: 1.25;
   }

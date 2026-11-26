@@ -54,7 +54,7 @@ async function copy(text: string): Promise<void> {
   <div class="resume-t">
     <span class="resume-k">Pick up where you left off</span>
     <h2 id="resume-title" class="resume-h">{plainTitle(chat.title)}</h2>
-    <span class="resume-m resume-w"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} os />{#if chat.updatedMs !== undefined}<span>last message {agoLabel(chat.updatedMs, Date.now())}</span>{/if}</span>
+    <span class="resume-m resume-w"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} led />{#if chat.updatedMs !== undefined}<span>last message {agoLabel(chat.updatedMs, Date.now())}</span>{/if}</span>
     {#if notice}<span class="resume-m" role="status">{notice}</span>{/if}
   </div>
   <div class="resume-a">
@@ -89,13 +89,13 @@ async function copy(text: string): Promise<void> {
   }
   .resume-k {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-faint);
   }
   .resume-h {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     letter-spacing: -0.01em;
     color: var(--text-strong);
     overflow-wrap: anywhere;
@@ -118,7 +118,7 @@ async function copy(text: string): Promise<void> {
   .resume-a :global(.btn) {
     min-height: 32px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   @media (max-width: 640px) {
     .resume {

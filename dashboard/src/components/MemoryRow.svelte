@@ -1,7 +1,10 @@
 <script lang="ts">
 import { whenLabel } from "../lib/browse";
-import { kindPill, label, type NativeRecord, standing, standingPill } from "../lib/records";
+import { type NativeRecord, standing } from "../lib/records";
 import { recordHref } from "../lib/route.svelte";
+import { standingTone } from "../lib/tone";
+import KindPill from "./KindPill.svelte";
+import StatusBadge from "./StatusBadge.svelte";
 
 // One memory in a card list: what it says, then its kind and standing as
 // pills and when it was saved.
@@ -17,8 +20,8 @@ const revision = $derived(
   <a class="chatrow" href={recordHref(record.id, record.node, back)}>
     <span class="clamp clamp3">{revision.statement}</span>
     <span class="pills">
-      <span class="pill {kindPill(revision.details.kind)}">{label(revision.details.kind).toLowerCase()}</span>
-      {#if settled !== "established"}<span class="pill {standingPill(settled)}">{settled}</span>{/if}
+      <KindPill kind={revision.details.kind} lower />
+      {#if settled !== "established"}<StatusBadge pill tone={standingTone(settled)} words={settled} size={12} />{/if}
       <span class="mtx">{whenLabel(revision.recordedAt, Date.now())}</span>
     </span>
   </a>

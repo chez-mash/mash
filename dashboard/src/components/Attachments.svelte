@@ -78,16 +78,16 @@ function close(): void {
 .file { display: flex; align-items: center; gap: 12px; min-width: min(300px, 100%); max-width: min(380px, 100%); padding: 12px 16px; border: 0; border-radius: var(--radius-7); background: var(--surface-raised); box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline); font-size: 13.5px; line-height: 1.35; color: var(--text-body); text-decoration: none; }
 .file.gone { background: var(--surface-muted); }
 .file .what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.file b { font-weight: 600; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file b { font-weight: var(--weight-strong); color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file .mtx { white-space: normal; font-size: 12px; color: var(--text-faint); }
 .file :global(svg) { flex: none; color: var(--text-muted); }
-.file .get { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding-left: 12px; font-weight: 600; white-space: nowrap; color: var(--text-strong); text-decoration: none; }
+.file .get { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding-left: 12px; font-weight: var(--weight-strong); white-space: nowrap; color: var(--text-strong); text-decoration: none; }
 .file .get :global(svg) { color: inherit; }
 .full { position: fixed; inset: 0; margin: auto; width: min(520px, 96vw); height: min(646px, 94vh); padding: 0; border: 0; border-radius: var(--radius-9); background: var(--surface-raised); box-shadow: 0 0 0 var(--stroke-outline) var(--line-outline), var(--shadow-float); color: var(--text-body); overflow: hidden; }
 .full[open] { display: flex; flex-direction: column; }
 .full::backdrop { background: var(--scrim); }
 .full .viewbar { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-bottom: var(--border-divider); }
-.full .viewname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--text-strong); }
+.full .viewname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: var(--weight-strong); color: var(--text-strong); }
 .full .viewbar :global(.btn.icon) { width: 32px; height: 32px; min-height: 32px; border-radius: var(--radius-5); }
 .full .viewbody { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--surface-muted); }
 .full img { display: block; max-width: 100%; max-height: 100%; margin: 0 auto; border-radius: var(--radius-7); object-fit: contain; }

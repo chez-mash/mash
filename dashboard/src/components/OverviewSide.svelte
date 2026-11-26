@@ -1,9 +1,11 @@
 <script lang="ts">
 // The overview's side column: memories waiting for a review (or, when none
 // are, the latest ones), then the machines and agents the history comes from.
+
 import Bookmark from "@lucide/svelte/icons/bookmark";
 import Bot from "@lucide/svelte/icons/bot";
 import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import CircleDashed from "@lucide/svelte/icons/circle-dashed";
 import Laptop from "@lucide/svelte/icons/laptop";
 import { agents as agentInfo, agentNamed } from "../lib/agents";
 import type { Group } from "../lib/browse";
@@ -12,10 +14,13 @@ import { createMachineEvidence } from "../lib/machineEvidence.svelte";
 import { machinePulse } from "../lib/machinePulse";
 import type { NativeRecord } from "../lib/records";
 import { agentHref, machineHref, recordHref } from "../lib/route.svelte";
+import { pulseTone } from "../lib/tone";
 import AgentMark from "./AgentMark.svelte";
 import KindIcon from "./KindIcon.svelte";
+import MachineIcon from "./MachineIcon.svelte";
 import MemoryRow from "./MemoryRow.svelte";
 import Skeleton from "./Skeleton.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 let {
   unconfirmed,
@@ -66,7 +71,7 @@ function state(machine: string): { words: string; title: string } {
 <div class="os">
   {#if unconfirmed.length}
     <section class="os-sec">
-      <div class="os-h"><h2><Bookmark size={15} aria-hidden="true" />Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><CircleDashed class="os-hw" size={15} aria-hidden="true" />Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
       {#each unconfirmed.slice(0, 3) as record (record.node + record.id)}
         {@const revision = current(record)}
         {@const from = source(record)}
@@ -96,7 +101,7 @@ function state(machine: string): { words: string; title: string } {
         {#each machines as machine (machine.key)}
           {@const said = state(machine.key)}
           {@const pulse = machinePulse(machine.key, evidence)}
-          <a class="os-li" href={machineHref(machine.key)}><i class="dot {pulse.tone}" aria-hidden="true" title={pulse.words}></i><span class="os-mt"><b>{machine.key}</b><span class="os-q" title={said.title}>{said.words}</span></span><span class="os-n">{machine.chats.length.toLocaleString()}<span class="os-u">{" chats"}</span></span></a>
+          <a class="os-li" href={machineHref(machine.key)}><span title={pulse.words}><ToneIcon tone={pulseTone(pulse)} size={13} /></span><span class="os-mt"><b><MachineIcon machine={machine.key} size={13} />{machine.key}</b><span class="os-q tone-{pulseTone(pulse)}" title={said.title}>{said.words}</span></span><span class="os-n">{machine.chats.length.toLocaleString()}<span class="os-u">{" chats"}</span></span></a>
         {/each}
       </div>
     </section>
@@ -138,7 +143,7 @@ function state(machine: string): { words: string; title: string } {
     gap: 8px;
     margin: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .os-h a {
@@ -172,7 +177,7 @@ function state(machine: string): { words: string; title: string } {
   .os-mem-t {
     font-size: 13px;
     line-height: 1.5;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   .os-q {
     font-size: 12px;
@@ -221,10 +226,19 @@ function state(machine: string): { words: string; title: string } {
     align-items: center;
     gap: 10px;
   }
+  .os-q.tone-warn {
+    color: var(--status-warn-text);
+  }
+  .os-q.tone-bad {
+    color: var(--status-bad-text);
+  }
   .os-li b {
     flex: 1;
     min-width: 0;
-    font-weight: 400;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: var(--weight-label);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -266,7 +280,7 @@ function state(machine: string): { words: string; title: string } {
     gap: 2px;
   }
   .os-agent b {
-    font-weight: 500;
+    font-weight: var(--weight-label);
     overflow-wrap: anywhere;
   }
   .os-u {
@@ -280,6 +294,9 @@ function state(machine: string): { words: string; title: string } {
   @media (max-width: 640px) {
     .os-h h2 :global(svg) {
       display: block;
+    }
+    .os-h h2 :global(svg.os-hw) {
+      color: var(--status-warn-text);
     }
     .os-li {
       min-height: 54px;

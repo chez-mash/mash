@@ -1,6 +1,8 @@
 <script lang="ts">
+import Sparkles from "@lucide/svelte/icons/sparkles";
 import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
+import { recency } from "../lib/tone";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
 import ChatPlace from "./ChatPlace.svelte";
@@ -41,13 +43,13 @@ const now = Date.now();
   <span class="sr-t">
     <AgentMark agent={chat.agent} size="sm" />
     <b><Highlight text={plainTitle(chat.title)} {query} /></b>
-    {#if byMeaning}<span class="pill">by meaning</span>{/if}
+    {#if byMeaning}<span class="pill info"><Sparkles size={11} aria-hidden="true" />by meaning</span>{/if}
     <SubagentPill {chat} {parentTitle} />
     {#if decisions}<span class="pill decision"><DecisionCount count={decisions} /></span>{/if}
-    <span class="sr-when">{whenLabel(chat.updatedMs, now)}</span>
+    <span class="sr-when {recency(chat.updatedMs, now)}">{whenLabel(chat.updatedMs, now)}</span>
   </span>
   {#if snippet}<span class="sr-s"><Highlight text={plainTitle(snippet)} {query} /></span>{/if}
-  <span class="sr-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} /></span>
+  <span class="sr-m"><ChatPlace agent={chat.agent} machine={chat.machine} project={chat.project ?? ""} led /></span>
 </a>
 
 <style>
@@ -81,7 +83,7 @@ const now = Date.now();
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   .sr-t > :global(.pill) {
     flex: none;

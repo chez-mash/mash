@@ -62,7 +62,7 @@ const clock = (seconds: number): string =>
   }
   b {
     display: block;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
   b:not(.fail) {
     color: var(--text-strong);

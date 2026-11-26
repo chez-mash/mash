@@ -216,7 +216,7 @@ function keydown(event: KeyboardEvent): void {
     border-radius: var(--radius-5);
     background: none;
     color: var(--text-strong);
-    font: 500 13px / 1 var(--type-sans);
+    font: var(--weight-label) 13px / 1 var(--type-sans);
     text-align: left;
     text-decoration: none;
     cursor: pointer;
@@ -256,7 +256,7 @@ function keydown(event: KeyboardEvent): void {
     outline: 0;
     background: none;
     color: var(--text-body);
-    font: 400 13px / 1 var(--type-sans);
+    font: var(--weight-regular) 13px / 1 var(--type-sans);
   }
   .qa-f input::placeholder {
     color: var(--text-faint);

@@ -1,9 +1,12 @@
 <script lang="ts">
-import Laptop from "@lucide/svelte/icons/laptop";
+import Clock from "@lucide/svelte/icons/clock";
 import { type Card, cardHealth, cardTone, tone } from "../lib/mapBand";
 import { publishWords, staleWords } from "../lib/serverStatus";
+import { dotTone } from "../lib/tone";
 import { type Place, placeHref } from "../lib/topology";
+import MachineIcon from "./MachineIcon.svelte";
 import { placeIcon } from "./ServicesMap.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // One box on the services map: a place on the chosen machine, which links to
 // its details, or another machine, which opens that machine's own map. A
@@ -30,13 +33,13 @@ let {
 </script>
 
 {#snippet cardBody(card: Card)}
-  <Laptop size={16} aria-hidden="true" />
+  <MachineIcon machine={card.id} size={16} />
   <span class="nt">
     <strong>{card.id}</strong>
-    {#if card.fleet}<small><i class="dot {cardTone(card)}" aria-hidden="true"></i><span>{cardHealth(card)}</span></small>{/if}
+    {#if card.fleet}<small class="tone-{dotTone(cardTone(card))}"><ToneIcon tone={dotTone(cardTone(card))} size={12} /><span>{cardHealth(card)}</span></small>{/if}
     {#if card.reported}
       {@const stale = staleWords(card.reported, now)}
-      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}>{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
+      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}><Clock size={11} aria-hidden="true" />{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
     {:else if !card.fleet}<small>Not reported</small>{/if}
   </span>
 {/snippet}
@@ -45,7 +48,7 @@ let {
   {@const Icon = placeIcon[place.id]}
   <a class="node {tone(place.state)}" class:spot class:affected={!!place.affectedBy} class:sel={selected} {href} aria-current={selected ? "true" : undefined}>
     <Icon size={17} aria-hidden="true" />
-    <span class="nt"><strong>{place.label}</strong><small title={status}>{#if place.state !== null}<i class="dot {tone(place.state)}" aria-hidden="true"></i>{/if}<span>{status}</span></small></span>
+    <span class="nt"><strong>{place.label}</strong><small title={status} class={place.state === null ? "" : `tone-${dotTone(tone(place.state))}`}>{#if place.state !== null}<ToneIcon tone={dotTone(tone(place.state))} size={12} />{/if}<span>{status}</span></small></span>
   </a>
 {:else if card?.fleet}
   <a class="node small {cardTone(card)}" class:spot href={placeHref(card.id)}>{@render cardBody(card)}</a>
@@ -111,9 +114,10 @@ let {
   }
   .nt small {
     display: flex;
-    align-items: baseline;
-    gap: 6px;
+    align-items: center;
+    gap: 5px;
     color: var(--text-muted);
+    font-weight: var(--weight-label);
     font-size: 12px;
     overflow-wrap: anywhere;
   }
@@ -126,7 +130,7 @@ let {
     padding: 10px 14px;
   }
   .spot .nt strong,
-  .spot .nt small > span {
+  .spot .nt small > span:not(.tone-i) {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
@@ -135,35 +139,19 @@ let {
   }
   .spot .nt strong {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-strong);
     line-height: 1.25;
   }
   .spot.small .nt strong,
-  .spot.small .nt small > span {
+  .spot.small .nt small > span:not(.tone-i) {
     -webkit-line-clamp: 1;
     line-clamp: 1;
   }
-  /* The dot's shape says the state without its colour: a square needs
-     attention, a diamond failed. */
-  .dot {
-    width: 8px;
-    height: 8px;
-    transform: translateY(1px);
+  .nt small.tone-warn {
+    color: var(--status-warn-text);
   }
-  .dot.ok {
-    color: var(--status-ok-dot);
-  }
-  .dot.warn {
-    border-radius: var(--radius-1);
-  }
-  .dot.bad {
-    border-radius: 0;
-    transform: translateY(1px) rotate(45deg) scale(0.85);
-  }
-  .dot.unknown,
-  .dot.neutral {
-    background: transparent;
-    border-color: var(--text-muted);
+  .nt small.tone-bad {
+    color: var(--status-bad-text);
   }
   .pub {
     color: var(--text-muted);

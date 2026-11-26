@@ -1,4 +1,8 @@
 <script lang="ts">
+import CircleDashed from "@lucide/svelte/icons/circle-dashed";
+import Clock from "@lucide/svelte/icons/clock";
+import FileWarning from "@lucide/svelte/icons/file-warning";
+import GitCompareArrows from "@lucide/svelte/icons/git-compare-arrows";
 import { agentNamed } from "../lib/agents";
 import { whenLabel } from "../lib/browse";
 import { currentOf } from "../lib/memoryView";
@@ -13,8 +17,10 @@ import {
   timingLabel,
 } from "../lib/records";
 import { recordHref } from "../lib/route.svelte";
+import { lifecycleTone, recency, standingTone } from "../lib/tone";
 import AgentMark from "./AgentMark.svelte";
 import MachineIcon from "./MachineIcon.svelte";
+import StatusBadge from "./StatusBadge.svelte";
 
 // One memory in the memory page's list: its kind on a tile, the statement,
 // then its kind, who saved it, what it applies to and the machine, with the
@@ -48,12 +54,12 @@ const revision = $derived(currentOf(record));
   {@const where = record.node || machine}
   {@const ended = statePill(revision.details.state) !== "ok"}
   <article class="mi" class:on={selected} aria-current={selected ? "true" : undefined}>
-    <span class="tile" aria-hidden="true"><Icon size={15} /></span>
+    <span class="tile kind-{revision.details.kind}" aria-hidden="true"><Icon size={15} /></span>
     <span class="body">
-      <span class="top"><span class="kindp"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span><span class="when">{whenLabel(revision.recordedAt, now)}</span></span>
+      <span class="top"><span class="kindp kind-{revision.details.kind}"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span><span class="when {recency(revision.recordedAt, now)}">{whenLabel(revision.recordedAt, now)}</span></span>
       <a href={recordHref(record.id, record.node, back)} onpointerenter={preview} onfocus={preview}>{revision.statement}</a>
       <span class="meta-l">
-        <span class="mi-kind">{label(revision.details.kind)}</span>
+        <span class="mi-kind ink-{revision.details.kind}">{label(revision.details.kind)}</span>
         <span class="sep" aria-hidden="true">·</span>
         {#if revision.recordedBy}<span class="mi-who">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}{revision.recordedBy}</span><span class="sep" aria-hidden="true">·</span>{/if}
         <span title={scopeLabel(record.scope)}>{scopeName(record.scope)}</span>
@@ -61,15 +67,15 @@ const revision = $derived(currentOf(record));
       </span>
       {#if ended || settled !== "established" || !revision.evidenceCurrent || record.conflicted || timing}
         <span class="pills">
-          {#if ended}<span class="pill {statePill(revision.details.state)}">{label(revision.details.state).toLowerCase()}</span>{/if}
-          {#if settled !== "established"}<span class="pill warn">{settled}</span>{/if}
-          {#if !revision.evidenceCurrent}<span class="pill bad">stale evidence</span>{/if}
-          {#if record.conflicted}<span class="pill bad">conflicting records</span>{/if}
-          {#if timing}<span class="pill warn">{timing.toLowerCase()}</span>{/if}
+          {#if ended}<StatusBadge pill tone={lifecycleTone(revision.details.state)} words={label(revision.details.state).toLowerCase()} size={12} />{/if}
+          {#if settled !== "established"}<span class="pill st tone-{standingTone(settled)}"><CircleDashed size={12} aria-hidden="true" />{settled}</span>{/if}
+          {#if !revision.evidenceCurrent}<span class="pill bad"><FileWarning size={12} aria-hidden="true" />stale evidence</span>{/if}
+          {#if record.conflicted}<span class="pill bad"><GitCompareArrows size={12} aria-hidden="true" />conflicting records</span>{/if}
+          {#if timing}<span class="pill warn"><Clock size={12} aria-hidden="true" />{timing.toLowerCase()}</span>{/if}
         </span>
       {/if}
     </span>
-    <span class="when side">{whenLabel(revision.recordedAt, now)}</span>
+    <span class="when side {recency(revision.recordedAt, now)}">{whenLabel(revision.recordedAt, now)}</span>
   </article>
 {/if}
 
@@ -102,6 +108,26 @@ const revision = $derived(currentOf(record));
     color: var(--text-body);
     box-shadow: var(--shadow-pick);
   }
+  /* Each kind keeps its tint on the tile and the phone's kind pill. */
+  :is(.tile, .kindp).kind-decision {
+    background: var(--kind-decision-bg);
+    color: var(--kind-decision-text);
+  }
+  :is(.tile, .kindp).kind-preference {
+    background: var(--kind-preference-bg);
+    color: var(--kind-preference-text);
+  }
+  :is(.tile, .kindp).kind-note {
+    background: var(--kind-note-bg);
+    color: var(--kind-note-text);
+  }
+  .when.when-fresh {
+    color: var(--text-strong);
+    font-weight: var(--weight-label);
+  }
+  .mi-kind {
+    font-weight: var(--weight-label);
+  }
   .body {
     display: flex;
     flex-direction: column;
@@ -111,14 +137,14 @@ const revision = $derived(currentOf(record));
   /* The statement is the row's link; it covers the whole row. */
   a {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     line-height: 1.35;
     color: var(--text-strong);
     overflow-wrap: anywhere;
     white-space: pre-wrap;
   }
   .on a {
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   a:focus-visible {
     outline: 0;
@@ -169,7 +195,7 @@ const revision = $derived(currentOf(record));
     border-radius: var(--radius-pill);
     background: var(--surface-muted);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-body);
   }
   /* On a phone a row is a card row: the kind as a pill and the time over the
@@ -185,7 +211,7 @@ const revision = $derived(currentOf(record));
       background: transparent;
     }
     .on a {
-      font-weight: 500;
+      font-weight: var(--weight-label);
     }
     .tile,
     .side,

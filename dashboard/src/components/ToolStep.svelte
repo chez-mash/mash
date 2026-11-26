@@ -5,6 +5,7 @@ import { argumentHighlight, outputHighlight } from "../lib/codeLanguage";
 import { durationLabel, type ToolCall } from "../lib/toolcalls";
 import Code from "./Code.svelte";
 import JsonView from "./JsonView.svelte";
+import ToneIcon from "./ToneIcon.svelte";
 
 // One tool call with its output, laid out by the same rules for every tool:
 // a header to scan, the arguments as labelled rows, then the output. All of
@@ -31,7 +32,7 @@ const shown = $derived(
     <Terminal size={15} aria-hidden="true" />
     <span class="tc-n">{call.name}</span>
     <span class="tc-s">{call.summary}</span>
-    {#if call.status}<span class="pill" class:ok={!call.status.failed} class:bad={call.status.failed}><i class="dot" class:bad={call.status.failed}></i>{call.status.label}</span>{/if}
+    {#if call.status}<span class="pill" class:ok={!call.status.failed} class:bad={call.status.failed}><ToneIcon tone={call.status.failed ? "bad" : "ok"} size={12} />{call.status.label}</span>{/if}
     {#if call.durationMs !== undefined}<span class="pill">{durationLabel(call.durationMs)}</span>{/if}
     {#if call.server}<span class="pill">{call.server}</span>{/if}
     <span class="mtx">{call.at}</span>

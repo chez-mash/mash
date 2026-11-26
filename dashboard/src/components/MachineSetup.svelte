@@ -175,7 +175,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
   }
   .set .g {
     flex: none;
-    font-weight: 500;
+    font-weight: var(--weight-label);
     color: var(--text-strong);
   }
   .fix {
@@ -184,7 +184,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
     font-size: 13.5px;
   }
   .fix .why {
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     color: var(--text-strong);
   }
   .fix :global(li::before) {
@@ -196,7 +196,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
     background: transparent;
     color: var(--text-muted);
     font-size: 13.5px;
-    font-weight: 400;
+    font-weight: var(--weight-regular);
     text-align: right;
   }
   .fix :global(li > span code) {

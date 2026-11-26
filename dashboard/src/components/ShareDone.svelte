@@ -71,7 +71,7 @@ async function check(): Promise<void> {
     gap: 9px;
     margin: 0;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: var(--weight-strong);
     color: var(--text-strong);
   }
   .share-actions {

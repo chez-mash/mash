@@ -15,7 +15,7 @@ const parent = $derived(parentOf(all, chat));
 
 {#if chat.subagent}
   {#if parent}
-    <a class="card tight flat cream fork-of" href={chatHref(parent.id, parent.machine)}><ChevronLeft size={15} aria-hidden="true" /><span>Subagent of <b>{plainTitle(parent.title)}</b></span><span class="mtx"><ChatPlace agent={parent.agent} machine={parent.machine} mark /></span></a>
+    <a class="card tight flat cream fork-of" href={chatHref(parent.id, parent.machine)}><ChevronLeft size={15} aria-hidden="true" /><span>Subagent of <b>{plainTitle(parent.title)}</b></span><span class="mtx"><ChatPlace agent={parent.agent} machine={parent.machine} /></span></a>
   {:else if chat.subagent.parentId}
     <p class="card tight flat cream fork-of">Subagent of {#if chat.subagent.parentTitle}<b>{plainTitle(chat.subagent.parentTitle)}</b>{:else}a chat not on this machine{/if}</p>
   {:else}

@@ -48,7 +48,7 @@ const started = $derived(
     gap: 12px;
     min-height: 52px;
     padding: 10px 14px;
-    font: 400 13.5px / 1.4 var(--type-sans);
+    font: var(--weight-regular) 13.5px / 1.4 var(--type-sans);
   }
   .spawn-h > :global(svg) {
     flex: none;
@@ -60,12 +60,12 @@ const started = $derived(
   }
   .spawn-t b {
     color: var(--text-strong);
-    font-weight: 600;
+    font-weight: var(--weight-strong);
   }
   .spawn-h .pill {
     flex: none;
     border: 0;
-    font: 500 12px / 1 var(--type-sans);
+    font: var(--weight-label) 12px / 1 var(--type-sans);
   }
   .spawn-h .pill .dot {
     display: inline-block;
@@ -81,6 +81,6 @@ const started = $derived(
   .spawn-o {
     flex: none;
     margin-left: 0;
-    font-weight: 500;
+    font-weight: var(--weight-label);
   }
 </style>
