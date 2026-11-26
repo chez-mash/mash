@@ -93,7 +93,9 @@ Before the uninstaller removes the files it starts the app with
 deletes the copy and its folder; an install over an earlier version
 (`/UPDATE`) skips that and refreshes the copy instead. Neither request starts
 the app itself, and a failure never fails the installer: the menu item puts
-the command in place later.
+the command in place later. The same hook registers `QuietUninstallString`
+(`"<install folder>\uninstall.exe" /S`) beside Tauri's `UninstallString`,
+which `winget uninstall --silent` runs.
 
 Why a real `.exe`, and why a copy:
 
