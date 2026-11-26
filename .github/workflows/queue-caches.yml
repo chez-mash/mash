@@ -1,0 +1,141 @@
+name: Queue caches
+
+# Saves, on main, what the merge queue's runs start from. Only a cache saved
+# on main can be read by a merge queue group: a group runs on a branch of its
+# own, and what it saves there is lost with the branch. And on main the test
+# workflows skip their jobs for every commit the queue already tested, so
+# they save nothing there themselves.
+#
+# Nothing waits for this workflow, no check depends on it and nothing uses
+# its artifact: when it fails, the queue's runs compile more. windows.yml
+# keeps its x64 and Linux dependencies itself, in its `warm` job. See "The
+# merge queue's caches" in docs/internal/development.md.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - docs/**
+      - site/**
+      - raycast/**
+  # Soon after a nightly compiler is published; see `ci-compiler`.
+  schedule:
+    - cron: "40 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time, and only the newest waiting commit, for the reason
+# dev-artifacts.yml gives: each build starts from the crates the one before
+# it saved.
+concurrency:
+  group: queue-caches-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # windows.yml builds Windows on ARM with the release's steps
+  # (build-binaries.yml) and `cache: true`, which reads the compiled
+  # dependencies and this repository's own compiled crates as of the last
+  # commit. dev-artifacts.yml saves those for the four targets the fleet
+  # installs; this target is not one of them, so it is built here for every
+  # commit, with the same exceptions.
+  windows-arm64:
+    if: github.event_name != 'schedule'
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["aarch64-pc-windows-msvc"]'
+      artifact-suffix: -${{ github.sha }}
+      retention-days: 1
+      cache: true
+
+  # What ci.yml's `rust` job starts from: the crates Cargo downloads, and the
+  # compiler cache's entries for the dependencies. That job compiles with the
+  # newest nightly, so without this every crate would be compiled from nothing
+  # in every merge queue group from the first new nightly on (three to four
+  # minutes more, measured), and again after each change to Cargo.lock.
+  #
+  # It asks whether it has already compiled with this compiler and this
+  # Cargo.lock (a marker cache, about half a minute), and when it has not,
+  # compiles what `rust` compiles, which is what fills the compiler cache.
+  # Until it has finished, the queue's runs compile more.
+  ci-compiler:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # ci.yml's own variables, copied: the compiler cache keys on the flags,
+      # so a difference here fills it with entries `rust` never asks for.
+      CARGO_INCREMENTAL: 0
+      CARGO_TERM_COLOR: always
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      RUSTFLAGS: -Zunstable-options --jobs-frontend=4
+      RUSTC_WRAPPER: sccache
+      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_GHA_VERSION: mash-v1
+      SCCACHE_BASEDIRS: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: nightly
+          components: rustfmt, clippy
+      - name: Name the compiler
+        id: compiler
+        env:
+          RUSTC_WRAPPER: ""
+        run: echo "hash=$(rustc -vV | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - name: Ask whether this compiler and Cargo.lock have been compiled
+        id: warmed
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ runner.temp }}/mash-ci-warmed
+          key: mash-ci-warmed-v1-${{ steps.compiler.outputs.hash }}-${{ hashFiles('Cargo.lock') }}
+          lookup-only: true
+      - name: Restore Cargo cache
+        id: cargo-cache
+        if: steps.warmed.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: mash-${{ runner.os }}-cargo-sources-${{ hashFiles('Cargo.lock') }}
+          restore-keys: mash-${{ runner.os }}-cargo-sources-
+      - name: Configure compiler cache
+        if: steps.warmed.outputs.cache-hit != 'true'
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: v0.16.0
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        if: steps.warmed.outputs.cache-hit != 'true'
+        with:
+          tool: nextest
+          fallback: none
+      # The same commands as `rust`, so the compiler is asked for the same
+      # things; `--no-run` compiles the tests without running them.
+      - name: Compile what the rust job compiles
+        if: steps.warmed.outputs.cache-hit != 'true'
+        run: |
+          cargo build --locked --bin mash --bin mash-server
+          cargo clippy --all-targets -- -D warnings
+          cargo nextest run --profile ci --locked --no-run
+          cargo test --doc --no-run
+          sccache --show-stats
+      - name: Save Cargo cache
+        if: steps.warmed.outputs.cache-hit != 'true' && steps.cargo-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: mash-${{ runner.os }}-cargo-sources-${{ hashFiles('Cargo.lock') }}
+      - name: Mark this compiler and Cargo.lock as compiled
+        if: steps.warmed.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/mash-ci-warmed"
+          rustc -vV > "$RUNNER_TEMP/mash-ci-warmed/compiler"
+      - if: steps.warmed.outputs.cache-hit != 'true'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ runner.temp }}/mash-ci-warmed
+          key: ${{ steps.warmed.outputs.cache-primary-key }}
