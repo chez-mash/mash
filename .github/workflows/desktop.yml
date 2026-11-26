@@ -22,9 +22,11 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request replaces its run. On main a run that has
+# started finishes, so each landed commit keeps its own result.
 concurrency:
   group: desktop-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   CARGO_INCREMENTAL: 0
