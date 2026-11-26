@@ -313,6 +313,10 @@ mod tests {
         let hooks = include_str!("../../windows/hooks.nsh");
         assert!(hooks.contains("--command-line-tool installed"), "{hooks}");
         assert!(
+            hooks.contains(r#""QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'"#),
+            "{hooks}"
+        );
+        assert!(
             hooks.contains("--command-line-tool uninstalling"),
             "{hooks}"
         );
