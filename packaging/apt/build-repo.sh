@@ -7,6 +7,11 @@
 # tree (the gh-pages `apt/` directory), kept across releases so older versions
 # stay installable. Signs with the default secret key in $GNUPGHOME, or
 # $APT_SIGNING_KEY when set. Writes the built .deb files to DIST as well.
+#
+# The desktop app's packages (mash-desktop_<version>_<arch>.deb, made by
+# desktop-deb.sh when the release was built) are added from DIST when the
+# release has them. Each depends on mash-cli at exactly its own version, so
+# the two are published together or the app's package could not be installed.
 set -euo pipefail
 
 version=${1#v}
@@ -61,6 +66,14 @@ CONTROL
   cp "$dist/$deb" "$repo/pool/main/m/mash-cli/$deb"
 done
 
+desktop=0
+for deb in "$dist"/mash-desktop_"${version}"_*.deb; do
+  [[ -f $deb ]] || continue
+  mkdir -p "$repo/pool/main/m/mash-desktop"
+  cp "$deb" "$repo/pool/main/m/mash-desktop/"
+  desktop=$((desktop + 1))
+done
+
 cd "$repo"
 for arch in amd64 arm64; do
   directory="dists/stable/main/binary-$arch"
@@ -80,4 +93,4 @@ mv "$scratch/Release" dists/stable/Release
 gpg "${signing[@]}" --clearsign -o dists/stable/InRelease dists/stable/Release
 gpg "${signing[@]}" --detach-sign --armor -o dists/stable/Release.gpg dists/stable/Release
 gpg "${signing[@]}" --export ${APT_SIGNING_KEY:+"$APT_SIGNING_KEY"} > mash-archive-keyring.gpg
-echo "apt repository updated with mash-cli $version in $repo"
+echo "apt repository updated with mash-cli $version and $desktop mash-desktop packages in $repo"

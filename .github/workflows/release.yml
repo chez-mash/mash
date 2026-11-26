@@ -78,9 +78,14 @@ jobs:
   # The desktop app, which bundles the engine the build job made for the same
   # platform, so the app has the same compatibility floor as the archives.
   # Its installers are attached to the release under fixed names, so the
-  # website can link to releases/latest/download/<name>. They are not signed
-  # yet: macOS and Windows ask the person to confirm the first time they open
-  # the app.
+  # website can link to releases/latest/download/<name>.
+  #
+  # With the updater key set up (tools/updater-key.sh) the macOS and Linux
+  # builds are also signed for the app's own updater, and the publish job
+  # writes the `latest.json` the stable channel reads. Without the key the
+  # release is built as before, with a notice, and installed apps find no
+  # update. Linux also builds the app's .deb, repackaged as `mash-desktop`
+  # for the apt repository (packaging/apt/desktop-deb.sh).
   desktop:
     needs: build
     strategy:
@@ -89,13 +94,13 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
-            bundle: appimage
+            bundle: appimage,deb
             archive: tar.gz
             built: desktop/src-tauri/target/release/bundle/appimage/*.AppImage
             name: mash-desktop-linux-x86_64.AppImage
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
-            bundle: appimage
+            bundle: appimage,deb
             archive: tar.gz
             built: desktop/src-tauri/target/release/bundle/appimage/*.AppImage
             name: mash-desktop-linux-arm64.AppImage
@@ -178,8 +183,23 @@ jobs:
           AZURE_SIGNING_ENDPOINT: ${{ secrets.AZURE_SIGNING_ENDPOINT }}
           AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
           AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           pnpm install --frozen-lockfile
+          # The app's updater replaces the app bundle on macOS and the
+          # AppImage on Linux, so those are signed with the updater key. The
+          # app leaves Windows installs alone for now.
+          update=()
+          public=$(python3 -c 'import json; print(json.load(open("src-tauri/tauri.conf.json"))["plugins"]["updater"]["pubkey"])')
+          if [ "${{ runner.os }}" = Windows ]; then
+            unset TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+          elif [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$public" ]; then
+            update=(--config '{"bundle":{"createUpdaterArtifacts":true}}')
+          else
+            unset TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+            echo "::notice::The updater key is not set up (tools/updater-key.sh), so this release is not signed for the app's updater and publishes no latest.json."
+          fi
           sign=()
           # Tauri signs the app, its engine and the installer with this
           # command; without the Azure secrets the installer stays unsigned.
@@ -187,12 +207,29 @@ jobs:
             script="${GITHUB_WORKSPACE//\\//}/.github/scripts/windows-sign.ps1"
             sign=(--config "{\"bundle\":{\"windows\":{\"signCommand\":{\"cmd\":\"pwsh\",\"args\":[\"-NoProfile\",\"-File\",\"$script\",\"%1\"]}}}}")
           fi
-          pnpm exec tauri build --ci --bundles ${{ matrix.bundle }} "${sign[@]}"
+          pnpm exec tauri build --ci --bundles ${{ matrix.bundle }} "${sign[@]}" "${update[@]}"
       - name: Name the installer
         run: |
           built=( ${{ matrix.built }} )
           [ "${#built[@]}" = 1 ] || { echo "expected one installer, found: ${built[*]}"; exit 1; }
+          mkdir installer
+          cp "${built[0]}" "installer/${{ matrix.name }}"
           cp "${built[0]}" "${{ matrix.name }}"
+          # What the updater downloads, and its signature for latest.json:
+          # the AppImage itself on Linux, an archive of the app on macOS.
+          bundle=desktop/src-tauri/target/release/bundle
+          if [ -f "${built[0]}.sig" ]; then
+            cp "${built[0]}.sig" "installer/${{ matrix.name }}.sig"
+          fi
+          if [ -f "$bundle/macos/Mash.app.tar.gz.sig" ]; then
+            cp "$bundle/macos/Mash.app.tar.gz" installer/mash-desktop-macos-arm64.app.tar.gz
+            cp "$bundle/macos/Mash.app.tar.gz.sig" installer/mash-desktop-macos-arm64.app.tar.gz.sig
+          fi
+      - name: Package the app for apt
+        if: runner.os == 'Linux'
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' desktop/src-tauri/Cargo.toml)
+          packaging/apt/desktop-deb.sh "$version" desktop/src-tauri/target/release/bundle/deb/*.deb installer
       - name: Notarize the disk image
         if: runner.os == 'macOS' && env.MASH_SIGN == '1'
         env:
@@ -202,10 +239,11 @@ jobs:
           codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "${{ matrix.name }}"
           .github/scripts/macos-notarize "${{ matrix.name }}"
           spctl --assess --type open --context context:primary-signature --verbose "${{ matrix.name }}"
+          cp "${{ matrix.name }}" "installer/${{ matrix.name }}"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ matrix.name }}
-          path: ${{ matrix.name }}
+          path: installer
           if-no-files-found: error
           retention-days: 7
 
@@ -257,6 +295,24 @@ jobs:
               --source-ref "$GITHUB_REF" --source-digest "$GITHUB_SHA" \
               --deny-self-hosted-runners
           done
+      # The file the app's stable channel reads at
+      # releases/latest/download/latest.json. The signatures go into it and
+      # are not release assets themselves.
+      - name: Write the updater manifest
+        run: |
+          status=0
+          python3 tools/desktop_updates.py manifest --version "${GITHUB_REF_NAME#v}" \
+            --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME" \
+            --output dist/latest.json \
+            darwin-aarch64=dist/mash-desktop-macos-arm64.app.tar.gz \
+            linux-x86_64=dist/mash-desktop-linux-x86_64.AppImage \
+            linux-aarch64=dist/mash-desktop-linux-arm64.AppImage || status=$?
+          if [ "$status" = 3 ]; then
+            echo "::notice::No desktop build was signed for updates, so this release has no latest.json."
+          elif [ "$status" != 0 ]; then
+            exit "$status"
+          fi
+          rm -f dist/*.sig
       - name: Checksums
         working-directory: dist
         run: sha256sum mash-* > SHA256SUMS
@@ -405,6 +461,8 @@ jobs:
           find "$pages" -mindepth 1 -maxdepth 1 ! -name .git ! -name apt -exec rm -rf {} +
           touch "$pages/.nojekyll"
           packaging/apt/build-repo.sh "$TAG" dist "$pages/apt"
+          # The app's packages are already release assets; mash-cli's are
+          # built here.
           gh release upload "$TAG" dist/mash-cli_*.deb --repo "$GITHUB_REPOSITORY" --clobber
           cd "$pages"
           git config user.name "mash release"
@@ -414,5 +472,5 @@ jobs:
             echo "The apt repository already has this release."
             exit 0
           fi
-          git commit -m "apt: mash-cli ${TAG}"
+          git commit -m "apt: mash-cli and mash-desktop ${TAG}"
           git push origin gh-pages

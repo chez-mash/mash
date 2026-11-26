@@ -121,6 +121,13 @@ jobs:
           done
           sudo apt-get install -y mash-cli
           [ "$(mash --version)" = "mash ${TAG#v}" ]
+          # The app's package depends on mash-cli at exactly its own version
+          # and runs that package's mash, so the two always move together.
+          sudo apt-get install -y mash-desktop
+          [ "$(dpkg-query -W -f '${Version}' mash-desktop)" = "$expected" ]
+          [ "$(dpkg-query -W -f '${Version}' mash-cli)" = "$expected" ]
+          [ "$(dpkg -S /usr/bin/mash | cut -d: -f1)" = mash-cli ]
+          test -x /usr/bin/mash-desktop
 
   scoop:
     needs: published

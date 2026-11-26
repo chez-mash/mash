@@ -14,17 +14,22 @@ mod cli;
 mod downloads;
 mod engine;
 mod links;
+mod lockstep;
 mod menubar;
+mod navigation;
 mod print;
 mod stop;
+mod update;
 
 use engine::Engine;
+use navigation::{Navigation, navigation};
+pub(crate) use navigation::{navigate, open_outside};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 use tauri::webview::NewWindowResponse;
 use tauri::{AppHandle, Manager, RunEvent, Theme, Url, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_deep_link::DeepLinkExt;
-use tauri_plugin_opener::OpenerExt;
 
 pub(crate) const WINDOW: &str = "main";
 
@@ -71,15 +76,18 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(menubar::shortcut_plugin())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state.clone())
         .manage(downloads::Downloads::default())
         .invoke_handler(tauri::generate_handler![retry_engine, engine_log])
         .on_menu_event(|app, event| menubar::choose(app, event.id().as_ref()))
         .setup(move |app| {
+            update::prepare(app.handle());
             open_window(app.handle())?;
             menubar::install(app.handle())?;
             listen_for_links(app.handle());
             start_engine(app.handle().clone(), state.clone());
+            update::start(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!());
@@ -125,6 +133,8 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         .inner_size(width, height)
         .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
         .center()
+        // An update installed while the window was closed leaves it closed.
+        .visible(!update::starts_quietly(app))
         // Mash has one theme, the light one, so the title bar is light too.
         // On macOS that is set on this window alone (see light_title_bar).
         .theme((!cfg!(target_os = "macos")).then_some(Theme::Light))
@@ -220,69 +230,6 @@ fn fit(width: f64, height: f64) -> (f64, f64) {
     )
 }
 
-/// What a window does with an address it is asked to load.
-#[derive(Debug, PartialEq, Eq)]
-enum Navigation {
-    /// Load it: the app's own page, or a page of the dashboard.
-    Load,
-    /// A mash:// link, which the app follows in its main window.
-    Follow,
-    /// Anything else, which belongs in the reader's browser.
-    Outside,
-}
-
-fn navigation(url: &Url, dashboard: Option<&Url>) -> Navigation {
-    let local_page = url.scheme() == "tauri" || url.host_str() == Some("tauri.localhost");
-    let same_origin = dashboard.is_some_and(|dashboard| dashboard.origin() == url.origin());
-    let in_page = matches!(url.scheme(), "about" | "blob");
-    if local_page || same_origin || in_page {
-        Navigation::Load
-    } else if url.scheme() == "mash" {
-        Navigation::Follow
-    } else {
-        Navigation::Outside
-    }
-}
-
-/// Whether a window (the panel, when `from_panel`) may load `url` itself.
-/// A mash:// link is how the dashboard asks for a page of the main window, so
-/// the panel opens its rows and menu that way and then gets out of the way.
-pub(crate) fn navigate(app: &AppHandle, url: &Url, from_panel: bool) -> bool {
-    let dashboard = lock(&app.state::<State>()).dashboard.clone();
-    match navigation(url, dashboard.as_ref()) {
-        Navigation::Load => true,
-        Navigation::Follow => {
-            if from_panel {
-                menubar::hide(app);
-            }
-            follow(app, url.as_str());
-            false
-        }
-        Navigation::Outside => {
-            open_outside(app, url);
-            false
-        }
-    }
-}
-
-/// Open a web or mail address in the program the reader uses for it, and a
-/// chat's link into its agent's app (the dashboard's Open in Codex, Claude or
-/// Copilot). The opener hands the whole link to the system as one value (on
-/// Windows through `Start-Process`, never `cmd /c start`), so a link's `&` and
-/// percent-encoded query arrive intact.
-pub(crate) fn open_outside(app: &AppHandle, url: &Url) {
-    if opens_outside(url) {
-        let _ = app.opener().open_url(url.as_str(), None::<&str>);
-    }
-}
-
-fn opens_outside(url: &Url) -> bool {
-    matches!(
-        url.scheme(),
-        "http" | "https" | "mailto" | "codex" | "claude" | "ghapp"
-    )
-}
-
 /// Follow mash:// links, both the one that launched the app and later ones.
 fn listen_for_links(app: &AppHandle) {
     // Installed apps register mash:// when installed; this also covers an app
@@ -302,9 +249,14 @@ fn listen_for_links(app: &AppHandle) {
     }
 }
 
+/// The dashboard's address, once the engine is ready.
+pub(crate) fn dashboard(app: &AppHandle) -> Option<Url> {
+    lock(&app.state::<State>()).dashboard.clone()
+}
+
 /// Show the page a mash:// link names, or keep it until the engine is ready.
 /// mash://quick shows the search panel instead, for launchers and shortcuts.
-fn follow(app: &AppHandle, link: &str) {
+pub(crate) fn follow(app: &AppHandle, link: &str) {
     let Some(route) = links::route(link) else {
         return;
     };
@@ -386,27 +338,65 @@ fn start_engine(app: AppHandle, state: State) {
         std::fs::create_dir_all(&folder).ok()?;
         Some(folder.join("engine.pid"))
     });
-    std::thread::spawn(move || match Engine::start(&log, pid_file) {
+    std::thread::spawn(move || {
+        update::before_engine(&app, &log);
+        engine_thread(&app, &state, &log, pid_file);
+    });
+}
+
+fn engine_thread(app: &AppHandle, state: &State, log: &engine::Log, pid_file: Option<PathBuf>) {
+    match Engine::start(log, pid_file) {
         Ok(engine) => {
             let dashboard = engine.address.clone();
             let route = {
-                let mut shared = lock(&state);
+                let mut shared = lock(state);
                 shared.dashboard = Some(dashboard.clone());
                 shared.engine = Some(engine);
                 shared.starting = false;
                 shared.waiting.take()
             };
-            show_route(&app, &dashboard, route.as_deref().unwrap_or("#/"));
-            if let Err(error) = menubar::create(&app, &dashboard) {
+            show_route(app, &dashboard, route.as_deref().unwrap_or("#/"));
+            if let Err(error) = menubar::create(app, &dashboard) {
                 eprintln!("Mash couldn’t prepare its search panel: {error}");
             }
-            watch_engine(&app, &state);
+            update::engine_started(app);
+            watch_engine(app, state);
         }
         Err(error) => {
-            lock(&state).starting = false;
-            show_error(&app, &error);
+            lock(state).starting = false;
+            update::engine_failed(app);
+            show_error(app, &error);
         }
-    });
+    }
+}
+
+/// Stop the engine before an update replaces it. The panel shows one of its
+/// pages, so that closes too.
+pub(crate) fn stop_engine(app: &AppHandle) {
+    let state = app.state::<State>();
+    let engine = {
+        let mut shared = lock(&state);
+        shared.dashboard = None;
+        shared.engine.take()
+    };
+    menubar::close(app);
+    if let Some(mut engine) = engine {
+        engine.stop();
+    }
+}
+
+/// Start the engine again after an update that did not install.
+pub(crate) fn restart_engine(app: &AppHandle) {
+    let state = app.state::<State>().inner().clone();
+    start_engine(app.clone(), state);
+}
+
+/// Whether neither the main window nor the search panel is on screen.
+pub(crate) fn nothing_showing(app: &AppHandle) -> bool {
+    [WINDOW, menubar::PANEL].into_iter().all(|label| {
+        app.get_webview_window(label)
+            .is_none_or(|window| !window.is_visible().unwrap_or(true))
+    })
 }
 
 /// Wait for the engine to stop on its own, which only happens when it fails.
@@ -482,73 +472,11 @@ fn local_page() -> Url {
 
 #[cfg(test)]
 mod tests {
-    use super::{Navigation, fit, navigation, opens_outside, page};
+    use super::{fit, page};
     use tauri::Url;
 
     fn url(text: &str) -> Url {
         Url::parse(text).unwrap()
-    }
-
-    #[test]
-    fn only_the_dashboard_and_the_app_page_load_in_the_window() {
-        let dashboard = url("http://127.0.0.1:47290/");
-        let stays_in_app =
-            |url: &Url, dashboard: Option<&Url>| navigation(url, dashboard) == Navigation::Load;
-        for inside in [
-            "http://127.0.0.1:47290/#/chat/abc",
-            "http://127.0.0.1:47290/api/export",
-            "tauri://localhost/index.html",
-            "http://tauri.localhost/index.html",
-            "about:blank",
-            "blob:http://127.0.0.1:47290/5f1c",
-        ] {
-            assert!(stays_in_app(&url(inside), Some(&dashboard)), "{inside}");
-        }
-        for outside in [
-            "https://getmash.io/agents/",
-            "http://127.0.0.1:8790/",
-            "http://localhost:47290/",
-            "mailto:someone@example.com",
-        ] {
-            assert!(!stays_in_app(&url(outside), Some(&dashboard)), "{outside}");
-        }
-        // Web, mail and agent-app links go to the system; other schemes do not.
-        for system in [
-            "https://getmash.io/",
-            "mailto:someone@example.com",
-            "codex://threads/01a1b649-827e-7692-a5b1-0de415a69df5",
-            "claude://resume?session=586f44fa-8aaa-4587-b69f-b763d3279ef1&cwd=%2Fwork%2Fa%20b",
-            "ghapp://sessions/1e792353-1ec1-4f5a-a285-c73b23bdd829",
-        ] {
-            assert!(opens_outside(&url(system)), "{system}");
-        }
-        for refused in [
-            "file:///etc/passwd",
-            "javascript:alert(1)",
-            "vscode://file/x",
-        ] {
-            assert!(!opens_outside(&url(refused)), "{refused}");
-        }
-        assert!(
-            !stays_in_app(&dashboard, None),
-            "before the engine is ready"
-        );
-        // A mash:// link from the dashboard opens a page of the main window.
-        for link in [
-            "mash://chat/abc?message=m",
-            "mash://settings",
-            "mash://quick",
-        ] {
-            assert_eq!(
-                navigation(&url(link), Some(&dashboard)),
-                Navigation::Follow,
-                "{link}"
-            );
-        }
-        assert_eq!(
-            navigation(&url("https://getmash.io/"), Some(&dashboard)),
-            Navigation::Outside
-        );
     }
 
     #[test]
