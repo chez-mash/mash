@@ -139,3 +139,43 @@ Description: Search your coding agents' past conversations
  machines. Run "mash qdrant install", then "mash init", after installing.
  Run "mash dash" and open the address it prints to use the dashboard.
 
+Package: mash-cli
+Architecture: arm64
+Version: 0.3.0
+Priority: optional
+Section: utils
+Maintainer: MashHQ <mash-release@users.noreply.github.com>
+Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
+Conflicts: mash
+Replaces: mash
+Filename: pool/main/m/mash-cli/mash-cli_0.3.0_arm64.deb
+Size: 35767592
+MD5sum: 81925b1eefa3e959f5ef655f07db8129
+SHA1: e33cb049f843ae4987254a9ad574d5873a39a8ad
+SHA256: 51eff9e83facc3ac7dcd54c087e9f5eeeb638c54e69c342733fca6664c51158a
+SHA512: 0baa5597bacbad229715397a6fa0044dde2ba461e304f9d3d710c80f63df4125e84f74c53e12824ee6736cf46b56736d280cbdf3941399e6137f4d97ecede452
+Homepage: https://github.com/mashhq/mash
+Description: Search your coding agents' past conversations
+ Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
+ chat histories locally. Search them from the browser dashboard, the
+ terminal, or a connected agent.
+ Also installs mash-server, the optional service for sharing an index between
+ machines. Run "mash qdrant install", then "mash init", after installing.
+ Run "mash dash" and open the address it prints to use the dashboard.
+
+Package: mash-desktop
+Architecture: arm64
+Version: 0.3.0
+Priority: optional
+Maintainer: getmash
+Installed-Size: 11504
+Depends: mash-cli (= 0.3.0), libayatana-appindicator3-1, libwebkit2gtk-4.1-0, libgtk-3-0
+Filename: pool/main/m/mash-desktop/mash-desktop_0.3.0_arm64.deb
+Size: 4121380
+MD5sum: d0926ef13bad80538823aa08d2938668
+SHA1: 7fe7193048cc5991b12b044376b07d9916e69b74
+SHA256: 84d2323203eba6986f169707924f27bf73ea929ca7daa20f36c49338360ac54d
+SHA512: e3b0e5ad4c4ac3987bd81df8f4c17a4d51f3a8ec06a8a0d382917f1f88d213eff040c3abca2e96fc91ec2ea9641f56e03441e2f71197b3d7256e35761cfee583
+Description: Search the history of your coding agents
+ Mash finds past chats, decisions and records across your coding agents and machines. The app runs the Mash dashboard in its own window.
+
