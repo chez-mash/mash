@@ -19,9 +19,10 @@ function trail(entries: readonly Entry[]): string[] | undefined {
   return undefined;
 }
 
-// A page without a sidebar, such as the guides directory, stands alone.
-const { hasSidebar, sidebar } = Astro.locals.starlightRoute;
-const groups = (hasSidebar && trail(sidebar)) || [];
+// A page without a sidebar stands alone, and so does the guides directory (a
+// splash page): it is the top of the docs, with nothing above it to name.
+const { hasSidebar, sidebar, entry } = Astro.locals.starlightRoute;
+const groups = (hasSidebar && entry.data.template !== "splash" && trail(sidebar)) || [];
 const title = Astro.locals.starlightRoute.entry.data.title;
 // The missing page draws its own title under its picture (pages/404.astro).
 const missing = Astro.locals.starlightRoute.id === "404";

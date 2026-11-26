@@ -3,6 +3,7 @@
 // On a phone the sidebar is the whole menu, and Starlight puts these controls
 // after every guide, where a visitor would have to scroll past thirty entries
 // to reach them. From 50rem wide the header holds them and this block hides.
+// The guides directory has this sidebar on a phone only (see below).
 //
 // Each top-level section also gets a quiet line icon before its label, as
 // the dashboard's rail does. Starlight's sidebar config has no icon field, so the
@@ -14,7 +15,11 @@ import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.ast
 import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
 import { type IconName, iconSvg } from "../icons.ts";
 
-const { sidebar, lang } = Astro.locals.starlightRoute;
+const { sidebar, lang, entry } = Astro.locals.starlightRoute;
+// The guides directory (a splash page, given its sidebar by src/routeData.ts)
+// shows the sidebar only as the phone's menu: from 50rem wide its cards keep
+// the full width and the header holds the links and both menus.
+const phoneOnly = entry.data.template === "splash";
 
 /** One icon (see src/icons.ts) per top-level section, in order. */
 const sections: { label: string; icon: IconName }[] = [
@@ -58,9 +63,26 @@ const rules = sections
 
 <div class="mash-menu-top md:sl-hidden"><MobileMenuFooter /></div>
 
-<div class="mash-sidebar"><SidebarPersister><SidebarSublist sublist={sidebar} /></SidebarPersister></div>
+<div class:list={["mash-sidebar", { "phone-only": phoneOnly }]}><SidebarPersister><SidebarSublist sublist={sidebar} /></SidebarPersister></div>
 
 <style is:inline set:html={rules} />
+
+<style is:global>
+  /* A page whose sidebar is the phone's menu only is laid out as a page
+     without one: Starlight's wide measure, and from 50rem, where the sidebar
+     would become a column, no column and no room kept for it. */
+  :root[data-has-sidebar]:has(.mash-sidebar.phone-only) {
+    --sl-content-width: 67.5rem;
+  }
+  @media (min-width: 50rem) {
+    :root[data-has-sidebar]:has(.mash-sidebar.phone-only) {
+      --sl-content-inline-start: 0;
+    }
+    nav.sidebar:has(.mash-sidebar.phone-only) {
+      display: none;
+    }
+  }
+</style>
 
 <style>
   /* The controls lead the menu, so their rule sits under them. */

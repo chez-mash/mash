@@ -16,6 +16,11 @@ GitHub. Each generated guide has an edit link to its original file.
 The English docs directory at `/guides/` comes from `docs/README.md`.
 Each translated directory comes from `docs/<locale>/guides.md`. Its welcome
 page comes from that locale's `index.md`.
+The directory is a splash page of cards across the full width, with no
+sidebar column. On a phone its menu button still opens Starlight's sidebar,
+as on every guide: `site/src/routeData.ts` gives the page its sidebar and
+`Sidebar.astro` hides it from 50rem wide. The missing page keeps a small menu
+of its own, because one English page answers every language's missing address.
 
 Add a guide to `docs/README.md` and, when appropriate, the sidebar in
 `site/astro.config.mjs`. Keep **Start here** and **Using Mash** as the two

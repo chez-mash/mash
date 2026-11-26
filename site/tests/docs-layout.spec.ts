@@ -172,19 +172,132 @@ test("on a phone every page's menu button is the same square at the left with th
   // Search is the same square, ending at the gutter on the other side.
   expect(sidebar.search).toEqual([338, 10, 36, 36]);
   expect(sidebar.lines).toContain("<path");
-  for (const path of ["/guides/", "/es/guides/", "/no-such-page/"]) {
+  // The guides directory is a docs page: the same button opens the sidebar.
+  for (const path of ["/guides/", "/es/guides/"]) {
     await page.goto(path);
-    await expect(page.locator(".sl-menu-button")).toHaveCount(0);
-    const own = await measure(".mash-menu summary");
-    expect(own, path).toEqual(sidebar);
-    // The logo follows the button and search ends the row.
-    const [button, brand, search] = [own.button?.[0], own.brand?.[0], own.search?.[0]];
-    expect(brand).toBeGreaterThan((button ?? 0) + 36);
-    expect(search).toBeGreaterThan(brand ?? 0);
-    // It still opens the links and both menus.
-    await page.locator(".mash-menu summary").click();
-    const panel = page.locator(".mash-menu .panel");
-    await expect(panel.locator("starlight-theme-select select")).toBeVisible();
-    await expect(panel.locator("starlight-lang-select select")).toBeVisible();
+    await expect(page.locator(".mash-menu")).toHaveCount(0);
+    expect(await measure(".sl-menu-button"), path).toEqual(sidebar);
   }
+  // The missing page has no sidebar, and its own menu matches the button.
+  await page.goto("/no-such-page/");
+  await expect(page.locator(".sl-menu-button")).toHaveCount(0);
+  const own = await measure(".mash-menu summary");
+  expect(own).toEqual(sidebar);
+  // The logo follows the button and search ends the row.
+  const [button, brand, search] = [own.button?.[0], own.brand?.[0], own.search?.[0]];
+  expect(brand).toBeGreaterThan((button ?? 0) + 36);
+  expect(search).toBeGreaterThan(brand ?? 0);
+  // It still opens the links and both menus.
+  await page.locator(".mash-menu summary").click();
+  const panel = page.locator(".mash-menu .panel");
+  await expect(panel.locator("starlight-theme-select select")).toBeVisible();
+  await expect(panel.locator("starlight-lang-select select")).toBeVisible();
+});
+
+// What a sidebar lists: its section labels, then every link's words and address.
+const sidebarIndex = (sidebar: import("@playwright/test").Locator) =>
+  sidebar.evaluate((nav) => ({
+    sections: [...nav.querySelectorAll(".top-level > li > details > summary")].map((label) =>
+      label.textContent?.trim(),
+    ),
+    links: [...nav.querySelectorAll<HTMLAnchorElement>(".mash-sidebar a")].map((link) => [
+      link.textContent?.trim(),
+      link.getAttribute("href"),
+    ]),
+    controls: [...nav.querySelectorAll<HTMLAnchorElement>(".mash-menu-top a")].map((link) => [
+      link.textContent?.trim(),
+      link.getAttribute("href"),
+    ]),
+  }));
+
+for (const [directory, guide, quickStart] of [
+  ["/guides/", "/quick-start/", "Quick start"],
+  ["/es/guides/", "/es/quick-start/", "Guía de inicio rápido"],
+] as const) {
+  test(`on a phone the menu on ${directory} is the docs sidebar every guide shows`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(guide);
+    const expected = await sidebarIndex(page.locator("nav.sidebar"));
+    expect(expected.sections.length).toBe(6);
+
+    await page.goto(directory);
+    const menu = page.locator("nav.sidebar");
+    const pane = menu.locator("#starlight__sidebar");
+    await expect(pane).toBeHidden();
+    await expect(page.locator(".mash-menu")).toHaveCount(0);
+    // The page still stands alone: no breadcrumb over its title.
+    await expect(page.locator(".mash-crumbs")).toHaveCount(0);
+    const button = page.locator(".sl-menu-button");
+    await button.click();
+    await expect(pane).toBeVisible();
+    // The same sections, links and order as a guide's sidebar.
+    expect(await sidebarIndex(menu)).toEqual(expected);
+    await expect(menu.getByRole("link", { name: quickStart, exact: true })).toHaveAttribute(
+      "href",
+      guide,
+    );
+    // The directory is the current page there.
+    await expect(menu.locator('.mash-sidebar a[aria-current="page"]')).toHaveAttribute(
+      "href",
+      directory,
+    );
+    // The links and both menus lead the panel, as on a guide, and it fills
+    // the screen under the header.
+    await expect(menu.locator(".mash-menu-top a.mash-nav")).toHaveCount(3);
+    await expect(menu.locator('.mash-menu-top a[href="/demo/"]')).toBeInViewport();
+    await expect(
+      menu.locator('.mash-menu-top a[href="https://github.com/mashhq/mash"]'),
+    ).toBeInViewport();
+    await expect(menu.locator("starlight-theme-select select")).toBeInViewport();
+    await expect(menu.locator("starlight-lang-select select")).toBeInViewport();
+    const box = await pane.boundingBox();
+    expect(box && [box.x, box.width, Math.round(box.y + box.height)]).toEqual([0, 390, 844]);
+    // The same button closes it.
+    await button.click();
+    await expect(pane).toBeHidden();
+    // A link in it leads to its guide, whose sidebar marks that page.
+    await button.click();
+    await menu.getByRole("link", { name: quickStart, exact: true }).click();
+    await expect(page).toHaveURL(guide);
+    await expect(page.locator('nav.sidebar .mash-sidebar a[aria-current="page"]')).toHaveAttribute(
+      "href",
+      guide,
+    );
+  });
+}
+
+test("on a phone the guides directory's tip is as wide as the cards under it", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/guides/", "/es/guides/"]) {
+    await page.goto(path);
+    const tip = await page.locator(".mash-guides-intro .mash-mashy").boundingBox();
+    const card = await page.locator(".mash-guides .mash-guide").first().boundingBox();
+    expect([tip?.x, tip?.width], path).toEqual([card?.x, card?.width]);
+    expect(card?.width).toBe(358);
+  }
+});
+
+test("on a wide screen the guides directory keeps the full width, with no sidebar column", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/guides/");
+  await expect(page.locator("nav.sidebar")).toBeHidden();
+  await expect(page.locator(".sl-menu-button")).toBeHidden();
+  // The header holds what the phone's menu does.
+  const header = page.locator("header.header");
+  await expect(header.getByRole("link", { name: "GitHub" })).toBeVisible();
+  await expect(header.locator("starlight-theme-select select")).toBeVisible();
+  // The cards sit in the middle of the page, three to a row, with the tip
+  // beside the lead at its own width.
+  const cards = page.locator(".mash-guides");
+  const box = await cards.boundingBox();
+  expect(Math.round((box?.x ?? 0) * 2 + (box?.width ?? 0))).toBe(
+    await page.evaluate(() => document.documentElement.clientWidth),
+  );
+  expect(box?.width).toBeGreaterThan(1000);
+  const tip = await page.locator(".mash-guides-intro .mash-mashy").boundingBox();
+  expect(Math.round(tip?.width ?? 0)).toBe(288);
 });

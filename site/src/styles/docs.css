@@ -522,7 +522,7 @@
   font-weight: 500;
 }
 
-/* The guides directory: the lead beside a tip, then a grid of cards. */
+/* The guides directory: the lead beside a tip (which takes the whole row once it wraps under the lead), then a grid of cards. */
 .sl-markdown-content .mash-guides-intro {
   display: flex;
   flex-wrap: wrap;
@@ -530,12 +530,12 @@
   gap: 1.5rem;
 }
 .mash-guides-intro .lead {
-  flex: 1 1 24rem;
+  flex: 9999 1 24rem;
   color: var(--text-muted);
   font-size: 1.0625rem;
 }
 .mash-guides-intro .mash-mashy {
-  flex: 0 1 18rem;
+  flex: 1 1 18rem;
   padding: 0.75rem 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.4;
@@ -820,8 +820,8 @@
   }
 }
 
-/* The guides directory has no sidebar: its title and cards take the full
-   width. */
+/* The guides directory has no sidebar column: its title and cards take the
+   full width. */
 main:has(.mash-guides) .sl-container {
   max-width: 70rem;
 }
