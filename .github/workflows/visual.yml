@@ -2,15 +2,15 @@ name: Visual baselines
 
 # Compares the dashboard's main pages with their committed pictures
 # (dashboard/visual/baselines), in the same Playwright container image the
-# pictures were taken in. The site's pages are compared by the Documentation
-# workflow. See docs/internal/verification.md, "Visual baselines".
+# pictures were taken in. It runs only when the dashboard changed since this
+# workflow last passed (see tools/ci_changes.py); the workflow itself always
+# runs. The site's pages are compared by the Documentation workflow. See
+# docs/internal/verification.md, "Visual baselines".
 on:
   push:
     branches: [main]
-    paths: ['dashboard/**', 'tools/visual.sh', '.github/workflows/visual.yml']
   pull_request:
     branches: [main]
-    paths: ['dashboard/**', 'tools/visual.sh', '.github/workflows/visual.yml']
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      dashboard: ${{ steps.changes.outputs.dashboard }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        uses: ./.github/actions/changes
+        with:
+          workflow: visual.yml
+
   dashboard:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

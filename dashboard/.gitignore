@@ -4,3 +4,4 @@ dist-demo/
 .svelte-check/
 visual/results/
 visual/report/
+test-results/

@@ -29,7 +29,15 @@
     "src/lib/tuck.ts",
     "src/lib/reading.svelte.ts"
   ],
-  "ignored": ["README.md", "biome.json", "components.json", "src/*.test.ts", "e2e/*.live.ts"],
+  "ignored": [
+    "README.md",
+    "biome.json",
+    "components.json",
+    "src/*.test.ts",
+    "e2e/*.live.ts",
+    "visual/*",
+    "playwright.visual.config.ts"
+  ],
   "router": "src/App.svelte",
   "shell": [
     "src/main.ts",

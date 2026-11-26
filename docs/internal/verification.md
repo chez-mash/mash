@@ -307,8 +307,9 @@ Locally the script names the report: open
 `PACKAGE/visual/report/index.html`, or look in `PACKAGE/visual/results`,
 where each failed picture has an `-expected`, an `-actual` and a `-diff`
 image (the changed pixels in red). In CI the dashboard is compared by the
-**Visual baselines** workflow and the site by the `visual` job of
-**Documentation**; a failed run keeps the same report and pictures as an
+**Visual baselines** workflow, when the dashboard changed since that workflow
+last passed, and the site by the `visual` job of **Documentation**, under
+that workflow's path filter; a failed run keeps the same report and pictures as an
 artifact named `dashboard-visual-differences` or `site-visual-differences`.
 The site's comparison does not hold back publishing.
 
