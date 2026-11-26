@@ -2,7 +2,8 @@
 # Checks tools/pre-push.sh and the tracked hook in a throwaway repository with
 # a bare remote: a clean change passes, a too-long file and a mis-formatted
 # file stop the push with the fix named, only changed files reach the linters,
-# and --no-verify still pushes.
+# the pushed commit is judged and not a differing working tree, and
+# --no-verify still pushes.
 set -euo pipefail
 repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/pre-push-test.XXXXXXXX")
@@ -72,6 +73,23 @@ grep -q 'src/long.rs' "$scratch/output" || fail 'the long file is named'
 git -C "$work" push -q origin main > "$scratch/output" 2>&1 && fail 'the hook lets a too-long file through'
 grep -q 'pre-push FAILED' "$scratch/output" || fail 'the hook reports the failure'
 [[ $(git -C "$scratch/remote.git" rev-parse main) != $(git -C "$work" rev-parse HEAD) ]] || fail 'a refused push reached the remote'
+reset_work
+
+# The case that reached CI: the committed file is too long while the copy on
+# disk, edited since, is short. The commit is what gets pushed, so it is what
+# gets checked; --worktree asks about the files on disk instead.
+seq 1 501 | sed 's/^/const LINE_&: u16 = &;/' > "$work/src/long.rs"
+commit long
+printf 'const SHORT: u16 = 1;\n' > "$work/src/long.rs"
+printf 'export const stray = 1; // MISFORMATTED\n' > "$work/dashboard/src/lib/untracked.ts"
+expect 1 'a too-long commit under a shorter working copy' 'pre-push FAILED +line limit'
+grep -q 'temporary checkout' "$scratch/output" || fail 'a differing working tree is not trusted'
+(cd "$work" && bash tools/pre-push.sh --worktree) > "$scratch/output" 2>&1 || fail '--worktree checks the files on disk'
+git -C "$work" push -q origin main > "$scratch/output" 2>&1 && fail 'the hook lets a too-long commit through under a shorter working copy'
+grep -Eq 'pre-push FAILED +line limit' "$scratch/output" || fail 'the hook names the line limit'
+[[ $(git -C "$work" worktree list | wc -l) == 1 ]] || fail 'the temporary checkout is removed'
+[[ $(cat "$work/src/long.rs") == 'const SHORT: u16 = 1;' ]] || fail 'the working tree is left alone'
+rm "$work/dashboard/src/lib/untracked.ts"
 reset_work
 
 if command -v cargo > /dev/null && cargo fmt --version > /dev/null 2>&1; then

@@ -5,14 +5,18 @@
 # takes a few seconds. A missing tool or node_modules skips its check with a
 # note; CI still runs everything.
 #
-#   tools/pre-push.sh              changes in origin/main...HEAD
-#   tools/pre-push.sh BASE [HEAD]  changes in BASE...HEAD
-#   tools/pre-push.sh --hook       as Git's pre-push hook, reading the pushed
-#                                  refs from standard input (.githooks/pre-push)
+#   tools/pre-push.sh [BASE [HEAD]]   the commit HEAD, for changes in BASE...HEAD
+#                                     (BASE defaults to origin/main)
+#   tools/pre-push.sh --worktree [BASE]
+#                                     the files on disk, committed or not
+#   tools/pre-push.sh --hook          as Git's pre-push hook, reading the pushed
+#                                     refs from standard input (.githooks/pre-push)
 #
-# The checks read the files in the working tree, so run it where the pushed
-# commit is checked out. `git push --no-verify` skips the hook; keep that for
-# emergencies, because CI runs the same checks on the commit.
+# The checks judge the commit being pushed, which is what CI will see, not the
+# working tree: a checkout with uncommitted or untracked files is not trusted,
+# and the commit is checked out to a temporary directory instead. Use
+# --worktree to check edits before committing them. `git push --no-verify`
+# skips the hook; keep that for emergencies, because CI runs the same checks.
 set -uo pipefail
 
 cd "$(git rev-parse --show-toplevel)" || exit 2
@@ -25,23 +29,10 @@ started=$(date +%s.%N)
 default_base() {
     git rev-parse --verify --quiet 'origin/main^{commit}' || echo "$empty_tree"
 }
-# Changed, still existing files between where BASE and HEAD diverged and HEAD.
-changed_between() {
-    local base=$1 head=$2 fork
-    fork=$(git merge-base "$base" "$head" 2>/dev/null) || fork=$base
-    git diff --name-only --diff-filter=ACMR "$fork" "$head"
-}
 
-growth_base=''
-pushed_heads=()
-files=''
-add_range() {
-    local base=$1 head=$2
-    files+=$(changed_between "$base" "$head")$'\n'
-    pushed_heads+=("$(git rev-parse "$head")")
-    [[ $base == "$empty_tree" ]] || growth_base=$(git merge-base "$base" "$head" 2>/dev/null || echo "$base")
-}
 if [[ ${1:-} == --hook ]]; then
+    # One run of this script per pushed ref, each for its own commit.
+    result=0
     while read -r _ local_sha _ remote_sha; do
         [[ -n ${local_sha:-} && $local_sha != "$zero" ]] || continue # a deleted ref
         # `tools/worktree.sh land` has just run these checks for this commit.
@@ -49,16 +40,57 @@ if [[ ${1:-} == --hook ]]; then
         if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
             remote_sha=$(default_base)
         fi
-        add_range "$remote_sha" "$local_sha"
+        bash "${BASH_SOURCE[0]}" "$remote_sha" "$local_sha" < /dev/null || result=1
     done
-    [[ ${#pushed_heads[@]} -gt 0 ]] || exit 0
-else
-    base=${1:-$(default_base)}
-    git rev-parse --verify --quiet "$base^{tree}" >/dev/null || { echo "pre-push: unknown revision $base" >&2; exit 2; }
-    add_range "$base" "${2:-HEAD}"
+    exit "$result"
 fi
-files=$(printf '%s' "$files" | sort -u | sed '/^$/d')
+
+on_disk=no
+[[ ${1:-} != --worktree ]] || { on_disk=yes; shift; }
+base=${1:-$(default_base)}
+git rev-parse --verify --quiet "$base^{tree}" >/dev/null || { echo "pre-push: unknown revision $base" >&2; exit 2; }
+head=$(git rev-parse --verify --quiet "${2:-HEAD}^{commit}") || { echo "pre-push: unknown revision ${2:-}" >&2; exit 2; }
+fork=$(git merge-base "$base" "$head" 2>/dev/null) || fork=$base
+growth_base=''
+[[ $fork == "$empty_tree" ]] || growth_base=$fork
+# Changed, still existing files since BASE and HEAD diverged.
+if [[ $on_disk == yes ]]; then
+    files=$(git diff --name-only --diff-filter=ACMR "$fork")
+else
+    files=$(git diff --name-only --diff-filter=ACMR "$fork" "$head")
+fi
 [[ -n $files ]] || { echo 'pre-push: no changed files to check'; exit 0; }
+
+# Where the checks read files. This checkout serves when it holds exactly the
+# commit: the same HEAD and nothing uncommitted or untracked (an untracked
+# source file would reach the theme test). Otherwise the commit is checked out
+# to a temporary worktree, removed on exit.
+tree=$root
+scratch=''
+cleanup() {
+    [[ -z $scratch ]] || { git worktree remove --force "$scratch/tree" > /dev/null 2>&1; rm -rf "$scratch"; }
+}
+trap cleanup EXIT
+main_checkout=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
+# A fresh worktree has no node_modules; the main checkout's are borrowed by
+# linking them into a temporary checkout, never into this one.
+borrows_modules() {
+    local package
+    for package in dashboard site raycast; do
+        printf '%s\n' "$files" | grep -q "^$package/" || continue
+        [[ -d $root/$package/node_modules || ! -d $main_checkout/$package/node_modules ]] || return 0
+    done
+    return 1
+}
+differs_from_commit() {
+    [[ $head != "$(git rev-parse HEAD)" || -n $(git status --porcelain | head -n 1) ]]
+}
+if [[ $on_disk == no ]] && { differs_from_commit || borrows_modules; }; then
+    scratch=$(mktemp -d "${TMPDIR:-/tmp}/mash-pre-push.XXXXXXXX") || exit 2
+    tree=$scratch/tree
+    git worktree add --quiet --detach "$tree" "$head" > /dev/null 2>&1 || { echo "pre-push: could not check out ${head:0:8} to $tree" >&2; exit 2; }
+    echo "note  checking commit ${head:0:8} in a temporary checkout"
+fi
 
 # Changed files under PREFIX whose names match the extended regex, without the prefix.
 under() {
@@ -89,27 +121,24 @@ skip() {
     notes+=("$1")
 }
 
-head_now=$(git rev-parse HEAD)
-for pushed in "${pushed_heads[@]}"; do
-    [[ $pushed == "$head_now" ]] || skip "the pushed commit ${pushed:0:8} is not the one checked out here; the checks read this working tree"
-done
-[[ -z $(git status --porcelain --untracked-files=no | head -n 1) ]] ||
-    echo 'note  uncommitted changes are present; the checks read the working tree, not the commit'
-
-# Biome and the theme test come from the package's own node_modules. A fresh
-# worktree has none, so Biome alone falls back to the main checkout's copy.
-main_checkout=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
-biome_for() {
+# Biome, the theme test and the Raycast lint need a package's node_modules:
+# this checkout's, or in a temporary checkout a link to this one's or the main
+# checkout's.
+modules_for() {
     local candidate
-    for candidate in "$root/$1/node_modules/.bin/biome" "$main_checkout/$1/node_modules/.bin/biome"; do
-        [[ -x $candidate ]] && { echo "$candidate"; return; }
+    [[ ! -d $tree/$1/node_modules ]] || return 0
+    [[ $tree != "$root" ]] || return 1
+    for candidate in "$root/$1/node_modules" "$main_checkout/$1/node_modules"; do
+        [[ -d $candidate ]] || continue
+        ln -s "$candidate" "$tree/$1/node_modules"
+        return 0
     done
     return 1
 }
 in_dir() {
     local dir=$1
     shift
-    (cd "$root/$dir" && "$@")
+    (cd "$tree/$dir" && "$@")
 }
 
 if any '\.(rs|ts|svelte|py)$|^tools/(file-lines-baseline\.txt|file-reviews/)'; then
@@ -119,7 +148,7 @@ if any '\.(rs|ts|svelte|py)$|^tools/(file-lines-baseline\.txt|file-reviews/)'; t
         against=()
         [[ -z $growth_base ]] || against=(--against "$growth_base")
         check 'line limit' 'split the file along a real responsibility, or write the growth review the message names; rerun python3 tools/check_file_lines.py' \
-            python3 -B tools/check_file_lines.py "${against[@]}"
+            in_dir . python3 -B tools/check_file_lines.py "${against[@]}"
     else
         skip 'line limit: python3 is not installed'
     fi
@@ -129,16 +158,16 @@ biome_files='\.(ts|js|mjs|cjs|svelte|css|json|jsonc|html|astro)$'
 for package in dashboard site; do
     mapfile -t changed < <(under "$package/" "$biome_files")
     [[ ${#changed[@]} -gt 0 ]] || continue
-    if biome=$(biome_for "$package"); then
+    if modules_for "$package" && [[ -x $tree/$package/node_modules/.bin/biome ]]; then
         check "biome ($package)" "cd $package && pnpm exec biome check --write ${changed[*]}" \
-            in_dir "$package" "$biome" check --no-errors-on-unmatched "${changed[@]}"
+            in_dir "$package" node_modules/.bin/biome check --no-errors-on-unmatched "${changed[@]}"
     else
         skip "biome ($package): $package/node_modules is missing; run pnpm install --frozen-lockfile in $package/"
     fi
 done
 
 if any '^dashboard/src/'; then
-    if [[ -x dashboard/node_modules/.bin/vitest ]]; then
+    if modules_for dashboard && [[ -x $tree/dashboard/node_modules/.bin/vitest ]]; then
         check 'dashboard theme test' 'name a role token from dashboard/src/theme/tokens.css, or remove the unused one; rerun cd dashboard && pnpm exec vitest run src/theme/theme.test.ts' \
             in_dir dashboard node_modules/.bin/vitest run src/theme/theme.test.ts
     else
@@ -151,14 +180,14 @@ rust_desktop=$(under 'desktop/src-tauri/' '\.rs$' | head -n 1)
 if [[ -n $rust_root || -n $rust_desktop ]] && ! command -v cargo >/dev/null; then
     skip 'rustfmt: cargo is not installed'
 else
-    [[ -z $rust_root ]] || check 'cargo fmt' 'cargo fmt' cargo fmt --check
+    [[ -z $rust_root ]] || check 'cargo fmt' 'cargo fmt' in_dir . cargo fmt --check
     [[ -z $rust_desktop ]] || check 'cargo fmt (desktop)' 'cargo fmt --manifest-path desktop/src-tauri/Cargo.toml' \
-        cargo fmt --check --manifest-path desktop/src-tauri/Cargo.toml
+        in_dir . cargo fmt --check --manifest-path desktop/src-tauri/Cargo.toml
 fi
 
 mapfile -t changed < <(under 'raycast/' '^src/.*\.(ts|tsx|js|jsx|json)$')
 if [[ ${#changed[@]} -gt 0 ]]; then
-    if [[ -x raycast/node_modules/.bin/prettier && -x raycast/node_modules/.bin/eslint ]]; then
+    if modules_for raycast && [[ -x $tree/raycast/node_modules/.bin/prettier && -x $tree/raycast/node_modules/.bin/eslint ]]; then
         check 'prettier (raycast)' 'cd raycast && npm run fix-lint' in_dir raycast node_modules/.bin/prettier --check "${changed[@]}"
         mapfile -t scripts < <(printf '%s\n' "${changed[@]}" | grep -Ev '\.json$')
         [[ ${#scripts[@]} -eq 0 ]] || check 'eslint (raycast)' 'cd raycast && npm run fix-lint' in_dir raycast node_modules/.bin/eslint "${scripts[@]}"

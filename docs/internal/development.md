@@ -445,11 +445,17 @@ areas a push changes, and takes a few seconds:
 | `raycast/src/` | Prettier and ESLint on the changed files | `npm run fix-lint` |
 
 It runs no test suite and no build. A missing tool or `node_modules` skips its
-check with a note, except that Biome falls back to the main checkout's copy.
-The hook compares the commits being pushed with what the remote has; run by
-hand, `tools/pre-push.sh [BASE [HEAD]]` compares with `origin/main`. The checks
-read the working tree, so run it where the pushed commit is checked out and
-clean. Each failure prints one line with the command that fixes it.
+check with a note; a worktree without `node_modules` borrows the main
+checkout's. The hook compares the commits being pushed with what the remote
+has; run by hand, `tools/pre-push.sh [BASE [HEAD]]` compares with
+`origin/main`. Each failure prints one line with the command that fixes it.
+
+The checks judge the commit, because that is what CI sees. When the checkout
+is not exactly that commit (uncommitted or untracked files, or another commit
+checked out), the commit is checked out to a temporary directory and checked
+there, so someone else's edits on disk can neither fail nor rescue a push.
+`tools/pre-push.sh --worktree` checks the files on disk instead, for use
+before committing.
 
 `git push --no-verify` skips the hook. Keep it for emergencies, such as
 landing a fix while a tool is broken: CI runs the same checks on the commit.
