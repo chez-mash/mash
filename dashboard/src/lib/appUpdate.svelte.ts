@@ -3,7 +3,8 @@
  *
  * The Mash desktop app knows whether a newer version exists and how this
  * copy gets it; the dashboard only draws that in its main window and passes
- * on the two choices, Update and Later. The app answers three commands for
+ * on the two choices, Update and Later. Nothing is installed without the
+ * first, which the app's menu line also offers. The app answers three commands for
  * it (`update_banner`, `update_install`, `update_later`; see
  * desktop/src-tauri/src/update/banner.rs). A browser has no app to ask, so
  * there the banner never shows and nothing is read.
@@ -162,6 +163,9 @@ export function nextLook(offer: UpdateOffer | null): number {
   return offer?.stage === "downloading" || offer?.stage === "installing" ? 1_000 : 20_000;
 }
 
+/** The event the app sends the page when the banner should be asked for now. */
+const LOOK_NOW = "mash-update";
+
 export class AppUpdate {
   #offer = $state<UpdateOffer | null>(null);
   #invoke: Invoke | undefined;
@@ -182,9 +186,15 @@ export class AppUpdate {
     if (!this.#invoke) return () => {};
     this.#watching = true;
     void this.#look();
+    // The app says when to look at once: Check for Updates… in its menu
+    // brings the window forward for the banner.
+    const now = (): void => void this.#look();
+    const page = scope as Partial<Pick<Window, "addEventListener" | "removeEventListener">>;
+    page.addEventListener?.(LOOK_NOW, now);
     return () => {
       this.#watching = false;
       clearTimeout(this.#timer);
+      page.removeEventListener?.(LOOK_NOW, now);
     };
   }
 

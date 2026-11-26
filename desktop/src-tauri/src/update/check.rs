@@ -1,15 +1,15 @@
 //! Finding an update: reading the channel's `latest.json`, downloading a
 //! newer version and keeping it, verified, until it is installed. A check
-//! from the menu says what it found; a check on the timer says nothing.
+//! from the menu that finds one brings the main window forward with the
+//! banner in it, and otherwise says what it found; a check on the timer says
+//! nothing. No check installs anything.
 
 use super::channel::{self, Channel};
-use super::install::By;
-use super::{Phase, banner, lock, refresh, release, tell};
+use super::{Phase, banner, lock, refresh, release, surface, tell};
 use semver::Version;
 use std::path::PathBuf;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_updater::{Update, UpdaterExt};
 
@@ -17,19 +17,23 @@ use tauri_plugin_updater::{Update, UpdaterExt};
 /// plain-HTTP address; a released build ignores it.
 const TEST_ENDPOINT: &str = "MASH_DESKTOP_UPDATE_ENDPOINT";
 
-/// Check for Updates… in a build that does not update itself. A copy that
-/// apt installed (the .deb puts the app in /usr/bin) is told whether the
-/// stable channel has a newer release and how apt brings it; any other copy
-/// gets the downloads page.
+/// Check for Updates… in a build that does not update itself. A newer
+/// stable release is shown in the banner, which offers the downloads page or
+/// the apt command. With none, or no window to show it in, a copy that apt
+/// installed (the .deb puts the app in /usr/bin) is told how apt brings a
+/// new version, and any other copy gets the downloads page.
 pub(super) fn check_by_hand(app: &AppHandle) {
+    let current = app.package_info().version.clone();
+    let newer = release::newer(&current);
+    lock(app).offer.newer = newer.as_ref().map(ToString::to_string);
+    if newer.is_some() && surface(app) {
+        return;
+    }
     if !super::from_apt() {
         let _ = app.opener().open_url(channel::DOWNLOADS, None::<&str>);
         return;
     }
     const APT: &str = banner::APT;
-    let current = app.package_info().version.clone();
-    let newer = release::newer(&current);
-    lock(app).offer.newer = newer.as_ref().map(ToString::to_string);
     tell(
         app,
         &match newer {
@@ -56,15 +60,16 @@ fn endpoint(app: &AppHandle, channel: Channel) -> String {
 }
 
 /// Read the channel and download a newer version. `asked` is a check from the
-/// menu, which says what it found; a check on the timer says nothing.
+/// menu, which shows the banner for a version it finds, or already has, and
+/// otherwise says what it found; a check on the timer says nothing.
 pub(super) fn check(app: &AppHandle, asked: bool) {
     let (channel, skipped) = {
         let mut inner = lock(app);
         match inner.phase {
             Phase::Idle => {}
-            Phase::Ready { .. } if asked => {
+            Phase::Ready { .. } | Phase::Downloading(_) if asked => {
                 drop(inner);
-                return offer_restart(app);
+                return show_offer(app);
             }
             _ => return,
         }
@@ -87,14 +92,13 @@ pub(super) fn check(app: &AppHandle, asked: bool) {
                 update: Box::new(update),
                 file,
             };
-            inner.idle_ticks = 0;
             inner.offer.failed = None;
             refresh(app, &inner);
             drop(inner);
             if wanted {
-                super::install::apply(app, By::Banner);
+                super::install::apply(app);
             } else if asked {
-                offer_restart(app);
+                show_offer(app);
             }
         }
         Ok(None) => {
@@ -200,22 +204,20 @@ fn couldnt_check(error: tauri_plugin_updater::Error) -> String {
     format!("Mash couldn’t check for updates: {error}")
 }
 
-fn offer_restart(app: &AppHandle) {
+/// A check from the menu has an update to offer: the banner offers it. Only
+/// when the main window cannot be shown does a notice point at the menu
+/// line, which is the same action.
+fn show_offer(app: &AppHandle) {
+    if surface(app) {
+        return;
+    }
     let version = match &lock(app).phase {
         Phase::Ready { update, .. } => update.version.clone(),
+        Phase::Downloading(version) => version.clone(),
         _ => return,
     };
-    let handle = app.clone();
-    app.dialog()
-        .message(format!("Mash {version} is ready to install."))
-        .title("Mash")
-        .buttons(MessageDialogButtons::OkCancelCustom(
-            "Restart to Update".into(),
-            "Later".into(),
-        ))
-        .show(move |restart| {
-            if restart {
-                std::thread::spawn(move || super::install::apply(&handle, By::Menu));
-            }
-        });
+    tell(
+        app,
+        &format!("Mash {version} is available. Choose Update and Restart in the menu."),
+    );
 }

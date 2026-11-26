@@ -10,9 +10,6 @@ use std::path::{Path, PathBuf};
 #[serde(default)]
 pub struct Settings {
     pub channel: Channel,
-    /// Whether a downloaded update installs while the app is idle. Unset
-    /// follows the channel: on for main, off for stable.
-    pub install_when_idle: Option<bool>,
     /// A version the person went back from, which is not installed again.
     pub skipped_version: Option<String>,
     /// The person chose to keep a separate `mash` command; the app no longer
@@ -30,18 +27,9 @@ pub struct Pending {
     pub to: String,
     /// The copy of the previous app, kept until the new one has started.
     pub previous: Option<PathBuf>,
-    /// The update was installed while the app was idle, so the new version
-    /// starts without bringing its window forward.
-    #[serde(default)]
-    pub quiet: bool,
 }
 
 impl Settings {
-    pub fn installs_when_idle(&self) -> bool {
-        self.install_when_idle
-            .unwrap_or_else(|| self.channel.installs_when_idle())
-    }
-
     /// The settings in `file`, or the defaults when it is missing or was
     /// written by something this version cannot read.
     pub fn load(file: &Path) -> Self {
@@ -68,34 +56,18 @@ mod tests {
     use crate::update::channel::Channel;
 
     #[test]
-    fn idle_installs_follow_the_channel_until_chosen() {
-        let mut settings = Settings::default();
-        assert_eq!(settings.channel, Channel::Stable);
-        assert!(!settings.installs_when_idle());
-        settings.channel = Channel::Main;
-        assert!(settings.installs_when_idle());
-        settings.install_when_idle = Some(false);
-        assert!(!settings.installs_when_idle());
-        settings.channel = Channel::Stable;
-        settings.install_when_idle = Some(true);
-        assert!(settings.installs_when_idle());
-    }
-
-    #[test]
     fn settings_survive_a_round_trip_and_a_damaged_file() {
         let folder = std::env::temp_dir().join(format!("mash-settings-{}", std::process::id()));
         let file = folder.join("updates.json");
         assert_eq!(Settings::load(&file), Settings::default());
         let settings = Settings {
             channel: Channel::Main,
-            install_when_idle: Some(false),
             skipped_version: Some("0.2.5-main.3".into()),
             keep_separate: true,
             pending: Some(Pending {
                 from: "0.2.4".into(),
                 to: "0.2.5-main.4".into(),
                 previous: Some(folder.join("previous/Mash.app")),
-                quiet: true,
             }),
         };
         settings.save(&file).unwrap();
@@ -103,6 +75,15 @@ mod tests {
         // A file from an older version: only what it names is taken.
         std::fs::write(&file, r#"{"channel":"main"}"#).unwrap();
         assert_eq!(Settings::load(&file).channel, Channel::Main);
+        // Earlier versions could install while idle. What they saved about
+        // that is passed over, and the rest of the file is still read.
+        let earlier = r#"{"channel":"main","install_when_idle":true,"keep_separate":true,
+            "pending":{"from":"0.2.4","to":"0.2.5","previous":null,"quiet":true}}"#;
+        std::fs::write(&file, earlier).unwrap();
+        let read = Settings::load(&file);
+        assert_eq!(read.channel, Channel::Main);
+        assert!(read.keep_separate);
+        assert_eq!(read.pending.map(|pending| pending.to), Some("0.2.5".into()));
         std::fs::write(&file, "not json").unwrap();
         assert_eq!(Settings::load(&file), Settings::default());
         std::fs::remove_dir_all(&folder).unwrap();

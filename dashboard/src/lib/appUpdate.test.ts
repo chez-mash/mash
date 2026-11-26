@@ -159,6 +159,24 @@ describe("asking the app", () => {
     expect(state.asked).toEqual(["update_banner", "update_banner"]);
   });
 
+  it("looks at once when the app says to", async () => {
+    const { state, scope } = app(null);
+    const page = Object.assign(new EventTarget(), scope);
+    const update = new AppUpdate();
+    const stop = update.watch(page);
+    await vi.advanceTimersByTimeAsync(0);
+    state.answer = said();
+    page.dispatchEvent(new Event("mash-update"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(update.offer?.version).toBe("1.5.0");
+    expect(state.asked).toEqual(["update_banner", "update_banner"]);
+    stop();
+    state.answer = null;
+    page.dispatchEvent(new Event("mash-update"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(update.offer?.version).toBe("1.5.0");
+  });
+
   it("installs only when asked, then follows the app's progress", async () => {
     const { state, scope } = app(said());
     const update = new AppUpdate();

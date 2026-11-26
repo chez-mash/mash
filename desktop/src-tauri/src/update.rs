@@ -1,10 +1,11 @@
 //! The app updates itself: it reads its channel's `latest.json`, downloads a
 //! newer version in the background, checks it against the public key built
-//! into the app, and installs it when the person chooses Restart to Update
-//! (or, with the idle option, while no window is showing).
+//! into the app, and installs it when the person chooses Update and Restart.
+//! Nothing is ever installed without that choice.
 //!
-//! Nothing interrupts: a ready update is one line in the menus and a banner
-//! in the main window, whose button installs it (banner.rs). Updates are
+//! Nothing interrupts: a newer version is a banner in the main window and
+//! one line in the menus, and the banner's button and the menu line are one
+//! action (`install::request`). Updates are
 //! off, and Check for Updates… opens the downloads page instead, when the
 //! build has no public key or is not a kind the updater can replace (a
 //! development build, a .deb). Such a build still reads which release is the
@@ -26,7 +27,6 @@ mod release;
 mod settings;
 
 use channel::Channel;
-use install::By;
 pub use install::{before_engine, engine_failed, engine_started};
 pub use menu::Holder;
 use settings::{Pending, Settings};
@@ -39,8 +39,6 @@ use tauri_plugin_updater::Update;
 
 /// How often the channel is read, after the check at launch.
 const EVERY: Duration = Duration::from_secs(6 * 60 * 60);
-/// How often the app looks whether it is idle with an update ready.
-const TICK: Duration = Duration::from_secs(30);
 
 /// Where an update stands.
 enum Phase {
@@ -62,10 +60,6 @@ struct Inner {
     phase: Phase,
     /// The update this run arrived by, until its engine has started.
     arrived: Option<Pending>,
-    /// What does not yet run the new version, shown when the line is chosen.
-    notice: Option<String>,
-    /// Ticks in a row with no window showing.
-    idle_ticks: u8,
     /// What the main window's banner has been told and asked.
     offer: banner::Offer,
 }
@@ -131,7 +125,7 @@ fn from_apt() -> bool {
 }
 
 /// Load the settings and settle what the last run left: called before the
-/// window opens, so a quiet update can start without one.
+/// window opens.
 pub fn prepare(app: &AppHandle) {
     let mut settings = settings_file(app)
         .map(|file| Settings::load(&file))
@@ -159,21 +153,10 @@ pub fn prepare(app: &AppHandle) {
             settings,
             phase,
             arrived,
-            notice: None,
-            idle_ticks: 0,
             offer: banner::Offer::default(),
         }),
         Mutex::default(),
     ));
-}
-
-/// Whether this start follows an update installed while the app was idle,
-/// which leaves the window closed as it was.
-pub fn starts_quietly(app: &AppHandle) -> bool {
-    lock(app)
-        .arrived
-        .as_ref()
-        .is_some_and(|pending| pending.quiet)
 }
 
 pub fn keeps_separate(app: &AppHandle) -> bool {
@@ -212,33 +195,28 @@ pub fn add_menu(app: &AppHandle, holder: Holder, position: Option<usize>) -> tau
 
 /// Bring the menus up to date with the state.
 fn refresh(app: &AppHandle, inner: &Inner) {
-    let version = &app.package_info().version;
-    let (status, actionable) = match &inner.phase {
-        Phase::Ready { update, .. } => (
-            format!("Update Ready ({}) — Restart to Update", update.version),
-            true,
-        ),
-        Phase::Installing(version) => (format!("Updating to {version}…"), false),
-        Phase::Downloading(version) => (format!("Downloading Mash {version}…"), false),
-        _ if inner.notice.is_some() => (
-            format!("Updated to {version} — See What Needs Restarting…"),
-            true,
-        ),
-        Phase::Checking => ("Checking for Updates…".to_owned(), false),
-        Phase::Idle | Phase::Off => (format!("Mash {version}"), false),
+    let current = app.package_info().version.to_string();
+    let (status, actionable) = if matches!(inner.phase, Phase::Checking) {
+        ("Checking for Updates…".to_owned(), false)
+    } else {
+        menu::line(
+            banner::Standing::of(&inner.phase),
+            inner.offer.wanted,
+            &current,
+        )
     };
     let view = menu::View {
         status,
         actionable,
         channel: inner.settings.channel,
-        installs_when_idle: inner.settings.installs_when_idle(),
     };
     with_items(app, move |_, items| items.show(&view));
 }
 
-/// Start checking: now, then every six hours, and look every half minute
-/// whether a ready update may install because the app is idle. A build that
-/// does not update itself reads, as often, which release is the latest.
+/// Start checking: now, then every six hours. A check downloads and
+/// verifies a newer version so that installing it is quick, and installs
+/// nothing. A build that does not update itself reads, as often, which
+/// release is the latest.
 pub fn start(app: &AppHandle) {
     let app = app.clone();
     if matches!(lock(&app).phase, Phase::Off) {
@@ -254,12 +232,7 @@ pub fn start(app: &AppHandle) {
     std::thread::spawn(move || {
         loop {
             check::check(&app, false);
-            let mut waited = Duration::ZERO;
-            while waited < EVERY {
-                std::thread::sleep(TICK);
-                waited += TICK;
-                install::install_if_idle(&app);
-            }
+            std::thread::sleep(EVERY);
         }
     });
 }
@@ -278,34 +251,17 @@ pub fn choose(app: &AppHandle, id: &str) -> bool {
                 }
             });
         }
-        menu::STATUS => status_chosen(app),
+        menu::STATUS => {
+            // The banner says how the install goes, and why if it fails.
+            crate::show(app);
+            install::request(app);
+        }
         menu::STABLE => switch(app, Channel::Stable),
         menu::MAIN => switch(app, Channel::Main),
-        menu::IDLE => {
-            let mut inner = lock(app);
-            inner.settings.install_when_idle = Some(!inner.settings.installs_when_idle());
-            save(app, &inner.settings);
-            refresh(app, &inner);
-        }
         menu::BACK => install::go_back(app),
         _ => return false,
     }
     true
-}
-
-/// The status line was chosen: restart into the ready update, or show what
-/// the last update left behind.
-fn status_chosen(app: &AppHandle) {
-    let mut inner = lock(app);
-    if matches!(inner.phase, Phase::Ready { .. }) {
-        drop(inner);
-        let app = app.clone();
-        std::thread::spawn(move || install::apply(&app, By::Menu));
-    } else if let Some(notice) = inner.notice.take() {
-        refresh(app, &inner);
-        drop(inner);
-        tell(app, &notice);
-    }
 }
 
 fn switch(app: &AppHandle, channel: Channel) {
@@ -325,4 +281,22 @@ fn switch(app: &AppHandle, channel: Channel) {
 
 fn tell(app: &AppHandle, message: &str) {
     app.dialog().message(message).title("Mash").show(|_| {});
+}
+
+/// Bring the main window forward with the banner in it, for a check that
+/// was asked for: Later no longer hides the version, and the dashboard is
+/// told to ask now what there is to offer. False when the window could not
+/// be shown. Never called from the main thread, nor with the state locked.
+fn surface(app: &AppHandle) -> bool {
+    lock(app).offer.later = None;
+    let (said, shown) = std::sync::mpsc::channel();
+    let handle = app.clone();
+    let asked = app.run_on_main_thread(move || {
+        let window = crate::show(&handle);
+        if let Some(window) = &window {
+            let _ = window.eval("window.dispatchEvent(new Event('mash-update'))");
+        }
+        let _ = said.send(window.is_some());
+    });
+    asked.is_ok() && shown.recv().unwrap_or(false)
 }

@@ -117,7 +117,9 @@ pub fn run() {
         RunEvent::Reopen {
             has_visible_windows: false,
             ..
-        } => show(app),
+        } => {
+            show(app);
+        }
         _ => {}
     });
 }
@@ -140,8 +142,6 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
         .inner_size(width, height)
         .min_inner_size(size::MIN.0, size::MIN.1)
         .center()
-        // An update installed while the window was closed leaves it closed.
-        .visible(!update::starts_quietly(app))
         // Mash has one theme, the light one, so the title bar is light too.
         // On macOS that is set on this window alone (see light_title_bar).
         .theme((!cfg!(target_os = "macos")).then_some(Theme::Light))
@@ -273,28 +273,27 @@ fn show_route(app: &AppHandle, dashboard: &Url, route: &str) {
     }
 }
 
-/// Bring the window forward, opening it again if it was closed.
-pub(crate) fn show(app: &AppHandle) {
+/// Bring the window forward, opening it again if it was closed. None when
+/// there is no window to show.
+pub(crate) fn show(app: &AppHandle) -> Option<tauri::WebviewWindow> {
     let window = match app.get_webview_window(WINDOW) {
         Some(window) => window,
         None => {
             if let Err(error) = open_window(app) {
                 eprintln!("Mash couldn’t open its window: {error}");
-                return;
+                return None;
             }
             let dashboard = lock(&app.state::<State>()).dashboard.clone();
             if let Some(dashboard) = dashboard {
                 show_route(app, &dashboard, "#/");
             }
-            let Some(window) = app.get_webview_window(WINDOW) else {
-                return;
-            };
-            window
+            app.get_webview_window(WINDOW)?
         }
     };
     let _ = window.unminimize();
     let _ = window.show();
     let _ = window.set_focus();
+    Some(window)
 }
 
 /// Start the engine away from the window's thread, then open the dashboard,
@@ -366,14 +365,6 @@ pub(crate) fn stop_engine(app: &AppHandle) {
 pub(crate) fn restart_engine(app: &AppHandle) {
     let state = app.state::<State>().inner().clone();
     start_engine(app.clone(), state);
-}
-
-/// Whether neither the main window nor the search panel is on screen.
-pub(crate) fn nothing_showing(app: &AppHandle) -> bool {
-    [WINDOW, menubar::PANEL].into_iter().all(|label| {
-        app.get_webview_window(label)
-            .is_none_or(|window| !window.is_visible().unwrap_or(true))
-    })
 }
 
 /// Wait for the engine to stop on its own, which only happens when it fails.
