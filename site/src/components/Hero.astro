@@ -70,7 +70,8 @@ const installs = [
       {
         tagline && (
           <p class="tagline">
-            <Fragment set:html={tagline} />
+            <Fragment set:html={tagline} />{" "}
+            <a class="docs" href="/guides/">Read the docs<span aria-hidden="true"> →</span></a>
           </p>
         )
       }
@@ -91,8 +92,6 @@ const installs = [
           <a href="#install">Install with curl</a>
           <span aria-hidden="true">|</span>
           <a href="https://github.com/mashhq/mash/tree/main/raycast">Raycast extension</a>
-          <span aria-hidden="true">|</span>
-          <a href="/guides/">Read the docs</a>
         </p>
       </div>
     </div>
@@ -293,6 +292,15 @@ const installs = [
     color: var(--text-secondary);
     font-size: 1.125rem;
     line-height: 1.5;
+  }
+  /* The docs, as the paragraph's last words: bold, and never split from its arrow. */
+  .tagline .docs {
+    color: var(--text-strong);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    white-space: nowrap;
   }
   .actions {
     display: flex;

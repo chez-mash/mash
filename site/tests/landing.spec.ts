@@ -15,7 +15,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   }
   const blurb =
     "Mash supercharges your agents so that they can search and remember from each others' chats. Leave off with Claude and pick up with Codex, without having to re-explain yourself. 100% self-hosted and open-source.";
-  await expect(page.locator(".hero .tagline")).toHaveText(blurb);
+  await expect(page.locator(".hero .tagline")).toHaveText(`${blurb} Read the docs →`);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
   // Link previews carry the tagline.
   const tagline = "Supercharged context for your agents.";
@@ -102,17 +102,16 @@ test("the hero leads with the app download, then the other systems and ways in",
   expect(demoBox?.height).toBe(downloadBox?.height);
   expect(demoBox?.y).toBe(downloadBox?.y);
   expect(demoBox?.x).toBeGreaterThan((downloadBox?.x ?? 0) + (downloadBox?.width ?? 0));
-  // The row of quieter ways in ends with the docs, with a bar only between links.
-  await expect(note.locator(".ways a")).toHaveText([
-    "Install with curl",
-    "Raycast extension",
-    "Read the docs",
-  ]);
-  await expect(note.locator(".ways > :last-child")).toHaveText("Read the docs");
-  await expect(note.getByRole("link", { name: "Read the docs" })).toHaveAttribute(
-    "href",
-    "/guides/",
-  );
+  // The docs follow the opening paragraph as its last words, in bold.
+  const docs = page.locator(".hero .tagline a.docs");
+  await expect(docs).toHaveText("Read the docs →");
+  await expect(docs).toHaveAttribute("href", "/guides/");
+  expect(
+    Number(await docs.evaluate((link) => getComputedStyle(link).fontWeight)),
+  ).toBeGreaterThanOrEqual(600);
+  // The row of quieter ways in has a bar only between its links.
+  await expect(note.locator(".ways a")).toHaveText(["Install with curl", "Raycast extension"]);
+  await expect(note.locator(".ways > :last-child")).toHaveText("Raycast extension");
   // The header offers the Mac app beside the docs and the source.
   const header = page.locator("header.header");
   await expect(header.getByRole("link", { name: "Download for Mac" })).toBeVisible();
@@ -141,8 +140,8 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   expect(first?.width).toBeGreaterThan(300);
   // The ways in wrap on a phone, so no bar is left hanging at a line's end.
   const ways = page.locator(".hero .ways");
-  await expect(ways.getByRole("link", { name: "Read the docs" })).toBeVisible();
-  await expect(ways.locator("span")).toHaveCount(2);
+  await expect(page.locator(".hero .tagline a.docs")).toBeVisible();
+  await expect(ways.locator("span")).toHaveCount(1);
   for (const bar of await ways.locator("span").all()) await expect(bar).toBeHidden();
   await expect(
     page.getByRole("navigation", { name: "Footer" }).getByRole("link", { name: "Docs" }),
