@@ -44,3 +44,7 @@ return_self_not_must_use = { level = "allow", priority = 1 }
 
 [dev-dependencies]
 insta = { version = "1.49.0", features = ["json"] }
+
+# Versioned by itself; a release leaves it alone (see release.toml).
+[package.metadata.release]
+release = false

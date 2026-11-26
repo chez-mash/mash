@@ -512,6 +512,12 @@ and the private Ansible inventory. The `mash-fleet` crate provides the fleet CLI
 and RMCP readiness/refresh probe; it must not duplicate indexing or schema logic. Keep
 deploy and refresh separate and raw command logs private. See deployment/README.md.
 
+`deploy` installs the binaries CI built for the commit when it kept them and
+compiles otherwise; `deploy --release vX.Y.Z` installs a release's assets. Cut
+a release with `bash tools/release.sh VERSION` (cargo-release; `--dry-run`
+rehearses it). See "Deploying built artifacts" in deployment/README.md and
+"Deploying and releasing" in docs/internal/development.md.
+
 ## Agent work tracking
 
 

@@ -23,6 +23,14 @@ bin-dir = "{ bin }{ binary-ext }"
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
 pkg-fmt = "zip"
 
+# The desktop app is a workspace of its own, released at the same version:
+# `cargo release replace` moves its manifest and lockfile with this package.
+[package.metadata.release]
+pre-release-replacements = [
+  { file = "desktop/src-tauri/Cargo.toml", search = '(?m)^version = "[^"]+"$', replace = 'version = "{{version}}"', exactly = 1 },
+  { file = "desktop/src-tauri/Cargo.lock", search = 'name = "mash-desktop"\nversion = "[^"]+"', replace = "name = \"mash-desktop\"\nversion = \"{{version}}\"", exactly = 1 },
+]
+
 [workspace.package]
 version = "0.2.4"
 

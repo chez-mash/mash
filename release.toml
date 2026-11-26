@@ -1,0 +1,20 @@
+# cargo-release configuration for tools/release.sh, which runs its steps one
+# at a time: `version` and `replace` bump the workspace version and the
+# lockfile (and the desktop app's own manifest and lockfile, through the
+# replacements in the root Cargo.toml), `commit` records "Release X.Y.Z" and
+# `tag` creates vX.Y.Z. Crates with their own version numbers opt out with
+# `release = false` in their manifests.
+#
+# Nothing is published to crates.io, and cargo-release never pushes: its push
+# step sends the commit and the tag together, and a release tags only after CI
+# has passed on the pushed commit, so the script pushes each with Git.
+publish = false
+push = false
+verify = false
+shared-version = true
+consolidate-commits = true
+pre-release-commit-message = "Release {{version}}"
+tag-name = "v{{version}}"
+tag-message = "Release {{version}}"
+# Releases are cut from the detached deploy tree at origin/main.
+allow-branch = ["*"]

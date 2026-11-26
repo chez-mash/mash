@@ -42,6 +42,11 @@ protocol-tools:
 protocol-check:
 	$(DEV_RUN) bash protocol/check.sh
 
+# cargo-release, at the version tools/release.sh is written against.
+.PHONY: release-tools
+release-tools:
+	bash tools/release.sh --install-tools
+
 # Dependency policy in deny.toml: advisories, licences, bans and sources.
 # Install the tool with `cargo binstall cargo-deny`.
 .PHONY: deny

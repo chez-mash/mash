@@ -138,6 +138,13 @@ jobs:
           TMPDIR="$RUNNER_TEMP" bash tools/test-controller-environment.sh
           TMPDIR="$RUNNER_TEMP" bash tools/test-run-ansible.sh
           TMPDIR="$RUNNER_TEMP" bash tools/test-ansible.sh
+      # The version tools/release.sh pins; see its cargo_release_version.
+      - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        with:
+          tool: cargo-release@1.1.7
+          fallback: none
+      - name: Verify the release script against a throwaway remote
+        run: TMPDIR="$RUNNER_TEMP" bash tools/test-release.sh
       - name: Verify offline search evaluation and benchmark witnesses
         run: uv run --no-project python -m unittest discover -s tools -p 'test_*.py'
       - name: Keep source files within the 500-line limit and review growth past 450

@@ -485,6 +485,59 @@ refuses when it holds local changes. `tools/fleet.sh` builds from the
 repository it is run in and checks that `HEAD` did not move during the build,
 so nothing else may commit in that tree.
 
+`deploy` does not compile when CI already built the commit. Each push to main
+that changes more than `docs/`, `site/` or `raycast/` runs the `Dev artifacts`
+workflow, which keeps release-profile `mash` and `mash-server` for Linux,
+macOS and Windows for 14 days. `fleet.sh deploy` downloads the ones for its
+exact commit, checks them against the checksum the build wrote, and installs
+them with the usual steps; with none it compiles and says why.
+`deploy --release vX.Y.Z` installs a published release's assets the same way,
+and on Macs that ask for it replaces the desktop app from the release's disk
+image. `--source-build` always compiles. After installing, a deployment
+restarts supervised Mash jobs still running the old binary and lists the
+hand-started ones. The details and the inventory settings are in
+[deployment/README.md](../../deployment/README.md#deploying-built-artifacts).
+
+A release is one command, also from the deploy tree:
+
+```bash
+make release-tools                        # once: the pinned cargo-release
+bash tools/release.sh --dry-run 0.2.5     # rehearse in a temporary clone; pushes nothing
+bash tools/release.sh 0.2.5
+bash tools/release.sh --resume 0.2.5      # after a wait failed or timed out
+```
+
+`tools/release.sh` refuses unless the tree is clean, is `origin/main`, and
+`ci.yml` and `windows.yml` passed for that commit, the rule `release.yml`
+enforces. It then has [cargo-release](https://github.com/crate-ci/cargo-release)
+make the "Release X.Y.Z" commit: the workspace version in `Cargo.toml`, the
+desktop app's `desktop/src-tauri/Cargo.toml`, and both lockfiles
+(`release.toml`; the desktop files move through the replacements in the root
+`Cargo.toml`, and crates with their own version carry `release = false`).
+Because that commit is new and a tag publishes only a commit CI validated, the
+script pushes it to main, waits for `ci.yml` and `windows.yml` on it, and only
+then has cargo-release create `vX.Y.Z`, pushes the tag and waits for
+`release.yml`. The two pushes are plain `git push`: cargo-release's own push
+step sends the commit and the tag together, which leaves no room to wait
+between them.
+
+What it leaves to a person, with the commands printed at the end:
+
+- **The notes.** It writes a draft to
+  `/home/james/scratch/mash-artifacts/releases/vX.Y.Z-notes.md`
+  (`tools/release-notes-draft.sh`: the standard opening paragraph, then the
+  commits since the previous tag grouped by the part of Mash they changed) and
+  never publishes it. Rewrite it in the reader's terms, then
+  `gh release edit vX.Y.Z --notes-file ...`.
+- **winget.** It downloads the release run's `winget-manifests` artifact and
+  prints how to submit it to `microsoft/winget-pkgs`
+  (`packaging/winget/README.md`).
+- **The fleet.** `bash tools/fleet.sh deploy --release vX.Y.Z TARGET...`.
+
+`--resume` works out where the release stopped from the repository itself (the
+release commit, whether main has it, the tag locally and on the remote), so it
+is safe to run again at any point.
+
 ## Dependency policy
 
 `deny.toml` is the policy for Rust dependencies, checked with

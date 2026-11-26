@@ -16,3 +16,7 @@ warnings = "deny"
 [lints.clippy]
 all = "warn"
 pedantic = "warn"
+
+# Versioned by itself; a release leaves it alone (see release.toml).
+[package.metadata.release]
+release = false
