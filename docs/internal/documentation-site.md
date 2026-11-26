@@ -99,8 +99,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
 - **The README pictures** are the current light design. The opening picture
   is `assets/screenshots/dashboard.webp`, taken with the other dashboard
   pictures below. `assets/mashy-answer.webp` is the landing page's Mashy
-  window, captured from a site build at 2x in the light scheme; capture it
-  again when that window changes. Use fictional history from the demo.
+  window, captured from a site build at 2x in the light scheme (the
+  `.mashy-window` element at a 1440 px viewport); capture it again when that
+  window changes. `site/public/og.png`, the social preview, is the top of the
+  landing page at 1440 by 756 in the light scheme with a Mac user agent,
+  scaled to 1200 by 630; capture it again when the hero changes. Use fictional history from the demo.
 - **The performance figures** are measurements, with their conditions folded
   under them (“How these were measured”). The GPU figures come from the README and
   `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA
@@ -121,7 +124,8 @@ too, and the site build copies them to `/screenshots/`. After a visible
 dashboard change, build the demo (`pnpm build:demo` in `dashboard/`), run
 `pnpm screenshots` in `site/`, and look at every picture before committing.
 `site/scripts/screenshots.ts` lists the pages, hides the demo's own banner
-and notes, and crops out the rail where the page itself should be readable.
+and notes, and crops out the rail and the top bar where the page itself
+should be readable.
 Write alt text that says what the picture shows.
 
 ## Theme

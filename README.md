@@ -2,9 +2,17 @@
   <img src="assets/mash-logo.svg" alt="Mash logo" width="320">
 </p>
 
-# Mash: The Multi-Agent Search History Tool
+<p align="center">
+  <a href="https://github.com/mashhq/mash/actions/workflows/ci.yml"><img src="https://github.com/mashhq/mash/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/mashhq/mash/actions/workflows/windows.yml"><img src="https://github.com/mashhq/mash/actions/workflows/windows.yml/badge.svg?branch=main" alt="Windows"></a>
+  <a href="https://github.com/mashhq/mash/actions/workflows/desktop.yml"><img src="https://github.com/mashhq/mash/actions/workflows/desktop.yml/badge.svg?branch=main" alt="Desktop"></a>
+  <a href="https://getmash.io"><img src="https://github.com/mashhq/mash/actions/workflows/docs.yml/badge.svg?branch=main" alt="Documentation"></a>
+  <a href="https://github.com/mashhq/mash/releases/latest"><img src="https://img.shields.io/github/v/release/mashhq/mash" alt="Latest release"></a>
+  <a href="#licence"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg" alt="MIT or Apache 2.0 licence"></a>
+  <a href="https://discord.gg/jsxVgVn36"><img src="https://img.shields.io/badge/Discord-join%20the%20chat-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+</p>
 
-[![Discord](https://img.shields.io/badge/Discord-join%20the%20chat-5865F2?logo=discord&logoColor=white)](https://discord.gg/jsxVgVn36)
+# Mash: The Multi-Agent Search History Tool
 
 [Español](docs/es/index.md) · [Français](docs/fr/index.md) · [简体中文](docs/zh-cn/index.md) · [日本語](docs/ja/index.md)
 
@@ -54,7 +62,7 @@ By default, indexing and search stay on your machine and require no account.
 <details>
 <summary>See Mashy answer a question</summary>
 
-![Mashy traces a sample checkout outage to a database migration and quotes the source conversation](assets/mashy-answer.webp)
+![Asked what caused the checkout outage last week, Mashy traces it to a database migration and quotes the Claude Code chat it came from](assets/mashy-answer.webp)
 
 </details>
 
@@ -114,7 +122,7 @@ When setup says search is ready, type a word you remember into the search
 box at the top: an error message, a function name, a ticket number. Mash
 searches every agent at once and highlights where each chat matches.
 
-![Searching for “checkout” finds a Codex chat and a Claude Code chat, with the matching words highlighted](assets/screenshots/search.webp)
+![Searching for “checkout” finds a saved memory, a Codex chat and a Claude Code chat, with the matching words highlighted and the selected chat previewed beside them](assets/screenshots/search.webp)
 
 Use the filters to narrow the results to one agent, machine, project or time.
 [Ways to search](docs/search.md#your-first-search) ·
@@ -140,7 +148,7 @@ message where you said it. Just ask:
 
 Open **memory** to see every decision and preference your agents saved.
 
-![The memory page lists saved decisions and preferences with their project, machine and agent](assets/screenshots/memory.webp)
+![The memory page lists saved decisions and preferences with their project, machine and agent, with the selected decision and its evidence beside them](assets/screenshots/memory.webp)
 
 Each one keeps its evidence. Choose **open the message** to read the exact
 words it came from. A later session can ask Mash what was decided and why.
@@ -154,7 +162,7 @@ words it came from. A later session can ask Mash what was decided and why.
 The overview is where the dashboard opens. It shows your latest chats, the
 newest memories, and how many chats each machine and agent has.
 
-![The overview: recent chats on the left, recent memories, machines and agents on the right](assets/screenshots/overview.webp)
+![The overview: the chat to pick up where you left off, counts of chats, memories, machines and agents, then recent chats beside the memories waiting for confirmation](assets/screenshots/overview.webp)
 
 To reopen the dashboard later, run `mash dash` and open the address it prints.
 If your terminal can’t find `mash`, use the full path shown during setup or
@@ -199,7 +207,7 @@ On a Mac, the Raycast extension searches your chats as you type, shows the
 passage that matched, and opens a chat in Mash, Claude or Codex. A second
 command lists the decisions and notes Mash remembers.
 
-![Searching past coding agent chats from Raycast, with the matching passage under each chat](raycast/metadata/mash-2.png)
+![Mash in Raycast: a search for “customers” lists matching chats under Today and This week, each with its agent’s tile, project and age](raycast/metadata/mash-1.png)
 
 The extension is waiting for review in the Raycast Store. Until it is
 listed, you can [run it from this repository](raycast/README.md#development).
