@@ -27,5 +27,13 @@
 .beads-credential-key
 node_modules/
 
+# Playwright's output, wherever a run puts it (a spec run from the root, an
+# HTML or blob reporter chosen on the command line). An untracked directory
+# would make `tools/worktree.sh done` refuse the worktree. The visual checks'
+# own output is ignored in dashboard/.gitignore and site/.gitignore.
+test-results/
+playwright-report/
+blob-report/
+
 # Models fetched for a worker run outside its container image.
 /deployment/*/model/
