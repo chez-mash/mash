@@ -112,14 +112,15 @@ jobs:
           tool: nextest
           fallback: none
       # The same commands as `rust`, so the compiler is asked for the same
-      # things; `--no-run` compiles the tests without running them.
+      # things; `--no-run` compiles the tests without running them. The
+      # documentation tests have no such switch, and are built from crates
+      # these commands have already compiled.
       - name: Compile what the rust job compiles
         if: steps.warmed.outputs.cache-hit != 'true'
         run: |
           cargo build --locked --bin mash --bin mash-server
           cargo clippy --all-targets -- -D warnings
           cargo nextest run --profile ci --locked --no-run
-          cargo test --doc --no-run
           sccache --show-stats
       - name: Save Cargo cache
         if: steps.warmed.outputs.cache-hit != 'true' && steps.cargo-cache.outputs.cache-hit != 'true'

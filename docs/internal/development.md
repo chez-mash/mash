@@ -773,8 +773,8 @@ job that did not start:
 
 | Check | Workflow | What it covers | Typical time when its jobs run |
 |---|---|---|---|
-| `ci / required` | `ci.yml` | `file-lines`, `protocol`, `dependencies`, `rust`, `tooling` | 9 minutes |
-| `windows / required` | `windows.yml` | the x64 build and its tests, the ARM build, the Linux import | 6 to 11 minutes |
+| `ci / required` | `ci.yml` | `file-lines`, `protocol`, `dependencies`, `lint`, `rust`, `rust-models`, `tooling` | 7 minutes |
+| `windows / required` | `windows.yml` | the x64 build and its tests, the ARM build, the Linux import | 6 to 12 minutes |
 | `front-ends` | `frontends.yml` | the dashboard, its browser shards, Raycast | 3 minutes |
 | `visual / required` | `visual.yml` | the dashboard's pictures | 2 minutes |
 | `docs / required` | `docs.yml` | the website's build, tests and pictures, never its deploy | 5 minutes |
@@ -785,15 +785,15 @@ and the website's deploy run only on a push to `main`.
 
 A change is on `main` roughly as long after `land` as its slowest required
 check takes, plus two minutes for the pull request's own run and the queue's
-bookkeeping: about eleven minutes for a Rust change (up to thirteen when it
-changes a crate near the bottom, which Windows ARM then compiles all of ours
-on top of; see [The merge queue's caches](#the-merge-queues-caches)), about seven for a
+bookkeeping: about nine minutes for a Rust change (up to fourteen when it
+changes a crate near the bottom, because Windows ARM then compiles all of
+ours; see [The merge queue's caches](#the-merge-queues-caches)), about seven for a
 dashboard or website change, about two for `AGENTS.md`. The ruleset's
 five-minute wait applies only while fewer changes than its minimum group of
 one have passed, so it never delays anything. The queue does not
 wait for one change to finish before starting the next. Each queued change is
 tested on top of the ones ahead of it, up to three at once, so three changes
-landed together are all on `main` after about eleven minutes, not thirty. If
+landed together are all on `main` after about nine minutes, not twenty-seven. If
 one of them fails, it leaves the queue and the ones behind it are tested
 again without it. Up to five that have passed merge in one step.
 
@@ -874,7 +874,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 
 | Changed files | `ci.yml` | `windows.yml` | `frontends.yml` | `docs.yml` |
 |---|---|---|---|---|
-| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust`, `tooling` | both builds, the library tests, import | nothing | nothing |
+| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `lint`, `rust`, `rust-models`, `tooling` | both builds, the library and CLI tests, import | nothing | nothing |
 | `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build, pictures |
 | `docs/internal/*.md` (read by no build and no test) | nothing | nothing | nothing | build, pictures |
 | `site/` | nothing | nothing | nothing | build, pictures |
@@ -1127,8 +1127,26 @@ to the required check passing:
 
 | | Before | After |
 |---|---|---|
-| `windows.yml` | 13 to 17 min (sixteen runs that day) | Not yet measured with its caches saved; with none at all, on a branch: x64 jobs 9 to 10 min, Windows ARM 16 min |
-| `ci.yml` | 11 to 15 min (fourteen runs that day) | 8 min 40 s (`rust` 8 min 22 s, `tooling` 3 min) |
+| `windows.yml` | 13 to 17 min (sixteen runs that day) | 6 min 18 s when the change touches no crate; with no cache at all, 16 min |
+| `ci.yml` | 11 to 15 min (fourteen runs that day) | 6 min 42 s |
+
+The times after are from manual runs of both workflows on a branch, which
+read `main`'s caches as a group does, an hour after those were first saved:
+
+| Job | Total | Of which |
+|---|---|---|
+| `build` (Windows x64) | 3 min 0 s | Restoring the dependencies 21 s, the build 1 min 44 s |
+| `lib-tests`, each half | 4 min 21 s and 4 min 44 s | Compiling and running, about 4 min |
+| `cli-tests` | 4 min 52 s | Compiling and running, 4 min |
+| `linux-import` | 2 min 4 s, after `build` | The build 1 min 50 s |
+| `build-arm64` | 5 min 44 s | Caches, Node and the dashboard 2 min 30 s, the build 2 min 52 s (only `mash`, for the revision) |
+| `rust` | 6 min 25 s | The build 1 min, the history skill 1 min, the main suite 3 min 15 s |
+| `rust-models` | 4 min 7 s | The build 1 min, the suites 2 min 35 s |
+| `lint` | 1 min 33 s | Clippy 1 min 11 s |
+| `tooling` | 3 min 35 s | Ansible 1 min 50 s |
+
+Saving the caches for the first time took `warm` 7 min 21 s, `windows-arm64`
+17 min 15 s and `ci-compiler` about 4 min.
 
 Where the time went before, with the dependencies restored from a cache, in
 run 45816311226 (`windows.yml`, 15 min 21 s) and its `ci.yml` twin (13 min
@@ -1153,9 +1171,12 @@ What changed, in the order of what it saved:
   per-commit binary builds](#the-per-commit-binary-builds) for which those
   are). Its Qdrant-under-emulation check needs no build and is the job
   `qdrant-arm64`.
-- `ci.yml`'s script suites (deployment, pre-push, worktrees, Ansible,
-  releasing) moved from `rust` to `tooling`, which compiles nothing and runs
-  beside it.
+- `ci.yml`'s `rust` job became four. The script suites (deployment,
+  pre-push, worktrees, Ansible, releasing) are `tooling`, which compiles
+  nothing. Formatting, Clippy and the generated queries are `lint`. The tests
+  that need the installed models or restart Qdrant are `rust-models`. The
+  compiler cache makes what the three Rust jobs compile twice cheap: about a
+  minute each.
 - No job installs the nightly toolchain to compile with stable, and none
   saves a cache from a group.
 

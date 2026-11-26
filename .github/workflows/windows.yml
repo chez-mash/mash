@@ -134,7 +134,6 @@ jobs:
   # The library tests, in two halves: `count:N/2` deals the tests out in turn,
   # so the halves together are exactly the whole suite.
   lib-tests:
-    name: lib-tests (${{ matrix.half }}/2)
     needs: changes
     if: needs.changes.outputs.rust == 'true'
     runs-on: windows-latest
