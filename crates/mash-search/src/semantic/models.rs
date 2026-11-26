@@ -95,13 +95,13 @@ impl DerefMut for LoadedBackend {
 
 impl Drop for LoadedBackend {
     fn drop(&mut self) {
-        if let (Some(key), Some(backend)) = (self.cache_key.take(), self.backend.take()) {
-            // Keep a model that failed to load out of the cache: the next
-            // search loads it again and reports the reason.
+        if let (Some(key), Some(mut backend)) = (self.cache_key.take(), self.backend.take()) {
+            // Cache no load in flight (it would race process exit) and no
+            // failed model: the next search loads it and reports the reason.
             if backend
                 .reranker
-                .as_ref()
-                .is_some_and(reranker::Lazy::failed)
+                .as_mut()
+                .is_some_and(reranker::Lazy::settle)
             {
                 return;
             }
