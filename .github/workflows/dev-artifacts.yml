@@ -3,8 +3,9 @@ name: Dev artifacts
 # Keeps installable release-profile builds of each main commit for two weeks,
 # so `tools/fleet.sh deploy` can install them instead of compiling on every
 # machine (see deployment/README.md). The builds are the release's own steps,
-# unsigned. Each artifact is named mash-<target>-<commit> and holds the
-# archive with its .sha256.
+# unsigned, except that they start from what the last build on main compiled
+# (`cache: true`) where a release compiles everything. Each artifact is named
+# mash-<target>-<commit> and holds the archive with its .sha256.
 #
 # A commit that changes only the documentation, the website or the Raycast
 # extension builds nothing; a deployment of such a commit compiles from source.
@@ -22,7 +23,9 @@ permissions:
 
 # One build at a time. While one runs, only the newest waiting commit is kept,
 # so a burst of landed commits builds the first and the last of them and the
-# head of main always gets its artifacts.
+# head of main always gets its artifacts. Each build starts from the compiled
+# crates the one before it saved, which is why they do not run side by side:
+# two at once would both start from the older cache and save over each other.
 concurrency:
   group: dev-artifacts-${{ github.ref }}
   cancel-in-progress: false
@@ -37,3 +40,40 @@ jobs:
       artifact-suffix: -${{ github.sha }}
       checksum: true
       retention-days: 14
+      cache: true
+
+  # Every build saves this repository's compiled crates under its own commit,
+  # and a change to Cargo.lock saves the dependencies under a new key. Only the
+  # newest of each is ever read again. The older ones are deleted here, so the
+  # repository's 10 GB of cache is not spent on them and GitHub does not evict
+  # caches the test workflows still use to make room.
+  prune-caches:
+    needs: build
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Delete the build caches a newer one has replaced
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A family is one target's dependencies (the key ends with hashes
+          # of the compiler and of Cargo.lock) or one target's crates (the key
+          # ends with a hash of Cargo.lock and the commit). The list comes
+          # newest first, so every key after the first of its family has been
+          # replaced.
+          gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/actions/caches?key=mash-artifacts-&ref=refs/heads/main&sort=created_at&direction=desc&per_page=100" \
+            --jq '.actions_caches[] | [.id, .key] | @tsv' |
+            awk -F '\t' '{
+              family = $2
+              sub(/-[^-]*-[^-]*$/, "", family)
+              if (seen[family]++) print $1 "\t" $2
+            }' > replaced.tsv
+          while IFS=$'\t' read -r id key; do
+            echo "Deleting $key"
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/caches/$id" > /dev/null ||
+              echo "::warning::Could not delete the cache $key"
+          done < replaced.tsv

@@ -44,7 +44,7 @@ pub(super) fn version_info(arguments: &[OsString]) -> Option<Response> {
         .any(|argument| argument == VERSION_INFO)
         .then_some(Response::Version {
             version: env!("CARGO_PKG_VERSION"),
-            build: mash_app::BUILD_REVISION,
+            build: mash_app::build_revision(),
             silver_schema: crate::storage::schema::SCHEMA_VERSION,
             silver_schema_min: crate::storage::schema::MIN_SCHEMA_VERSION,
             record_citations: ["message_id", "session_id"],

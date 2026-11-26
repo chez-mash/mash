@@ -460,7 +460,7 @@ pub fn setup(paths: &super::Paths) -> Setup {
         })
         .collect();
     Setup {
-        build: env!("MASH_BUILD_REVISION").to_owned(),
+        build: crate::build_revision().to_owned(),
         agents,
     }
 }

@@ -76,8 +76,24 @@ use std::io::{self, Write};
 
 use serde::Serialize;
 
-/// The commit this build was made from.
-pub const BUILD_REVISION: &str = env!("MASH_BUILD_REVISION");
+static REVISION: std::sync::OnceLock<&'static str> = std::sync::OnceLock::new();
+
+/// The commit the running program was built from, or `unknown` before
+/// [`set_build_revision`] has been called, as in this crate's own tests.
+pub fn build_revision() -> &'static str {
+    REVISION.get().copied().unwrap_or("unknown")
+}
+
+/// Records the commit the running program was built from. The first call
+/// wins; `mash` and `mash-server` make it before anything else.
+///
+/// The commit is compiled into the package that builds those programs, not
+/// into this library. It differs for every commit, and a value compiled in
+/// here would recompile this crate and every crate built on it for each one,
+/// which is most of a build: only the programs' own package needs to change.
+pub fn set_build_revision(revision: &'static str) {
+    let _ = REVISION.set(revision);
+}
 
 /// Internal code for a closed output stream; never reported as an exit status.
 pub const BROKEN_PIPE: i32 = -1;

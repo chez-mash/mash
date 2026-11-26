@@ -87,6 +87,32 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt
+      # The engine is the program dev-artifacts.yml builds for every main
+      # commit. On macOS and Windows this job compiles it on the same runner
+      # image with the same settings, so it reads that workflow's two caches
+      # (build-binaries.yml explains them; the keys and paths here must stay
+      # the same as there) and saves nothing. On Linux that workflow builds in
+      # another image, so the engine compiles from scratch here, as the app
+      # itself does everywhere.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: runner.os != 'Linux'
+        with:
+          prefix-key: mash-artifacts-v1
+          shared-key: ${{ matrix.target }}-release
+          save-if: false
+          cache-bin: false
+      - name: Restore the engine's compiled crates
+        if: runner.os != 'Linux'
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            target/build-inputs.json
+            target/release/deps/mash*
+            target/release/deps/libmash*
+            target/release/.fingerprint/mash*
+            target/release/build/mash*
+          key: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           package_json_file: desktop/package.json
@@ -108,6 +134,9 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
+      - name: Mark the files that have not changed since the cached build
+        if: runner.os != 'Linux'
+        run: node .github/scripts/build-inputs.mjs restore target/build-inputs.json
       - name: Build the engine
         env:
           MASH_REQUIRE_DASHBOARD: 1

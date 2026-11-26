@@ -13,7 +13,7 @@ use axum::http::{StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use mash_app::core::{self, Operation, Paths, Request};
 use mash_app::{
-    BUILD_REVISION, chat_catalog, config, observability, openapi, records, runtime, search_filter,
+    build_revision, chat_catalog, config, observability, openapi, records, runtime, search_filter,
     search_results, shared, storage, views, watch, write_json,
 };
 use mash_mcp as mcp;
@@ -464,7 +464,7 @@ struct Health {
 
 async fn health() -> Response {
     axum::Json(Health {
-        build: crate::BUILD_REVISION,
+        build: crate::build_revision(),
     })
     .into_response()
 }

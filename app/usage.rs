@@ -145,7 +145,7 @@ impl Started {
             response_bytes: None,
             session: None,
             process_id: std::process::id(),
-            build: crate::BUILD_REVISION.to_owned(),
+            build: crate::build_revision().to_owned(),
             cwd: std::env::current_dir()
                 .ok()
                 .map(|directory| directory.display().to_string()),

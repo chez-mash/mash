@@ -666,7 +666,7 @@ async fn services_reinstall_plugin_runs_setup_once_on_the_named_machine() {
         service: plugin::TARGET.into(),
         action: model::Action::ReinstallPlugin,
         request_id: "00000000-0000-4000-8000-0000000000a1".into(),
-        control_revision: crate::BUILD_REVISION.into(),
+        control_revision: crate::build_revision().into(),
     };
     let response = post(&request).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
@@ -714,7 +714,7 @@ async fn services_reinstall_plugin_runs_setup_once_on_the_named_machine() {
     // plugins, is refused before anything runs, here or on the peer.
     for (machine, service, revision) in [
         ("remote-node", plugin::TARGET, "another-build"),
-        ("remote-node", "managed-watcher", crate::BUILD_REVISION),
+        ("remote-node", "managed-watcher", crate::build_revision()),
         ("test-node", plugin::TARGET, "another-build"),
     ] {
         let refused = operations::ActionRequest {
@@ -748,7 +748,7 @@ async fn services_reinstall_plugin_without_an_agent_says_where_it_looked() {
         service: plugin::TARGET.into(),
         action: model::Action::ReinstallPlugin,
         request_id: "00000000-0000-4000-8000-0000000000b1".into(),
-        control_revision: crate::BUILD_REVISION.into(),
+        control_revision: crate::build_revision().into(),
     };
     let response = client
         .post(format!("{url}/api/services/action"))

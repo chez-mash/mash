@@ -5,7 +5,7 @@ use futures_util::FutureExt;
 use mash_app::core::output::Detail;
 use mash_app::core::{self, IndexRequest, Operation, Paths, Request};
 use mash_app::{
-    BUILD_REVISION, blocking, chat_catalog, records, runtime, search_filter, search_results,
+    blocking, build_revision, chat_catalog, records, runtime, search_filter, search_results,
     silver_query, storage, views,
 };
 #[cfg(test)]

@@ -85,7 +85,7 @@ fn start(state: &Arc<super::super::Dash>, request: ActionRequest) -> Result<Oper
     }
     // The person confirmed against a setup check made by one build. A
     // dashboard restarted since then may judge the plugin differently.
-    if request.control_revision != crate::BUILD_REVISION {
+    if request.control_revision != crate::build_revision() {
         return Err(
             "The dashboard on this machine runs a different build from the one that checked its setup. Check again, then reinstall."
                 .into(),
