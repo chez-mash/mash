@@ -208,6 +208,22 @@ therefore signs builds of main with the Developer ID when the Apple secrets
 are set, as `release.yml` does, and Tauri notarizes and staples the app in
 the same step, so a build of main downloaded by hand also opens normally.
 
+What was checked, in a disposable macOS VM: two builds signed with one
+identity and not notarized update one to the other and start, with the same
+designated requirement before and after and no quarantine attribute, though
+Gatekeeper rejects the app when asked to assess it. The released app's
+requirement names only the identifier and the team (`identifier
+"io.getmash.desktop" … certificate leaf[subject.OU] = JZ665W692Z`), so it does
+not change between versions. The bundled engine is signed as its own program
+(`identifier mash`, same team): a launchd job that runs it is a `mash` to
+macOS, not Mash.app. Login Items lists such a job under the path its
+definition names, so a definition that names the `~/.local/bin/mash` script
+shows as an unidentified "mash", while one written by `mash dash remote`
+names the engine inside the app. Not checked: whether a Files and Folders or
+Full Disk Access grant made to a launchd-run engine survives an update. The
+VM image does not ask for those permissions at all, so there was no grant to
+follow; the unchanged requirement is the reason to expect it to survive.
+
 ### Taking a bad build off the main channel
 
 Run `desktop.yml` from main with the last good commit:
