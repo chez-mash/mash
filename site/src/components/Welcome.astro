@@ -377,7 +377,7 @@ const quick: {
           </p>
         </article>
         <article>
-          <span class="systems"><span title="macOS"><OsMark system="macos" /></span><span title="Linux"><OsMark system="linux" /></span><span title="Windows"><OsMark system="windows" /></span></span>
+          <span class="os-chips"><span class="ico" title="macOS"><OsMark system="macos" /></span><span class="ico" title="Linux"><OsMark system="linux" /></span><span class="ico" title="Windows"><OsMark system="windows" /></span></span>
           <h3>macOS. Linux. Windows.</h3>
           <p>The same Mash on each, with the desktop app or the CLI.</p>
         </article>
@@ -388,8 +388,8 @@ const quick: {
         </article>
         <article>
           <span class="ico"><LineIcon name="download" /></span>
-          <h3>Markdown. HTML. PDF.</h3>
-          <p>Export any chat.</p>
+          <h3>Your chats, exported.</h3>
+          <p>Save any chat as Markdown, HTML or PDF.</p>
         </article>
       </div>
     </div>
@@ -437,6 +437,14 @@ const quick: {
     </div>
   </section>
 </div>
+
+<style>
+  /* The systems tile: each mark in an icon tile of its own, in a row. */
+  .os-chips {
+    display: flex;
+    gap: 0.5rem;
+  }
+</style>
 
 <script>
   import { mountWelcome } from "../welcome.ts";
