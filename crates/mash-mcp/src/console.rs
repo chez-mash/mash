@@ -3,6 +3,7 @@
 use super::Mash;
 use crate::AppError;
 use crate::core::Paths;
+use futures_util::{FutureExt, future::BoxFuture};
 use rmcp::ServiceExt;
 use rmcp::model::{CallToolRequestParams, Tool};
 use std::sync::Arc;
@@ -80,7 +81,18 @@ impl Console {
 
     /// Calls one tool exactly as a connected agent would. Tools not marked
     /// read-only are refused here, whatever the caller sends.
-    pub async fn call(
+    ///
+    /// Boxed so that the in-process server is compiled here and not again in
+    /// the dashboard, which is where this future is polled.
+    pub fn call<'a>(
+        &'a self,
+        name: &'a str,
+        arguments: serde_json::Map<String, serde_json::Value>,
+    ) -> BoxFuture<'a, Result<Answer, AppError>> {
+        self.answer(name, arguments).boxed()
+    }
+
+    async fn answer(
         &self,
         name: &str,
         arguments: serde_json::Map<String, serde_json::Value>,

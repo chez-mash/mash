@@ -20,8 +20,9 @@ use mash_model::{ErrorKind, database_error, message_context, provider, role, too
 use mash_silver as silver;
 use std::sync::Arc;
 
+#[cfg(test)]
+use rmcp::ServiceExt;
 use rmcp::{
-    ServiceExt,
     handler::server::wrapper::Parameters,
     model::{CallToolResult, ContentBlock},
     schemars, tool, tool_router,
@@ -848,30 +849,8 @@ impl rmcp::ServerHandler for Mash {
     }
 }
 
-pub async fn run(paths: Paths, offered: Offered) -> Result<(), crate::AppError> {
-    // Set before the server exists; nothing has read it yet.
-    let _ = OFFERED.set(offered);
-    let registered_paths = paths.clone();
-    let lease = crate::blocking(move || {
-        crate::runtime::Lease::register(&registered_paths, crate::runtime::Kind::Mcp)
-    })
-    .await?;
-    let server = Mash {
-        paths: Arc::new(paths),
-        gate: Arc::new(tokio::sync::Mutex::new(())),
-        model_work: Arc::new(tokio::sync::Semaphore::new(1)),
-        runtime: Some(Arc::new(lease)),
-    };
-    let service = server
-        .serve(rmcp::transport::stdio())
-        .await
-        .map_err(|_| crate::AppError::internal("MCP initialization failed"))?;
-    service
-        .waiting()
-        .await
-        .map(|_| ())
-        .map_err(|_| crate::AppError::internal("MCP session failed"))
-}
+mod stdio;
+pub use stdio::run;
 
 #[cfg(test)]
 mod tests;

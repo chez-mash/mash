@@ -14,14 +14,13 @@
 553 cli/cli.rs
 827 crates/mash-dash/src/assistant.rs
 1304 crates/mash-dash/src/assistant/lookups.rs
-733 crates/mash-dash/src/lib.rs
+657 crates/mash-dash/src/lib.rs
 538 crates/mash-fleet/src/inventory.rs
 522 crates/mash-mcp/src/guidance.rs
-873 crates/mash-mcp/src/lib.rs
+852 crates/mash-mcp/src/lib.rs
 501 crates/mash-search/src/views/materialize.rs
 1136 crates/mash-search/src/views/qdrant/api.rs
 604 crates/mash-search/src/views/qdrant/views.rs
-502 crates/mash-server/src/lib.rs
 1534 crates/mash-server/src/sync.rs
 581 crates/mash-silver/src/copilot.rs
 781 crates/mash-silver/src/opencode.rs

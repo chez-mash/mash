@@ -1,7 +1,7 @@
 //! Typed application facade shared by CLI and MCP.
 use crate::AppError;
 use crate::config::{self, ResolvedConfig};
-use futures_util::FutureExt;
+use futures_util::{FutureExt, future::BoxFuture};
 use std::path::{Path, PathBuf};
 
 mod chats;
@@ -30,15 +30,15 @@ pub use models::{
 };
 pub use setup::{InitPlan, InitReport, InitRequest, MARKETPLACE, join_plan};
 
-pub async fn execute(request: Request) -> Result<Response, AppError> {
-    execute_admitted(request, None).await
+pub fn execute(request: Request) -> BoxFuture<'static, Result<Response, AppError>> {
+    execute_admitted(request, None).boxed()
 }
 
-pub async fn execute_with_model_limit(
+pub fn execute_with_model_limit(
     request: Request,
     capacity: &tokio::sync::Semaphore,
-) -> Result<Response, AppError> {
-    execute_admitted(request, Some(capacity)).await
+) -> BoxFuture<'_, Result<Response, AppError>> {
+    execute_admitted(request, Some(capacity)).boxed()
 }
 
 async fn execute_admitted(
