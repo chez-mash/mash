@@ -93,6 +93,13 @@ export function quickSearch(band: HTMLElement, screen: Screen): Stop {
       refreshPriority: 1,
       scrub: 0.4,
       animation: timeline,
+      // The field's text is written by the typing tween's callback, and a
+      // refresh moves the timeline without running callbacks. A refresh that
+      // jumped past the typing would leave the placeholder over the results,
+      // so write the field again whenever the scroll or a refresh moves it.
+      onUpdate: type,
+      onRefresh: type,
+      onScrubComplete: type,
     });
   } else {
     timeline.fromTo(
