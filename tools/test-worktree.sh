@@ -8,7 +8,8 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/worktree-test.XXXXXXXX")
 trap 'rm -rf "$scratch"' EXIT
 export GIT_AUTHOR_NAME=Fixture GIT_AUTHOR_EMAIL=fixture@example.invalid
 export GIT_COMMITTER_NAME=Fixture GIT_COMMITTER_EMAIL=fixture@example.invalid
-unset MASH_WORKTREES
+# The check must leave the tree clean without help from the environment.
+unset MASH_WORKTREES PYTHONDONTWRITEBYTECODE PYTHONPYCACHEPREFIX
 fail() {
     printf 'FAIL %s\n' "$1" >&2
     [[ ! -f $scratch/output ]] || sed 's/^/  /' "$scratch/output" >&2

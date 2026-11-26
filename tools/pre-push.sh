@@ -114,10 +114,12 @@ in_dir() {
 
 if any '\.(rs|ts|svelte|py)$|^tools/(file-lines-baseline\.txt|file-reviews/)'; then
     if command -v python3 >/dev/null; then
+        # -B: a bytecode cache in tools/ would be an untracked file, and
+        # `worktree.sh done` and `deploy-tree` refuse a tree that has one.
         against=()
         [[ -z $growth_base ]] || against=(--against "$growth_base")
         check 'line limit' 'split the file along a real responsibility, or write the growth review the message names; rerun python3 tools/check_file_lines.py' \
-            python3 tools/check_file_lines.py "${against[@]}"
+            python3 -B tools/check_file_lines.py "${against[@]}"
     else
         skip 'line limit: python3 is not installed'
     fi
