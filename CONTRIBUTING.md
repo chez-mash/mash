@@ -96,6 +96,11 @@ logs and screenshots.
 When Greptile reviews a pull request, it uses the rules in `.greptile/`.
 A maintainer makes the decision.
 
+An accepted pull request is merged through GitHub's merge queue: your commits
+are rebased onto `main`, the required checks run once more on the result, and
+`main` moves only if they pass. Each commit arrives as it is, so keep one
+commit per logical change.
+
 ## Labels
 
 Labels are applied for you; you do not need permission to set them.
