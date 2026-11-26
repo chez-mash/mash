@@ -201,6 +201,7 @@ jobs:
         shell: pwsh
     env:
       MANIFESTS: ${{ github.workspace }}\winget-manifests
+      LOGS: ${{ runner.temp }}\winget-logs
     steps:
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -246,6 +247,7 @@ jobs:
           }
           '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
+          New-Item -ItemType Directory -Force -Path $env:LOGS | Out-Null
 
           if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
             # Microsoft's supported way to put App Installer on a machine
@@ -278,7 +280,8 @@ jobs:
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
           Invoke-Winget -Arguments 'install', '--manifest', $env:MANIFESTS, '--accept-package-agreements',
-              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs'
+              '--accept-source-agreements', '--silent', '--disable-interactivity', '--verbose-logs',
+              '--log', (Join-Path $env:LOGS 'install.log')
       - name: Run it from a new shell
         timeout-minutes: 15
         run: |
@@ -301,12 +304,15 @@ jobs:
             if ($built -ne $machine) { throw "$name is built for machine $built; this runner needs $machine." }
             "| $name --version | $reported, machine $built, $($command.Source) |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
-          Invoke-Winget -Arguments 'list', '--id', 'MashHQ.Mash', '--exact', '--disable-interactivity' -Minutes 5
+          # Installed from a local manifest, the package is listed under an
+          # identifier of its own and not as MashHQ.Mash from a source.
+          Invoke-Winget -Arguments 'list', '--query', 'Mash', '--disable-interactivity' -Minutes 5
       - name: Uninstall with winget
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs'
+          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs',
+              '--log', (Join-Path $env:LOGS 'uninstall.log')
           $env:PATH = Get-FreshPath
           $left = Get-Command mash.exe, mash-server.exe -CommandType Application -ErrorAction SilentlyContinue
           if ($left) { throw "winget uninstall left $($left.Source -join ', ') on PATH." }
@@ -314,10 +320,12 @@ jobs:
         if: ${{ !cancelled() }}
         timeout-minutes: 5
         run: |
-          $logs = Join-Path $env:RUNNER_TEMP 'winget-logs'
+          $logs = $env:LOGS
           New-Item -ItemType Directory -Force -Path $logs | Out-Null
+          # The install and uninstall logs are written here directly; the
+          # other commands log to winget's own directory.
           $sources = @(
-            Get-ChildItem "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_*\LocalState\DiagOutputDir" -File -ErrorAction SilentlyContinue
+            Get-ChildItem "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_*\LocalState\DiagOutputDir" -Recurse -File -ErrorAction SilentlyContinue
             Get-ChildItem "$env:TEMP\WinGet" -Recurse -File -Filter *.log -ErrorAction SilentlyContinue
           )
           $sources | Copy-Item -Destination $logs -Force
@@ -327,7 +335,7 @@ jobs:
               Where-Object { $_.Name -match 'winget|WindowsPackageManager|AppInstaller|vc_?redist|msiexec|mash' } |
               Format-Table ProcessId, ParentProcessId, CreationDate, Name, CommandLine -AutoSize -Wrap | Out-String -Width 300
           Write-Host '::endgroup::'
-          foreach ($log in Get-ChildItem $logs -Filter 'WinGet-*.log' | Sort-Object LastWriteTime) {
+          foreach ($log in Get-ChildItem $logs -Filter '*.log' | Sort-Object LastWriteTime) {
             Write-Host "::group::$($log.Name) (last 80 lines)"
             Get-Content -LiteralPath $log.FullName -Tail 80
             Write-Host '::endgroup::'
