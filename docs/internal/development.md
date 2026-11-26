@@ -1039,6 +1039,29 @@ What it leaves to a person, with the commands printed at the end:
   (`packaging/winget/README.md`).
 - **The fleet.** `bash tools/fleet.sh deploy --release vX.Y.Z TARGET...`.
 
+When `release.yml` succeeds for a tag, `release-check.yml` installs the
+published release the documented ways and runs it:
+`gh workflow run release-check.yml -f tag=vX.Y.Z` repeats it for any published
+release.
+
+| Job | Runners | What it proves |
+|---|---|---|
+| `installer` | Linux x64 and ARM64, macOS, Windows x64 (`windows-latest`) and ARM64 (`windows-11-arm`) | `install.sh` or `install.ps1` from `main` installs the tag; `mash` and `mash-server` report its version. On Windows the installed programs must be built for the runner's architecture, because an x64 program also starts on ARM64 and would pass the version check. |
+| `homebrew`, `apt`, `scoop` | macOS and Linux; Linux; Windows x64 | The tap, the apt repository and the Scoop bucket offer the tag and install it. |
+| `winget-manifests` | Linux | Fills `packaging/winget/*.yaml.in` from the release's `SHA256SUMS`, as `release.yml` does. After a release the templates are the tagged commit's; a manual run uses the branch it was started from (`--ref BRANCH`), which tries a manifest change against a published release before anything is submitted. |
+| `winget` | Windows x64 and ARM64 | `winget validate`, then `winget install --manifest` with local manifests enabled, both programs run from the PATH a new terminal would get and checked for the runner's architecture, then `winget uninstall`. |
+
+Every winget command in the `winget` job has its own time limit (12 minutes
+inside a 15-minute step), so a command that never returns fails the job and
+prints the processes started since it began, instead of holding a runner
+until the job is cancelled. The job summary gives each command's duration and
+exit code, and winget's own logs are kept as the `winget-logs-RUNNER`
+artifacts whether the job passed or not. `windows-11-arm` has no winget, so
+the job first installs App Installer there with Microsoft's
+`Repair-WinGetPackageManager`. Both runner images already carry the Visual C++
+runtime the manifest depends on, so the job shows that winget resolves that
+dependency, not how long installing it takes on a machine without it.
+
 `--resume` works out where the release stopped from the repository itself (the
 release commit, whether main has it, the tag locally and on the remote, the
 version in the Scoop manifest on main), so it is safe to run again at any
