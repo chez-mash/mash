@@ -18,8 +18,11 @@ import Agents from "./Agents.astro";
 import AgentsBand from "./AgentsBand.astro";
 import AgentTile from "./AgentTile.astro";
 import AppIcon from "./AppIcon.astro";
+import InstallBand from "./InstallBand.astro";
 import LineIcon from "./LineIcon.astro";
+import MachinesBand from "./MachinesBand.astro";
 import OsMark from "./OsMark.astro";
+import ReadingBand from "./ReadingBand.astro";
 import Surfaces from "./Surfaces.astro";
 
 /** The projects Mash is built on, each with its logo and linked to its own site. */
@@ -152,16 +155,100 @@ const quick: {
         <span class="kicker">Search</span>
         <h2 id="welcome-search-title">Find it. <span class="quiet">However you remember it.</span></h2>
         <ul class="points">
+          <li><span class="ico"><LineIcon name="search" /></span>By the words, forgiving a typo or half a word.</li>
           <li><span class="ico"><LineIcon name="message-square" /></span>By meaning, with optional local models.</li>
-          <li><span class="ico"><LineIcon name="search" /></span>By the exact words.</li>
-          <li><span class="ico"><LineIcon name="server" /></span>Across machines through a server you run.</li>
+          <li><span class="ico"><LineIcon name="layers" /></span>Both together: BM25 and embeddings, reranked by a cross-encoder.</li>
         </ul>
-        <a class="more" href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
+        <p class="links">
+          <a class="more" href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
+          <a class="more" href="/search/">How search works ›</a>
+        </p>
       </div>
     </div>
   </section>
 
   <AgentsBand />
+
+  <section class="band" id="welcome-memory" aria-labelledby="welcome-memory-title">
+    <div class="wrapper split" data-reveal>
+      <div class="memory-thread" role="img"
+        aria-label="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session.">
+        <p class="bubble said" aria-hidden="true">OK, go with the tokens. Keep the mobile app on the same scheme.</p>
+        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />saved with your message as evidence</p>
+        <div class="record" aria-hidden="true">
+          <p class="pills"><span class="pill butter"><LineIcon name="bookmark" size="0.75rem" />decision</span><span class="pill ok">accepted</span><span class="pill">established</span></p>
+          <p class="statement">Sign-in uses fifteen-minute access tokens with a server-held refresh token.</p>
+          <dl>
+            <dt>why</dt><dd>Chosen so that signing out reaches every device within fifteen minutes.</dd>
+            <dt>evidence</dt><dd>you said this (endorsement) · <span class="fake-link">open the message</span></dd>
+          </dl>
+        </div>
+        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />comes back in a later session</p>
+        <p class="later" aria-hidden="true"><AgentTile agent="codex" />Codex: “Found the decision in Mash: tokens, mobile follows.”</p>
+      </div>
+      <div class="words">
+        <span class="kicker">Memory</span>
+        <h2 id="welcome-memory-title">Save the decision. <span class="quiet">Keep the source.</span></h2>
+        <ol class="points steps">
+          <li><span class="ico">1</span>You say it.</li>
+          <li><span class="ico">2</span>Ask the plugin to save the decision with your message as evidence.</li>
+          <li><span class="ico">3</span>The decision can come back in a later session.</li>
+        </ol>
+        <p class="blurb">
+          Decisions, preferences and notes, each kept with the quote it came from. Correct one
+          when you change your mind, or ask your agent to forget it.
+        </p>
+        <p class="links">
+          <a class="more" href="/demo/#/record/record-sign-in-tokens?node=laptop" data-astro-reload>Follow the sign-in decision in the demo ›</a>
+          <a class="more" href="/records/">How memory works ›</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <ReadingBand />
+
+  <MachinesBand />
+
+  <section class="band tint" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
+    <div class="wrapper stack" data-reveal>
+      <div class="privacy-head">
+        <div class="head">
+          <span class="kicker">Privacy</span>
+          <h2 id="welcome-privacy-title">Self-hosted, end to end. <span class="quiet">No cloud. No account.</span></h2>
+        </div>
+        <div class="aside">
+          <ul class="caps">
+            <li>Index and search on the machine where your chats were saved.</li>
+            <li>When you opt in to sharing, you choose which machines publish.</li>
+          </ul>
+          <a class="more" href="/privacy/">How Mash handles your history ›</a>
+        </div>
+      </div>
+      <ul class="cards">
+        <li>
+          <span class="ico"><LineIcon name="laptop" /></span>
+          <h3>Runs on your machine</h3>
+          <p>Indexing and search work offline once the local search service is running.</p>
+        </li>
+        <li>
+          <span class="ico"><LineIcon name="server" /></span>
+          <h3>Your own server</h3>
+          <p>For search across machines, share through a Mash server you run.</p>
+        </li>
+        <li>
+          <span class="ico"><LineIcon name="power" /></span>
+          <h3>Off until you turn it on</h3>
+          <p>Sharing, remote workers and Mashy are each a choice you make.</p>
+        </li>
+        <li>
+          <span class="ico"><LineIcon name="key-round" /></span>
+          <h3>Credentials masked</h3>
+          <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
 
   <section class="band tint mashy-band" id="welcome-mashy" aria-labelledby="welcome-mashy-title">
     <div class="wrapper split reverse" data-reveal>
@@ -239,37 +326,7 @@ const quick: {
     </div>
   </section>
 
-  <section class="band" id="welcome-memory" aria-labelledby="welcome-memory-title">
-    <div class="wrapper split" data-reveal>
-      <div class="memory-thread" role="img"
-        aria-label="A saved decision to use 15-minute access tokens cites the original Claude Code message and appears in a later Codex session.">
-        <p class="bubble said" aria-hidden="true">OK, go with the tokens. Keep the mobile app on the same scheme.</p>
-        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />saved with your message as evidence</p>
-        <div class="record" aria-hidden="true">
-          <p class="pills"><span class="pill butter"><LineIcon name="bookmark" size="0.75rem" />decision</span><span class="pill ok">accepted</span><span class="pill">established</span></p>
-          <p class="statement">Sign-in uses fifteen-minute access tokens with a server-held refresh token.</p>
-          <dl>
-            <dt>why</dt><dd>Chosen so that signing out reaches every device within fifteen minutes.</dd>
-            <dt>evidence</dt><dd>you said this (endorsement) · <span class="fake-link">open the message</span></dd>
-          </dl>
-        </div>
-        <p class="step" aria-hidden="true"><LineIcon name="arrow-down" size="0.875rem" />comes back in a later session</p>
-        <p class="later" aria-hidden="true"><AgentTile agent="codex" />Codex: “Found the decision in Mash: tokens, mobile follows.”</p>
-      </div>
-      <div class="words">
-        <span class="kicker">Memory</span>
-        <h2 id="welcome-memory-title">Save the decision. <span class="quiet">Keep the source.</span></h2>
-        <ol class="points steps">
-          <li><span class="ico">1</span>You say it.</li>
-          <li><span class="ico">2</span>Ask the plugin to save the decision with your message as evidence.</li>
-          <li><span class="ico">3</span>The decision can come back in a later session.</li>
-        </ol>
-        <a class="more" href="/demo/#/record/record-sign-in-tokens?node=laptop" data-astro-reload>Follow the sign-in decision in the demo ›</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="band tint" id="welcome-speed" aria-labelledby="welcome-speed-title">
+  <section class="band" id="welcome-speed" aria-labelledby="welcome-speed-title">
     <div class="wrapper stack" data-reveal>
       <div class="head">
         <span class="kicker">Performance</span>
@@ -319,47 +376,9 @@ const quick: {
     </div>
   </section>
 
-  <section class="band" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
-    <div class="wrapper stack" data-reveal>
-      <div class="privacy-head">
-        <div class="head">
-          <span class="kicker">Privacy</span>
-          <h2 id="welcome-privacy-title">Self-hosted, end to end. <span class="quiet">No cloud. No account.</span></h2>
-        </div>
-        <div class="aside">
-          <ul class="caps">
-            <li>Index and search on the machine where your chats were saved.</li>
-            <li>When you opt in to sharing, you choose which machines publish.</li>
-          </ul>
-          <a class="more" href="/privacy/">How Mash handles your history ›</a>
-        </div>
-      </div>
-      <ul class="cards">
-        <li>
-          <span class="ico"><LineIcon name="laptop" /></span>
-          <h3>Runs on your machine</h3>
-          <p>Indexing and search work offline once the local search service is running.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="server" /></span>
-          <h3>Your own server</h3>
-          <p>For search across machines, share through a Mash server you run.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="power" /></span>
-          <h3>Off until you turn it on</h3>
-          <p>Sharing, remote workers and Mashy are each a choice you make.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="key-round" /></span>
-          <h3>Credentials masked</h3>
-          <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
-        </li>
-      </ul>
-    </div>
-  </section>
+  <InstallBand />
 
-  <section class="band tint" id="welcome-features" aria-labelledby="welcome-features-title">
+  <section class="band" id="welcome-features" aria-labelledby="welcome-features-title">
     <div class="wrapper stack" data-reveal>
       <div class="head">
         <span class="kicker">And more</span>
@@ -375,33 +394,42 @@ const quick: {
           </p>
         </article>
         <article>
-          <span class="ico"><LineIcon name="layers" /></span>
-          <h3>RAG over your own history.</h3>
+          <span class="ico"><LineIcon name="translate" /></span>
+          <h3>In the language you wrote.</h3>
           <p>
-            <a href="/search/">Hybrid search</a> combines BM25 and embeddings, then reranks the
-            results with a cross-encoder.
+            Chats stay in their original language, and <a href="/search-languages/">word search</a> finds
+            them as written.
           </p>
         </article>
         <article>
-          <span class="os-chips"><span class="ico" title="macOS"><OsMark system="macos" /></span><span class="ico" title="Linux"><OsMark system="linux" /></span><span class="ico" title="Windows"><OsMark system="windows" /></span></span>
-          <h3>macOS. Linux. Windows.</h3>
-          <p>The same Mash on each, with the desktop app or the CLI.</p>
+          <span class="ico"><LineIcon name="phone" /></span>
+          <h3>From your phone.</h3>
+          <p>
+            Open a computer’s dashboard <a href="/dashboard-access/">over your own tailnet</a>, with
+            nothing installed on the phone.
+          </p>
         </article>
         <article>
-          <span class="ico"><LineIcon name="server" /></span>
-          <h3>Every machine.</h3>
-          <p>An optional <a href="/search-across-machines/">shared index</a>, on your own server.</p>
+          <span class="ico"><LineIcon name="database" /></span>
+          <h3>Backups you can restore.</h3>
+          <p>
+            <a href="/backup/">A portable copy</a> of your history, for an upgrade or a move to
+            another computer.
+          </p>
         </article>
         <article>
-          <span class="ico"><LineIcon name="download" /></span>
-          <h3>Your chats, exported.</h3>
-          <p>Save any chat as Markdown, HTML or PDF.</p>
+          <span class="ico"><LineIcon name="wrench" /></span>
+          <h3>A doctor on call.</h3>
+          <p>
+            <a href="/troubleshooting/"><code>mash doctor</code></a> names what is wrong, why, and
+            the command that repairs it.
+          </p>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="band" id="welcome-rust" aria-labelledby="welcome-rust-title">
+  <section class="band tint" id="welcome-rust" aria-labelledby="welcome-rust-title">
     <div class="wrapper split rust" data-reveal>
       <div class="words">
         <span class="kicker">Open source</span>
@@ -443,14 +471,6 @@ const quick: {
     </div>
   </section>
 </div>
-
-<style>
-  /* The systems tile: each mark in an icon tile of its own, in a row. */
-  .os-chips {
-    display: flex;
-    gap: 0.5rem;
-  }
-</style>
 
 <script>
   import { mountWelcome } from "../welcome.ts";

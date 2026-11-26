@@ -33,10 +33,13 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
     "Find it. However you remember it.",
     "Every agent. One memory.",
-    "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
-    "Fast, and light on your machine.",
+    "Read it back. Every step of it.",
+    "Every machine. One search.",
     "Self-hosted, end to end. No cloud. No account.",
+    "Meet Mashy. Ask anything about your chats.",
+    "Fast, and light on your machine.",
+    "macOS. Linux. Windows. The app, the command, or both.",
     "Fits the way you work.",
     "Written with <3 in Rust.",
     "Give your agents their history back.",
@@ -44,15 +47,17 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
   // Five of them are the showcase's surfaces, of which one shows at a time.
-  await expect(illustrations).toHaveCount(9);
+  await expect(illustrations).toHaveCount(11);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
   const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("link")).toHaveText([
     "Connect it over MCP",
-    "Hybrid search",
-    "shared index",
+    "word search",
+    "over your own tailnet",
+    "A portable copy",
+    "mash doctor",
   ]);
   await page.locator(".mash-agents").scrollIntoViewIfNeeded();
   for (const mark of await marks.all()) await expect(mark).toBeVisible();
@@ -153,22 +158,32 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   ).toHaveAttribute("href", "/guides/");
 });
 
-test("every feature tile draws its icon in the same chip, the systems one each", async ({
+test("every feature tile draws its icon in the same chip, and the install band one for each system", async ({
   page,
 }) => {
   await page.goto("/");
   const more = page.getByRole("region", { name: "Fits the way you work." });
   await expect(more.getByRole("heading", { level: 3 })).toHaveText([
     "Any MCP client.",
-    "RAG over your own history.",
-    "macOS. Linux. Windows.",
-    "Every machine.",
-    "Your chats, exported.",
+    "In the language you wrote.",
+    "From your phone.",
+    "Backups you can restore.",
+    "A doctor on call.",
   ]);
-  await expect(more.locator("article").last()).toContainText("Markdown, HTML or PDF");
-  const chips = more.locator(".tiles .ico");
-  await expect(chips).toHaveCount(7);
-  const systems = more.locator(".tiles .os-chips .ico");
+  const install = page.locator("#welcome-platforms");
+  await expect(install.getByRole("heading", { level: 3 })).toHaveText([
+    "The desktop app",
+    "The command",
+    "The Raycast extension",
+  ]);
+  await expect(install.getByRole("link")).toHaveText([
+    "Download the app ›",
+    "Install from the terminal ›",
+    "Get the extension ›",
+  ]);
+  const chips = page.locator("#welcome-features .tiles .ico, #welcome-platforms .ways .ico");
+  await expect(chips).toHaveCount(10);
+  const systems = install.locator(".os-chips .ico");
   await expect(systems).toHaveCount(3);
   await expect(systems.locator("svg.os-mark")).toHaveCount(3);
   const looks = await chips.evaluateAll((all) =>
@@ -525,7 +540,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const welcome = page.locator(".mash-welcome");
   // The showcase's surfaces aside (surfaces.spec.ts): one of those shows at a time.
   const windows = welcome.locator("[role=img]:not(.picture)");
-  await expect(windows).toHaveCount(4);
+  await expect(windows).toHaveCount(6);
   await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
@@ -597,8 +612,8 @@ test("every feature tile has an icon, the stack chips have logos, and the close 
   await expect(tiles).toHaveCount(5);
   for (const tile of await tiles.all())
     await expect(tile.locator(".ico svg").first()).toBeVisible();
-  // The systems' tile shows their three marks, each in a chip.
-  await expect(tiles.nth(2).locator(".os-chips .ico svg")).toHaveCount(3);
+  // The install band shows the systems' three marks, each in a chip.
+  await expect(welcome.locator("#welcome-platforms .os-chips .ico svg")).toHaveCount(3);
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();

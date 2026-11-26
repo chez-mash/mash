@@ -120,6 +120,15 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   and a rail that is not showing is not laid out. What the cards say follows
   `docs/supported-agents.md` and the generated `docs/tools.md`; change a
   card when those change.
+- **The order** goes from the overview to one band per capability: the
+  surface showcase, quick search, search, the agents band, memory, reading a
+  chat (`ReadingBand.astro`), search across machines (`MachinesBand.astro`),
+  privacy, Mashy, the figures, where it installs (`InstallBand.astro`), the
+  smaller things ("Fits the way you work"), open source, and the closing
+  card. A new band goes in its own component and says only what a guide in
+  `docs/` says, with a link to that guide; `site/tests/sections.spec.ts`
+  holds the order and each band's claims and links. The tiles under "Fits
+  the way you work" are for what has no band of its own.
 - **Bands.** Each idea is one full-width band: a stamped label, a heading,
   a few points with icons, and a small window or set of cards drawn the way
   the dashboard draws them (search results, Mashy's answer, a saved
