@@ -109,9 +109,10 @@ make_tag() {
 # it merges, so that commit is a copy of the local one under another name and
 # is found by its subject.
 release_on_main() {
+    # awk reads to the end: leaving early would end `git log` with a broken
+    # pipe, which pipefail turns into a failure now and then.
     git -C "$tree" log -200 --format='%H %s' origin/main | awk -v subject="Release $version" '
-        substr($0, index($0, " ") + 1) == subject { print $1; found = 1; exit }
-        END { exit 0 }'
+        !found && substr($0, index($0, " ") + 1) == subject { print $1; found = 1 }'
 }
 # land BRANCH: put HEAD on main, through the merge queue as BRANCH, or with
 # --direct straight to main, which GitHub accepts only from an administrator.
