@@ -1,10 +1,11 @@
 ---
 // The landing hero, as the wireframe draws it: streaks of butter light behind
-// the tagline as the headline, the page's own paragraph under it, the desktop
+// the app icon and the tagline as the headline, the page's own paragraph under it, the desktop
 // app for the visitor's system, where else Mash runs, and the terminal
 // install for each system in tabs. Other ways to install, including asking
 // an agent, are in the docs.
 import { tagline as headline } from "../brand.ts";
+import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 
@@ -45,6 +46,7 @@ const installs = [
   </div>
   <div class="hero">
     <div class="copy">
+      <AppIcon id="hero-icon" class="hero-icon" />
       <h1 id="_top" data-page-title>
         {headline.split(" for ").map((part, index) => <span>{index === 0 ? part : ` for ${part}`}</span>)}
       </h1>
@@ -175,7 +177,7 @@ const installs = [
   .mash-hero {
     position: relative;
     margin-top: calc(-1 * var(--sl-nav-height));
-    padding: calc(var(--sl-nav-height) + 5rem) var(--mash-gutter) 0;
+    padding: calc(var(--sl-nav-height) + 3.5rem) var(--mash-gutter) 0;
     overflow: hidden;
   }
   .light {
@@ -244,6 +246,11 @@ const installs = [
   }
   .copy > :global(*) {
     margin: 0;
+  }
+  /* The app icon, large over the headline as product pages show theirs. */
+  .copy > :global(.hero-icon) {
+    width: 7rem;
+    margin-bottom: 0.875rem;
   }
   h1 {
     color: var(--text-strong);
@@ -443,7 +450,11 @@ const installs = [
 
   @media (width < 40rem) {
     .mash-hero {
-      padding-top: calc(var(--sl-nav-height) + 2.5rem);
+      padding-top: calc(var(--sl-nav-height) + 2rem);
+    }
+    .copy > :global(.hero-icon) {
+      width: 4.5rem;
+      margin-bottom: 0.375rem;
     }
     h1 {
       font-size: clamp(2.5rem, 12vw, 3rem);

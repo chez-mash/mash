@@ -127,8 +127,10 @@ test("the install tabs show each system's command, and copy it", async ({ page, 
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     "curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh -s -- --dashboard",
   );
-  // On a phone the headline and the download still lead.
+  // On a phone the headline and the download still lead. Back at the top:
+  // with the app icon over the headline, using the tabs scrolls the page.
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => scrollTo(0, 0));
   await expect(page.locator(".hero h1")).toBeInViewport();
   await expect(page.locator(".hero .actions a")).toBeVisible();
 });
@@ -229,10 +231,13 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
-  const mashy = welcome.getByRole("img", { name: "Mashy, the Mash mascot" });
+  const mashy = welcome.locator("img.mashy-face");
   await expect
     .poll(() => mashy.evaluate((img: HTMLImageElement) => img.naturalHeight))
     .toBeGreaterThan(0);
+  // The app icon is drawn inline, over the headline and the closing call to action.
+  await expect(page.locator(".hero .app-icon svg")).toBeVisible();
+  await expect(welcome.locator(".closing .app-icon svg")).toBeVisible();
   for (const caption of await welcome.locator(".caps li").all())
     await expect(caption).toBeVisible();
   await welcome.locator(".measured summary").click();

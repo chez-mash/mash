@@ -1,0 +1,91 @@
+---
+// The Mash app icon, as the landing page features it: the mark on its blue
+// tile, drawn inline so it stays sharp at any size and takes a deeper blue in
+// the dark theme, as the macOS icon's dark appearance does. It is decorative:
+// the heading or words beside it name Mash. `id` keeps each copy's gradient
+// apart when the page shows the icon more than once.
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+const tile = `${id}-tile`;
+---
+
+<span class:list={["app-icon", className]} aria-hidden="true">
+  <svg viewBox="0 0 64 64" focusable="false">
+    <defs>
+      <linearGradient id={tile} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" class="top" />
+        <stop offset="1" class="bottom" />
+      </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="15" fill={`url(#${tile})`} />
+    <rect x="0.5" y="0.5" width="63" height="63" rx="14.5" class="edge" />
+    <g transform="translate(32 33) scale(1.08) translate(-32 -32.5)">
+      <path class="mash" d="M12 31C11 26 15 22.5 20 23.5C21 18.5 27 16.5 31 19.5C35 15.5 42.5 17 43.5 22.5C48.5 21.5 53 25.5 52 31Z" />
+      <path class="swirl" d="M19.5 27.5C22 25 25.5 25 28 27S34 29.2 38 26.5" />
+      <path class="bowl" d="M8 31H56A24 21 0 0 1 8 31Z" />
+      <g transform="rotate(-9 32.5 18.5)">
+        <rect class="pat" x="25" y="13" width="15" height="11" rx="3" />
+        <rect class="shine" x="27.5" y="15" width="6" height="2" rx="1" />
+      </g>
+    </g>
+  </svg>
+</span>
+
+<style>
+  /* A soft blue shadow under the tile and a halo of butter light behind it. */
+  .app-icon {
+    position: relative;
+    display: block;
+    width: 7rem;
+    aspect-ratio: 1;
+  }
+  .app-icon::before {
+    position: absolute;
+    inset: -30%;
+    border-radius: var(--radius-round);
+    background: var(--app-icon-halo);
+    filter: blur(28px);
+    content: "";
+  }
+  svg {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: var(--app-icon-shadow);
+  }
+  .top {
+    stop-color: var(--app-icon-top);
+  }
+  .bottom {
+    stop-color: var(--app-icon-bottom);
+  }
+  .edge {
+    fill: none;
+    stroke: var(--app-icon-edge);
+  }
+  .mash {
+    fill: var(--app-icon-mash);
+  }
+  .swirl {
+    fill: none;
+    stroke: var(--app-icon-swirl);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    opacity: 0.85;
+  }
+  .bowl {
+    fill: var(--app-icon-bowl);
+  }
+  .pat {
+    fill: var(--brand-pat);
+  }
+  .shine {
+    fill: var(--app-icon-shine);
+  }
+</style>

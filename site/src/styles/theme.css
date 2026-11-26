@@ -160,6 +160,18 @@
   /* The Mash tile, drawn in CSS for the small mark inside the menu bar. */
   --mark-top: #3b7ad6;
   --mark-bottom: #2a62b8;
+  /* The app icon the landing page features: the same tile and mark, a soft
+     blue shadow under it and butter light behind it. */
+  --app-icon-top: #3b7ad6;
+  --app-icon-bottom: #2a62b8;
+  --app-icon-edge: rgba(255, 255, 255, 0.18);
+  --app-icon-mash: #fff1d0;
+  --app-icon-swirl: #d4a73e;
+  --app-icon-bowl: #dce3fa;
+  --app-icon-shine: #fff0be;
+  --app-icon-shadow: drop-shadow(0 18px 24px rgba(42, 98, 184, 0.26))
+    drop-shadow(0 3px 6px rgba(20, 19, 15, 0.12));
+  --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.42), rgba(245, 200, 75, 0));
   /* Corners. */
   --radius-1: 3px;
   --radius-2: 5px;
@@ -236,6 +248,12 @@
     --action-text: #141311;
     --butter-soft: rgba(245, 200, 75, 0.16);
     --butter-glow: rgba(245, 200, 75, 0.18);
+    --app-icon-top: #2c62b4;
+    --app-icon-bottom: #1f4e96;
+    --app-icon-edge: rgba(255, 255, 255, 0.14);
+    --app-icon-shadow: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.2), rgba(245, 200, 75, 0));
     --butter-icon: #f0be3c;
     --find-bg: rgba(245, 200, 75, 0.3);
     --link: #f3efe6;
@@ -337,6 +355,12 @@
   --action-text: #141311;
   --butter-soft: rgba(245, 200, 75, 0.16);
   --butter-glow: rgba(245, 200, 75, 0.18);
+  --app-icon-top: #2c62b4;
+  --app-icon-bottom: #1f4e96;
+  --app-icon-edge: rgba(255, 255, 255, 0.14);
+  --app-icon-shadow: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.2), rgba(245, 200, 75, 0));
   --butter-icon: #f0be3c;
   --find-bg: rgba(245, 200, 75, 0.3);
   --link: #f3efe6;

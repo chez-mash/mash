@@ -3,7 +3,8 @@
 // idea, each with a small mono label, a heading and a window or set of cards
 // drawn as the dashboard draws them. The windows are illustrations: each is
 // one image to assistive technology, named for what it shows. Mashy appears
-// only in his own band and in the closing call to action.
+// only in his own band; the closing call to action shows the app icon, as
+// the hero does.
 
 import { Image } from "astro:assets";
 import type { Agent } from "../../../dashboard/src/lib/types";
@@ -15,6 +16,7 @@ import tauri from "../art/stack/tauri.svg?raw";
 import tokio from "../art/stack/tokio.svg?raw";
 import Agents from "./Agents.astro";
 import AgentTile from "./AgentTile.astro";
+import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 
@@ -178,7 +180,7 @@ const quick: {
             <div class="example" data-example="1">
               <p class="bubble">What caused the checkout outage last week?</p>
               <div class="answer">
-                <img src="/mashy.png" alt="" width="30" height="27" />
+                <img src="/mashy.png" alt="" width="30" height="24" />
                 <div>
                   <p>A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:</p>
                   <div class="quote">
@@ -192,7 +194,7 @@ const quick: {
             <div class="example" data-example="2">
               <p class="bubble">What was I working on yesterday?</p>
               <div class="answer">
-                <img src="/mashy.png" alt="" width="30" height="27" />
+                <img src="/mashy.png" alt="" width="30" height="24" />
                 <div>
                   <p>You were fixing the flaky checkout test with Codex on the workstation. It ended with the cause:</p>
                   <div class="quote">
@@ -206,7 +208,7 @@ const quick: {
             <div class="example" data-example="3">
               <p class="bubble">Did the payment retry change touch checkout?</p>
               <div class="answer">
-                <img src="/mashy.png" alt="" width="30" height="27" />
+                <img src="/mashy.png" alt="" width="30" height="24" />
                 <div>
                   <p>Yes. Cursor added it on the laptop, for when the payment provider times out during checkout:</p>
                   <div class="quote">
@@ -426,7 +428,7 @@ const quick: {
   <section class="close" aria-labelledby="welcome-close">
     <div class="closing" data-reveal>
       <i class="close-glow" aria-hidden="true"></i>
-      <Image src={mashy} alt="Mashy, the Mash mascot" width={176} />
+      <AppIcon id="close-icon" class="close-icon" />
       <h2 id="welcome-close">Give your agents their history back.</h2>
       <p class="actions">
         <a class="button" href="/quick-start/"><LineIcon name="rocket" size="1rem" />Get started</a>
