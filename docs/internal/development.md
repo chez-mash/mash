@@ -521,10 +521,12 @@ inference workspace limit, not a total indexing memory limit.
 ## Working in parallel
 
 Several agent sessions and people work on this repository at once. Each task
-gets its own worktree and short-lived branch, and `main` moves only by
-fast-forward. Sharing one checkout is what went wrong before: sessions staged
-each other's hunks, one push cancelled the CI run of another commit, and
-deploys built whatever half-done files were on disk.
+gets its own worktree and short-lived branch, and `main` moves only through
+the merge queue, to commits the required checks passed on. Sharing one
+checkout is what went wrong before: sessions staged each other's hunks, one
+push cancelled the CI run of another commit, and deploys built whatever
+half-done files were on disk. Pushing straight to `main` is what went wrong
+after that: a commit that failed CI stayed on `main` until someone noticed.
 
 ### One worktree per task
 
@@ -532,7 +534,7 @@ deploys built whatever half-done files were on disk.
 tools/install-hooks.sh                    # once per clone: the pre-push hook
 cd "$(tools/worktree.sh new search-fix)"  # ../mash-worktrees/search-fix on work/search-fix
 # edit, commit, make iterate ...
-tools/worktree.sh land search-fix         # or: tools/worktree.sh pr search-fix
+tools/worktree.sh land search-fix --wait  # through the merge queue; see below
 tools/worktree.sh done search-fix
 ```
 
@@ -543,21 +545,29 @@ tools/worktree.sh done search-fix
   `dashboard/` and `site/`, `npm ci` in `raycast/`). Set `MASH_WORKTREES` to
   keep worktrees somewhere else.
 - `list` shows every worktree of the clone.
-- `land NAME` fetches, rebases the branch onto `origin/main` inside its
-  worktree, runs `tools/pre-push.sh`, and pushes with
-  `git push origin work/NAME:main`. That push is never forced, so it is refused
-  unless it is a fast-forward; when `main` moved in between, run `land` again.
-  A rebase conflict is left in the worktree to resolve. The worktree stays
-  until `done`.
+- `land NAME [--wait]` fetches, rebases the branch onto `origin/main` inside
+  its worktree, runs `tools/pre-push.sh`, pushes the branch to origin as
+  `work/NAME`, opens a pull request for it (or reuses the open one) and puts
+  it in the merge queue. Without `--wait` it prints the pull request's address
+  and returns; with it, it follows the pull request until it is merged, or
+  says why it was not and exits non-zero. A rebase conflict is left in the
+  worktree to resolve. The worktree stays until `done`. See
+  [The merge queue](#the-merge-queue).
+- `land NAME --direct` pushes straight to `main`, past the queue. It is for
+  emergencies and works only for an administrator.
 - `pr NAME` pushes the branch and opens a pull request with
-  `gh pr create --fill` for work that wants review or CI before it lands.
+  `gh pr create --fill` without queueing it, for work that wants review or a
+  full CI run of its own first. `land NAME` queues that same pull request
+  later.
 - `preview NAME` and `previews` start, stop and list live dev servers of a
   worktree on the tailnet; see Previews below.
 - `done NAME` removes the worktree and deletes the branch, and its pushed copy
-  once merged. It refuses while the worktree holds uncommitted or untracked
-  files, or commits that are not on `origin/main`; `--force` discards them
-  (a squash-merged pull request needs it, because its commits are not on
-  `main` under their own identity).
+  once merged if GitHub has not already deleted it. It refuses while the
+  worktree holds uncommitted or untracked files, or commits that are not on
+  `origin/main`; `--force` discards them. The queue rebases, so the commits
+  on `main` are copies under other names: `done` accepts a branch when every
+  one of its commits has a commit with the same change on `main`, or when
+  GitHub says a pull request merged that exact branch head.
 
 Files Git ignores are not in a new worktree: `node_modules`, `dashboard/dist`
 and `.beads/`. `new` links the agent skills (`.agents/skills`) and `.claude`
@@ -677,19 +687,128 @@ before committing.
 `git push --no-verify` skips the hook. Keep it for emergencies, such as
 landing a fix while a tool is broken: CI runs the same checks on the commit.
 
+### The merge queue
+
+`main` is protected by a repository ruleset
+([main-ruleset.json](main-ruleset.json), applied with
+`tools/github-ruleset.sh`). It requires a pull request, the merge queue and
+five status checks, refuses force pushes and deletions, and keeps history
+linear. No review is required. `land` is the way in:
+
+```bash
+tools/worktree.sh land search-fix --wait
+```
+
+1. `land` rebases the branch, runs the pre-push check, pushes `work/NAME` and
+   opens the pull request. Its description carries the marker `[merge queue]`,
+   which makes the pull request's own CI run skip every expensive job: the
+   queue is about to run them on the commit that matters. The required checks
+   therefore pass on the pull request in about a minute.
+2. `gh pr merge --auto` asks GitHub to queue the pull request as soon as those
+   checks have passed.
+3. The queue rebases the branch's commits onto `main` plus everything queued
+   ahead of it, as the branch `gh-readonly-queue/main/pr-N-...`, and runs the
+   workflows on that commit (`on: merge_group`). The merge method is rebase:
+   each of the branch's commits arrives on `main` as its own commit, with no
+   merge commit, under a new name.
+4. When every required check has passed, `main` moves to exactly the commit
+   that was tested and GitHub deletes `work/NAME`. When one fails, the pull
+   request leaves the queue and `main` does not move.
+
+The required checks are one summary job per workflow. Each passes when the
+jobs of its workflow passed or were skipped because the change cannot affect
+them (`tools/ci_changes.py`), so a required check is never left waiting for a
+job that did not start:
+
+| Check | Workflow | What it covers | Typical time when its jobs run |
+|---|---|---|---|
+| `ci / required` | `ci.yml` | `file-lines`, `protocol`, `dependencies`, `rust` | 12 minutes |
+| `windows / required` | `windows.yml` | both Windows builds and the Linux import | 15 minutes |
+| `front-ends` | `frontends.yml` | the dashboard, its browser shards, Raycast | 3 minutes |
+| `visual / required` | `visual.yml` | the dashboard's pictures | 2 minutes |
+| `docs / required` | `docs.yml` | the website's build, tests and pictures, never its deploy | 5 minutes |
+
+`desktop.yml` takes about half an hour, so it is not required and does not run
+in the queue; it still runs on `main` for the paths it names. `Dev artifacts`
+and the website's deploy run only on a push to `main`.
+
+A change is on `main` roughly as long after `land` as its slowest required
+check takes, plus two or three minutes for the pull request's own run and the
+queue's bookkeeping: about twenty minutes for a Rust change, about five for a
+dashboard or website change, about two for `AGENTS.md`. The queue does not
+wait for one change to finish before starting the next. Each queued change is
+tested on top of the ones ahead of it, up to three at once, so three changes
+landed together are all on `main` after about twenty minutes, not sixty. If
+one of them fails, it leaves the queue and the ones behind it are tested
+again without it. Up to five that have passed merge in one step.
+
+The push to `main` that the queue makes starts the workflows once more for
+the same commit. The `changes` job finds the queue's passing run for that
+commit and skips everything, so the run concludes in under a minute and still
+counts for a release, which wants a passing `ci.yml` and `windows.yml` run for
+its exact commit.
+
+**Reading a rejection.** `land --wait` prints why and exits 1:
+
+```text
+Pull request #12 was removed from the merge queue: failed checks. main is unchanged.
+Checks that did not pass for 3f2a9c1d77e0:
+  rust  https://github.com/mashhq/mash/actions/runs/123/job/456
+  ci / required  https://github.com/mashhq/mash/actions/runs/123/job/789
+```
+
+Open the first address, fix the cause in the worktree, commit, and run
+`land NAME --wait` again: it reuses the pull request. A failure that looks
+unrelated to the change (a runner that died, a download that timed out) is
+landed again the same way. Without `--wait`, follow a queued pull request with
+`tools/merge-queue.sh wait NUMBER`. When a required check fails on the pull
+request itself, GitHub never queues it, and `land --wait` says that instead.
+
+**The pre-push hook** (`tools/install-hooks.sh`) refuses a push to `main` of
+`mashhq/mash`. GitHub refuses one as well, except from an administrator, whom
+the ruleset lets past: James and every agent on his machines push as one. The
+hook is what stops a stray `git push origin HEAD:main` there.
+
+**The emergency path.** When the queue itself is what is broken (GitHub
+Actions is down, a required check cannot pass and the fix for it must land),
+an administrator can land past it:
+
+```bash
+tools/worktree.sh land NAME --direct    # rebase, pre-push check, push to main
+bash tools/release.sh --direct VERSION  # the release commit, the same way
+```
+
+Nothing has run the test suites on a commit landed like that; watch its runs
+on `main`. To switch the queue off for longer, and back on:
+
+```bash
+tools/github-ruleset.sh show      # what GitHub enforces now
+tools/github-ruleset.sh disable   # main takes a plain push again
+tools/github-ruleset.sh apply     # enforce docs/internal/main-ruleset.json again
+```
+
+While it is disabled, `land` without `--direct` fails, because there is no
+queue to enter. To change a rule, edit `main-ruleset.json`, land it, and run
+`apply`. A workflow cannot commit to `main` any more: the token of GitHub
+Actions cannot be given a way past a ruleset, and GitHub starts no checks for
+a pull request that token opens. That is why a release's Scoop manifest is
+landed by `tools/release.sh`, and why the "Update visual baselines" workflow
+refuses to run on `main`.
+
 ### CI on main
 
 Runs on `main` are not cancelled by a later push
 (`cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`), because a
 release needs a passing run for its exact commit. Pull request branches still
 cancel superseded runs. A run that has not started can still be replaced by a
-newer one in the same concurrency group, so land related commits together
-instead of one push per commit.
+newer one in the same concurrency group. With the merge queue that matters
+little: a run on `main` for a commit the queue tested skips every job.
 
 ### What CI runs for a change
 
-`ci.yml`, `windows.yml` and `frontends.yml` start for every push to `main` and
-every pull request, and skip the jobs a change cannot affect. Their first job,
+`ci.yml`, `windows.yml`, `frontends.yml`, `visual.yml` and `docs.yml` start
+for every pull request and every merge queue group, the first four for every
+push to `main` as well, and skip the jobs a change cannot affect. Their first job,
 `changes`, lists the changed files and asks `tools/ci_changes.py` which areas
 they reach; each expensive job carries an `if` on the answer. The workflows are
 not filtered with `paths:`, because a workflow that does not start has no run,
@@ -698,13 +817,18 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 
 | Changed files | `ci.yml` | `windows.yml` | `frontends.yml` | `docs.yml` |
 |---|---|---|---|---|
-| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust` | both builds, import | nothing | not started |
-| `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build and publish |
-| `site/` | nothing | nothing | nothing | build and publish |
-| `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build and publish (the demo) |
-| `raycast/` | nothing | nothing | `raycast` (lint, build, test) | not started |
-| `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md` | nothing | nothing | nothing | not started |
-| `.github/`, `tools/`, `Makefile`, anything not listed | everything | everything | everything | by its own `paths:` |
+| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust` | both builds, import | nothing | nothing |
+| `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build, pictures |
+| `site/` | nothing | nothing | nothing | build, pictures |
+| `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build, pictures (the demo) |
+| `raycast/` | nothing | nothing | `raycast` (lint, build, test) | nothing |
+| `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md`, `bucket/` | nothing | nothing | nothing | nothing |
+| `.github/`, `tools/`, `Makefile`, anything not listed | everything | everything | everything | build, pictures |
+
+`visual.yml` runs its one job for the rows where `frontends.yml` runs the
+dashboard's. The `docs.yml` column is for a pull request and the merge queue.
+On a push to `main` that workflow keeps its `paths:` filter, always builds,
+and publishes; it does not start for a push that changes nothing it names.
 
 "Nothing" still runs `changes` and, in `ci.yml`, the `file-lines` job, which
 counts every area's source. Three files inside the front-end directories also
@@ -713,7 +837,10 @@ run the Rust jobs, because the Rust build reads them: `site/public/setup.md`,
 `tools/test_ci_changes.py` searches the Rust source for paths into those
 directories and fails when one is not listed. A path no rule claims runs
 everything. `desktop.yml`, `spec.yml` and `dependencies.yml` keep their own
-`paths:` filters; nothing depends on their having a run.
+`paths:` filters; nothing depends on their having a run. No workflow the
+ruleset requires a check from may carry a `paths:` filter on `pull_request`,
+and `merge_group` cannot have one: a workflow that does not start reports
+nothing, and the change would wait in the queue until it timed out.
 
 On `main` the changed files are those since the last commit the same workflow
 passed for, not since the previous push. A skipped job therefore means "these
@@ -721,12 +848,19 @@ files are as they were when this job last passed", which is what lets a release
 trust a run in which the Rust jobs were skipped. Comparing with the previous
 push would let a site-only commit report success on top of a Rust change whose
 own run failed, or was replaced while it waited. A pull request is compared
-with its base, and a manual run (`workflow_dispatch`) runs everything.
+with its base, a merge queue group with the commit it was built on
+(`merge_group.base_sha`: `main`, or the group queued ahead of it), and a
+manual run (`workflow_dispatch`) runs everything. Two runs answer "nothing"
+without comparing: the pull request's own run when `land` opened it for the
+queue, and the push to `main` of a commit the same workflow passed for in the
+queue.
 
-`frontends.yml` ends with one job, `front-ends`, that passes when every job
-before it passed or was skipped; require that one if branch protection is
-turned on. It also merges the browser shards' reports into one HTML report,
-kept for a week as the `dashboard-browser-report` artifact.
+Each of the five workflows ends with one job that passes when every job
+before it passed or was skipped: `front-ends` in `frontends.yml`, and
+`ci / required`, `windows / required`, `visual / required` and
+`docs / required` in the others. Those are the checks the ruleset for `main`
+requires. `front-ends` also merges the browser shards' reports into one HTML
+report, kept for a week as the `dashboard-browser-report` artifact.
 
 ### Deploying and releasing
 
@@ -774,11 +908,22 @@ desktop app's `desktop/src-tauri/Cargo.toml`, and both lockfiles
 (`release.toml`; the desktop files move through the replacements in the root
 `Cargo.toml`, and crates with their own version carry `release = false`).
 Because that commit is new and a tag publishes only a commit CI validated, the
-script pushes it to main, waits for `ci.yml` and `windows.yml` on it, and only
-then has cargo-release create `vX.Y.Z`, pushes the tag and waits for
-`release.yml`. The two pushes are plain `git push`: cargo-release's own push
-step sends the commit and the tag together, which leaves no room to wait
-between them.
+script pushes it as the branch `release/vX.Y.Z` and lands it through the merge
+queue like any other change (`tools/merge-queue.sh`). The queue rebases, so
+`main` gets a copy of the commit under another name; the script checks that
+copy out, confirms `ci.yml` and `windows.yml` passed for it (the queue's runs
+count), and only then has cargo-release create `vX.Y.Z` on it, pushes the tag
+and waits for `release.yml`. cargo-release's own push step is not used: it
+sends the commit and the tag together, to `main`.
+
+When `release.yml` has passed, the script renders the Scoop manifest
+(`bucket/mash.json`) from the release's `SHA256SUMS` and lands
+"Scoop: mash vX.Y.Z" through the queue as well, which takes a minute or two
+because no build reads that file. The release workflow used to push that
+commit to `main` itself and no longer can. After a release made without the
+script, `tools/release.sh --resume X.Y.Z` lands the manifest.
+`tools/release.sh --direct X.Y.Z` pushes both commits straight to `main`
+instead, for an administrator in an emergency.
 
 What it leaves to a person, with the commands printed at the end:
 
@@ -794,8 +939,10 @@ What it leaves to a person, with the commands printed at the end:
 - **The fleet.** `bash tools/fleet.sh deploy --release vX.Y.Z TARGET...`.
 
 `--resume` works out where the release stopped from the repository itself (the
-release commit, whether main has it, the tag locally and on the remote), so it
-is safe to run again at any point.
+release commit, whether main has it, the tag locally and on the remote, the
+version in the Scoop manifest on main), so it is safe to run again at any
+point. Because it writes the notes draft again, keep an edited draft under
+another name until it is published.
 
 ## Dependency policy
 

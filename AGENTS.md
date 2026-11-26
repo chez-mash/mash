@@ -481,9 +481,11 @@ Do not treat a unit-only run as evidence for integration behavior or full accept
 
 ## Git
 
-`main` is the repository's only long-lived branch. Work happens on short-lived
-`work/<name>` branches in their own worktrees and lands on `main` by
-fast-forward or a pull request; see Working in parallel.
+`main` is the repository's only long-lived branch, and it is always green.
+Work happens on short-lived `work/<name>` branches in their own worktrees and
+lands on `main` through a pull request in GitHub's merge queue, which moves
+`main` only to a commit the required checks passed on. Never push to `main`
+directly; see Working in parallel.
 
 ## Working in parallel
 
@@ -500,9 +502,16 @@ address it prints, so he can watch the change from his phone; stop it with
 `--stop` when the work is done. It shows made-up demo history. Never pass
 `--real`, which shows real chat history to the whole tailnet, unless he asks.
 
-Land finished work with `tools/worktree.sh land NAME`, which rebases onto
-`origin/main`, runs `tools/pre-push.sh` and pushes to `main` as a fast-forward
-only, or open a pull request with `tools/worktree.sh pr NAME`. Then
+Land finished work with `tools/worktree.sh land NAME --wait`. It rebases onto
+`origin/main`, runs `tools/pre-push.sh`, pushes the branch, opens its pull
+request and puts it in the merge queue, then follows it until `main` has the
+change. The queue runs the required checks on your commits rebased onto `main`
+and whatever is queued ahead, which takes about twenty minutes for a Rust
+change and two for one that touches only instructions. If it rejects the
+change, `land` exits non-zero and names the failed checks with their
+addresses; `main` is untouched. Fix the cause, commit and land again. Do not
+push to `main` yourself, and do not use `land --direct`, which is an
+administrator's way past the queue for an emergency James has named. Then
 `tools/worktree.sh done NAME` removes the worktree and its merged branch. Deploy
 and release only from the `_deploy` tree (`tools/worktree.sh deploy-tree`, a
 detached checkout of `origin/main`) or another clean checkout at `origin/main`,
