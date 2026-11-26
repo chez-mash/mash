@@ -34,8 +34,10 @@ import {
 type Choice = "all" | MemoryKind;
 
 // Neutral icons, one shape per kind, so the kind reads without colour
-// competing with the agent tiles. Raycast has no sliders icon, so a
-// preference is the switch.
+// competing with the agent tiles. They follow the dashboard's set (bookmark,
+// sliders, sticky note) as far as Raycast's icons go: it has no sliders, so
+// a preference is the switch, and no sticky note, so a note is the page with
+// a folded corner.
 const kinds: { readonly value: MemoryKind; readonly title: string; readonly icon: Icon }[] = [
   { value: "decision", title: "Decisions", icon: Icon.Bookmark },
   { value: "preference", title: "Preferences", icon: Icon.Switch },
