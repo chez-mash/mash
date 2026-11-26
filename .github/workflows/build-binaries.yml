@@ -105,7 +105,8 @@ jobs:
         with:
           prefix-key: mash-artifacts-v1
           shared-key: ${{ matrix.target }}-release
-          # A cold build takes 8 to 14 minutes; keep what a failing run built.
+          # A cold build takes 8 to 14 minutes; keep what a run built when it
+          # failed after compiling (see the step after Build).
           cache-on-failure: true
           # Only main saves: a manual run on a branch reads main's cache and
           # leaves it as it was.
@@ -120,6 +121,7 @@ jobs:
       # would be compiled again anyway, under new file names, and the old
       # files would otherwise stay in the cache for good.
       - name: Restore this repository's compiled crates
+        id: crates
         if: inputs.cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -150,10 +152,20 @@ jobs:
         continue-on-error: true
         run: node .github/scripts/build-inputs.mjs restore target/build-inputs.json
       - name: Build
+        id: build
         env:
           MASH_BUILD_REVISION: ${{ github.sha }}
           MASH_REQUIRE_DASHBOARD: 1
         run: cargo +stable build --release --locked --bin mash --bin mash-server
+      # A build that was cancelled or failed while compiling has only some of
+      # the dependencies. Saved, that cache would never be completed, because
+      # a later run finds its key and saves nothing: every build would compile
+      # the missing dependencies and all of our crates built on them. This
+      # happened on the first day, when one target's failure cancelled the
+      # others in the middle of compiling.
+      - name: Save no dependency cache from an unfinished build
+        if: always() && inputs.cache && steps.build.outcome != 'success'
+        run: echo "CACHE_ON_FAILURE=false" >> "$GITHUB_ENV"
       - name: Check the glibc floor
         if: contains(matrix.target, 'linux')
         run: .github/scripts/check-glibc-floor 2.34 target/release/mash target/release/mash-server
@@ -178,7 +190,8 @@ jobs:
         continue-on-error: true
         run: node .github/scripts/build-inputs.mjs save target/build-inputs.json
       - name: Save this repository's compiled crates
-        if: steps.record.outcome == 'success'
+        # A second run for one commit restored exactly this and has nothing new.
+        if: steps.record.outcome == 'success' && steps.crates.outputs.cache-hit != 'true'
         continue-on-error: true
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
