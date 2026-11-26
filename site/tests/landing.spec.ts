@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -691,4 +691,205 @@ test("Mashy shows one example at a time, and the pager picks another", async ({ 
     );
   }
   expect(heights.size).toBe(1);
+
+  // The arrow keys go back and on while the pager has focus.
+  await chat.getByRole("button", { name: "Show example 3 of 3" }).focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(shown).toHaveText(["What was I working on yesterday?"]);
+  await page.keyboard.press("ArrowRight");
+  await expect(shown).toHaveText(["Did the payment retry change touch checkout?"]);
+});
+
+/** Mashy's examples as drawn now: which are in view, how far across and how solid, and the window's height. */
+function examplesNow(carousel: Element) {
+  const drawn = [...carousel.querySelectorAll<HTMLElement>(".example")].map((example) => {
+    const style = getComputedStyle(example);
+    return {
+      example: example.dataset.example ?? "",
+      inView: style.visibility === "visible" && Number(style.opacity) > 0,
+      x: new DOMMatrix(style.transform).m41,
+      opacity: Number(style.opacity),
+      inline: example.style.cssText,
+    };
+  });
+  const height = carousel.querySelector(".mashy-window")?.getBoundingClientRect().height ?? 0;
+  return {
+    inView: drawn.filter((one) => one.inView).map((one) => one.example),
+    drawn: Object.fromEntries(drawn.map((one) => [one.example, one])),
+    // To a tenth of a pixel: a browser's own arithmetic differs further down.
+    height: Math.round(height * 10) / 10,
+  };
+}
+
+test("Mashy's examples slide the way the change goes, one left in view at the end", async ({
+  page,
+}) => {
+  // The landing page's motion plays for everyone, less motion preferred or not.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  // The test owns the clock, to stop a change part-way.
+  await page.clock.install({ time: new Date("2026-11-20T12:00:00Z") });
+  await page.goto("/");
+  await expect(page.locator(".mash-welcome")).toHaveClass(/reveal/);
+  const chat = page.locator("[data-mashy-chat]");
+  await chat.scrollIntoViewIfNeeded();
+  const shown = chat.locator(".example.on .bubble");
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+  await page.clock.pauseAt(new Date("2026-11-20T12:10:00Z"));
+  await page.clock.runFor(1000);
+  const before = await chat.evaluate(examplesNow);
+  expect(before.inView).toEqual(["1"]);
+
+  // On to the next: part-way, the first is leaving to the left as the second
+  // comes in from the right, both in view, and the window keeps its height.
+  await chat.getByRole("button", { name: "Next example" }).click();
+  await page.clock.runFor(150);
+  const next = await chat.evaluate(examplesNow);
+  expect(next.inView).toEqual(["1", "2"]);
+  expect(next.drawn["1"]?.x).toBeLessThan(0);
+  expect(next.drawn["2"]?.x).toBeGreaterThan(0);
+  expect(next.drawn["1"]?.opacity).toBeLessThan(1);
+  expect(next.drawn["2"]?.opacity).toBeLessThan(1);
+  expect(next.height).toBe(before.height);
+  // The pager's mark is already on the next.
+  await expect(chat.getByRole("button", { name: "Show example 2 of 3" })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+  // It is over within half a second, with nothing of the motion left behind.
+  await page.clock.runFor(350);
+  const settled = await chat.evaluate(examplesNow);
+  expect(settled.inView).toEqual(["2"]);
+  expect(Object.values(settled.drawn).map((one) => one.inline)).toEqual(["", "", ""]);
+  expect(settled.height).toBe(before.height);
+  await expect(shown).toHaveText(["What was I working on yesterday?"]);
+
+  // Back again: the other way round.
+  await chat.getByRole("button", { name: "Previous example" }).click();
+  await page.clock.runFor(150);
+  const back = await chat.evaluate(examplesNow);
+  expect(back.inView).toEqual(["1", "2"]);
+  expect(back.drawn["2"]?.x).toBeGreaterThan(0);
+  expect(back.drawn["1"]?.x).toBeLessThan(0);
+  await page.clock.runFor(350);
+  expect((await chat.evaluate(examplesNow)).inView).toEqual(["1"]);
+
+  // Quick presses do not pile up: never more than two in view, and one at the end.
+  for (const expected of [
+    ["1", "2"],
+    ["2", "3"],
+    ["1", "3"],
+    ["1", "2"],
+  ]) {
+    await chat.getByRole("button", { name: "Next example" }).click();
+    await page.clock.runFor(150);
+    const quick = await chat.evaluate(examplesNow);
+    expect(quick.inView).toEqual(expected);
+    expect(quick.height).toBe(before.height);
+  }
+  await page.clock.runFor(350);
+  const last = await chat.evaluate(examplesNow);
+  expect(last.inView).toEqual(["2"]);
+  expect(Object.values(last.drawn).map((one) => one.inline)).toEqual(["", "", ""]);
+  // The page never scrolls sideways for it.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("a swipe across Mashy's window goes on to the next example, and back", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const chat = page.locator("[data-mashy-chat]");
+  await chat.scrollIntoViewIfNeeded();
+  const shown = chat.locator(".example.on .bubble");
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+  // Not every browser lets a page make a real touch, so the events carry plain points.
+  const swipe = (across: number, down: number) =>
+    chat.locator(".mashy-window").evaluate(
+      (target, [dx, dy]) => {
+        const box = target.getBoundingClientRect();
+        const from = { clientX: box.left + box.width / 2, clientY: box.top + box.height / 2 };
+        const to = { clientX: from.clientX + (dx ?? 0), clientY: from.clientY + (dy ?? 0) };
+        const touch = (type: string, touches: object[], changed: object) => {
+          const event = new Event(type, { bubbles: true });
+          Object.defineProperty(event, "touches", { value: touches });
+          Object.defineProperty(event, "changedTouches", { value: [changed] });
+          target.dispatchEvent(event);
+        };
+        touch("touchstart", [from], from);
+        touch("touchend", [], to);
+      },
+      [across, down],
+    );
+  await swipe(-80, 6);
+  await expect(shown).toHaveText(["What was I working on yesterday?"]);
+  await swipe(80, -4);
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+  // Scrolling the page down past it is not a swipe.
+  await swipe(-50, 120);
+  await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
+});
+
+/** A box as the browser draws it inside its parent. */
+const drawn = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const { left, top, width, height } = element.getBoundingClientRect();
+    const parent = element.parentElement?.getBoundingClientRect();
+    return [left - (parent?.left ?? 0), top - (parent?.top ?? 0), width, height];
+  });
+
+test("the install tabs' highlight slides to the tab chosen", async ({ page }) => {
+  // The landing page's motion plays for everyone, less motion preferred or not.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const install = page.locator("#install");
+  const row = install.getByRole("tablist");
+  const highlight = install.locator("[data-tab-on]");
+  const chosen = install.locator('[role="tab"][aria-selected="true"]');
+  const running = () => highlight.evaluate((element) => element.getAnimations().length);
+  const close = async (box: number[], to: number[]) => {
+    for (const [index, value] of box.entries()) expect(value).toBeCloseTo(to[index] ?? 0, 1);
+  };
+  const settle = () =>
+    highlight.evaluate((element) => {
+      for (const animation of element.getAnimations()) animation.finish();
+    });
+
+  // It starts in place on the visitor's system, without moving there.
+  await expect(row).toHaveAttribute("data-sliding", "");
+  expect(await running()).toBe(0);
+  const from = await drawn(chosen);
+  await close(await drawn(highlight), from);
+  const rowBox = await row.boundingBox();
+  const first = (await chosen.textContent())?.trim();
+  const other = first === "Windows" ? "macOS" : "Windows";
+
+  // Half-way through the slide it is between the two tabs. The slide is
+  // short, so the test stretches it to stop it half-way without a race.
+  expect(await highlight.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
+    "0.2s, 0.2s",
+  );
+  await page.addStyleTag({ content: "[data-tab-on] { transition-duration: 20s !important; }" });
+  await install.getByRole("tab", { name: other }).click();
+  await expect(chosen).toHaveText(other);
+  await expect.poll(running).toBeGreaterThan(0);
+  await highlight.evaluate((element) => {
+    for (const animation of element.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 10_000;
+    }
+  });
+  const to = await drawn(chosen);
+  const [left] = await drawn(highlight);
+  expect(left).toBeGreaterThan(Math.min(from[0] ?? 0, to[0] ?? 0));
+  expect(left).toBeLessThan(Math.max(from[0] ?? 0, to[0] ?? 0));
+  await settle();
+  await close(await drawn(highlight), to);
+  // The row keeps its height.
+  expect((await row.boundingBox())?.height).toBe(rowBox?.height);
+
+  // The arrow keys choose the next tab, and the highlight follows.
+  await page.keyboard.press("ArrowLeft");
+  await expect(chosen).not.toHaveText(other);
+  await expect(chosen).toBeFocused();
+  await settle();
+  await close(await drawn(highlight), await drawn(chosen));
 });
