@@ -171,8 +171,8 @@ Run either with the log's path, or none for the default:
 
 ## Read the built-in help
 
-Help and `--version` print plain text. Run `mash --version-info` for release
-and database schema versions in JSON.
+Help and `--version` print plain text. Run `mash --version-info` for the
+release, the build and the database schema versions in JSON.
 
 ```sh
 mash --help
