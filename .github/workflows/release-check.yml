@@ -298,6 +298,30 @@ jobs:
               if ($Directory -and (Test-Path -LiteralPath $Directory)) { Get-ChildItem -LiteralPath $Directory -Recurse -Force | ForEach-Object FullName }
               throw "winget uninstall left: $($left -join ', ')"
           }
+          # winget uninstalls a nullsoft package with the QuietUninstallString
+          # its Uninstall key gives, and without one runs UninstallString as
+          # it is, even with --silent. v0.3.0's installer registers no quiet
+          # string, so winget opens the uninstaller's window, which waits for
+          # a click (run 45909721035). Until the installer registers one, the
+          # registered uninstaller is run with /S, the switch a quiet string
+          # would add, and the summary says that winget's own uninstall is not
+          # silent.
+          function Uninstall-App {
+              param([Parameter(Mandatory)] [string] $Directory)
+              $entry = @(Get-AppRegistration)[0]
+              if ($entry.QuietUninstallString) {
+                  Invoke-Winget -Arguments 'uninstall', '--manifest', $env:APP_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'app'
+              } else {
+                  "| winget uninstall (app) | not silent: the installer registers no QuietUninstallString, so the check runs $($entry.UninstallString) /S |" |
+                      Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+                  $started = Get-Date
+                  $uninstaller = Start-Process -FilePath $entry.UninstallString.Trim('"') -ArgumentList '/S' -PassThru
+                  if (-not $uninstaller.WaitForExit(5 * 60 * 1000)) { throw "$($entry.UninstallString) /S did not finish within 5 minutes." }
+                  Write-Host "$($entry.UninstallString) /S took $([int] ((Get-Date) - $started).TotalSeconds)s and exited with $($uninstaller.ExitCode)."
+                  if ($uninstaller.ExitCode -ne 0) { throw "$($entry.UninstallString) /S exited with $($uninstaller.ExitCode)." }
+              }
+              Assert-AppRemoved -Directory $Directory
+          }
           '@ | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'winget-check.ps1') -Encoding utf8
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
           if (-not (Get-Command winget.exe -ErrorAction SilentlyContinue)) {
@@ -411,12 +435,11 @@ jobs:
           $listed
           if (-not ($listed -match "Mash\s+\S*Mash\s+$([regex]::Escape($version))(\s|$)")) { throw "winget list does not show Mash $version." }
           "APP_DIRECTORY=$directory" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-      - name: Uninstall the app with winget
+      - name: Uninstall the app
         timeout-minutes: 15
         run: |
           . (Join-Path $env:RUNNER_TEMP 'winget-check.ps1')
-          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:APP_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'app'
-          Assert-AppRemoved -Directory $env:APP_DIRECTORY
+          Uninstall-App -Directory $env:APP_DIRECTORY
       # Without --silent winget passes the manifest's SilentWithProgress
       # switch, which is what `winget install MashHQ.Mash` does for a user.
       - name: Install the app showing progress, then uninstall it
@@ -428,8 +451,7 @@ jobs:
           $entry = @(Get-AppRegistration)
           if ($entry.Count -ne 1 -or $entry[0].DisplayVersion -ne $env:TAG.TrimStart('v')) { throw 'The app is not registered after an install with progress.' }
           if (-not (Test-Path -LiteralPath (Join-Path $env:APP_DIRECTORY 'mash-desktop.exe'))) { throw "$env:APP_DIRECTORY has no mash-desktop.exe." }
-          Invoke-Winget -Arguments 'uninstall', '--manifest', $env:APP_MANIFESTS, '--silent', '--disable-interactivity', '--verbose-logs' -About 'app'
-          Assert-AppRemoved -Directory $env:APP_DIRECTORY
+          Uninstall-App -Directory $env:APP_DIRECTORY
       - name: Install the command line with winget
         timeout-minutes: 15
         run: |
