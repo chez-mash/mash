@@ -160,3 +160,4 @@ setTimeout(() => { console.log('no answer within 60 seconds'); child.kill(); pro
         Pass "a new session does not find $ours$(if ($found) { " (it finds $($found -join ', '))" })"
     }
 }
+exit 0
