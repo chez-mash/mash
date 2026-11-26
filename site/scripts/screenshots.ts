@@ -126,7 +126,8 @@ try {
       content:
         "aside.demo{display:none!important} *{animation:none!important;transition:none!important;caret-color:transparent!important}",
     });
-    // Mashy's button hangs a little below the top bar; it goes with the bar.
+    // Mashy's button floats over the bottom right corner of the page; a picture
+    // cropped to the page alone is taken without it.
     if (shot.withoutRail)
       await page.addStyleTag({ content: "#mashy-fab{visibility:hidden!important}" });
     await shot.prepare?.(page);
