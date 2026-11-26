@@ -3,10 +3,12 @@
 // search field in the middle and the viewing switcher at the right. On a
 // phone it keeps the mark, a search button that shows the field on a row of
 // its own, and the menu button that opens the navigation sheet.
-import Menu from "@lucide/svelte/icons/menu";
-import Search from "@lucide/svelte/icons/search";
+
 import { createQuery } from "@tanstack/svelte-query";
+import ListIcon from "phosphor-svelte/lib/ListIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
 import { tick } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { asset } from "../lib/asset";
 import { FIND_EVENT } from "../lib/findField";
 import { catalogOptions } from "../lib/queries";
@@ -70,7 +72,7 @@ function focusSearch(event: KeyboardEvent): void {
   <TopSearch {modifier} />
   <div class="top-end">
     {#if !catalogue.error}<div class="top-viewing"><ViewingSwitcher place="bar" /></div>{/if}
-    <button id="find" class="top-btn" type="button" aria-label="Show search" aria-expanded={searching} onclick={toggleField}><Search size={18} aria-hidden="true" /></button>
-    <button id="burger" class="top-btn" type="button" aria-label="Open navigation" aria-expanded={railOpen} onclick={toggleRail}><span class="menu-ico"><Menu size={18} aria-hidden="true" /></span></button>
+    <button id="find" class="top-btn" type="button" aria-label="Show search" aria-expanded={searching} onclick={toggleField}><Icon icon={MagnifyingGlassIcon} size={18} /></button>
+    <button id="burger" class="top-btn" type="button" aria-label="Open navigation" aria-expanded={railOpen} onclick={toggleRail}><span class="menu-ico"><Icon icon={ListIcon} size={18} /></span></button>
   </div>
 </header>

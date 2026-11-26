@@ -1,14 +1,15 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
-import Clock from "@lucide/svelte/icons/clock";
-import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
-import ClockArrowUp from "@lucide/svelte/icons/clock-arrow-up";
-import Folder from "@lucide/svelte/icons/folder";
-import GitFork from "@lucide/svelte/icons/git-fork";
-import Laptop from "@lucide/svelte/icons/laptop";
-import SearchIcon from "@lucide/svelte/icons/search";
-import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
-import Sparkles from "@lucide/svelte/icons/sparkles";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import FunnelIcon from "phosphor-svelte/lib/FunnelIcon";
+import GitForkIcon from "phosphor-svelte/lib/GitForkIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import SortAscendingIcon from "phosphor-svelte/lib/SortAscendingIcon";
+import SortDescendingIcon from "phosphor-svelte/lib/SortDescendingIcon";
+import SparkleIcon from "phosphor-svelte/lib/SparkleIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { isAgent } from "../lib/api";
 import { projectLabel } from "../lib/browse";
@@ -103,18 +104,18 @@ function apply(): void {
 </script>
 
 <div class="sf">
-  <button class="btn sm fold-t" type="button" aria-expanded={open || dirty} aria-controls="search-filters" onclick={() => (open = !open)}><SlidersHorizontal size={14} aria-hidden="true" />Filters{#if active}<span class="pill">{active}</span>{/if}</button>
+  <button class="btn sm fold-t" type="button" aria-expanded={open || dirty} aria-controls="search-filters" onclick={() => (open = !open)}><Icon icon={FunnelIcon} size={14} />Filters{#if active}<span class="pill">{active}</span>{/if}</button>
   <div class="chips" class:folded={!open && !dirty} id="search-filters" role="group" aria-label="Filters">
     <FilterMenu label={chipLabel("agents", "agent")} active={draft.agents.length > 0} draft={changed("agents")} multiple options={options.agent} selected={draft.agents} choose={(value) => toggle("agents", value)}>
-      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
-      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Icon icon={RobotIcon} size={15} />{/if}{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Icon icon={RobotIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     <!-- Which machines is the viewing scope's to choose; a link may still name one. -->
     {#if applied.machines.length || draft.machines.length}<FilterMenu label={chipLabel("machines", "machine")} active={draft.machines.length > 0} draft={changed("machines")} multiple options={options.machine} selected={draft.machines} choose={(value) => toggle("machines", value)}>
-      {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={LaptopIcon} size={15} />{/snippet}
     </FilterMenu>{/if}
     <FilterMenu label={chipLabel("projects", "project")} active={draft.projects.length > 0} draft={changed("projects")} multiple options={options.project} selected={draft.projects} choose={(value) => toggle("projects", value)}>
-      {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={FolderIcon} size={15} />{/snippet}
     </FilterMenu>
     <FilterMenu
       label={dateRanges.find((range) => range.days === draft.days)?.label ?? "any time"}
@@ -124,12 +125,12 @@ function apply(): void {
       selected={[String(draft.days ?? "")]}
       choose={(value) => (draft = { ...draft, days: value ? Number(value) : null })}
     >
-      {#snippet icon()}<Clock size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={ClockIcon} size={15} />{/snippet}
     </FilterMenu>
     {#if !applied.query}
       <FilterMenu label="sort: {sorts.find((sort) => sort.value === draft.sort)?.label}" draft={draft.sort !== applied.sort} options={sorts} selected={[draft.sort]} choose={chooseSort}>
-        {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
-        {#snippet optionIcon(value: string)}{#if value === "old"}<ClockArrowUp size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
+        {#snippet icon()}<Icon icon={FunnelIcon} size={15} />{/snippet}
+        {#snippet optionIcon(value: string)}{#if value === "old"}<Icon icon={SortAscendingIcon} size={15} />{:else}<Icon icon={SortDescendingIcon} size={15} />{/if}{/snippet}
       </FilterMenu>
     {:else}
       <FilterMenu
@@ -140,7 +141,7 @@ function apply(): void {
         selected={[draft.intent]}
         choose={(value) => (draft = { ...draft, intent: parseIntent(value) })}
       >
-        {#snippet icon()}<SearchIcon size={15} aria-hidden="true" />{/snippet}
+        {#snippet icon()}<Icon icon={MagnifyingGlassIcon} size={15} />{/snippet}
       </FilterMenu>
       <FilterMenu
         label="sort: {rankings.find((ranking) => ranking.value === draft.rank)?.label}"
@@ -149,8 +150,8 @@ function apply(): void {
         selected={[draft.rank]}
         choose={(value) => (draft = { ...draft, rank: value === "recent" ? "recent" : "relevance" })}
       >
-        {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
-        {#snippet optionIcon(value: string)}{#if value === "recent"}<ClockArrowDown size={15} aria-hidden="true" />{:else}<Sparkles size={15} aria-hidden="true" />{/if}{/snippet}
+        {#snippet icon()}<Icon icon={FunnelIcon} size={15} />{/snippet}
+        {#snippet optionIcon(value: string)}{#if value === "recent"}<Icon icon={SortDescendingIcon} size={15} />{:else}<Icon icon={SparkleIcon} size={15} />{/if}{/snippet}
       </FilterMenu>
     {/if}
     {#if hasSubagents && draft.query}
@@ -163,7 +164,7 @@ function apply(): void {
         selected={[draft.subagentHits]}
         choose={(value) => (draft = { ...draft, subagentHits: value === "included" ? "included" : "hidden" })}
       >
-        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+        {#snippet icon()}<Icon icon={GitForkIcon} size={15} />{/snippet}
       </FilterMenu>
     {:else if hasSubagents}
       <!-- Subagents are chats an agent started for part of a task; the list
@@ -176,7 +177,7 @@ function apply(): void {
         selected={[draft.subagents]}
         choose={(value) => (draft = { ...draft, subagents: value === "shown" ? "shown" : "folded" })}
       >
-        {#snippet icon()}<GitFork size={15} aria-hidden="true" />{/snippet}
+        {#snippet icon()}<Icon icon={GitForkIcon} size={15} />{/snippet}
       </FilterMenu>
     {/if}
     {#if dirty}<button class="btn sm p apply" id="applyf" type="button" onclick={apply}>Apply filters</button>{/if}

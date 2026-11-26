@@ -1,6 +1,7 @@
 <script lang="ts">
-import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import { createQuery } from "@tanstack/svelte-query";
+import ArrowRightIcon from "phosphor-svelte/lib/ArrowRightIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents } from "../lib/agents";
 import { context } from "../lib/api";
 import { highlightParts } from "../lib/highlight";
@@ -79,7 +80,7 @@ function passage(text: string, limit: number): string {
     {/each}
   {/if}
   <div class="pv-f">
-    <a class="btn sm" {href}>Open chat<ArrowRight size={14} aria-hidden="true" /></a>
+    <a class="btn sm" {href}>Open chat<Icon icon={ArrowRightIcon} size={14} /></a>
     <span class="pv-k">Open <kbd class="kbd">↵</kbd></span>
     <span class="pv-k">Next <kbd class="kbd">↓</kbd></span>
     <span class="pv-k">Previous <kbd class="kbd">↑</kbd></span>

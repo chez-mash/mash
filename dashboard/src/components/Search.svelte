@@ -1,16 +1,17 @@
 <script lang="ts">
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
-import CircleHelp from "@lucide/svelte/icons/circle-help";
-import FunnelX from "@lucide/svelte/icons/funnel-x";
-import GitFork from "@lucide/svelte/icons/git-fork";
-import ListChecks from "@lucide/svelte/icons/list-checks";
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
-import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
+import CaretDoubleLeftIcon from "phosphor-svelte/lib/CaretDoubleLeftIcon";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import ChatsIcon from "phosphor-svelte/lib/ChatsIcon";
+import FunnelXIcon from "phosphor-svelte/lib/FunnelXIcon";
+import GitForkIcon from "phosphor-svelte/lib/GitForkIcon";
+import ListChecksIcon from "phosphor-svelte/lib/ListChecksIcon";
+import QuestionIcon from "phosphor-svelte/lib/QuestionIcon";
+import TerminalIcon from "phosphor-svelte/lib/TerminalIcon";
 import { untrack } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent, search } from "../lib/api";
 import { asset } from "../lib/asset";
@@ -303,7 +304,7 @@ function step(event: KeyboardEvent): void {
   {#if !streamed}<QueryError title="Couldn’t load results" query={result} />{/if}
   {#if (streamed ? !view && !federated.done : result.isPending || catalogue.isPending) && !result.error && !catalogue.error}
     <div class="card" role="status">
-      <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />{applied.query ? "Searching…" : "Loading chats…"}</p>
+      <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Icon icon={TerminalIcon} size={16} />{applied.query ? "Searching…" : "Loading chats…"}</p>
       <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
     </div>
   {/if}
@@ -326,20 +327,18 @@ function step(event: KeyboardEvent): void {
           {#if leftOutSubagents}<p class="meta">Chats your agents started as subagents are left out of search.</p>{/if}
         {/if}
         <div class="acts" style:justify-content="center">
-          {#if view.first > 0}
-            <a class="btn p" href={page(0)}><ChevronsLeft size={14} aria-hidden="true" />First page</a>
-          {/if}
+          {#if view.first > 0}<a class="btn p" href={page(0)}><Icon icon={CaretDoubleLeftIcon} size={14} state="strong" />First page</a>{/if}
           {#if filtered}
-            <a class="btn p" href={clearFiltersHref}><FunnelX size={14} aria-hidden="true" />Clear filters</a>
+            <a class="btn p" href={clearFiltersHref}><Icon icon={FunnelXIcon} size={14} state="strong" />Clear filters</a>
           {:else if view.first === 0 && !applied.query}
-            <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer"><ListChecks size={14} aria-hidden="true" />Check history setup</a>
+            <a class="btn p" href="https://getmash.io/troubleshooting/#nothing-is-indexed-yet" target="_blank" rel="noreferrer"><Icon icon={ListChecksIcon} size={14} state="strong" />Check history setup</a>
           {/if}
           {#if applied.query && view.first === 0}
             <!-- Two ways on when a search finds nothing: look through the chats
                  themselves, or learn why one might not be indexed. -->
-            {#if leftOutSubagents}<a class="btn" href={withSubagentsHref}><GitFork size={15} aria-hidden="true" />Include subagent chats</a>{/if}
-            <a class="btn" href={browseChatsHref}><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>
-            <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><CircleHelp size={15} aria-hidden="true" />Find a missing chat</a>
+            {#if leftOutSubagents}<a class="btn" href={withSubagentsHref}><Icon icon={GitForkIcon} size={15} />Include subagent chats</a>{/if}
+            <a class="btn" href={browseChatsHref}><Icon icon={ChatsIcon} size={15} />Browse chats</a>
+            <a class="btn" href="https://getmash.io/find-missing-chat/" target="_blank" rel="noreferrer"><Icon icon={QuestionIcon} size={15} />Find a missing chat</a>
           {/if}
         </div>
       </div>
@@ -365,13 +364,13 @@ function step(event: KeyboardEvent): void {
         </div>
         {#if streamed && federated.done && hits.length && federated.hits.length % pageSize === 0}
           <!-- More continues the same merged ranking; results already shown stay put. -->
-          <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}><ChevronDown size={14} aria-hidden="true" />Show more results</button></div>
+          <div class="acts" style:margin-top="14px"><button class="btn sm" type="button" onclick={() => federated.more(pageSize)}><Icon icon={CaretDownIcon} size={14} />Show more results</button></div>
         {:else if view.first > 0 || view.nextOffset !== null}
           <nav class="hd sx-pages" aria-label="Pages">
             <span class="meta">{rangeLabel}</span>
             <span class="acts">
-              {#if view.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, view.first - pageSize))}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
-              {#if view.nextOffset !== null}<a class="btn sm" rel="next" href={page(view.nextOffset)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
+              {#if view.first > 0}<a class="btn sm" rel="prev" href={page(Math.max(0, view.first - pageSize))}><Icon icon={CaretLeftIcon} size={14} />Previous</a>{:else}<button class="btn sm" type="button" disabled><Icon icon={CaretLeftIcon} size={14} />Previous</button>{/if}
+              {#if view.nextOffset !== null}<a class="btn sm" rel="next" href={page(view.nextOffset)}>Next<Icon icon={CaretRightIcon} size={14} /></a>{:else}<button class="btn sm" type="button" disabled>Next<Icon icon={CaretRightIcon} size={14} /></button>{/if}
             </span>
           </nav>
         {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
 import { Select as SelectPrimitive } from "bits-ui";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { cn, type WithoutChild } from "$lib/utils.js";
 
 // One choice: its label, with a tick when it is the chosen one.
@@ -23,6 +24,6 @@ let {
 >
   {#snippet children({ selected, highlighted })}
     {#if childrenProp}{@render childrenProp({ selected, highlighted })}{:else}{restProps.label || restProps.value}{/if}
-    <span class="inline-flex w-3.5 flex-none">{#if selected}<Check size={14} aria-hidden="true" />{/if}</span>
+    <span class="inline-flex w-3.5 flex-none">{#if selected}<Icon icon={CheckIcon} size={14} />{/if}</span>
   {/snippet}
 </SelectPrimitive.Item>

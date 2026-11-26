@@ -4,10 +4,12 @@
 // agent's app opens it where the server finds one (see lib/openIn.ts);
 // otherwise Claude Code and Codex sessions offer their resume command. Any
 // other chat offers only the chat itself.
-import MessageSquare from "@lucide/svelte/icons/message-square";
-import SquareArrowOutUpRight from "@lucide/svelte/icons/square-arrow-out-up-right";
-import Terminal from "@lucide/svelte/icons/terminal";
+
 import { createQuery } from "@tanstack/svelte-query";
+import ArrowSquareOutIcon from "phosphor-svelte/lib/ArrowSquareOutIcon";
+import ChatIcon from "phosphor-svelte/lib/ChatIcon";
+import TerminalIcon from "phosphor-svelte/lib/TerminalIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { appLink, mayOpenInApp, resumeCommand } from "../lib/openIn";
@@ -58,11 +60,11 @@ async function copy(text: string): Promise<void> {
     {#if notice}<span class="resume-m" role="status">{notice}</span>{/if}
   </div>
   <div class="resume-a">
-    <a class="btn" {href}><MessageSquare size={15} aria-hidden="true" />Open chat</a>
+    <a class="btn" {href}><Icon icon={ChatIcon} size={15} />Open chat</a>
     {#if asked && link.data}
-      <a class="btn p" href={link.data.url} title={link.data.addsSession ? `Adds this session to the ${link.data.app} app as a new session, then opens it` : `Open this session in the ${link.data.app} app`}><SquareArrowOutUpRight size={15} aria-hidden="true" />Pick up in {link.data.app}</a>
+      <a class="btn p" href={link.data.url} title={link.data.addsSession ? `Adds this session to the ${link.data.app} app as a new session, then opens it` : `Open this session in the ${link.data.app} app`}><Icon icon={ArrowSquareOutIcon} size={15} />Pick up in {link.data.app}</a>
     {:else if settled && command}
-      <button class="btn p" type="button" title={command} onclick={() => copy(command)}><Terminal size={15} aria-hidden="true" />Copy resume command</button>
+      <button class="btn p" type="button" title={command} onclick={() => copy(command)}><Icon icon={TerminalIcon} size={15} state="strong" />Copy resume command</button>
     {/if}
   </div>
 </section>

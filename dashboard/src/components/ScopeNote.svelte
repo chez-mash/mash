@@ -3,9 +3,10 @@
 // never hides whose history it shows. What the scope includes is said in
 // full where it is changed, in the viewing switcher's menu, and here when
 // the pointer rests on the name. A page shown from a fallback says so.
-import Globe from "@lucide/svelte/icons/globe";
-import Laptop from "@lucide/svelte/icons/laptop";
-import Radio from "@lucide/svelte/icons/radio";
+import BroadcastIcon from "phosphor-svelte/lib/BroadcastIcon";
+import GlobeIcon from "phosphor-svelte/lib/GlobeIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import Icon from "$lib/components/Icon.svelte";
 import type { Scoped } from "../lib/queries";
 import { scopeName, scopeSentence } from "../lib/scope.svelte";
 
@@ -18,7 +19,7 @@ const why = $derived(fallback ?? scoped?.fallback);
 
 {#if scoped}
   <span class="scope-n" data-scope={scoped.scope.kind} title={scopeSentence(scoped.scope, scoped.reach, scoped.live)}>
-    {#if scoped.scope.kind === "all"}<Globe size={12} aria-hidden="true" />{:else if scoped.live}<Radio size={12} aria-hidden="true" />{:else}<Laptop size={12} aria-hidden="true" />{/if}
+    {#if scoped.scope.kind === "all"}<Icon icon={GlobeIcon} size={12} />{:else if scoped.live}<Icon icon={BroadcastIcon} size={12} />{:else}<Icon icon={LaptopIcon} size={12} />{/if}
     <span>{scopeName(scoped.scope, { ...scoped.reach, live: scoped.live ? scoped.reach.live : [] })}</span>
   </span>
   {#if why}<span class="scope-why" role="status">{why}</span>{/if}

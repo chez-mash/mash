@@ -1,6 +1,7 @@
 <script lang="ts">
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+import ArrowClockwiseIcon from "phosphor-svelte/lib/ArrowClockwiseIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 
 let {
   title,
@@ -27,12 +28,12 @@ const detail = $derived(
 <!-- One line across the space the content would fill: the warning, what
      failed over why, and the retry at the end. -->
 <div class="card bad loaderr" role="alert" aria-busy={busy}>
-  <TriangleAlert class="loaderr-mark" size={18} aria-hidden="true" />
+  <Icon icon={WarningIcon} class="loaderr-mark" size={18} state="strong" />
   <div>
     <strong>{title}</strong>
     <p>{detail}</p>
   </div>
   <button type="button" class="btn sm" onclick={retry} disabled={busy}>
-    <RotateCw size={14} aria-hidden="true" />{busy ? "Trying again…" : retryLabel}
+    <Icon icon={ArrowClockwiseIcon} size={14} />{busy ? "Trying again…" : retryLabel}
   </button>
 </div>

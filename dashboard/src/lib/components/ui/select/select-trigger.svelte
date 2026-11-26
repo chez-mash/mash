@@ -1,6 +1,7 @@
 <script lang="ts">
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import { Select as SelectPrimitive } from "bits-ui";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { cn, type WithoutChild } from "$lib/utils.js";
 
 // A select's button looks like the text fields beside it: the same outline
@@ -23,5 +24,5 @@ let {
   {...restProps}
 >
   {@render children?.()}
-  <ChevronDown class="flex-none text-muted" size={15} aria-hidden="true" />
+  <Icon icon={CaretDownIcon} class="flex-none text-muted" size={15} />
 </SelectPrimitive.Trigger>

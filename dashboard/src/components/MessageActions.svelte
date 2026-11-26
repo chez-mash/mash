@@ -1,6 +1,7 @@
 <script lang="ts">
-import Copy from "@lucide/svelte/icons/copy";
-import Link2 from "@lucide/svelte/icons/link-2";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import LinkSimpleHorizontalIcon from "phosphor-svelte/lib/LinkSimpleHorizontalIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 import { saidText } from "../lib/message";
 import { shareLink } from "../lib/shareLink";
@@ -31,10 +32,10 @@ async function copy(kind: "message" | "link"): Promise<void> {
   <span class="meta" role="status">{notice}</span>
   <div class="cp-buttons">
     <Tip text="Copy message">{#snippet children(tip)}<button {...tip} class="cp" type="button" aria-label="Copy message" onclick={() => copy("message")}>
-      <Copy size={14} aria-hidden="true" />
+      <Icon icon={CopyIcon} size={14} />
     </button>{/snippet}</Tip>
     <Tip text="Copy link to message">{#snippet children(tip)}<button {...tip} class="cp" type="button" aria-label="Copy link to message" onclick={() => copy("link")}>
-      <Link2 size={14} aria-hidden="true" />
+      <Icon icon={LinkSimpleHorizontalIcon} size={14} />
     </button>{/snippet}</Tip>
   </div>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
-import Copy from "@lucide/svelte/icons/copy";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 
 // A command to run elsewhere, in a muted box that wraps it, with a button to
@@ -19,7 +20,7 @@ async function copy(): Promise<void> {
 }
 </script>
 
-<div class="cc"><code>{text}</code><Tip text={copied ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied ? "Copied" : `Copy ${text}`} onclick={copy}>{#if copied}<Check size={14} aria-hidden="true" />{:else}<Copy size={14} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
+<div class="cc"><code>{text}</code><Tip text={copied ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied ? "Copied" : `Copy ${text}`} onclick={copy}>{#if copied}<Icon icon={CheckIcon} size={14} />{:else}<Icon icon={CopyIcon} size={14} />{/if}</button>{/snippet}</Tip></div>
 
 <style>
   .cc {

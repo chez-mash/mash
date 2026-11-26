@@ -1,20 +1,21 @@
 <script lang="ts">
-import ArrowUpFromLine from "@lucide/svelte/icons/arrow-up-from-line";
-import Check from "@lucide/svelte/icons/check";
-import CheckCheck from "@lucide/svelte/icons/check-check";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import Clock from "@lucide/svelte/icons/clock";
-import Download from "@lucide/svelte/icons/download";
-import Eye from "@lucide/svelte/icons/eye";
-import FileText from "@lucide/svelte/icons/file-text";
-import Laptop from "@lucide/svelte/icons/laptop";
-import ListChecks from "@lucide/svelte/icons/list-checks";
-import Play from "@lucide/svelte/icons/play";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import SearchIcon from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
-import Square from "@lucide/svelte/icons/square";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import ChecksIcon from "phosphor-svelte/lib/ChecksIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import CloudArrowUpIcon from "phosphor-svelte/lib/CloudArrowUpIcon";
+import DownloadSimpleIcon from "phosphor-svelte/lib/DownloadSimpleIcon";
+import EyeIcon from "phosphor-svelte/lib/EyeIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import ListChecksIcon from "phosphor-svelte/lib/ListChecksIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PlayIcon from "phosphor-svelte/lib/PlayIcon";
+import StopIcon from "phosphor-svelte/lib/StopIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import { stableRead } from "../lib/queries";
 import { fleetHref } from "../lib/route.svelte";
@@ -53,13 +54,13 @@ const history = createQuery(() => ({
 
 const groups: readonly {
   name: string;
-  icon: typeof ListChecks;
+  icon: typeof ListChecksIcon;
   actions: readonly FleetAction[];
 }[] = [
-  { name: "Check", icon: ListChecks, actions: ["status", "preflight", "watch-status"] },
-  { name: "Update", icon: Download, actions: ["deploy"] },
-  { name: "Index", icon: RefreshCw, actions: ["sync", "local-views", "replay-views"] },
-  { name: "Watchers", icon: Eye, actions: ["watch-start", "watch-stop", "watch-logs"] },
+  { name: "Check", icon: ListChecksIcon, actions: ["status", "preflight", "watch-status"] },
+  { name: "Update", icon: DownloadSimpleIcon, actions: ["deploy"] },
+  { name: "Index", icon: ArrowsClockwiseIcon, actions: ["sync", "local-views", "replay-views"] },
+  { name: "Watchers", icon: EyeIcon, actions: ["watch-start", "watch-stop", "watch-logs"] },
 ];
 const blurb: Record<FleetAction, string> = {
   status: "Reads each machine's installed build and readiness. Changes nothing.",
@@ -76,16 +77,16 @@ const blurb: Record<FleetAction, string> = {
 // The guide that explains the inventory's `allow_actions` list.
 const fleetDocs = "https://getmash.io/services/#run-fleet-operations";
 const icons = {
-  status: Laptop,
-  preflight: ListChecks,
-  "watch-status": Eye,
-  deploy: Download,
-  sync: ArrowUpFromLine,
-  "local-views": SearchIcon,
-  "replay-views": Server,
-  "watch-start": Play,
-  "watch-stop": Square,
-  "watch-logs": FileText,
+  status: LaptopIcon,
+  preflight: ListChecksIcon,
+  "watch-status": EyeIcon,
+  deploy: DownloadSimpleIcon,
+  sync: CloudArrowUpIcon,
+  "local-views": MagnifyingGlassIcon,
+  "replay-views": HardDrivesIcon,
+  "watch-start": PlayIcon,
+  "watch-stop": StopIcon,
+  "watch-logs": FileTextIcon,
 } as const;
 const readOnly: readonly FleetAction[] = ["status", "preflight", "watch-status"];
 
@@ -197,7 +198,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
   {job.outcome === "running" ? "started " : ""}{agoLabel(job.requested_at * 1000, now)}{compact ? ` · ${countLabel(job.targets.map((target) => target.id))}` : ""}
 {/snippet}
 {#snippet activity()}
-  <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />{action ? "Recent runs" : "Activity"}</h2></div>
+  <div class="hd"><h2 class="h2"><Icon icon={ClockIcon} size={15} />{action ? "Recent runs" : "Activity"}</h2></div>
   <QueryError title="Couldn’t check fleet jobs" query={history} />
   {#if history.data && !jobs.length}<p class="card tight cream meta">No runs yet.</p>{/if}
   {#if action && jobs.length}
@@ -222,7 +223,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
             {#each job.targets as target (target.id)}
               {@const done = percent(target)}
               <div class="jt">
-                {#if isService(target.id)}<Server size={14} aria-hidden="true" />{:else}<MachineIcon machine={target.id} size={14} />{/if}<b>{targetName(target.id)}</b>
+                {#if isService(target.id)}<Icon icon={HardDrivesIcon} size={14} />{:else}<MachineIcon machine={target.id} size={14} />{/if}<b>{targetName(target.id)}</b>
                 {#if done !== null && target.state === "running"}<span class="jbar"><span class="bar"><i style:width="{done}%"></i></span><span class="num">{done}%</span></span>
                 {:else}<span class="jnote" class:fail={target.state === "failed"}>{targetNote(job, target)}</span>{/if}
               </div>
@@ -240,7 +241,7 @@ function percent(target: FleetJob["targets"][number]): number | null {
   <p><a class="a" href={fleetDocs} target="_blank" rel="noreferrer">Read how to run fleet operations</a></p>
 {/snippet}
 
-{#if action}<a class="back" href="#/fleet" aria-label="Back to fleet manager"><ChevronLeft size={15} aria-hidden="true" />Fleet manager</a>{/if}
+{#if action}<a class="back" href="#/fleet" aria-label="Back to fleet manager"><Icon icon={CaretLeftIcon} size={15} />Fleet manager</a>{/if}
 <QueryError title="Couldn’t connect to services" query={access} />
 <QueryError title="Couldn’t load fleet controls" query={catalog} />
 {#if (access.isPending || catalog.isPending) && !access.error && !catalog.error}<h1 class="h1">Fleet manager</h1><Skeleton rows={3} />{/if}
@@ -256,14 +257,14 @@ function percent(target: FleetJob["targets"][number]): number | null {
     <div class="stack">
       {#each groups as group (group.name)}
         <section class="sec">
-          <h2 class="h2"><group.icon size={15} aria-hidden="true" />{group.name}</h2>
+          <h2 class="h2"><Icon icon={group.icon} size={15} />{group.name}</h2>
           <div class="g3">
             {#each group.actions as item (item)}
-              {@const Icon = icons[item]}
+              {@const Glyph = icons[item]}
               {#if allowed.some((entry) => entry.action === item)}
-                <a class="card opc" href={fleetHref(item)} aria-label={fleetActionLabel[item]} aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span></a>
+                <a class="card opc" href={fleetHref(item)} aria-label={fleetActionLabel[item]} aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon icon={Glyph} size={17} /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span></a>
               {:else}
-                <a class="card opc off" href={fleetHref(item)} aria-label="{fleetActionLabel[item]}: turned off" aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon size={17} aria-hidden="true" /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span><span class="opc-off"><span class="pill">Turned off</span><span class="a">How to turn it on</span></span></a>
+                <a class="card opc off" href={fleetHref(item)} aria-label="{fleetActionLabel[item]}: turned off" aria-describedby="fleet-about-{item}"><span class="ico fleet"><Icon icon={Glyph} size={17} /></span><b>{fleetActionLabel[item]}</b><span id="fleet-about-{item}">{blurb[item]}</span><span class="opc-off"><span class="pill">Turned off</span><span class="a">How to turn it on</span></span></a>
               {/if}
             {/each}
           </div>
@@ -275,33 +276,33 @@ function percent(target: FleetJob["targets"][number]): number | null {
   </div>
 {:else if catalog.data && action}
   {#if !current}
-    {@const Off = icons[action as FleetAction] ?? ListChecks}
-    <div class="dh"><span class="ico lg fleet"><Off size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[action as FleetAction] ?? action}</h1><p class="meta">turned off</p></div></div>
+    {@const Off = icons[action as FleetAction] ?? ListChecksIcon}
+    <div class="dh"><span class="ico lg fleet"><Icon icon={Off} size={20} /></span><div><h1 class="h1">{fleetActionLabel[action as FleetAction] ?? action}</h1><p class="meta">turned off</p></div></div>
     <div class="card cream stack-s">
       <p><strong>This operation is turned off for this dashboard.</strong></p>
       {@render turnOn(action)}
     </div>
   {:else}
-    {@const Icon = icons[current.action]}
-    <div class="dh"><span class="ico lg fleet"><Icon size={20} aria-hidden="true" /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
+    {@const Glyph = icons[current.action]}
+    <div class="dh"><span class="ico lg fleet"><Icon icon={Glyph} size={20} /></span><div><h1 class="h1">{fleetActionLabel[current.action]}</h1><p class="meta">{groups.find((group) => group.actions.includes(current.action))?.name}</p></div></div>
     <p style:max-width="640px" style:font-size="15px">{blurb[current.action]}{readOnly.includes(current.action) ? "" : " It keeps running if you leave this page."}</p>
     <section class="sec">
-      <div class="hd"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2><button class="btn ghost sm" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }}><CheckCheck size={14} aria-hidden="true" />Select all</button></div>
+      <div class="hd"><h2 class="h2"><Icon icon={LaptopIcon} size={15} />Machines</h2><button class="btn ghost sm" type="button" disabled={pending || !!error} onclick={() => { selected = [...current.targets]; confirmation = null; }}><Icon icon={ChecksIcon} size={14} />Select all</button></div>
       <div class="fleet-ts">
         {#each machineTargets as machine (machine)}
           {@const on = selected.includes(machine)}
-          <button class="card tick ft" class:sel={on} type="button" role="checkbox" aria-label={machine} aria-describedby={machine === local ? "fleet-local" : undefined} aria-checked={on} disabled={pending || !!error} onclick={() => toggle(machine)}><span class="check" class:on>{#if on}<Check aria-hidden="true" />{/if}</span><span class="g"><b>{machine}</b>{#if machine === local}<small id="fleet-local">this machine</small>{/if}</span><span class="ft-os"><MachineIcon {machine} size={16} /></span></button>
+          <button class="card tick ft" class:sel={on} type="button" role="checkbox" aria-label={machine} aria-describedby={machine === local ? "fleet-local" : undefined} aria-checked={on} disabled={pending || !!error} onclick={() => toggle(machine)}><span class="check" class:on>{#if on}<Icon icon={CheckIcon} size={12} />{/if}</span><span class="g"><b>{machine}</b>{#if machine === local}<small id="fleet-local">this machine</small>{/if}</span><span class="ft-os"><MachineIcon {machine} size={16} /></span></button>
         {/each}
       </div>
       {#if !current.targets.length}<p class="meta">Nothing in the inventory is eligible for this action.</p>{/if}
     </section>
     {#if serviceTargets.length}
       <section class="sec">
-        <h2 class="h2"><Server size={15} aria-hidden="true" />Services</h2>
+        <h2 class="h2"><Icon icon={HardDrivesIcon} size={15} />Services</h2>
         <div class="fleet-ts">
           {#each serviceTargets as service (service.id)}
             {@const on = selected.includes(service.id)}
-            <button class="card tick ft" class:sel={on} type="button" role="checkbox" aria-label={service.name} aria-checked={on} disabled={pending || !!error} onclick={() => toggle(service.id)}><span class="check" class:on>{#if on}<Check aria-hidden="true" />{/if}</span><span class="g"><b>{service.name}</b><small>on {service.machine}</small></span></button>
+            <button class="card tick ft" class:sel={on} type="button" role="checkbox" aria-label={service.name} aria-checked={on} disabled={pending || !!error} onclick={() => toggle(service.id)}><span class="check" class:on>{#if on}<Icon icon={CheckIcon} size={12} />{/if}</span><span class="g"><b>{service.name}</b><small>on {service.machine}</small></span></button>
           {/each}
         </div>
       </section>
@@ -310,14 +311,14 @@ function percent(target: FleetJob["targets"][number]): number | null {
     {#if confirmation}
       <div class="card butter armed" role="group" aria-label="Confirm">
         <p><strong>{fleetActionLabel[confirmation.action]} on {confirmation.targets.map(targetName).join(", ")}? {blurb[confirmation.action]}</strong></p>
-        <button class="btn p" type="button" disabled={pending} onclick={() => { if (confirmation) void submit(confirmation); }}><Play size={14} aria-hidden="true" />Yes, start it</button>
+        <button class="btn p" type="button" disabled={pending} onclick={() => { if (confirmation) void submit(confirmation); }}><Icon icon={PlayIcon} size={14} />Yes, start it</button>
         <button class="btn" type="button" onclick={() => (confirmation = null)}>Cancel</button>
       </div>
     {:else}
-      <div><button class="btn p lg" type="button" disabled={!selected.length || pending || !!error || !!running} onclick={prepare}><Icon size={16} aria-hidden="true" />{running ? "Unavailable while another job runs" : selected.length ? `${fleetActionLabel[current.action]} on ${countLabel(selected)}` : serviceTargets.length ? "Choose targets" : "Choose machines"}</button></div>
+      <div><button class="btn p lg" type="button" disabled={!selected.length || pending || !!error || !!running} onclick={prepare}><Icon icon={Glyph} size={16} />{running ? "Unavailable while another job runs" : selected.length ? `${fleetActionLabel[current.action]} on ${countLabel(selected)}` : serviceTargets.length ? "Choose targets" : "Choose machines"}</button></div>
     {/if}
     {#if pending}<p class="meta" role="status">Recording the fleet operation…</p>{/if}
-    {#if error}<p class="fail" role="alert">{error}</p><div><button class="btn" type="button" onclick={() => (error = "")}><Check size={14} aria-hidden="true" />I’ve checked the outcome</button></div>{/if}
+    {#if error}<p class="fail" role="alert">{error}</p><div><button class="btn" type="button" onclick={() => (error = "")}><Icon icon={CheckIcon} size={14} />I’ve checked the outcome</button></div>{/if}
     <section class="sec">{@render activity()}</section>
   {/if}
 {/if}

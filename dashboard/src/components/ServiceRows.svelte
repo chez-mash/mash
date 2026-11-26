@@ -1,24 +1,25 @@
 <script module lang="ts">
-import Database from "@lucide/svelte/icons/database";
-import Eye from "@lucide/svelte/icons/eye";
-import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
-import Plug from "@lucide/svelte/icons/plug";
-import Search from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
+import DatabaseIcon from "phosphor-svelte/lib/DatabaseIcon";
+import EyeIcon from "phosphor-svelte/lib/EyeIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import LayoutIcon from "phosphor-svelte/lib/LayoutIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PlugIcon from "phosphor-svelte/lib/PlugIcon";
 import type { Service } from "../lib/services.svelte";
 
 /** The icon for each kind of service, shared with a service's own page. */
 export const kindIcon = {
-  sqlite: Database,
-  qdrant: Search,
-  server: Server,
-  watcher: Eye,
-  mcp: Plug,
-  dashboard: LayoutDashboard,
+  sqlite: DatabaseIcon,
+  qdrant: MagnifyingGlassIcon,
+  server: HardDrivesIcon,
+  watcher: EyeIcon,
+  mcp: PlugIcon,
+  dashboard: LayoutIcon,
 } as const;
 </script>
 
 <script lang="ts">
+import Icon from "$lib/components/Icon.svelte";
 import { servicesHref } from "../lib/services.svelte";
 import ServiceStatus from "./ServiceStatus.svelte";
 
@@ -38,9 +39,9 @@ let {
     <div class="rw head" aria-hidden="true"><span>service</span><span>machine</span><span>kind</span><span>status</span></div>
     {#each machines as machine (machine.id)}
       {#each machine.services as entry (entry.id)}
-        {@const Icon = kindIcon[entry.kind]}
+        {@const Glyph = kindIcon[entry.kind]}
         <a class="rw" href={servicesHref(machine.id, entry.id)}>
-          <span class="rw-n"><Icon size={17} aria-hidden="true" /><strong>{entry.name}</strong></span>
+          <span class="rw-n"><Icon icon={Glyph} size={17} /><strong>{entry.name}</strong></span>
           <span>{machine.id}</span>
           <span class="rw-kind">{entry.kind}</span>
           <ServiceStatus state={entry.state} label={entry.summary} />

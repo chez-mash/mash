@@ -1,8 +1,9 @@
 <script lang="ts">
-import KeyRound from "@lucide/svelte/icons/key-round";
-import Server from "@lucide/svelte/icons/server";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import KeyIcon from "phosphor-svelte/lib/KeyIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { serverViewOptions } from "../lib/serverStatus";
 import { settingsOptions } from "../lib/settings";
 import { machineLine, type ServerView, setAdminKey, sharingLeads } from "../lib/shared";
@@ -71,7 +72,7 @@ async function forgetKey(): Promise<void> {
 {#snippet serverCard(data: ServerView)}
   {@const admin = data.admin_key && data.may_change}
   <section class="card ss" aria-label="Shared server">
-    <h2 class="ss-h"><Server size={16} aria-hidden="true" />Shared server</h2>
+    <h2 class="ss-h"><Icon icon={HardDrivesIcon} size={16} />Shared server</h2>
     <dl class="kvs ss-kv">
       <dt>Address</dt><dd><code class="i">{data.server}</code></dd>
       <dt>Group</dt><dd>{data.group_id}</dd>
@@ -103,13 +104,13 @@ async function forgetKey(): Promise<void> {
           <input id="admin-key" class="field" type="password" autocomplete="off" spellcheck="false" bind:value={key} />
           <p class="meta">An admin key starts with <code class="i">mash-admin.</code>. Make one on the server machine with <code class="i">mash-server --server-config … --add-admin NAME</code>. Mash checks it with the server before saving it, readable only by you.</p>
           <div class="ss-acts">
-            <button class="btn p" type="submit" disabled={!key.trim() || savingKey}><KeyRound size={14} aria-hidden="true" />{savingKey ? "Checking…" : "Save admin key"}</button>
+            <button class="btn p" type="submit" disabled={!key.trim() || savingKey}><Icon icon={KeyIcon} size={14} state="strong" />{savingKey ? "Checking…" : "Save admin key"}</button>
             <button class="btn" type="button" onclick={() => { adding = false; key = ""; keyFailure = ""; }}>Cancel</button>
           </div>
           {#if keyFailure}<p class="warn" role="alert">{keyFailure}</p>{/if}
         </form>
       {:else}
-        <button class="btn" type="button" onclick={() => (adding = true)}><KeyRound size={15} aria-hidden="true" />Manage this server</button>
+        <button class="btn" type="button" onclick={() => (adding = true)}><Icon icon={KeyIcon} size={15} />Manage this server</button>
       {/if}
     {:else}
       <p class="meta">Machines are managed from Mash on the machine itself, or from a dashboard that every visitor signs in to.</p>

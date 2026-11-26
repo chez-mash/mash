@@ -1,22 +1,22 @@
 <script module lang="ts">
-import Database from "@lucide/svelte/icons/database";
-import Eye from "@lucide/svelte/icons/eye";
-import FileText from "@lucide/svelte/icons/file-text";
-import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
-import Plug from "@lucide/svelte/icons/plug";
-import Search from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
+import DatabaseIcon from "phosphor-svelte/lib/DatabaseIcon";
+import EyeIcon from "phosphor-svelte/lib/EyeIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import LayoutIcon from "phosphor-svelte/lib/LayoutIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PlugIcon from "phosphor-svelte/lib/PlugIcon";
 import type { PlaceId } from "../lib/topology";
 
-export const placeIcon: Record<PlaceId, typeof Database> = {
-  histories: FileText,
-  indexing: Eye,
-  sqlite: Database,
-  search: Search,
-  mcp: Plug,
-  dashboard: LayoutDashboard,
-  server: Server,
-  serverSearch: Search,
+export const placeIcon: Record<PlaceId, typeof DatabaseIcon> = {
+  histories: FileTextIcon,
+  indexing: EyeIcon,
+  sqlite: DatabaseIcon,
+  search: MagnifyingGlassIcon,
+  mcp: PlugIcon,
+  dashboard: LayoutIcon,
+  server: HardDrivesIcon,
+  serverSearch: MagnifyingGlassIcon,
 };
 </script>
 

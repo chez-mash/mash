@@ -1,7 +1,8 @@
 <script lang="ts">
-import SquareArrowOutUpRight from "@lucide/svelte/icons/square-arrow-out-up-right";
-import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
+import ArrowSquareOutIcon from "phosphor-svelte/lib/ArrowSquareOutIcon";
+import TerminalIcon from "phosphor-svelte/lib/TerminalIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { appLink, mayOpenInApp, resumeCommand } from "../lib/openIn";
 import { stableRead } from "../lib/queries";
 import type { ChatSummary } from "../lib/types";
@@ -40,10 +41,10 @@ async function copyCommand(text: string): Promise<void> {
   <!-- A session the app does not have yet is added to it as a new one, so
        the button says so before the click. -->
   {#if link.data.addsSession}
-    <a class="btn" href={link.data.url} title="Adds this session to the {link.data.app} app as a new session, then opens it"><SquareArrowOutUpRight size={15} aria-hidden="true" />Add to {link.data.app}</a>
+    <a class="btn" href={link.data.url} title="Adds this session to the {link.data.app} app as a new session, then opens it"><Icon icon={ArrowSquareOutIcon} size={15} />Add to {link.data.app}</a>
   {:else}
-    <a class="btn" href={link.data.url} title="Open this session in the {link.data.app} app"><SquareArrowOutUpRight size={15} aria-hidden="true" />Open in {link.data.app}</a>
+    <a class="btn" href={link.data.url} title="Open this session in the {link.data.app} app"><Icon icon={ArrowSquareOutIcon} size={15} />Open in {link.data.app}</a>
   {/if}
 {:else if settled && command}
-  <button class="btn" type="button" title={command} onclick={() => copyCommand(command)}><Terminal size={15} aria-hidden="true" />Copy resume command</button>
+  <button class="btn" type="button" title={command} onclick={() => copyCommand(command)}><Icon icon={TerminalIcon} size={15} />Copy resume command</button>
 {/if}

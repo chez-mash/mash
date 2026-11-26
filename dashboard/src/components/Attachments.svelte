@@ -1,8 +1,9 @@
 <script lang="ts">
-import Download from "@lucide/svelte/icons/download";
-import FileIcon from "@lucide/svelte/icons/file";
-import FileX from "@lucide/svelte/icons/file-x";
-import X from "@lucide/svelte/icons/x";
+import DownloadSimpleIcon from "phosphor-svelte/lib/DownloadSimpleIcon";
+import FileIcon from "phosphor-svelte/lib/FileIcon";
+import FileXIcon from "phosphor-svelte/lib/FileXIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
+import Icon from "$lib/components/Icon.svelte";
 import * as Dialog from "$lib/components/ui/dialog";
 import { Tip } from "$lib/components/ui/tooltip";
 import { kind, size } from "../lib/attachments";
@@ -27,13 +28,13 @@ const others = $derived(attachments.filter((file) => !shownAsPicture(file)));
 {#snippet card(file: Attachment)}
   {#if file.url && !failed[file.id]}
     <div class="card tight file">
-      <FileIcon size={18} aria-hidden="true" />
+      <Icon icon={FileIcon} size={18} />
       <span class="what"><b>{file.name}</b><span class="mtx">{kind(file.mediaType)}{file.bytes === undefined ? "" : ` · ${size(file.bytes)}`}</span></span>
-      <a class="a get" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Download size={15} aria-hidden="true" />Download</a>
+      <a class="a get" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Icon icon={DownloadSimpleIcon} size={15} />Download</a>
     </div>
   {:else}
     <div class="card tight cream file gone">
-      <FileX size={18} aria-hidden="true" />
+      <Icon icon={FileXIcon} size={18} />
       <span class="what"><b>{file.name}</b><span class="mtx">Not kept. {failed[file.id] ? "The file could not be loaded" : (file.missing ?? "No copy was kept")}.</span></span>
     </div>
   {/if}
@@ -57,8 +58,8 @@ const others = $derived(attachments.filter((file) => !shownAsPicture(file)));
       {@const file = open}
       <div class="viewbar">
         <Dialog.Title class="viewname" level={2}>{file.name}</Dialog.Title>
-        <Tip text="Download">{#snippet children(tip)}<a {...tip} class="btn icon" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Download size={15} aria-hidden="true" /></a>{/snippet}</Tip>
-        <Tip text="Close">{#snippet children(tip)}<Dialog.Close {...tip} class="btn icon" aria-label="Close"><X size={15} aria-hidden="true" /></Dialog.Close>{/snippet}</Tip>
+        <Tip text="Download">{#snippet children(tip)}<a {...tip} class="btn icon" href={file.downloadUrl ?? file.url} download={file.name} aria-label="Download {file.name}"><Icon icon={DownloadSimpleIcon} size={15} /></a>{/snippet}</Tip>
+        <Tip text="Close">{#snippet children(tip)}<Dialog.Close {...tip} class="btn icon" aria-label="Close"><Icon icon={XIcon} size={15} /></Dialog.Close>{/snippet}</Tip>
       </div>
       <div class="viewbody"><img src={file.url} alt={file.name} /></div>
     {/if}

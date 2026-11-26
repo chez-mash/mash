@@ -1,10 +1,11 @@
 <script lang="ts">
 // The Find in chat box. It only takes the words and says how many matches
 // there are; finding them, and going to one, belong to the transcript.
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import ChevronUp from "@lucide/svelte/icons/chevron-up";
-import Search from "@lucide/svelte/icons/search";
-import X from "@lucide/svelte/icons/x";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CaretUpIcon from "phosphor-svelte/lib/CaretUpIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 
 let {
@@ -27,7 +28,7 @@ let {
 
 <div class="findbar" role="search">
   <div class="fb-field">
-    <Search size={16} aria-hidden="true" />
+    <Icon icon={MagnifyingGlassIcon} size={16} />
     <label class="sr-only" for="find-in-chat">Find in this chat</label>
     <input
       id="find-in-chat"
@@ -45,10 +46,10 @@ let {
       }}
     />
     <span class="findn" role="status">{status}</span>
-    <Tip text="Previous match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Previous match" disabled={!matches} onclick={() => onstep(-1)}><ChevronUp size={16} /></button>{/snippet}</Tip>
-    <Tip text="Next match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Next match" disabled={!matches} onclick={() => onstep(1)}><ChevronDown size={16} /></button>{/snippet}</Tip>
+    <Tip text="Previous match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Previous match" disabled={!matches} onclick={() => onstep(-1)}><Icon icon={CaretUpIcon} size={16} /></button>{/snippet}</Tip>
+    <Tip text="Next match">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Next match" disabled={!matches} onclick={() => onstep(1)}><Icon icon={CaretDownIcon} size={16} /></button>{/snippet}</Tip>
     <span class="fb-sep" aria-hidden="true"></span>
-    <Tip text="Close find">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Close find" onclick={onclose}><X size={16} /></button>{/snippet}</Tip>
+    <Tip text="Close find">{#snippet children(tip)}<button {...tip} class="fb-b" type="button" aria-label="Close find" onclick={onclose}><Icon icon={XIcon} size={16} /></button>{/snippet}</Tip>
   </div>
   <span class="fb-k" aria-hidden="true"><kbd class="kbd">↵</kbd>next<kbd class="kbd">⇧</kbd><kbd class="kbd">↵</kbd>previous<kbd class="kbd">esc</kbd>close</span>
 </div>

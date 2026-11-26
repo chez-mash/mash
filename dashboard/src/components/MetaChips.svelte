@@ -1,5 +1,6 @@
 <script lang="ts">
-import Folder from "@lucide/svelte/icons/folder";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents } from "../lib/agents";
 import { projectLabel, whenLabel } from "../lib/browse";
 import { agentHref, machineHref, projectHref } from "../lib/route.svelte";
@@ -26,11 +27,11 @@ const now = Date.now();
   {#if agentMark}
     <a class="mt chip agent" href={agentHref(chat.agent)}><AgentMark agent={chat.agent} size="sm" />{agents[chat.agent].name}</a>
     <a class="mt chip" href={machineHref(chat.machine)}><MachineIcon machine={chat.machine} size={14} />{chat.machine}</a>
-    {#if chat.project}<a class="mt chip" href={projectHref(chat.project)}><Folder size={14} aria-hidden="true" />{projectLabel(chat.project)}</a>{/if}
+    {#if chat.project}<a class="mt chip" href={projectHref(chat.project)}><Icon icon={FolderIcon} size={14} />{projectLabel(chat.project)}</a>{/if}
   {:else}
     <span class="mt"><AgentMark agent={chat.agent} size="sm" />{agents[chat.agent].name}</span>
     <span class="mt"><MachineIcon machine={chat.machine} size={12} />{chat.machine}</span>
-    {#if chat.project}<span class="mt"><Folder size={12} aria-hidden="true" />{projectLabel(chat.project)}</span>{/if}
+    {#if chat.project}<span class="mt"><Icon icon={FolderIcon} size={12} />{projectLabel(chat.project)}</span>{/if}
   {/if}
   <span class="mtx">{whenLabel(chat.updatedMs, now)}</span>
   {#if extra}<span class="mtx">{extra}</span>{/if}

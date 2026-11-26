@@ -1,6 +1,7 @@
 <script lang="ts">
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import GitFork from "@lucide/svelte/icons/git-fork";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import GitForkIcon from "phosphor-svelte/lib/GitForkIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { chatHref } from "../lib/route.svelte";
@@ -25,7 +26,7 @@ const started = $derived(
 {#each started as child (child.machine + child.id)}
   {@const done = stateLabel(child.subagent)}
   {@const state = [done, whenLabel(child.updatedMs, now)].filter(Boolean).join(" · ")}
-  <a class="fold spawn" href={chatHref(child.id, child.machine)}><span class="spawn-h"><GitFork size={15} aria-hidden="true" /><span class="spawn-t">Started a subagent: <b>{plainTitle(child.title)}</b></span><span class="pill" class:ok={done === "done"} class:busy={done === "running"}>{#if done}<i class="dot" class:busy={done === "running"}></i>{/if}{state}</span><span class="spawn-o">Open<ChevronRight size={14} aria-hidden="true" /></span></span></a>
+  <a class="fold spawn" href={chatHref(child.id, child.machine)}><span class="spawn-h"><Icon icon={GitForkIcon} size={15} /><span class="spawn-t">Started a subagent: <b>{plainTitle(child.title)}</b></span><span class="pill" class:ok={done === "done"} class:busy={done === "running"}>{#if done}<i class="dot" class:busy={done === "running"}></i>{/if}{state}</span><span class="spawn-o">Open<Icon icon={CaretRightIcon} size={14} /></span></span></a>
 {/each}
 
 <style>

@@ -1,9 +1,10 @@
 <script lang="ts">
-import Brain from "@lucide/svelte/icons/brain";
-import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
-import SearchIcon from "@lucide/svelte/icons/search";
+import BrainIcon from "phosphor-svelte/lib/BrainIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { plainPassage } from "../lib/passage";
@@ -55,7 +56,7 @@ const offset = $derived(chats ? rows.length : 0);
 </script>
 
 {#snippet commandIcon(command: QuickCommand)}
-  {#if command.id === "memory"}<Brain size={12} aria-hidden="true" />{:else if command.id === "machines"}<Laptop size={12} aria-hidden="true" />{:else}<SearchIcon size={12} aria-hidden="true" />{/if}
+  {#if command.id === "memory"}<Icon icon={BrainIcon} size={12} />{:else if command.id === "machines"}<Icon icon={LaptopIcon} size={12} />{:else}<Icon icon={MagnifyingGlassIcon} size={12} />{/if}
 {/snippet}
 
 {#if chats}
@@ -66,7 +67,7 @@ const offset = $derived(chats ? rows.length : 0);
         <a class="q-row" class:q-sel={index === selected} href={rowTarget(row, desktop)} onmouseenter={() => onhover(index)}>
           <AgentMark agent={row.chat.agent} size="sm" />
           <span class="q-t">
-            <span class="q-line"><span class="q-title">{plainTitle(row.chat.title)}</span>{#if row.chat.project}<span class="q-sub" title="Project: {row.chat.project}"><Folder size={11} aria-hidden="true" /><span>{projectLabel(row.chat.project)}</span></span>{/if}</span>
+            <span class="q-line"><span class="q-title">{plainTitle(row.chat.title)}</span>{#if row.chat.project}<span class="q-sub" title="Project: {row.chat.project}"><Icon icon={FolderIcon} size={11} /><span>{projectLabel(row.chat.project)}</span></span>{/if}</span>
             {#if row.passage}<span class="q-passage"><Highlight text={plainPassage(row.passage)} {query} /></span>{/if}
           </span>
           {#if row.byMeaning}<span class="q-age">by meaning</span>{/if}

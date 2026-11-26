@@ -1,7 +1,8 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 
 // A filter chip that opens a menu of choices. `draft` marks a choice that
@@ -35,7 +36,7 @@ const row =
 </script>
 
 {#snippet line(option: { value: string; label: string; count?: number }, on: boolean)}
-  <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Check size={14} aria-hidden="true" />{/if}</span>
+  <span style:flex="none" style:width="16px" style:display="inline-flex">{#if on}<Icon icon={CheckIcon} size={14} />{/if}</span>
   <span class="oi">{#if optionIcon}{@render optionIcon(option.value)}{:else}{@render icon()}{/if}</span>
   <span class="g">{option.label}</span>
   {#if option.count !== undefined}<span class="n">{option.count.toLocaleString()}</span>{/if}
@@ -45,7 +46,7 @@ const row =
 <div class="fwrap">
   <DropdownMenu.Root bind:open>
     <DropdownMenu.Trigger class={["chip", { on: active, draft }]}>
-      {@render icon()}{label}<ChevronDown size={13} aria-hidden="true" />
+      {@render icon()}{label}<Icon icon={CaretDownIcon} size={13} />
     </DropdownMenu.Trigger>
     <DropdownMenu.ContentStatic class="fmenu" aria-label={label}>
       {#if multiple}

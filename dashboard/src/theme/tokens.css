@@ -148,11 +148,16 @@
   --weight-strong: 600;
   --weight-meta: 400;
   --font-smoothing: auto;
-  /* Icon line weight: Lucide draws in a 24px box, so a stroke of 2 is a 1px line at 12px. Small
-     icons get a heavier stroke so they sit with the text beside them; large ones a lighter one. */
-  --icon-stroke-sm: 2.25;
-  --icon-stroke: 2;
-  --icon-stroke-lg: 1.75;
+  /* Icon weight: Phosphor draws each glyph in several weights, chosen by lib/icon.svelte.ts from
+     these roles. Small icons (15px and under) are bold so they sit with the text beside them,
+     large decorative ones (28px and up) are light, the current item is filled, and a warning or
+     the icon on a primary button is bold. Dark draws one step heavier, as it does small text:
+     a regular line is under a pixel at 16px and greys out on a dark surface. */
+  --icon-weight-small: bold;
+  --icon-weight: regular;
+  --icon-weight-large: light;
+  --icon-weight-on: fill;
+  --icon-weight-strong: bold;
   /* Mashy: the lavender of Mashy's bowl is Mashy's alone. */
   --mashy-pick-bg: #dce3fa;
   --mashy-pick-text: #1a1915;
@@ -299,6 +304,11 @@
     --kind-note-text: #6fc2c2;
     --weight-meta: 500;
     --font-smoothing: antialiased;
+    --icon-weight-small: bold;
+    --icon-weight: bold;
+    --icon-weight-large: regular;
+    --icon-weight-on: fill;
+    --icon-weight-strong: bold;
     --mashy-pick-bg: #2c3350;
     --mashy-pick-text: #f3efe6;
     --mashy-dot: #8e9dd6;
@@ -406,6 +416,11 @@
   --kind-note-text: #6fc2c2;
   --weight-meta: 500;
   --font-smoothing: antialiased;
+  --icon-weight-small: bold;
+  --icon-weight: bold;
+  --icon-weight-large: regular;
+  --icon-weight-on: fill;
+  --icon-weight-strong: bold;
   --mashy-pick-bg: #2c3350;
   --mashy-pick-text: #f3efe6;
   --mashy-dot: #8e9dd6;

@@ -2,11 +2,12 @@
 // The overview's side column: memories waiting for a review (or, when none
 // are, the latest ones), then the machines and agents the history comes from.
 
-import Bot from "@lucide/svelte/icons/bot";
-import Brain from "@lucide/svelte/icons/brain";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import Laptop from "@lucide/svelte/icons/laptop";
+import BrainIcon from "phosphor-svelte/lib/BrainIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import CircleDashedIcon from "phosphor-svelte/lib/CircleDashedIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo, agentNamed } from "../lib/agents";
 import type { Group } from "../lib/browse";
 import { whenLabel } from "../lib/browse";
@@ -71,7 +72,7 @@ function state(machine: string): { words: string; title: string } {
 <div class="os">
   {#if unconfirmed.length}
     <section class="os-sec">
-      <div class="os-h"><h2><CircleDashed class="os-hw" size={15} aria-hidden="true" />Unconfirmed</h2><a href="#/records?review=candidate">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Icon icon={CircleDashedIcon} class="os-hw" size={15} />Unconfirmed</h2><a href="#/records?review=candidate">Memory<Icon icon={CaretRightIcon} size={13} /></a></div>
       {#each unconfirmed.slice(0, 3) as record (record.node + record.id)}
         {@const revision = current(record)}
         {@const from = source(record)}
@@ -83,7 +84,7 @@ function state(machine: string): { words: string; title: string } {
     </section>
   {:else}
     <section class="os-sec">
-      <div class="os-h"><h2><Brain size={15} aria-hidden="true" />Recent memories</h2><a href="#/records?">Memory<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Icon icon={BrainIcon} size={15} />Recent memories</h2><a href="#/records?">Memory<Icon icon={CaretRightIcon} size={13} /></a></div>
       {#if memoriesPending}<div class="card pad0"><Skeleton rows={3} /></div>{/if}
       {#if recent?.length}
         <div class="card pad0 list">
@@ -96,7 +97,7 @@ function state(machine: string): { words: string; title: string } {
   {/if}
   {#if machines.length}
     <section class="os-sec">
-      <div class="os-h"><h2><Laptop size={15} aria-hidden="true" />Machines</h2><a href="#/machines">Manage<ChevronRight size={13} aria-hidden="true" /></a></div>
+      <div class="os-h"><h2><Icon icon={LaptopIcon} size={15} />Machines</h2><a href="#/machines">Manage<Icon icon={CaretRightIcon} size={13} /></a></div>
       <div class="os-card os-tally">
         {#each machines as machine (machine.key)}
           {@const said = state(machine.key)}
@@ -108,7 +109,7 @@ function state(machine: string): { words: string; title: string } {
   {/if}
   {#if providers.length}
     <section class="os-sec">
-      <div class="os-h"><h2><Bot size={15} aria-hidden="true" />Agents</h2></div>
+      <div class="os-h"><h2><Icon icon={RobotIcon} size={15} />Agents</h2></div>
       <div class="os-agents">
         {#each providers as provider (provider.key)}
           {@const agent = provider.chats[0]?.agent}

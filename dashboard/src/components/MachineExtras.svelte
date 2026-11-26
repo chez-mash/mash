@@ -1,6 +1,7 @@
 <script lang="ts">
-import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import Icon from "$lib/components/Icon.svelte";
 import {
   problems,
   serviceAccessOptions,
@@ -26,7 +27,7 @@ const issues = $derived(problems(machine ? [machine] : []));
   </AgentSetupList>
 {/if}
 <section class="sec">
-  <h2 class="h2"><Server size={15} aria-hidden="true" />Services</h2>
+  <h2 class="h2"><Icon icon={HardDrivesIcon} size={15} />Services</h2>
   {#if fleet.isPending && enabled}<p class="meta" role="status">Checking services…</p>{/if}
   {#if fleet.error}<p class="meta" role="alert">{fleet.error.message}</p>{/if}
   {#if fleet.data && !machine}<p class="card tight cream meta">This machine is not in the dashboard's services configuration, so its services and agent setup are not reported.</p>{/if}

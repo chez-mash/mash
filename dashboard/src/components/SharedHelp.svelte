@@ -1,9 +1,10 @@
 <script lang="ts">
-import KeyRound from "@lucide/svelte/icons/key-round";
-import ListChecks from "@lucide/svelte/icons/list-checks";
-import Lock from "@lucide/svelte/icons/lock";
-import SquareTerminal from "@lucide/svelte/icons/square-terminal";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+import KeyIcon from "phosphor-svelte/lib/KeyIcon";
+import ListChecksIcon from "phosphor-svelte/lib/ListChecksIcon";
+import LockIcon from "phosphor-svelte/lib/LockIcon";
+import TerminalWindowIcon from "phosphor-svelte/lib/TerminalWindowIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { joinRefusals } from "../lib/shared";
 import CommandCopy from "./CommandCopy.svelte";
 
@@ -17,13 +18,13 @@ const here = $derived(node || "this machine");
 
 {#if mode === "review"}
   <section class="card sh" aria-label="What stays private">
-    <h3><Lock size={15} aria-hidden="true" />What stays private</h3>
+    <h3><Icon icon={LockIcon} size={15} />What stays private</h3>
     <p>Chats you leave out are still indexed and searchable on {here}, and so are any memories drawn from them; neither is sent.</p>
     <p>From a terminal, list an agent under <code class="i">[shared]</code> in the configuration to keep it off the server, for example <code class="i">unshared = ["cursor"]</code>.</p>
   </section>
 {:else if mode === "done"}
   <section class="card sh" aria-label="Next steps">
-    <h3><ListChecks size={15} aria-hidden="true" />Next steps</h3>
+    <h3><Icon icon={ListChecksIcon} size={15} />Next steps</h3>
     <ol class="sh-steps">
       <li><strong>Search every machine</strong><p>Search on any joined computer covers every machine in the group. The machine filter narrows it to the ones you choose.</p></li>
       <li><strong>Check what the server received</strong><CommandCopy text="mash status --shared" /></li>
@@ -32,32 +33,32 @@ const here = $derived(node || "this machine");
   </section>
 {:else if mode === "join"}
   <section class="card sh" aria-label="Join from a terminal">
-    <h3><SquareTerminal size={15} aria-hidden="true" />Join from a terminal</h3>
+    <h3><Icon icon={TerminalWindowIcon} size={15} />Join from a terminal</h3>
     <p>On this computer, with the full join value. These options skip indexing and leave agent settings alone.</p>
     <CommandCopy text="mash init --join 'JOIN_STRING_FROM_SERVER' --no-index --no-agents" />
   </section>
   <section class="card sh" aria-label="Connect by hand">
-    <h3><KeyRound size={15} aria-hidden="true" />Connect by hand</h3>
+    <h3><Icon icon={KeyIcon} size={15} />Connect by hand</h3>
     <p>No join string? Ask the server’s operator for the server URL, the group ID, a name for this computer (its node ID) and its own token.</p>
     <CommandCopy text="mash init --no-index --no-agents" />
     <p>Choose Connect to an existing shared server, then enter the server URL, group ID, node ID and the name of the variable that holds the token.</p>
   </section>
   <section class="card sh" aria-label="When the server says no">
-    <h3><TriangleAlert size={15} aria-hidden="true" />When the server says no</h3>
+    <h3><Icon icon={WarningIcon} size={15} state="strong" />When the server says no</h3>
     <p>Mash shows why, and saves nothing.</p>
     <dl class="sh-why">
-      <dt>Expired</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.expired}</span></dd>
-      <dt>Already used</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.used}</span></dd>
-      <dt>Replaced</dt><dd><TriangleAlert size={14} aria-hidden="true" /><span>{joinRefusals.revoked}</span></dd>
+      <dt>Expired</dt><dd><Icon icon={WarningIcon} size={14} state="strong" /><span>{joinRefusals.expired}</span></dd>
+      <dt>Already used</dt><dd><Icon icon={WarningIcon} size={14} state="strong" /><span>{joinRefusals.used}</span></dd>
+      <dt>Replaced</dt><dd><Icon icon={WarningIcon} size={14} state="strong" /><span>{joinRefusals.revoked}</span></dd>
     </dl>
   </section>
 {:else}
   <section class="card sh" aria-label="On a machine without an admin key">
-    <h3><KeyRound size={15} aria-hidden="true" />On a machine without an admin key</h3>
+    <h3><Icon icon={KeyIcon} size={15} />On a machine without an admin key</h3>
     <p>Every joined machine sees the server’s machines with its own credential, which can never change anything. To manage from it, choose Manage this server there and paste a key.</p>
   </section>
   <section class="card sh" aria-label="On the server machine">
-    <h3><SquareTerminal size={15} aria-hidden="true" />On the server machine</h3>
+    <h3><Icon icon={TerminalWindowIcon} size={15} />On the server machine</h3>
     <p>Make a key for another computer. It is printed once; the server keeps only its hash.</p>
     <CommandCopy text="mash-server --server-config /absolute/path/to/server.toml --add-admin NAME" />
     <p>Stop accepting a key, for example for a lost laptop.</p>

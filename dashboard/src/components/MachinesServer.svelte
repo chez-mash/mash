@@ -1,6 +1,7 @@
 <script lang="ts">
-import Server from "@lucide/svelte/icons/server";
 import { createQuery } from "@tanstack/svelte-query";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { whenLabel } from "../lib/browse";
 import { reported, serverReport, serverViewOptions } from "../lib/serverStatus";
 import ToneIcon from "./ToneIcon.svelte";
@@ -36,7 +37,7 @@ const search = $derived.by(() => {
 
 {#if report.kind !== "none"}
   <div class="card srv">
-    <span class="srv-i" aria-hidden="true"><Server size={16} /></span>
+    <span class="srv-i" aria-hidden="true"><Icon icon={HardDrivesIcon} size={16} /></span>
     <span class="srv-n">
       <b>Shared server<ToneIcon tone={report.kind === "reported" ? "ok" : "warn"} size={14} /></b>
       <code>{host(report.address)}{#if report.kind === "reported"} · group {report.group}{/if}</code>

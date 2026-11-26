@@ -597,7 +597,6 @@ a.stats > *:hover,
 .check > svg {
   width: 12px;
   height: 12px;
-  stroke-width: 3;
 }
 
 /* A machine, agent or project named on an outlined paper chip. */

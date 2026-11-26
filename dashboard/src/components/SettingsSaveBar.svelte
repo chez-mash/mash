@@ -1,7 +1,8 @@
 <script lang="ts">
-import Eye from "@lucide/svelte/icons/eye";
-import Save from "@lucide/svelte/icons/save";
-import Undo2 from "@lucide/svelte/icons/undo-2";
+import ArrowUUpLeftIcon from "phosphor-svelte/lib/ArrowUUpLeftIcon";
+import EyeIcon from "phosphor-svelte/lib/EyeIcon";
+import FloppyDiskIcon from "phosphor-svelte/lib/FloppyDiskIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { mashCommand } from "../lib/command";
 import type { Difference } from "../lib/settings";
 
@@ -35,9 +36,9 @@ $effect(() => {
   {#if changed.length}
     <div class="set-bt">
       <span class="set-bs"><span class="set-dot" aria-hidden="true"></span><strong>{changed.length} unsaved change{changed.length === 1 ? "" : "s"}</strong><span class="meta">: {changed.map((change) => change.label).join(", ")}</span></span>
-      <button class="btn ghost" type="button" aria-expanded={reviewing} onclick={() => (reviewing = !reviewing)}><Eye size={14} aria-hidden="true" />{reviewing ? "Hide changes" : "Review changes"}</button>
-      <button class="btn ghost" type="button" disabled={saving} onclick={discard}><Undo2 size={14} aria-hidden="true" />Discard</button>
-      <button class="btn p" type="button" disabled={saving || !!blocked} onclick={save}><Save size={15} aria-hidden="true" />{saving ? "Saving…" : "Save to file"}</button>
+      <button class="btn ghost" type="button" aria-expanded={reviewing} onclick={() => (reviewing = !reviewing)}><Icon icon={EyeIcon} size={14} />{reviewing ? "Hide changes" : "Review changes"}</button>
+      <button class="btn ghost" type="button" disabled={saving} onclick={discard}><Icon icon={ArrowUUpLeftIcon} size={14} />Discard</button>
+      <button class="btn p" type="button" disabled={saving || !!blocked} onclick={save}><Icon icon={FloppyDiskIcon} size={15} state="strong" />{saving ? "Saving…" : "Save to file"}</button>
     </div>
     {#if blocked}<p class="meta warn" role="alert">{blocked}</p>{/if}
     {#if reviewing}

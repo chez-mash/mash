@@ -1,11 +1,12 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import CircleHelp from "@lucide/svelte/icons/circle-help";
-import Copy from "@lucide/svelte/icons/copy";
-import ListChecks from "@lucide/svelte/icons/list-checks";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery } from "@tanstack/svelte-query";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import ListChecksIcon from "phosphor-svelte/lib/ListChecksIcon";
+import QuestionIcon from "phosphor-svelte/lib/QuestionIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
 import type { RepairResult } from "../lib/pluginRepair";
@@ -55,7 +56,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
       <li>
         <span>{step}{#if fix.deploy && index === 0}{" "}<a class="a" href={fleetHref("deploy")}>Deploy it from Fleet manager</a>, or install it there yourself.{/if}</span>
         {#if fix.command && index === fix.commandStep}
-          <div class="cmd"><code>{fix.command}</code><Tip text={copied === agent ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied === agent ? "Copied" : "Copy the command"} onclick={() => copy(agent, fix.command ?? "")}>{#if copied === agent}<Check size={16} aria-hidden="true" />{:else}<Copy size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip></div>
+          <div class="cmd"><code>{fix.command}</code><Tip text={copied === agent ? "Copied" : "Copy"}>{#snippet children(tip)}<button {...tip} type="button" aria-label={copied === agent ? "Copied" : "Copy the command"} onclick={() => copy(agent, fix.command ?? "")}>{#if copied === agent}<Icon icon={CheckIcon} size={16} />{:else}<Icon icon={CopyIcon} size={16} />{/if}</button>{/snippet}</Tip></div>
         {/if}
       </li>
     {/each}
@@ -80,7 +81,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
           {#each chain as part (part.label)}
             <span class="rw-part" title="{part.label}: {partWord[part.state]}">
               <span class="check" class:on={part.state === "ok"} class:warn={part.state === "attention"}>
-                {#if part.state === "ok"}<Check aria-label="{part.label}: ok" />{:else if part.state === "attention"}<TriangleAlert aria-label="{part.label}: needs attention" />{:else}<CircleHelp aria-label="{part.label}: not verifiable" />{/if}
+                {#if part.state === "ok"}<Icon icon={CheckIcon} size={12} aria-label="{part.label}: ok" />{:else if part.state === "attention"}<Icon icon={WarningIcon} size={12} aria-label="{part.label}: needs attention" state="strong" />{:else}<Icon icon={QuestionIcon} size={12} aria-label="{part.label}: not verifiable" />{/if}
               </span>
               <span aria-hidden="true">{part.label}</span>
             </span>
@@ -93,7 +94,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
           {#each chain as part (part.label)}
             <div>
               <span class={part.state === "ok" ? "ok" : part.state === "attention" ? "warn" : "none"} style:display="flex">
-                {#if part.state === "ok"}<Check size={16} aria-hidden="true" />{:else if part.state === "attention"}<TriangleAlert size={16} aria-hidden="true" />{:else}<CircleHelp size={16} aria-hidden="true" />{/if}
+                {#if part.state === "ok"}<Icon icon={CheckIcon} size={16} />{:else if part.state === "attention"}<Icon icon={WarningIcon} size={16} state="strong" />{:else}<Icon icon={QuestionIcon} size={16} />{/if}
               </span>
               <span class="g">{part.label}</span>
               <span class={part.state === "attention" ? "warn" : "n"} style:font-size="13px">{partWord[part.state]}</span>
@@ -107,11 +108,11 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
         {/if}
         {#if fix}
           <div class="fix">
-            <p class="why"><TriangleAlert size={16} aria-hidden="true" /><span>{fix.cause}</span></p>
+            <p class="why"><Icon icon={WarningIcon} size={16} state="strong" /><span>{fix.cause}</span></p>
             {#if fix.deploy && setup.data}
               <PluginRepair {machineId} build={setup.data.build} agentName={agents[agent.agent].name} result={repairs[agent.agent]} onresult={(result) => setRepair(agent.agent, result)} />
               <details class="fold lite" open={repairs[agent.agent]?.ok === false}>
-                <summary><ChevronRight class="cv" size={14} aria-hidden="true" /><ListChecks size={15} aria-hidden="true" />Do it by hand</summary>
+                <summary><Icon icon={CaretRightIcon} class="cv" size={14} /><Icon icon={ListChecksIcon} size={15} />Do it by hand</summary>
                 <div>{@render steps(fix, agent.agent)}</div>
               </details>
             {:else}
@@ -119,7 +120,7 @@ const partWord = { ok: "ok", attention: "needs attention", unverified: "not veri
             {/if}
           </div>
           <details class="fold lite" style:margin-top="8px">
-            <summary><ChevronRight class="cv" size={14} aria-hidden="true" /><ListChecks size={15} aria-hidden="true" />{fix.checks === 1 ? "The check behind this" : `The ${fix.checks} checks behind this`}</summary>
+            <summary><Icon icon={CaretRightIcon} class="cv" size={14} /><Icon icon={ListChecksIcon} size={15} />{fix.checks === 1 ? "The check behind this" : `The ${fix.checks} checks behind this`}</summary>
             <div>
               {#each chain.filter((part) => part.notes.length > 0) as part (part.label)}
             {#each part.notes as note (note.message)}

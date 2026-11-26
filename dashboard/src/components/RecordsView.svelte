@@ -1,12 +1,13 @@
 <script lang="ts">
-import BadgeCheck from "@lucide/svelte/icons/badge-check";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import ChevronsLeft from "@lucide/svelte/icons/chevrons-left";
-import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import ListChecks from "@lucide/svelte/icons/list-checks";
-import SearchIcon from "@lucide/svelte/icons/search";
 import { createQuery } from "@tanstack/svelte-query";
+import CaretDoubleLeftIcon from "phosphor-svelte/lib/CaretDoubleLeftIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import CircleDashedIcon from "phosphor-svelte/lib/CircleDashedIcon";
+import ListChecksIcon from "phosphor-svelte/lib/ListChecksIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import SealCheckIcon from "phosphor-svelte/lib/SealCheckIcon";
 import { untrack } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { asset } from "../lib/asset";
 import { groupByWeek, recordKey } from "../lib/memoryView";
 import { navigate } from "../lib/navigation";
@@ -130,17 +131,17 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
   <nav class="mem-seg" aria-label="Memory kind">
     <a href={kindHref("")} aria-current={!kind ? "page" : undefined}>All</a>
     {#each kinds as value (value)}
-      {@const KindGlyph = kindIcons[value]}<a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><span class="ink-{value} seg-i"><KindGlyph size={13} aria-hidden="true" /></span>{label(value)}s</a>
+      {@const KindGlyph = kindIcons[value]}<a href={kindHref(value)} aria-current={kind === value ? "page" : undefined}><span class="ink-{value} seg-i"><Icon icon={KindGlyph} size={13} state={kind === value ? "on" : "rest"} /></span>{label(value)}s</a>
     {/each}
   </nav>
   <form onsubmit={submit} class="mem-f" aria-label="Memory filters">
-    <label class="find mem-q"><SearchIcon size={15} aria-hidden="true" /><span class="sr-only">Search statements</span><input id="memory-q" type="search" bind:value={query} placeholder="Find a statement" /></label>
+    <label class="find mem-q"><Icon icon={MagnifyingGlassIcon} size={15} /><span class="sr-only">Search statements</span><input id="memory-q" type="search" bind:value={query} placeholder="Find a statement" /></label>
     <FilterMenu label={lifecycle ? label(lifecycle).toLowerCase() : "any status"} active={!!lifecycle} draft={lifecycle !== (initial.get("state") ?? "")} options={[{ value: "", label: "any status" }, ...states.map((value) => ({ value, label: label(value).toLowerCase() }))]} selected={[lifecycle]} choose={(value) => (lifecycle = value)}>
-      {#snippet icon()}<ListChecks size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={ListChecksIcon} size={15} />{/snippet}
     </FilterMenu>
     <FilterMenu label={review || "any review"} active={!!review} draft={review !== (initial.get("review") ?? "")} options={[{ value: "", label: "any review" }, { value: "established", label: "established" }, { value: "candidate", label: "candidate (unconfirmed)" }]} selected={[review]} choose={(value) => (review = value)}>
-      {#snippet icon()}<BadgeCheck size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value === "candidate"}<CircleDashed size={15} aria-hidden="true" />{:else}<BadgeCheck size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}<Icon icon={SealCheckIcon} size={15} />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value === "candidate"}<Icon icon={CircleDashedIcon} size={15} />{:else}<Icon icon={SealCheckIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     {#if dirty}<button class="a" id="applyf" type="submit" style:min-height="30px" style:padding="0 6px" style:font-size="12.5px">Apply filters</button>{/if}
   </form>
@@ -169,8 +170,8 @@ const localNode = $derived(scoped.data?.reach.localNode ?? "");
     <nav aria-label="Record pages" class="hd">
       <span class="meta">{page.data.records.length} on this page</span>
       <span class="acts">
-        <button class="btn sm" type="button" disabled={!(initial.has("offset") || initial.has("cursor_node"))} onclick={firstPage}><ChevronsLeft size={14} aria-hidden="true" />First page</button>
-        <button class="btn sm" type="button" disabled={!hasNext} onclick={nextPage}>Next page<ChevronRight size={14} aria-hidden="true" /></button>
+        <button class="btn sm" type="button" disabled={!(initial.has("offset") || initial.has("cursor_node"))} onclick={firstPage}><Icon icon={CaretDoubleLeftIcon} size={14} />First page</button>
+        <button class="btn sm" type="button" disabled={!hasNext} onclick={nextPage}>Next page<Icon icon={CaretRightIcon} size={14} /></button>
       </span>
     </nav>
   {/if}

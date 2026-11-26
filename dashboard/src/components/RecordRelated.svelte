@@ -1,5 +1,6 @@
 <script lang="ts">
 import { createQueries } from "@tanstack/svelte-query";
+import Icon from "$lib/components/Icon.svelte";
 import { currentOf } from "../lib/memoryView";
 import { stableRead } from "../lib/queries";
 import { scopeIcons } from "../lib/recordIcons";
@@ -38,7 +39,7 @@ const reads = createQueries(() => ({
       {#if current && other}
         {@const ScopeIcon = scopeIcons[other.scope.kind]}
         <b>{current.statement}</b>
-        <small><KindIcon kind={current.details.kind} size={12} /><span class="rel-s" title={scopeLabel(other.scope)}><ScopeIcon size={12} aria-hidden="true" />{scopeName(other.scope)}</span></small>
+        <small><KindIcon kind={current.details.kind} size={12} /><span class="rel-s" title={scopeLabel(other.scope)}><Icon icon={ScopeIcon} size={12} />{scopeName(other.scope)}</span></small>
       {:else}
         <b class="mono">…{item.id.slice(-12)}</b>
       {/if}

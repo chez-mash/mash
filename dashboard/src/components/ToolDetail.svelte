@@ -1,8 +1,9 @@
 <script lang="ts">
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import Copy from "@lucide/svelte/icons/copy";
-import Eraser from "@lucide/svelte/icons/eraser";
-import Play from "@lucide/svelte/icons/play";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import EraserIcon from "phosphor-svelte/lib/EraserIcon";
+import PlayIcon from "phosphor-svelte/lib/PlayIcon";
+import Icon from "$lib/components/Icon.svelte";
 import * as Select from "$lib/components/ui/select";
 import { read } from "../lib/api";
 import {
@@ -147,8 +148,8 @@ $effect(() => () => controller?.abort());
       {/if}
       {#if entry.readOnly}
         <div class="op-r">
-          <button class="btn p" type="submit" disabled={outcome.state === "running" || !request.ok}><Play size={15} aria-hidden="true" />{outcome.state === "running" ? "Running…" : "Run"}</button>
-          <button class="btn" type="button" onclick={() => { for (const param of entry.params) delete values[`${entry.name}.${param.name}`]; }}><Eraser size={15} aria-hidden="true" />Clear values</button>
+          <button class="btn p" type="submit" disabled={outcome.state === "running" || !request.ok}><Icon icon={PlayIcon} size={15} state="strong" />{outcome.state === "running" ? "Running…" : "Run"}</button>
+          <button class="btn" type="button" onclick={() => { for (const param of entry.params) delete values[`${entry.name}.${param.name}`]; }}><Icon icon={EraserIcon} size={15} />Clear values</button>
           {#if !request.ok}<span class="meta">{request.message}</span>{/if}
         </div>
       {/if}
@@ -161,7 +162,7 @@ $effect(() => () => controller?.abort());
         {#if request.ok}
           {@const call = JSON.stringify({ name: entry.name, arguments: request.arguments }, null, 2)}
           <div>
-            <div class="op-th"><h3 class="eyebrow">Request</h3><button class="btn sm" type="button" style:margin-left="auto" onclick={() => copy(call, "Request")}><Copy size={13} aria-hidden="true" />Copy</button></div>
+            <div class="op-th"><h3 class="eyebrow">Request</h3><button class="btn sm" type="button" style:margin-left="auto" onclick={() => copy(call, "Request")}><Icon icon={CopyIcon} size={13} />Copy</button></div>
             <div class="json"><JsonView value={{ name: entry.name, arguments: request.arguments }} /></div>
           </div>
         {/if}
@@ -173,7 +174,7 @@ $effect(() => () => controller?.abort());
               <h3 class="eyebrow">Response</h3>
               <span class="pill {summary.state}">{summary.state === "ok" ? "OK" : summary.state === "busy" ? "Busy" : "Failed"}</span>
               <span class="meta">{[summary.items === null ? "" : `${summary.items.toLocaleString()} item${summary.items === 1 ? "" : "s"}`, `${outcome.ms.toLocaleString()} ms`, size(outcome.bytes)].filter(Boolean).join(" · ")}</span>
-              <button class="btn sm" type="button" style:margin-left="auto" onclick={() => copy(reply, "JSON")}><Copy size={13} aria-hidden="true" />Copy JSON</button>
+              <button class="btn sm" type="button" style:margin-left="auto" onclick={() => copy(reply, "JSON")}><Icon icon={CopyIcon} size={13} />Copy JSON</button>
             </div>
             {#if summary.heading}<p class="op-e" role="alert">{summary.heading}</p>{/if}
             {#if outcome.answer.reply !== null}<div class="json"><JsonView value={outcome.answer.reply} /></div>

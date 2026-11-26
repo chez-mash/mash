@@ -1,9 +1,10 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
-import Copy from "@lucide/svelte/icons/copy";
-import Pencil from "@lucide/svelte/icons/pencil";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import PencilSimpleIcon from "phosphor-svelte/lib/PencilSimpleIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
@@ -139,13 +140,13 @@ async function save(): Promise<void> {
   <div class="set-row"><dt class="set-t"><span>{name}</span>{#if description}<small>{description}</small>{/if}</dt><dd class="set-v"><Wrapped value={shown} /></dd></div>
 {/snippet}
 {#snippet copyPath()}
-  {#if path}<button class="btn sm" type="button" onclick={copyConfigPath}>{#if copied}<Check size={13} aria-hidden="true" />Copied{:else}<Copy size={13} aria-hidden="true" />Copy path{/if}</button>{/if}
+  {#if path}<button class="btn sm" type="button" onclick={copyConfigPath}>{#if copied}<Icon icon={CheckIcon} size={13} />Copied{:else}<Icon icon={CopyIcon} size={13} />Copy path{/if}</button>{/if}
 {/snippet}
 {#snippet toggle(label: string, on: boolean, flip: () => void, description?: string)}
   <Switch aria-label={label} aria-describedby={description} bind:checked={() => on, () => { saved = 0; flip(); }} />
 {/snippet}
 {#snippet changedPill(key: string)}
-  {#if touched.has(key)}<span class="pill warn"><Pencil size={11} aria-hidden="true" />changed</span>{/if}
+  {#if touched.has(key)}<span class="pill warn"><Icon icon={PencilSimpleIcon} size={11} />changed</span>{/if}
 {/snippet}
 {#snippet heading(name: string, note?: string)}
   <div class="hd set-hd"><h2 class="h2">{name}</h2>{#if note}<span class="meta">{note}</span>{/if}</div>
@@ -158,7 +159,7 @@ async function save(): Promise<void> {
   </div>
   {#if status.data}
     <span class="pill" class:ok={status.data.ready} class:warn={!status.data.ready}>
-      {#if status.data.ready}<Check size={13} aria-hidden="true" />Local search ready{:else}<TriangleAlert size={13} aria-hidden="true" />Local search needs attention{/if}
+      {#if status.data.ready}<Icon icon={CheckIcon} size={13} />Local search ready{:else}<Icon icon={WarningIcon} size={13} state="strong" />Local search needs attention{/if}
     </span>
   {/if}
 </div>

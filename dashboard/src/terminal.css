@@ -2649,37 +2649,37 @@ button:disabled {
 
 /* An icon keeps its section's colour wherever it appears: in headings, on
    chips and beside folded steps, as it does in the navigation. */
-:is(.h2, .mt, .fold summary) .lucide-clock,
-:is(.h2, .mt) .lucide-messages-square {
+:is(.h2, .mt, .fold summary) .ph-clock,
+:is(.h2, .mt) .ph-chats {
   color: var(--hue-chats);
 }
-:is(.h2, .mt) .lucide-brain {
+:is(.h2, .mt) .ph-brain {
   color: var(--hue-memory);
 }
-:is(.h2, .mt) .lucide-bot {
+:is(.h2, .mt) .ph-robot {
   color: var(--hue-agents);
 }
-:is(.h2, .mt) .lucide-laptop {
+:is(.h2, .mt) .ph-laptop {
   color: var(--hue-machines);
 }
-:is(.h2, .mt) .lucide-folder {
+:is(.h2, .mt) .ph-folder {
   color: var(--hue-projects);
 }
-:is(.h2, .mt) .lucide-server {
+:is(.h2, .mt) .ph-hard-drives {
   color: var(--hue-services);
 }
-.h2 .lucide-triangle-alert,
-.fold summary .lucide-lightbulb {
+.h2 .ph-warning,
+.fold summary .ph-lightbulb {
   color: var(--hue-thinking);
 }
-.h2 .lucide-info,
-.h2 .lucide-link-2 {
+.h2 .ph-info,
+.h2 .ph-link {
   color: var(--hue-links);
 }
-.h2 .lucide-file-text {
+.h2 .ph-file-text {
   color: var(--hue-files);
 }
-.fold summary .lucide-terminal {
+.fold summary .ph-terminal {
   color: var(--hue-tools);
 }
 
@@ -4373,11 +4373,7 @@ summary.rw::-webkit-details-marker {
   flex: none;
   width: 13px;
   height: 13px;
-  fill: none;
-  stroke: var(--text-muted);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: var(--text-muted);
 }
 /* The way to everything a partial answer left out: the dashboard's search. */
 #mashy .mashy-a a.mashy-all {
@@ -4401,7 +4397,7 @@ summary.rw::-webkit-details-marker {
 #mashy .mashy-a a.mashy-all .ico:first-child {
   width: 15px;
   height: 15px;
-  stroke: var(--accent);
+  fill: var(--accent);
 }
 #mashy .mashy-a a.mashy-all .ico:last-child {
   margin-left: auto;

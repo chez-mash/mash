@@ -1,8 +1,9 @@
 <script lang="ts">
-import Laptop from "@lucide/svelte/icons/laptop";
-import SearchIcon from "@lucide/svelte/icons/search";
 import { createQuery } from "@tanstack/svelte-query";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
 import { onMount } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { createLiveSearch } from "../lib/liveSearch.svelte";
 import { onThisMachine } from "../lib/openIn";
 import {
@@ -247,10 +248,10 @@ function hover(index: number): void {
 
 <div class="quick" class:material class:wide role="search" bind:clientWidth={width}>
   <label class="q-field">
-    <SearchIcon size={18} aria-hidden="true" />
+    <Icon icon={MagnifyingGlassIcon} size={18} />
     <span class="sr-only">Search Mash</span>
     <input bind:this={input} bind:value={text} placeholder="Search Mash" autocomplete="off" spellcheck="false" onkeydown={keydown} />
-    {#if scopeLabel}<span class="q-scope" title="The viewing scope chosen in Mash"><Laptop size={14} aria-hidden="true" />{scopeLabel}</span>{/if}
+    {#if scopeLabel}<span class="q-scope" title="The viewing scope chosen in Mash"><Icon icon={LaptopIcon} size={14} />{scopeLabel}</span>{/if}
   </label>
 
   <div class="q-body">

@@ -1,17 +1,18 @@
 <script lang="ts">
-import Archive from "@lucide/svelte/icons/archive";
-import Bot from "@lucide/svelte/icons/bot";
-import Braces from "@lucide/svelte/icons/braces";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Clock from "@lucide/svelte/icons/clock";
-import FileText from "@lucide/svelte/icons/file-text";
-import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
-import Square from "@lucide/svelte/icons/square";
-import Upload from "@lucide/svelte/icons/upload";
 import { createQuery } from "@tanstack/svelte-query";
+import ArchiveIcon from "phosphor-svelte/lib/ArchiveIcon";
+import BracketsCurlyIcon from "phosphor-svelte/lib/BracketsCurlyIcon";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import StopIcon from "phosphor-svelte/lib/StopIcon";
+import UploadSimpleIcon from "phosphor-svelte/lib/UploadSimpleIcon";
 import { onDestroy } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { browse, isAgent } from "../lib/api";
 import { agoLabel, groupChats, projectLabel } from "../lib/browse";
@@ -126,21 +127,21 @@ const formats = [
   {
     value: "markdown",
     name: "Markdown",
-    icon: FileText,
+    icon: FileTextIcon,
     tint: "var(--hue-export-markdown)",
     about: "One readable file per chat, in folders by project. For sharing or keeping in notes.",
   },
   {
     value: "json",
     name: "JSON",
-    icon: Braces,
+    icon: BracketsCurlyIcon,
     tint: "var(--hue-export-json)",
     about: "One file per chat with every message and its details. For your own scripts.",
   },
   {
     value: "archive",
     name: "Mash archive",
-    icon: Archive,
+    icon: ArchiveIcon,
     tint: "var(--hue-export-archive)",
     about: "A full backup of one machine, the only kind Mash can restore. Made on that machine.",
   },
@@ -206,15 +207,15 @@ const backup = "mash export ~/mash-backup";
   {#if format !== "archive"}
   <div class="chips" role="group" aria-label="Filters">
     <FilterMenu label={chipLabel("agents", "agent")} active={applied.agents.length > 0} multiple options={options.agents} selected={applied.agents} choose={(value) => toggleFilter("agents", value)}>
-      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
-      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}{#if onlyAgent}<AgentMark agent={onlyAgent} size="sm" />{:else}<Icon icon={RobotIcon} size={15} />{/if}{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Icon icon={RobotIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={chipLabel("machines", "machine")} active={applied.machines.length > 0} multiple options={options.machines} selected={applied.machines} choose={(value) => toggleFilter("machines", value)}>
-      {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Laptop size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}<Icon icon={LaptopIcon} size={15} />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Icon icon={LaptopIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={chipLabel("projects", "project")} active={applied.projects.length > 0} multiple options={options.projects} selected={applied.projects} choose={(value) => toggleFilter("projects", value)}>
-      {#snippet icon()}<Folder size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={FolderIcon} size={15} />{/snippet}
     </FilterMenu>
     <FilterMenu
       label={dateRanges.find((range) => range.days === applied.days)?.label ?? "any time"}
@@ -223,7 +224,7 @@ const backup = "mash export ~/mash-backup";
       selected={[String(applied.days ?? "")]}
       choose={(value) => go({ ...applied, days: value ? Number(value) : null })}
     >
-      {#snippet icon()}<Clock size={15} aria-hidden="true" />{/snippet}
+      {#snippet icon()}<Icon icon={ClockIcon} size={15} />{/snippet}
     </FilterMenu>
     {#if filtered}<a class="a" href={base} style:font-size="13px" style:padding="0 4px">Clear filters</a>{/if}
   </div>
@@ -266,8 +267,8 @@ const backup = "mash export ~/mash-backup";
         <nav class="hd" aria-label="Pages" style:margin-top="14px">
           <span class="meta">{(first + 1).toLocaleString()}–{(first + shown.length).toLocaleString()} of {count(listed.length, "chat")} · {shownChosen.toLocaleString()} of the {shown.length} on this page included</span>
           <span class="acts">
-            {#if first > 0}<a class="btn sm" rel="prev" href={appliedHref({ ...applied, offset: Math.max(0, first - pageSize) }, base)}><ChevronLeft size={14} aria-hidden="true" />Previous</a>{:else}<button class="btn sm" type="button" disabled><ChevronLeft size={14} aria-hidden="true" />Previous</button>{/if}
-            {#if first + pageSize < listed.length}<a class="btn sm" rel="next" href={appliedHref({ ...applied, offset: first + pageSize }, base)}>Next<ChevronRight size={14} aria-hidden="true" /></a>{:else}<button class="btn sm" type="button" disabled>Next<ChevronRight size={14} aria-hidden="true" /></button>{/if}
+            {#if first > 0}<a class="btn sm" rel="prev" href={appliedHref({ ...applied, offset: Math.max(0, first - pageSize) }, base)}><Icon icon={CaretLeftIcon} size={14} />Previous</a>{:else}<button class="btn sm" type="button" disabled><Icon icon={CaretLeftIcon} size={14} />Previous</button>{/if}
+            {#if first + pageSize < listed.length}<a class="btn sm" rel="next" href={appliedHref({ ...applied, offset: first + pageSize }, base)}>Next<Icon icon={CaretRightIcon} size={14} /></a>{:else}<button class="btn sm" type="button" disabled>Next<Icon icon={CaretRightIcon} size={14} /></button>{/if}
           </span>
         </nav>
       {/if}
@@ -277,12 +278,12 @@ const backup = "mash export ~/mash-backup";
   </div>
 
   <section class="c-side" aria-labelledby="format-h">
-  <h2 class="h2" id="format-h"><FileText size={15} aria-hidden="true" />Format</h2>
+  <h2 class="h2" id="format-h"><Icon icon={FileTextIcon} size={15} />Format</h2>
   <div class="picks" role="radiogroup" aria-label="What to make">
     {#each formats as option (option.value)}
       <label class="card pick" class:butter={format === option.value}>
         <input class="radio" type="radio" name="format" value={option.value} bind:group={format} />
-        <span style:min-width="0"><b><option.icon size={15} color={option.tint} aria-hidden="true" />{option.name}</b><span class="pick-a">{option.about}</span></span>
+        <span style:min-width="0"><b><Icon icon={option.icon} size={15} color={option.tint} />{option.name}</b><span class="pick-a">{option.about}</span></span>
       </label>
     {/each}
   </div>
@@ -306,8 +307,8 @@ const backup = "mash export ~/mash-backup";
       {#if job.state === "running"}<span class="xact-l">Exporting</span>{/if}
       <div class="card xcard">
       <span class="acts">
-        <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Upload size={15} aria-hidden="true" />Export {count(chosen.length, "chat")}</button>
-        {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Square size={14} aria-hidden="true" />Stop</button>{/if}
+        <button class="btn p" type="button" disabled={!chosen.length || job.state === "running"} onclick={() => { if (format !== "archive") void start(format); }}><Icon icon={UploadSimpleIcon} size={15} />Export {count(chosen.length, "chat")}</button>
+        {#if job.state === "running"}<button class="btn" type="button" onclick={() => controller?.abort()}><Icon icon={StopIcon} size={14} />Stop</button>{/if}
       </span>
       {#if job.state === "running"}
         <div role="status" style:display="flex" style:flex-direction="column" style:gap="8px">

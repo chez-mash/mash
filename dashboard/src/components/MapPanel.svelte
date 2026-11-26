@@ -1,7 +1,8 @@
 <script lang="ts">
-import ExternalLink from "@lucide/svelte/icons/external-link";
-import X from "@lucide/svelte/icons/x";
+import ArrowSquareOutIcon from "phosphor-svelte/lib/ArrowSquareOutIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import { publishWords, type ServerReport, staleWords } from "../lib/serverStatus";
 import { checkedTime, type Service, servicesHref } from "../lib/services.svelte";
@@ -28,7 +29,7 @@ let {
   publication?: Status["publication"];
 } = $props();
 
-const Icon = $derived(placeIcon[place.id]);
+const Glyph = $derived(placeIcon[place.id]);
 const machine = $derived(map.machine.id);
 const stops = $derived(dependents(map, place.id));
 const about: Record<Place["id"], string> = {
@@ -47,9 +48,9 @@ const about: Record<Place["id"], string> = {
 
 <aside class="card mpanel" aria-label="{place.label} details">
   <header class="mp-h">
-    <span class="ico"><Icon size={18} aria-hidden="true" /></span>
+    <span class="ico"><Icon icon={Glyph} size={18} /></span>
     <div><h2 class="h2">{place.label}</h2><p class="meta">{machine}</p></div>
-    <a class="btn sm x" href={placeHref(machine)} aria-label="Close details"><X size={15} aria-hidden="true" /></a>
+    <a class="btn sm x" href={placeHref(machine)} aria-label="Close details"><Icon icon={XIcon} size={15} /></a>
   </header>
   <p>{about[place.id]}</p>
   {#if place.affectedBy}
@@ -72,7 +73,7 @@ const about: Record<Place["id"], string> = {
       </dl>
       <p class="meta">{service.control_note}</p>
       {@render controls(service)}
-      <a class="a" href={servicesHref(machine, service.id)}><ExternalLink size={13} aria-hidden="true" />Full details</a>
+      <a class="a" href={servicesHref(machine, service.id)}><Icon icon={ArrowSquareOutIcon} size={13} />Full details</a>
     </section>
   {/each}
   {#if place.id === "server" && publication}

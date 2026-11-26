@@ -1,8 +1,9 @@
 <script lang="ts">
-import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import Clock from "@lucide/svelte/icons/clock";
-import FileWarning from "@lucide/svelte/icons/file-warning";
-import GitCompareArrows from "@lucide/svelte/icons/git-compare-arrows";
+import CircleDashedIcon from "phosphor-svelte/lib/CircleDashedIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FileDashedIcon from "phosphor-svelte/lib/FileDashedIcon";
+import GitDiffIcon from "phosphor-svelte/lib/GitDiffIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agentNamed } from "../lib/agents";
 import { whenLabel } from "../lib/browse";
 import { currentOf } from "../lib/memoryView";
@@ -47,16 +48,16 @@ const revision = $derived(currentOf(record));
 </script>
 
 {#if revision}
-  {@const Icon = kindIcons[revision.details.kind]}
+  {@const Glyph = kindIcons[revision.details.kind]}
   {@const settled = standing(revision)}
   {@const recorder = agentNamed(revision.recordedBy)}
   {@const timing = timingLabel(revision, now)}
   {@const where = record.node || machine}
   {@const ended = statePill(revision.details.state) !== "ok"}
   <article class="mi" class:on={selected} aria-current={selected ? "true" : undefined}>
-    <span class="tile kind-{revision.details.kind}" aria-hidden="true"><Icon size={15} /></span>
+    <span class="tile kind-{revision.details.kind}" aria-hidden="true"><Icon icon={Glyph} size={15} /></span>
     <span class="body">
-      <span class="top"><span class="kindp kind-{revision.details.kind}"><Icon size={12} aria-hidden="true" />{label(revision.details.kind).toLowerCase()}</span><span class="when {recency(revision.recordedAt, now)}">{whenLabel(revision.recordedAt, now)}</span></span>
+      <span class="top"><span class="kindp kind-{revision.details.kind}"><Icon icon={Glyph} size={12} />{label(revision.details.kind).toLowerCase()}</span><span class="when {recency(revision.recordedAt, now)}">{whenLabel(revision.recordedAt, now)}</span></span>
       <a href={recordHref(record.id, record.node, back)} onpointerenter={preview} onfocus={preview}>{revision.statement}</a>
       <span class="meta-l">
         <span class="mi-kind ink-{revision.details.kind}">{label(revision.details.kind)}</span>
@@ -68,10 +69,10 @@ const revision = $derived(currentOf(record));
       {#if ended || settled !== "established" || !revision.evidenceCurrent || record.conflicted || timing}
         <span class="pills">
           {#if ended}<StatusBadge pill tone={lifecycleTone(revision.details.state)} words={label(revision.details.state).toLowerCase()} size={12} />{/if}
-          {#if settled !== "established"}<span class="pill st tone-{standingTone(settled)}"><CircleDashed size={12} aria-hidden="true" />{settled}</span>{/if}
-          {#if !revision.evidenceCurrent}<span class="pill bad"><FileWarning size={12} aria-hidden="true" />stale evidence</span>{/if}
-          {#if record.conflicted}<span class="pill bad"><GitCompareArrows size={12} aria-hidden="true" />conflicting records</span>{/if}
-          {#if timing}<span class="pill warn"><Clock size={12} aria-hidden="true" />{timing.toLowerCase()}</span>{/if}
+          {#if settled !== "established"}<span class="pill st tone-{standingTone(settled)}"><Icon icon={CircleDashedIcon} size={12} />{settled}</span>{/if}
+          {#if !revision.evidenceCurrent}<span class="pill bad"><Icon icon={FileDashedIcon} size={12} />stale evidence</span>{/if}
+          {#if record.conflicted}<span class="pill bad"><Icon icon={GitDiffIcon} size={12} />conflicting records</span>{/if}
+          {#if timing}<span class="pill warn"><Icon icon={ClockIcon} size={12} />{timing.toLowerCase()}</span>{/if}
         </span>
       {/if}
     </span>

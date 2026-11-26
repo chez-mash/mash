@@ -1,5 +1,6 @@
 <script lang="ts">
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { plainTitle } from "../lib/markdown";
 import { speaker } from "../lib/memoryView";
 import { type Evidence, label } from "../lib/records";
@@ -27,12 +28,12 @@ const mine = $derived(source.sourceRole === "user");
   {#if brief}
     <figcaption>
       <span class="ev-who"><span>{who}</span><ChatPlace agent={chat?.agent} machine={chat?.machine || node} /></span>
-      <a class="ev-go" {href} aria-label="Open the quoted message">Open<ChevronRight size={14} aria-hidden="true" /></a>
+      <a class="ev-go" {href} aria-label="Open the quoted message">Open<Icon icon={CaretRightIcon} size={14} /></a>
     </figcaption>
   {:else}
     <figcaption>
       <span class="ev-who"><span><b>{mine ? "You said this" : `${who} said this`}</b>{#if source.purpose}{` · ${label(source.purpose).toLowerCase()}`}{/if}</span>{#if chat}<span class="ev-chat" title={plainTitle(chat.title)}>{plainTitle(chat.title)}</span>{/if}</span>
-      <a class="ev-go" {href}>Open the message<ChevronRight size={14} aria-hidden="true" /></a>
+      <a class="ev-go" {href}>Open the message<Icon icon={CaretRightIcon} size={14} /></a>
     </figcaption>
   {/if}
 </figure>

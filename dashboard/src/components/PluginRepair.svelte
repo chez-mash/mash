@@ -1,12 +1,13 @@
 <script lang="ts">
-import Check from "@lucide/svelte/icons/check";
-import Download from "@lucide/svelte/icons/download";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
-import Wrench from "@lucide/svelte/icons/wrench";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import ArrowClockwiseIcon from "phosphor-svelte/lib/ArrowClockwiseIcon";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import DownloadSimpleIcon from "phosphor-svelte/lib/DownloadSimpleIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import WrenchIcon from "phosphor-svelte/lib/WrenchIcon";
 import { onDestroy } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { type RepairResult, type RepairStage, repairPlugin } from "../lib/pluginRepair";
 import {
   fleetCatalogOptions,
@@ -150,20 +151,20 @@ const busy = $derived(stage !== null);
     <p class="meta rp-note">This dashboard cannot update Mash on {machineId}. If Mash itself is out of date there, update it first: see the steps by hand.</p>
   {/if}
   {#if result?.ok}
-    <p class="ok rp-out" role="status"><Check size={16} aria-hidden="true" /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
-    <div class="rp-acts"><button class="btn sm" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={14} aria-hidden="true" />{checking ? "Checking…" : "Check the plugin again"}</button></div>
+    <p class="ok rp-out" role="status"><Icon icon={CheckIcon} size={16} /><span><strong>Plugin reinstalled on {machineId}.</strong> {result.message}</span></p>
+    <div class="rp-acts"><button class="btn sm" type="button" disabled={checking} onclick={checkAgain}><Icon icon={ArrowsClockwiseIcon} size={14} />{checking ? "Checking…" : "Check the plugin again"}</button></div>
   {:else if result}
-    <p class="warn rp-out" role="alert"><TriangleAlert size={16} aria-hidden="true" /><span>{result.message} You can also do it by hand: see the steps below.</span></p>
-    <div class="rp-acts"><button class="btn sm" type="button" onclick={start}><RotateCw size={14} aria-hidden="true" />Try again</button></div>
+    <p class="warn rp-out" role="alert"><Icon icon={WarningIcon} size={16} state="strong" /><span>{result.message} You can also do it by hand: see the steps below.</span></p>
+    <div class="rp-acts"><button class="btn sm" type="button" onclick={start}><Icon icon={ArrowClockwiseIcon} size={14} />Try again</button></div>
   {:else if confirming}
     <div class="card tight confirm rp-confirm" role="group" aria-label="Confirm plugin fix">
       <span>Deploy Mash to {machineId}, then reinstall the plugin there? Deploying builds and installs Mash, and services there can be interrupted while it runs.{#if restartsDashboard} Its dashboard restarts on the new release.{/if}</span>
-      <button class="btn p" type="button" onclick={run}><Download size={14} aria-hidden="true" />Update and reinstall</button>
+      <button class="btn p" type="button" onclick={run}><Icon icon={DownloadSimpleIcon} size={14} state="strong" />Update and reinstall</button>
       <button class="btn" type="button" onclick={() => (confirming = false)}>Cancel</button>
     </div>
   {:else}
     <div class="rp-acts">
-      <button class="btn p" type="button" disabled={busy} onclick={start}><Wrench size={15} aria-hidden="true" />{deployRevision ? "Update Mash and the plugin" : "Reinstall the plugin"}</button>
+      <button class="btn p" type="button" disabled={busy} onclick={start}><Icon icon={WrenchIcon} size={15} state="strong" />{deployRevision ? "Update Mash and the plugin" : "Reinstall the plugin"}</button>
     </div>
   {/if}
 </div>

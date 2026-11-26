@@ -1,8 +1,9 @@
 <script lang="ts">
-import Route from "@lucide/svelte/icons/route";
-import Save from "@lucide/svelte/icons/save";
-import Server from "@lucide/svelte/icons/server";
 import { useQueryClient } from "@tanstack/svelte-query";
+import FloppyDiskIcon from "phosphor-svelte/lib/FloppyDiskIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import PathIcon from "phosphor-svelte/lib/PathIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents } from "../lib/agents";
 import { assistantOptions } from "../lib/assistant";
 import { assistantServices, type Settings, settingsOptions, setUpAssistant } from "../lib/settings";
@@ -78,7 +79,7 @@ async function save(): Promise<void> {
           <label class="service-tile" class:on={service === option.id}>
             <input type="radio" name="{id}-service" value={option.id} bind:group={service} />
             <span class="service-mark {option.id}" aria-hidden="true">
-              {#if marks[option.id]}{@html marks[option.id]}{:else if option.id === "openrouter"}<Route size={18} />{:else}<Server size={18} />{/if}
+              {#if marks[option.id]}{@html marks[option.id]}{:else if option.id === "openrouter"}<Icon icon={PathIcon} size={18} />{:else}<Icon icon={HardDrivesIcon} size={18} />{/if}
             </span>
             <span>{option.name}</span>
           </label>
@@ -98,7 +99,7 @@ async function save(): Promise<void> {
   <input id="{id}-key" class="field" type="password" autocomplete="off" spellcheck="false" bind:value={apiKey} />
   {#if failure}<p class="meta warn" role="alert">{failure}</p>{/if}
   <span class="keyacts">
-    <button class="btn p" type="submit" disabled={saving || !ready}><Save size={14} aria-hidden="true" />{saving ? "Saving…" : withService ? "Turn on Mashy" : "Save key"}</button>
+    <button class="btn p" type="submit" disabled={saving || !ready}><Icon icon={FloppyDiskIcon} size={14} state="strong" />{saving ? "Saving…" : withService ? "Turn on Mashy" : "Save key"}</button>
     {#if oncancel}<button class="btn" type="button" onclick={() => { apiKey = ""; failure = ""; oncancel(); }}>Cancel</button>{/if}
   </span>
 </form>

@@ -1,8 +1,9 @@
 <script lang="ts">
-import Save from "@lucide/svelte/icons/save";
-import Send from "@lucide/svelte/icons/send";
-import Upload from "@lucide/svelte/icons/upload";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import FloppyDiskIcon from "phosphor-svelte/lib/FloppyDiskIcon";
+import PaperPlaneTiltIcon from "phosphor-svelte/lib/PaperPlaneTiltIcon";
+import UploadSimpleIcon from "phosphor-svelte/lib/UploadSimpleIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
@@ -79,7 +80,7 @@ async function save(publish: boolean): Promise<void> {
 </script>
 
 <section class="card share" aria-labelledby="share-review-title" style:margin-top="18px">
-  <h2 class="share-h" id="share-review-title"><Send size={15} aria-hidden="true" />Choose what {server.node_id} shares</h2>
+  <h2 class="share-h" id="share-review-title"><Icon icon={PaperPlaneTiltIcon} size={15} />Choose what {server.node_id} shares</h2>
   <p class="meta">Publishing sends these chats, and the attachments Mash kept with them, to <code class="i">{server.server}</code>. Every machine in {server.group_id} can then search and read them. Nothing has been sent yet.</p>
   {#if settings.error}
     <p class="warn" role="alert">The settings could not be read: {settings.error.message}</p>
@@ -130,8 +131,8 @@ async function save(publish: boolean): Promise<void> {
     {/if}
     {#if failure}<p class="warn" role="alert">{failure} Nothing was sent.</p>{/if}
     <div class="share-actions">
-      <button class="btn" type="button" disabled={saving !== null} onclick={() => save(false)}><Save size={14} aria-hidden="true" />{saving === "later" ? "Saving…" : "Save and publish later"}</button>
-      <button class="btn p" type="button" disabled={saving !== null || summary.sharedAgents.length === 0} onclick={() => save(true)}><Upload size={14} aria-hidden="true" />{saving === "publish" ? "Starting…" : `Publish ${summary.shared.toLocaleString()} ${summary.shared === 1 ? "chat" : "chats"}`}</button>
+      <button class="btn" type="button" disabled={saving !== null} onclick={() => save(false)}><Icon icon={FloppyDiskIcon} size={14} />{saving === "later" ? "Saving…" : "Save and publish later"}</button>
+      <button class="btn p" type="button" disabled={saving !== null || summary.sharedAgents.length === 0} onclick={() => save(true)}><Icon icon={UploadSimpleIcon} size={14} state="strong" />{saving === "publish" ? "Starting…" : `Publish ${summary.shared.toLocaleString()} ${summary.shared === 1 ? "chat" : "chats"}`}</button>
     </div>
   {:else}
     <p class="meta" role="status">Loading what this machine indexes…</p>

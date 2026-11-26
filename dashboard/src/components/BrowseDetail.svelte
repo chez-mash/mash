@@ -1,12 +1,13 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import Clock from "@lucide/svelte/icons/clock";
-import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import { createQuery } from "@tanstack/svelte-query";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import ChatsIcon from "phosphor-svelte/lib/ChatsIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { groupChats, projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
@@ -84,11 +85,11 @@ function rowHref(chat: ChatSummary): string {
 }
 </script>
 
-{#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><ChevronLeft size={15} aria-hidden="true" />{back.label.replace(/^./, (letter) => letter.toUpperCase())}</a>{/if}
+{#if back}<a class="back" href={back.href} aria-label="Back to {back.label}"><Icon icon={CaretLeftIcon} size={15} />{back.label.replace(/^./, (letter) => letter.toUpperCase())}</a>{/if}
 {#if unknown}
   <EmptyState card title="Project not found" heading="h1">
     No indexed chat belongs to <code style:overflow-wrap="anywhere">{value}</code>.
-    {#snippet action()}<a class="btn p" href="#/projects"><Folder size={15} aria-hidden="true" />All projects</a>{/snippet}
+    {#snippet action()}<a class="btn p" href="#/projects"><Icon icon={FolderIcon} size={15} state="strong" />All projects</a>{/snippet}
   </EmptyState>
 {:else}
 <div class="dh">
@@ -101,17 +102,17 @@ function rowHref(chat: ChatSummary): string {
 {#if catalogue.data && !group && !unknown}<div class="state-c"><p>No indexed chats here.</p></div>{/if}
 {#if group}
   <nav class="bd-stats" aria-label="Summary">
-    <a href={searchHref({ [field]: value })}><span class="bd-e"><MessagesSquare size={12} aria-hidden="true" />Chats</span><b>{chats.length.toLocaleString()}</b></a>
-    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="bd-e"><Bot size={12} aria-hidden="true" />Agents</span><b>{group.agents.length}</b></a>{/if}
-    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="bd-e"><Folder size={12} aria-hidden="true" />Projects</span><b>{named.length}</b></a>{/if}
-    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="bd-e"><Laptop size={12} aria-hidden="true" />Machines</span><b>{group.machines.length}</b></a>{/if}
-    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="bd-e"><Clock size={12} aria-hidden="true" />Last active</span><b>{whenLabel(group.latestMs, now)}</b></a>{/if}
+    <a href={searchHref({ [field]: value })}><span class="bd-e"><Icon icon={ChatsIcon} size={12} />Chats</span><b>{chats.length.toLocaleString()}</b></a>
+    {#if field !== "agent"}<a href={group.agents.length === 1 ? agentHref(group.agents[0]?.[0] ?? "") : "#/agents"}><span class="bd-e"><Icon icon={RobotIcon} size={12} />Agents</span><b>{group.agents.length}</b></a>{/if}
+    {#if field !== "project"}<a href={named.length === 1 ? projectHref(named[0]?.[0] ?? "") : "#/projects"}><span class="bd-e"><Icon icon={FolderIcon} size={12} />Projects</span><b>{named.length}</b></a>{/if}
+    {#if field !== "machine"}<a href={group.machines.length === 1 ? machineHref(group.machines[0]?.[0] ?? "") : "#/machines"}><span class="bd-e"><Icon icon={LaptopIcon} size={12} />Machines</span><b>{group.machines.length}</b></a>{/if}
+    {#if latest}<a href={chatHref(latest.id, latest.machine)} title={plainTitle(latest.title)}><span class="bd-e"><Icon icon={ClockIcon} size={12} />Last active</span><b>{whenLabel(group.latestMs, now)}</b></a>{/if}
   </nav>
   <div class="cols c32">
     <div class="c-main stack">
       {#if extra}{@render extra()}{/if}
       <section class="sec">
-        <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">All {chats.length.toLocaleString()}</a></div>
+        <div class="hd"><h2 class="h2"><Icon icon={ClockIcon} size={15} />Recent chats</h2><a class="a" href={searchHref({ [field]: value })} style:font-size="12.5px">All {chats.length.toLocaleString()}</a></div>
         <div class="card pad0 list bd-card">
           {#each chats.slice(0, 6) as chat (chat.machine + chat.id)}
             {#if field === "machine"}
@@ -127,23 +128,23 @@ function rowHref(chat: ChatSummary): string {
     </div>
     <div class="c-side">
       {#if field !== "agent"}
-        <section class="sec"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agents</h2>
+        <section class="sec"><h2 class="h2"><Icon icon={RobotIcon} size={15} />Agents</h2>
           <div class="card tight tally bd-card">
             {#each group.agents.slice(0, 6) as [agent, count] (agent)}<a class="li" href={agentHref(agent)}><AgentMark {agent} size="sm" /><b class="g">{agentInfo[agent].name}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "machine"}
-        <section class="sec"><h2 class="h2"><Laptop size={15} aria-hidden="true" />Machines</h2>
+        <section class="sec"><h2 class="h2"><Icon icon={LaptopIcon} size={15} />Machines</h2>
           <div class="card tight tally bd-card">
             {#each group.machines.slice(0, 6) as [machine, count] (machine)}<a class="li" href={machineHref(machine)}><MachineIcon {machine} size={15} /><b class="g">{machine}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}
       {#if field !== "project" && listed.length}
-        <section class="sec"><h2 class="h2"><Folder size={15} aria-hidden="true" />Projects</h2>
+        <section class="sec"><h2 class="h2"><Icon icon={FolderIcon} size={15} />Projects</h2>
           <div class="card tight tally bd-card">
-            {#each listed.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Folder size={15} aria-hidden="true" /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
+            {#each listed.slice(0, 8) as [project, count] (project)}<a class="li" href={projectHref(project)} title={project}><Icon icon={FolderIcon} size={15} /><b class="g">{projectLabel(project)}</b><span class="num">{count.toLocaleString()}</span></a>{/each}
           </div>
         </section>
       {/if}

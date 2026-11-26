@@ -1,17 +1,18 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
-import Check from "@lucide/svelte/icons/check";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import Info from "@lucide/svelte/icons/info";
-import Play from "@lucide/svelte/icons/play";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import ScrollText from "@lucide/svelte/icons/scroll-text";
-import Search from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
-import Square from "@lucide/svelte/icons/square";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import ArrowClockwiseIcon from "phosphor-svelte/lib/ArrowClockwiseIcon";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import InfoIcon from "phosphor-svelte/lib/InfoIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PlayIcon from "phosphor-svelte/lib/PlayIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import ScrollIcon from "phosphor-svelte/lib/ScrollIcon";
+import StopIcon from "phosphor-svelte/lib/StopIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import { stableRead } from "../lib/queries";
 import { reported, serverReport, serverSearch, serverViewOptions } from "../lib/serverStatus";
@@ -166,7 +167,7 @@ const actionLabel: Record<ServiceAction | "reinstall_plugin", string> = {
   restart: "Restart",
   reinstall_plugin: "Reinstall plugin",
 };
-const actionIcon = { start: Play, stop: Square, restart: RotateCw } as const;
+const actionIcon = { start: PlayIcon, stop: StopIcon, restart: ArrowClockwiseIcon } as const;
 // Kinds a supervisor runs: the services page can control them once the
 // services configuration allows it. A file or the page's own process cannot be.
 const supervised: readonly Service["kind"][] = ["watcher", "qdrant", "server"];
@@ -190,14 +191,14 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
 {#snippet confirmation(target: Target)}
   <div class="card tight confirm" role="group" aria-label="Confirm service action">
     <span>{actionLabel[target.action]} {target.service.name} on {target.machine.id}? {consequences(target)}</span>
-    <button class="btn p" type="button" onclick={act}><Check size={14} aria-hidden="true" />Confirm {target.action}</button>
+    <button class="btn p" type="button" onclick={act}><Icon icon={CheckIcon} size={14} state="strong" />Confirm {target.action}</button>
     <button class="btn" type="button" onclick={() => (confirm = null)}>Cancel</button>
   </div>
 {/snippet}
 {#snippet serviceControls(entry: Service)}
   {#if machine && entry.actions.length}
     <div class="chips" style:gap="8px">
-      {#each entry.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={action !== "stop" && entry.state !== "healthy"} type="button" disabled={blocked || !machine.reachable} onclick={() => machine && (confirm = { machine, service: entry, action, from: "panel" })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
+      {#each entry.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={action !== "stop" && entry.state !== "healthy"} type="button" disabled={blocked || !machine.reachable} onclick={() => machine && (confirm = { machine, service: entry, action, from: "panel" })}><Icon icon={ActionIcon} size={14} />{actionLabel[action]}</button>{/each}
     </div>
   {/if}
   {#if confirm?.from === "panel" && confirm.service.id === entry.id && confirm.machine.id === machine?.id}{@render confirmation(confirm)}{/if}
@@ -215,7 +216,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
     {@const issues = problems([machine])}
     {#if issues.length}
       <section class="sec" aria-label="Needs attention on {machine.id}">
-        <h2 class="h2"><TriangleAlert size={15} aria-hidden="true" />Needs attention on {machine.id}</h2>
+        <h2 class="h2"><Icon icon={WarningIcon} size={15} state="strong" />Needs attention on {machine.id}</h2>
         {#each issues as issue (`${issue.machine.id}/${issue.service?.id ?? ""}`)}
           {@const entry = issue.service}
           <div class="card next-step">
@@ -225,10 +226,10 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
             </div>
             <span class="acts">
               {#if entry}
-                {#each issue.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn sm p" type="button" disabled={blocked} onclick={() => (confirm = { machine: issue.machine, service: entry, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
-                <a class="btn sm" href={servicesHref(issue.machine.id, entry.id)}><Info size={14} aria-hidden="true" />Details</a>
+                {#each issue.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn sm p" type="button" disabled={blocked} onclick={() => (confirm = { machine: issue.machine, service: entry, action })}><Icon icon={ActionIcon} size={14} />{actionLabel[action]}</button>{/each}
+                <a class="btn sm" href={servicesHref(issue.machine.id, entry.id)}><Icon icon={InfoIcon} size={14} />Details</a>
               {:else}
-                <button class="btn sm" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>
+                <button class="btn sm" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><Icon icon={ArrowsClockwiseIcon} size={15} />Check again</button>
               {/if}
             </span>
           </div>
@@ -239,8 +240,8 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
   {/each}
 {/snippet}
 {#if serviceId}
-  {@const KindIcon = service ? kindIcon[service.kind] : Server}
-  <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><ChevronLeft size={15} aria-hidden="true" />services</a>
+  {@const KindIcon = service ? kindIcon[service.kind] : HardDrivesIcon}
+  <a class="back" href={servicesHref(selectedId)} aria-label="Back to services"><Icon icon={CaretLeftIcon} size={15} />services</a>
   <div class="hd">
     <div class="dh"><span class="ico lg services"><KindIcon size={20} aria-hidden="true" /></span><div><h1 class="h1">{service?.name ?? serviceId}</h1><p class="meta">{selectedId}{service ? ` / ${service.kind}` : ""}</p></div></div>
   </div>
@@ -249,7 +250,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
     <div><h1 class="h1">Services</h1><p class="meta">Statuses are from the last check{checked ? `, ${agoLabel(checked * 1000, Date.now())}` : ""}. This page does not refresh on its own.</p></div>
     <span class="acts">
       <span role="status">{#if fleet.data}<span class="pill svc-health st tone-{allHealthy ? 'ok' : 'warn'}"><ToneIcon tone={allHealthy ? "ok" : "warn"} size={12} />{healthy} of {fleet.data.length} machine{fleet.data.length === 1 ? "" : "s"} healthy</span>{:else if enabled}<span class="meta">checking machines…</span>{/if}</span>
-      {#if enabled}<button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><RefreshCw size={15} aria-hidden="true" />Check again</button>{/if}
+      {#if enabled}<button class="btn" type="button" disabled={fleet.isFetching || pending} onclick={refresh}><Icon icon={ArrowsClockwiseIcon} size={15} />Check again</button>{/if}
     </span>
   </div>
 {/if}
@@ -278,7 +279,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
     {/if}
     {@const controllable = service.actions.length > 0 || service.logs_available}
     <section class="sec">
-      <h2 class="h2"><Server size={15} aria-hidden="true" />Manage</h2>
+      <h2 class="h2"><Icon icon={HardDrivesIcon} size={15} />Manage</h2>
       <div class="card stack-s" class:cream={!controllable}>
         {#if !controllable}<p><strong>No actions are available for this service here.</strong></p>{/if}
         {#if issue}<p><span class="warn">Needs attention.</span> {issue.fix}</p>{/if}
@@ -286,8 +287,8 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
         {#if !controllable && supervised.includes(service.kind)}<p><a class="a" href="https://getmash.io/services/#enable-service-access" target="_blank" rel="noreferrer">How to turn on service controls</a></p>{/if}
         {#if service.actions.length || service.logs_available}
           <div class="chips" style:gap="8px">
-            {#each service.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={issue?.actions.includes(action)} type="button" disabled={blocked || !machine.reachable} onclick={() => (confirm = { machine, service, action })}><ActionIcon size={14} aria-hidden="true" />{actionLabel[action]}</button>{/each}
-            {#if service.logs_available}<button class="btn" type="button" aria-expanded={showLog} onclick={() => (showLog = !showLog)}><ScrollText size={15} aria-hidden="true" />{showLog ? "Hide log" : "View log"}</button>{/if}
+            {#each service.actions as action (action)}{@const ActionIcon = actionIcon[action]}<button class="btn" class:p={issue?.actions.includes(action)} type="button" disabled={blocked || !machine.reachable} onclick={() => (confirm = { machine, service, action })}><Icon icon={ActionIcon} size={14} />{actionLabel[action]}</button>{/each}
+            {#if service.logs_available}<button class="btn" type="button" aria-expanded={showLog} onclick={() => (showLog = !showLog)}><Icon icon={ScrollIcon} size={15} />{showLog ? "Hide log" : "View log"}</button>{/if}
           </div>
         {/if}
         {#if confirm}{@render confirmation(confirm)}{/if}
@@ -299,7 +300,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
       </div>
     </section>
     <section class="sec">
-      <h2 class="h2"><Info size={15} aria-hidden="true" />Diagnostics</h2>
+      <h2 class="h2"><Icon icon={InfoIcon} size={15} />Diagnostics</h2>
       <div class="card">
         {#if service.diagnostics.length}
           <dl class="kvs wide">{#each service.diagnostics as item (item.label)}<dt>{item.label}</dt><dd>{item.value}</dd>{/each}</dl>
@@ -318,7 +319,7 @@ const checked = $derived(Math.max(0, ...(fleet.data ?? []).map((entry) => entry.
       {/each}
       {#if shown.some((machine) => machine.reachable)}
         <section class="sec">
-          <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />Agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
+          <div class="hd"><h2 class="h2"><Icon icon={RobotIcon} size={15} />Agent setup</h2>{#if shown.length === 1 && shown[0]}<SetupLink machineId={shown[0].id} />{/if}</div>
           <div class="rws agentset" class:solo={shown.length < 2}>
             <div class="rw head" aria-hidden="true"><span>Agent</span>{#if shown.length > 1}<span>Machine</span>{/if}<span>Parts</span><span>Status</span></div>
             {#each shown.filter((machine) => machine.reachable) as machine (machine.id)}<MachineSetup machineId={machine.id} {enabled} showMachine={shown.length > 1} />{/each}

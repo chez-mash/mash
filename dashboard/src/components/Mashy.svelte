@@ -1,15 +1,17 @@
 <script lang="ts">
-import ArrowUp from "@lucide/svelte/icons/arrow-up";
-import CornerDownRight from "@lucide/svelte/icons/corner-down-right";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import Square from "@lucide/svelte/icons/square";
-import Trash2 from "@lucide/svelte/icons/trash-2";
-import X from "@lucide/svelte/icons/x";
 import { createQuery } from "@tanstack/svelte-query";
+import ArrowClockwiseIcon from "phosphor-svelte/lib/ArrowClockwiseIcon";
+import ArrowElbowDownRightIcon from "phosphor-svelte/lib/ArrowElbowDownRightIcon";
+import ArrowUpIcon from "phosphor-svelte/lib/ArrowUpIcon";
+import StopIcon from "phosphor-svelte/lib/StopIcon";
+import TrashIcon from "phosphor-svelte/lib/TrashIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
 import { tick } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agents, paintMark } from "../lib/agents";
 import { asset } from "../lib/asset";
 import { answer, assistantOptions, linkify, type OpenChat, PASSAGE } from "../lib/assistant";
+import { chipIcon as icon } from "../lib/chipIcon";
 import { plainTitle } from "../lib/markdown";
 import { clipPassage, mashy, PASSAGE_QUESTIONS } from "../lib/mashy.svelte";
 import { catalogOptions } from "../lib/queries";
@@ -239,25 +241,6 @@ function chips(node: HTMLElement): { destroy(): void } {
   observer.observe(node, { childList: true, subtree: true });
   return { destroy: () => observer.disconnect() };
 }
-const SVG = "http://www.w3.org/2000/svg";
-// The few line icons an answer's chips carry, as path data on a 24 grid.
-const ICONS = {
-  project: "M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
-  machine: "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4",
-  search: "M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0zM20 20l-3.5-3.5",
-  guide: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21a2 2 0 0 0 2 2h13",
-  next: "M9 6l6 6-6 6",
-} as const;
-function icon(name: keyof typeof ICONS): SVGSVGElement {
-  const drawn = document.createElementNS(SVG, "svg");
-  drawn.setAttribute("viewBox", "0 0 24 24");
-  drawn.setAttribute("aria-hidden", "true");
-  drawn.classList.add("ico");
-  const path = document.createElementNS(SVG, "path");
-  path.setAttribute("d", ICONS[name]);
-  drawn.append(path);
-  return drawn;
-}
 // The rest of what an answer may hold beyond chats and memories: places to
 // go (a project, an agent, a machine, the full search), quoted words, and
 // commands to copy. All of it is drawn from the link or text itself.
@@ -388,8 +371,8 @@ function followed(event: MouseEvent): void {
     <header title="Drag to move" onpointerdown={grab} onpointermove={drag} onpointerup={drop} onpointercancel={drop} ondblclick={(event) => { if (!(event.target instanceof Element) || !event.target.closest("button")) place(0, 0); }}>
       {#if !(empty && unset)}<img src={asset("mashy.png")} alt="" />{/if}<!-- Unset, Mashy stands in the panel, so the header only names it. -->
       <div><strong>Mashy</strong></div>
-      {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Trash2 size={16} /></button>{/if}
-      <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><X size={18} /></button>
+      {#if mashy.turns.length}<button type="button" aria-label="Start over" title="Start over" onclick={() => { mashy.clear(); input?.focus(); }}><Icon icon={TrashIcon} size={16} /></button>{/if}
+      <button type="button" aria-label="Close Mashy" title="Close" onclick={() => void close()}><Icon icon={XIcon} size={18} /></button>
     </header>
     <div class="mashy-log" bind:this={log} onscroll={scrolled} aria-live="polite" aria-busy={mashy.busy}>
       {#if openChat}<span class="mashy-ctx"><i></i>About: {openChat.title ?? `chat ${openChat.id.slice(-8)}`}</span>{/if}
@@ -419,7 +402,7 @@ function followed(event: MouseEvent): void {
           {@const next = said.next.length ? said.next : suggestions}
           {#if index === mashy.turns.length - 1 && !mashy.busy && !mashy.note && !mashy.pendingPassage}
             <div class="mashy-sugg next">
-              {#each next as question (question)}<button type="button" onclick={() => void submit(question)}><CornerDownRight size={13} aria-hidden="true" />{question}</button>{/each}
+              {#each next as question (question)}<button type="button" onclick={() => void submit(question)}><Icon icon={ArrowElbowDownRightIcon} size={13} />{question}</button>{/each}
             </div>
           {/if}
         {/if}
@@ -437,7 +420,7 @@ function followed(event: MouseEvent): void {
           <strong>{mashy.note.title}</strong>
           {#if mashy.note.text}<span>{mashy.note.text}</span>{/if}
           {#if mashy.note.link}<a class="btn" href={mashy.note.link.href} onclick={() => void close()}>{mashy.note.link.label}</a>{/if}
-          {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><RotateCw size={14} aria-hidden="true" />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
+          {#if mashy.note.retry}<button class="btn" type="button" onclick={() => mashy.retry()}><Icon icon={ArrowClockwiseIcon} size={14} />{mashy.note.kind === "stopped" ? "Ask again" : "Retry"}</button>{/if}
         </div>
       {/if}
       <MashyPassage ask={(question) => void submit(question)} />
@@ -464,9 +447,9 @@ function followed(event: MouseEvent): void {
         }}
       ></textarea>
       {#if mashy.busy}
-        <button class="go" type="button" aria-label="Stop" title="Stop" onclick={() => mashy.stop()}><Square size={15} /></button>
+        <button class="go" type="button" aria-label="Stop" title="Stop" onclick={() => mashy.stop()}><Icon icon={StopIcon} size={15} /></button>
       {:else}
-        <button class="go" type="submit" aria-label="Send" title="Send" disabled={!draft.trim()}><ArrowUp size={17} /></button>
+        <button class="go" type="submit" aria-label="Send" title="Send" disabled={!draft.trim()}><Icon icon={ArrowUpIcon} size={17} /></button>
       {/if}
     </form>
   </section>

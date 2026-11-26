@@ -1,7 +1,8 @@
 <script lang="ts">
-import KeyRound from "@lucide/svelte/icons/key-round";
-import LogIn from "@lucide/svelte/icons/log-in";
-import SquareTerminal from "@lucide/svelte/icons/square-terminal";
+import KeyIcon from "phosphor-svelte/lib/KeyIcon";
+import SignInIcon from "phosphor-svelte/lib/SignInIcon";
+import TerminalWindowIcon from "phosphor-svelte/lib/TerminalWindowIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { asset } from "../lib/asset";
 import { signIn } from "../lib/session.svelte";
 import CommandCopy from "./CommandCopy.svelte";
@@ -29,7 +30,7 @@ async function submit(event: SubmitEvent): Promise<void> {
   <header class="signin-top"><span class="brand"><img src={asset("mash-mark.svg")} alt="" /><span>mash<i class="pat" aria-hidden="true"></i></span></span></header>
   <div class="signin-col">
     <form onsubmit={submit}>
-      <span class="signin-key" aria-hidden="true"><KeyRound size={20} /></span>
+      <span class="signin-key" aria-hidden="true"><Icon icon={KeyIcon} size={20} /></span>
       <h1 class="h1">Sign in to Mash</h1>
       <p class="signin-why">
         This dashboard can be reached from other devices, so it asks you to sign in. Enter a one-time code from the
@@ -51,10 +52,10 @@ async function submit(event: SubmitEvent): Promise<void> {
         aria-invalid={problem !== undefined}
       />
       {#if problem !== undefined}<p id="signin-problem" class="signin-problem" role="alert">{problem}</p>{/if}
-      <button class="btn p" type="submit" disabled={busy || token.trim() === ""}><LogIn size={14} aria-hidden="true" />{busy ? "Signing in…" : "Sign in"}</button>
+      <button class="btn p" type="submit" disabled={busy || token.trim() === ""}><Icon icon={SignInIcon} size={14} state="strong" />{busy ? "Signing in…" : "Sign in"}</button>
     </form>
     <section class="card signin-help" aria-label="No code yet?">
-      <h2><SquareTerminal size={15} aria-hidden="true" />No code yet?</h2>
+      <h2><Icon icon={TerminalWindowIcon} size={15} />No code yet?</h2>
       <p>On the computer that runs Mash, ask for a new one. It works once, within ten minutes.</p>
       <CommandCopy text="mash dash remote --code" />
       <p>Or scan the QR code that <code class="i">mash dash remote --qr</code> shows there with a phone’s camera.</p>

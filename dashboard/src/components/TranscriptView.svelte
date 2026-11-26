@@ -1,14 +1,13 @@
 <script lang="ts">
-import ArrowDownToLine from "@lucide/svelte/icons/arrow-down-to-line";
-import ArrowUpToLine from "@lucide/svelte/icons/arrow-up-to-line";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import ChevronsDown from "@lucide/svelte/icons/chevrons-down";
-import FileText from "@lucide/svelte/icons/file-text";
-import Lightbulb from "@lucide/svelte/icons/lightbulb";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import Terminal from "@lucide/svelte/icons/terminal";
 import { createQuery } from "@tanstack/svelte-query";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import CaretDoubleDownIcon from "phosphor-svelte/lib/CaretDoubleDownIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import LightbulbIcon from "phosphor-svelte/lib/LightbulbIcon";
+import TerminalIcon from "phosphor-svelte/lib/TerminalIcon";
 import { tick, untrack } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agents } from "../lib/agents";
 import { transcript } from "../lib/api";
 import { ChatReading, toBottom } from "../lib/chatReading.svelte";
@@ -28,6 +27,7 @@ import { followTopBar } from "../lib/topBar";
 import { startsAgentTurn } from "../lib/turns";
 import type { Message } from "../lib/types";
 import { updates } from "../lib/updates.svelte";
+import ChatEnds from "./ChatEnds.svelte";
 import "./reading.css";
 import AgentMark from "./AgentMark.svelte";
 import Attachments from "./Attachments.svelte";
@@ -356,13 +356,6 @@ const prompts = $derived(
     }
   }}
 />
-<!-- Scrolling reads the rest of the chat; these float beside it and jump to either end. -->
-{#snippet ends()}
-  <nav aria-label="Chat ends" class="ends">
-    <button class="btn icon" type="button" onclick={() => reader.toStart()} aria-label="First message" title="First message"><ArrowUpToLine size={15} aria-hidden="true" /></button>
-    <button class="btn icon" type="button" onclick={() => reader.toEnd()} aria-label="Latest message" title="Latest message"><ArrowDownToLine size={15} aria-hidden="true" /></button>
-  </nav>
-{/snippet}
 <div class="chat" class:nosess={!showSessions} class:sessopen={sessionsOpen}>
   <ChatSidebar {id} machine={displayMachine} {chat} sessions={catalogue.data?.chats ?? []} {prompts} {currentMessage} records={memories.data?.records} recordsError={memories.error} {memoryParams} closable={phone && sessionsOpen} onclose={() => closeSessions(true)} onprompt={async (message) => { await closeSessions(false); jump(message); }} />
   <article class="log" bind:this={transcriptPane}>
@@ -373,18 +366,18 @@ const prompts = $derived(
     {#each catalogue.data?.warnings ?? [] as warning (warning)}<p role="status" class="meta">{warning}</p>{/each}
     {#if reader.stretches.isPending}
       <div class="card" role="status">
-        <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Terminal size={16} aria-hidden="true" />Loading messages…</p>
+        <p style:display="flex" style:align-items="center" style:gap="10px" style:font="600 13px var(--type-mono)"><Icon icon={TerminalIcon} size={16} />Loading messages…</p>
         <div class="skel" style:width="62%"></div><div class="skel" style:width="86%"></div><div class="skel" style:width="54%"></div>
       </div>
     {/if}
     <QueryError title="Couldn’t load this conversation" query={reader.stretches} />
-    {#if reader.changed}<button type="button" class="btn" onclick={() => reader.showChanged()}><RefreshCw size={15} aria-hidden="true" />This chat has changed. Show updated messages</button>{/if}
+    {#if reader.changed}<button type="button" class="btn" onclick={() => reader.showChanged()}><Icon icon={ArrowsClockwiseIcon} size={15} />This chat has changed. Show updated messages</button>{/if}
     {#if notice}<p role="status" class="meta">{notice}</p>{/if}
-    <div class="newpill" aria-live="polite">{#if reader.added && !sessionsOpen}<button type="button" class="btn p" onclick={() => reader.showNew()}><ChevronsDown size={15} aria-hidden="true" />{reader.added.toLocaleString()} new message{reader.added === 1 ? "" : "s"}</button>{/if}</div>
+    <div class="newpill" aria-live="polite">{#if reader.added && !sessionsOpen}<button type="button" class="btn p" onclick={() => reader.showNew()}><Icon icon={CaretDoubleDownIcon} size={15} state="strong" />{reader.added.toLocaleString()} new message{reader.added === 1 ? "" : "s"}</button>{/if}</div>
     <div class="tv-body">
     <div class="tv-msgs">
     {#if reader.loaded}
-      {#if !sessionsOpen}{@render ends()}{/if}
+      {#if !sessionsOpen}<ChatEnds onstart={() => reader.toStart()} onend={() => reader.toEnd()} />{/if}
       {#if !reader.loaded.messages.length}<p class="card tight cream" style:font-size="13.5px">No messages here. The chat may have been removed.</p>{/if}
       {#if reader.stretches.isFetchingPreviousPage}<p class="meta" role="status">Loading earlier messages…</p>{/if}
       {#snippet saved(message: Message)}
@@ -394,7 +387,7 @@ const prompts = $derived(
       {#snippet note(message: Message)}
         {@const context = message.presentation === "context"}
         <details class="fold" class:hit={message.id === messageId} id="message-{message.id}" data-message={message.id} open={message.id === messageId} style:scroll-margin-top="80px">
-          <summary>{#if context}<FileText size={15} aria-hidden="true" />{:else}<Lightbulb size={15} aria-hidden="true" />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary>
+          <summary>{#if context}<Icon icon={FileTextIcon} size={15} />{:else}<Icon icon={LightbulbIcon} size={15} />{/if}{stepLabel(message)}<span class="mtx">{context ? characters(message) : message.at}</span><span class="cv"><Icon icon={CaretRightIcon} size={15} /></span></summary>
           <div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div>
         </details>
         {@render files(message)}
@@ -418,7 +411,7 @@ const prompts = $derived(
             {@render note(only)}
           {:else}
             <details class="fold" open={item.messages.some((message) => message.id === messageId)}>
-              <summary><Terminal size={15} aria-hidden="true" />{stepsSummary(item)}<span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary>
+              <summary><Icon icon={TerminalIcon} size={15} />{stepsSummary(item)}<span class="cv"><Icon icon={CaretRightIcon} size={15} /></span></summary>
               <div>
                 {#each stepParts(item) as part (part.kind === "call" ? part.call.id : part.message.id)}
                   {#if part.kind === "call"}
@@ -441,7 +434,7 @@ const prompts = $derived(
               <span class="tv-you">{selected ? "You · linked message" : "You"}</span>
               <div class="you"><MessageBody text={saidText(message)} own />{@render actions(message)}</div>
               <div class="tv-files">{@render files(message)}</div>
-              {#if message.dialogue !== undefined}<details class="fold"><summary><FileText size={15} aria-hidden="true" />Context added by the agent<span class="mtx">{characters(message)}</span><span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
+              {#if message.dialogue !== undefined}<details class="fold"><summary><Icon icon={FileTextIcon} size={15} />Context added by the agent<span class="mtx">{characters(message)}</span><span class="cv"><Icon icon={CaretRightIcon} size={15} /></span></summary><div><pre class="pre" style:max-height="32rem" style:overflow="auto">{plainText(message)}</pre></div></details>{/if}
             {:else}
               <div class="msg">
                 {#each message.blocks as block, i (i)}
@@ -450,7 +443,7 @@ const prompts = $derived(
                 {@render files(message)}
                 {@render actions(message)}
               </div>
-              {#if message.activity}<details class="fold"><summary><Terminal size={15} aria-hidden="true" />Recorded tool activity<span class="cv"><ChevronRight size={15} aria-hidden="true" /></span></summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}
+              {#if message.activity}<details class="fold"><summary><Icon icon={TerminalIcon} size={15} />Recorded tool activity<span class="cv"><Icon icon={CaretRightIcon} size={15} /></span></summary><div><pre class="pre" style:max-height="20rem" style:overflow="auto">{message.activity}</pre></div></details>{/if}
             {/if}
             {@render saved(message)}
           </div>

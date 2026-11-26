@@ -3,24 +3,26 @@
 // the tools that manage Mash, the projects pinned for quick reach, and a
 // status line at the foot. On a phone it is a sheet that drops from the top,
 // with the viewing switcher above the pages.
-import Bot from "@lucide/svelte/icons/bot";
-import Brain from "@lucide/svelte/icons/brain";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Clock from "@lucide/svelte/icons/clock";
-import Folder from "@lucide/svelte/icons/folder";
-import History from "@lucide/svelte/icons/history";
-import Laptop from "@lucide/svelte/icons/laptop";
-import LayoutGrid from "@lucide/svelte/icons/layout-grid";
-import MessageSquare from "@lucide/svelte/icons/message-square";
-import Pin from "@lucide/svelte/icons/pin";
-import Plug from "@lucide/svelte/icons/plug";
-import Search from "@lucide/svelte/icons/search";
-import Server from "@lucide/svelte/icons/server";
-import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
-import Upload from "@lucide/svelte/icons/upload";
-import Wrench from "@lucide/svelte/icons/wrench";
-import X from "@lucide/svelte/icons/x";
+
 import { createQuery } from "@tanstack/svelte-query";
+import BrainIcon from "phosphor-svelte/lib/BrainIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import ChatIcon from "phosphor-svelte/lib/ChatIcon";
+import ClockCounterClockwiseIcon from "phosphor-svelte/lib/ClockCounterClockwiseIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import GearSixIcon from "phosphor-svelte/lib/GearSixIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PlugIcon from "phosphor-svelte/lib/PlugIcon";
+import PushPinIcon from "phosphor-svelte/lib/PushPinIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import SquaresFourIcon from "phosphor-svelte/lib/SquaresFourIcon";
+import UploadSimpleIcon from "phosphor-svelte/lib/UploadSimpleIcon";
+import WrenchIcon from "phosphor-svelte/lib/WrenchIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { asset } from "../lib/asset";
 import { groupChats, projectLabel } from "../lib/browse";
 import { askForSearch } from "../lib/findField";
@@ -67,22 +69,22 @@ interface Row {
   readonly id: string;
   readonly label: string;
   readonly href: string;
-  readonly icon: typeof Brain;
+  readonly icon: typeof BrainIcon;
 }
 const main: readonly Row[] = [
-  { id: "overview", label: "Overview", href: "#/", icon: LayoutGrid },
-  { id: "search", label: "Search", href: "#/search", icon: Search },
-  { id: "chats", label: "Chats", href: "#/search", icon: MessageSquare },
-  { id: "memory", label: "Memory", href: "#/records?", icon: Brain },
-  { id: "machines", label: "Machines", href: "#/machines", icon: Laptop },
-  { id: "agents", label: "Agents", href: "#/agents", icon: Bot },
-  { id: "services", label: "Services", href: "#/services", icon: Server },
-  { id: "settings", label: "Settings", href: "#/settings", icon: SlidersHorizontal },
+  { id: "overview", label: "Overview", href: "#/", icon: SquaresFourIcon },
+  { id: "search", label: "Search", href: "#/search", icon: MagnifyingGlassIcon },
+  { id: "chats", label: "Chats", href: "#/search", icon: ChatIcon },
+  { id: "memory", label: "Memory", href: "#/records?", icon: BrainIcon },
+  { id: "machines", label: "Machines", href: "#/machines", icon: LaptopIcon },
+  { id: "agents", label: "Agents", href: "#/agents", icon: RobotIcon },
+  { id: "services", label: "Services", href: "#/services", icon: HardDrivesIcon },
+  { id: "settings", label: "Settings", href: "#/settings", icon: GearSixIcon },
 ];
 const manage: readonly Row[] = [
-  { id: "console", label: "Tools", href: "#/console", icon: Plug },
-  { id: "export", label: "Export", href: "#/export", icon: Upload },
-  { id: "fleet", label: "Fleet manager", href: "#/fleet", icon: Wrench },
+  { id: "console", label: "Tools", href: "#/console", icon: PlugIcon },
+  { id: "export", label: "Export", href: "#/export", icon: UploadSimpleIcon },
+  { id: "fleet", label: "Fleet manager", href: "#/fleet", icon: WrenchIcon },
 ];
 
 const route = $derived(router.current);
@@ -242,18 +244,18 @@ function nudge(event: KeyboardEvent): void {
   <div class="nav-row" class:on>
     {#if item.id === "search"}
       <!-- Search is the field in the top bar; this row shows and focuses it. -->
-      <button class="nav-link" type="button" aria-current={on ? "page" : undefined} aria-label="Search every chat" aria-keyshortcuts="Control+K Meta+K" onclick={find}><span class="nav-ico"><item.icon size={15} aria-hidden="true" /></span><span class="nav-label">{item.label}</span></button>
+      <button class="nav-link" type="button" aria-current={on ? "page" : undefined} aria-label="Search every chat" aria-keyshortcuts="Control+K Meta+K" onclick={find}><span class="nav-ico"><Icon icon={item.icon} size={15} state={on ? "on" : "rest"} /></span><span class="nav-label">{item.label}</span></button>
     {:else}
-      <a class="nav-link" href={item.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={item.id === "chats" ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={item.id === "chats" ? arrows : undefined}><span class="nav-ico"><item.icon size={15} aria-hidden="true" /></span><span class="nav-label">{item.label}</span>{#if count !== undefined}<span class="nav-count" aria-hidden="true">{count.toLocaleString()}</span>{/if}</a>
+      <a class="nav-link" href={item.href} aria-current={on ? "page" : undefined} aria-keyshortcuts={item.id === "chats" ? "ArrowRight ArrowLeft" : undefined} onclick={close} onkeydown={item.id === "chats" ? arrows : undefined}><span class="nav-ico"><Icon icon={item.icon} size={15} state={on ? "on" : "rest"} /></span><span class="nav-label">{item.label}</span>{#if count !== undefined}<span class="nav-count" aria-hidden="true">{count.toLocaleString()}</span>{/if}</a>
     {/if}
     {#if item.id === "chats"}
-      <button class="chev" type="button" tabindex="-1" aria-label="{chatsOpen ? 'Collapse' : 'Expand'} Chats" aria-expanded={chatsOpen} onclick={() => (chatsOpen = !chatsOpen)}><ChevronRight size={14} /></button>
+      <button class="chev" type="button" tabindex="-1" aria-label="{chatsOpen ? 'Collapse' : 'Expand'} Chats" aria-expanded={chatsOpen} onclick={() => (chatsOpen = !chatsOpen)}><Icon icon={CaretRightIcon} size={14} /></button>
     {/if}
   </div>
   {#if item.id === "chats" && chatsOpen}
     <div class="subs">
-      <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Clock size={14} aria-hidden="true" /><span>Recent chats</span></a>
-      <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><History size={14} aria-hidden="true" /><span>Viewing history</span></a>
+      <a class="sub" class:on={child === "recent"} href="#/search" aria-current={child === "recent" ? "page" : undefined} onclick={close}><Icon icon={ClockIcon} size={14} state={child === "recent" ? "on" : "rest"} /><span>Recent chats</span></a>
+      <a class="sub" class:on={child === "history"} href="#/history" aria-current={child === "history" ? "page" : undefined} onclick={close}><Icon icon={ClockCounterClockwiseIcon} size={14} state={child === "history" ? "on" : "rest"} /><span>Viewing history</span></a>
     </div>
   {/if}
 {/snippet}
@@ -262,7 +264,7 @@ function nudge(event: KeyboardEvent): void {
   <div class="rail-in" style:--rail-pushed="{pushed}px">
   <div class="sheet-top">
     <a class="brand" href="#/" onclick={close}><img src={asset("mash-mark.svg")} alt="" width="24" height="24" /><span>mash<i class="pat" aria-hidden="true"></i></span></a>
-    <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><X size={18} aria-hidden="true" /></button>
+    <button id="xdrawer" type="button" aria-label="Close navigation" onclick={close}><Icon icon={XIcon} size={18} /></button>
   </div>
   {#if !catalogue.error}<div class="sheet-viewing"><ViewingSwitcher place="sheet" /></div>{/if}
   <nav class="nav" class:fade-above={fade.above} class:fade-below={fade.below} aria-label="Main" bind:this={nav} onscroll={measure}>
@@ -275,7 +277,7 @@ function nudge(event: KeyboardEvent): void {
     {#each projects as project (project.key)}
       {@const on = route.page === "project" && route.name === project.key}
       <div class="nav-row" class:on>
-        <a class="nav-link" href={projectHref(project.key)} title={project.key} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico">{#if choices.isPinned(project.key)}<Pin size={15} aria-label="Pinned" />{:else}<Folder size={15} aria-hidden="true" />{/if}</span><span class="nav-label">{projectLabel(project.key)}</span></a>
+        <a class="nav-link" href={projectHref(project.key)} title={project.key} aria-current={on ? "page" : undefined} onclick={close}><span class="nav-ico">{#if choices.isPinned(project.key)}<Icon icon={PushPinIcon} size={15} state="on" aria-label="Pinned" />{:else}<Icon icon={FolderIcon} size={15} state={on ? "on" : "rest"} />{/if}</span><span class="nav-label">{projectLabel(project.key)}</span></a>
       </div>
     {/each}
     <RailFoot unavailable={catalogue.error !== null} />

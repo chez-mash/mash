@@ -5,7 +5,8 @@
 // says which kind of name it is. The role is in each name's tooltip; the names
 // themselves stay readable text. A row that already leads with the agent's
 // tile (`led`) names the agent without a second tile.
-import Folder from "@lucide/svelte/icons/folder";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
 import { projectLabel } from "../lib/browse";
@@ -38,7 +39,7 @@ let {
     <Tip text="Machine: {machine}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="machine"><span class="cpl-g" aria-hidden="true"><MachineIcon {machine} {size} /></span>{machine}</span>{/snippet}</Tip>
   {/if}
   {#if project}
-    <Tip text="Project: {project}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="project"><Folder {size} aria-hidden="true" />{projectLabel(project)}</span>{/snippet}</Tip>
+    <Tip text="Project: {project}" passive>{#snippet children(tip)}<span {...tip} class="cpl-i" data-place="project"><Icon icon={FolderIcon} {size} />{projectLabel(project)}</span>{/snippet}</Tip>
   {/if}
 </span>
 

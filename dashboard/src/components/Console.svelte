@@ -1,7 +1,8 @@
 <script lang="ts">
-import Lock from "@lucide/svelte/icons/lock";
-import SearchIcon from "@lucide/svelte/icons/search";
 import { createQuery } from "@tanstack/svelte-query";
+import LockIcon from "phosphor-svelte/lib/LockIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { read } from "../lib/api";
 import { groupOrder, locked, parseConsole } from "../lib/console";
 import { stableRead } from "../lib/queries";
@@ -99,11 +100,11 @@ const chosen = $derived(matching.find((entry) => entry.name === open));
     </div>
     <div class="tx" class:picked={!!chosen}>
       <div class="card tx-list">
-        <label class="tx-find"><SearchIcon size={15} aria-hidden="true" /><input type="search" aria-label="Filter tools" placeholder="Filter tools" autocomplete="off" bind:value={filter} /></label>
+        <label class="tx-find"><Icon icon={MagnifyingGlassIcon} size={15} /><input type="search" aria-label="Filter tools" placeholder="Filter tools" autocomplete="off" bind:value={filter} /></label>
         {#if !sections.length}<p class="meta tx-none">No tool matches “{filter}”.</p>{/if}
         {#each sections as section (section.name)}
           <section class="ops" aria-label={section.name}>
-            <h2 class="tx-g">{#if section.name === locked}<Lock size={12} aria-hidden="true" />Changes data · locked{:else}{section.name}{/if}</h2>
+            <h2 class="tx-g">{#if section.name === locked}<Icon icon={LockIcon} size={12} />Changes data · locked{:else}{section.name}{/if}</h2>
             <ul class="opl">
               {#each section.tools as entry (entry.name)}
                 {@const expanded = open === entry.name}

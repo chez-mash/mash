@@ -1,11 +1,12 @@
 <script lang="ts">
-import CircleMinus from "@lucide/svelte/icons/circle-minus";
-import Copy from "@lucide/svelte/icons/copy";
-import KeyRound from "@lucide/svelte/icons/key-round";
-import Plus from "@lucide/svelte/icons/plus";
-import Trash from "@lucide/svelte/icons/trash";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import KeyIcon from "phosphor-svelte/lib/KeyIcon";
+import MinusCircleIcon from "phosphor-svelte/lib/MinusCircleIcon";
+import PlusIcon from "phosphor-svelte/lib/PlusIcon";
+import TrashIcon from "phosphor-svelte/lib/TrashIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { read } from "../lib/api";
 import { type Change, changeMachine, lastPublish, machineState, type NewJoin } from "../lib/shared";
 
@@ -64,7 +65,7 @@ async function copy(text: string): Promise<void> {
       <label class="adm-l" for="new-machine">Name the new machine</label>
       <div class="adm-row">
         <input id="new-machine" class="field" autocomplete="off" spellcheck="false" bind:value={name} />
-        <button class="btn p" type="submit" disabled={!name.trim() || busy || groups.length !== 1 || !!taken}><Plus size={15} aria-hidden="true" />Create join string</button>
+        <button class="btn p" type="submit" disabled={!name.trim() || busy || groups.length !== 1 || !!taken}><Icon icon={PlusIcon} size={15} state="strong" />Create join string</button>
       </div>
       <p class="meta">Each machine needs its own name. It appears beside every chat in search results. Use lower-case letters, numbers and dashes.</p>
       {#if taken}
@@ -76,7 +77,7 @@ async function copy(text: string): Promise<void> {
       <div class="card adm-fresh" role="status" aria-label="Join string for {fresh.node}">
         <p class="adm-t">Join string for {fresh.node}</p>
         <code class="adm-join">{fresh.join.join}</code>
-        <button class="btn" type="button" onclick={() => fresh && void copy(fresh.join.join)}><Copy size={15} aria-hidden="true" />{copied ? "Copied" : "Copy join string"}</button>
+        <button class="btn" type="button" onclick={() => fresh && void copy(fresh.join.join)}><Icon icon={CopyIcon} size={15} />{copied ? "Copied" : "Copy join string"}</button>
         <p class="meta">This string contains {fresh.node}’s credential. Send it privately: anyone who has it can publish as {fresh.node} and read every chat shared in this group. It works once, within 24 hours, and is shown only now.</p>
         <p class="meta">On {fresh.node}: open Mash, choose Join a shared index in Settings, and paste it. Or in a terminal there: <code class="i">mash init --join '…' --no-index --no-agents</code>.</p>
         {#if fresh.join.restart_needed}<p class="warn">This group is new to the server: restart mash-server so it accepts the machine.</p>{/if}
@@ -91,11 +92,11 @@ async function copy(text: string): Promise<void> {
           <span class="meta">{machine.group_id} · {machineState(machine, data.now)} · {lastPublish(machine)}{#if machine.fingerprint} · credential …{machine.fingerprint}{/if}</span></span>
           {#if machine.state !== "configured"}
             <span class="adm-acts">
-            <button class="btn sm" type="button" disabled={busy} onclick={() => act("replace", machine.group_id, machine.node_id)}><KeyRound size={14} aria-hidden="true" />Replace credential</button>
+            <button class="btn sm" type="button" disabled={busy} onclick={() => act("replace", machine.group_id, machine.node_id)}><Icon icon={KeyIcon} size={14} />Replace credential</button>
             {#if machine.state === "removed"}
-              <button class="btn sm danger" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}><Trash size={14} aria-hidden="true" />Delete what it published</button>
+              <button class="btn sm danger" type="button" disabled={busy || machine.delete_requested} onclick={() => { deleting = { group: machine.group_id, node: machine.node_id }; typed = ""; }}><Icon icon={TrashIcon} size={14} />Delete what it published</button>
             {:else}
-              <button class="btn sm danger" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}><CircleMinus size={14} aria-hidden="true" />Remove</button>
+              <button class="btn sm danger" type="button" disabled={busy} onclick={() => act("remove", machine.group_id, machine.node_id)}><Icon icon={MinusCircleIcon} size={14} />Remove</button>
             {/if}
             </span>
           {/if}
@@ -105,11 +106,11 @@ async function copy(text: string): Promise<void> {
     {#if deleting}
       {@const target = deleting}
       <form class="card adm-del" aria-label="Delete what {target.node} published" onsubmit={(event) => { event.preventDefault(); void act("delete", target.group, target.node, typed); }}>
-        <p class="adm-warn"><TriangleAlert size={15} aria-hidden="true" /><span><strong>This permanently deletes everything {target.node} published</strong>: its chats, messages, memories and attachments, from the server and from search. It can’t be undone. {target.node}’s own copy is not touched.</span></p>
+        <p class="adm-warn"><Icon icon={WarningIcon} size={15} state="strong" /><span><strong>This permanently deletes everything {target.node} published</strong>: its chats, messages, memories and attachments, from the server and from search. It can’t be undone. {target.node}’s own copy is not touched.</span></p>
         <label class="adm-l" for="confirm-delete">Type {target.node} to confirm</label>
         <input id="confirm-delete" class="field" autocomplete="off" spellcheck="false" bind:value={typed} />
         <div class="adm-acts">
-          <button class="btn p danger" type="submit" disabled={typed !== target.node || busy}><Trash size={14} aria-hidden="true" />Delete what {target.node} published</button>
+          <button class="btn p danger" type="submit" disabled={typed !== target.node || busy}><Icon icon={TrashIcon} size={14} state="strong" />Delete what {target.node} published</button>
           <button class="btn" type="button" onclick={() => (deleting = null)}>Cancel</button>
         </div>
       </form>

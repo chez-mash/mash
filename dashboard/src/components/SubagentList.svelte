@@ -1,5 +1,6 @@
 <script lang="ts">
-import GitFork from "@lucide/svelte/icons/git-fork";
+import GitForkIcon from "phosphor-svelte/lib/GitForkIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { chatHref } from "../lib/route.svelte";
@@ -14,7 +15,7 @@ const now = Date.now();
 
 {#if children.length}
   <section class="forks" aria-label="Subagents">
-    <h2 class="sl-h"><GitFork size={14} aria-hidden="true" />Subagents ({children.length})</h2>
+    <h2 class="sl-h"><Icon icon={GitForkIcon} size={14} />Subagents ({children.length})</h2>
     <div class="sl-l">
       {#each children as child (child.machine + child.id)}
         <a class="sl-r" href={chatHref(child.id, child.machine)}><AgentMark agent={child.agent} size="sm" /><span><b>{plainTitle(child.title)}</b><small>{detailLabel(child, whenLabel(child.updatedMs, now))}</small></span></a>

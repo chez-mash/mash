@@ -1,13 +1,14 @@
 <script lang="ts">
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-import ChevronsUp from "@lucide/svelte/icons/chevrons-up";
-import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import Clock from "@lucide/svelte/icons/clock";
-import FileText from "@lucide/svelte/icons/file-text";
-import Laptop from "@lucide/svelte/icons/laptop";
-import Lightbulb from "@lucide/svelte/icons/lightbulb";
 import { createQuery } from "@tanstack/svelte-query";
+import CaretDoubleUpIcon from "phosphor-svelte/lib/CaretDoubleUpIcon";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CaretLeftIcon from "phosphor-svelte/lib/CaretLeftIcon";
+import CircleDashedIcon from "phosphor-svelte/lib/CircleDashedIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import LightbulbIcon from "phosphor-svelte/lib/LightbulbIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agentNamed } from "../lib/agents";
 import { agoLabel } from "../lib/browse";
 import { chatOf } from "../lib/memoryView";
@@ -92,7 +93,7 @@ function date(value: number | null): string {
   {/if}
 {/snippet}
 
-<a class="back" href={back} aria-label="Back to memory"><ChevronLeft size={15} aria-hidden="true" />Memory</a>
+<a class="back" href={back} aria-label="Back to memory"><Icon icon={CaretLeftIcon} size={15} />Memory</a>
 {#if latest.isPending}<Skeleton rows={4} />{/if}
 {#if latest.error}<LoadError title="Couldn’t load this memory" message={latest.error.message} retry={refresh} busy={latest.isFetching}/>{/if}
 {#if page.error && !latest.error}<LoadError title="Couldn’t load memory history" message={page.error.message} retry={() => page.refetch()} busy={page.isFetching} retryLabel="Retry history"/>{/if}
@@ -110,15 +111,15 @@ function date(value: number | null): string {
     </p>
     <h1 class="h1">{current.statement}</h1>
     <p class="mts">
-      <span class="mt" title={scopeLabel(record.scope)}><ScopeIcon size={13} aria-hidden="true" />{scopeName(record.scope)}</span>
-      <span class="mt">{#if record.node || catalogue.data?.localNode}<MachineIcon machine={record.node || catalogue.data?.localNode || ""} size={13} />{:else}<Laptop size={13} aria-hidden="true" />{/if}{record.node || catalogue.data?.localNode || "this machine"}</span>
+      <span class="mt" title={scopeLabel(record.scope)}><Icon icon={ScopeIcon} size={13} />{scopeName(record.scope)}</span>
+      <span class="mt">{#if record.node || catalogue.data?.localNode}<MachineIcon machine={record.node || catalogue.data?.localNode || ""} size={13} />{:else}<Icon icon={LaptopIcon} size={13} />{/if}{record.node || catalogue.data?.localNode || "this machine"}</span>
       <span class="mt">{#if recorder}<AgentMark agent={recorder} size="sm" />{/if}Recorded by {current.recordedBy}</span>
       <span class="mt">{@render ago(current.recordedAt)}</span>
     </p>
     {#if settled === "unconfirmed"}
       <!-- The dashboard only reads memory: there is no way to confirm a record
            from here. An agent confirms or corrects it in a review. -->
-      <p class="card tight cream rec-u" role="note"><span class="tone-i tone-warn"><CircleDashed size={16} aria-hidden="true" /></span><span>To confirm this, ask your agent to review your memory (<code>/mash:review</code> in Claude Code); opening it here leaves it unconfirmed. <a class="a" href="https://getmash.io/records/#correct-or-replace" target="_blank" rel="noreferrer">How review works</a></span></p>
+      <p class="card tight cream rec-u" role="note"><span class="tone-i tone-warn"><Icon icon={CircleDashedIcon} size={16} state="strong" /></span><span>To confirm this, ask your agent to review your memory (<code>/mash:review</code> in Claude Code); opening it here leaves it unconfirmed. <a class="a" href="https://getmash.io/records/#correct-or-replace" target="_blank" rel="noreferrer">How review works</a></span></p>
     {/if}
     {#if timingLabel(current, Date.now()) || record.conflicted || !current.evidenceCurrent}
       <div class="g3 rec-w">
@@ -128,13 +129,13 @@ function date(value: number | null): string {
       </div>
     {/if}
   </header>
-  {#if current.rationale}<section class="sec"><h2 class="h2"><Lightbulb size={15} aria-hidden="true" />Why</h2><p class="rec-why">{current.rationale}</p></section>{/if}
+  {#if current.rationale}<section class="sec"><h2 class="h2"><Icon icon={LightbulbIcon} size={15} />Why</h2><p class="rec-why">{current.rationale}</p></section>{/if}
   <section class="sec">
-    <h2 class="h2"><FileText size={15} aria-hidden="true" />Evidence{current.evidenceCurrent ? "" : " (stale or missing)"}</h2>
+    <h2 class="h2"><Icon icon={FileTextIcon} size={15} />Evidence{current.evidenceCurrent ? "" : " (stale or missing)"}</h2>
     {@render sources(current.evidence, record.node)}
   </section>
   <section class="sec">
-    <div class="hd"><h2 class="h2"><Clock size={15} aria-hidden="true" />Revision history</h2></div>
+    <div class="hd"><h2 class="h2"><Icon icon={ClockIcon} size={15} />Revision history</h2></div>
     {#if page.isFetching}<p class="meta" role="status">Loading history…</p>{/if}
     {#if page.data}
       {#if !page.data.revisions.length}<p class="meta">No revisions on this page.</p>{/if}
@@ -160,8 +161,8 @@ function date(value: number | null): string {
       {/if}
       {#if before !== null || page.data.nextBeforeRevision !== null}
         <nav aria-label="Revision pages" class="acts">
-          {#if before !== null}<button class="btn sm" type="button" onclick={() => (before = null)}><ChevronsUp size={14} aria-hidden="true" />Newest revisions</button>{/if}
-          {#if page.data.nextBeforeRevision !== null}<button class="btn sm" type="button" onclick={() => (before = page.data?.nextBeforeRevision ?? null)}>Older revisions<ChevronDown size={14} aria-hidden="true" /></button>{/if}
+          {#if before !== null}<button class="btn sm" type="button" onclick={() => (before = null)}><Icon icon={CaretDoubleUpIcon} size={14} />Newest revisions</button>{/if}
+          {#if page.data.nextBeforeRevision !== null}<button class="btn sm" type="button" onclick={() => (before = page.data?.nextBeforeRevision ?? null)}>Older revisions<Icon icon={CaretDownIcon} size={14} /></button>{/if}
         </nav>
       {/if}
     {/if}
@@ -176,8 +177,8 @@ function date(value: number | null): string {
       {#if page.data.links.length}<RecordRelated {record} links={page.data.links} {back} />{/if}
       {#if linkOffset > 0 || page.data.nextLinkOffset !== null}
         <nav aria-label="Relationship pages" class="acts">
-          {#if linkOffset > 0}<button class="btn sm" type="button" onclick={() => (linkOffset = 0)}><ChevronsUp size={14} aria-hidden="true" />First relationships</button>{/if}
-          {#if page.data.nextLinkOffset !== null}<button class="btn sm" type="button" onclick={() => (linkOffset = page.data?.nextLinkOffset ?? 0)}>More relationships<ChevronDown size={14} aria-hidden="true" /></button>{/if}
+          {#if linkOffset > 0}<button class="btn sm" type="button" onclick={() => (linkOffset = 0)}><Icon icon={CaretDoubleUpIcon} size={14} />First relationships</button>{/if}
+          {#if page.data.nextLinkOffset !== null}<button class="btn sm" type="button" onclick={() => (linkOffset = page.data?.nextLinkOffset ?? 0)}>More relationships<Icon icon={CaretDownIcon} size={14} /></button>{/if}
         </nav>
       {/if}
     </section>

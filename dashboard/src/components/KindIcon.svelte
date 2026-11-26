@@ -2,16 +2,17 @@
 // A memory's kind as its icon, the same one the memory pages use. The kind's
 // name stays in the accessible text and the tooltip, so the icon replaces the
 // word without losing it. It takes the kind's own tint (see semantics.css).
-import Bookmark from "@lucide/svelte/icons/bookmark";
+import BookmarkSimpleIcon from "phosphor-svelte/lib/BookmarkSimpleIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 import { kindIcons } from "../lib/recordIcons";
 import { label } from "../lib/records";
 
 let { kind, size = 13 }: { kind: string; size?: number } = $props();
-const Icon = $derived(kindIcons[kind as keyof typeof kindIcons] ?? Bookmark);
+const Glyph = $derived(kindIcons[kind as keyof typeof kindIcons] ?? BookmarkSimpleIcon);
 </script>
 
-<Tip text={label(kind)} passive>{#snippet children(tip)}<span {...tip} class="ki ink-{kind}"><Icon {size} aria-hidden="true" /><span class="vh">{label(kind)}</span></span>{/snippet}</Tip>
+<Tip text={label(kind)} passive>{#snippet children(tip)}<span {...tip} class="ki ink-{kind}"><Icon icon={Glyph} {size} /><span class="vh">{label(kind)}</span></span>{/snippet}</Tip>
 
 <style>
   .ki {

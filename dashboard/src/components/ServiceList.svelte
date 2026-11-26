@@ -1,9 +1,10 @@
 <script lang="ts">
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Play from "@lucide/svelte/icons/play";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import Square from "@lucide/svelte/icons/square";
+import ArrowClockwiseIcon from "phosphor-svelte/lib/ArrowClockwiseIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import PlayIcon from "phosphor-svelte/lib/PlayIcon";
+import StopIcon from "phosphor-svelte/lib/StopIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import {
   checkedTime,
@@ -42,22 +43,22 @@ const purpose: Record<Service["kind"], string> = {
   server: "Keeps history in one place for all your machines.",
 };
 const label: Record<ServiceAction, string> = { start: "Start", stop: "Stop", restart: "Restart" };
-const icon = { start: Play, stop: Square, restart: RotateCw } as const;
+const icon = { start: PlayIcon, stop: StopIcon, restart: ArrowClockwiseIcon } as const;
 </script>
 
 <section class="card pad0 svc-list" aria-label="Services on {machine.id}">
   {#each machine.services as entry (entry.id)}
-    {@const Icon = kindIcon[entry.kind]}
+    {@const Glyph = kindIcon[entry.kind]}
     <div class="svc-row">
-      <span class="svc-ico" aria-hidden="true"><Icon size={16} /></span>
+      <span class="svc-ico" aria-hidden="true"><Icon icon={Glyph} size={16} /></span>
       <span class="svc-name"><strong>{entry.name}</strong><small>{purpose[entry.kind]}</small></span>
       <span class="svc-state {serviceTone(entry.state)}">
         <span class="svc-st"><ToneIcon tone={serviceTone(entry.state)} /><span title={stateLabel[entry.state]}>{machine.reachable ? entry.summary : "Machine unreachable"}</span></span>
         <small class="mono" title={checkedTime(entry.checked_at)}>checked {agoLabel(entry.checked_at * 1000, Date.now())}{entry.pid ? ` · PID ${entry.pid}` : ""}</small>
       </span>
       <span class="svc-acts">
-        {#each entry.actions as action (action)}{@const ActionIcon = icon[action]}<button class="btn sm" class:p={action !== "stop" && entry.state !== "healthy"} class:danger={action === "stop"} type="button" disabled={disabled || !machine.reachable} onclick={() => ask(entry, action)}><ActionIcon size={14} aria-hidden="true" />{label[action]}<span class="sr-only"> {entry.name}</span></button>{/each}
-        <a class="btn sm" href={servicesHref(machine.id, entry.id)} aria-label="{entry.name} details">Details<ChevronRight size={14} aria-hidden="true" /></a>
+        {#each entry.actions as action (action)}{@const ActionIcon = icon[action]}<button class="btn sm" class:p={action !== "stop" && entry.state !== "healthy"} class:danger={action === "stop"} type="button" disabled={disabled || !machine.reachable} onclick={() => ask(entry, action)}><Icon icon={ActionIcon} size={14} />{label[action]}<span class="sr-only"> {entry.name}</span></button>{/each}
+        <a class="btn sm" href={servicesHref(machine.id, entry.id)} aria-label="{entry.name} details">Details<Icon icon={CaretRightIcon} size={14} /></a>
       </span>
       {@render confirmation(entry)}
     </div>

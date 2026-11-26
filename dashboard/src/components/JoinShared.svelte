@@ -1,8 +1,9 @@
 <script lang="ts">
-import ArrowRight from "@lucide/svelte/icons/arrow-right";
-import Check from "@lucide/svelte/icons/check";
-import Server from "@lucide/svelte/icons/server";
-import ShieldCheck from "@lucide/svelte/icons/shield-check";
+import ArrowRightIcon from "phosphor-svelte/lib/ArrowRightIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import HardDrivesIcon from "phosphor-svelte/lib/HardDrivesIcon";
+import ShieldCheckIcon from "phosphor-svelte/lib/ShieldCheckIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { type JoinView, joinRefusals, joinShared } from "../lib/shared";
 
 // Join a shared index from a join string made on the machine that runs the
@@ -49,17 +50,17 @@ async function save(): Promise<void> {
 </script>
 
 <form class="card join" aria-label="Join a shared index" onsubmit={(event) => { event.preventDefault(); void check(); }}>
-  <h2 class="join-h"><Server size={16} aria-hidden="true" />Join a shared index</h2>
+  <h2 class="join-h"><Icon icon={HardDrivesIcon} size={16} />Join a shared index</h2>
   <p class="meta">Paste the join string made for this computer on the machine that runs your shared server. Mash checks it and shows where it connects. Nothing is saved until you choose Save and continue.</p>
   <label class="join-l" for="join-string">Join string</label>
   <textarea id="join-string" class="field join-t" rows="3" spellcheck="false" autocomplete="off" bind:value={text} oninput={() => { preview = null; failure = ""; }}></textarea>
   <p class="meta join-hint">It starts with <code class="i">mash-join.</code> and is one long line.</p>
-  <button class="btn join-check" type="submit" disabled={!text.trim() || checking}><ShieldCheck size={14} aria-hidden="true" />{checking ? "Checking…" : "Check"}</button>
+  <button class="btn join-check" type="submit" disabled={!text.trim() || checking}><Icon icon={ShieldCheckIcon} size={14} />{checking ? "Checking…" : "Check"}</button>
   {#if failure}<p class="warn" role="alert">{failure} Nothing was saved.</p>{/if}
   {#if preview}
     {#if preview.check.status === "ready"}
       <div class="card cream join-ok" role="status">
-        <p class="join-yes"><Check size={15} aria-hidden="true" />The server accepted this join string.</p>
+        <p class="join-yes"><Icon icon={CheckIcon} size={15} />The server accepted this join string.</p>
         <dl class="kvs">
           <dt>This computer joins as</dt><dd><strong>{preview.node_id}</strong></dd>
           <dt>Shared server</dt><dd><code class="i">{preview.server}</code></dd>
@@ -68,7 +69,7 @@ async function save(): Promise<void> {
         </dl>
         <p class="meta">This string was made for {preview.node_id}. Each computer gets its own; if this computer is not {preview.node_id}, ask for a string made for it.</p>
         <p class="meta">Save and continue saves the server, group and name in Mash’s configuration and the credential in <code class="i">~/.mash/node.env</code>, readable only by you. It does not index, publish or change your agents.</p>
-        <button class="btn p" type="button" disabled={saving} onclick={save}><ArrowRight size={14} aria-hidden="true" />{saving ? "Saving…" : "Save and continue"}</button>
+        <button class="btn p" type="button" disabled={saving} onclick={save}><Icon icon={ArrowRightIcon} size={14} state="strong" />{saving ? "Saving…" : "Save and continue"}</button>
       </div>
     {:else}
       <p class="warn" role="alert">{joinRefusals[preview.check.status] ?? "The server refused this join string."} Nothing was saved.</p>

@@ -1,5 +1,6 @@
 <script lang="ts">
-import Clock from "@lucide/svelte/icons/clock";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { type Card, cardHealth, cardTone, tone } from "../lib/mapBand";
 import { publishWords, staleWords } from "../lib/serverStatus";
 import { dotTone } from "../lib/tone";
@@ -39,15 +40,15 @@ let {
     {#if card.fleet}<small class="tone-{dotTone(cardTone(card))}"><ToneIcon tone={dotTone(cardTone(card))} size={12} /><span>{cardHealth(card)}</span></small>{/if}
     {#if card.reported}
       {@const stale = staleWords(card.reported, now)}
-      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}><Clock size={11} aria-hidden="true" />{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
+      {#if stale}<span class="pill warn stale" title={publishWords(card.reported, now)}><Icon icon={ClockIcon} size={11} />{stale}</span>{:else}<small class="pub">{publishWords(card.reported, now)}</small>{/if}
     {:else if !card.fleet}<small>Not reported</small>{/if}
   </span>
 {/snippet}
 
 {#if place}
-  {@const Icon = placeIcon[place.id]}
+  {@const Glyph = placeIcon[place.id]}
   <a class="node {tone(place.state)}" class:spot class:affected={!!place.affectedBy} class:sel={selected} {href} aria-current={selected ? "true" : undefined}>
-    <Icon size={17} aria-hidden="true" />
+    <Icon icon={Glyph} size={17} />
     <span class="nt"><strong>{place.label}</strong><small title={status} class={place.state === null ? "" : `tone-${dotTone(tone(place.state))}`}>{#if place.state !== null}<ToneIcon tone={dotTone(tone(place.state))} size={12} />{/if}<span>{status}</span></small></span>
   </a>
 {:else if card?.fleet}

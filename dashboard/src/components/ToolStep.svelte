@@ -1,6 +1,7 @@
 <script lang="ts">
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Terminal from "@lucide/svelte/icons/terminal";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import TerminalIcon from "phosphor-svelte/lib/TerminalIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { argumentHighlight, outputHighlight } from "../lib/codeLanguage";
 import { durationLabel, type ToolCall } from "../lib/toolcalls";
 import Code from "./Code.svelte";
@@ -29,14 +30,14 @@ const shown = $derived(
 
 <details class="tc" class:hit class:bad={call.status?.failed} id="message-{call.id}" data-message={call.id} open={hit} style:scroll-margin-top="80px">
   <summary>
-    <Terminal size={15} aria-hidden="true" />
+    <Icon icon={TerminalIcon} size={15} />
     <span class="tc-n">{call.name}</span>
     <span class="tc-s">{call.summary}</span>
     {#if call.status}<span class="pill" class:ok={!call.status.failed} class:bad={call.status.failed}><ToneIcon tone={call.status.failed ? "bad" : "ok"} size={12} />{call.status.label}</span>{/if}
     {#if call.durationMs !== undefined}<span class="pill">{durationLabel(call.durationMs)}</span>{/if}
     {#if call.server}<span class="pill">{call.server}</span>{/if}
     <span class="mtx">{call.at}</span>
-    <span class="cv"><ChevronRight size={15} aria-hidden="true" /></span>
+    <span class="cv"><Icon icon={CaretRightIcon} size={15} /></span>
   </summary>
   <div class="tc-b">
     {#each call.args as argument (argument.key)}

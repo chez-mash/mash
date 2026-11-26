@@ -1,14 +1,15 @@
 <script lang="ts">
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import ChevronUp from "@lucide/svelte/icons/chevron-up";
-import Copy from "@lucide/svelte/icons/copy";
-import Download from "@lucide/svelte/icons/download";
-import FileCode from "@lucide/svelte/icons/file-code";
-import FileText from "@lucide/svelte/icons/file-text";
-import Link2 from "@lucide/svelte/icons/link-2";
-import PanelLeft from "@lucide/svelte/icons/panel-left";
-import Printer from "@lucide/svelte/icons/printer";
-import Search from "@lucide/svelte/icons/search";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CaretUpIcon from "phosphor-svelte/lib/CaretUpIcon";
+import CopyIcon from "phosphor-svelte/lib/CopyIcon";
+import DownloadSimpleIcon from "phosphor-svelte/lib/DownloadSimpleIcon";
+import FileCodeIcon from "phosphor-svelte/lib/FileCodeIcon";
+import FileTextIcon from "phosphor-svelte/lib/FileTextIcon";
+import LinkSimpleHorizontalIcon from "phosphor-svelte/lib/LinkSimpleHorizontalIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PrinterIcon from "phosphor-svelte/lib/PrinterIcon";
+import SidebarSimpleIcon from "phosphor-svelte/lib/SidebarSimpleIcon";
+import Icon from "$lib/components/Icon.svelte";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import { Tip } from "$lib/components/ui/tooltip";
 import { agents } from "../lib/agents";
@@ -111,22 +112,22 @@ const age = $derived.by(() => {
     </div>
     {#if phone}
       <div class="ch-two">
-        <button class="btn" type="button" onclick={copyLink}><Link2 size={15} aria-hidden="true" />Copy link</button>
+        <button class="btn" type="button" onclick={copyLink}><Icon icon={LinkSimpleHorizontalIcon} size={15} />Copy link</button>
         {#if chat}<OpenInAgent {chat} {local} {onnotice} />{/if}
       </div>
     {:else}
     <div class="acts ch-acts">
-      <Tip text="{sessionsShown ? 'Hide' : 'Show'} session list">{#snippet children(tip)}<button {...tip} class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={ontogglesessions}><PanelLeft size={15} aria-hidden="true" />{#if phone}Sessions{/if}</button>{/snippet}</Tip>
-      <button class="btn" type="button" aria-expanded={findOpen} onclick={onfind}><Search size={15} aria-hidden="true" />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
-      <button class="btn" type="button" onclick={oncopy}><Copy size={15} aria-hidden="true" />Copy session ID</button>
+      <Tip text="{sessionsShown ? 'Hide' : 'Show'} session list">{#snippet children(tip)}<button {...tip} class="btn" class:icon={!phone} type="button" aria-pressed={sessionsShown} aria-label="{sessionsShown ? 'Hide' : 'Show'} session list" onclick={ontogglesessions}><Icon icon={SidebarSimpleIcon} size={15} state={sessionsShown ? "on" : "rest"} />{#if phone}Sessions{/if}</button>{/snippet}</Tip>
+      <button class="btn" type="button" aria-expanded={findOpen} onclick={onfind}><Icon icon={MagnifyingGlassIcon} size={15} />Find in chat<kbd class="kbd">{shortcut}</kbd></button>
+      <button class="btn" type="button" onclick={oncopy}><Icon icon={CopyIcon} size={15} />Copy session ID</button>
       {#if chat}<OpenInAgent {chat} {local} {onnotice} />{/if}
       <span class="ch-x">
         <DropdownMenu.Root bind:open={exportOpen}>
-          <DropdownMenu.Trigger class="btn"><Download size={15} aria-hidden="true" />Export{#if exportOpen}<ChevronUp size={14} aria-hidden="true" />{:else}<ChevronDown size={14} aria-hidden="true" />{/if}</DropdownMenu.Trigger>
+          <DropdownMenu.Trigger class="btn"><Icon icon={DownloadSimpleIcon} size={15} />Export{#if exportOpen}<Icon icon={CaretUpIcon} size={14} />{:else}<Icon icon={CaretDownIcon} size={14} />{/if}</DropdownMenu.Trigger>
           <DropdownMenu.ContentStatic class="right-0 w-[210px]" aria-label="Export">
-            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("pdf")}><Printer size={15} aria-hidden="true" />Export to PDF</DropdownMenu.Item>
-            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("html")}><FileCode size={15} aria-hidden="true" />Export to HTML</DropdownMenu.Item>
-            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("markdown")}><FileText size={15} aria-hidden="true" />Export to Markdown</DropdownMenu.Item>
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("pdf")}><Icon icon={PrinterIcon} size={15} />Export to PDF</DropdownMenu.Item>
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("html")}><Icon icon={FileCodeIcon} size={15} />Export to HTML</DropdownMenu.Item>
+            <DropdownMenu.Item disabled={!canExport} onSelect={() => onexport("markdown")}><Icon icon={FileTextIcon} size={15} />Export to Markdown</DropdownMenu.Item>
           </DropdownMenu.ContentStatic>
         </DropdownMenu.Root>
       </span>

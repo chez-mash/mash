@@ -1,5 +1,6 @@
 <script lang="ts">
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { Tip } from "$lib/components/ui/tooltip";
 
 // The dashboard's one way to read what is on screen again, shown at the foot
@@ -24,7 +25,7 @@ const words = $derived(checking ? "Checking…" : "Check for updates");
 </script>
 
 {#if compact}
-  <Tip text={words}>{#snippet children(tip)}<button {...tip} class="btn ghost sm icon" type="button" aria-label={words} disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" /></button>{/snippet}</Tip>
+  <Tip text={words}>{#snippet children(tip)}<button {...tip} class="btn ghost sm icon" type="button" aria-label={words} disabled={disabled ?? checking} onclick={() => check()}><Icon icon={ArrowsClockwiseIcon} size={14} /></button>{/snippet}</Tip>
 {:else}
-  <button class="btn ghost sm" type="button" disabled={disabled ?? checking} onclick={() => check()}><RefreshCw size={14} aria-hidden="true" />{words}</button>
+  <button class="btn ghost sm" type="button" disabled={disabled ?? checking} onclick={() => check()}><Icon icon={ArrowsClockwiseIcon} size={14} />{words}</button>
 {/if}

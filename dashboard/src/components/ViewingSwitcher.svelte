@@ -3,14 +3,16 @@
 // projects and agents show. It sits at the right of the top bar, and on a
 // phone at the top of the navigation sheet. Services and Machines are
 // about the machines themselves, so they show every machine whatever it says.
-import Check from "@lucide/svelte/icons/check";
-import ChevronDown from "@lucide/svelte/icons/chevron-down";
-import Clock from "@lucide/svelte/icons/clock";
-import Globe from "@lucide/svelte/icons/globe";
-import Laptop from "@lucide/svelte/icons/laptop";
-import Network from "@lucide/svelte/icons/network";
-import Radio from "@lucide/svelte/icons/radio";
+
 import { createQuery } from "@tanstack/svelte-query";
+import BroadcastIcon from "phosphor-svelte/lib/BroadcastIcon";
+import CaretDownIcon from "phosphor-svelte/lib/CaretDownIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import ClockIcon from "phosphor-svelte/lib/ClockIcon";
+import GlobeIcon from "phosphor-svelte/lib/GlobeIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import NetworkIcon from "phosphor-svelte/lib/NetworkIcon";
+import Icon from "$lib/components/Icon.svelte";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import { groupChats } from "../lib/browse";
 import { catalogOptions, liveOptions, reachOf } from "../lib/queries";
@@ -104,9 +106,9 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
   <span class="vw-l" class:sr-only={place === "bar"} id={labelId}>Viewing</span>
   <DropdownMenu.Root bind:open>
     <DropdownMenu.Trigger class="vw-b" aria-describedby={labelId}>
-      {#if scoped.data?.live}<Radio size={15} aria-hidden="true" />{:else}<Laptop size={15} aria-hidden="true" />{/if}
+      {#if scoped.data?.live}<Icon icon={BroadcastIcon} size={15} />{:else}<Icon icon={LaptopIcon} size={15} />{/if}
       <span class="vw-n" title={name}>{label.text}</span>{#if label.pill}<span class="pill vw-p">{label.pill}</span>{/if}
-      <ChevronDown size={14} aria-hidden="true" class="vw-c" />
+      <Icon icon={CaretDownIcon} size={14} class="vw-c" />
     </DropdownMenu.Trigger>
     {#if reach}
       <DropdownMenu.ContentStatic class="vw-m" aria-label="Show chats and memory from">
@@ -114,14 +116,14 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
         <DropdownMenu.RadioGroup value={current ? scopeKey(current) : ""}>
           {#if !reach.sharedOnly}
             <DropdownMenu.RadioItem class={row} value="local" onSelect={() => choose({ kind: "local" })}>
-              <span class="vw-i">{#if on({ kind: "local" })}<Check size={14} aria-hidden="true" />{:else}<MachineIcon machine={reach.localNode} size={14} />{/if}</span>
+              <span class="vw-i">{#if on({ kind: "local" })}<Icon icon={CheckIcon} size={14} />{:else}<MachineIcon machine={reach.localNode} size={14} />{/if}</span>
               <span class="vw-t"><b>This machine · {reach.localNode}</b></span>
               <span class="vw-k">{(counts.get(reach.localNode) ?? 0).toLocaleString()}</span>
             </DropdownMenu.RadioItem>
           {/if}
           {#if reach.joined || reach.sharedOnly}
             <DropdownMenu.RadioItem class={row} value="all" onSelect={() => choose({ kind: "all" })}>
-              <span class="vw-i">{#if on({ kind: "all" })}<Check size={14} aria-hidden="true" />{:else}<Globe size={14} aria-hidden="true" />{/if}</span>
+              <span class="vw-i">{#if on({ kind: "all" })}<Icon icon={CheckIcon} size={14} />{:else}<Icon icon={GlobeIcon} size={14} />{/if}</span>
               <span class="vw-t"><b>All machines</b></span>
               <span class="vw-k">{total.toLocaleString()}</span>
             </DropdownMenu.RadioItem>
@@ -133,8 +135,8 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
               {@const candidate = { kind: "node", node: machine } as const}
               {@const stale = staleness(machine)}
               <DropdownMenu.RadioItem class={row} value={scopeKey(candidate)} onSelect={() => choose(candidate)}>
-                <span class="vw-i">{#if on(candidate)}<Check size={14} aria-hidden="true" />{:else}<MachineIcon {machine} size={14} />{/if}</span>
-                <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill info vw-st" title="Read live from its own dashboard"><Radio size={11} aria-hidden="true" />live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}><Clock size={11} aria-hidden="true" />{stale.age}</span>{/if}</span>
+                <span class="vw-i">{#if on(candidate)}<Icon icon={CheckIcon} size={14} />{:else}<MachineIcon {machine} size={14} />{/if}</span>
+                <span class="vw-t"><b>{machine}</b>{#if live}<span class="pill info vw-st" title="Read live from its own dashboard"><Icon icon={BroadcastIcon} size={11} />live</span>{:else if stale}<span class="pill warn vw-st" title={stale.words}><Icon icon={ClockIcon} size={11} />{stale.age}</span>{/if}</span>
                 {#if counts.has(machine)}<span class="vw-k">{(counts.get(machine) ?? 0).toLocaleString()}</span>{/if}
               </DropdownMenu.RadioItem>
             {/each}
@@ -144,7 +146,7 @@ const on = (candidate: Scope) => current !== undefined && sameScope(candidate, c
           <div class="vw-j">
             <p>See your other machines here by joining a shared index.</p>
             <!-- The machines page has the join form. -->
-            <a class="btn sm" href="#/machines" onclick={() => (open = false)}><Network size={14} aria-hidden="true" />Join a shared index</a>
+            <a class="btn sm" href="#/machines" onclick={() => (open = false)}><Icon icon={NetworkIcon} size={14} />Join a shared index</a>
           </div>
         {/if}
       </DropdownMenu.ContentStatic>

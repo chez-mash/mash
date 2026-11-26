@@ -1,5 +1,6 @@
 <script lang="ts">
-import Sparkles from "@lucide/svelte/icons/sparkles";
+import SparkleIcon from "phosphor-svelte/lib/SparkleIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { recency } from "../lib/tone";
@@ -43,7 +44,7 @@ const now = Date.now();
   <span class="sr-t">
     <AgentMark agent={chat.agent} size="sm" />
     <b><Highlight text={plainTitle(chat.title)} {query} /></b>
-    {#if byMeaning}<span class="pill info"><Sparkles size={11} aria-hidden="true" />by meaning</span>{/if}
+    {#if byMeaning}<span class="pill info"><Icon icon={SparkleIcon} size={11} />by meaning</span>{/if}
     <SubagentPill {chat} {parentTitle} />
     {#if decisions}<span class="pill decision"><DecisionCount count={decisions} /></span>{/if}
     <span class="sr-when {recency(chat.updatedMs, now)}">{whenLabel(chat.updatedMs, now)}</span>

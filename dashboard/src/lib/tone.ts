@@ -1,16 +1,16 @@
 // What a state means at a glance: a tone, which gives it a colour (the status
-// roles in theme/tokens.css) and a shape (one Lucide icon). Every page that
+// roles in theme/tokens.css) and a shape (one Phosphor icon). Every page that
 // shows a state draws it through these, beside the state's own word, so the
 // colour never has to carry the meaning alone and the same meaning always
 // looks the same.
-import CircleCheck from "@lucide/svelte/icons/circle-check";
-import CircleDashed from "@lucide/svelte/icons/circle-dashed";
-import CirclePause from "@lucide/svelte/icons/circle-pause";
-import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
-import CircleX from "@lucide/svelte/icons/circle-x";
-import Info from "@lucide/svelte/icons/info";
-import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+import CheckCircleIcon from "phosphor-svelte/lib/CheckCircleIcon";
+import CircleDashedIcon from "phosphor-svelte/lib/CircleDashedIcon";
+import CircleNotchIcon from "phosphor-svelte/lib/CircleNotchIcon";
+import InfoIcon from "phosphor-svelte/lib/InfoIcon";
+import PauseCircleIcon from "phosphor-svelte/lib/PauseCircleIcon";
+import QuestionIcon from "phosphor-svelte/lib/QuestionIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
+import XCircleIcon from "phosphor-svelte/lib/XCircleIcon";
 import type { ServiceState } from "./services.svelte";
 
 /**
@@ -22,14 +22,14 @@ import type { ServiceState } from "./services.svelte";
 export type Tone = "ok" | "warn" | "bad" | "info" | "run" | "pause" | "idle" | "unknown";
 
 export const toneIcons = {
-  ok: CircleCheck,
-  warn: TriangleAlert,
-  bad: CircleX,
-  info: Info,
-  run: LoaderCircle,
-  pause: CirclePause,
-  idle: CircleDashed,
-  unknown: CircleQuestionMark,
+  ok: CheckCircleIcon,
+  warn: WarningIcon,
+  bad: XCircleIcon,
+  info: InfoIcon,
+  run: CircleNotchIcon,
+  pause: PauseCircleIcon,
+  idle: CircleDashedIcon,
+  unknown: QuestionIcon,
 } as const;
 
 /** A service's state as a tone. */

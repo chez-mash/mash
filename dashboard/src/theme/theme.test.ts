@@ -103,9 +103,11 @@ describe("the theme is defined in one place", () => {
   });
 
   it("defines no role that nothing uses", () => {
+    // A role is used by var(), by a Tailwind class, or by name in code that
+    // reads the computed style (the icon weights in lib/icon.svelte.ts).
     const used = new Set(
       [...sources.map(({ text }) => text), tokens].flatMap((text) =>
-        [...text.matchAll(/(?:var\(|-\((?:[a-z-]+:)?)--([a-z0-9-]+)/g)].map((m) => m[1]),
+        [...text.matchAll(/(?:var\(|-\((?:[a-z-]+:)?|")--([a-z0-9-]+)/g)].map((m) => m[1]),
       ),
     );
     expect([...roles.keys()].filter((name) => !used.has(name))).toEqual([]);

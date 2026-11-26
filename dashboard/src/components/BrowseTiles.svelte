@@ -1,7 +1,8 @@
 <script lang="ts">
-import Plus from "@lucide/svelte/icons/plus";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import PlusIcon from "phosphor-svelte/lib/PlusIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { isAgent } from "../lib/api";
 import { asset } from "../lib/asset";
 import { groupChats } from "../lib/browse";
@@ -132,8 +133,8 @@ function host(url: string): string {
       <p class="meta">{plural(chats.length, "chat")} from {plural(groups.length, "agent")}{machineCount > 1 ? ` on ${plural(machineCount, "machine")}` : ""}. Mash reads the history each agent already keeps.</p>
     </div>
     <span class="bt-a">
-      <button class="btn" type="button" disabled={checking} onclick={checkAgain}><RefreshCw size={15} aria-hidden="true" />{checking ? "Checking…" : "Check again"}</button>
-      {#if own && own === local && settings.data?.editable}<a class="btn p" href="#/setup"><Plus size={15} aria-hidden="true" />Connect an agent</a>{/if}
+      <button class="btn" type="button" disabled={checking} onclick={checkAgain}><Icon icon={ArrowsClockwiseIcon} size={15} />{checking ? "Checking…" : "Check again"}</button>
+      {#if own && own === local && settings.data?.editable}<a class="btn p" href="#/setup"><Icon icon={PlusIcon} size={15} state="strong" />Connect an agent</a>{/if}
     </span>
   </header>
   {#if indexFailure}<p class="meta warn" role="alert">{indexFailure}</p>{/if}

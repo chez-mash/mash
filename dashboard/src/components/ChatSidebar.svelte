@@ -4,11 +4,12 @@
 // from this chat. On a phone it takes the place of the transcript while open,
 // so it offers a way back. The subagents a chat started are listed beside
 // the transcript instead (see TranscriptView).
-import Brain from "@lucide/svelte/icons/brain";
-import Folder from "@lucide/svelte/icons/folder";
-import ListOrdered from "@lucide/svelte/icons/list-ordered";
-import MessageSquare from "@lucide/svelte/icons/message-square";
-import X from "@lucide/svelte/icons/x";
+import BrainIcon from "phosphor-svelte/lib/BrainIcon";
+import ChatIcon from "phosphor-svelte/lib/ChatIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import ListNumbersIcon from "phosphor-svelte/lib/ListNumbersIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { projectLabel, whenLabel } from "../lib/browse";
 import { plainTitle } from "../lib/markdown";
 import { saidText } from "../lib/message";
@@ -66,9 +67,9 @@ const projectSessions = $derived.by(() => {
 </script>
 
 <nav class="sess" aria-label="Prompts and sessions">
-  {#if closable}<button class="btn sessclose" type="button" onclick={onclose}><X size={15} aria-hidden="true" />Back to chat</button>{/if}
+  {#if closable}<button class="btn sessclose" type="button" onclick={onclose}><Icon icon={XIcon} size={15} />Back to chat</button>{/if}
   {#if chat?.project}
-    <h2 class="cs-h"><a href={projectHref(chat.project)}><Folder size={14} aria-hidden="true" /><span>{projectLabel(chat.project)}</span></a><span class="cs-n" title="{projectCount.toLocaleString()} chat{projectCount === 1 ? '' : 's'}"><MessageSquare size={12} aria-hidden="true" />{projectCount.toLocaleString()}<span class="vh">{projectCount === 1 ? " chat" : " chats"}</span></span></h2>
+    <h2 class="cs-h"><a href={projectHref(chat.project)}><Icon icon={FolderIcon} size={14} /><span>{projectLabel(chat.project)}</span></a><span class="cs-n" title="{projectCount.toLocaleString()} chat{projectCount === 1 ? '' : 's'}"><Icon icon={ChatIcon} size={12} />{projectCount.toLocaleString()}<span class="vh">{projectCount === 1 ? " chat" : " chats"}</span></span></h2>
   {/if}
   {#if projectSessions.length}
     <div class="cs-l">
@@ -83,7 +84,7 @@ const projectSessions = $derived.by(() => {
   {/if}
   {#if prompts.length >= 2}
     <div class="outl">
-      <h2 class="cs-h"><span><ListOrdered size={14} aria-hidden="true" />Your prompts</span></h2>
+      <h2 class="cs-h"><span><Icon icon={ListNumbersIcon} size={14} />Your prompts</span></h2>
       <div class="outl-l">
         {#each prompts as message, index (message.id)}
           <button type="button" class:on={currentMessage === message.id} aria-current={currentMessage === message.id ? "location" : undefined} onclick={() => onprompt(message.id)}><small>{index + 1}</small><span>{saidText(message).replace(/\s+/g, " ").slice(0, 80)}</span></button>
@@ -91,7 +92,7 @@ const projectSessions = $derived.by(() => {
       </div>
     </div>
   {/if}
-  <h2 class="cs-h"><a href={recordsHref(memoryParams)}><Brain size={14} aria-hidden="true" /><span>Memory from this chat</span></a></h2>
+  <h2 class="cs-h"><a href={recordsHref(memoryParams)}><Icon icon={BrainIcon} size={14} /><span>Memory from this chat</span></a></h2>
   {#if recordsError}<p class="meta" role="alert">{recordsError.message}</p>{/if}
   {#each records ?? [] as record (record.id)}
     {@const revision = record.revisions.find((revision) => revision.revision === record.currentRevision)}

@@ -1,7 +1,8 @@
 <script lang="ts">
-import Folder from "@lucide/svelte/icons/folder";
 import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
 import { tick } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import AgentMark from "./components/AgentMark.svelte";
 import BrowseDetail from "./components/BrowseDetail.svelte";
 import BrowseTiles from "./components/BrowseTiles.svelte";
@@ -217,7 +218,7 @@ function skip(event: MouseEvent): void {
       {:else if route.page === "project"}
         {#key route.name}
           <BrowseDetail field="project" value={route.name} title={projectLabel(route.name)} back={{ href: "#/projects", label: "projects" }}>
-            {#snippet icon()}<span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span>{/snippet}
+            {#snippet icon()}<span class="ico lg projects"><Icon icon={FolderIcon} size={20} /></span>{/snippet}
           </BrowseDetail>
         {/key}
       {:else if route.page === "agents"}

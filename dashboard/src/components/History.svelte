@@ -1,6 +1,7 @@
 <script lang="ts">
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
 import { createQuery } from "@tanstack/svelte-query";
+import ChatsIcon from "phosphor-svelte/lib/ChatsIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { catalogOptions } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import ChatRow from "./ChatRow.svelte";
@@ -28,7 +29,7 @@ const chats = $derived(
   {:else}
     <EmptyState card>
       Nothing yet. Open a chat and it will be listed here until you reload the page.
-      {#snippet action()}<a class="btn" href="#/search"><MessagesSquare size={15} aria-hidden="true" />Browse chats</a>{/snippet}
+      {#snippet action()}<a class="btn" href="#/search"><Icon icon={ChatsIcon} size={15} />Browse chats</a>{/snippet}
     </EmptyState>
   {/if}
 </section>

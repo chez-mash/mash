@@ -1,14 +1,15 @@
 <script lang="ts">
-import ArrowLeft from "@lucide/svelte/icons/arrow-left";
-import ArrowRight from "@lucide/svelte/icons/arrow-right";
-import Check from "@lucide/svelte/icons/check";
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
-import Play from "@lucide/svelte/icons/play";
-import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
-import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 import { createQuery, useQueryClient } from "@tanstack/svelte-query";
+import ArrowLeftIcon from "phosphor-svelte/lib/ArrowLeftIcon";
+import ArrowRightIcon from "phosphor-svelte/lib/ArrowRightIcon";
+import ArrowsClockwiseIcon from "phosphor-svelte/lib/ArrowsClockwiseIcon";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import CheckIcon from "phosphor-svelte/lib/CheckIcon";
+import GearSixIcon from "phosphor-svelte/lib/GearSixIcon";
+import PlayIcon from "phosphor-svelte/lib/PlayIcon";
+import WarningIcon from "phosphor-svelte/lib/WarningIcon";
 import { tick } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
@@ -170,14 +171,14 @@ function toggleConnect(agent: Integration): void {
 {/snippet}
 {#snippet searchServiceProblem(service: FirstRun["qdrant"])}
   <div class="card warn">
-    <p style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-weight="var(--weight-strong)"><TriangleAlert size={16} aria-hidden="true" style="flex:none;margin-top:2px" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
+    <p style:display="flex" style:gap="7px" style:align-items="flex-start" style:font-weight="var(--weight-strong)"><Icon icon={WarningIcon} size={16} style="flex:none;margin-top:2px" state="strong" /><span>{service.state === "rejected" ? "Mash could not use the configured search service." : "Start the search service (Qdrant) before indexing. Run this in a terminal on this machine, then check again."}</span></p>
     {#if service.state === "rejected"}
       {#if service.message}<p class="meta" style:overflow-wrap="anywhere">{service.message}</p>{/if}
       <a class="a" href="https://getmash.io/troubleshooting/#qdrant-connection-failed">Check the search service</a>
     {:else}
       {@render command(mashCommand("qdrant install"))}
     {/if}
-    <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}><RefreshCw size={14} aria-hidden="true" />{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
+    <div><button class="btn" type="button" style:margin-top="8px" disabled={setup.isFetching || running} onclick={() => setup.refetch()}><Icon icon={ArrowsClockwiseIcon} size={14} />{setup.isFetching ? "Checking…" : "Check search service again"}</button></div>
     <p class="meta" style:margin-top="6px" style:overflow-wrap="anywhere">Search service address <code>{service.url}</code></p>
   </div>
 {/snippet}
@@ -212,7 +213,7 @@ function toggleConnect(agent: Integration): void {
           {#each steps as name, index (name)}
             {@const done = index < current}
             <li class:done aria-current={index === current ? "step" : undefined}>
-              <span class="n">{#if done}<Check size={13} aria-label="done" />{:else}{index + 1}{/if}</span><span class="setup-sn">{stepNames[name]}</span>{#if stepHint(name)}<small>{stepHint(name)}</small>{/if}
+              <span class="n">{#if done}<Icon icon={CheckIcon} size={13} aria-label="done" />{:else}{index + 1}{/if}</span><span class="setup-sn">{stepNames[name]}</span>{#if stepHint(name)}<small>{stepHint(name)}</small>{/if}
             </li>
           {/each}
         </ol>
@@ -287,7 +288,7 @@ function toggleConnect(agent: Integration): void {
       {:else if step === "review"}
         {#if file.editable && installedAgents.length && at === null}
           <details class="fold lite">
-            <summary><ChevronRight class="cv" size={14} aria-hidden="true" />Choose agents to connect</summary>
+            <summary><Icon icon={CaretRightIcon} class="cv" size={14} />Choose agents to connect</summary>
             <div>
               <p class="meta">{helps.agents}</p>
               {#each installedAgents as entry (entry.agent)}
@@ -322,24 +323,24 @@ function toggleConnect(agent: Integration): void {
       {#if failure}<p class="fail" role="alert">{failure}</p>{/if}
       <div class="setup-acts">
         {#if step === "review" && searchServiceReady}
-          <p class="ok setup-ready"><Check size={16} aria-hidden="true" />The search service is ready.</p>
+          <p class="ok setup-ready"><Icon icon={CheckIcon} size={16} />The search service is ready.</p>
         {/if}
         <span class="sp"></span>
         {#if at !== null}
           {@const previous = at > 0 ? at - 1 : null}
-          <button class="btn" type="button" disabled={running} onclick={() => goToStep(previous)}><ArrowLeft size={15} aria-hidden="true" />{previous === null ? "Back to review" : "Back"}</button>
+          <button class="btn" type="button" disabled={running} onclick={() => goToStep(previous)}><Icon icon={ArrowLeftIcon} size={15} />{previous === null ? "Back to review" : "Back"}</button>
         {:else if at === null && file.editable}
-          <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}><SlidersHorizontal size={14} aria-hidden="true" />Customize setup</button>
+          <button class="btn" type="button" disabled={running || !file.histories.length} onclick={() => goToStep(0)}><Icon icon={GearSixIcon} size={14} />Customize setup</button>
         {/if}
         {#if at !== null && step !== "review"}
           {@const next = at + 1}
-          <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<ArrowRight size={15} aria-hidden="true" /></button>
+          <button class="btn p" type="button" disabled={step !== "agents" && !!blocked} onclick={() => goToStep(next)}>{step === "agents" ? "Review setup" : "Next"}<Icon icon={ArrowRightIcon} size={15} state="strong" /></button>
         {:else if file.editable}
           {#if !searchServiceReady || at !== null || file.configured}
-            <button class="btn" class:p={!searchServiceReady || canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}><Check size={14} aria-hidden="true" />Set up without indexing</button>
+            <button class="btn" class:p={!searchServiceReady || canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(false)}><Icon icon={CheckIcon} size={14} />Set up without indexing</button>
           {/if}
           {#if searchServiceReady}
-            <button class="btn" class:p={!canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}><Play size={14} aria-hidden="true" />Set up and index</button>
+            <button class="btn" class:p={!canKeepIndex} type="button" disabled={running || !!blocked || setup.isFetching} onclick={() => run(true)}><Icon icon={PlayIcon} size={14} />Set up and index</button>
           {/if}
         {/if}
       </div>
@@ -358,7 +359,7 @@ function toggleConnect(agent: Integration): void {
               <p class="meta" role="status">Indexing your history in the background. This screen follows it; you can also open the dashboard now, and chats appear as they are saved.</p>
             {:else if indexRun?.state === "finished"}
               {#if indexRun.ok}
-                <p class="ok" role="status" style:display="flex" style:gap="7px" style:align-items="center"><Check size={16} aria-hidden="true" />Indexed {(indexRun.chats ?? 0).toLocaleString()} chats and {(indexRun.messages ?? 0).toLocaleString()} messages.</p>
+                <p class="ok" role="status" style:display="flex" style:gap="7px" style:align-items="center"><Icon icon={CheckIcon} size={16} />Indexed {(indexRun.chats ?? 0).toLocaleString()} chats and {(indexRun.messages ?? 0).toLocaleString()} messages.</p>
                 {#if indexRun.message}<p class="meta warn" style:overflow-wrap="anywhere">{indexRun.message}</p>{/if}
               {:else}
                 <p class="warn" role="alert" style:overflow-wrap="anywhere">Indexing stopped: {indexRun.message ?? "it did not say why."}</p>
@@ -370,7 +371,7 @@ function toggleConnect(agent: Integration): void {
             {/if}
             {#if !indexed && indexRun?.state !== "running"}
               {#if searchServiceReady && desktop}
-                <div><button class="btn p" type="button" disabled={running || !file.editable} onclick={() => run(true)}><Play size={14} aria-hidden="true" />{running ? "Starting…" : "Index now"}</button></div>
+                <div><button class="btn p" type="button" disabled={running || !file.editable} onclick={() => run(true)}><Icon icon={PlayIcon} size={14} state="strong" />{running ? "Starting…" : "Index now"}</button></div>
               {:else if searchServiceReady}
                 <p class="meta">Run this in a terminal on this machine to index your history.</p>
                 {@render command("mash index")}
@@ -433,7 +434,7 @@ function toggleConnect(agent: Integration): void {
 
       <div class="setup-acts">
         <span class="sp"></span>
-        <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}><ArrowRight size={14} aria-hidden="true" />{openChats ? "Open your chats" : "Open the dashboard"}</a>
+        <a class="btn p" href={openChats ? "#/search" : "#/"} onclick={skipSetup}><Icon icon={ArrowRightIcon} size={14} state="strong" />{openChats ? "Open your chats" : "Open the dashboard"}</a>
       </div>
       <p class="meta setup-help">Sharing with other machines and backfilling memory are set up from the terminal with <code class="i">{mashCommand("init")}</code>.</p>
     {/if}

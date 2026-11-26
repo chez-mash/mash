@@ -1,6 +1,7 @@
 <script lang="ts">
-import Bot from "@lucide/svelte/icons/bot";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
 import type { Snippet } from "svelte";
+import Icon from "$lib/components/Icon.svelte";
 import MachineSetup from "./MachineSetup.svelte";
 
 // One machine's agent setup as a section: its heading, the list of agents
@@ -22,7 +23,7 @@ let {
 </script>
 
 <section class="sec">
-  <div class="hd"><h2 class="h2"><Bot size={15} aria-hidden="true" />{title}</h2>{#if action}{@render action()}{/if}</div>
+  <div class="hd"><h2 class="h2"><Icon icon={RobotIcon} size={15} />{title}</h2>{#if action}{@render action()}{/if}</div>
   <div class="rws agentset solo">
     <div class="rw head" aria-hidden="true"><span>Agent</span><span>Parts</span><span>Status</span></div>
     <MachineSetup {machineId} {enabled} showMachine={false} />

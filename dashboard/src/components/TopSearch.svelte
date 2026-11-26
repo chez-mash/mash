@@ -2,12 +2,14 @@
 // The search field in the top bar: typing suggests filters and chats, and
 // submitting opens the results page. The bar around it (TopBar.svelte) owns
 // the ⌘K shortcut and, on a phone, whether the field is shown.
-import Bot from "@lucide/svelte/icons/bot";
-import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
-import Search from "@lucide/svelte/icons/search";
-import X from "@lucide/svelte/icons/x";
+
 import { useQueryClient } from "@tanstack/svelte-query";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import XIcon from "phosphor-svelte/lib/XIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agents as agentInfo } from "../lib/agents";
 import { groupChats, projectLabel } from "../lib/browse";
 import { askAfresh } from "../lib/federatedSearch.svelte";
@@ -153,20 +155,20 @@ function submit(event: SubmitEvent): void {
   }}
 >
   <form class="box" class:open={showDrop} onsubmit={submit}>
-    <Search size={15} aria-hidden="true" />
-    {#each tags as tag (tag.label + tag.href)}<a class="tag" href={tag.href} aria-label="Remove filter {tag.label}" style:display="inline-flex" style:align-items="center" style:gap="4px">{tag.label}<X size={13} aria-hidden="true" /></a>{/each}
+    <Icon icon={MagnifyingGlassIcon} size={15} />
+    {#each tags as tag (tag.label + tag.href)}<a class="tag" href={tag.href} aria-label="Remove filter {tag.label}" style:display="inline-flex" style:align-items="center" style:gap="4px">{tag.label}<Icon icon={XIcon} size={13} /></a>{/each}
     <label for="q" class="sr-only">Search your history</label>
     <input id="q" autocomplete="off" placeholder="Search every chat" bind:value={text} onkeydown={(event) => { if (event.key === "Escape") focused = false; }} />
     <!-- At rest the field shows its shortcut; once in use, its submit button. -->
     {#if !focused && !text}<span class="keys" aria-hidden="true"><kbd class="kbd">{modifier}</kbd><kbd class="kbd">K</kbd></span>{/if}
-    <button class="go" class:rest={!focused && !text} type="submit" aria-label="Search"><Search size={14} /></button>
+    <button class="go" class:rest={!focused && !text} type="submit" aria-label="Search"><Icon icon={MagnifyingGlassIcon} size={14} /></button>
   </form>
   {#if showDrop && suggestions}
     <div class="drop">
       {#if suggestions.filters.length}
         <h4>Filters</h4>
         {#each suggestions.filters as filter (filter.kind + filter.value)}
-          <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Bot size={14} aria-hidden="true" />{:else if filter.kind === "machine"}<MachineIcon machine={filter.value} size={14} />{:else}<Folder size={14} aria-hidden="true" />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
+          <a class="opt" href={searchHref({ [filter.kind]: filter.value })} onclick={() => (focused = false)}>{#if filter.kind === "agent"}<Icon icon={RobotIcon} size={14} />{:else if filter.kind === "machine"}<MachineIcon machine={filter.value} size={14} />{:else}<Icon icon={FolderIcon} size={14} />{/if}<span class="t"><span>{filter.label}</span></span><small>{filter.kind}</small></a>
         {/each}
       {/if}
       {#if said.length}

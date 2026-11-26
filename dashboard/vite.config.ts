@@ -2,7 +2,30 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
+
+// A Phosphor icon carries the path data of all six weights. The dashboard
+// draws four (see IconWeight in src/lib/icon.svelte.ts), so the other two are
+// cut from each icon before it is compiled. A glyph whose source no longer has
+// the expected shape stops the build rather than shipping untrimmed.
+const unusedWeights = ["duotone", "thin"];
+function phosphorWeights(): Plugin {
+  return {
+    name: "mash-phosphor-weights",
+    enforce: "pre",
+    transform(code, id) {
+      if (!/phosphor-svelte\/lib\/\w+Icon\.svelte$/.test(id)) return null;
+      let trimmed = code;
+      for (const weight of unusedWeights) {
+        const branch = new RegExp(`\\{:else if weight === "${weight}"\\}[\\s\\S]*?(?=\\{:else)`);
+        if (!branch.test(trimmed)) this.error(`no ${weight} weight to trim in ${id}`);
+        trimmed = trimmed.replace(branch, "");
+      }
+      return { code: trimmed, map: null };
+    },
+  };
+}
 
 // `mash dash` serves the built files; during development the dev server
 // forwards API calls to a running `mash dash`.
@@ -15,6 +38,7 @@ export default defineConfig(({ mode }) => {
     base: demo ? "/demo/" : "/",
     plugins: [
       tailwindcss(),
+      phosphorWeights(),
       svelte(),
       ...(demo
         ? [

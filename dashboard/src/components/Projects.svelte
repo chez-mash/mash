@@ -8,17 +8,18 @@ const view: ProjectView = $state({ find: "", agent: "", machine: "", sort: "rece
 <script lang="ts">
 import { Tip } from "$lib/components/ui/tooltip";
 import MachineIcon from "./MachineIcon.svelte";
-import ArrowDownAZ from "@lucide/svelte/icons/arrow-down-a-z";
-import Bot from "@lucide/svelte/icons/bot";
-import ClockArrowDown from "@lucide/svelte/icons/clock-arrow-down";
-import Eye from "@lucide/svelte/icons/eye";
-import EyeOff from "@lucide/svelte/icons/eye-off";
-import Folder from "@lucide/svelte/icons/folder";
-import Laptop from "@lucide/svelte/icons/laptop";
-import MessagesSquare from "@lucide/svelte/icons/messages-square";
-import Pin from "@lucide/svelte/icons/pin";
-import SearchIcon from "@lucide/svelte/icons/search";
-import SlidersHorizontal from "@lucide/svelte/icons/sliders-horizontal";
+import ChatsIcon from "phosphor-svelte/lib/ChatsIcon";
+import EyeIcon from "phosphor-svelte/lib/EyeIcon";
+import EyeSlashIcon from "phosphor-svelte/lib/EyeSlashIcon";
+import FolderIcon from "phosphor-svelte/lib/FolderIcon";
+import LaptopIcon from "phosphor-svelte/lib/LaptopIcon";
+import MagnifyingGlassIcon from "phosphor-svelte/lib/MagnifyingGlassIcon";
+import PushPinIcon from "phosphor-svelte/lib/PushPinIcon";
+import RobotIcon from "phosphor-svelte/lib/RobotIcon";
+import SlidersHorizontalIcon from "phosphor-svelte/lib/SlidersHorizontalIcon";
+import SortDescendingIcon from "phosphor-svelte/lib/SortDescendingIcon";
+import TextAaIcon from "phosphor-svelte/lib/TextAaIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { createQuery } from "@tanstack/svelte-query";
 import { agents as agentInfo } from "../lib/agents";
 import { isAgent } from "../lib/api";
@@ -87,18 +88,18 @@ const now = Date.now();
 {#if catalogue.isPending}<Skeleton rows={5} />{/if}
 {#if projects.length}
   <div class="chips" role="group" aria-label="Project filters">
-    <label class="find pfind"><SearchIcon size={15} aria-hidden="true" /><input type="search" aria-label="Find a project" placeholder="find a project" autocomplete="off" bind:value={view.find} /></label>
+    <label class="find pfind"><Icon icon={MagnifyingGlassIcon} size={15} /><input type="search" aria-label="Find a project" placeholder="find a project" autocomplete="off" bind:value={view.find} /></label>
     <FilterMenu label={chosenAgent ? agentInfo[chosenAgent].name : "any agent"} active={!!view.agent} options={[{ value: "", label: "any agent" }, ...agentChoices.map((agent) => ({ value: agent, label: agentInfo[agent].name }))]} selected={[view.agent]} choose={(value) => (view.agent = value)}>
-      {#snippet icon()}<Bot size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Bot size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}<Icon icon={RobotIcon} size={15} />{/snippet}
+      {#snippet optionIcon(value: string)}{#if isAgent(value)}<AgentMark agent={value} size="sm" />{:else}<Icon icon={RobotIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label={view.machine || "any machine"} active={!!view.machine} options={[{ value: "", label: "any machine" }, ...machineChoices.map((machine) => ({ value: machine, label: machine }))]} selected={[view.machine]} choose={(value) => (view.machine = value)}>
-      {#snippet icon()}<Laptop size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Laptop size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}<Icon icon={LaptopIcon} size={15} />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value}<MachineIcon machine={value} size={15} />{:else}<Icon icon={LaptopIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     <FilterMenu label="sort: {sorts.find((sort) => sort.value === view.sort)?.label}" options={sorts} selected={[view.sort]} choose={(value) => { const sort = sorts.find((sort) => sort.value === value); if (sort) view.sort = sort.value; }}>
-      {#snippet icon()}<SlidersHorizontal size={15} aria-hidden="true" />{/snippet}
-      {#snippet optionIcon(value: string)}{#if value === "chats"}<MessagesSquare size={15} aria-hidden="true" />{:else if value === "name"}<ArrowDownAZ size={15} aria-hidden="true" />{:else}<ClockArrowDown size={15} aria-hidden="true" />{/if}{/snippet}
+      {#snippet icon()}<Icon icon={SlidersHorizontalIcon} size={15} />{/snippet}
+      {#snippet optionIcon(value: string)}{#if value === "chats"}<Icon icon={ChatsIcon} size={15} />{:else if value === "name"}<Icon icon={TextAaIcon} size={15} />{:else}<Icon icon={SortDescendingIcon} size={15} />{/if}{/snippet}
     </FilterMenu>
     {#if hiddenHere}<button class="a" type="button" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px" aria-pressed={showHidden} onclick={() => (showHidden = !showHidden)}>{showHidden ? "Leave out hidden" : `Show ${hiddenHere} hidden`}</button>{/if}
     {#if narrowed}<button class="a" type="button" style:min-height="30px" style:padding="0 6px" style:font-size="13.5px" onclick={() => { view.find = ""; view.agent = ""; view.machine = ""; }}>Show all</button>{/if}
@@ -111,7 +112,7 @@ const now = Date.now();
     {@const hidden = choices.isHidden(project.key)}
     <div class="pinned-card" class:hidden>
     <a class="card sum" href={projectHref(project.key)} title={project.key}>
-      <span class="sum-h"><span class="ico lg projects"><Folder size={20} aria-hidden="true" /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
+      <span class="sum-h"><span class="ico lg projects"><Icon icon={FolderIcon} size={20} /></span><span class="sum-t"><b>{projectLabel(project.key)}</b><code>{project.key}</code></span></span>
       <span class="big"><b>{project.chats.length.toLocaleString()}</b><span>chat{project.chats.length === 1 ? "" : "s"}</span></span>
       <span class="bar"><i style:width="{Math.max(2, Math.round((project.chats.length / largest) * 100))}%"></i></span>
       <span class="sum-f">
@@ -123,11 +124,11 @@ const now = Date.now();
     <!-- Beside the link rather than in it: a button cannot sit inside a link. -->
     {#if choices.editable}
       <span class="acts">
-        {#if !hidden}<Tip text={pinned ? "Unpin" : "Pin to the top"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" onclick={() => void choices.togglePin(project.key)}><Pin size={16} aria-hidden="true" /></button>{/snippet}</Tip>{/if}
-        <Tip text={hidden ? "Show in project lists again" : "Hide from project lists"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={hidden} type="button" aria-pressed={hidden} aria-label="{hidden ? 'Show' : 'Hide'} {projectLabel(project.key)}" onclick={() => void choices.toggleHidden(project.key)}>{#if hidden}<Eye size={16} aria-hidden="true" />{:else}<EyeOff size={16} aria-hidden="true" />{/if}</button>{/snippet}</Tip>
+        {#if !hidden}<Tip text={pinned ? "Unpin" : "Pin to the top"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={pinned} type="button" aria-pressed={pinned} aria-label="{pinned ? 'Unpin' : 'Pin'} {projectLabel(project.key)}" onclick={() => void choices.togglePin(project.key)}><Icon icon={PushPinIcon} size={16} state={pinned ? "on" : "rest"} /></button>{/snippet}</Tip>{/if}
+        <Tip text={hidden ? "Show in project lists again" : "Hide from project lists"}>{#snippet children(tip)}<button {...tip} class="pin" class:on={hidden} type="button" aria-pressed={hidden} aria-label="{hidden ? 'Show' : 'Hide'} {projectLabel(project.key)}" onclick={() => void choices.toggleHidden(project.key)}>{#if hidden}<Icon icon={EyeIcon} size={16} />{:else}<Icon icon={EyeSlashIcon} size={16} />{/if}</button>{/snippet}</Tip>
       </span>
     {:else if pinned}
-      <span class="acts"><Tip text="Pinned" passive>{#snippet children(tip)}<span {...tip} class="pin on" role="img" aria-label="Pinned"><Pin size={16} aria-hidden="true" /></span>{/snippet}</Tip></span>
+      <span class="acts"><Tip text="Pinned" passive>{#snippet children(tip)}<span {...tip} class="pin on" role="img" aria-label="Pinned"><Icon icon={PushPinIcon} size={16} state="on" /></span>{/snippet}</Tip></span>
     {/if}
     </div>
   {/each}
@@ -175,9 +176,6 @@ const now = Date.now();
   }
   .pin.on {
     color: var(--text-strong);
-  }
-  .pin.on :global(svg) {
-    fill: currentColor;
   }
   /* With a mouse, an unpinned project's pin waits until the card is pointed
      at or the button is reached by keyboard; a touch screen always shows it. */

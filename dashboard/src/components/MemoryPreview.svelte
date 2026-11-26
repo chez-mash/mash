@@ -1,5 +1,6 @@
 <script lang="ts">
-import ChevronRight from "@lucide/svelte/icons/chevron-right";
+import CaretRightIcon from "phosphor-svelte/lib/CaretRightIcon";
+import Icon from "$lib/components/Icon.svelte";
 import { agoLabel } from "../lib/browse";
 import { chatOf, currentOf } from "../lib/memoryView";
 import { kindIcons } from "../lib/recordIcons";
@@ -29,10 +30,10 @@ const EVIDENCE = 2;
 </script>
 
 {#if current}
-  {@const Icon = kindIcons[current.details.kind]}
+  {@const Glyph = kindIcons[current.details.kind]}
   <aside class="pv" aria-label="Selected memory">
     <div class="pv-h">
-      <span class="pv-k"><span class="ink-{current.details.kind} pv-ki"><Icon size={14} aria-hidden="true" /></span>{label(current.details.kind)}</span>
+      <span class="pv-k"><span class="ink-{current.details.kind} pv-ki"><Icon icon={Glyph} size={14} /></span>{label(current.details.kind)}</span>
       <StatusBadge tone={lifecycleTone(current.details.state)} words={label(current.details.state)} size={12} />
       <StatusBadge tone={standingTone(standing(current))} words={standing(current)} size={12} />
     </div>
@@ -59,7 +60,7 @@ const EVIDENCE = 2;
         {/each}
       </ol>
     </div>
-    <a class="pv-open" href={recordHref(record.id, record.node, back)}>Open record<ChevronRight size={14} aria-hidden="true" /></a>
+    <a class="pv-open" href={recordHref(record.id, record.node, back)}>Open record<Icon icon={CaretRightIcon} size={14} /></a>
   </aside>
 {/if}
 
