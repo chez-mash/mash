@@ -332,10 +332,13 @@ jobs:
       # app's installer is not signed yet and has no reputation, so
       # SmartScreen holds it at "Windows protected your PC" until someone
       # clicks Run anyway, which nobody does on a runner: the install never
-      # starts (run 45906719031). A user installing with winget sees that
-      # prompt too. The command line's zip is unpacked by winget itself and
-      # is not checked this way.
-      - name: Turn off SmartScreen for the app's unsigned installer
+      # starts (run 45906719031). With SmartScreen off, Windows asks instead
+      # with its older "Open File - Security Warning" for an unsigned program
+      # from the internet, inside winget's own process (run 45908236196), so
+      # .exe files are also made low-risk for this user. A user installing
+      # with winget sees the SmartScreen prompt. The command line's zip is
+      # unpacked by winget itself and is not checked this way.
+      - name: Let the app's unsigned installer start without a prompt
         run: |
           $explorer = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
           $policy = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System'
@@ -343,7 +346,10 @@ jobs:
           Set-ItemProperty -LiteralPath $explorer -Name SmartScreenEnabled -Value 'Off'
           New-Item -Path $policy -Force | Out-Null
           Set-ItemProperty -LiteralPath $policy -Name EnableSmartScreen -Value 0 -Type DWord
-          "| SmartScreen | was '$(if ($was) { $was } else { 'default' })', turned off for the unsigned app installer |" |
+          $associations = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Associations'
+          New-Item -Path $associations -Force | Out-Null
+          Set-ItemProperty -LiteralPath $associations -Name LowRiskFileTypes -Value '.exe'
+          "| SmartScreen | was '$(if ($was) { $was } else { 'default' })'; turned off, and .exe made low-risk, for the unsigned app installer |" |
               Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
       - name: Install the app with winget
         timeout-minutes: 15
