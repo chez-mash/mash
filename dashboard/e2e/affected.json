@@ -147,6 +147,7 @@
     "subagents.spec.ts": ["search", "chat"],
     "theme.spec.ts": ["overview", "settings"],
     "transfer.spec.ts": ["overview", "export"],
+    "update-banner.spec.ts": ["overview", "settings"],
     "viewing.spec.ts": ["overview", "search", "records"]
   }
 }

@@ -28,8 +28,10 @@ import SignIn from "./components/SignIn.svelte";
 import TopBar from "./components/TopBar.svelte";
 import TranscriptView from "./components/TranscriptView.svelte";
 import Transfer from "./components/Transfer.svelte";
+import UpdateBanner from "./components/UpdateBanner.svelte";
 import { agents } from "./lib/agents";
 import { isAgent } from "./lib/api";
+import { appUpdate } from "./lib/appUpdate.svelte";
 import { projectLabel } from "./lib/browse";
 import { connect, onChange, throttle } from "./lib/live";
 import { catalogOptions, stableRead } from "./lib/queries";
@@ -79,6 +81,8 @@ $effect(() => {
     memories.cancel();
   };
 });
+// The desktop app says when a newer Mash exists; a browser has no app to ask.
+$effect(() => appUpdate.watch());
 const route = $derived(router.current);
 // A machine that has not been set up opens on setup, once per visit.
 $effect(() => {
@@ -194,6 +198,7 @@ function skip(event: MouseEvent): void {
     <QuickSearch />
   {:else}
   <a class="skip" href="#main" onclick={skip}>Skip to content</a>
+  {#if appUpdate.offer}<UpdateBanner offer={appUpdate.offer} oninstall={() => void appUpdate.install()} onlater={() => void appUpdate.later()} />{/if}
   <!-- The top bar runs across the screen; the rail and the page sit under it. -->
   <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
   <div id="frame">

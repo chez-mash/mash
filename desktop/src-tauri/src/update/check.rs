@@ -3,7 +3,8 @@
 //! from the menu says what it found; a check on the timer says nothing.
 
 use super::channel::{self, Channel};
-use super::{Phase, lock, refresh, tell};
+use super::install::By;
+use super::{Phase, banner, lock, refresh, release, tell};
 use semver::Version;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -21,32 +22,20 @@ const TEST_ENDPOINT: &str = "MASH_DESKTOP_UPDATE_ENDPOINT";
 /// stable channel has a newer release and how apt brings it; any other copy
 /// gets the downloads page.
 pub(super) fn check_by_hand(app: &AppHandle) {
-    let from_apt = cfg!(target_os = "linux")
-        && std::env::current_exe().is_ok_and(|program| program.starts_with("/usr/bin"));
-    if !from_apt {
+    if !super::from_apt() {
         let _ = app.opener().open_url(channel::DOWNLOADS, None::<&str>);
         return;
     }
-    const APT: &str = "sudo apt update && sudo apt install --only-upgrade mash-desktop mash-cli";
+    const APT: &str = banner::APT;
     let current = app.package_info().version.clone();
-    let newer = Channel::Stable
-        .endpoint()
-        .parse()
-        .ok()
-        .and_then(|address| app.updater_builder().endpoints(vec![address]).ok())
-        .and_then(|builder| builder.build().ok())
-        .and_then(|updater| {
-            tauri::async_runtime::block_on(updater.check())
-                .ok()
-                .flatten()
-        });
+    let newer = release::newer(&current);
+    lock(app).offer.newer = newer.as_ref().map(ToString::to_string);
     tell(
         app,
         &match newer {
-            Some(update) => format!(
-                "Mash {} is available; this is {current}. This copy was installed with apt, \
-                 which updates the app and the mash command together:\n\n{APT}",
-                update.version
+            Some(newer) => format!(
+                "Mash {newer} is available; this is {current}. This copy was installed with apt, \
+                 which updates the app and the mash command together:\n\n{APT}"
             ),
             None => format!(
                 "Mash {current} was installed with apt, which keeps the app and the mash \
@@ -89,6 +78,9 @@ pub(super) fn check(app: &AppHandle, asked: bool) {
     };
     let found = find(app, channel, skipped);
     let mut inner = lock(app);
+    // Update and Restart, chosen in the banner while the download arrived.
+    let wanted = std::mem::take(&mut inner.offer.wanted);
+    inner.offer.progress = None;
     match found {
         Ok(Some((update, file))) => {
             inner.phase = Phase::Ready {
@@ -96,9 +88,12 @@ pub(super) fn check(app: &AppHandle, asked: bool) {
                 file,
             };
             inner.idle_ticks = 0;
+            inner.offer.failed = None;
             refresh(app, &inner);
             drop(inner);
-            if asked {
+            if wanted {
+                super::install::apply(app, By::Banner);
+            } else if asked {
                 offer_restart(app);
             }
         }
@@ -118,6 +113,13 @@ pub(super) fn check(app: &AppHandle, asked: bool) {
             }
         }
         Err(error) => {
+            let downloading = match &inner.phase {
+                Phase::Downloading(version) => Some(version.clone()),
+                _ => None,
+            };
+            if let Some(version) = downloading.filter(|_| wanted) {
+                inner.offer.failed = Some((version, error.clone()));
+            }
             inner.phase = Phase::Idle;
             refresh(app, &inner);
             drop(inner);
@@ -175,8 +177,13 @@ fn find(
     }
     // The updater checks the download against the app's public key and
     // hands nothing back when it does not match.
+    let mut arrived = 0u64;
+    let progress = |chunk: usize, size: Option<u64>| {
+        arrived += chunk as u64;
+        lock(app).offer.progress = Some((arrived, size));
+    };
     let bytes =
-        tauri::async_runtime::block_on(update.download(|_, _| {}, || {})).map_err(|error| {
+        tauri::async_runtime::block_on(update.download(progress, || {})).map_err(|error| {
             format!(
                 "Mash did not accept the update it downloaded ({}), and is unchanged: {error}",
                 update.version
@@ -208,7 +215,7 @@ fn offer_restart(app: &AppHandle) {
         ))
         .show(move |restart| {
             if restart {
-                std::thread::spawn(move || super::install::apply(&handle, false));
+                std::thread::spawn(move || super::install::apply(&handle, By::Menu));
             }
         });
 }

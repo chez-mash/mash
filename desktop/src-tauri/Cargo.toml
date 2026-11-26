@@ -37,6 +37,11 @@ tauri-plugin-global-shortcut = "=2.4.1"
 # Self-update: checks a channel's latest.json, verifies the download against
 # the public key in tauri.conf.json, and replaces the installed app.
 tauri-plugin-updater = "=2.14.1"
+# Reading GitHub's record of the latest release in a build that does not
+# update itself: the updater's own HTTP client and TLS provider, named here
+# only because the plugin does not hand them on. No features of their own.
+reqwest = { version = "0.13", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
 
 # Asking the engine to stop gently: SIGTERM, or Ctrl+C through its console.
 [target.'cfg(unix)'.dependencies]

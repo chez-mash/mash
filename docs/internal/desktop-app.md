@@ -35,9 +35,8 @@ start or stops, the main window comes forward with the app's error page,
 which offers Try again (start the engine again), shows those lines with a
 Copy button, and names `mash doctor` by the app's own binary; the search
 panel, whose page belonged to the stopped engine, is closed until the engine
-is back. The page's two requests, `retry_engine` and `engine_log`, are the
-app's only commands and only its own page may call them
-(`capabilities/default.json`).
+is back. The page's two requests, `retry_engine` and `engine_log`, are
+commands only the app's own page may call (`capabilities/default.json`).
 
 The dashboard knows it is inside the app only by `window.__MASH_DESKTOP__`,
 set by the app's initialization script (`src-tauri/src/window.js`). It uses
@@ -122,7 +121,9 @@ and `update/`). A build has updates on when `plugins.updater.pubkey` in
 `tauri.conf.json` is not empty and it is installed as something the updater
 replaces: the `.app` bundle on macOS or an AppImage on Linux. Otherwise
 **Check for Updates…** opens the downloads page, or for the apt package says
-whether a newer release exists and the `apt` command that brings it.
+whether a newer release exists and the `apt` command that brings it. Such a
+build still learns that a newer release exists and says so in the banner
+(see The banner).
 Windows is off until the installer's handover has been tested on a real
 machine: a running `mash.exe` cannot be replaced, so the order there must be
 stop the watcher, the dashboards and the engine, install, start.
@@ -178,6 +179,44 @@ and `mash doctor` is asked again. Anything still on the earlier version,
 and any `mash dash` someone started by hand (listed, never stopped), goes
 into one notice; after an idle install it waits behind the menu line
 **Updated to version — See What Needs Restarting…**.
+
+### The banner
+
+A newer version is also a banner across the top of the main window, drawn by
+the dashboard (`UpdateBanner.svelte`, `lib/appUpdate.svelte.ts`) from what
+the app tells it (`update/banner.rs`). The dashboard asks through three
+commands that only the main window's dashboard page may call
+(`capabilities/updates.json`): `update_banner` (what there is to offer),
+`update_install` and `update_later`. It asks every 20 seconds, and every
+second while the app downloads or installs. A dashboard in a browser has no
+app to ask and never shows the banner; the `mash` command has no equivalent.
+
+| Build | The banner offers | Button |
+| --- | --- | --- |
+| Updates itself | the version it has downloaded or is downloading | **Update and restart** |
+| No key, Windows, a development build | the newer stable release | **Download update** (the downloads page) |
+| The apt package | the newer stable release | **Copy command** (the `apt` command, shown) |
+
+**Update and restart** installs the downloaded update through the same path
+as the menu line (`install::apply`); chosen while the download is still
+arriving, the banner shows the download's progress and the install follows
+as soon as the file has been verified. While the app installs, the banner
+says so and offers nothing. An install that fails, whoever asked for it,
+leaves the banner saying why with **Download instead**, which opens the
+downloads page. **Later** hides the banner for that version until the app
+starts again; a newer version brings it back. The banner never installs
+anything by itself, and it leaves the channel and **Install Automatically
+When Idle** as they are.
+
+A build that does not update itself has no `latest.json` to read, since
+none is published without the key, so it reads GitHub's record of the
+latest release instead (`update/release.rs`,
+`api.github.com/repos/mashhq/mash/releases/latest`), at launch and every six
+hours like the updater, and compares the tag with its own version by the
+stable channel's rule (`channel::offers`). That is its only request, it
+carries nothing but the app's version in its `User-Agent`, and a check that
+fails says nothing. There is no setting that turns update checks off;
+if one is added, this check must follow it.
 
 If the new version's engine does not start, the menus gain **Go Back to
 Previous Version**, which puts the kept copy back, restarts, and records the
@@ -240,7 +279,8 @@ lower version would be ignored by the apps that most need it.
 
 ### Testing
 
-`cargo test` covers the channel order, the settings, keeping and restoring
+`cargo test` covers the channel order, what the banner shows in each state,
+reading a release's version, the settings, keeping and restoring
 the previous app, the command script (arguments with spaces, input, exit
 status, one process, a missing or moved app), the service and process
 listings, and the notices. An end-to-end run needs two builds signed with a
@@ -329,9 +369,11 @@ address, or to its agent's app, if it is a `codex://`, `claude://` or
 `ghapp://` link from the chat page's Open in Codex, Claude or Copilot; other
 schemes are dropped. The
 one exception is the empty
-window the dashboard writes a chat into for printing to PDF. The dashboard is
-given no Tauri permissions; `withGlobalTauri` is off, and the app's own page
-has `core:default` and its two commands. Downloads go to the reader's
+window the dashboard writes a chat into for printing to PDF. The dashboard in
+the main window is given no Tauri plugin and three of the app's commands, the
+update banner's (`capabilities/updates.json`; see Updates);
+`withGlobalTauri` is off, and the app's own page has `core:default` and its
+two commands. Downloads go to the reader's
 Downloads folder, numbered so nothing is replaced, and when one finishes a
 notice names the file and offers Show in Finder (Show in Folder elsewhere)
 (`src-tauri/src/downloads.rs`).

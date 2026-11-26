@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "updates",
+  "description": "The dashboard in the main window draws the update banner: it may ask what update there is to offer, ask for a downloaded update to be installed, and put the banner away. It gets no other command and no Tauri plugin.",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "http://127.0.0.1:*"
+    ]
+  },
+  "permissions": [
+    "allow-update-banner",
+    "allow-update-install",
+    "allow-update-later"
+  ]
+}

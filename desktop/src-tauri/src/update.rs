@@ -3,24 +3,30 @@
 //! into the app, and installs it when the person chooses Restart to Update
 //! (or, with the idle option, while no window is showing).
 //!
-//! Nothing interrupts: a ready update is one line in the menus. Updates are
+//! Nothing interrupts: a ready update is one line in the menus and a banner
+//! in the main window, whose button installs it (banner.rs). Updates are
 //! off, and Check for Updates… opens the downloads page instead, when the
 //! build has no public key or is not a kind the updater can replace (a
-//! development build, a .deb). The download is verified when it arrives and
+//! development build, a .deb). Such a build still reads which release is the
+//! latest (release.rs), so the banner can point at the download. The
+//! download is verified when it arrives and
 //! again from disk just before it is installed, so a file changed in between
 //! is refused. The app that was replaced is kept until the new version's
 //! engine has started (previous.rs); what the new version then needs is in
 //! after.rs.
 
 pub mod after;
+pub mod banner;
 mod channel;
 mod check;
 mod install;
 mod menu;
 mod previous;
+mod release;
 mod settings;
 
 use channel::Channel;
+use install::By;
 pub use install::{before_engine, engine_failed, engine_started};
 pub use menu::Holder;
 use settings::{Pending, Settings};
@@ -60,6 +66,8 @@ struct Inner {
     notice: Option<String>,
     /// Ticks in a row with no window showing.
     idle_ticks: u8,
+    /// What the main window's banner has been told and asked.
+    offer: banner::Offer,
 }
 
 /// The update state and, apart from it, the menu items. Changing a menu item
@@ -116,6 +124,12 @@ fn enabled(app: &AppHandle) -> bool {
     keyed && installed().is_some() && !cfg!(debug_assertions)
 }
 
+/// Whether apt installed this copy: the .deb puts the app in /usr/bin.
+fn from_apt() -> bool {
+    cfg!(target_os = "linux")
+        && std::env::current_exe().is_ok_and(|program| program.starts_with("/usr/bin"))
+}
+
 /// Load the settings and settle what the last run left: called before the
 /// window opens, so a quiet update can start without one.
 pub fn prepare(app: &AppHandle) {
@@ -147,6 +161,7 @@ pub fn prepare(app: &AppHandle) {
             arrived,
             notice: None,
             idle_ticks: 0,
+            offer: banner::Offer::default(),
         }),
         Mutex::default(),
     ));
@@ -222,12 +237,20 @@ fn refresh(app: &AppHandle, inner: &Inner) {
 }
 
 /// Start checking: now, then every six hours, and look every half minute
-/// whether a ready update may install because the app is idle.
+/// whether a ready update may install because the app is idle. A build that
+/// does not update itself reads, as often, which release is the latest.
 pub fn start(app: &AppHandle) {
-    if matches!(lock(app).phase, Phase::Off) {
+    let app = app.clone();
+    if matches!(lock(&app).phase, Phase::Off) {
+        std::thread::spawn(move || {
+            loop {
+                let newer = release::newer(&app.package_info().version);
+                lock(&app).offer.newer = newer.map(|version| version.to_string());
+                std::thread::sleep(EVERY);
+            }
+        });
         return;
     }
-    let app = app.clone();
     std::thread::spawn(move || {
         loop {
             check::check(&app, false);
@@ -277,7 +300,7 @@ fn status_chosen(app: &AppHandle) {
     if matches!(inner.phase, Phase::Ready { .. }) {
         drop(inner);
         let app = app.clone();
-        std::thread::spawn(move || install::apply(&app, false));
+        std::thread::spawn(move || install::apply(&app, By::Menu));
     } else if let Some(notice) = inner.notice.take() {
         refresh(app, &inner);
         drop(inner);

@@ -36,6 +36,7 @@ const blocks = [
   "Skeleton",
   "StatusBadge",
   "ToneIcon",
+  "UpdateBanner",
 ];
 
 /** Composed pieces, whose stories live under src/stories/composed. */
