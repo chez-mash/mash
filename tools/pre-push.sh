@@ -177,8 +177,10 @@ fi
 
 rust_root=$(printf '%s\n' "$files" | grep -E '\.rs$' | grep -Ev '^desktop/src-tauri/' | head -n 1)
 rust_desktop=$(under 'desktop/src-tauri/' '\.rs$' | head -n 1)
-if [[ -n $rust_root || -n $rust_desktop ]] && ! command -v cargo >/dev/null; then
-    skip 'rustfmt: cargo is not installed'
+if [[ -z $rust_root && -z $rust_desktop ]]; then
+    :
+elif ! in_dir . cargo fmt --version >/dev/null 2>&1; then
+    skip 'rustfmt: cargo fmt is not installed for this toolchain'
 else
     [[ -z $rust_root ]] || check 'cargo fmt' 'cargo fmt' in_dir . cargo fmt --check
     [[ -z $rust_desktop ]] || check 'cargo fmt (desktop)' 'cargo fmt --manifest-path desktop/src-tauri/Cargo.toml' \

@@ -92,7 +92,7 @@ grep -Eq 'pre-push FAILED +line limit' "$scratch/output" || fail 'the hook names
 rm "$work/dashboard/src/lib/untracked.ts"
 reset_work
 
-if command -v cargo > /dev/null && cargo fmt --version > /dev/null 2>&1; then
+if (cd "$work" && cargo fmt --version) > /dev/null 2>&1; then
     printf 'pub fn one()->u8{1}\n' > "$work/src/lib.rs"
     commit misformatted
     expect 1 'a mis-formatted Rust file' 'pre-push FAILED +cargo fmt +-> +fix: cargo fmt'
