@@ -62,7 +62,7 @@ expect 0 'nothing changed' 'no changed files'
 
 printf 'A note.\n' > "$work/notes.md"
 commit docs
-expect 0 'a change outside every checked area runs no check' ' 0 checks passed'
+expect 0 'a change outside every checked area runs no check' 'none of the quick checks covers'
 reset_work
 
 seq 1 501 | sed 's/^/const LINE_&: u16 = &;/' > "$work/src/long.rs"

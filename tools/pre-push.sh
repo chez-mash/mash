@@ -167,6 +167,10 @@ fi
 
 elapsed=$(awk -v start="$started" -v end="$(date +%s.%N)" 'BEGIN { printf "%.1f", end - start }')
 count=$(printf '%s\n' "$files" | wc -l)
+if [[ $ran -eq 0 && ${#notes[@]} -eq 0 ]]; then
+    echo "pre-push: none of the quick checks covers the $count changed files"
+    exit 0
+fi
 if [[ ${#failures[@]} -eq 0 ]]; then
     echo "pre-push: $ran checks passed for $count changed files in ${elapsed}s${notes:+ (${#notes[@]} skipped)}"
     exit 0
