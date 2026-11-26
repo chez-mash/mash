@@ -2127,6 +2127,7 @@ dependencies = [
  "assert_cmd",
  "axum",
  "blake3",
+ "cc",
  "clap",
  "futures-util",
  "inquire",

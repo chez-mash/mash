@@ -76,6 +76,9 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.149", features = ["raw_value"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "fs", "net", "io-util", "process"] }
 
+[build-dependencies]
+cc = "1.2"
+
 [dev-dependencies]
 mash-model = { path = "crates/mash-model", features = ["test-support"] }
 tempfile = "3.27.0"

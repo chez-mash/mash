@@ -169,6 +169,9 @@ jobs:
       - name: Check the glibc floor
         if: contains(matrix.target, 'linux')
         run: .github/scripts/check-glibc-floor 2.34 target/release/mash target/release/mash-server
+      - name: Check the programs start without DirectML
+        if: contains(matrix.target, 'windows')
+        run: python .github/scripts/check-windows-delay-load.py target/release/mash.exe target/release/mash-server.exe
       - name: Smoke
         run: |
           binary=target/release/mash

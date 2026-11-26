@@ -79,6 +79,10 @@ jobs:
       # Windows before publishing.
       - name: Build
         run: cargo +stable build --locked --bin mash --bin mash-server
+      # A Windows without DirectML or Direct3D 12 must still run Mash on the
+      # CPU, so neither library may be needed to start (cli/delay_load.c).
+      - name: Check the programs start without DirectML
+        run: python .github/scripts/check-windows-delay-load.py target/debug/mash.exe target/debug/mash-server.exe
       - name: Start disposable native Qdrant
         shell: pwsh
         run: |
@@ -225,6 +229,7 @@ jobs:
         run: |
           .github/scripts/deploy-smoke target/release/mash.exe "$GITHUB_SHA"
           target/release/mash-server.exe --version
+          python .github/scripts/check-windows-delay-load.py target/release/mash.exe target/release/mash-server.exe
       # Qdrant has no Windows ARM build, so Mash installs the x64 one there;
       # it must start and answer under Windows 11's emulator.
       - name: Run the x64 Qdrant under emulation
