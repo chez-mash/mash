@@ -977,6 +977,15 @@ the builds hold one pair per target, about 2 GB of the repository's 10 GB, and
 GitHub does not evict the test workflows' caches to make room. To start again
 from nothing, change `v1` in both keys.
 
+The same job deletes what merge queue groups saved. A group runs on a branch
+of its own (`gh-readonly-queue/main/pr-N-…`), a cache saved there can be read
+only from that branch, and the branch is deleted when the group merges.
+`ci.yml` and `windows.yml` save about 1.5 GB there for each group whose
+change touches `Cargo.lock` or a manifest, and since `main` skips the jobs
+the queue already ran, it never saves that key itself, so every later group
+does the same. Being the newest caches in the repository, they pushed out
+ones still in use within hours.
+
 The dependencies' cache is saved when its key is new and never again, so it
 must be complete when it is saved. `cache-on-failure` keeps what a run built
 when it failed after compiling (the smoke check, packaging); a run that was
