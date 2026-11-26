@@ -30,7 +30,6 @@ const bands = [
   ["memory", "#welcome-memory"],
   ["speed", "#welcome-speed"],
   ["privacy", "#welcome-privacy"],
-  ["features", "#welcome-features"],
   ["rust", "#welcome-rust"],
   ["closing", "section.close"],
   ["footer", "footer.mash-footer"],
@@ -151,7 +150,7 @@ async function chooseSurface(page: Page, id: string): Promise<void> {
  */
 async function pictureSurfaces(page: Page): Promise<void> {
   const top = await pageTop(page, "#welcome-surfaces .stage");
-  for (const id of ["menu-bar", "raycast", "agents", "terminal"]) {
+  for (const id of ["raycast", "agents", "terminal"]) {
     await chooseSurface(page, id);
     await scrollAndPlay(page, top - 16);
     await expect(page.locator(`#surface-${id}`)).toHaveClass(/\bon\b/);

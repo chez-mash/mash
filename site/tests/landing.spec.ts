@@ -30,33 +30,30 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
     "One history. Everywhere you work.",
-    "Take shortcuts, not detours. Press ⌥ ⇧ Space and the chat you need is one line away.",
+    "Take shortcuts, not detours. Press ⌥ ⇧ Space, or click Mash in your menu bar or tray, and the chat you need is one line away.",
     "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
     "Save the decision. Keep the source.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
-    "Fits the way you work.",
     "Written with <3 in Rust.",
     "Give your agents their history back.",
   ]);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
-  // Five of them are the showcase's surfaces, of which one shows at a time.
-  await expect(illustrations).toHaveCount(9);
+  // Four of them are the showcase's surfaces, of which one shows at a time.
+  await expect(illustrations).toHaveCount(8);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
-  const more = page.getByRole("region", { name: "Fits the way you work." });
-  await expect(more.getByRole("link")).toHaveText(["Connect it over MCP", "Hybrid search"]);
   await page.locator(".mash-agents").scrollIntoViewIfNeeded();
   for (const mark of await marks.all()) await expect(mark).toBeVisible();
   // The conditions behind the figures are folded away, and open on request.
   const measured = page.locator(".mash-welcome .measured");
-  await expect(measured.locator("p")).toBeHidden();
+  await expect(measured.locator("dd")).toBeHidden();
   await measured.locator("summary").click();
-  await expect(measured.locator("dt")).toHaveText(["66 ms and 103k", "5× and 9×"]);
-  await expect(measured.locator("p")).toContainText("experimental and off until you");
+  await expect(measured.locator("dt")).toHaveText(["66 ms and 103k"]);
+  await expect(measured.locator("dd")).toContainText("A common word took up to a second there.");
   await expect(page.getByRole("navigation", { name: "Footer" }).getByRole("link")).toHaveText([
     "Docs",
     "Try the demo",
@@ -148,39 +145,39 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   ).toHaveAttribute("href", "/guides/");
 });
 
-test("every feature tile draws its icon in the same chip, the systems one each", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const more = page.getByRole("region", { name: "Fits the way you work." });
-  await expect(more.getByRole("heading", { level: 3 })).toHaveText([
-    "Any MCP client.",
-    "RAG over your own history.",
-    "macOS. Linux. Windows.",
-    "Your chats, exported.",
-  ]);
-  await expect(more.locator("article").last()).toContainText("Markdown, HTML or PDF");
-  const chips = more.locator(".tiles .ico");
-  await expect(chips).toHaveCount(6);
-  const systems = more.locator(".tiles .os-chips .ico");
-  await expect(systems).toHaveCount(3);
-  await expect(systems.locator("svg.os-mark")).toHaveCount(3);
-  const looks = await chips.evaluateAll((all) =>
-    all.map((chip) => {
-      const { width, height, borderRadius, backgroundColor, color } = getComputedStyle(chip);
-      const icon = chip.querySelector("svg")?.getBoundingClientRect();
-      return [width, height, borderRadius, backgroundColor, color, icon?.width, icon?.height];
-    }),
-  );
-  for (const each of looks) expect(each).toEqual(looks[0]);
-  // The three marks sit in a row.
-  const boxes = await systems.evaluateAll((all) =>
-    all.map((chip) => chip.getBoundingClientRect().toJSON()),
-  );
-  expect(new Set(boxes.map((box) => box.y)).size).toBe(1);
-  expect(boxes[1].x).toBeGreaterThan(boxes[0].x + boxes[0].width);
-  expect(boxes[2].x).toBeGreaterThan(boxes[1].x + boxes[1].width);
-});
+for (const [name, viewport] of [
+  ["a phone", { width: 390, height: 844 }],
+  ["a wide screen", { width: 1440, height: 900 }],
+] as const) {
+  test(`on ${name} the performance band shows its two search figures side by side`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const band = page.getByRole("region", { name: "Fast, and light on your machine." });
+    const figures = band.locator(".stats > div");
+    await expect(figures).toHaveCount(2);
+    await expect(figures.locator("dd")).toHaveText([
+      "for an exact-phrase search, at its quickest",
+      "messages from 1,137 chats, searched in one index on one machine",
+    ]);
+    await expect(figures.locator(".ico svg")).toHaveCount(2);
+    // One row of two cards of one size, which together fill the band's width.
+    const [first, second] = await figures.evaluateAll((all) =>
+      all.map((figure) => figure.getBoundingClientRect().toJSON()),
+    );
+    const row = await band.locator(".stats").boundingBox();
+    expect(second.y).toBe(first.y);
+    expect(second.width).toBeCloseTo(first.width, 0);
+    expect(second.height).toBeCloseTo(first.height, 0);
+    expect(second.x).toBeGreaterThan(first.x + first.width);
+    expect(first.x).toBeCloseTo(row?.x ?? -1, 0);
+    expect(second.x + second.width).toBeCloseTo((row?.x ?? 0) + (row?.width ?? 0), 0);
+    // What the figures were measured on says nothing of what the band no longer shows.
+    await band.locator(".measured summary").click();
+    await expect(band.locator(".measurement-copy dt")).toHaveText(["66 ms and 103k"]);
+  });
+}
 
 test("the install tabs show each system's command, and copy it", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
@@ -301,6 +298,17 @@ test("each welcome band comes in as it scrolls into view, whatever the motion pr
   }
 });
 
+test("on the dark page the stroke under the headline is the brand's own butter", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ colorScheme: "dark" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator(".mash-hero h1 svg.rule")).toHaveCSS("fill", "rgb(245, 200, 75)");
+  await context.close();
+});
+
 for (const [name, viewport] of [
   ["a wide screen", { width: 1440, height: 900 }],
   ["a phone", { width: 390, height: 844 }],
@@ -324,8 +332,24 @@ for (const [name, viewport] of [
     await expect.poll(() => draw.getAttribute("style")).toBeFalsy();
     await expect(draw).toHaveCSS("stroke-dashoffset", "0px");
     await expect(rule).toBeVisible();
-    // The pat of butter in the wordmark, and the words stay ink.
-    await expect(rule).toHaveCSS("fill", "rgb(245, 200, 75)");
+    // On the light page the stroke is the icons' deep butter, which a line
+    // needs to be seen there (3:1); the words stay ink.
+    await expect(rule).toHaveCSS("fill", "rgb(160, 117, 16)");
+    const contrast = await rule.evaluate((stroke) => {
+      const light = (colour: string) => {
+        const [r = 0, g = 0, b = 0] = (colour.match(/[\d.]+/g) ?? []).map((part) => {
+          const channel = Number(part) / 255;
+          return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const [page, line] = [
+        light(getComputedStyle(document.body).backgroundColor),
+        light(getComputedStyle(stroke).fill),
+      ];
+      return (Math.max(page, line) + 0.05) / (Math.min(page, line) + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(3);
     const ink = await lines.nth(0).evaluate((line) => getComputedStyle(line).color);
     await expect(lines.nth(1).locator(".accent")).toHaveCSS("color", ink);
     const at = await lines
@@ -432,7 +456,7 @@ for (const [name, viewport] of [
     // The agents, the figures, Mashy's first answer and the closing card.
     for (const agent of await welcome.locator(".mash-agents li").all())
       await expect(agent).toHaveCSS("opacity", "1");
-    await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
+    await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103"]);
     await expect(welcome.locator('.example[data-example="1"] .answer p').first()).toHaveText(
       "A database migration locked the orders table for about four minutes. Claude Code described the lock on the build box:",
     );
@@ -549,7 +573,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
     await expect(part).toBeVisible();
     await expect(part).toHaveCSS("opacity", "1");
   }
-  await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103", "5", "9"]);
+  await expect(welcome.locator(".stats dt b")).toHaveText(["66", "103"]);
   // The app icon is drawn inline, over the headline and the closing call to action.
   await expect(page.locator(".hero .app-icon svg")).toBeVisible();
   await expect(welcome.locator(".closing .app-icon svg")).toBeVisible();
@@ -580,17 +604,9 @@ test("the welcome page fits a phone in every section", async ({ page }) => {
   }
 });
 
-test("every feature tile has an icon, the stack chips have logos, and the close offers two buttons", async ({
-  page,
-}) => {
+test("the stack chips have logos, and the close offers two buttons", async ({ page }) => {
   await page.goto("/");
   const welcome = page.locator(".mash-welcome");
-  const tiles = welcome.locator("#welcome-features article");
-  await expect(tiles).toHaveCount(4);
-  for (const tile of await tiles.all())
-    await expect(tile.locator(".ico svg").first()).toBeVisible();
-  // The systems' tile shows their three marks, each in a chip.
-  await expect(tiles.nth(2).locator(".os-chips .ico svg")).toHaveCount(3);
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
