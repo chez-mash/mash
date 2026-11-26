@@ -17,8 +17,12 @@ the `mash` binary, runs the dashboard on loopback and loads it like a browser
 would. Keep it that thin. Never give it pages, API routes or behaviour of its
 own; change the dashboard instead. It adds only engine start and stop,
 `mash://` links (the dashboard's route behind the scheme), one window, a menu
-bar icon and shortcut that show the dashboard's `#/quick` search panel, and
-sending other addresses to the browser. See `docs/internal/desktop-app.md`.
+bar icon and shortcut that show the dashboard's `#/quick` search panel,
+sending other addresses to the browser, and updating itself: a stable and a
+main channel, verified against a key built into the app, with the `mash`
+command, the services and the agents' connections kept on the app's own
+`mash` where the app can be found again (macOS). What else is installed is
+judged by `mash doctor`, never by the app. See `docs/internal/desktop-app.md`.
 The Raycast extension (`raycast/`) runs `mash search --live` and `mash view`
 and opens chats with `mash://` links, or in their agent's own app with
 `codex://` and `claude://` links; it reads only.

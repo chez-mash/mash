@@ -16,7 +16,8 @@ signature is read from `FILE.sig` beside it, and a platform whose file or
 signature is missing is left out, so a build that signed nothing publishes
 no manifest (exit status 3) instead of one the app would refuse.
 
-Dependency-free: it runs on the release and desktop workflow runners.
+Dependency-free and written for Python 3.9 on: it runs on the release and
+desktop workflow runners, whatever their `python3` is.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ import json
 import re
 import sys
 from collections.abc import Sequence
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$")
@@ -66,7 +67,9 @@ def manifest(
     platforms: dict[str, dict[str, str]] = {}
     for target, file in sorted(files.items()):
         if target not in TARGETS:
-            raise ValueError(f"unknown platform {target!r}; expected one of {', '.join(TARGETS)}")
+            raise ValueError(
+                f"unknown platform {target!r}; expected one of {', '.join(TARGETS)}"
+            )
         signature = file.with_name(file.name + ".sig")
         if not file.is_file() or not signature.is_file():
             continue
@@ -77,7 +80,9 @@ def manifest(
     return {
         "version": version,
         "notes": notes,
-        "pub_date": (published or datetime.now(UTC)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "pub_date": (published or datetime.now(timezone.utc)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        ),
         "platforms": platforms,
     }
 
@@ -90,7 +95,9 @@ def parse(argv: Sequence[str] | None) -> argparse.Namespace:
     main.add_argument("build", type=int)
     write = commands.add_parser("manifest", help="write latest.json")
     write.add_argument("--version", required=True)
-    write.add_argument("--base-url", required=True, help="where the update files are downloaded from")
+    write.add_argument(
+        "--base-url", required=True, help="where the update files are downloaded from"
+    )
     write.add_argument("--notes", default="")
     write.add_argument("--output", type=Path, required=True)
     write.add_argument("files", nargs="+", metavar="TARGET=FILE")
@@ -109,15 +116,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not separator:
                 raise ValueError(f"{entry!r} is not TARGET=FILE")
             files[target] = Path(file)
-        written = manifest(arguments.version, arguments.base_url, files, arguments.notes)
+        written = manifest(
+            arguments.version, arguments.base_url, files, arguments.notes
+        )
     except ValueError as error:
         print(f"desktop_updates: {error}", file=sys.stderr)
         return 2
     if not written["platforms"]:
-        print("desktop_updates: no signed update file was found; no manifest written", file=sys.stderr)
+        print(
+            "desktop_updates: no signed update file was found; no manifest written",
+            file=sys.stderr,
+        )
         return 3
     arguments.output.write_text(json.dumps(written, indent=2) + "\n", encoding="utf-8")
-    print(f"{arguments.output}: {arguments.version} for {', '.join(written['platforms'])}")
+    print(
+        f"{arguments.output}: {arguments.version} for {', '.join(written['platforms'])}"
+    )
     return 0
 
 

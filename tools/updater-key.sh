@@ -34,7 +34,8 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 folder=${MASH_UPDATER_KEY_DIR:-$HOME/.config/mash/updater}
 key=$folder/mash-updater.key
 password=$folder/password
-config=$root/desktop/src-tauri/tauri.conf.json
+# The app's configuration; a test names a copy.
+config=${MASH_UPDATER_CONFIG:-$root/desktop/src-tauri/tauri.conf.json}
 # The Tauri CLI and the GitHub CLI; tests name stand-ins.
 tauri=${MASH_TAURI:-}
 gh=${MASH_GH:-gh}

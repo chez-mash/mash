@@ -59,12 +59,180 @@ index has an Index now button, and Settings points to the setup page rather
 than `mash init`.
 
 "Install Command-Line Tool…" (macOS app menu and tray menu; macOS and Linux)
-links the bundled `mash` into `~/.local/bin`. It never replaces anything
-already called `mash` there, such as the install script's copy, and says so;
-it says whether `~/.local/bin` is on the app's PATH (a terminal's may differ);
-choosing it again offers to remove the link. A .deb already puts `mash` in
-`/usr/bin`, and an AppImage's files move on every start, so in those cases it
-only explains.
+puts a `mash` command in `~/.local/bin` that runs the bundled `mash`, so one
+update covers the app and the command. It never replaces anything already
+called `mash` there, such as the install script's copy, and says that copy
+updates separately; it says whether `~/.local/bin` is on the app's PATH (a
+terminal's may differ); choosing it again offers to remove the command.
+
+On macOS the command is a small shell script, not a link. It looks for the
+app where it was when the command was written, then in `/Applications` and
+`~/Applications`, and replaces itself with that app's `mash` (`exec`), so the
+arguments, standard input and output, the exit status and signals are those
+of `mash` itself, which `mash mcp` and `mash dash` depend on. When the app
+has been moved somewhere else or removed, it prints one line saying so and
+exits 127, where a link would fail with "No such file". The script's second
+line (`# mash-desktop-command`) is how the app knows the file is its own.
+
+On Linux the command stays a separate install. An AppImage's files move on
+every start, so nothing may point into it; the `mash-desktop` apt package
+depends on `mash-cli` at its own version and runs that package's
+`/usr/bin/mash`; and for any other copy the item makes a link as before. On
+Windows the item is not offered.
+
+## One Mash on the machine
+
+When the app is installed, its bundled `mash` should be the only one in use,
+or an update leaves a watcher or an agent's connection on the version before:
+the mismatch whose schema check then stops search. The app does not work out
+what else is installed. `mash doctor` does, in its `copies` check
+(`app/core/doctor/copies.rs`): the `mash` a login shell finds, the program
+the dashboard and watcher service definitions start, the build a dashboard
+service answers with, and each agent's registered command, each compared
+with the running copy by file and, failing that, by the build `mash
+--version-info` reports. It names Homebrew, Scoop or apt when the path shows
+one installed the other copy. The existing `processes` and `watcher` checks
+cover what is already running. The schema and contract refusals in the
+commands themselves are unchanged and remain what actually stops a mismatch.
+
+At launch the app runs the bundled `mash doctor` and, when `copies` reports
+anything, shows one notice (`src-tauri/src/lockstep.rs`). On macOS it offers
+**Use the App’s Mash Everywhere**, **Keep Separate** (remembered) and **Not
+Now**. Everywhere does three things and then says what it did and what is
+left:
+
+1. Installs the command as above. A link to another `mash` is re-pointed; a
+   separate copy in `~/.local/bin` is kept beside it as `mash.separate`.
+2. Runs `mash init --yes --no-index` from the bundled binary when the doctor
+   names it as a repair, which registers the bundled `mash` through each
+   agent's own CLI.
+3. Restarts the services whose definitions name the bundled `mash` or the
+   command.
+
+Nothing a package manager installed is removed. A Homebrew or Scoop copy
+that a shell still finds first stays in the notice with its own update
+command; a dashboard service whose definition names another copy stays with
+`mash dash remote`, the command that rewrites it. On Linux and Windows the
+notice only says the versions differ, with **Don’t Show Again**.
+
+## Updates
+
+The app updates itself with `tauri-plugin-updater` (`src-tauri/src/update.rs`
+and `update/`). A build has updates on when `plugins.updater.pubkey` in
+`tauri.conf.json` is not empty and it is installed as something the updater
+replaces: the `.app` bundle on macOS or an AppImage on Linux. Otherwise
+**Check for Updates…** opens the downloads page, or for the apt package says
+whether a newer release exists and the `apt` command that brings it.
+Windows is off until the installer's handover has been tested on a real
+machine: a running `mash.exe` cannot be replaced, so the order there must be
+stop the watcher, the dashboards and the engine, install, start.
+
+### Channels
+
+| Channel | Reads | Published by |
+| --- | --- | --- |
+| Stable (default) | `releases/latest/download/latest.json` | `release.yml`, for a tag |
+| Main (latest build) | `releases/download/main-channel/latest.json` | `desktop.yml`, for each build of main |
+
+`latest.json` names the version and, per platform, the update file and its
+signature (`tools/desktop_updates.py manifest`). A build of main is versioned
+as a prerelease of the release that will follow it: `0.2.5-main.118` after
+0.2.4, where 118 is the workflow's run number (`desktop_updates.py
+main-version`). By semantic-version order that is newer than 0.2.4, older
+than build 119 and older than 0.2.5, so stable to main, main to main and
+main to the next release are all ordinary "newer" updates
+(`update/channel.rs`, with tests on both sides). Nothing moves backwards:
+someone who returns to Stable keeps their build of main until the release
+after it, and Stable never takes a build of main whatever its address
+serves. `requireSignedVersion` makes the updater refuse a manifest that pairs
+a version with another version's validly signed file.
+
+The channel and the idle option are the app's own settings
+(`updates.json` in its configuration folder), changed from **Updates:
+Stable / Main (latest build)** in the menu bar menu and the app menu.
+
+### What happens
+
+The app checks at launch and every six hours, downloads a newer version in
+the background and verifies it against the public key. Then one menu line
+reads **Update Ready (version) — Restart to Update**; nothing else is shown
+unless the check was asked for. With **Install Automatically When Idle** (on
+by default for Main, off for Stable) the update installs once the main
+window and the search panel have both been hidden for two looks half a
+minute apart, and the new version starts without opening a window.
+
+Installing (`update/install.rs`): the download is read back and verified
+again, so a file changed on disk is refused with the app untouched; the
+engine stops; the installed app is copied to `previous/` in the app's data
+folder; the updater swaps the bundle; the app restarts. If the swap fails
+the engine starts again and the app carries on.
+
+The first start of the new version (`update/after.rs`) runs the bundled
+`mash status` before starting the engine and, when it refuses the index for
+a schema that indexing upgrades in place, runs the bundled `mash index`,
+which is what `tools/upgrade-local-index.sh` does for a deployment. A schema
+that needs export and import is left to the engine's own error. Once the
+engine is up the kept copy is deleted, the services that run the app's
+`mash` are restarted (`launchctl kickstart -k`, `systemctl --user restart`),
+and `mash doctor` is asked again. Anything still on the earlier version,
+and any `mash dash` someone started by hand (listed, never stopped), goes
+into one notice; after an idle install it waits behind the menu line
+**Updated to version — See What Needs Restarting…**.
+
+If the new version's engine does not start, the menus gain **Go Back to
+Previous Version**, which puts the kept copy back, restarts, and records the
+version so it is not installed again (a later one is). If the app itself
+cannot start, the copy is still in
+`~/Library/Application Support/io.getmash.desktop/previous/`.
+
+### The key
+
+Updates are signed with a Tauri updater key (minisign), separate from the
+Apple and Windows code-signing identities. `tools/updater-key.sh`, run once,
+makes it in `~/.config/mash/updater/` (private key, public key, password;
+mode 0600), writes the public key into `tauri.conf.json` and uploads
+`TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` to the
+repository's secrets. Until both the public key and the secrets exist, the
+workflows build as before with a notice, publish no `latest.json`, and the
+app has updates off. Back the folder up: an app installs only what this key
+signed, so a lost key means one manual reinstall for everyone.
+
+### Signing on the main channel
+
+An update the app installs itself is not quarantined, so Gatekeeper does not
+check notarization when it starts. What must not change is the signing
+identity: macOS ties privacy permissions and keychain items to the app's
+designated requirement (bundle identifier and Developer ID team), and an
+unsigned build replacing a signed one would lose them. `desktop.yml`
+therefore signs builds of main with the Developer ID when the Apple secrets
+are set, as `release.yml` does, and Tauri notarizes and staples the app in
+the same step, so a build of main downloaded by hand also opens normally.
+
+### Taking a bad build off the main channel
+
+Run `desktop.yml` from main with the last good commit:
+
+```sh
+gh workflow run desktop.yml --ref main -f commit=<good commit>
+```
+
+It is built again under a higher build number, which every app on the
+channel takes as its next update, including those that installed the bad
+build. Deleting the `main-channel` release's `latest.json` stops updates at
+once in the meantime. Do not upload an older build's files by hand: their
+lower version would be ignored by the apps that most need it.
+
+### Testing
+
+`cargo test` covers the channel order, the settings, keeping and restoring
+the previous app, the command script (arguments with spaces, input, exit
+status, one process, a missing or moved app), the service and process
+listings, and the notices. An end-to-end run needs two builds signed with a
+throwaway key (`tauri signer generate`), passed with
+`--config '{"version":…,"bundle":{"createUpdaterArtifacts":true},"plugins":{"updater":{"pubkey":…,"dangerousInsecureTransportProtocol":true}}}'`.
+Only a build with that insecure-transport setting reads
+`MASH_DESKTOP_UPDATE_ENDPOINT`, which points it at a local file server in
+place of GitHub.
 
 ## mash:// links
 
@@ -85,7 +253,8 @@ development build works.
 
 The app lives in the menu bar (`src-tauri/src/menubar.rs`). Clicking its icon
 drops a search panel down under it; right-clicking opens a native menu
-(Search Mash…, Open Mash, Settings…, Install Command-Line Tool…, Quit Mash);
+(Search Mash…, Open Mash, Settings…, Install Command-Line Tool…, the update
+items, Quit Mash);
 ⌥⇧Space (Alt+Shift+Space) and `mash://quick` drop the same panel from the
 same icon, like a menu bar extra; it never appears mid-screen. When the icon
 is on no screen (a menu bar manager such as Ice or Bartender hides it off
@@ -166,9 +335,10 @@ See `desktop/README.md`. The app is its own Cargo workspace with its own lock
 file, so the CLI's build and `cargo deny` never involve a webview toolkit. Its
 version is restated in `desktop/src-tauri/Cargo.toml`; a unit test fails when
 it differs from the workspace version. `.github/workflows/desktop.yml` builds
-unsigned installers on Linux (deb, AppImage), macOS (app, dmg) and Windows
-(NSIS). RPM and MSI refuse a version such as `0.1.1-alpha`, so they are left
-out while releases are pre-releases.
+installers on Linux (deb, AppImage), macOS (app, dmg) and Windows (NSIS) for
+pull requests and for main, and publishes the main update channel (see
+Updates). RPM and MSI refuse a version such as `0.1.1-alpha`, so they are
+left out while releases are pre-releases.
 
 ## Releases and signing
 
@@ -189,6 +359,21 @@ otherwise:
   and `mash-server.exe`, and Tauri calls it as its sign command for the app and
   the installer. It checks every signature it makes.
 
+With the updater key in place the release also signs the macOS and Linux
+builds for the app's updater and publishes `latest.json`, the stable
+channel's manifest (see Updates).
+
+On Linux the release also builds the app's `.deb`, which
+`packaging/apt/desktop-deb.sh` turns into the `mash-desktop` package of the
+apt repository. Tauri's package is named `mash` and carries its own
+`/usr/bin/mash`, the file `mash-cli` installs. Debian policy has one package
+own a file, so `mash-desktop` drops its copy and declares `Depends: mash-cli
+(= its own version)`: the app runs `mash-cli`'s binary, `apt upgrade` moves
+both together, and removing `mash-cli` removes the app. The alternative,
+shipping the binary in `mash-desktop` with `Conflicts`, `Replaces` and
+`Provides` against `mash-cli`, would take `mash-server` away from anyone who
+installed the app and split one program across two packages.
+
 A fleet deployment of a release can put the signed Mac app on a machine:
 `tools/fleet.sh deploy --release vX.Y.Z` runs `tools/install-desktop-macos.sh`
 for Macs whose inventory entry asks for it. It checks the disk image against
@@ -198,7 +383,9 @@ and keeps the previous app until the new one has started. See
 
 ## Not done yet
 
-- A Homebrew cask and a winget package for the app. Distribution follows the
-  Docker CLI and Docker Desktop split: the CLI stays on install scripts,
-  Homebrew, apt, Scoop and winget, and the app is a separate download that
-  carries its own engine.
+- Updates on Windows (see Updates), and a `mash` command installed by the
+  Windows app.
+- A winget package for the app. Elsewhere distribution follows the Docker
+  CLI and Docker Desktop split: the CLI stays on install scripts, Homebrew,
+  apt, Scoop and winget, and the app is a separate download that carries its
+  own engine, except under apt, where the app's package uses `mash-cli`'s.
