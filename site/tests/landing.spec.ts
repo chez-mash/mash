@@ -302,6 +302,65 @@ test("each welcome band comes in as it scrolls into view, whatever the motion pr
   }
 });
 
+for (const [name, viewport] of [
+  ["a wide screen", { width: 1440, height: 900 }],
+  ["a phone", { width: 390, height: 844 }],
+] as const) {
+  test(`on ${name} a stroke of butter is drawn under the headline's last line alone, as wide as its words`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const hero = page.locator(".mash-hero");
+    const lines = hero.locator("h1 > span");
+    await expect(hero.locator("h1")).toHaveText("Your agents forget. Mash doesn’t.");
+    await expect(lines).toHaveCount(2);
+    await expect(lines.nth(0).locator("svg")).toHaveCount(0);
+    await expect(hero.locator("h1 svg")).toHaveCount(1);
+    const rule = lines.nth(1).locator(".accent svg.rule");
+    // Once the entrance has played the stroke is whole, and the stylesheet's again.
+    await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+    await expect(hero).not.toHaveAttribute("data-motion");
+    const draw = rule.locator(".draw");
+    await expect.poll(() => draw.getAttribute("style")).toBeFalsy();
+    await expect(draw).toHaveCSS("stroke-dashoffset", "0px");
+    await expect(rule).toBeVisible();
+    // The pat of butter in the wordmark, and the words stay ink.
+    await expect(rule).toHaveCSS("fill", "rgb(245, 200, 75)");
+    const ink = await lines.nth(0).evaluate((line) => getComputedStyle(line).color);
+    await expect(lines.nth(1).locator(".accent")).toHaveCSS("color", ink);
+    const at = await lines
+      .nth(1)
+      .locator(".accent")
+      .evaluate((accent) => {
+        const words = document.createRange();
+        words.selectNodeContents(accent);
+        const box = (rect: DOMRect) => ({
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+        });
+        const stroke = accent.querySelector("svg > path");
+        const tagline = document.querySelector(".hero .tagline");
+        if (!stroke || !tagline) throw new Error("the stroke or the tagline is missing");
+        return {
+          words: box(words.getBoundingClientRect()),
+          stroke: box(stroke.getBoundingClientRect()),
+          size: Number.parseFloat(getComputedStyle(accent).fontSize),
+          tagline: tagline.getBoundingClientRect().top,
+        };
+      });
+    // The words are on one line, and the stroke runs from their first edge to their last.
+    expect(at.words.bottom - at.words.top).toBeLessThan(1.5 * at.size);
+    expect(Math.abs(at.stroke.left - at.words.left)).toBeLessThan(4);
+    expect(Math.abs(at.stroke.right - at.words.right)).toBeLessThan(4);
+    // It lies under the letters, clear of the paragraph below.
+    expect(at.stroke.top).toBeGreaterThan(at.words.top + 0.7 * at.size);
+    expect(at.stroke.bottom).toBeLessThan(at.tagline);
+  });
+}
+
 /** Scrolls to the bottom in small steps, as a reader would, so every scene plays. */
 async function scrollThrough(page: Page): Promise<void> {
   for (;;) {
@@ -474,6 +533,10 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
     await expect(part).toBeVisible();
     await expect(part).toHaveCSS("opacity", "1");
   }
+  // The stroke under the headline's last line is served whole.
+  const stroke = page.locator(".hero h1 > span").nth(1).locator("svg.rule");
+  await expect(stroke).toBeVisible();
+  await expect(stroke.locator(".draw")).toHaveCSS("stroke-dashoffset", "0px");
   await expect(welcome.locator(".quick-q b")).toHaveText("refresh token");
   await expect(welcome.locator(".quick li.on")).toHaveCount(1);
   for (const part of await welcome
