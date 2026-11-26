@@ -317,8 +317,9 @@ fn cargo_and_ci_make_semantic_support_unconditional() {
         .expect("search crate manifest");
     let top = std::fs::read_to_string(root.join("Cargo.toml")).expect("Cargo manifest");
     let ci = std::fs::read_to_string(root.join(".github/workflows/ci.yml")).expect("CI workflow");
-    let release = std::fs::read_to_string(root.join(".github/workflows/release.yml"))
-        .expect("release workflow");
+    // The release's build steps, shared with every main commit's artifacts.
+    let release = std::fs::read_to_string(root.join(".github/workflows/build-binaries.yml"))
+        .expect("release build workflow");
 
     assert!(manifest.contains("fastembed = { version = \"6.0.1\", default-features = false"));
     let configuration: toml::Table = toml::from_str(&manifest).unwrap();
