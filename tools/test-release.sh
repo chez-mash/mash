@@ -57,7 +57,7 @@ chmod 755 "$scratch/bin/gh"
 export FAKE_GH="$scratch" MASH_GH="$scratch/bin/gh"
 export FAKE_QUEUE="$scratch/queue" FAKE_QUEUE_REMOTE="$scratch/remote.git" FAKE_QUEUE_TOOL="$repository/tools/fake-queue-gh.sh"
 mkdir -p "$FAKE_QUEUE"
-export MASH_RELEASE_POLL=0 MASH_RELEASE_WAIT=2 MASH_RELEASE_OUTPUT="$scratch/out"
+export MASH_RELEASE_POLL=0 MASH_RELEASE_WAIT=2 MASH_QUEUE_ENTER=0 MASH_RELEASE_OUTPUT="$scratch/out"
 mark() { mkdir -p "$scratch/runs/$1"; echo "$3" > "$scratch/runs/$1/$2"; }
 
 # A repository of its own holding this checkout's files as they are now,

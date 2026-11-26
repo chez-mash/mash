@@ -13,7 +13,7 @@
 #                 default), `reject` (remove it, with a failed check), or
 #                 `own-check` (a required check fails on the pull request
 #                 itself, so it is never queued)
-#   no-queue      when present, `pr merge` fails as it does without a queue
+#   no-queue      when present, queueing fails as it does without a queue
 #   keep-branch   when present, a merged branch is left on the remote
 set -euo pipefail
 state=${FAKE_QUEUE:?} remote=${FAKE_QUEUE_REMOTE:?}
@@ -23,7 +23,7 @@ area=${1:-} action=${2:-}
 shift 2 || true
 address=https://github.example/fixture/mash
 
-head='' wanted=open title='' body='' number='' subject=''
+head='' wanted=open title='' body='' number='' subject='' mutation=no
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --head) head=$2; shift 2 ;;
@@ -31,7 +31,11 @@ while [[ $# -gt 0 ]]; do
         --title) title=$2; shift 2 ;;
         --body) body=$2; shift 2 ;;
         -F) [[ $2 != number=* ]] || number=${2#number=}; shift 2 ;;
-        --repo | --base | --json | --jq | --limit | -f) shift 2 ;;
+        -f)
+            [[ $2 != id=* ]] || number=${2#id=}
+            [[ $2 != query=*enqueuePullRequest* ]] || mutation=yes
+            shift 2 ;;
+        --repo | --base | --json | --jq | --limit) shift 2 ;;
         -*) shift ;;
         *) subject=$1; shift ;;
     esac
@@ -77,23 +81,24 @@ case "$area $action" in
         printf '%s\n' "$title" > "$state/prs/$pr/title"
         printf '%s\n' "$body" > "$state/prs/$pr/body"
         echo "$address/pull/$pr" ;;
-    'pr merge')
-        [[ ! -e $state/no-queue ]] || { echo 'Pull request is in clean status' >&2; exit 1; }
-        git -C "$remote" rev-parse "refs/heads/$(field "$subject" branch)" > "$state/prs/$subject/head"
-        echo 0 > "$state/prs/$subject/looks"
-        touch "$state/prs/$subject/queued" ;;
+    # A pull request's id is its number here.
+    'pr view') echo "$subject" ;;
     'api graphql')
         removed=$(field "$number" removed)
-        if [[ $(field "$number" status) == merged ]]; then
+        verdict=$(cat "$state/verdict" 2> /dev/null || echo merge)
+        if [[ $mutation == yes ]]; then
+            [[ ! -e $state/no-queue ]] || { echo 'gh: the base branch has no merge queue' >&2; exit 1; }
+            [[ $verdict != own-check ]] || { echo 'gh: Pull request is not mergeable' >&2; exit 1; }
+            git -C "$remote" rev-parse "refs/heads/$(field "$number" branch)" > "$state/prs/$number/head"
+            echo 0 > "$state/prs/$number/looks"
+            touch "$state/prs/$number/queued"
+            echo QUEUED
+        elif [[ $(field "$number" status) == merged ]]; then
             row MERGED "$(field "$number" merged)" - - - - - - - - -
         elif [[ -e $state/prs/$number/queued ]]; then
             looks=$(($(field "$number" looks) + 1))
             echo "$looks" > "$state/prs/$number/looks"
-            verdict=$(cat "$state/verdict" 2> /dev/null || echo merge)
-            if [[ $verdict == own-check ]]; then
-                rm "$state/prs/$number/queued"
-                row OPEN - - - - yes "ci / required  $address/runs/7" - "${removed:--}" - -
-            elif [[ $looks -lt 2 ]]; then
+            if [[ $looks -lt 2 ]]; then
                 row OPEN - AWAITING_CHECKS 1 "$(field "$number" head)" - - 2030-01-01T00:00:00Z "${removed:--}" - -
             elif [[ $verdict == reject ]]; then
                 rm "$state/prs/$number/queued"
@@ -103,6 +108,8 @@ case "$area $action" in
                 merge "$number"
                 row MERGED "$(field "$number" merged)" - - - - - - - - -
             fi
+        elif [[ $verdict == own-check ]]; then
+            row OPEN - - - - - "ci / required  $address/runs/7" - "${removed:--}" - -
         else
             row OPEN - - - - - - - "${removed:--}" - -
         fi ;;

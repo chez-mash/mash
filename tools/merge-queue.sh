@@ -4,8 +4,9 @@
 # this, so the queue has one way in.
 #
 #   tools/merge-queue.sh submit BRANCH [--wait]
-#       open a pull request for BRANCH (or reuse its open one), ask GitHub to
-#       queue it, and print its address on standard output
+#       open a pull request for BRANCH (or reuse its open one), put it in the
+#       queue once its own checks have passed (about a minute for one opened
+#       here), and print its address on standard output
 #   tools/merge-queue.sh wait PR
 #       follow pull request number PR until it is merged, or say why it was not
 #
@@ -17,7 +18,9 @@
 #
 # Run it inside the repository. MASH_GH names another `gh`, MASH_ARTIFACT_REPO
 # another repository (OWNER/NAME), MASH_QUEUE_POLL the seconds between looks
-# (20) and MASH_QUEUE_WAIT how long to keep looking (5400).
+# (20), MASH_QUEUE_ENTER how long to wait for the pull request's own checks
+# before giving up on queueing it (1200) and MASH_QUEUE_WAIT how long to
+# follow it in the queue (5400).
 set -euo pipefail
 
 # A pull request this script opens exists only to be queued. The queue runs
@@ -36,6 +39,7 @@ die() { say "merge-queue: $*"; exit 1; }
 gh=${MASH_GH:-gh}
 poll=${MASH_QUEUE_POLL:-20}
 patience=${MASH_QUEUE_WAIT:-5400}
+entering=${MASH_QUEUE_ENTER:-1200}
 repository=${MASH_ARTIFACT_REPO:-}
 repository() {
     [[ -n $repository ]] || repository=$("$gh" repo view --json nameWithOwner --jq .nameWithOwner) ||
@@ -45,7 +49,7 @@ repository() {
 
 # One line about a pull request, tab-separated, "-" for a field that is empty:
 # state, merged commit, queue state, queue position, the queue's commit for it,
-# whether GitHub will queue it once its own checks pass, the required checks
+# whether auto-merge is set on it, the required checks
 # of its own that failed ("name  address; ..."), when it last entered and last
 # left the queue, the commit it had in the queue when it left, and why it left.
 query='
@@ -107,7 +111,7 @@ report_failed_checks() {
 command_wait() {
     [[ $# -ge 1 && $# -le 2 && $1 =~ ^[0-9]+$ ]] || usage
     local number=$1 since=${2:-} started=$SECONDS deadline=$((SECONDS + patience)) last='' unqueued=0 unread=0 queued_commit=-
-    local line state merged queue position queue_commit auto failed added removed removed_commit reason note
+    local line state merged queue position queue_commit _ failed added removed removed_commit reason note
     while :; do
         (( SECONDS < deadline )) || die "pull request #$number has not merged after ${patience}s; follow it with: tools/merge-queue.sh wait $number"
         # One unanswered question to GitHub must not end a long wait.
@@ -118,7 +122,7 @@ command_wait() {
             continue
         fi
         unread=0
-        IFS=$'\t' read -r state merged queue position queue_commit auto failed added removed removed_commit reason <<< "$line"
+        IFS=$'\t' read -r state merged queue position queue_commit _ failed added removed removed_commit reason <<< "$line"
         [[ $queue_commit == - ]] || queued_commit=$queue_commit
         case "$state" in
             MERGED)
@@ -141,18 +145,43 @@ command_wait() {
             say "  ${failed//; /$'\n'  }"
             say 'Fix it on the branch, then land again.'
             return 1
-        elif [[ $auto == yes ]]; then
-            note="waiting for the pull request's own checks before it is queued"
-            unqueued=0
         else
-            # Not queued, and nothing asks GitHub to queue it. Allow GitHub a
-            # few looks to catch up with a request it has only just accepted.
+            # Not queued. Allow GitHub a few looks to show an entry it has
+            # only just accepted.
             unqueued=$((unqueued + 1))
-            [[ $unqueued -le 3 ]] || die "pull request #$number is neither queued nor set to be; queue it with: gh pr merge $number --rebase --auto"
-            note='waiting for GitHub to queue it'
+            [[ $unqueued -le 3 ]] || die "pull request #$number is not in the merge queue; land it again."
+            note='waiting for GitHub to show it in the queue'
         fi
         [[ $note == "$last" ]] || say "Pull request #$number: $note..."
         last=$note
+        sleep "$poll"
+    done
+}
+
+# Put a pull request in the queue. GitHub accepts it only once the required
+# checks have passed on the pull request itself, so this asks until it does.
+# (Auto-merge is not used: `gh pr merge --auto` set it, and GitHub then left
+# pull requests with passing checks out of the queue.)
+enter() {
+    local number=$1 url=$2 name id deadline=$((SECONDS + entering)) answer told=no line state queue failed _
+    name=$(repository)
+    id=$("$gh" pr view "$number" --repo "$name" --json id --jq .id) || die "could not read pull request #$number"
+    # shellcheck disable=SC2016 # GraphQL's own variable
+    while ! answer=$("$gh" api graphql -f "id=$id" --jq .data.enqueuePullRequest.mergeQueueEntry.state \
+        -f 'query=mutation($id: ID!) { enqueuePullRequest(input: {pullRequestId: $id}) { mergeQueueEntry { state } } }' 2>&1); do
+        if line=$(pull_request_state "$number"); then
+            IFS=$'\t' read -r state _ queue _ _ _ failed _ <<< "$line"
+            [[ $state != MERGED && $queue == - ]] || return 0
+            if [[ $failed != - ]]; then
+                say "Pull request #$number is not queued: a required check failed on the pull request itself ($url)."
+                say "  ${failed//; /$'\n'  }"
+                exit 1
+            fi
+        fi
+        (( SECONDS < deadline )) ||
+            die "GitHub did not accept pull request #$number for the merge queue ($url): $(printf '%s' "$answer" | tail -n 1). When the queue is switched off (tools/github-ruleset.sh show), land with: tools/worktree.sh land NAME --direct"
+        [[ $told == yes ]] || say "Pull request #$number: waiting for its own checks before GitHub will queue it..."
+        told=yes
         sleep "$poll"
     done
 }
@@ -193,11 +222,7 @@ command_submit() {
         [[ $number =~ ^[0-9]+$ ]] || die 'gh did not print the address of the new pull request'
         say "Opened pull request #$number for $branch."
     fi
-    # With a merge queue on main GitHub chooses the method (rebase) and queues
-    # the pull request as soon as its own checks have passed; --rebase only
-    # satisfies gh, which wants a method when nobody is there to ask.
-    "$gh" pr merge "$number" --repo "$name" --rebase --auto >&2 ||
-        die "GitHub did not accept pull request #$number for the merge queue ($url). When the queue is switched off (tools/github-ruleset.sh show), land with: tools/worktree.sh land --direct NAME"
+    enter "$number" "$url"
     say "Queued: $url"
     printf '%s\n' "$url"
     [[ $wait == no ]] || command_wait "$number" "$since"

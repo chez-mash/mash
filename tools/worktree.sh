@@ -182,7 +182,7 @@ command_land() {
         repo fetch --quiet --prune origin
         say "Landed $branch on origin/main. Remove the worktree with: tools/worktree.sh done $name"
     else
-        say "Queued $branch for main; nothing is on main until the queue's checks pass."
+        say "$branch is in the merge queue; nothing is on main until the queue's checks pass."
         say "Follow it with the pull request's number: tools/merge-queue.sh wait NUMBER   then: tools/worktree.sh done $name"
     fi
 }
