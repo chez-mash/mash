@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Git's pre-push hook: the fast checks for what this push changes.
+# Install with tools/install-hooks.sh; skip in an emergency with --no-verify.
+exec "$(git rev-parse --show-toplevel)/tools/pre-push.sh" --hook
