@@ -792,8 +792,11 @@ dashboard or website change, about two for `AGENTS.md`. The ruleset's
 five-minute wait applies only while fewer changes than its minimum group of
 one have passed, so it never delays anything. The queue does not
 wait for one change to finish before starting the next. Each queued change is
-tested on top of the ones ahead of it, up to three at once, so three changes
-landed together are all on `main` after about nine minutes, not twenty-seven. If
+tested on top of the ones ahead of it, up to three at once. Three changes
+landed together are not on `main` in nine minutes, though: the organisation's
+plan runs 20 jobs at a time across the whole repository, a Rust change asks
+for about ten at its start, and the rest wait for a runner (see [The merge
+queue's caches](#the-merge-queues-caches) for a measured case). If
 one of them fails, it leaves the queue and the ones behind it are tested
 again without it. Up to five that have passed merge in one step.
 
@@ -1131,7 +1134,8 @@ to the required check passing:
 | `ci.yml` | 11 to 15 min (fourteen runs that day) | 6 min 42 s |
 
 The times after are from manual runs of both workflows on a branch, which
-read `main`'s caches as a group does, an hour after those were first saved:
+read `main`'s caches as a group does, an hour after those were first saved,
+while little else was running:
 
 | Job | Total | Of which |
 |---|---|---|
@@ -1185,7 +1189,24 @@ and a change to a crate near the bottom (`mash-model`, `mash-storage`) still
 compiles nearly all of ours, eight and a half minutes on Windows ARM in the
 release profile: that job is then the slowest again.
 
+**When the queue is busy the limit is runners, not compiling.** GitHub runs
+20 jobs at once for this organisation's plan, over every workflow in the
+repository. The jobs of a Rust change add up to the same 42 minutes of runner
+time as before, but ask for about ten runners at once where they used to ask
+for four. The first change landed after this one (pull request 27) was tested
+while two other groups, the per-commit binary builds and another branch's
+builds were running: its jobs waited between one and a half and seven minutes
+for a runner, and `windows.yml` took 10 min 29 s and `ci.yml` 12 min, of
+which `rust` ran for 5 min 56 s. It was also queued behind a release, whose
+new version changes `Cargo.lock`, so Windows ARM compiled all of our crates
+(8 min 40 s). A change to `Cargo.lock` itself (pull request 23) took 11 min
+24 s in `windows.yml`, 1 min 48 s of it the summary job waiting for a runner.
+
 Not done, and why:
+
+- Raising the number of jobs that run at once, which is the organisation's
+  plan (20 on Free, 60 on Team). On a busy afternoon this is worth
+  more than anything left to cache.
 
 - Caching our own crates for the debug and test builds, as the binary builds
   do. It would save a change that touches a top crate about two minutes in
