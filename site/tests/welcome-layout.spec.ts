@@ -4,6 +4,8 @@ for (const [name, side] of [
   ["search", "left"],
   ["mashy", "right"],
   ["memory", "left"],
+  ["reading", "right"],
+  ["machines", "left"],
   ["search", "below"],
 ] as const) {
   const stacked = side === "below";
