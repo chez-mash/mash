@@ -44,6 +44,7 @@
     "src/App.svelte",
     "src/components/TopBar.svelte",
     "src/components/Rail.svelte",
+    "src/components/UpdateBanner.svelte",
     "src/lib/components/Icon.svelte"
   ],
   "routes": {
