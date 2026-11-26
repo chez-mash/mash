@@ -100,32 +100,34 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   under the island (`scroll-padding-top`), and the pinned panel holds below it.
 - **The surface showcase** (`Surfaces.astro`, one file per surface in
   `components/surfaces/`) is the first band: one of Mash's surfaces in its
-  window (the dashboard, the Raycast extension, an agent's session with the
-  plugin, the terminal), a dock of icon buttons that chooses it, and a
-  caption with a link. A caption may carry a second link (`also`) for
-  something true the page shows nowhere else: exporting a chat beside the
-  dashboard's, any MCP client beside the plugin's. The menu bar panel is not
-  a surface here: the quick search band below shows it, and that band's
-  heading is where the page says Mash lives in the menu bar or tray. The dock is a tablist. As
+  window (the dashboard, the menu bar panel, the Raycast extension, an
+  agent's session with the plugin, the terminal), a dock of icon buttons
+  that chooses it, and a caption with a link. A caption may carry a second
+  link (`also`) for something true the page shows nowhere else: exporting a
+  chat beside the dashboard's, any MCP client beside the plugin's. The dock is a tablist. As
   served the first surface shows and each button is a link to that
   surface's guide; `site/src/surfaces.ts` turns the links into tabs (click,
   arrow keys, Home and End, a sideways swipe on the picture) and changes
   the surface every five seconds while the picture is on screen and not
   pointed at or focused. A choice rests that for twenty seconds. Every surface lies
   in one cell and every caption in another, so the band keeps its height.
-  Each surface shows a different moment from the bands below it.
+  Each surface shows a different moment from the bands below it: the menu
+  bar panel before a search, where the quick search band shows one typed.
   Add a surface by adding its component and its entry in `Surfaces.astro`;
   mark what should type itself `data-typed` and what should rise `data-in`.
 
 - **Bands.** Each idea is one full-width band: a stamped label, a heading,
-  a few points with icons, and a small window or set of cards drawn the way
+  a paragraph, and a small window or set of cards drawn the way
   the dashboard draws them (search results, Mashy's answer, a saved
-  decision). The windows are live HTML styled by
+  decision). A heading is a short claim, which may have a muted second half
+  that completes it (“Find it. However you remember it.”). A sentence that
+  explains goes in the paragraph under the heading (`.blurb`), never in the
+  heading and never as a list of points; a key it names is a `kbd`. The windows are live HTML styled by
   `site/src/styles/welcome-panels.css`, each exposed as one image named for
   what it shows. On wide screens the copy sits beside the window and the side
   alternates; on narrow screens the copy comes first. Bands take the theme's
   surfaces (beige, cream, butter, and lilac only for Mashy).
-- **Motion** is nine small scenes built around the product windows
+- **Motion** is ten small scenes built around the product windows
   (`site/src/motion.ts`, with GSAP and ScrollTrigger), drawn first as the
   motion storyboard on the design canvas. `site/src/welcome.ts` fetches that
   script on this page only, after the page is drawn; no other page loads GSAP.
@@ -142,6 +144,12 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
     decision slides out from under the message it came from; the agents come
     in one by one; the figures count up; Mashy bobs and types his first
     answer; the closing card's icon rises as the hero's did.
+  - Ferris, in the open source band, draws himself a stroke at a time and
+    then gets his eyes and smile. The drawing (`site/src/art/ferris.svg`) is
+    strokes only, outlined from rustacean.net's public-domain artwork, in
+    the page's ink; each stroke is one unit long (`pathLength="1"`), so the
+    scene draws it with a dash offset. The projects Mash is built with sit
+    under him.
   - The surface showcase plays each change (`motion/surfaces.ts`): the
     picture slides out the way the change goes and the next slides in, its
     search types and its rows rise, the chosen dock button grows and lifts,
@@ -159,7 +167,8 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   - The motion plays for everyone, including readers who prefer reduced
     motion, so it stays small: no flashing, no parallax, no zooms. (Mashy's
     own carousel still waits for a click under that preference.)
-  - Scenes move transform, opacity, clip-path and background-size only, and
+  - Scenes move transform, opacity, clip-path, background-size and a
+    stroke's dash offset only, and
     hand each element back to the stylesheet when they finish. Nothing
     changes place: typed text keeps its full width, a counting figure keeps
     its final width, and the quick search list keeps its height while empty.
@@ -184,10 +193,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   window changes. `site/public/og.png`, the social preview, is the top of the
   landing page at 1440 by 756 in the light scheme with a Mac user agent,
   scaled to 1200 by 630; capture it again when the hero changes. Use fictional history from the demo.
-- **The performance figures** are the two search measurements, side by side
-  at every width, with their conditions folded under them (“How these were
-  measured”). The page shows no GPU embedding figures; those stay in the
-  README and `docs/configuration.md`. The 66 ms search was one exact-phrase search timed
+- **The performance figures** are four measurements, four to a row on a wide
+  screen and two below 62rem, with their conditions folded
+  under them (“How these were measured”). The GPU figures come from the README and
+  `docs/configuration.md`; DirectML on Windows is on by default, the NVIDIA
+  worker and GPU reranking are experimental and opt-in, and the page says which. The 66 ms search was one exact-phrase search timed
   by Mash's own diagnostics on a development machine on 2026-11-20 (1,137
   chats, about 103,000 searchable messages); a common word took 0.8 to 1 s
   there. The 20 MB is the resident memory of idle `mash mcp` processes on the

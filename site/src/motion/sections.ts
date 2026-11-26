@@ -1,7 +1,7 @@
 /**
  * The scenes that play once as their band scrolls into view: the agents, the
- * search results, the saved decision and the stats, and the plain fade every
- * other band gets.
+ * search results, the saved decision, the stats and Ferris, and the plain
+ * fade every other band gets.
  */
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -150,6 +150,40 @@ export function stats(list: HTMLElement): Stop {
   return restore;
 }
 
+/**
+ * G. Ferris draws himself: the shell first, then each claw and leg, a stroke
+ * at a time, and last the eyes and the smile. Every stroke is one unit long
+ * (`pathLength="1"`), so one dash hides it and the dash's offset draws it.
+ * Until its turn a stroke is unseen, because a round cap shows as a dot at
+ * the start of even a wholly offset dash.
+ */
+export function ferris(drawing: SVGElement): void {
+  if (!below(drawing)) return;
+  const strokes = all<SVGPathElement>(drawing, "path[pathLength]");
+  const solids = all<SVGPathElement>(drawing, ".dot");
+  const timeline = gsap.timeline({ paused: true });
+  gsap.set(strokes, { strokeDasharray: 1, strokeDashoffset: 1, opacity: 0 });
+  gsap.set(solids, { opacity: 0 });
+  timeline.set(strokes, { opacity: 1, stagger: 0.14 }, 0.15);
+  timeline.to(
+    strokes,
+    {
+      strokeDashoffset: 0,
+      duration: 0.9,
+      ease: "power2.inOut",
+      stagger: 0.14,
+      clearProps: "strokeDasharray,strokeDashoffset,opacity",
+    },
+    0.15,
+  );
+  timeline.to(
+    solids,
+    { opacity: 1, duration: 0.3, ease: "power2.out", stagger: 0.06, clearProps: "opacity" },
+    0.15 + 0.9 + 0.14 * (strokes.length - 1) - 0.2,
+  );
+  playOnce(drawing, timeline, "top 85%");
+}
+
 /** Every other band fades up as it scrolls into view. `shown` marks a band that has arrived. */
 export function bands(welcome: HTMLElement, screen: Screen): void {
   for (const band of all(welcome, "[data-reveal]")) {
@@ -158,7 +192,7 @@ export function bands(welcome: HTMLElement, screen: Screen): void {
     // A transform on the pinned panel's wrapper would unpin it, so its parts fade separately.
     const parts =
       screen.pins && band.matches(".shortcuts")
-        ? { rise: all(band, "h2"), fade: all(band, ".desk") }
+        ? { rise: all(band, ".head"), fade: all(band, ".desk") }
         : null;
     if (staged || !below(band)) {
       band.classList.add("shown");

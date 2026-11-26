@@ -11,6 +11,7 @@ import type { IconName } from "../icons.ts";
 import LineIcon from "./LineIcon.astro";
 import AgentSurface from "./surfaces/AgentSurface.astro";
 import DashboardSurface from "./surfaces/DashboardSurface.astro";
+import MenuBarSurface from "./surfaces/MenuBarSurface.astro";
 import RaycastSurface from "./surfaces/RaycastSurface.astro";
 import TerminalSurface from "./surfaces/TerminalSurface.astro";
 
@@ -45,6 +46,18 @@ const surfaces: Surface[] = [
     shows:
       "The Mash dashboard: a list of chats from Claude Code, Codex, Cursor and OpenCode beside one of them, where a decision about sign-in tokens was saved from the reader’s own message.",
     Picture: DashboardSurface,
+  },
+  {
+    id: "menu-bar",
+    label: "Menu bar",
+    icon: "search",
+    claim: "Always within reach.",
+    says: "Mash sits in your menu bar or tray, with your recent chats one click away.",
+    href: "/downloads/#desktop-app",
+    more: "Get the desktop app",
+    shows:
+      "The desktop app’s panel under Mash’s icon in the menu bar, before anything is typed: the five most recent chats, from Claude Code, Codex, Cursor and OpenCode.",
+    Picture: MenuBarSurface,
   },
   {
     id: "raycast",
@@ -190,9 +203,9 @@ const [first] = surfaces;
      (the chosen one grows by transform), so the tag's place follows from
      the chosen tile's number, --at. */
   .dock-area {
-    --tile: 3.25rem;
-    --gap: 0.625rem;
-    --pad: 0.625rem;
+    --tile: 3rem;
+    --gap: 0.5rem;
+    --pad: 0.5rem;
     position: relative;
     margin-top: 1rem;
     padding-top: 2.875rem;
@@ -289,8 +302,7 @@ const [first] = surfaces;
 
   @media (width >= 40rem) {
     .dock-area {
-      --tile: 3.5rem;
-      --gap: 0.75rem;
+      --tile: 3.25rem;
     }
   }
   @media (width < 40rem) {
