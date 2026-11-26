@@ -9,7 +9,9 @@
       "!src/lib/contract.ts",
       "!openapi.json",
       "!node_modules",
-      "!.svelte-check"
+      "!.svelte-check",
+      "!visual/results",
+      "!visual/report"
     ]
   },
   "formatter": {
@@ -36,6 +38,16 @@
           "correctness": {
             "noUnusedVariables": "off",
             "noUnusedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["visual/*.css"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
           }
         }
       }

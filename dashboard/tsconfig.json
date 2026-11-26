@@ -23,8 +23,10 @@
     "src/**/*.ts",
     "src/**/*.svelte",
     "e2e/**/*.ts",
+    "visual/**/*.ts",
     "vite.config.ts",
     "knip.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "playwright.visual.config.ts"
   ]
 }

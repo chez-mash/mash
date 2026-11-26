@@ -11,3 +11,5 @@ public/mashy.png
 public/screenshots/
 .agentation-runtime/
 tests/review/.fixture/
+visual/results/
+visual/report/

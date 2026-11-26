@@ -2,3 +2,5 @@ node_modules/
 dist/
 dist-demo/
 .svelte-check/
+visual/results/
+visual/report/

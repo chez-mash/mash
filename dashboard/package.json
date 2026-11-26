@@ -17,7 +17,9 @@
     "test:changed": "vitest run --changed origin/main",
     "test:browser": "playwright test",
     "e2e:affected": "python3 ../tools/affected_tests.py --run",
-    "knip": "knip"
+    "knip": "knip",
+    "visual": "bash ../tools/visual.sh dashboard",
+    "visual:update": "bash ../tools/visual.sh dashboard --update"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.5",

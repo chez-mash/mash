@@ -6,11 +6,20 @@
     // Named by path in astro.config.mjs (routeMiddleware).
     "src/routeData.ts",
     // Read by the agentation-review command (`pnpm dev:review`).
-    "agentation-review.config.mjs"
+    "agentation-review.config.mjs",
+    // Run by tools/visual.sh (`pnpm visual`) with its own configuration.
+    "playwright.visual.config.ts",
+    "visual/**/*.spec.ts"
   ],
   // src/content/docs is written by `pnpm prepare-content`; its pages import
   // components, so `pnpm knip` prepares the content first.
-  "project": ["src/**/*.{ts,astro,mdx}", "scripts/**/*.ts", "tests/**/*.ts", "*.{ts,mjs}"],
+  "project": [
+    "src/**/*.{ts,astro,mdx}",
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "visual/**/*.ts",
+    "*.{ts,mjs}"
+  ],
   "ignoreDependencies": [
     // Stylesheets named as strings in astro.config.mjs (customCss).
     "@fontsource/geist",

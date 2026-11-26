@@ -16,7 +16,9 @@
     "test": "vitest run scripts",
     "test:browser": "playwright test",
     "test:review": "playwright test --config playwright.review.config.ts",
-    "knip": "pnpm prepare-content && knip"
+    "knip": "pnpm prepare-content && knip",
+    "visual": "bash ../tools/visual.sh site",
+    "visual:update": "bash ../tools/visual.sh site --update"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.9",

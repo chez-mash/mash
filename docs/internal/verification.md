@@ -11,6 +11,7 @@ The entry points are:
 | Bounded protocol exploration | `make protocol-check` | Explicit `make protocol-tools` installation |
 | Revision/freshness mutation audit | `make mutation-check` | Explicit `make mutation-tools` installation |
 | Dashboard service auth/schema audit | `make mutation-services` | Explicit `make mutation-tools` installation |
+| Visual baselines of the dashboard and the site | `bash tools/visual.sh` | Podman or Docker, and `node_modules` in `dashboard/` and `site/` |
 
 Mutation audits remain explicit because they rebuild and retest each variant.
 On Xenia all Make targets use `agent-test` for heavy work. No check installs
@@ -206,3 +207,114 @@ they do not demonstrate detection. Keep baseline failures visible. Changing the
 scope requires reviewing the selected tests too. Run audits manually for relevant
 changes or periodic test reviews; ordinary CI runs the unit and backend
 regressions without paying mutation build costs on every push.
+
+## Visual baselines
+
+The dashboard's and the site's main pages are kept as pictures in the
+repository, and a test compares what the pages look like now with those
+pictures (Playwright's `toHaveScreenshot`). A page that drifts, such as a
+changed colour, a moved control or a font that stopped loading, fails that
+test instead of waiting for someone to notice. The pictures show the layout
+and the theme; the ordinary browser tests still own behaviour.
+
+### What is covered
+
+| | Pages | Variants | Pictures |
+| --- | --- | --- | --- |
+| Dashboard (`dashboard/visual/`) | Overview, search results for "checkout", the chat list, a chat from its top, a chat with subagents, memory, a record, machines, a machine, agents, an agent, projects, a project, services, settings, tools, export, the fleet manager, viewing history, setup's review step, the quick panel empty and typed, and three open states: a filter menu, the viewing switcher and Mashy's panel | 1280×860 light and dark, 390×844 light; the overview, a chat and memory also on a dark phone | 78 |
+| Site (`site/visual/`) | The landing page (the hero, each band at rest, and the pinned quick search panel before and after its scene), a guide (Search across your machines), downloads, supported agents and the 404 page | 1440×900 light and dark, 390×844 light | 55 |
+
+The dashboard pictures come from the demo build (`pnpm build:demo`) and its
+made-up history, so they need no index and no `mash dash`. A picture is of
+the screen, not of the whole page: apart from the landing page, which is
+taken band by band to its footer, what is below the first screen is not
+compared.
+
+### Run it
+
+```bash
+bash tools/visual.sh              # compare both; `pnpm visual` in dashboard/ or site/ compares one
+bash tools/visual.sh all --update # take every picture again; `pnpm visual:update` for one package
+bash tools/visual.sh dashboard -- -g chat   # only the pictures whose name matches
+```
+
+It needs `node_modules` in the package (`pnpm install --frozen-lockfile`) and
+Podman or Docker. Both packages together take about a minute on Xenia,
+builds included. It is not part of `tools/pre-push.sh`, which stays at a few
+seconds; CI runs it.
+
+Fonts and antialiasing differ between systems, so a picture taken on a Mac
+never matches one taken on Linux. The browser therefore always runs in the
+Playwright container image for the installed Playwright version
+(`mcr.microsoft.com/playwright:vVERSION-noble`), locally and in CI, without
+network access and with a memory limit. The package is built on the host
+first; only the browser and the preview server run in the container. The
+Playwright configurations (`playwright.visual.config.ts`) refuse to run
+outside it. Upgrading `@playwright/test` changes the browser and so the
+pictures: update the baselines in the same change.
+
+### What keeps a picture the same
+
+A picture is only worth comparing if nothing in it changes by itself:
+
+- The clock is fixed. The demo dates its history from the browser's clock,
+  so "11m" and "Good evening" stay as they are. Locale and time zone are
+  fixed too, at one device pixel per CSS pixel.
+- CSS animations and transitions are off and the caret is hidden. Fonts and
+  images have arrived before a picture is taken.
+- The landing page's scenes are scripted motion, which no setting switches
+  off. Its test installs a stopped clock before the page loads and plays
+  each scene to its end by moving that clock, band by band; the pinned quick
+  search panel is taken at the start of its hold and near its end. A band is
+  pictured only once none of its parts still holds the opacity or the place a
+  scene gave it, and is played again if a scene missed its scroll. A band
+  taller than the screen is taken a screen at a time (`landing-memory.png`,
+  `landing-memory-2.png`): a picture of a whole tall element makes Playwright
+  resize and scroll the page, and the scenes answer both by starting over.
+- What is not Mash's own is left out: scrollbars, the demo's banner, and the
+  build and contract hashes on the tools page (masked, drawn as a pink box).
+
+The container gives the same pixels on every run, so the tolerance only
+absorbs rounding: a pixel counts as changed past a colour distance of 0.02
+(a few levels of one channel), and a picture fails once forty of its pixels
+changed. A slightly retinted surface or one changed icon fails. Do not loosen
+either number to get a picture through. When adding a page, run
+`bash tools/visual.sh all --exact` a few times: it allows no difference at
+all, and a picture that fails it has something in it that moves.
+
+### When a change is meant to look different
+
+1. Run `bash tools/visual.sh all --update` (or `pnpm visual:update` in the
+   package). A full update removes the old pictures first, so a renamed page
+   leaves nothing behind.
+2. Look at the changed pictures (`git status`, then open them, or compare in
+   the pull request). Every changed picture should be explained by the
+   change you made.
+3. Commit the pictures with the change.
+
+Without a container at hand, run the **Update visual baselines** workflow on
+the branch (`gh workflow run visual-update.yml --ref BRANCH`): it takes the
+pictures again in CI and commits them to that branch. A commit made by a
+workflow does not start other workflows, so the comparison runs again with
+the next push.
+
+Never update the pictures to silence a difference you cannot explain. That
+difference is the finding.
+
+### Reading a failure
+
+Locally the script names the report: open
+`PACKAGE/visual/report/index.html`, or look in `PACKAGE/visual/results`,
+where each failed picture has an `-expected`, an `-actual` and a `-diff`
+image (the changed pixels in red). In CI the dashboard is compared by the
+**Visual baselines** workflow and the site by the `visual` job of
+**Documentation**; a failed run keeps the same report and pictures as an
+artifact named `dashboard-visual-differences` or `site-visual-differences`.
+The site's comparison does not hold back publishing.
+
+A difference in one picture usually means the page changed. The same small
+difference in every picture points at something shared: a token, the font,
+the rail, or a new Playwright version.
+
+The pictures are ordinary files in Git, about 13 MB. Each update adds the
+changed pictures to the history, so keep updates to deliberate changes.

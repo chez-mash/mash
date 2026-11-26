@@ -1,0 +1,68 @@
+name: Update visual baselines
+
+# Takes the dashboard's and the site's baseline pictures again and commits
+# them to the branch this is run on. For a change that is meant to look
+# different: review the pictures in the commit it makes. Never run it to
+# silence a difference nobody can explain.
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Which pictures to take again
+        type: choice
+        options: [all, dashboard, site]
+        default: all
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visual-update-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            site/pnpm-lock.yaml
+            dashboard/pnpm-lock.yaml
+      - name: Install dependencies
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          for package in dashboard site; do
+            if [[ $PACKAGE == all || $PACKAGE == "$package" ]]; then
+              (cd "$package" && pnpm install --frozen-lockfile)
+            fi
+          done
+      - name: Take the pictures again
+        env:
+          MASH_VISUAL_ENGINE: docker
+          PACKAGE: ${{ inputs.package }}
+        run: bash tools/visual.sh "$PACKAGE" --update
+      - name: Commit the pictures
+        run: |
+          git add --all dashboard/visual/baselines site/visual/baselines
+          if git diff --cached --quiet; then
+            echo "The pictures are unchanged; nothing to commit." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "Pictures changed:"
+            echo
+            git diff --cached --name-status | sed 's/^/    /'
+          } >> "$GITHUB_STEP_SUMMARY"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --message "Update the visual baselines"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

@@ -3,10 +3,10 @@ name: Documentation
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', 'tools/visual.sh', '.github/workflows/docs.yml']
   pull_request:
     branches: [main]
-    paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'site/**', 'README.md', 'dashboard/**', 'tools/visual.sh', '.github/workflows/docs.yml']
   workflow_dispatch:
   # A release adds packages to the apt repository; republish so they are served.
   workflow_run:
@@ -80,6 +80,43 @@ jobs:
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: site/dist
+
+  # Compares the site's main pages with their committed pictures
+  # (site/visual/baselines), in the same Playwright container image the
+  # pictures were taken in. It does not hold back publishing. See
+  # docs/internal/verification.md, "Visual baselines".
+  visual:
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install the site's dependencies
+        working-directory: site
+        run: pnpm install --frozen-lockfile
+      - name: Compare the site with its baselines
+        env:
+          MASH_VISUAL_ENGINE: docker
+        run: bash tools/visual.sh site
+      # Expected, actual and difference pictures, and a report to open.
+      - name: Keep the pictures that differ
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: site-visual-differences
+          path: |
+            site/visual/report
+            site/visual/results
+          if-no-files-found: ignore
+          retention-days: 14
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

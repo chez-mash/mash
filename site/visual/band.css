@@ -1,0 +1,6 @@
+/* Added for a picture of one band of the landing page: the header floats
+   over the top of the page and would cover the band's first lines. */
+header.header,
+.mash-header {
+  visibility: hidden !important;
+}

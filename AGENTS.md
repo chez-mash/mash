@@ -283,6 +283,13 @@ change can affect; see "Fast loops" in `docs/internal/verification.md`.
 Render all chat content as text or through a sanitizer; archived history is
 untrusted.
 
+The main pages of the dashboard and the site are compared with committed
+pictures (`bash tools/visual.sh`; see "Visual baselines" in
+`docs/internal/verification.md`). A deliberate visual change must update the
+baselines in the same change (`bash tools/visual.sh all --update`, then review
+the pictures). Never update baselines to silence a difference you cannot
+explain.
+
 Keep linked preview servers available while the user reviews them. Build and
 validate a replacement on a separate endpoint before sharing it; do not stop an
 in-use preview as part of a test or rebuild. Record the preview PID, address,

@@ -1,0 +1,12 @@
+/* Applied while a baseline picture is taken: what the system draws, not the
+   site, is taken out. */
+
+/* Scrollbars belong to the system. */
+* {
+  scrollbar-width: none !important;
+}
+
+/* Mashy bobs for as long as he is on screen; a picture takes him at rest. */
+.mash-welcome .mashy-face {
+  transform: none !important;
+}

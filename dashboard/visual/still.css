@@ -1,0 +1,12 @@
+/* Applied while a baseline picture is taken: what is not part of the
+   dashboard people install, or is drawn by the system, is taken out. */
+
+/* The demo's own banner. */
+aside.demo {
+  display: none !important;
+}
+
+/* Scrollbars belong to the system, not to the dashboard. */
+* {
+  scrollbar-width: none !important;
+}

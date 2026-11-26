@@ -11,12 +11,18 @@
       "!test-results",
       "!playwright-report",
       "!.agentation-runtime",
-      "!tests/review/.fixture"
+      "!tests/review/.fixture",
+      "!visual/results",
+      "!visual/report"
     ]
   },
   "formatter": { "indentStyle": "space", "lineWidth": 100 },
   "linter": { "enabled": true },
   "overrides": [
+    {
+      "includes": ["visual/*.css"],
+      "linter": { "rules": { "complexity": { "noImportantStyles": "off" } } }
+    },
     {
       "includes": ["**/*.astro"],
       "linter": {

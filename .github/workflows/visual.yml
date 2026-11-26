@@ -1,0 +1,54 @@
+name: Visual baselines
+
+# Compares the dashboard's main pages with their committed pictures
+# (dashboard/visual/baselines), in the same Playwright container image the
+# pictures were taken in. The site's pages are compared by the Documentation
+# workflow. See docs/internal/verification.md, "Visual baselines".
+on:
+  push:
+    branches: [main]
+    paths: ['dashboard/**', 'tools/visual.sh', '.github/workflows/visual.yml']
+  pull_request:
+    branches: [main]
+    paths: ['dashboard/**', 'tools/visual.sh', '.github/workflows/visual.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Install the dashboard's dependencies
+        working-directory: dashboard
+        run: pnpm install --frozen-lockfile
+      - name: Compare the dashboard with its baselines
+        env:
+          MASH_VISUAL_ENGINE: docker
+        run: bash tools/visual.sh dashboard
+      # Expected, actual and difference pictures, and a report to open.
+      - name: Keep the pictures that differ
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: dashboard-visual-differences
+          path: |
+            dashboard/visual/report
+            dashboard/visual/results
+          if-no-files-found: ignore
+          retention-days: 14
