@@ -97,7 +97,7 @@ git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
-cargo +stable install --locked --path .
+cargo install --locked --path .
 ```
 
 インストール済みの Mash にダッシュボードを追加する場合は、ビルドする前に、前回インストールしたリビジョンをチェックアウトしてください。

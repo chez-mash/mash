@@ -126,8 +126,8 @@ to https://getmash.io/installation/. If there is no prebuilt release for the
 system, build from source. To give the person a working browser dashboard,
 follow https://getmash.io/install-methods/#include-the-web-dashboard. This
 builds the web files first and then compiles Mash from the same checkout.
-It needs Git, Node.js 24+ and a stable Rust toolchain. Ask before installing
-any missing tools.
+It needs Git, Node.js 24+ and Rust installed with rustup, which downloads
+the compiler the checkout names. Ask before installing any missing tools.
 
 If the person only wants terminal search and agent tools, use the shorter
 source command. It produces a build without the dashboard.

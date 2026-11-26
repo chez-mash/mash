@@ -92,7 +92,7 @@ git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
-cargo +stable install --locked --path .
+cargo install --locked --path .
 ```
 
 如果想给现有安装加上网页面板，请先切换到已安装版本对应的修订再构建。完成后，

@@ -184,6 +184,132 @@ and never fails the landing. After a change that landed another way, run
 finishes, and a failed build leaves them. `--status` says which revision is
 served and `--stop` removes the unit.
 
+### The compiler
+
+One compiler builds everything: local builds, the Linux and Windows tests,
+the per-commit binaries, the desktop app and the releases. It is a nightly
+pinned to a date, `nightly-2026-11-22` (rustc 1.102.0-nightly), and
+`rust-toolchain.toml` is the only place that names it. rustup installs it for
+any `cargo` run in the checkout, and the workflows install it with
+`.github/actions/rust-toolchain`, which reads that file.
+
+**Published releases are therefore built with a nightly compiler. That is a
+trade-off, taken on purpose.** A nightly has had less use than a stable
+release and never gets a fix; the date is pinned so that the compiler which
+builds a release is the one every test of that commit ran with, and so that
+it changes only through a reviewed commit. What it buys, measured below:
+
+- Windows x64, the slowest of the binary builds, compiles about a fifth
+  faster than with stable 1.100 (our crates in the release profile: 342 s
+  against 424 s), and its debug builds about a tenth faster.
+- The parallel front end, which stable does not have, for every debug build.
+- The tests and the release use the same compiler. Before, `ci.yml` used
+  whatever nightly was newest that day and everything shipped used stable,
+  and the workflows needed `RUSTUP_TOOLCHAIN: stable` and `cargo +stable`
+  throughout to keep the two apart.
+
+What it costs, besides the risk above: on Linux and macOS the nightly builds
+the release profile 2 to 7% slower than stable did, and Cargo from stable
+Rust can no longer build inside the checkout, because `.cargo/config.toml`
+uses an unstable Cargo setting. The source itself must still compile with
+stable: the user guides offer `cargo +stable install --locked --git ...`,
+which reads neither file. `ci.yml`'s `stable-source` job checks exactly that,
+from outside the checkout, and is the only job that uses another compiler.
+
+To move the date:
+
+1. Pick a date and check that `rustc`, `cargo`, `rust-std`, `rustfmt` and
+   `clippy` exist for it on all five hosts (Linux x86-64 and ARM64, macOS
+   ARM64, Windows x64 and ARM64), and `rustc-codegen-cranelift` on Linux
+   x86-64: `https://static.rust-lang.org/dist/YYYY-MM-DD/channel-rust-nightly.toml`
+   lists them, and a nightly is sometimes published without one.
+2. Change `channel` in `rust-toolchain.toml`. Nothing else names the date.
+3. Locally, run `rustup component add rustc-codegen-cranelift-preview` in
+   the checkout (rustup installs the new toolchain first), then `just
+   iterate` on something. A new nightly brings new Clippy lints and can
+   rename an unstable flag: `rustc -Zunstable-options --help -v | grep jobs`
+   shows what the parallel front end's is called now (it was `-Zthreads`).
+4. Run `dev-artifacts.yml` and `desktop.yml` on the branch
+   (`gh workflow run ... --ref BRANCH`) and look at their smoke steps: the
+   merge queue builds only the Windows ARM binary in the release profile.
+5. Land it through the queue. That run compiles everything, and so does
+   every cache below once: the dependencies of the per-commit builds (the
+   first build on `main` compiles for 5 to 10 minutes for each target instead
+   of one to four), the Windows test dependencies (`warm`, about 10 minutes,
+   during which the queue's Windows jobs compile them themselves) and the
+   compiler cache (`ci-compiler`, the same). The caches of the old compiler
+   are deleted by the prune job as the new ones replace them; see [The merge
+   queue's caches](#the-merge-queues-caches).
+
+Do not move it in the days before a release: a release should be built by a
+compiler that `main` has been built and deployed with for a while.
+
+#### The parallel front end
+
+rustc can run its front end (parsing, type checking, borrow checking) on
+several threads: `-Zunstable-options --jobs-frontend=4` on this nightly.
+`.cargo/config.toml` sets it once, for the development profile, so it
+applies to every debug build wherever it runs: local builds and tests,
+Clippy, `ci.yml`, the Windows test jobs and the desktop app's tests. No
+workflow sets it. It is a profile setting and not `build.rustflags` because
+Cargo drops the latter whenever `RUSTFLAGS` or a target's own flags are set,
+and profile flags are added to those instead.
+
+The release profile does not get it, so the per-commit binaries, the desktop
+app and the releases compile with one front-end thread. Measured, it made
+optimized builds no faster on any runner and 3 to 5% slower on macOS and
+Linux ARM64. Four threads is the number for every machine: Cargo's job
+server caps the threads of all compilers together at its own `-j`, so the
+count needs no tuning to a runner's cores, and eight were no better than
+four on Xenia's sixteen.
+
+#### What was measured
+
+On 26 November 2026, on one commit. Runners differ by up to a factor of 1.5
+from one to the next (the same Windows build took 163 s and 249 s in two
+jobs of one run), so each job built all three variants on the same runner,
+in a different order from job to job. Seconds to compile our own crates with
+the dependencies already built, which is what a merge queue run or a
+per-commit build spends; medians, with the number of builds:
+
+| Build | Stable 1.100 | Pinned nightly | Pinned nightly, 4 threads |
+|---|---|---|---|
+| Linux x64 debug: the programs (6) | 35 | 33 | 30 |
+| Linux x64 debug: Clippy, all targets (6) | 26 | 28 | 29 |
+| Linux x64 debug: the test binaries (6) | 74 | 79 | 80 |
+| Windows x64 debug: the programs (6) | 64 | 58 | 54 |
+| Windows x64 debug: the library tests (6) | 132 | 126 | 124 |
+| Windows x64 debug: the CLI tests (6) | 21 | 18 | 17 |
+| Release, Linux x64 (2) | 202 | 206 | 206 |
+| Release, Linux ARM64 (2) | 194 | 198 | 204 |
+| Release, macOS ARM64 (2) | 294 | 303 | 315 |
+| Release, Windows x64 (2) | 424 | 342 | 341 |
+| Release, Windows ARM64 (2) | 331 | 335 | 332 |
+
+Compiling everything from nothing, in the same order of columns: Linux x64
+release 384, 398 and 401 s, Linux ARM64 372, 398 and 400 s, Windows x64 776,
+635 and 644 s, Windows ARM64 634, 625 and 665 s, the Linux debug programs
+108, 114 and 113 s and the Windows ones 231, 202 and 200 s. (On macOS and
+Windows whichever variant a job builds first is slower by a minute or more,
+so those medians of two are rougher than the rest.)
+
+So on GitHub's runners the front end's four threads are worth a few seconds
+in a debug build and nothing in an optimized one, and the compiler matters
+more than the flag: slower than stable on Linux and macOS, much faster on
+Windows x64. Why that is was not investigated.
+
+On Xenia (16 cores, in use by other work at the time, so each figure is
+three builds), rebuilding after touching our crates' sources:
+
+| Build | 1 thread | 4 threads | 8 threads |
+|---|---|---|---|
+| `cargo clippy --all-targets`, all our crates | 47, 46, 43 s | 39, 39, 34 s | 41, 36, 44 s |
+| `cargo build`, debug, all our crates | 62, 57, 63 s | 53, 56, 45 s | 55, 48, 45 s |
+| `cargo build-clif`, incremental, after touching `mash-model` (11 crates) | 24, 24, 30 s | 19, 20, 24 s | |
+| `cargo build-clif`, incremental, after touching `mash-app` (6 crates) | 11, 14, 12 s | 11, 10, 13 s | |
+
+That is where the flag earns its place: 10 to 20% of the edit loop.
+
 ### Linker
 
 On x86-64 Linux, `just iterate`, `just validate-dev`, `just dev-build` and the
@@ -259,11 +385,13 @@ include explicit expected counterexamples, including the historical replay
 certification bug; they supplement implementation tests rather than certify
 the Rust implementation.
 
-Use Cranelift for development builds and tests. Install the nightly component
-and use the Cargo aliases:
+Use Cranelift for development builds and tests. Install its component for
+the pinned compiler (run this in the checkout, and again after the date in
+`rust-toolchain.toml` moves; see [The compiler](#the-compiler)) and use the
+Cargo aliases:
 
 ```bash
-rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+rustup component add rustc-codegen-cranelift-preview
 cargo build-clif
 cargo run-clif -- status
 cargo test-clif
@@ -455,9 +583,10 @@ The shared tests require their disposable backend endpoint and
 cargo test-clif --lib --run-ignored only -j 1 -E 'test(labeled)' --success-output immediate
 ```
 
-The installed August 2026 nightly can hit a [Clippy compiler crash](https://github.com/rust-lang/rust/issues/161495)
-when checking async code. On that toolchain, use
-`RUSTFLAGS=-Znext-solver=no cargo clippy --all-targets -- -D warnings`.
+The August 2026 nightly could hit a [Clippy compiler crash](https://github.com/rust-lang/rust/issues/161495)
+when checking async code, so `just iterate` and `just validate-dev` still run
+Clippy with `-Znext-solver=no`. The pinned compiler passes without it, which
+is how CI runs Clippy.
 
 The storage integration tests need Qdrant 1.20+ and run with the rest of the
 suite; only those that also need installed models, the server binary or
@@ -535,7 +664,7 @@ the report.
 Tests embedded in production source files still contribute to those files'
 coverage, so assess uncovered behavior as well as the aggregate percentage.
 Coverage needs LLVM instrumentation; regular development continues to use
-Cranelift. On the affected nightly, use `RUSTFLAGS=-Znext-solver=no just coverage`.
+Cranelift.
 
 For bounded local build and CLI search measurements, use installed models and
 a dedicated disposable Qdrant instance. The script copies a bounded sample of
@@ -877,7 +1006,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 
 | Changed files | `ci.yml` | `windows.yml` | `frontends.yml` | `docs.yml` |
 |---|---|---|---|---|
-| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `lint`, `rust`, `rust-models`, `tooling` | both builds, the library and CLI tests, import | nothing | nothing |
+| Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `lint`, `rust`, `rust-models`, `stable-source`, `tooling` | both builds, the library and CLI tests, import | nothing | nothing |
 | `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build, pictures |
 | `docs/internal/*.md` (read by no build and no test) | nothing | nothing | nothing | build, pictures |
 | `site/` | nothing | nothing | nothing | build, pictures |
@@ -931,13 +1060,47 @@ it. Those builds are cached; a release is not. `release.yml` calls the same
 steps without `cache`, so a published binary is compiled from nothing and
 never depends on what an earlier run left behind.
 
+The per-commit builds are also compiled **without link-time optimization**,
+and a release with it. `Cargo.toml`'s release profile leaves `lto` at Cargo's
+default, which optimizes across the code units of each crate; with `cache`
+on, `build-binaries.yml` sets `CARGO_PROFILE_RELEASE_LTO=off` before
+anything else, and `desktop.yml` does the same for the engine it builds (not
+for the app, which keeps its own profile). So what `fleet.sh deploy` installs
+between releases, the engine inside a main-channel desktop build and the
+Windows ARM build the merge queue checks are all a little slower and, except
+on Windows, a little larger than the release of the same commit would be;
+`deploy --release` and the published downloads are not. A release cannot
+pick the setting up: it has no `cache`, the step is skipped, and the
+`Check the profile this build compiles with` step fails a release whose
+units are not all at the default, and a per-commit build whose crates are
+not at `off`. The two kinds could not share compiled objects in any case,
+because the key of the dependencies' cache includes the `CARGO_*` variables.
+
+What that buys and costs, measured on 26 November 2026 with both builds on
+the same runner (two runners for each target; seconds).:
+
+| | Linux x86_64 | Linux aarch64 | macOS arm64 | Windows x64 | Windows ARM64 |
+|---|---|---|---|---|---|
+| All of our crates, dependencies built: with | 188, 195 | 194, 202 | 371, 430 | 364, 272 | 326, 307 |
+| The same without | 131, 134 | 143, 146 | 313, 315 | 255, 202 | 226, 236 |
+| Everything from nothing: with | 359, 373 | 386, 395 | 910, 1069 | 688, 522 | 644, 616 |
+| The same without | 278, 296 | 312, 311 | 600, 608 | 520, 404 | 466, 472 |
+| `mash`, MB: with, without | 89.3, 93.3 | 87.3, 93.0 | 76.6, 81.2 | 61.7, 59.7 | 56.5, 55.1 |
+
+Our own crates compile a quarter to a third faster. On Linux x86_64, setting
+up and indexing a made-up history of 400 chats and 32,000 messages took the
+build without it 9.80 s against 9.72 s (8.35 s of processor time against
+8.21 s), and forty searches of it 2.38 s against 2.30 s (1.87 s against
+1.76 s): 1 to 2% slower to index and 3 to 6% slower to search, as medians of
+four runs each, with the same results on a second runner.
+
 With `cache: true` a build starts from two caches the last build on `main`
 saved, one pair for each target:
 
 | Cache | Holds | Replaced |
 |---|---|---|
 | `mash-artifacts-v1-<target>-release-…` (`Swatinem/rust-cache`) | The compiled dependencies and Cargo's downloads | When `Cargo.lock`, a manifest or the compiler changes |
-| `mash-artifacts-crates-v1-<target>-<lock>-<commit>` | This repository's own compiled crates, with a record of the files they were compiled from | By every build on `main` |
+| `mash-artifacts-crates-v1-<target>-<inputs>-<commit>` | This repository's own compiled crates, with a record of the files they were compiled from. `<inputs>` is one hash of `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml` and `build-binaries.yml`, so another compiler, other flags or another profile start it again from nothing | By every build on `main` |
 
 Cargo decides whether one of our crates is current by comparing file times,
 and a checkout stamps every file with the present, which on its own would
@@ -965,12 +1128,19 @@ then the whole job, in seconds. The workflow takes as long as its slowest job:
 | | Linux x86_64 | Linux aarch64 | macOS arm64 | Windows x64 | Workflow |
 |---|---|---|---|---|---|
 | Nothing cached: every build before, and a release | 416 / 490 | 420 / 485 | 773 / 816 | 784 / 847 | 14 to 18 min |
+| Nothing cached, with the pinned nightly and without link-time optimization: the first build after `Cargo.lock` or the compiler changes (run 45886477979) | 358 / 431 | 304 / 371 | 591 / 653 | 530 / 655 | 11 min |
+| A release with the pinned nightly, which keeps link-time optimization (run 45886466039, two targets) | 455 / 524 | | | 681 / 784 | |
 | Dependencies cached, all of our crates compiled | 324 / 426 | 272 / 362 | 620 / 685 | 667 / 751 | 12 min 38 s |
 | The same, with the entry points boxed (run 45868925921) | 185 / 332 | 185 / 307 | 335 / 420 | 535 / 661 | 11 min 1 s |
 | A dashboard-only commit | 139 / 237 | 121 / 202 | 289 / 362 | 206 / 287 | 6 min 8 s |
 | A commit that changes no source, while the command lines were in `mash` | 74 / 159 | 63 / 152 | 150 / 222 | 136 / 214 | 3 min 49 s |
 | A commit that changes no source, now: only `mash` is compiled | 3 / 105 | 7 / 97 | 14 / 69 | 42 / 132 | 2 min 16 s |
 | The same commit again | under 4 / 105 | under 4 / 95 | not measured | not measured | |
+
+Every row but the second and third was measured with stable Rust and with
+link-time optimization, before both changed; what each change did to them, measured on
+one runner at a time, is in the tables above and under [The
+compiler](#the-compiler).
 
 The dependencies are a fifth to a third of a build and our own crates the rest.
 The third row is therefore the most a commit should cost, and what the first
@@ -1108,17 +1278,17 @@ on a branch of its own, so what it saves is lost with the branch, and on
 `main` the test workflows skip their jobs for every commit the queue already
 tested, so they save nothing there either. Left like that, the queue's runs
 start from whatever `main` last saved before the queue existed: stale after
-the next change to `Cargo.lock`, and useless for `ci.yml` after the next
-nightly compiler, which is a new one every day.
+the next change to `Cargo.lock`, and useless once `rust-toolchain.toml`
+moves to another compiler.
 
 So nothing in the queue saves, and jobs that run only on `main` save what the
 queue reads:
 
 | What a queue run starts from | Read by | Saved on `main` by | When |
 |---|---|---|---|
-| `mash-windows-v2-x64-…`: the Windows x64 debug dependencies (about 600 MB) | `windows.yml` `build`, `lib-tests` | `windows.yml` `warm` | A new `Cargo.lock`, manifest or stable Rust |
+| `mash-windows-v2-x64-…`: the Windows x64 debug dependencies (about 600 MB) | `windows.yml` `build`, `lib-tests` | `windows.yml` `warm` | A new `Cargo.lock`, manifest, pinned compiler or `.cargo/config.toml` |
 | `mash-artifacts-v1-aarch64-pc-windows-msvc-release-…` and `mash-artifacts-crates-v1-aarch64-pc-windows-msvc-…`: the Windows ARM release dependencies and our own crates (about 550 MB) | `windows.yml` `build-arm64` | `queue-caches.yml` `windows-arm64` | Every commit that is not only `docs/`, `site/` or `raycast/` |
-| The compiler cache (`sccache/…`, one small cache per compiled crate) and `mash-Linux-cargo-sources-…` | `ci.yml` `rust` | `queue-caches.yml` `ci-compiler` | A new nightly or `Cargo.lock`; it also runs daily at 01:40 UTC |
+| The compiler cache (`sccache/…`, one small cache per compiled crate) and `mash-Linux-cargo-sources-…` | `ci.yml` `rust` | `queue-caches.yml` `ci-compiler` | A new pinned compiler, `.cargo/config.toml` or `Cargo.lock`; it also compiles daily at 01:40 UTC, nearly all of it answered from the cache, so every entry in use is read at least once a day |
 
 Each of the saving jobs first asks whether its cache exists, which takes about
 half a minute, and compiles only when it does not. `warm` asks
@@ -1126,7 +1296,7 @@ half a minute, and compiles only when it does not. `warm` asks
 hash of the compiler, `Cargo.lock`, the manifests and the workflow's `CARGO_*`
 and `RUST*` variables; that is also why `warm` lives in `windows.yml`, where it
 shares those variables with the jobs that read the cache. `ci-compiler` keeps a
-marker cache named after the compiler and `Cargo.lock`
+marker cache named after the compiler, `.cargo/config.toml` and `Cargo.lock`
 (`mash-ci-warmed-v1-…`), since the compiler cache has no single key to ask
 for; it carries a copy of `ci.yml`'s variables, and the two must change
 together. None of these jobs is part of a required check, and a failure in one
@@ -1137,21 +1307,26 @@ After a change to `Cargo.lock` lands, the groups that start before the saving
 jobs finish (10 to 15 minutes) restore the previous cache and compile the
 dependencies that changed.
 
-`windows.yml` sets `RUSTUP_TOOLCHAIN: stable` for every job. Without it, the
-cache action's `rustc -vV` installed the nightly toolchain
-`rust-toolchain.toml` names (50 s on x64, 85 s on ARM, in every job), and the
-key held that nightly's version, so the cache was abandoned whenever a new
-nightly was installed.
+Every job installs the compiler `rust-toolchain.toml` pins and sets no
+`RUSTUP_TOOLCHAIN`, so the cache keys hold that one compiler's version and
+change only when the date moves; see [The compiler](#the-compiler). While
+`rust-toolchain.toml` named a floating `nightly` and the Windows jobs
+compiled with stable, they had to set `RUSTUP_TOOLCHAIN: stable`: without
+it the cache action's `rustc -vV` installed that day's nightly (50 s on x64,
+85 s on ARM, in every job) and the key changed with it.
 
 The prune job of `dev-artifacts.yml` keeps these within the repository's
 10 GB: it deletes every `mash-windows-` and `mash-artifacts-` cache a newer
 one of its family replaced, and compiler cache entries nothing has read for
-two days (GitHub would keep a retired nightly's for seven).
+two days (GitHub would keep a replaced compiler's or dependency's for
+seven). The daily `ci-compiler` run reads the entries still in use, so they
+are never among those; it does not ask for its marker first, because with
+one compiler for months the marker would otherwise outlive the entries
+after two days in which no change ran `rust`.
 
 With these the repository holds about 6 GB: 2 GB for the per-commit binary
 builds, 0.6 GB for each of the two Windows rows above, 1.6 GB of pnpm stores
-(`setup-node`), and about 0.4 GB of compiler cache for each nightly still
-being read. The Linux import is not cached at all: from nothing its build
+(`setup-node`), and about 0.4 GB of compiler cache for the pinned compiler. The Linux import is not cached at all: from nothing its build
 takes two minutes, and restoring 450 MB of dependencies saved half a minute
 of that.
 
@@ -1212,8 +1387,8 @@ What changed, in the order of what it saved:
   that need the installed models or restart Qdrant are `rust-models`. The
   compiler cache makes what the three Rust jobs compile twice cheap: about a
   minute each.
-- No job installs the nightly toolchain to compile with stable, and none
-  saves a cache from a group.
+- No job installs one toolchain to compile with another, and none saves a
+  cache from a group.
 
 A change to `Cargo.lock` still costs a group the dependencies that changed,
 and a change to a crate near the bottom (`mash-model`, `mash-storage`) still
@@ -1245,10 +1420,6 @@ Not done, and why:
 - Building Windows ARM in the debug profile in the queue. It would take two
   minutes instead of up to nine, and would no longer be the build a release
   makes; `release.yml` would be the first to compile that target optimized.
-- Pinning `ci.yml`'s nightly. Each new nightly makes the first groups of the
-  day compile everything (three to four minutes more) until `ci-compiler`
-  has run; a pinned date would make that a deliberate, occasional step, and
-  would stop a new nightly's lints from failing unrelated changes.
 - Keeping the compiler cache current for our own crates by compiling every
   commit on `main`. Entries for crates a change does not touch would then be
   cache hits in the queue, at about 100 MB of new entries per commit.
@@ -1277,6 +1448,9 @@ workflow, which keeps release-profile `mash` and `mash-server` for Linux,
 macOS and Windows for 14 days. `fleet.sh deploy` downloads the ones for its
 exact commit, checks them against the checksum the build wrote, and installs
 them with the usual steps; with none it compiles and says why.
+Those per-commit builds are compiled without link-time optimization (see
+[The per-commit binary builds](#the-per-commit-binary-builds)); a deployment
+that compiles the commit itself, and a release, have it.
 `deploy --release vX.Y.Z` installs a published release's assets the same way,
 and on Macs that ask for it replaces the desktop app from the release's disk
 image. `--source-build` always compiles. After installing, a deployment

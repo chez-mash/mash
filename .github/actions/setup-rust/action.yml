@@ -3,17 +3,6 @@ name: Set up cached Rust
 description: Install Rust, restore Cargo sources, and enable the shared sccache backend.
 
 inputs:
-  toolchain:
-    description: Rust toolchain name or version.
-    required: true
-  components:
-    description: Comma-separated rustup components.
-    required: false
-    default: ""
-  targets:
-    description: Comma-separated rustup targets.
-    required: false
-    default: ""
   cache-prefix:
     description: Repository-specific Cargo and sccache namespace.
     required: true
@@ -39,11 +28,7 @@ runs:
         } >>"$GITHUB_ENV"
 
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-      with:
-        toolchain: ${{ inputs.toolchain }}
-        components: ${{ inputs.components }}
-        targets: ${{ inputs.targets }}
+      uses: ./.github/actions/rust-toolchain
 
     - name: Cache Cargo sources
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae

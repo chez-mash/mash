@@ -83,9 +83,10 @@ jobs:
               echo "::warning::Could not delete the cache $key"
           done < replaced.tsv
       # ci.yml's compiler cache (sccache) keeps one small cache for each
-      # compiled crate, and its nightly compiler changes daily, which makes
-      # every one saved before useless. GitHub would keep those for a week;
-      # the ones nothing has read for two days go here. At most 400 a run, to
+      # compiled crate. A change to Cargo.lock or to the pinned compiler
+      # leaves the replaced crates' entries behind, and GitHub would keep
+      # those for a week; the ones nothing has read for two days go here
+      # (queue-caches.yml reads the ones in use daily). At most 400 a run, to
       # stay inside this token's hourly allowance of requests.
       - name: Delete compiler cache entries nothing reads any more
         env:

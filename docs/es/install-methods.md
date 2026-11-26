@@ -96,7 +96,7 @@ git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
-cargo +stable install --locked --path .
+cargo install --locked --path .
 ```
 
 Si quieres añadir el panel a una instalación existente, cambia a la revisión que instalaste antes de compilar. Después, [inicia la búsqueda local e indexa tus conversaciones](installation.md#start-the-local-search-service), ejecuta `mash dash`

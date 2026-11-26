@@ -17,7 +17,8 @@ on:
       - docs/**
       - site/**
       - raycast/**
-  # Soon after a nightly compiler is published; see `ci-compiler`.
+  # Daily, so the compiler cache's entries are read at least that often and
+  # none is pruned while still in use; see `ci-compiler`.
   schedule:
     - cron: "40 1 * * *"
   workflow_dispatch:
@@ -49,15 +50,22 @@ jobs:
       cache: true
 
   # What ci.yml's `rust` job starts from: the crates Cargo downloads, and the
-  # compiler cache's entries for the dependencies. That job compiles with the
-  # newest nightly, so without this every crate would be compiled from nothing
-  # in every merge queue group from the first new nightly on (three to four
-  # minutes more, measured), and again after each change to Cargo.lock.
+  # compiler cache's entries for the dependencies. Without this every crate
+  # would be compiled from nothing in every merge queue group (three to four
+  # minutes more, measured) from the day rust-toolchain.toml moves to another
+  # compiler, and again after each change to Cargo.lock.
   #
-  # It asks whether it has already compiled with this compiler and this
-  # Cargo.lock (a marker cache, about half a minute), and when it has not,
-  # compiles what `rust` compiles, which is what fills the compiler cache.
-  # Until it has finished, the queue's runs compile more.
+  # It asks whether it has already compiled with this compiler, these flags
+  # (.cargo/config.toml) and this Cargo.lock (a marker cache, about half a
+  # minute), and when it has not, compiles what `rust` compiles, which is
+  # what fills the compiler cache. Until it has finished, the queue's runs
+  # compile more.
+  #
+  # The daily run does not ask: it compiles again, nearly all of it answered
+  # from the cache. dev-artifacts.yml deletes entries nothing has read for two
+  # days, and now that the compiler stays the same for months the marker
+  # would otherwise outlive the entries it stands for, after two days in
+  # which no change ran `rust`.
   ci-compiler:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -68,17 +76,13 @@ jobs:
       CARGO_INCREMENTAL: 0
       CARGO_TERM_COLOR: always
       CARGO_PROFILE_DEV_DEBUG: "0"
-      RUSTFLAGS: -Zunstable-options --jobs-frontend=4
       RUSTC_WRAPPER: sccache
       SCCACHE_GHA_ENABLED: "true"
       SCCACHE_GHA_VERSION: mash-v1
       SCCACHE_BASEDIRS: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: nightly
-          components: rustfmt, clippy
+      - uses: ./.github/actions/rust-toolchain
       - name: Name the compiler
         id: compiler
         env:
@@ -86,10 +90,11 @@ jobs:
         run: echo "hash=$(rustc -vV | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
       - name: Ask whether this compiler and Cargo.lock have been compiled
         id: warmed
+        if: github.event_name != 'schedule'
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ runner.temp }}/mash-ci-warmed
-          key: mash-ci-warmed-v1-${{ steps.compiler.outputs.hash }}-${{ hashFiles('Cargo.lock') }}
+          key: mash-ci-warmed-v1-${{ steps.compiler.outputs.hash }}-${{ hashFiles('Cargo.lock', '.cargo/config.toml') }}
           lookup-only: true
       - name: Restore Cargo cache
         id: cargo-cache
@@ -135,7 +140,8 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/mash-ci-warmed"
           rustc -vV > "$RUNNER_TEMP/mash-ci-warmed/compiler"
-      - if: steps.warmed.outputs.cache-hit != 'true'
+      # The daily run did not ask for the marker and leaves it as it is.
+      - if: steps.warmed.outputs.cache-hit != 'true' && github.event_name != 'schedule'
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ runner.temp }}/mash-ci-warmed

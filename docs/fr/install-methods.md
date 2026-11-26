@@ -96,7 +96,7 @@ git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
-cargo +stable install --locked --path .
+cargo install --locked --path .
 ```
 
 Pour ajouter le tableau de bord à une installation existante, revenez à la révision que vous aviez installée avant de compiler. Ensuite, [démarrez la recherche locale et indexez vos conversations](installation.md#start-the-local-search-service), puis lancez `mash dash`
