@@ -29,7 +29,13 @@ class AreaTests(unittest.TestCase):
     def test_a_rust_change_runs_no_front_end_job(self):
         self.assertEqual(answer("crates/mash-dash/src/lib.rs", "Cargo.lock", "app/core.rs"), {"rust"})
         # The binary embeds the user guides, so they are Rust's as well as the website's.
-        self.assertEqual(answer("docs/search.md", "README.md", "docs/internal/development.md"), {"rust", "docs"})
+        self.assertEqual(answer("docs/search.md", "README.md"), {"rust", "docs"})
+
+    def test_the_development_notes_run_only_the_website_checks(self):
+        self.assertEqual(answer("docs/internal/development.md", "docs/internal/README.md"), {"docs"})
+        # A Rust test compares the server's contract copy that sits beside them.
+        self.assertEqual(answer("docs/internal/shared-server-openapi.json"), {"rust", "docs"})
+        self.assertEqual(answer("docs/internal/main-ruleset.json"), {"rust", "docs"})
 
     def test_instructions_for_contributors_run_nothing(self):
         self.assertEqual(answer("AGENTS.md", "CONTRIBUTING.md"), set())

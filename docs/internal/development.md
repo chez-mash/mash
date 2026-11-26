@@ -867,6 +867,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 |---|---|---|---|---|
 | Rust, `plugins/`, `fixtures/`, `protocol/`, `deployment/`, `Cargo.*` | `protocol`, `dependencies`, `rust` | both builds, import | nothing | nothing |
 | `docs/`, `README.md` (the binary embeds the guides) | as for Rust | as for Rust | nothing | build, pictures |
+| `docs/internal/*.md` (read by no build and no test) | nothing | nothing | nothing | build, pictures |
 | `site/` | nothing | nothing | nothing | build, pictures |
 | `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build, pictures (the demo) |
 | `raycast/` | nothing | nothing | `raycast` (lint, build, test) | nothing |

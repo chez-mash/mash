@@ -47,6 +47,11 @@ CLAIMS: tuple[tuple[str, frozenset[str]], ...] = (
     ("site/*", DOCS),
     ("dashboard/*", frozenset({"dashboard", "docs"})),
     ("raycast/*", frozenset({"raycast"})),
+    # The development notes are prose for people: no build embeds them and no
+    # test reads them, so they need only the website's link and build checks.
+    # The other files there, such as the server's contract copy that a Rust
+    # test compares, fall through to the rule below.
+    ("docs/internal/*.md", DOCS),
     # The user guides are Rust's as well as the website's, because the binary
     # embeds them.
     ("docs/*", RUST | DOCS),
