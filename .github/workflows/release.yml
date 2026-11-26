@@ -6,8 +6,9 @@ name: Release
 # Each other package channel is updated when its credential is configured, and
 # skipped otherwise: the Homebrew tap (HOMEBREW_TAP_TOKEN) and the signed apt
 # repository on GitHub Pages (APT_GPG_PRIVATE_KEY).
-# mise and cargo-binstall read the release assets directly. Releases build on
-# stable Rust so they need no nightly features.
+# mise and cargo-binstall read the release assets directly. Releases build
+# with the dated nightly compiler rust-toolchain.toml pins, the one every test
+# ran with; see "The compiler" in docs/internal/development.md.
 on:
   push:
     tags: ["v*"]
@@ -129,9 +130,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           package_json_file: desktop/package.json

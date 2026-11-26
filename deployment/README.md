@@ -122,7 +122,8 @@ target directory. Release archives and public installers include both binaries.
 A Windows machine builds its own release unless the inventory gives the
 `windows` platform a `mash_artifacts` entry (see Deploying built artifacts),
 and every step is a command the controller runs over SSH.
-It needs OpenSSH Server, Git, stable Rust with the Microsoft C++ build tools,
+It needs OpenSSH Server, Git, Rust installed with rustup (it downloads the
+compiler `rust-toolchain.toml` pins on the first build) and the Microsoft C++ build tools,
 Node.js and pnpm, a checkout of the published repository, and a `C:\tools\logs`
 folder. Give the inventory a `windows` build and the machine a preflight and
 an install:
@@ -191,6 +192,11 @@ compiles only when it cannot. The install steps, index upgrade, service
 restarts and readiness check are the same either way: the download is put
 where the platform's source build would have left its binaries, and the
 inventory's `mash_install` commands run unchanged.
+
+A commit's CI build is compiled without link-time optimization, which makes
+it quicker to build and a few percent slower to run than a release of the
+same commit (indexing 1 to 2%, searching 3 to 6%, measured on Linux). A
+published release and a source build are compiled with it.
 
 ```bash
 bash tools/fleet.sh deploy shared-api xenia                   # this commit's CI build, else compile

@@ -1,6 +1,34 @@
 [build]
 jobs = -1
 
+# rustc's parallel front end for every debug build of this checkout: local
+# builds and tests, Clippy, the Linux and Windows test jobs, and the desktop
+# app's tests (its workspace under desktop/src-tauri reads this file too).
+# Each rustc may use up to four threads for parsing, type checking and borrow
+# checking; Cargo's job server still caps the threads of all compilers
+# together at its own `-j`.
+#
+# It is set through the development profile and not `build.rustflags`:
+# Cargo drops `build.rustflags` whenever RUSTFLAGS or a target's own flags
+# are set (the mold linker flag, Clippy's `-Znext-solver=no`), while profile
+# flags are added to those. `build-override` covers build scripts and
+# procedural macros, which the profile alone leaves out. The release profile
+# is left alone on purpose: measured, the flag made optimized builds no
+# faster on any runner and a few percent slower on two.
+#
+# Both the flag and `profile-rustflags` are unstable, which is one reason
+# rust-toolchain.toml pins a dated nightly, and why Cargo from stable Rust
+# cannot build in this checkout. See "The compiler" in
+# docs/internal/development.md.
+[unstable]
+profile-rustflags = true
+
+[profile.dev]
+rustflags = ["-Zunstable-options", "--jobs-frontend=4"]
+
+[profile.dev.build-override]
+rustflags = ["-Zunstable-options", "--jobs-frontend=4"]
+
 [net]
 git-fetch-with-cli = true
 

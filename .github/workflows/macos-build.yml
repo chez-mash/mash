@@ -16,14 +16,12 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 45
     env:
-      RUSTFLAGS: -Zunstable-options --jobs-frontend=4
       BINARY: mash
       SMOKE_SCRIPT: .github/scripts/deploy-smoke
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - uses: ./.github/actions/setup-rust
         with:
-          toolchain: nightly
           cache-prefix: mash
       - name: Build Apple Silicon binary
         shell: bash

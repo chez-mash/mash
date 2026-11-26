@@ -24,7 +24,6 @@ env:
   # CI never attaches a debugger; full debug info bloats every test binary and
   # slows both compiling and linking.
   CARGO_PROFILE_DEV_DEBUG: "0"
-  RUSTFLAGS: -Zunstable-options --jobs-frontend=4
   RUSTC_WRAPPER: sccache
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: mash-v1
@@ -32,6 +31,8 @@ env:
 # queue-caches.yml compiles with a copy of these variables to fill the
 # compiler cache `rust` reads. Change them in both places: the compiler cache
 # keys on the flags, and a difference leaves `rust` compiling everything.
+# The compiler and its parallel front end are not set here: every workflow
+# takes them from rust-toolchain.toml and .cargo/config.toml.
 
 jobs:
   # Which areas this commit can affect. The jobs below are skipped when theirs
@@ -142,10 +143,7 @@ jobs:
           - 6334:6334
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: nightly
-          components: rustfmt, clippy
+      - uses: ./.github/actions/rust-toolchain
       # Saved on main by queue-caches.yml, as is what the compiler cache holds.
       - name: Restore Cargo cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -203,10 +201,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: nightly
-          components: rustfmt, clippy
+      - uses: ./.github/actions/rust-toolchain
       # Saved on main by queue-caches.yml, as is what the compiler cache holds.
       - name: Restore Cargo cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -264,10 +259,7 @@ jobs:
           - 6334:6334
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: nightly
-          components: rustfmt, clippy
+      - uses: ./.github/actions/rust-toolchain
       # Saved on main by queue-caches.yml, as is what the compiler cache holds.
       - name: Restore Cargo cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -342,6 +334,31 @@ jobs:
           path: ${{ runner.temp }}/mash-test-models
           key: ${{ steps.model-cache.outputs.cache-primary-key }}
 
+  # The user guides offer `cargo +stable install --locked --git ...`, which
+  # reads neither rust-toolchain.toml nor .cargo/config.toml and so compiles
+  # with whatever stable Rust the reader has. Every other build here uses the
+  # pinned nightly, so this is the one that fails when the source starts to
+  # need it. Cargo finds both files from the directory it is run in, hence
+  # running it from outside the checkout.
+  stable-source:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The workflow's compiler cache is not installed in this job.
+      RUSTC_WRAPPER: ""
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: stable
+      - name: Check the programs compile with stable Rust
+        working-directory: ${{ runner.temp }}
+        run: >-
+          cargo +stable check --locked --manifest-path "$GITHUB_WORKSPACE/Cargo.toml"
+          --target-dir "$RUNNER_TEMP/stable-target" --bin mash --bin mash-server
+
   # The suites that test this repository's own scripts: deployment, the
   # pre-push check, worktrees, the fleet's Ansible policy, releasing. None of
   # them compiles Mash, so they run beside `rust` instead of adding their four
@@ -359,10 +376,7 @@ jobs:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       # The pre-push suite formats a Rust file with the toolchain the
       # repository names, and skips that case when rustfmt is missing.
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: nightly
-          components: rustfmt
+      - uses: ./.github/actions/rust-toolchain
       - uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
         with:
           tool: uv@0.12.1
@@ -421,7 +435,7 @@ jobs:
   # waiting.
   required:
     name: ci / required
-    needs: [changes, file-lines, protocol, dependencies, lint, rust, rust-models, tooling]
+    needs: [changes, file-lines, protocol, dependencies, lint, rust, rust-models, stable-source, tooling]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -430,7 +444,7 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "changes, file-lines, protocol, dependencies, lint, rust, rust-models, tooling: $RESULTS"
+          echo "changes, file-lines, protocol, dependencies, lint, rust, rust-models, stable-source, tooling: $RESULTS"
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) exit 1 ;;
           esac

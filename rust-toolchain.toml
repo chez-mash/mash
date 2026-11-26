@@ -1,4 +1,9 @@
+# The one compiler every build uses: local builds, the tests, the per-commit
+# binaries, the desktop app and the releases. It is a nightly pinned to a
+# date; the workflows read the date from this file
+# (.github/actions/rust-toolchain). Why a nightly, what that costs a release,
+# and how to move the date: "The compiler" in docs/internal/development.md.
 [toolchain]
-channel = "nightly"
+channel = "nightly-2026-11-22"
 components = ["rustfmt", "clippy"]
-profile = "default"
+profile = "minimal"

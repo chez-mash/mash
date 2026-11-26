@@ -28,7 +28,7 @@ cmd /c "pnpm build >NUL 2>&1"
 if (\$LASTEXITCODE -ne 0) { throw 'dashboard build failed' }
 Set-Location ..
 \$env:MASH_BUILD_REVISION = '$revision'
-cmd /c "cargo +stable build --release --locked --bin mash --bin mash-server >C:\\tools\\logs\\mash-build.log 2>&1"
+cmd /c "cargo build --release --locked --bin mash --bin mash-server >C:\\tools\\logs\\mash-build.log 2>&1"
 if (\$LASTEXITCODE -ne 0) { throw 'cargo build failed; see C:\\tools\\logs\\mash-build.log' }
 Set-Content -Path 'target\\release\\mash.revision' -Value '$revision'
 POWERSHELL

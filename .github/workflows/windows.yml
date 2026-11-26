@@ -1,6 +1,6 @@
 name: Windows
 
-# Proves the stable binary builds, starts, sets up and searches on a
+# Proves the binary builds, starts, sets up and searches on a
 # native Windows runner, and that the library and CLI tests pass there.
 on:
   push:
@@ -21,12 +21,6 @@ env:
   CARGO_PROFILE_DEV_DEBUG: "0"
   # The lld that ships with Rust links several times faster than link.exe.
   CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: rust-lld
-  # Every job compiles with stable. Without this, any `cargo` or `rustc` that
-  # runs in the checkout without `+stable` installs the nightly toolchain
-  # rust-toolchain.toml names (the cache action's `rustc -vV` did: 50 s on
-  # x64), and the cache key would hold that nightly's version and change
-  # whenever a new one came out.
-  RUSTUP_TOOLCHAIN: stable
 
 jobs:
   # Whether this commit can affect the Rust build. The builds below are
@@ -75,9 +69,7 @@ jobs:
       - name: Check the Copilot plugin's PowerShell hook commands
         working-directory: plugins/mash/hooks
         run: python -m unittest discover -s tests -p "test_powershell.py" -v
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       # The compiled dependencies, saved by the `warm` job on main; see there.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -89,7 +81,7 @@ jobs:
       # nearly halves a cold run; release.yml builds the release binary on
       # Windows before publishing.
       - name: Build
-        run: cargo +stable build --locked --bin mash --bin mash-server
+        run: cargo build --locked --bin mash --bin mash-server
       # A Windows without DirectML or Direct3D 12 must still run Mash on the
       # CPU, so neither library may be needed to start (cli/delay_load.c).
       - name: Check the programs start without DirectML
@@ -150,9 +142,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       # The compiled dependencies, saved by the `warm` job on main; see there.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -177,7 +167,7 @@ jobs:
           # case is several times slower on NTFS, so a smaller sample checks
           # the platform without exceeding nextest's timeout.
           PROPTEST_CASES: "32"
-        run: cargo +stable nextest run --profile ci --locked --lib --partition count:${{ matrix.half }}/2
+        run: cargo nextest run --profile ci --locked --lib --partition count:${{ matrix.half }}/2
       - name: Show disposable Qdrant state after a failure
         if: failure()
         shell: pwsh
@@ -200,9 +190,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       # The compiled dependencies, saved by the `warm` job on main; see there.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -221,7 +209,7 @@ jobs:
       - name: CLI contract tests
         env:
           MASH_KEEP_EXECUTABLE: "1"
-        run: cargo +stable nextest run --profile ci --locked --test cli_contract
+        run: cargo nextest run --profile ci --locked --test cli_contract
       - name: Show disposable Qdrant state after a failure
         if: failure()
         shell: pwsh
@@ -300,14 +288,12 @@ jobs:
           - 6334:6334
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       # Nothing is cached here: from nothing this build takes two minutes on
       # Linux, and restoring 450 MB of compiled dependencies saved half a
       # minute of that.
       - name: Build
-        run: cargo +stable build --locked --bin mash --bin mash-server
+        run: cargo build --locked --bin mash --bin mash-server
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: windows-export
@@ -324,7 +310,8 @@ jobs:
   # already tested. So they never save, and this job, which runs only on main,
   # does: it asks whether the cache for this compiler and Cargo.lock exists
   # (about half a minute) and compiles and saves it when it does not, which is
-  # after a change to Cargo.lock or a manifest and after a new stable Rust.
+  # after a change to Cargo.lock or a manifest and after the pinned compiler
+  # or its flags change.
   # Until it has finished, the queue's runs start from the previous cache and
   # compile the dependencies that changed.
   #
@@ -340,9 +327,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
+      - uses: ./.github/actions/rust-toolchain
       # The key is the action's own hash of the compiler, Cargo.lock, the
       # manifests and this workflow's CARGO_* and RUST* variables, so only
       # the action can say whether that cache exists.
@@ -371,9 +356,9 @@ jobs:
       - name: Compile what those jobs compile
         if: steps.saved.outputs.cache-hit != 'true'
         run: |
-          cargo +stable build --locked --bin mash --bin mash-server
-          cargo +stable nextest run --profile ci --locked --lib --no-run
-          cargo +stable nextest run --profile ci --locked --test cli_contract --no-run
+          cargo build --locked --bin mash --bin mash-server
+          cargo nextest run --profile ci --locked --lib --no-run
+          cargo nextest run --profile ci --locked --test cli_contract --no-run
 
   # The one status the ruleset for main requires of this workflow, on a pull
   # request and in the merge queue: it passes when every job above passed or

@@ -94,15 +94,17 @@ use the shorter Cargo install.
 ### Include the web dashboard
 
 To include the dashboard, build its web files before compiling Mash. With
-Git, [Node.js 24+](https://nodejs.org/en/download), and a stable Rust toolchain,
-run these commands in a terminal.
+Git, [Node.js 24+](https://nodejs.org/en/download), and Rust installed with
+[rustup](https://rustup.rs), run these commands in a terminal. The checkout
+names the Rust compiler that Mash's releases are built with, and rustup
+downloads it the first time.
 
 ```sh
 git clone https://github.com/mashhq/mash.git
 cd mash
 npx --yes pnpm@11.28.5 --dir dashboard install --frozen-lockfile
 npx --yes pnpm@11.28.5 --dir dashboard run build
-cargo +stable install --locked --path .
+cargo install --locked --path .
 ```
 
 When adding the dashboard to an existing installation, check out the revision

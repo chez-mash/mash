@@ -48,8 +48,6 @@ concurrency:
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
-  # Like a release, the app and its engine build on stable Rust.
-  RUSTUP_TOOLCHAIN: stable
 
 jobs:
   build:
@@ -83,10 +81,14 @@ jobs:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           ref: ${{ inputs.commit || github.sha }}
-      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
-        with:
-          toolchain: stable
-          components: rustfmt
+      - uses: ./.github/actions/rust-toolchain
+      # The engine is compiled as the per-commit builds compile it, without
+      # link-time optimization (build-binaries.yml says why), and has to be
+      # for the caches below to match: the key of the dependencies' cache
+      # includes this variable. The app itself keeps its own profile; see
+      # "Build the installers".
+      - name: Turn link-time optimization off for the engine
+        run: echo "CARGO_PROFILE_RELEASE_LTO=off" >> "$GITHUB_ENV"
       # The engine is the program dev-artifacts.yml builds for every main
       # commit. On macOS and Windows this job compiles it on the same runner
       # image with the same settings, so it reads that workflow's two caches
@@ -111,8 +113,8 @@ jobs:
             target/release/deps/libmash*
             target/release/.fingerprint/mash*
             target/release/build/mash*
-          key: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
-          restore-keys: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-
+          key: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', '.cargo/config.toml', '.github/workflows/build-binaries.yml') }}-${{ github.sha }}
+          restore-keys: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', '.cargo/config.toml', '.github/workflows/build-binaries.yml') }}-
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           package_json_file: desktop/package.json
@@ -189,6 +191,8 @@ jobs:
           CHANNEL_VERSION: ${{ steps.channel.outputs.version }}
         run: |
           pnpm install --frozen-lockfile
+          # Set for the engine above; the app is built with its own profile.
+          unset CARGO_PROFILE_RELEASE_LTO
           channel=()
           if [ -n "$CHANNEL_VERSION" ]; then
             channel=(--config "{\"version\":\"$CHANNEL_VERSION\",\"bundle\":{\"createUpdaterArtifacts\":true}}")

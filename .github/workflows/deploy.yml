@@ -63,12 +63,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      RUSTFLAGS: -Zunstable-options --jobs-frontend=4 -C link-arg=-fuse-ld=mold
+      RUSTFLAGS: -C link-arg=-fuse-ld=mold
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - uses: ./.github/actions/setup-rust
         with:
-          toolchain: nightly
           cache-prefix: mash
           mold: "true"
       - uses: rui314/setup-mold@7e4f20ad28a2e8ca6fd0892ccf72e2abb706b9c3
@@ -97,13 +96,10 @@ jobs:
     if: needs.gate.outputs.deploy == 'true'
     runs-on: macos-26
     timeout-minutes: 45
-    env:
-      RUSTFLAGS: -Zunstable-options --jobs-frontend=4
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - uses: ./.github/actions/setup-rust
         with:
-          toolchain: nightly
           cache-prefix: mash
       - name: Build Apple Silicon binary
         shell: bash
