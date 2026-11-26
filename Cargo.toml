@@ -35,13 +35,13 @@ pre-release-replacements = [
 version = "0.2.4"
 
 [workspace]
-members = ["app", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
-default-members = [".", "app", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
+members = ["app", "cli", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
+default-members = [".", "app", "cli", "crates/mash-query", "crates/mash-fleet", "crates/mash-model", "crates/mash-silver", "crates/mash-storage", "crates/mash-search", "crates/mash-sync", "crates/mash-dash", "crates/mash-mcp", "crates/mash-server"]
 resolver = "3"
 
-[lib]
-path = "cli/lib.rs"
-
+# This package is only the two programs: `build.rs` stamps the commit into
+# them, so every commit compiles it again, and it must stay a few lines over
+# `mash-cli` (`cli/`), which holds the command lines themselves.
 [[bin]]
 name = "mash"
 path = "cli/main.rs"
@@ -56,30 +56,21 @@ test = false
 name = "cli_contract"
 path = "cli/tests/cli_contract.rs"
 
-[[example]]
-name = "history-skill"
-path = "cli/examples/history_skill.rs"
-
 [features]
-console = ["mash-app/console"]
+console = ["mash-cli/console"]
 
 [dependencies]
-mash-app = { path = "app" }
-mash-dash = { path = "crates/mash-dash" }
-mash-mcp = { path = "crates/mash-mcp" }
-mash-server = { path = "crates/mash-server" }
-mash-model = { path = "crates/mash-model" }
-clap = { version = "4.6.1", features = ["derive"] }
-futures-util = "0.3"
-inquire = { version = "0.9.4", default-features = false, features = ["crossterm"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = { version = "1.0.149", features = ["raw_value"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "fs", "net", "io-util", "process"] }
+mash-cli = { path = "cli" }
 
 [build-dependencies]
 cc = "1.2"
 
 [dev-dependencies]
+mash-app = { path = "app" }
+mash-dash = { path = "crates/mash-dash" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.149", features = ["raw_value"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "fs", "net", "io-util", "process"] }
 mash-model = { path = "crates/mash-model", features = ["test-support"] }
 tempfile = "3.27.0"
 toml = "1.1"
@@ -91,8 +82,6 @@ walkdir = "2.5.0"
 mash-silver = { path = "crates/mash-silver", features = ["test-support"] }
 tonic-prost = "0.14.9"
 proptest = { version = "1.12.0", default-features = false, features = ["std"] }
-shlex = "2.0.1"
-pulldown-cmark = { version = "0.13.4", default-features = false }
 ort = { version = "2.0.0-rc.13", default-features = false }
 rmcp = { version = "3.4.0", default-features = false, features = ["client", "server", "macros", "transport-io", "transport-child-process"] }
 assert_cmd = "2.2.2"

@@ -1,0 +1,50 @@
+[package]
+name = "mash-cli"
+version.workspace = true
+edition = "2024"
+description = "The mash and mash-server command lines: argument parsing and output over the application library"
+license = "MIT OR Apache-2.0"
+publish = false
+# The executables' package, `mash` at the repository root, keeps its entry
+# points, contract tests and Windows hook beside these files; none of them is
+# a target of this package.
+autobins = false
+autotests = false
+autoexamples = false
+autobenches = false
+
+[lib]
+path = "lib.rs"
+
+[[example]]
+name = "history-skill"
+path = "examples/history_skill.rs"
+
+[features]
+console = ["mash-app/console"]
+
+[dependencies]
+mash-app = { path = "../app" }
+mash-dash = { path = "../crates/mash-dash" }
+mash-mcp = { path = "../crates/mash-mcp" }
+mash-server = { path = "../crates/mash-server" }
+mash-model = { path = "../crates/mash-model" }
+clap = { version = "4.6.1", features = ["derive"] }
+futures-util = "0.3"
+inquire = { version = "0.9.4", default-features = false, features = ["crossterm"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.149", features = ["raw_value"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync", "fs", "net", "io-util", "process"] }
+
+[dev-dependencies]
+pulldown-cmark = { version = "0.13.4", default-features = false }
+shlex = "2.0.1"
+
+[lints.rust]
+unsafe_code = "forbid"
+warnings = "deny"
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"

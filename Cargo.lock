@@ -2128,25 +2128,19 @@ dependencies = [
  "axum",
  "blake3",
  "cc",
- "clap",
- "futures-util",
- "inquire",
  "mash-app",
+ "mash-cli",
  "mash-dash",
- "mash-mcp",
  "mash-model",
- "mash-server",
  "mash-silver",
  "ort",
  "predicates",
  "proptest",
- "pulldown-cmark",
  "reqwest",
  "rmcp",
  "rusqlite",
  "serde",
  "serde_json",
- "shlex",
  "tempfile",
  "tokio",
  "toml",
@@ -2193,6 +2187,25 @@ dependencies = [
  "toml",
  "tracing",
  "zip",
+]
+
+[[package]]
+name = "mash-cli"
+version = "0.2.4"
+dependencies = [
+ "clap",
+ "futures-util",
+ "inquire",
+ "mash-app",
+ "mash-dash",
+ "mash-mcp",
+ "mash-model",
+ "mash-server",
+ "pulldown-cmark",
+ "serde",
+ "serde_json",
+ "shlex",
+ "tokio",
 ]
 
 [[package]]

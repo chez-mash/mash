@@ -45,7 +45,7 @@ if [[ $mode == focused ]]; then
     # One crate's tests need only that crate and the ones below it. Building
     # every crate's tests also compiles the application library twice, with
     # and without its tests, so the library alone is the default.
-    # Integration targets belong to the executables' crate, so asking for
+    # Integration targets belong to the executables' package, so asking for
     # them builds every crate unless one is named.
     chosen=${MASH_ITERATE_PACKAGE:-}
     if [[ -z $chosen ]]; then

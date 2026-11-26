@@ -35,20 +35,21 @@ fn mash_description() -> &'static str {
     }
 }
 
-/// The commit this build was made from, stamped by `build.rs`.
-const BUILD_REVISION: &str = env!("MASH_BUILD_REVISION");
-
 /// Runs mash with the process arguments, writing JSON or serving stdio MCP.
+///
+/// `revision` is the commit the program was built from. The programs' own
+/// package compiles it in and hands it over here, so that a new commit
+/// compiles those few lines again and not this crate.
 ///
 /// # Examples
 ///
 /// ```no_run
-/// let exit_code = mash::main_entry();
+/// let exit_code = mash_cli::main_entry("unknown");
 /// std::process::exit(exit_code);
 /// ```
 #[must_use]
-pub fn main_entry() -> i32 {
-    mash_app::set_build_revision(BUILD_REVISION);
+pub fn main_entry(revision: &'static str) -> i32 {
+    mash_app::set_build_revision(revision);
     observability::initialize();
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
         return code;
@@ -83,9 +84,10 @@ pub fn with_main_stack(entry: fn() -> i32) -> i32 {
 }
 
 /// Runs the standalone shared-index HTTP server with process arguments.
+/// `revision` is the commit the program was built from, as for [`main_entry`].
 #[must_use]
-pub fn server_main_entry() -> i32 {
-    mash_app::set_build_revision(BUILD_REVISION);
+pub fn server_main_entry(revision: &'static str) -> i32 {
+    mash_app::set_build_revision(revision);
     observability::initialize();
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
         return code;
