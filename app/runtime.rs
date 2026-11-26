@@ -198,7 +198,7 @@ impl Lease {
             version: 1,
             pid: std::process::id(),
             kind,
-            build_revision: env!("MASH_BUILD_REVISION").into(),
+            build_revision: crate::build_revision().into(),
             schema_version: Some(crate::storage::schema::SCHEMA_VERSION),
             identity,
             executable,
@@ -346,7 +346,7 @@ pub fn inspect(paths: &Paths) -> Inventory {
 
 fn empty_inventory() -> Inventory {
     Inventory {
-        observer_revision: env!("MASH_BUILD_REVISION"),
+        observer_revision: crate::build_revision(),
         processes: vec![],
         complete: true,
         scope: "Registered live MCP and index-watch processes for this database only. Releases predating runtime registration and processes using other databases are not inventoried. A fresh probe does not verify existing sessions.",
@@ -386,7 +386,7 @@ fn inspect_directory(directory: &Path) -> Inventory {
         let Some(record) = record else { continue };
         let state = match identity(&record.executable) {
             Ok(current) if current != record.identity => State::Superseded,
-            Ok(_) if record.build_revision != env!("MASH_BUILD_REVISION") => State::DifferentBuild,
+            Ok(_) if record.build_revision != crate::build_revision() => State::DifferentBuild,
             Ok(_) => State::Current,
             Err(_) => State::Unverified,
         };

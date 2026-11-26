@@ -96,7 +96,7 @@ pub(crate) async fn read(
         }
     }
     Ok(Json(GroupStatus {
-        build: mash_app::BUILD_REVISION.to_owned(),
+        build: mash_app::build_revision().to_owned(),
         started_at: app.live.as_ref().map_or(0, |live| live.started_at),
         now,
         restart_needed: !app.store.serves(&id.group_id),

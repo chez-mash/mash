@@ -111,7 +111,7 @@ pub(crate) async fn overview(
     let path = live.configuration.clone();
     let added = mash_app::blocking(move || enrollment::read(&path)).await?;
     Ok(Json(Overview {
-        build: mash_app::BUILD_REVISION.to_owned(),
+        build: mash_app::build_revision().to_owned(),
         started_at: live.started_at,
         now,
         machines,

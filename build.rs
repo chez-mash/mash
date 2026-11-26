@@ -1,3 +1,8 @@
+//! Stamps the commit into the `mash` and `mash-server` programs.
+//!
+//! This script belongs to the package that builds the programs, the last one
+//! compiled, so a new commit recompiles that package and nothing under it.
+//! The library crates read the commit at run time (`mash_app::build_revision`).
 use std::process::Command;
 
 fn main() {

@@ -417,8 +417,10 @@ What the time is made of:
 - The machine-wide `~/.cargo/config.toml` on Xenia sets `incremental = false`
   and a compiler cache wrapper. The just recipes override both; a raw Cargo
   command does not, and then every edit recompiles the crate from nothing.
-- A commit changes the revision stamped by `app/build.rs`, so the first build after
-  any commit recompiles `mash` even when no source changed.
+- A commit changes the revision stamped by `build.rs`, so the first build after
+  any commit recompiles the `mash` package (the command line and the two
+  programs) even when no source changed. The libraries under it read the
+  revision at run time (`mash_app::build_revision`) and are left alone.
 
 For a raw Cargo command, keep one target directory and enable incremental
 compilation explicitly:
@@ -907,6 +909,59 @@ before it passed or was skipped: `front-ends` in `frontends.yml`, and
 `docs / required` in the others. Those are the checks the ruleset for `main`
 requires. `front-ends` also merges the browser shards' reports into one HTML
 report, kept for a week as the `dashboard-browser-report` artifact.
+
+### The per-commit binary builds
+
+`dev-artifacts.yml` builds `mash` and `mash-server` for every push to `main`
+with the release's own steps (`build-binaries.yml`), and deployments wait for
+it. Those builds are cached; a release is not. `release.yml` calls the same
+steps without `cache`, so a published binary is compiled from nothing and
+never depends on what an earlier run left behind.
+
+With `cache: true` a build starts from two caches the last build on `main`
+saved, one pair for each target:
+
+| Cache | Holds | Replaced |
+|---|---|---|
+| `mash-artifacts-v1-<target>-release-…` (`Swatinem/rust-cache`) | The compiled dependencies and Cargo's downloads | When `Cargo.lock`, a manifest or the compiler changes |
+| `mash-artifacts-crates-v1-<target>-<lock>-<commit>` | This repository's own compiled crates, with a record of the files they were compiled from | By every build on `main` |
+
+Cargo decides whether one of our crates is current by comparing file times,
+and a checkout stamps every file with the present, which on its own would
+compile all of them again. Before the build,
+`.github/scripts/build-inputs.mjs restore` gives a file its old time back when
+its content matches the record saved with the crates, and leaves the rest
+alone. The built dashboard (`dashboard/dist`) is in the record as well. A
+build therefore compiles the crates the commit changed and the ones built on
+them:
+
+| The commit changed | Compiled again |
+|---|---|
+| Nothing a crate reads (`tools/`, `.github/`, instructions) | `mash`: the revision is stamped there |
+| The dashboard | `mash-dash`, `mash` |
+| `mash-server` | `mash-server`, `mash` |
+| `mash-mcp` or `mash-fleet` | That crate, `mash-dash`, `mash` |
+| `mash-app` | `mash-app`, `mash-mcp`, `mash-server`, `mash-dash`, `mash` |
+| A crate near the bottom (`mash-model`, `mash-silver`, `mash-query`, `mash-storage`) | Nearly every crate of ours; no dependency |
+| `Cargo.lock` | The changed dependencies and every crate of ours |
+
+Keep it that way: a value that differs for every commit belongs in the `mash`
+package, not in a library under it. `MASH_BUILD_REVISION` used to be compiled
+into `mash-app`, which recompiled it and the four crates above it, more than
+half of a build, for every commit.
+
+Only `main` saves. A manual run on a branch reads `main`'s caches, and
+`desktop.yml` reads them for the engine it builds on macOS and Windows. After
+each build the `prune-caches` job deletes the caches a newer one replaced, so
+the builds hold one pair per target, about 2 GB of the repository's 10 GB, and
+GitHub does not evict the test workflows' caches to make room. To start again
+from nothing, change `v1` in both keys.
+
+The workflow builds one commit at a time and, while one runs, keeps only the
+newest waiting commit. Each build starts from the crates the build before it
+saved, so running them side by side would save nothing and have them write
+over each other; and a deployment takes the head of `main`, which is always
+built.
 
 ### Deploying and releasing
 

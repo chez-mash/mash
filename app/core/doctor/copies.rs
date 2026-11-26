@@ -44,7 +44,7 @@ async fn relation(path: &Path, this: &Path) -> Relation {
         .filter(|output| output.status.success())
         .and_then(|output| serde_json::from_slice::<Told>(&output.stdout).ok());
     match told {
-        Some(told) if told.build.as_deref() == Some(crate::BUILD_REVISION) => Relation::Same,
+        Some(told) if told.build.as_deref() == Some(crate::build_revision()) => Relation::Same,
         Some(told) => Relation::Other(Some(told.version)),
         None => Relation::Other(None),
     }
@@ -203,7 +203,7 @@ async fn services(this: &Path) -> Vec<Finding> {
     if !dashboard_differs
         && let Some((layout, Some(port))) = dashboard
         && let Some(build) = served_build(port).await
-        && build != crate::BUILD_REVISION
+        && build != crate::build_revision()
     {
         findings.push(
             Finding::found(
@@ -212,7 +212,7 @@ async fn services(this: &Path) -> Vec<Finding> {
                 format!(
                     "The dashboard service on port {port} is still running build {}, not this one ({}).",
                     short(&build),
-                    short(crate::BUILD_REVISION),
+                    short(crate::build_revision()),
                 ),
             )
             .cause("It started before this copy was installed and has not restarted since.")

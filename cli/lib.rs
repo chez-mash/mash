@@ -35,6 +35,9 @@ fn mash_description() -> &'static str {
     }
 }
 
+/// The commit this build was made from, stamped by `build.rs`.
+const BUILD_REVISION: &str = env!("MASH_BUILD_REVISION");
+
 /// Runs mash with the process arguments, writing JSON or serving stdio MCP.
 ///
 /// # Examples
@@ -45,6 +48,7 @@ fn mash_description() -> &'static str {
 /// ```
 #[must_use]
 pub fn main_entry() -> i32 {
+    mash_app::set_build_revision(BUILD_REVISION);
     observability::initialize();
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
         return code;
@@ -81,6 +85,7 @@ pub fn with_main_stack(entry: fn() -> i32) -> i32 {
 /// Runs the standalone shared-index HTTP server with process arguments.
 #[must_use]
 pub fn server_main_entry() -> i32 {
+    mash_app::set_build_revision(BUILD_REVISION);
     observability::initialize();
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {
         return code;

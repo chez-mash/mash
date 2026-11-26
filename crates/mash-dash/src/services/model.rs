@@ -108,7 +108,7 @@ pub(super) fn compatibility(
         database_schema: database,
         supported_schema: supported,
         running_build: build.into(),
-        observer_build: crate::BUILD_REVISION.into(),
+        observer_build: crate::build_revision().into(),
         state,
         blocked: blocked.into(),
         next_step: next_step.into(),

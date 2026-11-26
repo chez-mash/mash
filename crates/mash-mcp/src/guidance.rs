@@ -347,7 +347,7 @@ pub fn fingerprint() -> Result<String, serde_json::Error> {
 pub(super) fn instructions() -> String {
     format!(
         "{WORKFLOW} Build revision: {}. Contract fingerprint: {}. Read-only tools include help, search, list_chats, view and status; index/forget write data and models_install explicitly downloads models.",
-        crate::BUILD_REVISION,
+        crate::build_revision(),
         fingerprint().unwrap_or_else(|_| "unknown".into())
     )
 }
@@ -373,7 +373,7 @@ fn runtime(expected: Option<&str>) -> Result<Runtime, serde_json::Error> {
         None
     };
     Ok(Runtime {
-        build_revision: crate::BUILD_REVISION,
+        build_revision: crate::build_revision(),
         silver_schema: crate::storage::schema::SCHEMA_VERSION,
         views_schema: crate::views::qdrant::SCHEMA_VERSION,
         contract_fingerprint,

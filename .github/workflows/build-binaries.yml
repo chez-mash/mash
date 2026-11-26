@@ -5,6 +5,10 @@ name: Build binaries
 # calls it unsigned to keep installable builds for the fleet
 # (dev-artifacts.yml). Each target becomes one workflow artifact holding
 # mash-<target>.tar.gz or .zip.
+#
+# A release compiles everything from scratch. The per-commit builds pass
+# `cache: true` and start from what the last build on main compiled; see the
+# cache steps below.
 on:
   workflow_call:
     inputs:
@@ -29,6 +33,12 @@ on:
       retention-days:
         type: number
         default: 7
+      cache:
+        description: >-
+          Start from what the last build on main compiled. Off for a release,
+          which must not depend on anything an earlier run left behind.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -63,6 +73,15 @@ jobs:
     timeout-minutes: 60
     env:
       ARCHIVE: mash-${{ matrix.target }}.${{ contains(matrix.target, 'windows') && 'zip' || 'tar.gz' }}
+      # This repository's compiled crates inside the target directory (every
+      # package name starts with "mash"), and the record of the files they were
+      # compiled from.
+      WORKSPACE_CRATES: |
+        target/build-inputs.json
+        target/release/deps/mash*
+        target/release/deps/libmash*
+        target/release/.fingerprint/mash*
+        target/release/build/mash*
     defaults:
       run:
         shell: bash
@@ -71,7 +90,43 @@ jobs:
       - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
         with:
           toolchain: stable
-      # `mash dash` serves pages embedded at compile time (see app/build.rs), so
+      # Two caches, because they change at different rates and the repository
+      # has 10 GB for all of its caches.
+      #
+      # The first holds the compiled dependencies, about nine tenths of a
+      # build from nothing. Its key changes only with Cargo.lock, a manifest
+      # or the compiler, so most commits restore it and save nothing.
+      # RUSTUP_TOOLCHAIN makes the action key on the stable compiler the build
+      # uses instead of the nightly one rust-toolchain.toml names.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: inputs.cache
+        env:
+          RUSTUP_TOOLCHAIN: stable
+        with:
+          prefix-key: mash-artifacts-v1
+          shared-key: ${{ matrix.target }}-release
+          # A cold build takes 8 to 14 minutes; keep what a failing run built.
+          cache-on-failure: true
+          # Only main saves: a manual run on a branch reads main's cache and
+          # leaves it as it was.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+          # Nothing is installed with `cargo install` here.
+          cache-bin: false
+      # The second holds this repository's own compiled crates, which the
+      # action above leaves out, and is saved for every commit on main
+      # (dev-artifacts.yml deletes the older ones). With it a commit compiles
+      # only the crates it changed and those built on them. A change to
+      # Cargo.lock starts this cache again from nothing: most of these crates
+      # would be compiled again anyway, under new file names, and the old
+      # files would otherwise stay in the cache for good.
+      - name: Restore this repository's compiled crates
+        if: inputs.cache
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ env.WORKSPACE_CRATES }}
+          key: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-
+      # `mash dash` serves pages embedded at compile time (see crates/mash-dash/build.rs), so
       # they are built first and the compile fails without them.
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
@@ -86,6 +141,12 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
+      # Cargo compares file times, and a checkout stamps every file with now.
+      # Files whose content is what the cached crates were compiled from get
+      # their old time back, so only what this commit changed is compiled.
+      - name: Mark the files that have not changed since the cached build
+        if: inputs.cache
+        run: node .github/scripts/build-inputs.mjs restore target/build-inputs.json
       - name: Build
         env:
           MASH_BUILD_REVISION: ${{ github.sha }}
@@ -103,6 +164,21 @@ jobs:
           [ -f "$server.exe" ] && server="$server.exe"
           "$server" --version
           "$server" --help
+          # The program must report the commit it was built from: build.rs
+          # stamps it and the entry points hand it to the library, and a
+          # deployment checks it before it trusts an installation.
+          "$binary" --version-info | grep -o "\"build\":\"$GITHUB_SHA\""
+      # Saved once the binaries have passed the smoke check, under this
+      # commit's name, so a run for the same commit restores exactly this.
+      - name: Record the files this build was compiled from
+        if: inputs.cache && github.ref == 'refs/heads/main'
+        run: node .github/scripts/build-inputs.mjs save target/build-inputs.json
+      - name: Save this repository's compiled crates
+        if: inputs.cache && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ env.WORKSPACE_CRATES }}
+          key: mash-artifacts-crates-v1-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
       # With the Apple secrets set, the Mac binaries are signed with the
       # hardened runtime and notarized, so macOS opens them without a warning.
       - name: Prepare Mac signing
