@@ -54,5 +54,20 @@ the app. The app does not yet put a `mash` command on `PATH`, and the app's
 package does not depend on `MashHQ.Mash.CLI`: its description names that
 package instead.
 
+The installers are not signed yet. winget marks the installer it downloads as
+coming from the internet, so SmartScreen stops it at "Windows protected your
+PC" until the user chooses Run anyway, even with `--silent`. The `winget` job
+turns SmartScreen off on its runners, and makes `.exe` low-risk so Windows'
+older "Open File - Security Warning" does not take its place; without that the
+install waits forever. The command line's package is a zip that winget
+unpacks itself, so it is not stopped this way.
+
+`winget uninstall MashHQ.Mash` opens the uninstaller's window even with
+`--silent`: winget runs the `QuietUninstallString` the installer registers,
+and v0.3.0's installer registers only `UninstallString`, so winget runs that
+without `/S`. Until the installer writes a quiet string, the `winget` job runs
+the registered uninstaller with `/S` itself and says so in its summary; once
+it does, the job uninstalls with winget.
+
 The first submission of a package creates it; later ones only add a version
 directory.
