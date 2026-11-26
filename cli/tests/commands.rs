@@ -238,7 +238,11 @@ fn informational_flags_succeed_without_initializing_application_resources() {
                 response["session_citations"],
                 serde_json::json!(["claude-code", "codex", "copilot"])
             );
-            assert_eq!(response.as_object().unwrap().len(), 5);
+            // The commit the binary was built from, which tells two copies
+            // of one version apart.
+            let build = response["build"].as_str().unwrap();
+            assert!(build.len() == 40 && build.bytes().all(|b| b.is_ascii_hexdigit()));
+            assert_eq!(response.as_object().unwrap().len(), 6);
         } else {
             // Plain text a person can read, not a JSON string with escapes.
             let help = std::str::from_utf8(&output.stdout).unwrap();
