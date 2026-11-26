@@ -35,15 +35,15 @@ a {
 a:hover {
   color: var(--accent);
 }
-button,
-input,
-select {
-  font: inherit;
-  color: inherit;
-}
 /* In the base layer, so a utility class on a kit component's button
-   (src/lib/components/ui) can give it a fill, a line and padding. */
+   (src/lib/components/ui) can give it type, a fill, a line and padding. */
 @layer base {
+  button,
+  input,
+  select {
+    font: inherit;
+    color: inherit;
+  }
   button {
     background: none;
     border: 0;
@@ -2938,35 +2938,8 @@ button:disabled {
 .prm-i.short {
   width: 120px;
 }
-/* A choice looks like the text fields beside it: the same outline and type,
-   a drawn chevron instead of the system's, and "not set" as faint as a
-   placeholder until something is chosen. */
-.prm-sel {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-.prm-sel > svg {
-  position: absolute;
-  right: 10px;
-  margin-top: 4px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-select.prm-i {
-  width: auto;
-  min-width: 140px;
-  padding-right: 34px;
-  appearance: none;
-  color: var(--text-strong);
-  cursor: pointer;
-}
-select.prm-i.unset,
 .prm-i::placeholder {
   color: var(--text-muted);
-}
-select.prm-i option {
-  color: var(--text-strong);
 }
 .prm-a code,
 .op-d code {

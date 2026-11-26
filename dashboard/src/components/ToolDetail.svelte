@@ -3,6 +3,7 @@ import ChevronDown from "@lucide/svelte/icons/chevron-down";
 import Copy from "@lucide/svelte/icons/copy";
 import Eraser from "@lucide/svelte/icons/eraser";
 import Play from "@lucide/svelte/icons/play";
+import * as Select from "$lib/components/ui/select";
 import { read } from "../lib/api";
 import {
   type Answer,
@@ -102,13 +103,15 @@ $effect(() => () => controller?.abort());
   <span class="prm-a">{@render prose(param.about)}{#if param.fallback}{" "}<small>Default {param.fallback}.</small>{/if}</span>
   {#if !entry.readOnly}<span hidden></span>
   {:else if param.kind === "enum" || param.kind === "boolean"}
-    <span class="prm-sel">
-      <select class="prm-i" class:unset={!values[key]} bind:value={values[key]}>
-        <option value="">{param.required ? "choose…" : "not set"}</option>
-        {#each param.kind === "boolean" ? ["true", "false"] : param.choices as choice (choice)}<option value={choice}>{choice}</option>{/each}
-      </select>
-      <ChevronDown size={15} aria-hidden="true" />
-    </span>
+    {@const choices = param.kind === "boolean" ? ["true", "false"] : param.choices}
+    {@const unset = param.required ? "choose…" : "not set"}
+    <Select.Root type="single" bind:value={() => values[key] ?? "", (choice) => (values[key] = choice)}>
+      <Select.Trigger class="mt-1 font-mono text-[14px]" aria-invalid={!request.ok && request.param === param.name && outcome.state !== "idle"}>{values[key] || unset}</Select.Trigger>
+      <Select.Content class="font-mono">
+        <Select.Item class="text-muted" value="" label={unset} />
+        {#each choices as choice (choice)}<Select.Item value={choice} label={choice} />{/each}
+      </Select.Content>
+    </Select.Root>
   {:else}
     <input class="prm-i" class:short={param.kind === "integer"} autocomplete="off" autocapitalize="off" spellcheck="false" inputmode={param.kind === "integer" ? "numeric" : undefined} placeholder={param.kind === "json" ? "JSON" : param.required ? "" : "not set"} bind:value={values[key]} />
   {/if}

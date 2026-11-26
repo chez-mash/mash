@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import { fitsViewport } from "./shell";
 
 const tools = {
@@ -98,7 +98,8 @@ for (const width of [390, 1280]) {
     await expect(search.getByText("query is required.")).toBeVisible();
     await search.getByRole("textbox").first().fill("watcher loop");
     await search.getByRole("textbox").nth(1).fill("5");
-    await search.getByRole("combobox").selectOption("messages");
+    await search.getByRole("combobox").click();
+    await page.getByRole("option", { name: "messages", exact: true }).click();
     await expect(search.getByLabel("Response")).toHaveCount(0);
     await run.click();
     // A reply that says it is worth retrying reads as busy, not as broken.
@@ -177,21 +178,25 @@ test("tools start folded, fold long option lists and style every field alike", a
   await search.getByText("5 more options").click();
   await expect(search.getByRole("textbox")).toHaveCount(4);
   const choice = search.getByRole("combobox").first();
-  await expect(choice).toHaveClass(/unset/);
-  const look = (selector: string) =>
-    search
-      .locator(selector)
-      .first()
-      .evaluate((node) => {
-        const style = getComputedStyle(node);
-        return { weight: style.fontWeight, appearance: style.appearance, color: style.color };
-      });
-  const field = await look("input.prm-i[placeholder='not set']");
-  const select = await look("select.prm-i");
-  expect(select.weight).toBe(field.weight);
-  expect(select.appearance).toBe("none");
-  await choice.selectOption("true");
-  await expect(choice).not.toHaveClass(/unset/);
+  // Nothing chosen reads as faintly as an empty field's placeholder, in the
+  // same type, with a drawn chevron.
+  await expect(choice).toHaveAttribute("data-placeholder", "");
+  await expect(choice).toHaveText("not set");
+  const look = (node: Locator) =>
+    node.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { weight: style.fontWeight, family: style.fontFamily, size: style.fontSize };
+    });
+  const field = search.locator("input.prm-i[placeholder='not set']").first();
+  expect(await look(choice)).toEqual(await look(field));
+  expect(await choice.evaluate((node) => getComputedStyle(node).color)).toBe(
+    await field.evaluate((node) => getComputedStyle(node, "::placeholder").color),
+  );
+  await expect(choice.locator("svg")).toBeVisible();
+  await choice.click();
+  await page.getByRole("option", { name: "true", exact: true }).click();
+  await expect(choice).toHaveText("true");
+  await expect(choice).not.toHaveAttribute("data-placeholder");
 });
 
 test("tools are listed by group beside the chosen one, each saying whether it only reads", async ({
