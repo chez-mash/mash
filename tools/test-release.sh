@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # tools/release.sh against a throwaway clone of this checkout with a bare
 # repository as its origin and a fake `gh`: the dry run, the refusals, a whole
-# release, and resuming one that stopped. Nothing reaches the real remote and
-# no real tag is made.
+# release through the merge queue (played by tools/fake-queue-gh.sh),
+# resuming one that stopped, and the direct push kept for emergencies. Nothing
+# reaches the real remote and no real tag is made.
 set -euo pipefail
 repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/release-test.XXXXXXXX")
@@ -23,17 +24,19 @@ refused() { # refused NAME PATTERN COMMAND...: the command fails and says why
 
 # The fake reports each workflow's newest run for a commit from a file,
 # runs/WORKFLOW/COMMIT holding "status conclusion id", and serves one artifact.
+# Pull requests and the merge queue are the shared fake's.
 mkdir -p "$scratch/bin" "$scratch/runs"
 cat > "$scratch/bin/gh" <<'GH'
 #!/usr/bin/env bash
 set -euo pipefail
+case "$1" in pr | api | repo) exec bash "$FAKE_QUEUE_TOOL" "$@" ;; esac
 echo "$*" >> "$FAKE_GH/calls"
 area=$1 action=$2
 shift 2
 subject='' workflow='' commit='' directory=''
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --repo | --json | --jq | --limit | --name) shift 2 ;;
+        --repo | --json | --jq | --limit | --name | --pattern) shift 2 ;;
         --workflow) workflow=$2; shift 2 ;;
         --commit) commit=$2; shift 2 ;;
         --dir) directory=$2; shift 2 ;;
@@ -43,11 +46,17 @@ done
 case "$area $action" in
     'run list') cat "$FAKE_GH/runs/$workflow/$commit" 2>/dev/null || echo 'none  ' ;;
     'run download') mkdir -p "$directory"; echo "PackageVersion: fixture" > "$directory/MashHQ.Mash.yaml" ;;
+    'release download')
+        for archive in mash-x86_64-pc-windows-msvc.zip mash-aarch64-pc-windows-msvc.zip; do
+            printf '%064d  %s\n' 7 "$archive"
+        done > "$directory/SHA256SUMS" ;;
     *) echo "unexpected gh $area $action" >&2; exit 2 ;;
 esac
 GH
 chmod 755 "$scratch/bin/gh"
 export FAKE_GH="$scratch" MASH_GH="$scratch/bin/gh"
+export FAKE_QUEUE="$scratch/queue" FAKE_QUEUE_REMOTE="$scratch/remote.git" FAKE_QUEUE_TOOL="$repository/tools/fake-queue-gh.sh"
+mkdir -p "$FAKE_QUEUE"
 export MASH_RELEASE_POLL=0 MASH_RELEASE_WAIT=2 MASH_RELEASE_OUTPUT="$scratch/out"
 mark() { mkdir -p "$scratch/runs/$1"; echo "$3" > "$scratch/runs/$1/$2"; }
 
@@ -117,10 +126,23 @@ refused 'not origin/main' 'not at origin/main' release "$next"
 git -C "$tree" checkout --quiet --detach origin/main
 [[ $(remote main) == "$base" && $(git -C "$tree" rev-parse HEAD) == "$base" ]] || fail 'a refused release changed something'
 
-# --- A release that stops while CI runs on the bump, then resumes. ---
-refused 'CI still running on the bump' "ci.yml has not finished.*--resume $next" release "$next"
+# --- The merge queue rejects the bump: main is untouched, and --resume queues it again. ---
+echo reject > "$FAKE_QUEUE/verdict"
+refused 'the queue rejects the bump' "release commit is not on main.*--resume $next" release "$next"
+grep -q 'ci / required  https://' "$scratch/output" || fail 'the rejection does not name the failed check'
+local_bump=$(git -C "$tree" rev-parse HEAD)
+[[ $(git -C "$tree" log -1 --format=%s) == "Release $next" && $(remote main) == "$base" ]] || fail 'a rejected release commit reached main'
+[[ $(remote "refs/heads/release/v$next") == "$local_bump" ]] || fail 'the release commit was not pushed as release/vX.Y.Z'
+[[ $(cat "$FAKE_QUEUE/prs/1/title") == "Release $next" ]] || fail 'the pull request is not titled after the release commit'
+echo merge > "$FAKE_QUEUE/verdict"
+
+# --- Resumed: the queue merges a rebased copy, and the release stops while CI runs on it. ---
+refused 'CI still running on the bump' "ci.yml has not finished.*--resume $next" release --resume "$next"
 bump=$(git -C "$tree" rev-parse HEAD)
-[[ $(git -C "$tree" log -1 --format=%s) == "Release $next" && $(remote main) == "$bump" ]] || fail 'the release commit was not pushed to main'
+[[ $(git -C "$tree" log -1 --format=%s) == "Release $next" && $(remote main) == "$bump" ]] || fail 'the checkout is not at the release commit main got'
+[[ $bump != "$local_bump" ]] || fail 'the fake queue kept the commit name, unlike a rebase merge'
+[[ $(find "$FAKE_QUEUE/prs" -mindepth 1 -maxdepth 1 | wc -l) == 1 ]] || fail 'resuming opened a second pull request'
+! remote "refs/heads/release/v$next" >/dev/null || fail 'the merged release branch was left on the remote'
 ! remote "refs/tags/v$next" >/dev/null || fail 'the tag was pushed before CI passed on the bump'
 ! git -C "$tree" rev-parse --verify --quiet "refs/tags/v$next" >/dev/null || fail 'the tag was made before CI passed on the bump'
 refused 'second run without --resume' 'continue with --resume' release "$next"
@@ -133,11 +155,33 @@ refused 'release workflow still running' "release.yml has not finished.*--resume
 [[ $(remote "refs/tags/v$next^{commit}") == "$bump" ]] || fail 'the tag was not pushed after CI passed'
 mark release.yml "$bump" 'completed success 5'
 release --resume "$next" || fail 'the resumed release failed'
-[[ $(remote main) == "$bump" ]] || fail 'resuming pushed another commit'
+# The Scoop manifest follows the release commit onto main through the queue.
+[[ $(remote main~1) == "$bump" && $(git -C "$scratch/remote.git" log -1 --format=%s main) == "Scoop: mash v$next" ]] || fail 'main is not the release commit and then the Scoop manifest'
+[[ $(git -C "$scratch/remote.git" show --name-only --format= main) == bucket/mash.json ]] || fail 'the Scoop commit changed something else'
+git -C "$scratch/remote.git" show main:bucket/mash.json | grep -q "\"version\": \"$next\"" || fail 'the Scoop manifest is not at the new version'
+git -C "$scratch/remote.git" show main:bucket/mash.json | grep -q "\"hash\": \"0*7\"" || fail 'the Scoop manifest lacks the published checksums'
+grep -q "Scoop: The bucket on main is at $next" "$scratch/output" || fail 'the release does not say the bucket was updated'
+scoop=$(remote main)
 grep -q "gh release edit v$next --repo mashhq/mash --notes-file $scratch/out/v$next-notes.md" "$scratch/output" || fail 'no command to publish the notes'
 grep -q -- '- Explain the fixture in the README' "$scratch/out/v$next-notes.md" || fail 'no notes draft'
 [[ -f "$scratch/out/v$next-winget-manifests/MashHQ.Mash.yaml" ]] && grep -q 'wingetcreate submit' "$scratch/output" || fail 'no winget manifests or steps'
 grep -q 'run download 5 ' "$scratch/calls" || fail 'the winget manifests did not come from the release run'
 ! grep -q 'release edit\|release create' "$scratch/calls" || fail 'the script published notes itself'
 refused 'released twice' 'already exists' release "$next"
-echo 'Release script: dry run, refusals, CI-gated tag, resume, notes draft and winget steps passed (throwaway remote, fake gh).'
+
+# --- A resume from a tree left elsewhere finds the release commit on main. ---
+git -C "$tree" checkout --quiet --detach "$base"
+release --resume "$next" || fail 'resuming from another commit failed'
+[[ $(git -C "$tree" rev-parse HEAD) == "$bump" ]] || fail 'resuming did not move to the release commit on main'
+[[ $(remote main) == "$scoop" ]] || fail 'resuming landed the Scoop manifest twice'
+
+# --- --direct: the bump goes straight to main under its own name, with no pull request. ---
+after="${next%.*}.$(( ${next##*.} + 1 ))"
+git -C "$tree" fetch --quiet origin
+git -C "$tree" checkout --quiet --detach origin/main
+mark ci.yml "$scoop" 'completed success 6'
+mark windows.yml "$scoop" 'completed success 7'
+refused 'CI still running on the direct bump' "ci.yml has not finished.*--resume $after" release --direct "$after"
+[[ $(remote main) == "$(git -C "$tree" rev-parse HEAD)" && $(git -C "$tree" log -1 --format=%s) == "Release $after" ]] || fail '--direct did not push the release commit to main'
+[[ $(find "$FAKE_QUEUE/prs" -mindepth 1 -maxdepth 1 | wc -l) == 2 ]] || fail '--direct opened a pull request'
+echo 'Release script: dry run, refusals, merge queue, CI-gated tag, resume, notes draft, winget steps, the Scoop manifest and --direct passed (throwaway remote, fake gh).'
