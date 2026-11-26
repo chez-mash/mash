@@ -94,7 +94,7 @@ clone=$(sed -n 's/^The clone, .*: //p' "$scratch/output")
 [[ $(git -C "$clone" show --name-only --format= HEAD | sort | tr '\n' ' ') == 'Cargo.lock Cargo.toml desktop/src-tauri/Cargo.lock desktop/src-tauri/Cargo.toml ' ]] ||
     fail 'dry run changed other files'
 # Every version-inheriting package moved in the lockfile; crates with their own versions did not.
-[[ $(git -C "$clone" show --format= HEAD -- Cargo.lock | grep -c "^+version = \"$next\"$") == 7 ]] || fail 'the lockfile bump is not the seven workspace packages'
+[[ $(git -C "$clone" show --format= HEAD -- Cargo.lock | grep -c "^+version = \"$next\"$") == 8 ]] || fail 'the lockfile bump is not the eight workspace packages'
 grep -qx "version = \"$next\"" "$clone/desktop/src-tauri/Cargo.toml" || fail 'the desktop manifest was not bumped'
 grep -A1 '^name = "mash-desktop"$' "$clone/desktop/src-tauri/Cargo.lock" | grep -qx "version = \"$next\"" || fail 'the desktop lockfile was not bumped'
 grep -q '^version = "0.1.0"$' "$clone/crates/mash-model/Cargo.toml" || fail 'an independently versioned crate was bumped'
