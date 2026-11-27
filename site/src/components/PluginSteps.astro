@@ -1,32 +1,21 @@
 ---
 // The first band under the agents row: the plugin from the reader's side.
 // Most people meet Mash through their agents rather than one of its windows,
-// so this comes before the surface showcase. The cards follow one made-up
-// week: a problem worked out in Claude Code, then picked up days later in
-// Codex on another machine, without explaining it again. They tell what the
-// reader sees, not how the plugin does it.
+// so this comes before the surface showcase. Four cards tell one made-up
+// story in plain chat bubbles: a choice made with Codex, Mash remembering it,
+// and Claude Code answering from it later. They show what the reader sees,
+// never how the plugin finds it.
 import AgentTile from "./AgentTile.astro";
 import CardRail from "./CardRail.astro";
-import LineIcon from "./LineIcon.astro";
-import OsMark from "./OsMark.astro";
 
 const steps = [
+  { name: "You chat with Codex", says: "You talk a choice through, the way you always do." },
+  { name: "Mash remembers", says: "What you settled is kept, with the chat it came from." },
   {
-    name: "Monday, in Claude Code",
-    says: "You work out how to rotate the webhook secret without dropping events.",
+    name: "Later, you ask Claude",
+    says: "A different agent, days later. You don’t explain it again.",
   },
-  {
-    name: "Mash keeps the chat",
-    says: "Every chat from every agent is kept as you go. There’s nothing to copy.",
-  },
-  {
-    name: "Thursday, in Codex",
-    says: "Another agent, on another machine. You don’t explain it again.",
-  },
-  {
-    name: "Codex picks up from there",
-    says: "It finds what you settled in Claude Code and says where it came from.",
-  },
+  { name: "Claude already knows", says: "It answers from your Codex chat, and says so." },
 ];
 ---
 
@@ -36,11 +25,11 @@ const steps = [
       <span class="kicker">Agent plugin</span>
       <h2 id="welcome-plugin-title">Start in one agent. <span class="quiet">Finish in another.</span></h2>
       <p class="blurb">
-        Most days you won’t open Mash at all. With the plugin installed, your agents read each
-        other’s chats, so the next one already knows what the last one did.
+        Most days you won’t open Mash at all. With the plugin installed, your agents remember each
+        other’s chats, so the next one already knows what you decided with the last.
       </p>
     </div>
-    <CardRail label="One week with the agent plugin, step by step" href="/plugin/" more="How the plugin works">
+    <CardRail label="Codex, then Claude Code, with Mash in between, step by step" href="/plugin/" more="How the plugin works">
       {steps.map(({ name, says }, index) => (
         <li class="flow-card" data-flow-card>
           <span class="flow-head">
@@ -51,54 +40,35 @@ const steps = [
           <span class="flow-picture" aria-hidden="true">
             {index === 0 && (
               <span class="chat">
-                <span class="chat-h" data-in><AgentTile agent="claude-code" /><b>billing-api</b><small><OsMark system="macos" />laptop</small></span>
-                <span class="said you" data-in>Rotate the production webhook secret without dropping events.</span>
-                <span class="said agent" data-in>
-                  <mark>Accept both the old and the new secret for 24 hours</mark>, then remove the old one.
-                </span>
-                <span class="said you" data-in>Do it. We’ll do staging later.</span>
+                <span class="who" data-in><AgentTile agent="codex" /><b>Codex</b><small>Tuesday</small></span>
+                <span class="said you" data-in>Postgres or SQLite for the sync server?</span>
+                <span class="said agent" data-in>Postgres. Several of your machines will write to it at once.</span>
+                <span class="said you" data-in>Makes sense. Let’s go with Postgres.</span>
               </span>
             )}
             {index === 1 && (
-              <span class="finds">
-                <span class="q" data-in><LineIcon name="message-square" size="0.875rem" /><b>Recent chats</b></span>
-                <span class="hit on" data-in>
-                  <AgentTile agent="claude-code" /><b>Rotate webhook signing secrets</b>
-                  <small><OsMark system="macos" />laptop · just now</small>
-                </span>
-                <span class="hit" data-in>
-                  <AgentTile agent="codex" /><b>Verify webhook signatures in tests</b>
-                  <small><OsMark system="linux" />workstation · Sun</small>
-                </span>
-                <span class="hit" data-in>
-                  <AgentTile agent="cursor" /><b>Staging env variables</b>
-                  <small><OsMark system="macos" />mini · last week</small>
+              <span class="chat">
+                <span class="kept" data-in>
+                  <span class="who"><img src="/mash-mark.svg" alt="" width="20" height="20" /><b>Mash remembers</b></span>
+                  <span class="kept-says">The sync server uses Postgres, because several machines write at once.</span>
+                  <span class="from"><AgentTile agent="codex" />From your chat with Codex · Tuesday</span>
                 </span>
               </span>
             )}
             {index === 2 && (
-              <span class="term">
-                <span class="term-h"><u></u><u></u><u></u><i>codex · billing-api · workstation</i></span>
-                <span class="term-b">
-                  <span class="prompt" data-in><i>›</i>Rotate the staging webhook secret the way we did for production.</span>
-                  <span class="thinking" data-in><AgentTile agent="codex" />Looking through your earlier chats…</span>
-                </span>
+              <span class="chat">
+                <span class="who" data-in><AgentTile agent="claude-code" /><b>Claude Code</b><small>Friday</small></span>
+                <span class="said you" data-in>Which database did we pick for the sync server, and why?</span>
               </span>
             )}
             {index === 3 && (
-              <span class="reply">
-                <span class="reply-b" data-in>
-                  <AgentTile agent="codex" />
-                  <span>
-                    On Monday you settled this with Claude Code: both secrets work for 24 hours, then the
-                    old one goes. I’ll do the same on staging.
-                  </span>
+              <span class="chat">
+                <span class="who" data-in><AgentTile agent="claude-code" /><b>Claude Code</b><small>Friday</small></span>
+                <span class="said agent" data-in>
+                  Postgres. You decided it with Codex on Tuesday, because several of your machines write
+                  to it at once.
                 </span>
-                <span class="source" data-in>
-                  <AgentTile agent="claude-code" /><b>Rotate webhook signing secrets</b>
-                  <small><OsMark system="macos" />laptop · Monday</small>
-                  <span class="open">Open the message ›</span>
-                </span>
+                <span class="from cite" data-in><AgentTile agent="codex" />From your chat with Codex</span>
               </span>
             )}
           </span>
@@ -116,7 +86,7 @@ const steps = [
     display: flex;
     flex: 0 0 min(21.5rem, 84%);
     flex-direction: column;
-    height: 26rem;
+    height: 25rem;
     overflow: hidden;
     border-radius: var(--radius-8);
     background: var(--surface-raised);
@@ -162,177 +132,78 @@ const steps = [
     justify-content: center;
     min-height: 0;
     margin: 0 0.5rem 0.5rem;
-    padding: 0.875rem;
+    padding: 1rem;
     overflow: hidden;
     border-radius: var(--radius-6);
     background: color-mix(in srgb, var(--butter) 9%, var(--surface-muted));
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.5;
   }
-  .flow-picture > span {
+
+  /* Every picture is a few chat bubbles under the name of who is talking. */
+  .chat {
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
   }
-  .flow-picture b {
-    overflow: hidden;
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .who b {
     color: var(--text-strong);
     font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
-  .flow-picture small {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3125rem;
+  .who small {
+    margin-inline-start: auto;
     color: var(--text-faint);
     font-size: 0.75rem;
-    white-space: nowrap;
-  }
-
-  /* 3: the other agent's terminal. */
-  .term {
-    overflow: hidden;
-    border-radius: var(--radius-5);
-    background: var(--surface-code);
-    box-shadow: var(--shadow-card);
-  }
-  .flow-picture .term {
-    gap: 0;
-  }
-  .term-h {
-    display: flex;
-    align-items: center;
-    gap: 0.3125rem;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border-divider);
-  }
-  .term-h u {
-    display: block;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--radius-round);
-    background: var(--text-faint);
-    opacity: 0.45;
-  }
-  .term-h i {
-    margin-inline-start: 0.375rem;
-    color: var(--text-faint);
-    font: 400 0.6875rem / 1 var(--type-mono);
-    font-style: normal;
-  }
-  .term-b {
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-    padding: 0.875rem 0.75rem 1rem;
-    font: 400 0.75rem / 1.6 var(--type-mono);
-  }
-  .prompt {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: var(--radius-4);
-    background: var(--surface-muted);
-    color: var(--text-strong);
-  }
-  .prompt i {
-    color: var(--text-faint);
-    font-style: normal;
-  }
-  .thinking {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-muted);
-  }
-
-  /* 2: the chat, now in Mash's history beside the rest. */
-  .q {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-5);
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-ring);
-    color: var(--text-muted);
-  }
-  .hit {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.125rem 0.5rem;
-    align-items: center;
-    padding: 0.5rem 0.625rem;
-    border-radius: var(--radius-5);
-  }
-  .hit small {
-    grid-column: 2;
-  }
-  .hit.on {
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-butter);
-  }
-
-  /* 1: the first chat, with the line that settles it marked. */
-  .chat-h {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   .said {
     max-width: 88%;
     padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-5);
+    border-radius: var(--radius-6);
+    box-shadow: var(--shadow-ring);
   }
   .said.you {
     align-self: flex-end;
     background: var(--surface-muted);
-    box-shadow: var(--shadow-ring);
     color: var(--text-strong);
   }
   .said.agent {
     align-self: flex-start;
     background: var(--surface-raised);
-    box-shadow: var(--shadow-ring);
-  }
-  .said mark {
-    padding: 0;
-    box-decoration-break: clone;
-    border-radius: var(--radius-2);
-    background: var(--butter-soft);
-    color: var(--text-strong);
   }
 
-  /* 4: the second agent's answer, and the chat it came from. */
-  .reply-b {
+  /* What Mash keeps: the decision, and the chat it came from. */
+  .kept {
     display: flex;
-    gap: 0.625rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-5);
-    background: var(--surface-raised);
-    box-shadow: var(--shadow-ring);
-    color: var(--text-strong);
-  }
-  .source {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.25rem 0.5rem;
-    align-items: center;
-    margin-inline-start: 1.5rem;
-    padding: 0.625rem 0.75rem;
-    border-radius: var(--radius-5);
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--radius-6);
     background: var(--surface-raised);
     box-shadow: var(--shadow-butter);
   }
-  .source small,
-  .source .open {
-    grid-column: 2;
+  .kept-says {
+    color: var(--text-strong);
+    font-size: 0.9375rem;
+    line-height: 1.5;
   }
-  .open {
-    color: var(--link);
+  .from {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
     font-size: 0.75rem;
-    font-weight: 500;
+  }
+  .from.cite {
+    align-self: flex-start;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
   }
 
   /* Once the rail is live, a card's picture plays in as the card comes into view.
@@ -348,13 +219,13 @@ const steps = [
     opacity: 1;
     translate: 0 0;
   }
-  .flow-card.seen [data-in]:nth-child(2) { transition-delay: 0.25s; }
-  .flow-card.seen [data-in]:nth-child(3) { transition-delay: 0.5s; }
-  .flow-card.seen [data-in]:nth-child(4) { transition-delay: 0.75s; }
-
-  @media (width < 40rem) {
-    .flow-card {
-      height: 25rem;
-    }
+  .flow-card.seen [data-in]:nth-child(2) {
+    transition-delay: 0.3s;
+  }
+  .flow-card.seen [data-in]:nth-child(3) {
+    transition-delay: 0.6s;
+  }
+  .flow-card.seen [data-in]:nth-child(4) {
+    transition-delay: 0.9s;
   }
 </style>

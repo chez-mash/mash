@@ -99,9 +99,10 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   button fades in, with the hero button's target. Links into the page stop
   under the island (`scroll-padding-top`), and the pinned panel holds below it.
 - **The plugin band** (`PluginSteps.astro`) is the first band, because most
-  people meet Mash through their agents: one made-up week told in four step
-  cards, from a chat in Claude Code to Codex picking it up days later on
-  another machine. It tells what the reader sees, not the plugin's calls. The
+  people meet Mash through their agents: one made-up story in four step cards
+  of plain chat bubbles. A choice made with Codex, Mash remembering it, and
+  Claude Code answering from it days later. It tells what the reader sees,
+  never how the plugin finds it: no tool calls, searches or terminals. The
   cards sit in a `CardRail`: a scroll container that snaps to each card with
   the next one at the edge, which `rails.ts` gives previous and next buttons,
   arrow keys, and a `seen` mark that plays a card's picture in once it is on
