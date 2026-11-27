@@ -24,5 +24,14 @@
 !macro NSIS_HOOK_PREUNINSTALL
   ${If} $UpdateMode <> 1
     ExecWait '"$INSTDIR\${MAINBINARYNAME}.exe" --command-line-tool uninstalling' $0
+    ; Should the app not have run (an antivirus holding it back, say), still
+    ; take the command's files away. A PATH entry left behind then names a
+    ; folder that is gone, which Windows skips.
+    Delete "$INSTDIR\bin\mash.exe"
+    Delete "$INSTDIR\bin\mash.new"
+    Delete "$INSTDIR\bin\mash.old-*"
+    Delete "$INSTDIR\bin\.mash-running-*"
+    Delete "$INSTDIR\bin\.mash-staged-*"
+    RMDir "$INSTDIR\bin"
   ${EndIf}
 !macroend
