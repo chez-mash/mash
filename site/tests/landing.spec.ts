@@ -32,7 +32,6 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Start in one agent. Finish in another.",
     "One history. Everywhere you work.",
     "Take shortcuts, not detours.",
-    "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
@@ -42,12 +41,11 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   // A heading is a short claim; the sentence that explains one is a paragraph
   // under it, with the keys it names as keycaps.
   const shortcut = page.locator("#welcome-shortcuts .head p");
-  await expect(shortcut).toHaveText("Press ⌥ ⇧ Space and the chat you need is one line away.");
-  await expect(shortcut.locator("kbd")).toHaveText(["⌥", "⇧", "Space"]);
-  // The search band says what it does in a paragraph, with no list.
-  await expect(page.locator("#welcome-search .words > p")).toHaveText(
-    "Search by the exact words or by meaning, with optional local models, and across machines through a server you run.",
+  await expect(shortcut).toHaveText(
+    "Press ⌥ ⇧ Space and the chat you need is one line away, found by its exact words or, with local models, by what it meant.",
   );
+  await expect(shortcut.locator("kbd")).toHaveText(["⌥", "⇧", "Space"]);
+  // No band lists what it does.
   await expect(page.locator(".mash-welcome .words :is(ul, ol)")).toHaveCount(0);
   // So does the privacy band: one paragraph with the caveat about backups, then the way onward.
   const privacy = page.locator("#welcome-privacy");
@@ -65,7 +63,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
   // Five of them are the showcase's surfaces, of which one shows at a time.
-  await expect(illustrations).toHaveCount(8);
+  await expect(illustrations).toHaveCount(7);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
@@ -469,11 +467,6 @@ for (const [name, viewport] of [
           .evaluate((node) => node.getBoundingClientRect().top),
       )
       .toBeCloseTo(rows[2] ?? 0, 0);
-    // Search: three results, and each match highlighted by the stylesheet again.
-    for (const result of await welcome.locator(".search-window .result").all())
-      await expect(result).toHaveCSS("opacity", "1");
-    for (const match of await welcome.locator(".search-window mark").all())
-      await expect.poll(() => match.getAttribute("style")).toBeFalsy();
     // Ferris: every stroke drawn, and the stylesheet's again.
     const crab = welcome.locator("#welcome-rust svg.ferris");
     await expect(crab).toBeVisible();
@@ -539,8 +532,8 @@ test("the pinned search panel holds for a screen and a half, then lets the page 
   // Past a screen and a half the panel scrolls away and the next band arrives.
   await page.evaluate((y) => scrollTo(0, y + 1350 + 400), start);
   await expect.poll(top).toBe(108 - 400);
-  await page.locator("#welcome-search").scrollIntoViewIfNeeded();
-  await expect(page.locator("#welcome-search .search-window")).toBeInViewport();
+  await page.locator("#welcome-mashy").scrollIntoViewIfNeeded();
+  await expect(page.locator("#welcome-mashy .mashy-window")).toBeInViewport();
   // Scrolling back up runs it backwards.
   await page.evaluate((y) => scrollTo(0, y - 200), start);
   await expect(field).toHaveText("Search every chat");
@@ -550,7 +543,7 @@ test("links into the page land on their target with the pinned panel above it", 
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  for (const id of ["install", "welcome-search", "welcome-mashy"]) {
+  for (const id of ["install", "welcome-plugin", "welcome-mashy"]) {
     await page.goto(`/#${id}`);
     await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
     await expect(page.locator(`#${id}`)).toBeInViewport();
@@ -572,8 +565,8 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const welcome = page.locator(".mash-welcome");
   // The showcase's surfaces aside (surfaces.spec.ts): one of those shows at a time.
   const windows = welcome.locator("[role=img]:not(.picture)");
-  await expect(windows).toHaveCount(3);
-  await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
+  await expect(windows).toHaveCount(2);
+  await expect(windows.nth(1)).toHaveAccessibleName(/Three example questions/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
   const mashy = welcome.locator("img.mashy-face");
@@ -595,9 +588,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect(welcome.locator("#welcome-shortcuts .quick-q b")).toHaveText("refresh token");
   await expect(welcome.locator("#welcome-shortcuts .quick li.on")).toHaveCount(1);
   for (const part of await welcome
-    .locator(
-      "#welcome-shortcuts .quick li, .search-window .result, .mash-agents li, .stats > div, .closing > *",
-    )
+    .locator("#welcome-shortcuts .quick li, .mash-agents li, .stats > div, .closing > *")
     .all()) {
     await expect(part).toBeVisible();
     await expect(part).toHaveCSS("opacity", "1");

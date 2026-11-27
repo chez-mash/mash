@@ -84,36 +84,14 @@
     text-underline-offset: 3px;
   }
 
-  /* Search: the query box, then three results on muted tiles. */
-  .query {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    height: 2.75rem;
-    padding: 0 0.875rem;
-    border-radius: var(--radius-6);
-    background: var(--surface-muted);
-    box-shadow: var(--shadow-ring-inset);
-    color: var(--text-faint);
-    font-size: 0.9375rem;
-  }
-  .query b {
-    color: var(--text-strong);
-    font-weight: 500;
-  }
-  .result,
-  .quote,
-  .later {
+  /* A quoted source in Mashy's answers, on a muted tile. */
+  .quote {
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
     padding: 0.75rem 0.875rem;
     border-radius: var(--radius-6);
     background: var(--surface-muted);
-  }
-  .result p:last-child {
-    color: var(--text-secondary);
-    line-height: 1.55;
   }
 
   /* Mashy: a question bubble, and the answer with its quoted source. */

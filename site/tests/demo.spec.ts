@@ -81,19 +81,6 @@ test("dashboard settings lead to instructions for changing the history range", a
   await expect(page).toHaveURL("/dashboard-settings/#change-the-history-range");
 });
 
-test("the welcome example opens the checkout source in the demo", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/#welcome-search");
-  await page.getByRole("link", { name: /read the checkout chat in the demo/i }).click();
-  await expect(page.getByRole("heading", { name: "Review of the checkout outage" })).toBeVisible();
-  const checkout = page.locator("#message-checkout-outage-review-1");
-  await expect(checkout).toHaveClass(/\bhit\b/);
-  await expect(checkout).toContainText("Building the index locked the table for writes");
-  await expect(
-    page.locator("article header").getByText("Claude Code", { exact: true }),
-  ).toBeVisible();
-});
-
 test("the README dashboard picture opens the sign-in decision it shows", async ({ page }) => {
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
   const link = /\]\(assets\/screenshots\/dashboard\.webp\)\]\(([^)]+)\)/.exec(readme)?.[1];

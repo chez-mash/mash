@@ -21,40 +21,6 @@ export function agents(list: HTMLElement): void {
   playOnce(list, timeline, "top 85%");
 }
 
-/** C. Search: the results arrive, then the highlight sweeps across each match. */
-export function search(band: HTMLElement, screen: Screen): void {
-  const picture = band.querySelector<HTMLElement>(".search-window");
-  if (!picture || !below(picture)) return;
-  const marks = all(picture, "mark");
-  const swept = "backgroundImage,backgroundRepeat,backgroundColor,backgroundSize,boxShadow";
-  gsap.set(marks, {
-    backgroundImage: "linear-gradient(var(--find-bg), var(--find-bg))",
-    backgroundRepeat: "no-repeat",
-    backgroundColor: "transparent",
-    backgroundSize: "0% 100%",
-    boxShadow: "none",
-  });
-  const timeline = gsap.timeline({ paused: true });
-  rise(timeline, all(picture, ".result"), 0, {
-    y: screen.wide ? 14 : 10,
-    duration: 0.45,
-    ease: "power3.out",
-    stagger: 0.09,
-  });
-  timeline.to(
-    marks,
-    {
-      backgroundSize: "100% 100%",
-      duration: 0.35,
-      ease: "power2.out",
-      stagger: 0.08,
-      clearProps: swept,
-    },
-    0.5,
-  );
-  playOnce(picture, timeline);
-}
-
 /**
  * F. Stats: the numbers count up once. Each number keeps its final width and
  * fills it from the unit's side, so the unit beside it never moves.

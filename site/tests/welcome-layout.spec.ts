@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-for (const [name, side] of [
-  ["search", "left"],
+/** Where a band's window sits beside or under its heading. */
+type Side = "left" | "right" | "below";
+const placements: readonly (readonly [string, Side])[] = [
   ["mashy", "right"],
-  ["search", "below"],
-] as const) {
+  ["mashy", "below"],
+];
+for (const [name, side] of placements) {
   const stacked = side === "below";
   const placement = stacked ? "below" : `${side} of`;
   test(`the ${name} window sits ${placement} its heading and points`, async ({ page }) => {
@@ -49,12 +51,10 @@ test("the privacy band is words alone: its paragraph takes the words' column, or
     return { heading, paragraph, onward };
   };
 
-  // Wide: the heading where the other bands' windows are, the paragraph under their words.
+  // Wide: the heading at the left, the paragraph in the column beside it.
   await page.setViewportSize({ width: 1280, height: 850 });
   const wide = await boxes();
-  const words = await page.locator("#welcome-search .words").boundingBox();
   expect(wide.heading.x + wide.heading.width).toBeLessThan(wide.paragraph.x);
-  expect(Math.abs(wide.paragraph.x - (words?.x ?? 0))).toBeLessThan(1);
   expect(wide.paragraph.width).toBeLessThanOrEqual(480);
   expect(wide.paragraph.y + wide.paragraph.height).toBeLessThan(wide.onward.y);
 

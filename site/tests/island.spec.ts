@@ -70,7 +70,7 @@ test("on a wide screen the island keeps its links while the page scrolls under i
   await page.goto("/");
   const island = page.locator("header.header .mash-header");
   const before = await place(island);
-  await scrollToPart(page, "#welcome-search");
+  await scrollToPart(page, "#welcome-mashy");
   expect(await place(island)).toEqual(before);
   await expect(island.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
   await expect(island.getByRole("link", { name: "GitHub", exact: true })).toBeVisible();
