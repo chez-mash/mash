@@ -87,6 +87,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(menubar::shortcut_plugin())
+        .plugin(frame::remembered())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state.clone())
         .manage(downloads::Downloads::default())
