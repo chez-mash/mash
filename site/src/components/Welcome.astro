@@ -103,7 +103,7 @@ const quick: {
     <div class="wrapper shortcuts" data-reveal>
       <div class="head">
         <h2 id="welcome-shortcuts-title">Take shortcuts, not detours.</h2>
-        <p class="blurb">Press <kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>Space</kbd> and the chat you need is one line away.</p>
+        <p class="blurb">Press <kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>Space</kbd> and the chat you need is one line away, found by its exact words or, with local models, by what it meant.</p>
       </div>
       <div class="desk" role="img"
         aria-label="The Mash desktop app's search panel under the menu bar: the search ‘refresh token’ lists five chats from Claude Code, Codex, Cursor and GitHub Copilot across three machines.">
@@ -130,39 +130,6 @@ const quick: {
             <div class="quick-f"><span>Open chat <kbd>↵</kbd></span><i></i><span>Open Mash <kbd>⌘</kbd><kbd>O</kbd></span></div>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="welcome-search" aria-labelledby="welcome-search-title">
-    <div class="wrapper split" data-reveal>
-      <div class="window search-window" role="img"
-        aria-label="The example search ‘Why does checkout keep failing?’ finds three chats about a checkout outage, from Claude Code, Codex, and Cursor on separate machines.">
-        <div class="window-h" aria-hidden="true"><u></u><u></u><u></u><span>mash · search</span></div>
-        <div class="window-b" aria-hidden="true">
-          <div class="query"><LineIcon name="search" size="1rem" /><b>Why does checkout keep failing?</b></div>
-          <div class="result">
-            <p class="who"><AgentTile agent="claude-code" /><b>Checkout outage review</b><span><OsMark system="windows" />build-box · 2d</span></p>
-            <p>The migration held a lock on <mark>checkout</mark> orders for four minutes, so every request <mark>failed</mark> until it finished.</p>
-          </div>
-          <div class="result">
-            <p class="who"><AgentTile agent="codex" /><b>Fix the flaky checkout test</b><span><OsMark system="linux" />workstation · 1d</span></p>
-            <p>The test <mark>keeps failing</mark> because it shares a cart with the test before it.</p>
-          </div>
-          <div class="result">
-            <p class="who"><AgentTile agent="cursor" /><b>Retry payments after a timeout</b><span><OsMark system="macos" />laptop · 6d</span></p>
-            <p>Added one retry when the payment provider times out during <mark>checkout</mark>.</p>
-          </div>
-        </div>
-      </div>
-      <div class="words">
-        <span class="kicker">Search</span>
-        <h2 id="welcome-search-title">Find it. <span class="quiet">However you remember it.</span></h2>
-        <p class="blurb">
-          Search by the exact words or by meaning, with optional local models, and across machines
-          through a server you run.
-        </p>
-        <a class="more" href="/demo/#/chat/checkout-outage-review?node=build-box&amp;message=checkout-outage-review-1&amp;shared=true" data-astro-reload>Read the checkout chat in the demo ›</a>
       </div>
     </div>
   </section>

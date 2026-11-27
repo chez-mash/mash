@@ -19,7 +19,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { closing, hero } from "./motion/hero";
 import { mashy } from "./motion/mashy";
 import { keepAnchor, quickSearch } from "./motion/quickSearch";
-import { agents, bands, ferris, search, stats } from "./motion/sections";
+import { agents, bands, ferris, stats } from "./motion/sections";
 import { all, type Screen, type Stop } from "./motion/stage";
 import { surfaces } from "./motion/surfaces";
 
@@ -55,8 +55,6 @@ export function mountMotion(page: ParentNode): Stop {
         if (showcase) stops.push(surfaces(showcase));
         const shortcuts = band("welcome-shortcuts");
         if (shortcuts) stops.push(quickSearch(shortcuts, screen));
-        const searching = band("welcome-search");
-        if (searching) search(searching, screen);
         const asking = band("welcome-mashy");
         if (asking) stops.push(mashy(asking, screen));
         const figures = welcome.querySelector<HTMLElement>(".stats");

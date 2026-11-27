@@ -26,7 +26,6 @@ const bands = [
   ["plugin", "#welcome-plugin"],
   ["surfaces", "#welcome-surfaces"],
   ["quick-search", "#welcome-shortcuts"],
-  ["search", "#welcome-search"],
   ["mashy", "#welcome-mashy"],
   ["speed", "#welcome-speed"],
   ["privacy", "#welcome-privacy"],
