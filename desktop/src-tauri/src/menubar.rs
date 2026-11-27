@@ -156,7 +156,7 @@ pub fn choose(app: &AppHandle, id: &str) {
         "settings" => crate::open_route(app, "#/settings"),
         "command-line" => crate::cli::install(app),
         "quit" => app.exit(0),
-        id if crate::go::choose(app, id) => {}
+        id if crate::go::choose(app, id) || crate::context::choose(app, id) => {}
         id => _ = crate::update::choose(app, id),
     }
 }

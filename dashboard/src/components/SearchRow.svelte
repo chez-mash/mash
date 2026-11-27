@@ -1,8 +1,13 @@
 <script lang="ts">
+import { createQuery } from "@tanstack/svelte-query";
 import SparkleIcon from "phosphor-svelte/lib/SparkleIcon";
 import Icon from "$lib/components/Icon.svelte";
 import { whenLabel } from "../lib/browse";
+import { chatMenu } from "../lib/chatMenu";
+import { contextMenu } from "../lib/contextMenu.svelte";
 import { plainTitle } from "../lib/markdown";
+import { onThisMachine } from "../lib/openIn";
+import { catalogOptions } from "../lib/queries";
 import { recency } from "../lib/tone";
 import type { ChatSummary } from "../lib/types";
 import AgentMark from "./AgentMark.svelte";
@@ -38,9 +43,15 @@ let {
   onselect?: () => void;
 } = $props();
 const now = Date.now();
+// A right-click offers the chat's own menu (lib/chatMenu.ts).
+const catalogue = createQuery(() => catalogOptions);
+function menu(event: MouseEvent, chat: ChatSummary, href: string): void {
+  const local = onThisMachine(chat, catalogue.data?.localNode, catalogue.data?.sharedOnly ?? false);
+  contextMenu.show(event, chatMenu(chat, href, local));
+}
 </script>
 
-<a class="sr chatrow" class:on={selected} {href} aria-current={selected ? "true" : undefined} data-row onmouseenter={onselect} onfocus={onselect}>
+<a class="sr chatrow" class:on={selected} {href} oncontextmenu={(event) => menu(event, chat, href)} aria-current={selected ? "true" : undefined} data-row onmouseenter={onselect} onfocus={onselect}>
   <span class="sr-t">
     <AgentMark agent={chat.agent} size="sm" />
     <b><Highlight text={plainTitle(chat.title)} {query} /></b>

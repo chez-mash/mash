@@ -1,6 +1,11 @@
 <script lang="ts">
+import { createQuery } from "@tanstack/svelte-query";
 import type { Snippet } from "svelte";
+import { chatMenu } from "../lib/chatMenu";
+import { contextMenu } from "../lib/contextMenu.svelte";
 import { plainTitle } from "../lib/markdown";
+import { onThisMachine } from "../lib/openIn";
+import { catalogOptions } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
 import type { ChatSummary } from "../lib/types";
@@ -36,9 +41,15 @@ const href = $derived.by(() => {
   );
   return chatHref(chat.id, chat.machine, position?.message ?? "", position?.shared ?? false);
 });
+// A right-click offers the chat's own menu (lib/chatMenu.ts).
+const catalogue = createQuery(() => catalogOptions);
+function menu(event: MouseEvent, chat: ChatSummary, href: string): void {
+  const local = onThisMachine(chat, catalogue.data?.localNode, catalogue.data?.sharedOnly ?? false);
+  contextMenu.show(event, chatMenu(chat, href, local));
+}
 </script>
 
-<a class="chatrow" {href}>
+<a class="chatrow" {href} oncontextmenu={(event) => menu(event, chat, href)}>
   <span class="chatrow-t"><AgentMark agent={chat.agent} size="sm" /><b>{#if title}{@render title()}{:else}{plainTitle(chat.title)}{/if}</b><SubagentPill {chat} />{#if decisions}<span class="pill decision"><DecisionCount count={decisions} /></span>{/if}</span>
   {#if snippet}<span class="snip">{@render snippet()}</span>{/if}
   <MetaChips {chat} />

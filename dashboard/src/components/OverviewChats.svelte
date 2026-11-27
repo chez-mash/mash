@@ -1,8 +1,13 @@
 <script lang="ts">
 // The overview's recent chats: each with its agent's mark, its title, where
 // it happened, how many decisions it produced and how long ago it was.
+import { createQuery } from "@tanstack/svelte-query";
 import { whenLabel } from "../lib/browse";
+import { chatMenu } from "../lib/chatMenu";
+import { contextMenu } from "../lib/contextMenu.svelte";
 import { plainTitle } from "../lib/markdown";
+import { onThisMachine } from "../lib/openIn";
+import { catalogOptions } from "../lib/queries";
 import { reading } from "../lib/reading.svelte";
 import { chatHref } from "../lib/route.svelte";
 import { recency } from "../lib/tone";
@@ -22,12 +27,18 @@ function hrefOf(chat: ChatSummary): string {
   );
   return chatHref(chat.id, chat.machine, position?.message ?? "", position?.shared ?? false);
 }
+// A right-click offers the chat's own menu (lib/chatMenu.ts).
+const catalogue = createQuery(() => catalogOptions);
+function menu(event: MouseEvent, chat: ChatSummary, href: string): void {
+  const local = onThisMachine(chat, catalogue.data?.localNode, catalogue.data?.sharedOnly ?? false);
+  contextMenu.show(event, chatMenu(chat, href, local));
+}
 </script>
 
 <div class="oc">
   {#each chats as chat (chat.machine + chat.id)}
     {@const decisions = decided.get(chat.id) ?? 0}
-    <a class="oc-row" href={hrefOf(chat)}>
+    <a class="oc-row" href={hrefOf(chat)} oncontextmenu={(event) => menu(event, chat, hrefOf(chat))}>
       <AgentMark agent={chat.agent} size="sm" />
       <span class="oc-t">
         <b>{plainTitle(chat.title)}</b>

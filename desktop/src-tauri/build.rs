@@ -44,13 +44,15 @@ fn main() {
     // The app's own commands. Its loading page may start the engine again
     // and read its output (capabilities/default.json); the dashboard in the
     // main window may ask about an update and for it to be installed
-    // (capabilities/updates.json); the panel gets none of them.
+    // (capabilities/updates.json) and show a right-click menu
+    // (capabilities/frame.json); the panel gets none of them.
     let commands = tauri_build::AppManifest::new().commands(&[
         "retry_engine",
         "engine_log",
         "update_banner",
         "update_install",
         "update_later",
+        "context_menu",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(commands))
         .unwrap_or_else(|error| panic!("prepare the app's build: {error:#}"));
