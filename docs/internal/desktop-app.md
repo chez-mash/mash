@@ -69,6 +69,10 @@ stays `browser`.
   `frame::remembered`); the window's ground is the page's dark colour from
   the first frame, so it never shows white; the top bar is a drag region
   (`data-tauri-drag-region`, allowed by `capabilities/frame.json`).
+- **Open at Login:** a tick in the menu bar menu (`login.rs`, Tauri's
+  autostart plugin: a launch agent on macOS, the Run key on Windows, an
+  autostart entry on Linux). A start at login passes `--at-login`, and the
+  app then opens into the menu bar alone, without its window.
 - **Right-click menus:** the page names a menu's lines and keeps what each
   does (`dashboard/src/lib/contextMenu.svelte.ts`); the app shows them as the
   system's menu at the pointer (`context_menu` in `context.rs`) and sends back
