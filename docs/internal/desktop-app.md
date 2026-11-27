@@ -67,6 +67,13 @@ stays `browser`.
 - **Everywhere:** the window's ground is the page's dark colour from the
   first frame, so it never shows white; the top bar is a drag region
   (`data-tauri-drag-region`, allowed by `capabilities/frame.json`).
+- **Right-click menus:** the page names a menu's lines and keeps what each
+  does (`dashboard/src/lib/contextMenu.svelte.ts`); the app shows them as the
+  system's menu at the pointer (`context_menu` in `context.rs`) and sends back
+  the chosen line's place as a `mash:context` event. In a browser the
+  dashboard draws the same lines itself (`ContextMenu.svelte`). A chat's
+  menu, wherever chats are listed, opens it, copies its link and, for a chat
+  of this machine its agent can resume, copies the resume command.
 
 What makes the page feel like an app holds in a browser too: rows, buttons
 and links within Mash show the arrow, the hand only for links out of it; the

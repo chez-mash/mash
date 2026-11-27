@@ -2,6 +2,7 @@ import { mount } from "svelte";
 import "./styles";
 
 import App from "./App.svelte";
+import { installContextMenu } from "./lib/contextMenu.svelte";
 import { installIconTheme } from "./lib/icon.svelte";
 import { installNavigationBoundary } from "./lib/navigation";
 import { installShell } from "./lib/shell";
@@ -10,6 +11,7 @@ const target = document.getElementById("app");
 if (target === null) throw new Error("missing #app element");
 
 installShell();
+installContextMenu();
 installIconTheme();
 
 const removeNavigationBoundary = installNavigationBoundary(document);

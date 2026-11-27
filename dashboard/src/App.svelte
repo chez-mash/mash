@@ -7,6 +7,7 @@ import AgentMark from "./components/AgentMark.svelte";
 import BrowseDetail from "./components/BrowseDetail.svelte";
 import BrowseTiles from "./components/BrowseTiles.svelte";
 import Console from "./components/Console.svelte";
+import ContextMenu from "./components/ContextMenu.svelte";
 import Fleet from "./components/Fleet.svelte";
 import History from "./components/History.svelte";
 import MachineExtras from "./components/MachineExtras.svelte";
@@ -200,6 +201,7 @@ function skip(event: MouseEvent): void {
   <a class="skip" href="#main" onclick={skip}>Skip to content</a>
   {#if appUpdate.offer}<UpdateBanner offer={appUpdate.offer} oninstall={() => void appUpdate.install()} onlater={() => void appUpdate.later()} />{/if}
   <!-- The top bar runs across the screen; the rail and the page sit under it. -->
+  <ContextMenu />
   <TopBar {railOpen} toggleRail={() => (railOpen = !railOpen)} />
   <div id="frame">
   <Rail open={railOpen} close={() => (railOpen = false)} />

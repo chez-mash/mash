@@ -11,6 +11,7 @@
 //! PDF (print.rs), plus a way to run the bundled `mash` (cli.rs).
 
 mod cli;
+mod context;
 mod downloads;
 mod engine;
 mod frame;
@@ -94,7 +95,8 @@ pub fn run() {
             engine_log,
             update::banner::update_banner,
             update::banner::update_install,
-            update::banner::update_later
+            update::banner::update_later,
+            context::context_menu
         ])
         .on_menu_event(|app, event| menubar::choose(app, event.id().as_ref()))
         .setup(move |app| {

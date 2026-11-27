@@ -1,12 +1,21 @@
 import { expect, type Page, test } from "@playwright/test";
 
+const chat = {
+  chat_id: "chat-1",
+  node_id: "laptop",
+  title: "Investigate the watcher",
+  provider: "codex",
+  project: "/work/mash",
+  updated_at: Date.now(),
+};
+
 // The desktop app tells the page which system it is on before the page
 // loads (desktop/src-tauri/src/frame.rs); a browser says nothing.
 async function inShell(page: Page, shell?: string): Promise<void> {
   if (shell)
     await page.addInitScript((name) => Object.assign(window, { __MASH_SHELL__: name }), shell);
   await page.route("**/api/**", (route) =>
-    route.fulfill({ json: { local_node: "laptop", chats: [], truncated: false } }),
+    route.fulfill({ json: { local_node: "laptop", chats: [chat], truncated: false } }),
   );
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
@@ -83,4 +92,19 @@ test("rows and buttons show the arrow; a link out of Mash shows the hand", async
   expect(await page.locator("#rail").evaluate((node) => getComputedStyle(node).userSelect)).toBe(
     "none",
   );
+});
+
+test("in a browser a right-click on a chat opens the dashboard's own menu", async ({ page }) => {
+  await inShell(page);
+  const row = page.locator(".oc-row").first();
+  await row.click({ button: "right" });
+  const menu = page.getByRole("menu");
+  await expect(menu.getByRole("menuitem")).toHaveText(["Open", "Copy Link"]);
+  await expect(menu.getByRole("menuitem", { name: "Open" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await row.click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Open" }).click();
+  await expect(page).toHaveURL(/#\/chat\//);
+  await expect(page.getByRole("menu")).toHaveCount(0);
 });

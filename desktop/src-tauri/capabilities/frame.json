@@ -1,10 +1,18 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "frame",
-  "description": "The dashboard in the main window draws the window's top bar on macOS, where the system title bar is hidden: it may move the window when the bar is dragged and zoom it when the bar is double-clicked (data-tauri-drag-region), and nothing else.",
-  "windows": ["main"],
+  "description": "The dashboard in the main window draws the window's frame: it may move the window when its top bar is dragged and zoom it when the bar is double-clicked (data-tauri-drag-region, the bar being the title bar on macOS), and show the system's own right-click menu of items it names (context.rs). Nothing else.",
+  "windows": [
+    "main"
+  ],
   "remote": {
-    "urls": ["http://127.0.0.1:*"]
+    "urls": [
+      "http://127.0.0.1:*"
+    ]
   },
-  "permissions": ["core:window:allow-start-dragging", "core:window:allow-internal-toggle-maximize"]
+  "permissions": [
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize",
+    "allow-context-menu"
+  ]
 }
