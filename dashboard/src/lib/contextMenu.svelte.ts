@@ -48,6 +48,9 @@ class ContextMenu {
   show(event: MouseEvent, entries: readonly MenuEntry[], scope: object = globalThis): void {
     if (!entries.some((entry) => entry !== "separator")) return;
     event.preventDefault();
+    // WebKit selects the words under a right-click; a control's menu is not
+    // about its text, so nothing stays selected behind the menu.
+    globalThis.getSelection?.()?.removeAllRanges();
     const at = { x: event.clientX, y: event.clientY };
     const invoke = appCommands(scope);
     if (!invoke) {
