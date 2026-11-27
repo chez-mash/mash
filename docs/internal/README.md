@@ -19,5 +19,6 @@ documentation website and its search. User guides live in [docs](../README.md).
 - [Native first-user setup audits](setup-audits.md)
 - [macOS VM for Raycast checks](mac-vm.md)
 - [Windows VM for desktop checks](win-vm.md)
+- [Linux VM for desktop checks](linux-vm.md)
 - [Fleet deployment](../../deployment/README.md)
 - [Protocol models](../../protocol/README.md)

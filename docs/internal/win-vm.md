@@ -100,11 +100,15 @@ only the run's writes), boots it, and over SSH:
 1. writes the made-up chats of `tools/mac-vm/demo-chats.json` into the
    guest's profile, generated on the Mac by `tools/mac-vm/demo_history.py`;
 2. installs the NSIS installer with `/S` (per user, no prompt);
-3. starts Mash through a scheduled task with an interactive logon. A process
+3. runs the app's `mash init --yes --no-agents --no-index` and `mash index`
+   behind a dead proxy, so the app opens on its dashboard with the demo
+   chats; word search needs neither Qdrant nor the models, which would be
+   downloads (see [linux-vm.md](linux-vm.md), where this is proven);
+4. starts Mash through a scheduled task with an interactive logon. A process
    started over SSH has no desktop, so anything that must appear on screen,
    or look at a window, runs as a task in the logged-on session
    (`tools/win-vm/guest.ps1`);
-4. asks the desktop session for Mash's window rectangle, takes the
+5. asks the desktop session for Mash's window rectangle, takes the
    screenshots, right-clicks the first chat row and takes them again.
 
 Unless `--keep` is given, the clone is stopped and its disk deleted.
