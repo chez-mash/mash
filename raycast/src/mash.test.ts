@@ -68,7 +68,13 @@ describe("finding mash", () => {
 
 describe("reading Mash's answers", () => {
   it("asks for a live search of this machine", () => {
-    expect(liveSearchArguments("deplo")).toEqual(["search", "deplo", "--live", "--limit", "20"]);
+    expect(liveSearchArguments("deplo")).toEqual(["search", "--live", "--limit", "20", "--", "deplo"]);
+  });
+
+  it("searches for words that start with a dash instead of reading them as options", () => {
+    expect(liveSearchArguments("--force").slice(-2)).toEqual(["--", "--force"]);
+    expect(streamArguments("-rf", "local").slice(-2)).toEqual(["--", "-rf"]);
+    expect(searchCommand("--force")).toBe("mash search -- '--force'");
   });
 
   it("reads each chat at its best matching message", () => {
@@ -249,8 +255,8 @@ describe("links and untrusted text", () => {
   });
 
   it("quotes the words of the terminal search command", () => {
-    expect(searchCommand(" deploy retry ")).toBe("mash search 'deploy retry'");
-    expect(searchCommand("don't")).toBe("mash search 'don'\\''t'");
+    expect(searchCommand(" deploy retry ")).toBe("mash search -- 'deploy retry'");
+    expect(searchCommand("don't")).toBe("mash search -- 'don'\\''t'");
   });
 
   it("shows history as literal text, never as Markdown that loads or links", () => {
@@ -345,21 +351,24 @@ describe("federated search", () => {
   it("asks every source in the scope while typing", () => {
     expect(streamArguments("invoice exports", "all")).toEqual([
       "search",
-      "invoice exports",
       "--live",
       "--stream",
       "--limit",
       "20",
       "--scope",
       "all",
+      "--",
+      "invoice exports",
     ]);
   });
 
   it("leaves subagent chats to Mash to leave out, unless the reader asks for them", () => {
-    expect(streamArguments("invoice exports", "local", true).slice(-3)).toEqual([
+    expect(streamArguments("invoice exports", "local", true).slice(-5)).toEqual([
       "--scope",
       "local",
       "--include-subagents",
+      "--",
+      "invoice exports",
     ]);
   });
 
