@@ -85,5 +85,30 @@ export function installContextMenu(scope: Window = window): () => void {
     if (Number.isInteger(place)) contextMenu.chosen(place);
   };
   scope.addEventListener(CHOSEN_EVENT, listener);
-  return () => scope.removeEventListener(CHOSEN_EVENT, listener);
+  // In the app a right-click that no menu of Mash's answers opens nothing, as
+  // in a native app: the webview's own page menu (Reload, Back, Inspect) has
+  // nothing to offer there. Text fields and selected text keep the system's
+  // menu, for Copy, Paste and Look Up. A browser keeps its usual menu.
+  const quiet = (event: Event) => {
+    if (event.defaultPrevented || !inDesktopApp(scope) || keepsSystemMenu(event.target, scope))
+      return;
+    event.preventDefault();
+  };
+  scope.addEventListener("contextmenu", quiet);
+  return () => {
+    scope.removeEventListener(CHOSEN_EVENT, listener);
+    scope.removeEventListener("contextmenu", quiet);
+  };
+}
+
+/** Whether a right-click on `target` should still get the system's menu: in a field, or on selected text. */
+export function keepsSystemMenu(target: EventTarget | null, scope: Window = window): boolean {
+  const element = target as { closest?: (selector: string) => unknown } | null;
+  if (
+    typeof element?.closest === "function" &&
+    element.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']")
+  )
+    return true;
+  const selection = scope.getSelection?.();
+  return !!selection && !selection.isCollapsed && selection.toString().trim() !== "";
 }

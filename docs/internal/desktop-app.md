@@ -83,6 +83,11 @@ stays `browser`.
   menu, wherever chats are listed, opens it, copies its link and, for a chat
   of this machine its agent can resume, copies the resume command.
 
+In the app a right-click that no menu of Mash's answers opens nothing,
+rather than the webview's page menu (Reload, Back, Inspect); text fields and
+selected text keep the system's menu for Copy, Paste and Look Up
+(`installContextMenu`). A browser keeps its usual menu.
+
 What makes the page feel like an app holds in a browser too: rows, buttons
 and links within Mash show the arrow, the hand only for links out of it; the
 page does not bounce past its ends; and the frame's labels do not select
