@@ -44,7 +44,8 @@ that for a few things: copied links are `mash://` links rather than the
 private loopback address (`dashboard/src/lib/shareLink.ts`); a PDF export asks
 the app to print (below); the export page says Mash, not the browser, saves
 the file; and commands it asks the reader to run name the app's own `mash`.
-The window's title bar is light, like the dashboard, which has no dark theme.
+Mash is dark only, so the app sets the dark window theme: the title bar, and
+on macOS the whole app's appearance, the panel and notices included.
 
 ## The mash command
 
@@ -418,8 +419,7 @@ The panel is the dashboard's `#/quick` page in a second, borderless window,
 so its live search, recent chats, agent logos and links are the dashboard's
 own (`dashboard/src/components/QuickSearch.svelte`, `dashboard/src/lib/quick.ts`).
 It is drawn in the dashboard's theme (Geist, its tokens, a neutral selected
-row), light or dark as the system is, and the window's title-bar theme sync
-skips it. Before anything is typed it lists recent chats and suggests full
+row), dark like the rest of Mash. Before anything is typed it lists recent chats and suggests full
 search, Memory and Machines; ⌘K (Ctrl+K) opens the selected chat's actions,
 the ones the chat page offers. The window is too narrow for the preview
 of the selected result, which shows only where the page is 600 pixels wide or
@@ -432,11 +432,8 @@ transparent, for its rounded edge, on macOS and Windows only: Linux desktops
 without a compositor paint a transparent window black. On macOS the window is
 drawn on the system's popover material (a Tauri window effect) and the page,
 told so by `window.__MASH_PANEL_MATERIAL__`, uses the translucent
-`--quick-surface-material`, so the panel looks like a menu bar extra in
-light and dark. Tauri's window theme sets the appearance of the whole app on
-macOS, so the main window's light title bar is set on that NSWindow alone
-(`light_title_bar` in `lib.rs`); otherwise the panel and the app's notices
-would stay light in dark mode. Showing it over
+`--quick-surface-material`, so the panel looks like a menu bar extra, on the
+dark material since the app's appearance is dark. Showing it over
 another app's full-screen window on macOS would need a non-activating panel,
 which Tauri does not offer, so that is not attempted.
 

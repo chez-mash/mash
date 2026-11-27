@@ -62,29 +62,13 @@ export default defineConfig({
     timezoneId: "UTC",
     launchOptions: { args: ["--hide-scrollbars"] },
   },
+  // Mash has one theme, dark, so each size has one set of pictures.
   projects: [
-    { name: "desktop-light", testMatch: pages, use: { viewport: desktop, colorScheme: "light" } },
-    { name: "desktop-dark", testMatch: pages, use: { viewport: desktop, colorScheme: "dark" } },
-    { name: "phone-light", testMatch: pages, use: { viewport: phone, colorScheme: "light" } },
-    // The phone's dark pictures cover three pages only, to keep the set small.
-    {
-      name: "phone-dark",
-      testMatch: pages,
-      grep: /@phone-dark/,
-      use: { viewport: phone, colorScheme: "dark" },
-    },
-    // Every story, in each theme; a story tagged "phone" is taken at the
-    // phone's size (visual/stories.spec.ts).
-    {
-      name: "stories-light",
-      testMatch: stories,
-      use: { baseURL: storiesAddress, viewport: desktop, colorScheme: "light" },
-    },
-    {
-      name: "stories-dark",
-      testMatch: stories,
-      use: { baseURL: storiesAddress, viewport: desktop, colorScheme: "dark" },
-    },
+    { name: "desktop", testMatch: pages, use: { viewport: desktop } },
+    { name: "phone", testMatch: pages, use: { viewport: phone } },
+    // Every story; a story tagged "phone" is taken at the phone's size
+    // (visual/stories.spec.ts).
+    { name: "stories", testMatch: stories, use: { baseURL: storiesAddress, viewport: desktop } },
   ],
   webServer: [
     {

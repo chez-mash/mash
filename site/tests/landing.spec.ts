@@ -328,10 +328,10 @@ test("each welcome band comes in as it scrolls into view, whatever the motion pr
   }
 });
 
-test("on the dark page the stroke under the headline is the brand's own butter", async ({
+test("the stroke under the headline is the brand's own butter, even on a light system", async ({
   browser,
 }) => {
-  const context = await browser.newContext({ colorScheme: "dark" });
+  const context = await browser.newContext({ colorScheme: "light" });
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -362,9 +362,9 @@ for (const [name, viewport] of [
     await expect.poll(() => draw.getAttribute("style")).toBeFalsy();
     await expect(draw).toHaveCSS("stroke-dashoffset", "0px");
     await expect(rule).toBeVisible();
-    // On the light page the stroke is the icons' deep butter, which a line
-    // needs to be seen there (3:1); the words stay ink.
-    await expect(rule).toHaveCSS("fill", "rgb(160, 117, 16)");
+    // The stroke is the brand's butter, which stands out on the dark page
+    // (at least 3:1); the words keep the heading's colour.
+    await expect(rule).toHaveCSS("fill", "rgb(245, 200, 75)");
     const contrast = await rule.evaluate((stroke) => {
       const light = (colour: string) => {
         const [r = 0, g = 0, b = 0] = (colour.match(/[\d.]+/g) ?? []).map((part) => {

@@ -47,9 +47,9 @@ rustls = { version = "0.23", default-features = false, features = ["ring"] }
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
-# The main window's own light appearance on macOS.
+# The search panel's place on every Space on macOS (menubar.rs).
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSAppearance", "NSResponder", "NSWindow"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSResponder", "NSWindow"] }
 
 # Win32_System_Console: Ctrl+C for the engine. Win32_UI_WindowsAndMessaging:
 # telling running programs that the user's PATH changed. windows-registry:

@@ -317,21 +317,11 @@ const installs = [
      words. The stroke hangs below the baseline, outside the flow: nothing
      moves to make room for it. */
   .accent {
-    /* On the light page the brand's butter is too pale to see as a line
-       (about 1.5:1), so the stroke takes the deep butter the icons use
-       (4:1). On the dark page it stays the brand's own. */
-    --rule: var(--butter-icon);
+    /* The stroke is the brand's own butter. */
+    --rule: var(--brand-pat);
     position: relative;
     display: inline-block;
     white-space: nowrap;
-  }
-  :global(:root[data-theme="dark"]) .accent {
-    --rule: var(--brand-pat);
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .accent {
-      --rule: var(--brand-pat);
-    }
   }
   .rule {
     position: absolute;

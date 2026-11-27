@@ -22,10 +22,10 @@ function block(selector: string) {
 }
 
 describe("icon weight", () => {
-  it("is bold when small, regular in text and light when large", () => {
+  it("is bold when small and in text, and regular when large", () => {
     expect([11, 12, 14, 15].map((size) => iconWeight(size))).toEqual(Array(4).fill("bold"));
-    expect([16, 18, 20, 24].map((size) => iconWeight(size))).toEqual(Array(4).fill("regular"));
-    expect([28, 32, 48].map((size) => iconWeight(size))).toEqual(["light", "light", "light"]);
+    expect([16, 18, 20, 24].map((size) => iconWeight(size))).toEqual(Array(4).fill("bold"));
+    expect([28, 32, 48].map((size) => iconWeight(size))).toEqual(["regular", "regular", "regular"]);
   });
 
   it("fills the current item and bolds a warning at any size", () => {
@@ -36,32 +36,18 @@ describe("icon weight", () => {
   });
 
   it("takes its weights from the theme it is given", () => {
-    const heavy: IconWeights = { ...defaultIconWeights, base: "bold", large: "regular" };
-    expect(iconWeight(16, "rest", heavy)).toBe("bold");
-    expect(iconWeight(32, "rest", heavy)).toBe("regular");
+    const light: IconWeights = { ...defaultIconWeights, base: "regular", large: "light" };
+    expect(iconWeight(16, "rest", light)).toBe("regular");
+    expect(iconWeight(32, "rest", light)).toBe("light");
   });
 });
 
 describe("the theme's icon weights", () => {
-  it("are the defaults in the light theme", () => {
-    expect(readIconWeights(block(":root"))).toEqual(defaultIconWeights);
-  });
-
-  it("are one step heavier in dark", () => {
-    expect(readIconWeights(block(':root[data-theme="dark"]'))).toEqual({
-      ...defaultIconWeights,
-      base: "bold",
-      large: "regular",
-    });
-  });
-
-  it("are stated by both dark blocks, and alike", () => {
-    const system = block(':root:not([data-theme="light"])');
-    const pinned = block(':root[data-theme="dark"]');
-    for (const name of Object.values(weightTokens)) {
-      expect(system.getPropertyValue(name), name).not.toBe("");
-      expect(pinned.getPropertyValue(name), name).toBe(system.getPropertyValue(name));
-    }
+  it("are the defaults", () => {
+    const root = block(":root");
+    for (const name of Object.values(weightTokens))
+      expect(root.getPropertyValue(name), name).not.toBe("");
+    expect(readIconWeights(root)).toEqual(defaultIconWeights);
   });
 
   it("keep the default for a role that is missing or misspelt", () => {

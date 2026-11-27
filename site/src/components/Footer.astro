@@ -2,11 +2,10 @@
 // The landing page and the guides directory end with a quiet line: the project, then a few ways
 // onward. Every other page keeps Starlight's footer.
 //
-// The landing page's line ends with the theme and language menus. Its header
-// has room for them only on a wide screen, and on a phone it is the logo
-// alone, so this is where a reader on any screen can change either.
+// The landing page's line ends with the language menu. Its header has room
+// for it only on a wide screen, and on a phone it is the logo alone, so this
+// is where a reader on any screen can change it.
 import Default from "@astrojs/starlight/components/Footer.astro";
-import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
 
 const { entry, locale } = Astro.locals.starlightRoute;
@@ -30,7 +29,6 @@ const base = locale ? `/${locale}/` : "/";
       </nav>
       {landing && (
         <div class="prefs">
-          <ThemeSelect />
           <LanguageSelect />
         </div>
       )}

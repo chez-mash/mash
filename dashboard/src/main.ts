@@ -2,14 +2,12 @@ import { mount } from "svelte";
 import "./styles";
 
 import App from "./App.svelte";
-import { installAppearance } from "./lib/appearance.svelte";
 import { installIconTheme } from "./lib/icon.svelte";
 import { installNavigationBoundary } from "./lib/navigation";
 
 const target = document.getElementById("app");
 if (target === null) throw new Error("missing #app element");
 
-installAppearance();
 installIconTheme();
 
 const removeNavigationBoundary = installNavigationBoundary(document);

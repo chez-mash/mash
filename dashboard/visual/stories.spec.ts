@@ -72,12 +72,11 @@ async function settle(page: Page): Promise<void> {
 
 for (const story of stories()) {
   const tags = story.tags ?? [];
-  test(story.id, async ({ page }, info) => {
-    const theme = info.project.name.endsWith("dark") ? "dark" : "light";
+  test(story.id, async ({ page }) => {
     if (tags.includes("phone")) await page.setViewportSize(phone);
     await page.clock.setFixedTime(now);
     await page.addInitScript(watchStory);
-    await page.goto(`iframe.html?id=${story.id}&viewMode=story&globals=theme:${theme}`);
+    await page.goto(`iframe.html?id=${story.id}&viewMode=story`);
     const ended = await page.waitForFunction(
       () => (window as unknown as { mashStoryEnded?: string }).mashStoryEnded,
     );

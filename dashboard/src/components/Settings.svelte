@@ -8,7 +8,6 @@ import Icon from "$lib/components/Icon.svelte";
 import { Switch } from "$lib/components/ui/switch";
 import * as ToggleGroup from "$lib/components/ui/toggle-group";
 import { agents as agentInfo } from "../lib/agents";
-import { appearance, appearances } from "../lib/appearance.svelte";
 import { assistantModelsOptions, assistantOptions } from "../lib/assistant";
 import { mashCommand } from "../lib/command";
 import { router } from "../lib/route.svelte";
@@ -106,7 +105,6 @@ const sections = [
   { id: "assistant", label: "Models and Mashy" },
   { id: "sync", label: "Machines and sync" },
   { id: "storage", label: "Storage" },
-  { id: "appearance", label: "Appearance" },
 ] as const;
 $effect(() => {
   const route = router.current;
@@ -391,21 +389,6 @@ async function save(): Promise<void> {
   </section>
 {/if}
 
-<section class="sec" id="set-appearance">
-  {@render heading("Appearance", "This browser only")}
-  <div class="card set-list">
-    <div class="set-row">
-      {@render title("Theme", "Kept in this browser only; other browsers and the desktop app keep their own choice.")}
-      <span class="set-c">
-        <ToggleGroup.Root type="single" aria-label="Theme" bind:value={() => appearance.current, (choice) => { const next = appearances.find((known) => known === choice); if (next) appearance.set(next); }}>
-          {#each appearances as choice (choice)}
-            <ToggleGroup.Item value={choice}>{choice === "system" ? "match the system" : choice}</ToggleGroup.Item>
-          {/each}
-        </ToggleGroup.Root>
-      </span>
-    </div>
-  </div>
-</section>
 
 {#if file?.editable && (changed.length || saved || failure)}
   <SettingsSaveBar {changed} {blocked} {saving} {failure} {saved} {discard} {save} />

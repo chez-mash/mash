@@ -185,12 +185,14 @@ pub fn create(app: &AppHandle, dashboard: &Url) -> tauri::Result<()> {
         .visible_on_all_workspaces(true)
         .skip_taskbar(true)
         .visible(false)
+        // Mash is dark only; on macOS the main window's theme already sets it.
+        .theme(Some(tauri::Theme::Dark))
         .initialization_script(crate::window_script())
         .initialization_script(PANEL_SCRIPT)
         .on_navigation(move |url| crate::navigate(&navigation, url, true));
     // On macOS the panel is drawn on the system's popover material, which
-    // blurs what is behind it and follows light and dark like a menu bar
-    // extra; the page leaves its background translucent to let it through.
+    // blurs what is behind it like a menu bar extra, dark as the app is; the
+    // page leaves its background translucent to let it through.
     #[cfg(target_os = "macos")]
     let builder = builder.effects(tauri::utils::config::WindowEffectsConfig {
         effects: vec![tauri::window::Effect::Popover],

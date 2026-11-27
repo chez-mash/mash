@@ -17,8 +17,6 @@ interface Shot {
   readonly route: string;
   /** Text the page shows once it has loaded: the picture is of this page and not an error. */
   readonly shows: string | RegExp;
-  /** Also taken on a dark phone. */
-  readonly phoneDark?: boolean;
   /** What to open or type before the picture. */
   readonly prepare?: (page: Page) => Promise<void>;
 }
@@ -55,7 +53,7 @@ async function openViewing(page: Page): Promise<void> {
 }
 
 const shots: readonly Shot[] = [
-  { name: "overview", route: "#/", shows: "Good evening", phoneDark: true },
+  { name: "overview", route: "#/", shows: "Good evening" },
   { name: "search", route: "#/search?q=checkout", shows: "Fix the flaky checkout test" },
   { name: "chats", route: "#/search", shows: "Every chat Mash has indexed" },
   {
@@ -68,7 +66,6 @@ const shots: readonly Shot[] = [
     name: "chat",
     route: "#/chat/sign-in-tokens?node=laptop",
     shows: "Move sign-in to short-lived tokens",
-    phoneDark: true,
     prepare: toChatTop,
   },
   {
@@ -77,7 +74,7 @@ const shots: readonly Shot[] = [
     shows: "Ship the 0.2.0 release",
     prepare: toChatTop,
   },
-  { name: "memory", route: "#/records", shows: "What your agents saved", phoneDark: true },
+  { name: "memory", route: "#/records", shows: "What your agents saved" },
   {
     name: "record",
     route: "#/record/record-sign-in-tokens?node=laptop",
@@ -142,7 +139,7 @@ async function settle(page: Page): Promise<void> {
 }
 
 for (const shot of shots) {
-  test(shot.name, { tag: shot.phoneDark ? "@phone-dark" : [] }, async ({ page }) => {
+  test(shot.name, async ({ page }) => {
     await page.clock.setFixedTime(now);
     await page.goto(shot.route);
     await expect(page.getByText(shot.shows).filter({ visible: true }).first()).toBeVisible();

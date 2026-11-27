@@ -6,15 +6,14 @@
  * shadow appears outside this file. Starlight's own variables are set from
  * the roles at the end, so its pages follow the same theme.
  *
- * The look is the dashboard's (dashboard/src/theme/tokens.css): porcelain
- * surfaces separated by hairline rings and soft shadows, Geist and Geist
- * Mono, the main action in ink, and butter used only as light: a glow, a
- * highlight, the selected tab, the pat in the wordmark.
+ * The look is the dashboard's (dashboard/src/theme/tokens.css): a warm
+ * near-black ground, raised surfaces separated by hairline rings and soft
+ * shadows, Geist and Geist Mono, the main action in porcelain, and butter used
+ * only as light: a glow, a highlight, the selected tab, the pat in the
+ * wordmark.
  *
- * There are two themes from one set of roles. Light is :root. Dark follows
- * the system, or the reader's choice in Starlight's theme menu, which sets
- * data-theme on the document; the dark values are written once and applied
- * by both the media query and data-theme="dark".
+ * The site has one theme, dark, like the app. There is no light theme or
+ * theme menu; components/ThemeProvider.astro pins Starlight to dark.
  */
 :root {
   /* Type: Geist and Geist Mono, bundled with the site (astro.config.mjs). */
@@ -23,292 +22,6 @@
   /* Surfaces: the page, the docs header, raised cards and windows, tiles
      inside them, the alternate bands, Mashy's band, hover, the current page
      in the sidebar, and code. */
-  --surface-page: #fcfbf8;
-  --surface-nav: #f5f3ee;
-  --surface-raised: #ffffff;
-  --surface-muted: #f5f3ee;
-  --surface-band: #f5f3ee;
-  --surface-mashy: #eef0fa;
-  --surface-hover: rgba(20, 19, 15, 0.045);
-  --surface-selected: #ffffff;
-  --surface-code: #ffffff;
-  --surface-inline-code: #f5f3ee;
-  /* Text. The kicker is the small mono label over a heading. */
-  --text-strong: #1a1915;
-  --text-body: #2e2c27;
-  --text-secondary: #4a463e;
-  --text-muted: #5f5b52;
-  --text-faint: #6f6a60;
-  --text-kicker: #8a5a00;
-  /* Lines: hairline rings, stronger lines, dividers, the edge of a tile. */
-  --line-outline: rgba(20, 19, 15, 0.08);
-  --line-strong: rgba(20, 19, 15, 0.14);
-  --line-divider: rgba(20, 19, 15, 0.07);
-  --line-ink: rgba(20, 19, 15, 0.12);
-  --stroke-outline: 1px;
-  --border-outline: var(--stroke-outline) solid var(--line-outline);
-  --border-strong: var(--stroke-outline) solid var(--line-strong);
-  --border-divider: var(--stroke-outline) solid var(--line-divider);
-  /* Shadows: rings separate, soft shadows lift. */
-  --shadow-ring: 0 0 0 1px rgba(20, 19, 15, 0.08);
-  --shadow-ring-inset: inset 0 0 0 1px rgba(20, 19, 15, 0.08);
-  --shadow-band: inset 0 1px 0 rgba(20, 19, 15, 0.07), inset 0 -1px 0 rgba(20, 19, 15, 0.07);
-  --shadow-card:
-    0 0 0 1px rgba(20, 19, 15, 0.07), 0 1px 2px rgba(20, 19, 15, 0.04),
-    0 24px 48px -30px rgba(20, 19, 15, 0.28);
-  --shadow-float:
-    0 0 0 1px rgba(20, 19, 15, 0.07), 0 1px 2px rgba(20, 19, 15, 0.04),
-    0 16px 32px -20px rgba(20, 19, 15, 0.2);
-  --shadow-frame:
-    0 0 0 1px rgba(20, 19, 15, 0.1), 0 2px 4px rgba(20, 19, 15, 0.05),
-    0 50px 100px -40px rgba(20, 19, 15, 0.35);
-  --shadow-button: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(20, 19, 15, 0.3);
-  --shadow-button-lift:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(20, 19, 15, 0.3),
-    0 14px 30px -12px rgba(20, 19, 15, 0.55);
-  --shadow-tab-on: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(160, 117, 16, 0.3);
-  --shadow-tile: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.18);
-  --shadow-kbd: 0 0 0 1px rgba(20, 19, 15, 0.1), 0 1px 0 rgba(20, 19, 15, 0.12);
-  --shadow-butter: 0 0 0 1px rgba(245, 200, 75, 0.45), 0 12px 28px -18px rgba(232, 176, 40, 0.55);
-  --shadow-butter-card:
-    0 0 0 1px rgba(245, 200, 75, 0.5), 0 26px 52px -26px rgba(232, 176, 40, 0.55);
-  --shadow-butter-quote: inset 0 0 0 1px rgba(245, 200, 75, 0.35);
-  --shadow-mark: 0 0 10px rgba(245, 200, 75, 0.45);
-  --shadow-toc: 0 0 6px rgba(245, 200, 75, 0.9);
-  --shadow-menubar: inset 0 -1px 0 rgba(20, 19, 15, 0.06);
-  --scrim: rgba(20, 19, 15, 0.32);
-  /* The main action: ink in light, porcelain in dark. */
-  --action-bg: #1a1915;
-  --action-hover-bg: #34322c;
-  --action-text: #ffffff;
-  /* Butter is light, never a fill for text-bearing surfaces: the selected
-     tab, highlights, glows, the wordmark's pat and link underlines. */
-  --butter: #f5c84b;
-  --butter-deep: #f0be3c;
-  --butter-pale: #fdedb4;
-  --butter-soft: rgba(245, 200, 75, 0.2);
-  --butter-glow: rgba(245, 200, 75, 0.3);
-  --butter-icon: #a07510;
-  --text-on-butter: #1a1915;
-  --find-bg: rgba(245, 200, 75, 0.42);
-  /* Links: ink words over a butter rule, or a quiet rule inside cards. */
-  --link: #1a1915;
-  --link-underline: #f5c84b;
-  --link-underline-quiet: rgba(20, 19, 15, 0.3);
-  /* Focus: a ring that reads on every surface. */
-  --focus: #8a5a00;
-  /* Pills and badges. */
-  --pill-bg: #f5f3ee;
-  --pill-text: #4a463e;
-  --pill-ok-bg: rgba(47, 125, 85, 0.12);
-  --pill-ok-text: #256645;
-  --pill-warn-bg: rgba(232, 176, 42, 0.2);
-  --pill-warn-text: #6f4700;
-  /* Agents: each agent's tile colour, with its logo in white or, on a light
-     tile, dark. */
-  --agent-claude-code: #d97757;
-  --agent-codex: #1a1915;
-  --agent-opencode: #3e5c76;
-  --agent-copilot: #6e40c9;
-  --agent-cursor: #1a1915;
-  --agent-antigravity: #3b6fe0;
-  --agent-on: #ffffff;
-  --agent-on-neutral: #ffffff;
-  /* Brand colours of the projects Mash is built with. */
-  --stack-tauri: #24c8d8;
-  --stack-qdrant: #dc244c;
-  --stack-tokio: #1a1915;
-  /* The brand: the wordmark and its pat of butter. */
-  --brand-name: #1a1915;
-  --brand-pat: #f5c84b;
-  /* The hero's streaks of light, and the veil that keeps the words clear. */
-  --streak-1: linear-gradient(
-    90deg,
-    rgba(245, 200, 75, 0) 0%,
-    rgba(245, 200, 75, 0.85) 45%,
-    rgba(252, 233, 166, 0.7) 75%,
-    rgba(252, 233, 166, 0) 100%
-  );
-  --streak-2: linear-gradient(
-    90deg,
-    rgba(252, 233, 166, 0) 0%,
-    rgba(252, 233, 166, 0.9) 35%,
-    rgba(245, 200, 75, 0.75) 70%,
-    rgba(245, 200, 75, 0) 100%
-  );
-  --streak-3: linear-gradient(
-    90deg,
-    rgba(244, 165, 131, 0) 0%,
-    rgba(244, 165, 131, 0.45) 50%,
-    rgba(244, 165, 131, 0) 100%
-  );
-  --streak-4: linear-gradient(
-    90deg,
-    rgba(245, 200, 75, 0) 0%,
-    rgba(245, 200, 75, 0.55) 55%,
-    rgba(245, 200, 75, 0) 100%
-  );
-  --hero-veil: radial-gradient(closest-side, rgba(252, 251, 248, 0.92), rgba(252, 251, 248, 0));
-  /* The desktop picture behind the quick search panel. */
-  --desk-bg: #f7f1e6;
-  --desk-butter: #f5c84b;
-  --desk-sky: #bfd9f2;
-  --desk-peach: #f4a583;
-  --desk-bar: rgba(255, 255, 255, 0.55);
-  --desk-panel: rgba(252, 251, 248, 0.94);
-  --desk-row-on: rgba(20, 19, 15, 0.06);
-  /* The Mash tile, drawn in CSS for the small mark inside the menu bar. */
-  --mark-top: #3b7ad6;
-  --mark-bottom: #2a62b8;
-  /* The app icon the landing page features: the same tile and mark, a soft
-     blue shadow under it and butter light behind it. */
-  --app-icon-top: #3b7ad6;
-  --app-icon-bottom: #2a62b8;
-  --app-icon-edge: rgba(255, 255, 255, 0.18);
-  --app-icon-mash: #fff1d0;
-  --app-icon-swirl: #d4a73e;
-  --app-icon-bowl: #dce3fa;
-  --app-icon-shine: #fff0be;
-  --app-icon-shadow: drop-shadow(0 18px 24px rgba(42, 98, 184, 0.26))
-    drop-shadow(0 3px 6px rgba(20, 19, 15, 0.12));
-  --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.42), rgba(245, 200, 75, 0));
-  /* Corners. */
-  --radius-1: 3px;
-  --radius-2: 5px;
-  --radius-3: 6px;
-  --radius-4: 8px;
-  --radius-5: 10px;
-  --radius-6: 12px;
-  --radius-7: 14px;
-  --radius-8: 16px;
-  --radius-9: 18px;
-  --radius-10: 26px;
-  --radius-11: 28px;
-  --radius-pill: 999px;
-  --radius-round: 50%;
-  color-scheme: light;
-}
-/* Geist has no Japanese or Chinese letters, so those pages name the fonts
-   each system draws them in next, before the generic fallback. */
-:root:lang(ja) {
-  --type-sans:
-    "Geist", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
-}
-:root:lang(zh-CN) {
-  --type-sans: "Geist", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface-page: #141311;
-    --surface-nav: #1b1a17;
-    --surface-raised: #23211d;
-    --surface-muted: #2a2824;
-    --surface-band: #1b1a17;
-    --surface-mashy: #1c1d27;
-    --surface-hover: rgba(255, 250, 240, 0.05);
-    --surface-selected: #23211d;
-    --surface-code: #181715;
-    --surface-inline-code: #2a2824;
-    --text-strong: #f3efe6;
-    --text-body: #e2ddd2;
-    --text-secondary: #d8d2c6;
-    --text-muted: #b3ac9f;
-    --text-faint: #a39d91;
-    --text-kicker: #f5c84b;
-    --line-outline: rgba(255, 250, 240, 0.08);
-    --line-strong: rgba(255, 250, 240, 0.14);
-    --line-divider: rgba(255, 250, 240, 0.07);
-    --line-ink: rgba(255, 250, 240, 0.12);
-    --shadow-ring: 0 0 0 1px rgba(255, 250, 240, 0.08);
-    --shadow-ring-inset: inset 0 0 0 1px rgba(255, 250, 240, 0.08);
-    --shadow-band:
-      inset 0 1px 0 rgba(255, 250, 240, 0.07), inset 0 -1px 0 rgba(255, 250, 240, 0.07);
-    --shadow-card:
-      0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3),
-      0 24px 48px -30px rgba(0, 0, 0, 0.7);
-    --shadow-float:
-      0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3),
-      0 16px 32px -20px rgba(0, 0, 0, 0.6);
-    --shadow-frame:
-      0 0 0 1px rgba(255, 250, 240, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3),
-      0 50px 100px -40px rgba(0, 0, 0, 0.8);
-    --shadow-button: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-button-lift:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4),
-      0 14px 30px -12px rgba(0, 0, 0, 0.7);
-    --shadow-kbd: 0 0 0 1px rgba(255, 250, 240, 0.1), 0 1px 0 rgba(0, 0, 0, 0.4);
-    --shadow-butter: 0 0 0 1px rgba(245, 200, 75, 0.45), 0 0 26px -8px rgba(245, 200, 75, 0.45);
-    --shadow-butter-card:
-      0 0 0 1px rgba(245, 200, 75, 0.5), 0 0 40px -14px rgba(245, 200, 75, 0.45);
-    --shadow-menubar: inset 0 -1px 0 rgba(255, 250, 240, 0.06);
-    --scrim: rgba(0, 0, 0, 0.5);
-    --action-bg: #f3efe6;
-    --action-hover-bg: #ffffff;
-    --action-text: #141311;
-    --butter-soft: rgba(245, 200, 75, 0.16);
-    --butter-glow: rgba(245, 200, 75, 0.18);
-    --app-icon-top: #2c62b4;
-    --app-icon-bottom: #1f4e96;
-    --app-icon-edge: rgba(255, 255, 255, 0.14);
-    --app-icon-shadow: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55))
-      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-    --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.2), rgba(245, 200, 75, 0));
-    --butter-icon: #f0be3c;
-    --find-bg: rgba(245, 200, 75, 0.3);
-    --link: #f3efe6;
-    --link-underline-quiet: rgba(255, 250, 240, 0.3);
-    --focus: #f5c84b;
-    --pill-bg: #2a2824;
-    --pill-text: #d8d2c6;
-    --pill-ok-bg: rgba(91, 196, 140, 0.14);
-    --pill-ok-text: #5bc48c;
-    --pill-warn-bg: rgba(232, 176, 42, 0.16);
-    --pill-warn-text: #e8b02a;
-    --agent-codex: #f3efe6;
-    --agent-cursor: #f3efe6;
-    --agent-on-neutral: #1a1915;
-    --stack-tokio: #f3efe6;
-    --brand-name: #f3efe6;
-    --streak-1: linear-gradient(
-      90deg,
-      rgba(245, 200, 75, 0) 0%,
-      rgba(245, 200, 75, 0.95) 45%,
-      rgba(252, 233, 166, 0.85) 75%,
-      rgba(252, 233, 166, 0) 100%
-    );
-    --streak-2: linear-gradient(
-      90deg,
-      rgba(252, 233, 166, 0) 0%,
-      rgba(252, 233, 166, 0.95) 35%,
-      rgba(245, 200, 75, 0.9) 70%,
-      rgba(245, 200, 75, 0) 100%
-    );
-    --streak-3: linear-gradient(
-      90deg,
-      rgba(244, 165, 131, 0) 0%,
-      rgba(244, 165, 131, 0.75) 50%,
-      rgba(244, 165, 131, 0) 100%
-    );
-    --streak-4: linear-gradient(
-      90deg,
-      rgba(245, 200, 75, 0) 0%,
-      rgba(245, 200, 75, 0.8) 55%,
-      rgba(245, 200, 75, 0) 100%
-    );
-    --hero-veil: radial-gradient(closest-side, rgba(20, 19, 17, 0.88), rgba(20, 19, 17, 0));
-    --desk-bg: #1f1d19;
-    --desk-butter: #b88a1f;
-    --desk-sky: #2b4561;
-    --desk-peach: #8a4a33;
-    --desk-bar: rgba(20, 19, 17, 0.55);
-    --desk-panel: rgba(35, 33, 29, 0.94);
-    --desk-row-on: rgba(255, 250, 240, 0.07);
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
   --surface-page: #141311;
   --surface-nav: #1b1a17;
   --surface-raised: #23211d;
@@ -319,16 +32,23 @@
   --surface-selected: #23211d;
   --surface-code: #181715;
   --surface-inline-code: #2a2824;
+  /* Text. The kicker is the small mono label over a heading. */
   --text-strong: #f3efe6;
   --text-body: #e2ddd2;
   --text-secondary: #d8d2c6;
   --text-muted: #b3ac9f;
   --text-faint: #a39d91;
   --text-kicker: #f5c84b;
+  /* Lines: hairline rings, stronger lines, dividers, the edge of a tile. */
   --line-outline: rgba(255, 250, 240, 0.08);
   --line-strong: rgba(255, 250, 240, 0.14);
   --line-divider: rgba(255, 250, 240, 0.07);
   --line-ink: rgba(255, 250, 240, 0.12);
+  --stroke-outline: 1px;
+  --border-outline: var(--stroke-outline) solid var(--line-outline);
+  --border-strong: var(--stroke-outline) solid var(--line-strong);
+  --border-divider: var(--stroke-outline) solid var(--line-divider);
+  /* Shadows: rings separate, soft shadows lift. */
   --shadow-ring: 0 0 0 1px rgba(255, 250, 240, 0.08);
   --shadow-ring-inset: inset 0 0 0 1px rgba(255, 250, 240, 0.08);
   --shadow-band: inset 0 1px 0 rgba(255, 250, 240, 0.07), inset 0 -1px 0 rgba(255, 250, 240, 0.07);
@@ -345,38 +65,61 @@
   --shadow-button-lift:
     inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4),
     0 14px 30px -12px rgba(0, 0, 0, 0.7);
+  --shadow-tab-on: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(160, 117, 16, 0.3);
+  --shadow-tile: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.18);
   --shadow-kbd: 0 0 0 1px rgba(255, 250, 240, 0.1), 0 1px 0 rgba(0, 0, 0, 0.4);
   --shadow-butter: 0 0 0 1px rgba(245, 200, 75, 0.45), 0 0 26px -8px rgba(245, 200, 75, 0.45);
   --shadow-butter-card: 0 0 0 1px rgba(245, 200, 75, 0.5), 0 0 40px -14px rgba(245, 200, 75, 0.45);
+  --shadow-butter-quote: inset 0 0 0 1px rgba(245, 200, 75, 0.35);
+  --shadow-mark: 0 0 10px rgba(245, 200, 75, 0.45);
+  --shadow-toc: 0 0 6px rgba(245, 200, 75, 0.9);
   --shadow-menubar: inset 0 -1px 0 rgba(255, 250, 240, 0.06);
   --scrim: rgba(0, 0, 0, 0.5);
+  /* The main action: porcelain on the dark ground. */
   --action-bg: #f3efe6;
   --action-hover-bg: #ffffff;
   --action-text: #141311;
+  /* Butter is light, never a fill for text-bearing surfaces: the selected
+     tab, highlights, glows, the wordmark's pat and link underlines. */
+  --butter: #f5c84b;
+  --butter-deep: #f0be3c;
+  --butter-pale: #fdedb4;
   --butter-soft: rgba(245, 200, 75, 0.16);
   --butter-glow: rgba(245, 200, 75, 0.18);
-  --app-icon-top: #2c62b4;
-  --app-icon-bottom: #1f4e96;
-  --app-icon-edge: rgba(255, 255, 255, 0.14);
-  --app-icon-shadow: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-  --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.2), rgba(245, 200, 75, 0));
   --butter-icon: #f0be3c;
+  --text-on-butter: #1a1915;
   --find-bg: rgba(245, 200, 75, 0.3);
+  /* Links: ink words over a butter rule, or a quiet rule inside cards. */
   --link: #f3efe6;
+  --link-underline: #f5c84b;
   --link-underline-quiet: rgba(255, 250, 240, 0.3);
+  /* Focus: a ring that reads on every surface. */
   --focus: #f5c84b;
+  /* Pills and badges. */
   --pill-bg: #2a2824;
   --pill-text: #d8d2c6;
   --pill-ok-bg: rgba(91, 196, 140, 0.14);
   --pill-ok-text: #5bc48c;
   --pill-warn-bg: rgba(232, 176, 42, 0.16);
   --pill-warn-text: #e8b02a;
+  /* Agents: each agent's tile colour, with its logo in white or, on a light
+     tile, dark. */
+  --agent-claude-code: #d97757;
   --agent-codex: #f3efe6;
+  --agent-opencode: #3e5c76;
+  --agent-copilot: #6e40c9;
   --agent-cursor: #f3efe6;
+  --agent-antigravity: #3b6fe0;
+  --agent-on: #ffffff;
   --agent-on-neutral: #1a1915;
+  /* Brand colours of the projects Mash is built with. */
+  --stack-tauri: #24c8d8;
+  --stack-qdrant: #dc244c;
   --stack-tokio: #f3efe6;
+  /* The brand: the wordmark and its pat of butter. */
   --brand-name: #f3efe6;
+  --brand-pat: #f5c84b;
+  /* The hero's streaks of light, and the veil that keeps the words clear. */
   --streak-1: linear-gradient(
     90deg,
     rgba(245, 200, 75, 0) 0%,
@@ -404,6 +147,7 @@
     rgba(245, 200, 75, 0) 100%
   );
   --hero-veil: radial-gradient(closest-side, rgba(20, 19, 17, 0.88), rgba(20, 19, 17, 0));
+  /* The desktop picture behind the quick search panel. */
   --desk-bg: #1f1d19;
   --desk-butter: #b88a1f;
   --desk-sky: #2b4561;
@@ -411,14 +155,50 @@
   --desk-bar: rgba(20, 19, 17, 0.55);
   --desk-panel: rgba(35, 33, 29, 0.94);
   --desk-row-on: rgba(255, 250, 240, 0.07);
+  /* The Mash tile, drawn in CSS for the small mark inside the menu bar. */
+  --mark-top: #3b7ad6;
+  --mark-bottom: #2a62b8;
+  /* The app icon the landing page features: the same tile and mark, a soft
+     blue shadow under it and butter light behind it. */
+  --app-icon-top: #2c62b4;
+  --app-icon-bottom: #1f4e96;
+  --app-icon-edge: rgba(255, 255, 255, 0.14);
+  --app-icon-mash: #fff1d0;
+  --app-icon-swirl: #d4a73e;
+  --app-icon-bowl: #dce3fa;
+  --app-icon-shine: #fff0be;
+  --app-icon-shadow: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  --app-icon-halo: radial-gradient(closest-side, rgba(245, 200, 75, 0.2), rgba(245, 200, 75, 0));
+  /* Corners. */
+  --radius-1: 3px;
+  --radius-2: 5px;
+  --radius-3: 6px;
+  --radius-4: 8px;
+  --radius-5: 10px;
+  --radius-6: 12px;
+  --radius-7: 14px;
+  --radius-8: 16px;
+  --radius-9: 18px;
+  --radius-10: 26px;
+  --radius-11: 28px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
   color-scheme: dark;
+}
+/* Geist has no Japanese or Chinese letters, so those pages name the fonts
+   each system draws them in next, before the generic fallback. */
+:root:lang(ja) {
+  --type-sans:
+    "Geist", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+}
+:root:lang(zh-CN) {
+  --type-sans: "Geist", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
 }
 
 /* Starlight's variables, set from the roles. Starlight restates its colours
-   for each theme with an attribute selector, so these do too; the roles
-   underneath change with the theme. */
+   under :root[data-theme="dark"], so these are stated there too. */
 :root,
-:root[data-theme="light"],
 :root[data-theme="dark"] {
   --sl-font: var(--type-sans);
   --sl-font-mono: var(--type-mono);

@@ -110,6 +110,8 @@ export default defineConfig({
         Search: "./src/components/Search.astro",
         Sidebar: "./src/components/Sidebar.astro",
         SocialIcons: "./src/components/SocialIcons.astro",
+        ThemeProvider: "./src/components/ThemeProvider.astro",
+        ThemeSelect: "./src/components/ThemeSelect.astro",
       },
       sidebar: [
         {
