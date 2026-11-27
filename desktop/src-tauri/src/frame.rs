@@ -62,6 +62,50 @@ pub fn remembered() -> TauriPlugin<Wry> {
         .build()
 }
 
+/// Makes the system's menus dark on Windows, as the rest of the app is: the
+/// right-click menus (context.rs) and the tray menu. Windows draws an app's
+/// popup menus light unless the app asks for the dark ones, and the way to
+/// ask is uxtheme's SetPreferredAppMode(ForceDark) followed by
+/// FlushMenuThemes. They are exported by ordinal only (135 and 136) and not
+/// documented, but have held since Windows 10 1903 and are what Electron's
+/// `nativeTheme.themeSource = "dark"` calls. Where either is missing the menus
+/// simply stay light. Seen light on GitHub's Windows runner before this
+/// (.github/workflows/windows-shots.yml).
+#[cfg(windows)]
+pub fn dark_menus() {
+    use windows_sys::Win32::System::LibraryLoader::{
+        GetProcAddress, LOAD_LIBRARY_SEARCH_SYSTEM32, LoadLibraryExW,
+    };
+    type Proc = unsafe extern "system" fn() -> isize;
+    const FORCE_DARK: i32 = 2;
+    let name: Vec<u16> = "uxtheme.dll\0".encode_utf16().collect();
+    // SAFETY: uxtheme.dll is loaded from System32 by a NUL-terminated name,
+    // and each entry point is called only if found, with the signature it
+    // has had since Windows 10 1903: `fn(i32) -> i32` and `fn()`.
+    unsafe {
+        let module = LoadLibraryExW(
+            name.as_ptr(),
+            std::ptr::null_mut(),
+            LOAD_LIBRARY_SEARCH_SYSTEM32,
+        );
+        if module.is_null() {
+            return;
+        }
+        if let Some(set) = GetProcAddress(module, 135 as *const u8) {
+            let set = std::mem::transmute::<Proc, unsafe extern "system" fn(i32) -> i32>(set);
+            set(FORCE_DARK);
+        }
+        if let Some(flush) = GetProcAddress(module, 136 as *const u8) {
+            let flush = std::mem::transmute::<Proc, unsafe extern "system" fn()>(flush);
+            flush();
+        }
+    }
+}
+
+/// Elsewhere the system's menus follow the app's dark window theme already.
+#[cfg(not(windows))]
+pub fn dark_menus() {}
+
 /// Tells the page which system's window it is in.
 pub fn shell_script() -> String {
     let shell = if cfg!(target_os = "macos") {
