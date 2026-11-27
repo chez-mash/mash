@@ -23,6 +23,7 @@ tools/mac-vm.sh run --mash mash-aarch64-apple-darwin.tar.gz   # of a build
 tools/mac-vm.sh run --keep             # leave the clone running to look around
 tools/mac-vm.sh store-shots            # Raycast Store screenshots into raycast/metadata/
 tools/mac-vm.sh clean                  # delete clones left by --keep
+tools/mac-vm.sh desktop --app mash-desktop.dmg   # the desktop app in a clone, kept running
 ```
 
 Screenshots land in `target/mac-vm/`: `light-` and `dark-` versions of

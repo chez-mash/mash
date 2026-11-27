@@ -4,7 +4,7 @@
 # guest-run.sh. Nothing here changes the host beyond its own working directory
 # and Lume's VM store.
 #
-# Usage: mac.sh build-image | push-image | run | store-shots | list | clean
+# Usage: mac.sh build-image | push-image | run | store-shots | desktop | list | clean
 # Reads MAC_VM_KEEP=1 (run, store-shots: leave the clone running) from the
 # environment. push-image, run and store-shots read GHCR credentials from
 # standard input, a user name line and a token line, so the token never
@@ -304,10 +304,37 @@ store_shots() {
   echo "store screenshots in $STATE/store"
 }
 
+# The desktop app under test, synced to WORK/desktop as a .dmg or a Mash.app:
+# installed in a clone that has the made-up histories indexed, opened, and
+# shot once its window has drawn. The clone is kept running for a closer look
+# over VNC or with `v` from this directory.
+desktop_shots() {
+  local dmg app=$WORK/desktop/Mash.app
+  dmg=$(ls "$WORK"/desktop/*.dmg 2>/dev/null | head -1 || true)
+  if [ -n "$dmg" ]; then
+    local mount=$STATE/dmg-mount
+    rm -rf "$app" "$mount" && mkdir -p "$mount"
+    hdiutil attach -nobrowse -readonly -mountpoint "$mount" "$dmg" >/dev/null
+    cp -R "$mount/Mash.app" "$app"
+    hdiutil detach "$mount" >/dev/null
+  fi
+  [ -d "$app" ] || { echo "no Mash.app or .dmg in $WORK/desktop (tools/mac-vm.sh desktop --app PATH)" >&2; exit 1; }
+  MAC_VM_KEEP=1
+  start_clone
+  rm -rf shots && mkdir shots
+  rsync -a -e "ssh ${SSH_OPTS[*]}" "$app" "lume@$(info "$VM" ipAddress):Applications/"
+  guest "open ~/Applications/Mash.app"
+  sleep 25
+  dismiss_notices
+  v capture shots/desktop-window.png
+  kept
+}
+
 case "${1:-}" in
   build-image) build_image ;;
   push-image) push_image ;;
   run) run ;;
+  desktop) desktop_shots ;;
   store-shots) store_shots ;;
   list) lume ls ;;
   clean) # stop and delete leftover run clones
