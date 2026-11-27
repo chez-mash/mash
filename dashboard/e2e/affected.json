@@ -21,7 +21,6 @@
     "src/lib/route*",
     "src/components/Rail.svelte",
     "src/components/TopBar.svelte",
-    "src/components/ContextMenu.svelte",
     "src/components/TopSearch.svelte",
     "src/components/Mashy.svelte",
     "src/components/MashyButton.svelte",
@@ -44,6 +43,7 @@
     "src/main.ts",
     "src/App.svelte",
     "src/components/TopBar.svelte",
+    "src/components/ContextMenu.svelte",
     "src/components/Rail.svelte",
     "src/components/UpdateBanner.svelte",
     "src/lib/components/Icon.svelte"
