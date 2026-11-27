@@ -154,7 +154,7 @@ free_slot() {
 }
 
 desktop() {
-  local golden installer disk vars
+  local golden installer
   golden=$(latest_golden)
   [ -n "$golden" ] || { echo "no golden image in $STORE; run build-image first" >&2; exit 1; }
   installer=$WORK/app/mash-setup.exe
@@ -186,8 +186,9 @@ desktop() {
   guest "tar -xf win-vm\\demo.tar -C %USERPROFILE%"
 
   guest_ps install "C:\\Users\\mash\\win-vm\\mash-setup.exe"
+  guest_ps index
   guest_ps launch
-  # Give the window time to draw and Mash time to index the demo chats.
+  # Give the window time to draw and load the dashboard.
   sleep 25
   local window x y w h
   window=$(guest_ps window | tr -d '\r')

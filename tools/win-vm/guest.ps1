@@ -4,6 +4,7 @@
 # that runs in mash's interactive (auto-logged-on) session.
 #
 # Usage: guest.ps1 install INSTALLER   install a Mash NSIS installer silently
+#        guest.ps1 index               set Mash up and save the demo chats, offline
 #        guest.ps1 launch              start Mash on the desktop, wait for it
 #        guest.ps1 window              print Mash's window as "x y width height"
 #        guest.ps1 probe               (in the desktop session) write window.txt
@@ -37,6 +38,18 @@ switch ($Action) {
     $p = Start-Process -FilePath $Path -ArgumentList '/S' -Wait -PassThru
     if ($p.ExitCode -ne 0) { throw "installer exited with $($p.ExitCode)" }
     Write-Output "installed $(App-Exe)"
+  }
+  'index' {
+    # So the app opens on its dashboard rather than the setup wizard. Word
+    # search reads what `mash index` saves before it asks for Qdrant, which
+    # (like the models) would be a download; a dead proxy rules both out.
+    $mash = Get-ChildItem (Split-Path -Parent (App-Exe)) -Recurse -Filter mash.exe | Select-Object -First 1
+    if (-not $mash) { Write-Output 'no mash.exe beside the app; skipping the index'; return }
+    $env:HTTPS_PROXY = 'http://127.0.0.1:9'; $env:HTTP_PROXY = 'http://127.0.0.1:9'
+    $ErrorActionPreference = 'Continue'
+    & $mash.FullName init --yes --no-agents --no-index *> "$here\mash-init.log"
+    & $mash.FullName index *> "$here\mash-index.log"
+    Write-Output "indexed with $($mash.FullName)"
   }
   'launch' {
     $exe = App-Exe

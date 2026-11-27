@@ -1,0 +1,45 @@
+#cloud-config
+# Autoinstall answers for the Ubuntu 24.04 Desktop golden image, read by the
+# live installer from the CIDATA seed ISO that tools/linux-vm/mac.sh builds
+# (the kernel command line says `autoinstall ds=nocloud`). mac.sh replaces
+# AUTHORIZED_KEY with the Mac's public key.
+#
+# The account is a local test account that exists only inside the VM image:
+# user mash, password mash-vm-test (the hash below). It is not a real
+# credential.
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  timezone: UTC
+  identity:
+    hostname: mash-linux
+    realname: mash
+    username: mash
+    password: "$6$mashvmtest$idseAgbckMQZQi2zi8LExB6cmXhyGePNRBtvZx1D.JXJC94eJr7oRheqaA2vMmJmV7nsjzElhcA5RISay8GtE1"
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - AUTHORIZED_KEY
+  storage:
+    layout:
+      name: direct
+  # The desktop app's runtime libraries, so a run installs Mash's .deb
+  # without reaching the archive.
+  packages:
+    - libwebkit2gtk-4.1-0
+    - libayatana-appindicator3-1
+    - libgtk-3-0
+  codecs:
+    install: false
+  drivers:
+    install: false
+  oem:
+    install: false
+  late-commands:
+    # finish.sh, beside this file on the seed ISO, configures the desktop.
+    - for d in /dev/sr0 /dev/sr1 /dev/sr2; do mkdir -p /tmp/seed; mount -o ro $d /tmp/seed 2>/dev/null || continue; if [ -f /tmp/seed/finish.sh ]; then cp /tmp/seed/finish.sh /target/root/finish.sh; umount /tmp/seed; break; fi; umount /tmp/seed; done
+    - curtin in-target --target=/target -- bash /root/finish.sh
+  shutdown: poweroff
