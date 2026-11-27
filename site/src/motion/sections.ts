@@ -55,51 +55,6 @@ export function search(band: HTMLElement, screen: Screen): void {
   playOnce(picture, timeline);
 }
 
-/** D. Memory: the saved decision comes out from under the message it was saved from. */
-export function memory(band: HTMLElement, screen: Screen): void {
-  const thread = band.querySelector<HTMLElement>(".memory-thread");
-  const said = thread?.querySelector<HTMLElement>(".bubble.said");
-  const record = thread?.querySelector<HTMLElement>(".record");
-  const [saved, returns] = thread ? all(thread, ".step") : [];
-  if (!thread || !said || !record || !saved || !returns || !below(thread)) return;
-
-  const timeline = gsap.timeline({ paused: true });
-  if (screen.wide) {
-    gsap.set(said, { position: "relative", zIndex: 2 });
-    timeline.fromTo(
-      record,
-      { y: -64, scale: 0.97, transformOrigin: "85% 0%" },
-      {
-        y: 0,
-        scale: 1,
-        duration: 0.7,
-        ease: "power3.out",
-        clearProps: "transform,transformOrigin",
-      },
-      0.1,
-    );
-    timeline.fromTo(
-      record,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.28, ease: "none", clearProps: "opacity" },
-      0.1,
-    );
-    timeline.set(said, { clearProps: "position,zIndex" }, 0.8);
-  } else {
-    rise(timeline, record, 0.1, { y: 16, duration: 0.7, ease: "power3.out" });
-  }
-  // The "saved" line draws by a wipe: its arrow, then its words.
-  timeline.fromTo(
-    saved,
-    { clipPath: "inset(0% 100% 0% 0%)" },
-    { clipPath: "inset(0% 0% 0% 0%)", duration: 0.4, ease: "power2.out", clearProps: "clipPath" },
-    0.45,
-  );
-  rise(timeline, returns, 0.8, { y: 10, duration: 0.35 });
-  rise(timeline, all(thread, ".later"), 0.9, { y: 10, duration: 0.35 });
-  playOnce(thread, timeline);
-}
-
 /**
  * F. Stats: the numbers count up once. Each number keeps its final width and
  * fills it from the unit's side, so the unit beside it never moves.

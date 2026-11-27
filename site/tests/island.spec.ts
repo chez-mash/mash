@@ -107,15 +107,15 @@ for (const [name, viewport] of [
 ] as const) {
   test(`on ${name} a link into the page lands its heading below the island`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/#welcome-memory-title");
+    await page.goto("/#welcome-mashy-title");
     await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
     const island = await place(page.locator("header.header .mash-header"));
     await expect
       .poll(() =>
-        page.locator("#welcome-memory-title").evaluate((node) => node.getBoundingClientRect().top),
+        page.locator("#welcome-mashy-title").evaluate((node) => node.getBoundingClientRect().top),
       )
       .toBeGreaterThanOrEqual(island.bottom);
-    await expect(page.locator("#welcome-memory-title")).toBeInViewport();
+    await expect(page.locator("#welcome-mashy-title")).toBeInViewport();
     // The install commands under the hero, reached from the hero's own link.
     await page.goto("/");
     await page.locator('.hero a[href="#install"]').click();

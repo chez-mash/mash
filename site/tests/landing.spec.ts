@@ -34,7 +34,6 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Take shortcuts, not detours.",
     "Find it. However you remember it.",
     "Meet Mashy. Ask anything about your chats.",
-    "Save the decision. Keep the source.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
     "Written with <3 in Rust.",
@@ -45,12 +44,9 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   const shortcut = page.locator("#welcome-shortcuts .head p");
   await expect(shortcut).toHaveText("Press ⌥ ⇧ Space and the chat you need is one line away.");
   await expect(shortcut.locator("kbd")).toHaveText(["⌥", "⇧", "Space"]);
-  // The search and memory bands say what they do in a paragraph, with no list.
+  // The search band says what it does in a paragraph, with no list.
   await expect(page.locator("#welcome-search .words > p")).toHaveText(
     "Search by the exact words or by meaning, with optional local models, and across machines through a server you run.",
-  );
-  await expect(page.locator("#welcome-memory .words > p")).toHaveText(
-    "Say it once, then ask the plugin to save the decision with your message as evidence. It can come back in a later session.",
   );
   await expect(page.locator(".mash-welcome .words :is(ul, ol)")).toHaveCount(0);
   // So does the privacy band: one paragraph with the caveat about backups, then the way onward.
@@ -69,7 +65,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
   // Five of them are the showcase's surfaces, of which one shows at a time.
-  await expect(illustrations).toHaveCount(9);
+  await expect(illustrations).toHaveCount(8);
   for (const illustration of await illustrations.all()) {
     await expect(illustration).toHaveAttribute("aria-label", /\w/);
   }
@@ -478,11 +474,6 @@ for (const [name, viewport] of [
       await expect(result).toHaveCSS("opacity", "1");
     for (const match of await welcome.locator(".search-window mark").all())
       await expect.poll(() => match.getAttribute("style")).toBeFalsy();
-    // Memory: the decision, the two steps and the later session.
-    for (const part of await welcome.locator(".memory-thread > *").all()) {
-      await expect(part).toHaveCSS("opacity", "1");
-      await expect.poll(() => part.getAttribute("style")).toBeFalsy();
-    }
     // Ferris: every stroke drawn, and the stylesheet's again.
     const crab = welcome.locator("#welcome-rust svg.ferris");
     await expect(crab).toBeVisible();
@@ -559,7 +550,7 @@ test("links into the page land on their target with the pinned panel above it", 
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  for (const id of ["install", "welcome-search", "welcome-memory"]) {
+  for (const id of ["install", "welcome-search", "welcome-mashy"]) {
     await page.goto(`/#${id}`);
     await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
     await expect(page.locator(`#${id}`)).toBeInViewport();
@@ -581,7 +572,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   const welcome = page.locator(".mash-welcome");
   // The showcase's surfaces aside (surfaces.spec.ts): one of those shows at a time.
   const windows = welcome.locator("[role=img]:not(.picture)");
-  await expect(windows).toHaveCount(4);
+  await expect(windows).toHaveCount(3);
   await expect(windows.nth(1)).toHaveAccessibleName(/Why does checkout keep failing/);
   await expect(welcome.locator(".ico svg").first()).toBeVisible();
   for (const picture of await windows.all()) await expect(picture).toBeVisible();
@@ -605,7 +596,7 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect(welcome.locator("#welcome-shortcuts .quick li.on")).toHaveCount(1);
   for (const part of await welcome
     .locator(
-      "#welcome-shortcuts .quick li, .search-window .result, .memory-thread > *, .mash-agents li, .stats > div, .closing > *",
+      "#welcome-shortcuts .quick li, .search-window .result, .mash-agents li, .stats > div, .closing > *",
     )
     .all()) {
     await expect(part).toBeVisible();

@@ -19,7 +19,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { closing, hero } from "./motion/hero";
 import { mashy } from "./motion/mashy";
 import { keepAnchor, quickSearch } from "./motion/quickSearch";
-import { agents, bands, ferris, memory, search, stats } from "./motion/sections";
+import { agents, bands, ferris, search, stats } from "./motion/sections";
 import { all, type Screen, type Stop } from "./motion/stage";
 import { surfaces } from "./motion/surfaces";
 
@@ -59,8 +59,6 @@ export function mountMotion(page: ParentNode): Stop {
         if (searching) search(searching, screen);
         const asking = band("welcome-mashy");
         if (asking) stops.push(mashy(asking, screen));
-        const remembering = band("welcome-memory");
-        if (remembering) memory(remembering, screen);
         const figures = welcome.querySelector<HTMLElement>(".stats");
         if (figures) stops.push(stats(figures));
         const crab = welcome.querySelector<SVGElement>("svg.ferris");
