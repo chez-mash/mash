@@ -13,6 +13,8 @@
 mod cli;
 mod downloads;
 mod engine;
+mod frame;
+mod go;
 mod links;
 mod lockstep;
 mod menubar;
@@ -135,7 +137,12 @@ pub fn run() {
 /// included: the flag that says the page is in the app, and how to name the
 /// app's own `mash` in a command.
 pub(crate) fn window_script() -> String {
-    format!("{}\n{}\n", include_str!("window.js"), cli::page_script())
+    let (page, command, shell) = (
+        include_str!("window.js"),
+        cli::page_script(),
+        frame::shell_script(),
+    );
+    format!("{page}\n{command}\n{shell}\n")
 }
 
 /// The window, first showing the app's loading page.
@@ -144,7 +151,7 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
     let popups = app.clone();
     let downloads = app.clone();
     let (width, height) = size::opening(app);
-    WebviewWindowBuilder::new(app, WINDOW, WebviewUrl::App("index.html".into()))
+    let builder = WebviewWindowBuilder::new(app, WINDOW, WebviewUrl::App("index.html".into()))
         .title("Mash")
         .inner_size(width, height)
         .min_inner_size(size::MIN.0, size::MIN.1)
@@ -163,8 +170,8 @@ fn open_window(app: &AppHandle) -> tauri::Result<()> {
             open_outside(&popups, &url);
             NewWindowResponse::Deny
         })
-        .on_download(move |_webview, event| downloads::handle(&downloads, event))
-        .build()?;
+        .on_download(move |_webview, event| downloads::handle(&downloads, event));
+    frame::fit(builder).build()?;
     let window = app
         .get_webview_window(WINDOW)
         .ok_or(tauri::Error::WindowNotFound)?;

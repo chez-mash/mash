@@ -8,7 +8,7 @@ export const panel =
 
 /** A row: a finger-sized line that takes the hover tint under the pointer or the keyboard. */
 export const row =
-  "flex min-h-11 w-full cursor-pointer select-none items-center gap-2 rounded-(--radius-4) px-2.5 text-left text-[13.5px] [font-weight:var(--weight-label)] -outline-offset-2 data-highlighted:bg-(--surface-hover) data-disabled:cursor-default data-disabled:opacity-50";
+  "flex min-h-11 w-full cursor-default select-none items-center gap-2 rounded-(--radius-4) px-2.5 text-left text-[13.5px] [font-weight:var(--weight-label)] -outline-offset-2 data-highlighted:bg-(--surface-hover) data-disabled:opacity-50";
 
 /** A chosen row of a radio or checkbox menu. */
 export const chosen =

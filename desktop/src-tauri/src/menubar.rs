@@ -145,7 +145,7 @@ fn app_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         )?;
         crate::update::add_menu(app, crate::update::Holder::Submenu(about.clone()), Some(4))?;
     }
-    Ok(menu)
+    crate::go::with_go_menu(app, menu)
 }
 
 /// Act on a choice from the tray menu or the app menu.
@@ -156,9 +156,8 @@ pub fn choose(app: &AppHandle, id: &str) {
         "settings" => crate::open_route(app, "#/settings"),
         "command-line" => crate::cli::install(app),
         "quit" => app.exit(0),
-        id => {
-            crate::update::choose(app, id);
-        }
+        id if crate::go::choose(app, id) => {}
+        id => _ = crate::update::choose(app, id),
     }
 }
 

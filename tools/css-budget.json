@@ -10,7 +10,7 @@
   },
   "files": {
     "dashboard/src/components/reading.css": 360,
-    "dashboard/src/kit.css": 1201,
+    "dashboard/src/kit.css": 1197,
     "dashboard/src/semantics.css": 195,
     "dashboard/src/terminal.css": 4460,
     "site/src/styles/custom.css": 495,

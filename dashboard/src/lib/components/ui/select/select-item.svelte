@@ -17,7 +17,7 @@ let {
   bind:ref
   data-slot="select-item"
   class={cn(
-    "flex min-h-9 w-full cursor-pointer select-none items-center justify-between gap-3 rounded-(--radius-4) px-2.5 text-[13.5px] -outline-offset-2 data-highlighted:bg-accent data-selected:[font-weight:var(--weight-label)] data-disabled:cursor-default data-disabled:opacity-50",
+    "flex min-h-9 w-full cursor-default select-none items-center justify-between gap-3 rounded-(--radius-4) px-2.5 text-[13.5px] -outline-offset-2 data-highlighted:bg-accent data-selected:[font-weight:var(--weight-label)] data-disabled:cursor-default data-disabled:opacity-50",
     className,
   )}
   {...restProps}

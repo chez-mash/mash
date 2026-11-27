@@ -18,7 +18,7 @@ let {
   bind:ref
   data-slot="select-trigger"
   class={cn(
-    "inline-flex min-h-[38px] min-w-[140px] cursor-pointer items-center justify-between gap-2 rounded-(--radius-5) border-(length:--stroke-strong) border-solid border-input bg-(--surface-field) pr-2.5 pl-[11px] text-left font-normal text-strong data-placeholder:text-muted aria-invalid:border-destructive",
+    "inline-flex min-h-[38px] min-w-[140px] cursor-default items-center justify-between gap-2 rounded-(--radius-5) border-(length:--stroke-strong) border-solid border-input bg-(--surface-field) pr-2.5 pl-[11px] text-left font-normal text-strong data-placeholder:text-muted aria-invalid:border-destructive",
     className,
   )}
   {...restProps}

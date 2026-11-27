@@ -424,6 +424,6 @@ function hover(index: number): void {
     font: inherit;
     text-decoration: underline;
     text-decoration-color: var(--link-line);
-    cursor: pointer;
+    cursor: default;
   }
 </style>
