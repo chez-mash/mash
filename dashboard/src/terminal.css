@@ -14,6 +14,7 @@
 html,
 body {
   min-height: 100%;
+  overscroll-behavior: none; /* an app's window does not bounce */
 }
 body {
   background: var(--surface-page);
@@ -31,9 +32,20 @@ samp {
 a {
   color: inherit;
   text-decoration: none;
+  cursor: default; /* an app's arrow; the hand only for links out of Mash */
+}
+a:is([target="_blank"], [href^="http"]) {
+  cursor: pointer;
 }
 a:hover {
   color: var(--accent);
+}
+button,
+summary,
+[role="tab"],
+[role="menuitem"] {
+  -webkit-user-select: none; /* controls, not text: a drag selects nothing */
+  user-select: none;
 }
 /* In the base layer, so a utility class on a kit component's button
    (src/lib/components/ui) can give it type, a fill, a line and padding. */
@@ -48,7 +60,6 @@ a:hover {
     background: none;
     border: 0;
     padding: 0;
-    cursor: pointer;
   }
 }
 :focus-visible {
@@ -69,7 +80,6 @@ blockquote {
 }
 summary {
   list-style: none;
-  cursor: pointer;
 }
 summary::-webkit-details-marker {
   display: none;
@@ -857,7 +867,6 @@ a.nav-group[aria-current="page"] {
   background: var(--surface-muted);
   border-color: var(--line-strong);
   color: var(--text-faint);
-  cursor: default;
 }
 .hd {
   display: flex;
@@ -1851,7 +1860,6 @@ body {
   margin: 0;
 }
 button:disabled {
-  cursor: default;
   opacity: 0.5;
 }
 
@@ -2433,7 +2441,6 @@ button:disabled {
   border-left: var(--border-outline);
   background: transparent;
   color: var(--text-body);
-  cursor: pointer;
 }
 .fix .cmd button:hover {
   color: var(--text-strong);
@@ -2518,7 +2525,6 @@ summary.rw:hover {
 }
 summary.rw {
   list-style: none;
-  cursor: pointer;
 }
 summary.rw::-webkit-details-marker {
   display: none;
@@ -2695,7 +2701,6 @@ summary.rw::-webkit-details-marker {
   min-height: 38px;
   padding: 7px 12px;
   list-style: none;
-  cursor: pointer;
   font: var(--weight-strong) 12.5px / 1.5 var(--type-mono);
   color: var(--text-strong);
 }
@@ -2941,7 +2946,6 @@ summary.rw::-webkit-details-marker {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-weight: var(--weight-strong);
-  cursor: pointer;
 }
 .service-tile:hover {
   background: var(--surface-hover);
@@ -3507,9 +3511,6 @@ summary.rw::-webkit-details-marker {
 #mashy > header:active {
   cursor: grabbing;
 }
-#mashy > header button {
-  cursor: pointer;
-}
 #mashy > header img {
   width: 28px;
   height: 28px;
@@ -3967,7 +3968,6 @@ summary.rw::-webkit-details-marker {
 #mashy .go[disabled] {
   background: var(--surface-muted);
   color: var(--text-faint);
-  cursor: default;
 }
 /* Content never rests under Mashy's circle (56px, 24px in from the corner).
    Pages keep their full width, with no column set aside for it; instead each

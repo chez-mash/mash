@@ -219,7 +219,7 @@ function keydown(event: KeyboardEvent): void {
     font: var(--weight-label) 13px / 1 var(--type-sans);
     text-align: left;
     text-decoration: none;
-    cursor: pointer;
+    cursor: default;
   }
   .qa-i.on {
     background: var(--selected-soft-bg);

@@ -98,7 +98,7 @@ const toneOf = { ready: "ok", busy: "warn", checking: "run", problem: "bad" } as
     background: none;
     color: var(--text-strong);
     font: var(--weight-label) 12px / 1 var(--type-sans);
-    cursor: pointer;
+    cursor: default;
   }
   .q-ghost:hover,
   .q-ghost[aria-expanded="true"] {

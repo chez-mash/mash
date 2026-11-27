@@ -201,6 +201,11 @@ function stored(): number {
 }
 let width = $state(stored());
 let dragging = $state(false);
+// The top bar's left cell takes the same width in the Mac app, where it holds
+// the traffic lights over the sidebar's colour (terminal.css, data-shell).
+$effect(() => {
+  document.documentElement.style.setProperty("--rail-width", `${width}px`);
+});
 function resize(next: number): void {
   width = Math.round(Math.min(widths.most, Math.max(widths.least, next)));
   try {
@@ -286,3 +291,11 @@ function nudge(event: KeyboardEvent): void {
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <div id="rail-grip" class:on={dragging} role="separator" aria-orientation="vertical" aria-label="Resize navigation" aria-valuemin={widths.least} aria-valuemax={widths.most} aria-valuenow={width} tabindex="0" onpointerdown={grip} onkeydown={nudge} ondblclick={() => resize(widths.usual)}></div>
 </aside>
+
+<style>
+  /* The sidebar's labels are controls, not text: a drag across them selects nothing. */
+  #rail {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+</style>

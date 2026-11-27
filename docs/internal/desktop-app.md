@@ -47,6 +47,32 @@ the file; and commands it asks the reader to run name the app's own `mash`.
 Mash is dark only, so the app sets the dark window theme: the title bar, and
 on macOS the whole app's appearance, the panel and notices included.
 
+### A native frame around one dashboard
+
+The dashboard is the same web page in the app and in a browser; only the
+frame around it is the system's (`src-tauri/src/frame.rs`). The app tells
+the page which system it is on before the page loads
+(`window.__MASH_SHELL__`), and the dashboard marks the document with it
+(`data-shell`, `dashboard/src/lib/shell.ts`); a browser says nothing and
+stays `browser`.
+
+- **macOS:** the system title bar is hidden and its traffic lights are inset
+  into the dashboard's top bar, centred in it. The bar's left cell takes the
+  sidebar's width and colour, so the sidebar seems to run to the top, as in
+  Finder and Mail, and the wordmark gives way to the lights. A Go menu after
+  View (`go.rs`) gives ⌘[ and ⌘] for back and forward, ⌘F for search and
+  ⌘1 to ⌘5 for the main pages.
+- **Windows and Linux:** the system draws a dark title bar; the dashboard's
+  top bar keeps its mark.
+- **Everywhere:** the window's ground is the page's dark colour from the
+  first frame, so it never shows white; the top bar is a drag region
+  (`data-tauri-drag-region`, allowed by `capabilities/frame.json`).
+
+What makes the page feel like an app holds in a browser too: rows, buttons
+and links within Mash show the arrow, the hand only for links out of it; the
+page does not bounce past its ends; and the frame's labels do not select
+when dragged across.
+
 ## The mash command
 
 The app does not put `mash` on PATH, so a dashboard page that says "run mash

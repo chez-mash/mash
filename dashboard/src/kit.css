@@ -381,7 +381,6 @@ input.radio:checked {
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  cursor: pointer;
 }
 /* The chosen format keeps a butter edge, as a chosen filter chip does. */
 .card.pick.butter {
@@ -1078,7 +1077,6 @@ a.card.opc:hover {
 }
 .card.tick[disabled] {
   opacity: 0.55;
-  cursor: default;
 }
 .card.tick .g {
   display: flex;
@@ -1109,7 +1107,6 @@ a.card.opc:hover {
 .disclose > summary {
   display: inline;
   list-style: none;
-  cursor: pointer;
   font-size: 13px;
 }
 .disclose > summary::-webkit-details-marker {
@@ -1147,7 +1144,6 @@ a.card.opc:hover {
   padding: 2px 0;
   font: var(--weight-regular) 13px / 1.5 var(--type-sans);
   color: var(--text-body);
-  cursor: pointer;
   list-style: none;
 }
 .fold.lite > summary::-webkit-details-marker {
