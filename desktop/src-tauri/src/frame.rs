@@ -29,7 +29,10 @@ const LIGHTS: (f64, f64) = (20.0, 28.0);
 pub fn fit<'a, R: Runtime, M: Manager<R>>(
     builder: WebviewWindowBuilder<'a, R, M>,
 ) -> WebviewWindowBuilder<'a, R, M> {
-    let builder = builder.background_color(GROUND);
+    // Started at login, the app opens into the menu bar alone (login.rs).
+    let builder = builder
+        .background_color(GROUND)
+        .visible(!crate::login::at_login());
     #[cfg(target_os = "macos")]
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)

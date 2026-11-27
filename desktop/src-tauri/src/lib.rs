@@ -18,6 +18,7 @@ mod frame;
 mod go;
 mod links;
 mod lockstep;
+mod login;
 mod menubar;
 mod navigation;
 mod print;
@@ -88,6 +89,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(menubar::shortcut_plugin())
         .plugin(frame::remembered())
+        .plugin(login::plugin())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state.clone())
         .manage(downloads::Downloads::default())
@@ -146,6 +148,14 @@ pub(crate) fn window_script() -> String {
         frame::shell_script(),
     );
     format!("{page}\n{command}\n{shell}\n")
+}
+
+/// A menu choice the menu bar's own items do not cover: the Go menu, a
+/// right-click menu, Open at Login, or an update's.
+pub(crate) fn other_choice(app: &AppHandle, id: &str) {
+    if !(go::choose(app, id) || context::choose(app, id) || login::choose(app, id)) {
+        update::choose(app, id);
+    }
 }
 
 /// The window, first showing the app's loading page.

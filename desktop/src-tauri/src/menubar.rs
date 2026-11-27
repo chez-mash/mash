@@ -73,7 +73,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     )?;
     let quit = MenuItem::with_id(app, "quit", "Quit Mash", true, app_shortcut("CmdOrCtrl+Q"))?;
     let menu = Menu::with_items(app, &[&search, &open, &separator, &settings])?;
-    menu.append(&command_line_item(app)?)?;
+    menu.append_items(&[&command_line_item(app)?, &crate::login::item(app)?])?;
     crate::update::add_menu(app, crate::update::Holder::Menu(menu.clone()), None)?;
     menu.append_items(&[&PredefinedMenuItem::separator(app)?, &quit])?;
     TrayIconBuilder::with_id("mash")
@@ -156,8 +156,7 @@ pub fn choose(app: &AppHandle, id: &str) {
         "settings" => crate::open_route(app, "#/settings"),
         "command-line" => crate::cli::install(app),
         "quit" => app.exit(0),
-        id if crate::go::choose(app, id) || crate::context::choose(app, id) => {}
-        id => _ = crate::update::choose(app, id),
+        id => crate::other_choice(app, id),
     }
 }
 
