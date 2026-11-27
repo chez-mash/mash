@@ -90,7 +90,10 @@ the environment changed (`WM_SETTINGCHANGE`), so terminals opened after it
 find `mash`. The install is per user, so none of this needs an administrator.
 Before the uninstaller removes the files it starts the app with
 `--command-line-tool uninstalling`, which takes the entry off PATH and
-deletes the copy and its folder; an install over an earlier version
+deletes the copy and its folder (the uninstaller also deletes those files
+itself, in case the app could not run, such as when an antivirus holds an
+unsigned build back; the PATH entry is then left naming a folder that is
+gone); an install over an earlier version
 (`/UPDATE`) skips that and refreshes the copy instead. Neither request starts
 the app itself, and a failure never fails the installer: the menu item puts
 the command in place later. The same hook registers `QuietUninstallString`
