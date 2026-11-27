@@ -1201,7 +1201,7 @@ h1:focus {
 }
 .nav {
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden auto;
   scrollbar-width: thin;
   scrollbar-color: var(--line-outline) transparent;
 }

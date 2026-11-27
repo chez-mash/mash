@@ -13,10 +13,14 @@ use tauri::{Manager, Runtime, WebviewWindowBuilder};
 /// white before its page has drawn.
 pub const GROUND: Color = Color(0x14, 0x13, 0x11, 0xff);
 
-/// The height of the dashboard's top bar, which the traffic lights are
-/// centred in (`#top` in dashboard/src/terminal.css).
+/// Where the traffic lights sit: 20 points in from the edge like Finder's, and
+/// centred in the dashboard's 52-point top bar (`#top` in
+/// dashboard/src/terminal.css). Tauri's y does not name the buttons' top or
+/// centre, so this is measured: in the Mac VM (tools/mac-vm.sh desktop) the
+/// buttons' centre lands 2 points above y, and 28 puts it at 26, the bar's
+/// middle.
 #[cfg(target_os = "macos")]
-const BAR_HEIGHT: f64 = 52.0;
+const LIGHTS: (f64, f64) = (20.0, 28.0);
 
 /// Fits the main window's builder to this system's frame.
 pub fn fit<'a, R: Runtime, M: Manager<R>>(
@@ -27,9 +31,7 @@ pub fn fit<'a, R: Runtime, M: Manager<R>>(
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true)
-        // The buttons are 14 points tall with their shadow: this centres them
-        // in the top bar, 20 points in from the edge like Finder's.
-        .traffic_light_position(tauri::LogicalPosition::new(20.0, (BAR_HEIGHT - 14.0) / 2.0));
+        .traffic_light_position(tauri::LogicalPosition::new(LIGHTS.0, LIGHTS.1));
     builder
 }
 
