@@ -444,17 +444,19 @@ const drawn = (locator: Locator) =>
 test("a segmented control slides its highlight to the choice made", async ({ page }) => {
   await mock(page, settings, []);
   await page.goto("/#/settings");
-  const theme = page.getByRole("group", { name: "Theme" });
-  const highlight = theme.locator('[data-slot="toggle-group-indicator"]');
-  const choice = (name: string) => theme.getByRole("radio", { name, exact: true });
+  const range = page.getByRole("group", { name: "History range" });
+  const highlight = range.locator('[data-slot="toggle-group-indicator"]');
+  const choice = (name: string) => range.getByRole("radio", { name, exact: true });
   const running = () => highlight.evaluate((element) => element.getAnimations().length);
+  const [first, second] = ["all history", "recent updates"];
 
   // It starts in place, on the choice already made, without moving there.
-  await expect(theme).toHaveAttribute("data-sliding", "");
+  await expect(range).toHaveAttribute("data-sliding", "");
   expect(await running()).toBe(0);
-  const from = await drawn(choice("match the system"));
+  await expect(choice(first)).toBeChecked();
+  const from = await drawn(choice(first));
   expect(await drawn(highlight)).toEqual(from);
-  const heightBefore = (await theme.boundingBox())?.height;
+  const heightBefore = (await range.boundingBox())?.height;
 
   // Half-way through the slide it is between the two choices. The slide is
   // short, so the test stretches it to stop it half-way without a race.
@@ -464,7 +466,7 @@ test("a segmented control slides its highlight to the choice made", async ({ pag
   await page.addStyleTag({
     content: '[data-slot="toggle-group-indicator"] { transition-duration: 20s !important; }',
   });
-  await choice("dark").click();
+  await choice(second).click();
   await expect.poll(running).toBeGreaterThan(0);
   await highlight.evaluate((element) => {
     for (const animation of element.getAnimations()) {
@@ -472,35 +474,35 @@ test("a segmented control slides its highlight to the choice made", async ({ pag
       animation.currentTime = 10_000;
     }
   });
-  const to = await drawn(choice("dark"));
+  const to = await drawn(choice(second));
   const [left, , width] = await drawn(highlight);
   expect(left).toBeGreaterThan(from[0] ?? 0);
   expect(left).toBeLessThan(to[0] ?? 0);
-  expect(width).toBeLessThan(from[2] ?? 0);
-  expect(width).toBeGreaterThan(to[2] ?? 0);
+  expect(width).toBeGreaterThan(Math.min(from[2] ?? 0, to[2] ?? 0));
+  expect(width).toBeLessThan(Math.max(from[2] ?? 0, to[2] ?? 0));
   // Only the highlight moves: the choices stay where they were.
-  expect(await drawn(choice("match the system"))).toEqual(from);
+  expect(await drawn(choice(first))).toEqual(from);
 
   await highlight.evaluate((element) => {
     for (const animation of element.getAnimations()) animation.finish();
   });
   expect(await drawn(highlight)).toEqual(to);
-  expect((await theme.boundingBox())?.height).toBe(heightBefore);
+  expect((await range.boundingBox())?.height).toBe(heightBefore);
 
   // The arrow keys move between the choices, and the highlight follows the one picked.
   await page.keyboard.press("ArrowLeft");
-  await expect(choice("light")).toBeFocused();
+  await expect(choice(first)).toBeFocused();
   await page.keyboard.press("Space");
-  await expect(choice("light")).toBeChecked();
+  await expect(choice(first)).toBeChecked();
   await highlight.evaluate((element) => {
     for (const animation of element.getAnimations()) animation.finish();
   });
-  expect(await drawn(highlight)).toEqual(await drawn(choice("light")));
+  expect(await drawn(highlight)).toEqual(from);
 
   // With less motion it switches at once.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await choice("match the system").click();
-  await expect(choice("match the system")).toBeChecked();
+  await choice(second).click();
+  await expect(choice(second)).toBeChecked();
   expect(await running()).toBe(0);
-  expect(await drawn(highlight)).toEqual(await drawn(choice("match the system")));
+  expect(await drawn(highlight)).toEqual(to);
 });

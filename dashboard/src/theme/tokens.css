@@ -4,18 +4,14 @@
  * "a divider", "selected"), and nowhere else: components use these tokens
  * only, and src/theme/theme.test.ts fails if a literal colour, font name,
  * radius or shadow appears outside this folder. To change the look, change
- * the values below; to add a role, give it a value in :root and, when it
- * differs, in the dark block too.
+ * the values below; to add a role, give it a value in :root.
  *
- * The look: porcelain surfaces separated by hairline rings and soft shadows,
- * Geist and Geist Mono, a neutral tint for what is selected, and butter used
- * only as light: on matches, saved memory and the current state. Agents keep
- * their own colours on small tiles.
+ * The look: a warm near-black ground, raised surfaces separated by hairline
+ * rings and soft shadows, Geist and Geist Mono, a neutral tint for what is
+ * selected, and butter used only as light: on matches, saved memory and the
+ * current state. Agents keep their own colours on small tiles.
  *
- * There are two themes from one set of roles. Light is :root. Dark follows
- * the system unless the reader picks one in Settings, which sets data-theme
- * on the document; the dark values are written once and applied by both the
- * media query and data-theme="dark".
+ * Mash has one theme, dark. There is no light theme to keep in step.
  */
 :root {
   /* Type. */
@@ -23,28 +19,28 @@
   --type-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --type-display: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Surfaces: the page, the rail and top bar on it, raised panels, filled chips, form fields. */
-  --surface-page: #fcfbf8;
-  --surface-rail: #f5f3ee;
-  --surface-top: #f5f3ee;
-  --surface-raised: #ffffff;
-  --surface-muted: #f1eee8;
+  --surface-page: #141311;
+  --surface-rail: #1b1a17;
+  --surface-top: #1b1a17;
+  --surface-raised: #23211d;
+  --surface-muted: #2a2824;
   /* A well sunk into a raised card, such as a place on the services map. */
-  --surface-well: #f5f3ee;
-  --surface-hover: rgba(20, 19, 15, 0.045);
-  --surface-field: #ffffff;
+  --surface-well: #0f0e0c;
+  --surface-hover: rgba(255, 250, 240, 0.05);
+  --surface-field: #23211d;
   /* Text. */
-  --text-strong: #1a1915;
-  --text-body: #2e2c27;
-  --text-muted: #5f5b52;
-  --text-faint: #6f6a60;
+  --text-strong: #f3efe6;
+  --text-body: #e2ddd2;
+  --text-muted: #b3ac9f;
+  --text-faint: #8f897d;
   --text-on-accent: #1a1915;
   /* Lines: outlines of panels and boxes, strong lines of controls and menus, dividers inside lists. */
-  --line-outline: rgba(20, 19, 15, 0.08);
-  --line-strong: rgba(20, 19, 15, 0.14);
-  --line-divider: rgba(20, 19, 15, 0.07);
+  --line-outline: rgba(255, 250, 240, 0.08);
+  --line-strong: rgba(255, 250, 240, 0.14);
+  --line-divider: rgba(255, 250, 240, 0.07);
   /* The hairline round a control or a tinted fill, so a chip or a tile keeps an edge on any surface; anything drawn on top of a butter fill uses --line-on-accent instead. */
-  --line-ink: rgba(20, 19, 15, 0.12);
-  --line-on-accent: rgba(20, 19, 15, 0.2);
+  --line-ink: rgba(255, 250, 240, 0.12);
+  --line-on-accent: rgba(20, 19, 15, 0.25);
   --stroke-outline: 1px;
   --stroke-strong: 1px;
   --stroke-divider: 1px;
@@ -72,107 +68,106 @@
   --radius-pill: 999px;
   --radius-round: 50%;
   /* Shadows: soft and layered, so raised panels lift off the page; rings do the separating, shadows give depth. The scrim dims the page behind the drawer. */
-  --shadow-float: 0 1px 2px rgba(20, 19, 15, 0.05), 0 16px 40px -16px rgba(20, 19, 15, 0.24);
-  --shadow-fab: 0 1px 2px rgba(20, 19, 15, 0.08), 0 8px 20px -8px rgba(20, 19, 15, 0.3);
-  --shadow-panel: 0 1px 2px rgba(20, 19, 15, 0.04), 0 12px 32px -20px rgba(20, 19, 15, 0.22);
-  --shadow-pick: 0 0 0 1px rgba(20, 19, 15, 0.07), 0 1px 2px rgba(20, 19, 15, 0.06);
-  --shadow-knob: 0 1px 2px rgba(20, 19, 15, 0.3);
-  --scrim: rgba(20, 19, 15, 0.32);
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 20px 44px -18px rgba(0, 0, 0, 0.7);
+  --shadow-fab: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 22px -8px rgba(0, 0, 0, 0.6);
+  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  --shadow-pick: 0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(0, 0, 0, 0.5);
   /* Accent: links and hover, and the stronger accent for lines that mark something. */
-  --accent: #8a5a00;
-  --accent-strong: #e8b02a;
-  --focus: #e8b02a;
+  --accent: #f0be3c;
+  --accent-strong: #f5c84b;
+  --focus: #f5c84b;
   /* The main action on a screen. */
-  --action-bg: #1a1915;
-  --action-hover-bg: #34322c;
-  --action-line: #1a1915;
+  --action-bg: #f3efe6;
+  --action-hover-bg: #ffffff;
+  --action-line: #f3efe6;
   /* Text links: ink words over a butter rule. */
-  --link-line: rgba(232, 176, 42, 0.7);
+  --link-line: rgba(245, 200, 75, 0.7);
   /* Selected and current: a neutral tint, never a colour fill. */
-  --selected-surface: rgba(20, 19, 15, 0.055);
-  --selected-text: #1a1915;
-  --selected-line: rgba(20, 19, 15, 0.12);
-  --selected-bg: #ffffff;
+  --selected-surface: rgba(255, 250, 240, 0.07);
+  --selected-text: #f3efe6;
+  --selected-line: rgba(255, 250, 240, 0.12);
+  --selected-bg: #23211d;
   /* The ring round a chosen option among tiles, such as a model service. */
-  --selected-ring: rgba(20, 19, 15, 0.34);
+  --selected-ring: rgba(255, 250, 240, 0.32);
   /* A decision badge beside a chat's title: a soft butter tint. */
-  --decision-bg: rgba(245, 200, 75, 0.3);
-  --decision-text: #6b4e00;
-  --selected-soft-bg: rgba(20, 19, 15, 0.055);
-  --selected-soft-text: #1a1915;
+  --decision-bg: rgba(245, 200, 75, 0.18);
+  --decision-text: #f5c84b;
+  --selected-soft-bg: rgba(255, 250, 240, 0.07);
+  --selected-soft-text: #f3efe6;
   --toggle-on: #f5c84b;
-  --toggle-knob: #ffffff;
+  --toggle-knob: #141311;
   /* Signals: progress, the linked message, find in chat, unread and unsaved. */
   --progress: #e8b02a;
   --linked-line: #e8b02a;
-  --find-bg: rgba(245, 200, 75, 0.42);
-  --find-text: #1a1915;
-  --find-soft-bg: rgba(245, 200, 75, 0.26);
+  --find-bg: rgba(245, 200, 75, 0.3);
+  --find-text: #f3efe6;
+  --find-soft-bg: rgba(245, 200, 75, 0.18);
   --find-current-bg: #f5c84b;
   --find-current-line: rgba(232, 176, 42, 0.8);
   --notify: #e8b02a;
   /* Status: one green, amber and red per theme; fills are soft tints carrying the same colour as text. */
-  --status-ok: #2f7d55;
-  --status-warn: #8a5a00;
-  --status-bad: #b3402a;
-  --status-ok-bg: rgba(47, 125, 85, 0.12);
-  --status-ok-text: #286b48;
-  --status-warn-bg: rgba(232, 176, 42, 0.18);
-  --status-warn-text: #8a5a00;
-  --status-bad-bg: rgba(179, 64, 42, 0.1);
-  --status-bad-text: #b3402a;
-  --status-ok-dot: #2f7d55;
+  --status-ok: #5bc48c;
+  --status-warn: #e8b02a;
+  --status-bad: #f08a6c;
+  --status-ok-bg: rgba(91, 196, 140, 0.14);
+  --status-ok-text: #5bc48c;
+  --status-warn-bg: rgba(232, 176, 42, 0.16);
+  --status-warn-text: #e8b02a;
+  --status-bad-bg: rgba(240, 138, 108, 0.14);
+  --status-bad-text: #f08a6c;
+  --status-ok-dot: #5bc48c;
   --status-warn-dot: #e8b02a;
-  --status-bad-dot: #b3402a;
+  --status-bad-dot: #f08a6c;
   --status-running-dot: #e8b02a;
   /* More status roles: blue for information (a match by meaning, something live), and a neutral
      tone for states that are not faults (quiet, not indexed, unknown). Each state also carries an
      icon and its word, so colour never stands alone (see lib/tone.ts). */
-  --status-info-bg: rgba(42, 95, 179, 0.1);
-  --status-info-text: #2a5fb3;
+  --status-info-bg: rgba(142, 168, 230, 0.15);
+  --status-info-text: #8ea8e6;
   --status-neutral-bg: var(--surface-muted);
   --status-neutral-text: var(--text-muted);
   /* Memory kinds: a decision is butter, a preference blue, a note teal; the same tint on the tile,
      the pill and the icon wherever a kind is shown, always beside its icon. */
-  --kind-decision-bg: rgba(245, 200, 75, 0.3);
-  --kind-decision-text: #6b4e00;
-  --kind-preference-bg: rgba(52, 80, 158, 0.11);
-  --kind-preference-text: #34509e;
-  --kind-note-bg: rgba(29, 107, 107, 0.11);
-  --kind-note-text: #1d6b6b;
+  --kind-decision-bg: rgba(245, 200, 75, 0.18);
+  --kind-decision-text: #f5c84b;
+  --kind-preference-bg: rgba(157, 176, 238, 0.15);
+  --kind-preference-text: #9db0ee;
+  --kind-note-bg: rgba(111, 194, 194, 0.14);
+  --kind-note-text: #6fc2c2;
   /* Weight: Geist ships at 400, 500 and 600. Labels, nav and row titles are 500 and headings 600,
-     as on the boards. Small muted text is 400 in light and 500 in dark, where light-on-dark text
-     thins. Smoothing stays the platform's own in light (antialiased thins dark text on macOS). */
+     as on the boards. Small muted text is 500, since light text on a dark ground thins. */
   --weight-regular: 400;
   --weight-label: 500;
   --weight-strong: 600;
-  --weight-meta: 400;
-  --font-smoothing: auto;
+  --weight-meta: 500;
+  --font-smoothing: antialiased;
   /* Icon weight: Phosphor draws each glyph in several weights, chosen by lib/icon.svelte.ts from
      these roles. Small icons (15px and under) are bold so they sit with the text beside them,
      large decorative ones (28px and up) are light, the current item is filled, and a warning or
-     the icon on a primary button is bold. Dark draws one step heavier, as it does small text:
-     a regular line is under a pixel at 16px and greys out on a dark surface. */
+     the icon on a primary button is bold. They are one step heavier than on a light ground, as small
+     text is: a regular line is under a pixel at 16px and greys out on a dark surface. */
   --icon-weight-small: bold;
-  --icon-weight: regular;
-  --icon-weight-large: light;
+  --icon-weight: bold;
+  --icon-weight-large: regular;
   --icon-weight-on: fill;
   --icon-weight-strong: bold;
   /* Mashy: the lavender of Mashy's bowl is Mashy's alone. */
-  --mashy-pick-bg: #dce3fa;
-  --mashy-pick-text: #1a1915;
-  --mashy-dot: #7f8fcb;
-  --mashy-surface: #eef1fb;
-  --mashy-surface-text: #1a1915;
+  --mashy-pick-bg: #2c3350;
+  --mashy-pick-text: #f3efe6;
+  --mashy-dot: #8e9dd6;
+  --mashy-surface: #1f2333;
+  --mashy-surface-text: #f3efe6;
   /* The reader's own messages: a raised bubble with a hairline ring, as in the wireframes. */
-  --you-bg: #ffffff;
-  --you-text: #1a1915;
-  --you-inset: #f5f3ee;
-  --you-rule: rgba(20, 19, 15, 0.12);
+  --you-bg: #23211d;
+  --you-text: #f3efe6;
+  --you-inset: #1b1a17;
+  --you-rule: rgba(255, 250, 240, 0.12);
   --border-you: var(--stroke-outline) solid var(--line-outline);
   /* The demo banner at the top of getmash.io/demo. */
-  --banner-bg: #1a1915;
-  --banner-text: #fcfbf8;
+  --banner-bg: #2a2824;
+  --banner-text: #f3efe6;
   /* Section icons: the text colour. */
   --hue-chats: var(--text-strong);
   --hue-agents: var(--text-strong);
@@ -193,255 +188,19 @@
   --tile-projects: transparent;
   --tile-services: transparent;
   --tile-fleet: transparent;
-  --tile-icon: #5f5b52;
+  --tile-icon: #b3ac9f;
   /* Agents: each agent's tile colour; the logo on it is white, or dark on a light tile. */
-  --agent-tile-bg: #ffffff;
+  --agent-tile-bg: #23211d;
   --agent-tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(20, 19, 15, 0.14);
   --agent-on: #ffffff;
-  --agent-on-neutral: #ffffff;
+  --agent-on-neutral: #1a1915;
   --agent-claude-code: #d97757;
-  --agent-codex: #1a1915;
+  --agent-codex: #f3efe6;
   --agent-opencode: #3e5c76;
   --agent-copilot: #6e40c9;
-  --agent-cursor: #1a1915;
+  --agent-cursor: #f3efe6;
   --agent-antigravity: #3b6fe0;
   /* Code, JSON and quotes. */
-  --code-keyword: #8a5a00;
-  --code-string: #2f7d55;
-  --code-key: #2a5fb3;
-  --code-value: #1a1915;
-  --code-literal: #8a5a00;
-  --code-type: #1d6b6b;
-  --quote-line: rgba(20, 19, 15, 0.14);
-  /* The main action's text: light on the dark action in light, dark on the light action in dark. */
-  --action-text: #fcfbf8;
-  /* The brand. */
-  --brand-name: #1a1915;
-  --brand-cursor: #f5c84b;
-  /* The quick search panel the desktop app shows from the menu bar is drawn
-     in this theme. Its window is clear around the panel's rounded edge, and
-     over the system's blurred popover material (the desktop app on macOS) the
-     panel lets some of the material through, as a menu bar extra does. */
-  --quick-backdrop: transparent;
-  --quick-surface-material: color-mix(in srgb, var(--surface-page) 72%, transparent);
-  color-scheme: light;
-  /* Search and reading: matched words glow, saved memory is a butter-ringed card with a glowing butter tile, and a chat's minimap marks its hits. */
-  --find-glow: 0 0 12px rgba(245, 200, 75, 0.5);
-  --memory-ring: rgba(245, 200, 75, 0.5);
-  --memory-glow: 0 14px 30px -16px rgba(232, 176, 40, 0.5);
-  --memory-tile: radial-gradient(circle at 35% 30%, #fdedb4 0%, #f5c84b 70%);
-  --memory-tile-text: #1a1915;
-  --chip-on-bg: rgba(245, 200, 75, 0.22);
-  --chip-on-line: rgba(232, 176, 40, 0.5);
-  --tick: rgba(20, 19, 15, 0.18);
-  --tick-hit: #e8b02a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface-page: #141311;
-    --surface-rail: #1b1a17;
-    --surface-top: #1b1a17;
-    --surface-raised: #23211d;
-    --surface-muted: #2a2824;
-    --surface-well: #0f0e0c;
-    --surface-hover: rgba(255, 250, 240, 0.05);
-    --surface-field: #23211d;
-    --text-strong: #f3efe6;
-    --text-body: #e2ddd2;
-    --text-muted: #b3ac9f;
-    --text-faint: #8f897d;
-    --text-on-accent: #1a1915;
-    --line-outline: rgba(255, 250, 240, 0.08);
-    --line-strong: rgba(255, 250, 240, 0.14);
-    --line-divider: rgba(255, 250, 240, 0.07);
-    --line-ink: rgba(255, 250, 240, 0.12);
-    --line-on-accent: rgba(20, 19, 15, 0.25);
-    --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 20px 44px -18px rgba(0, 0, 0, 0.7);
-    --shadow-fab: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 22px -8px rgba(0, 0, 0, 0.6);
-    --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-    --shadow-pick: 0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --scrim: rgba(0, 0, 0, 0.5);
-    --accent: #f0be3c;
-    --accent-strong: #f5c84b;
-    --focus: #f5c84b;
-    --action-bg: #f3efe6;
-    --action-hover-bg: #ffffff;
-    --action-line: #f3efe6;
-    --link-line: rgba(245, 200, 75, 0.7);
-    --selected-surface: rgba(255, 250, 240, 0.07);
-    --selected-text: #f3efe6;
-    --selected-line: rgba(255, 250, 240, 0.12);
-    --selected-bg: #23211d;
-    --selected-ring: rgba(255, 250, 240, 0.32);
-    --decision-bg: rgba(245, 200, 75, 0.18);
-    --decision-text: #f5c84b;
-    --selected-soft-bg: rgba(255, 250, 240, 0.07);
-    --selected-soft-text: #f3efe6;
-    --toggle-knob: #141311;
-    --find-bg: rgba(245, 200, 75, 0.3);
-    --find-text: #f3efe6;
-    --find-soft-bg: rgba(245, 200, 75, 0.18);
-    --status-ok: #5bc48c;
-    --status-warn: #e8b02a;
-    --status-bad: #f08a6c;
-    --status-ok-bg: rgba(91, 196, 140, 0.14);
-    --status-ok-text: #5bc48c;
-    --status-warn-bg: rgba(232, 176, 42, 0.16);
-    --status-warn-text: #e8b02a;
-    --status-bad-bg: rgba(240, 138, 108, 0.14);
-    --status-bad-text: #f08a6c;
-    --status-ok-dot: #5bc48c;
-    --status-bad-dot: #f08a6c;
-    --status-info-bg: rgba(142, 168, 230, 0.15);
-    --status-info-text: #8ea8e6;
-    --kind-decision-bg: rgba(245, 200, 75, 0.18);
-    --kind-decision-text: #f5c84b;
-    --kind-preference-bg: rgba(157, 176, 238, 0.15);
-    --kind-preference-text: #9db0ee;
-    --kind-note-bg: rgba(111, 194, 194, 0.14);
-    --kind-note-text: #6fc2c2;
-    --weight-meta: 500;
-    --font-smoothing: antialiased;
-    --icon-weight-small: bold;
-    --icon-weight: bold;
-    --icon-weight-large: regular;
-    --icon-weight-on: fill;
-    --icon-weight-strong: bold;
-    --mashy-pick-bg: #2c3350;
-    --mashy-pick-text: #f3efe6;
-    --mashy-dot: #8e9dd6;
-    --mashy-surface: #1f2333;
-    --mashy-surface-text: #f3efe6;
-    --you-bg: #23211d;
-    --you-text: #f3efe6;
-    --you-inset: #1b1a17;
-    --you-rule: rgba(255, 250, 240, 0.12);
-    --banner-bg: #2a2824;
-    --banner-text: #f3efe6;
-    --tile-chats: transparent;
-    --tile-machines: transparent;
-    --tile-projects: transparent;
-    --tile-services: transparent;
-    --tile-fleet: transparent;
-    --tile-icon: #b3ac9f;
-    --agent-tile-bg: #23211d;
-    --agent-on-neutral: #1a1915;
-    --agent-codex: #f3efe6;
-    --agent-cursor: #f3efe6;
-    --code-keyword: #f0be3c;
-    --code-string: #5bc48c;
-    --code-key: #8ea8e6;
-    --code-value: #f3efe6;
-    --code-literal: #e8b02a;
-    --code-type: #6fc2c2;
-    --quote-line: rgba(255, 250, 240, 0.16);
-    --brand-name: #f3efe6;
-    --action-text: #141311;
-    --find-glow: 0 0 14px rgba(245, 200, 75, 0.45);
-    --memory-ring: rgba(245, 200, 75, 0.4);
-    --memory-glow: 0 16px 34px -16px rgba(245, 200, 75, 0.28);
-    --chip-on-bg: rgba(245, 200, 75, 0.16);
-    --chip-on-line: rgba(245, 200, 75, 0.4);
-    --tick: rgba(255, 250, 240, 0.18);
-    --tick-hit: #f5c84b;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --surface-page: #141311;
-  --surface-rail: #1b1a17;
-  --surface-top: #1b1a17;
-  --surface-raised: #23211d;
-  --surface-muted: #2a2824;
-  --surface-well: #0f0e0c;
-  --surface-hover: rgba(255, 250, 240, 0.05);
-  --surface-field: #23211d;
-  --text-strong: #f3efe6;
-  --text-body: #e2ddd2;
-  --text-muted: #b3ac9f;
-  --text-faint: #8f897d;
-  --text-on-accent: #1a1915;
-  --line-outline: rgba(255, 250, 240, 0.08);
-  --line-strong: rgba(255, 250, 240, 0.14);
-  --line-divider: rgba(255, 250, 240, 0.07);
-  --line-ink: rgba(255, 250, 240, 0.12);
-  --line-on-accent: rgba(20, 19, 15, 0.25);
-  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 20px 44px -18px rgba(0, 0, 0, 0.7);
-  --shadow-fab: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 22px -8px rgba(0, 0, 0, 0.6);
-  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.6);
-  --shadow-pick: 0 0 0 1px rgba(255, 250, 240, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --scrim: rgba(0, 0, 0, 0.5);
-  --accent: #f0be3c;
-  --accent-strong: #f5c84b;
-  --focus: #f5c84b;
-  --action-bg: #f3efe6;
-  --action-hover-bg: #ffffff;
-  --action-line: #f3efe6;
-  --link-line: rgba(245, 200, 75, 0.7);
-  --selected-surface: rgba(255, 250, 240, 0.07);
-  --selected-text: #f3efe6;
-  --selected-line: rgba(255, 250, 240, 0.12);
-  --selected-bg: #23211d;
-  --selected-ring: rgba(255, 250, 240, 0.32);
-  --decision-bg: rgba(245, 200, 75, 0.18);
-  --decision-text: #f5c84b;
-  --selected-soft-bg: rgba(255, 250, 240, 0.07);
-  --selected-soft-text: #f3efe6;
-  --toggle-knob: #141311;
-  --find-bg: rgba(245, 200, 75, 0.3);
-  --find-text: #f3efe6;
-  --find-soft-bg: rgba(245, 200, 75, 0.18);
-  --status-ok: #5bc48c;
-  --status-warn: #e8b02a;
-  --status-bad: #f08a6c;
-  --status-ok-bg: rgba(91, 196, 140, 0.14);
-  --status-ok-text: #5bc48c;
-  --status-warn-bg: rgba(232, 176, 42, 0.16);
-  --status-warn-text: #e8b02a;
-  --status-bad-bg: rgba(240, 138, 108, 0.14);
-  --status-bad-text: #f08a6c;
-  --status-ok-dot: #5bc48c;
-  --status-bad-dot: #f08a6c;
-  --status-info-bg: rgba(142, 168, 230, 0.15);
-  --status-info-text: #8ea8e6;
-  --kind-decision-bg: rgba(245, 200, 75, 0.18);
-  --kind-decision-text: #f5c84b;
-  --kind-preference-bg: rgba(157, 176, 238, 0.15);
-  --kind-preference-text: #9db0ee;
-  --kind-note-bg: rgba(111, 194, 194, 0.14);
-  --kind-note-text: #6fc2c2;
-  --weight-meta: 500;
-  --font-smoothing: antialiased;
-  --icon-weight-small: bold;
-  --icon-weight: bold;
-  --icon-weight-large: regular;
-  --icon-weight-on: fill;
-  --icon-weight-strong: bold;
-  --mashy-pick-bg: #2c3350;
-  --mashy-pick-text: #f3efe6;
-  --mashy-dot: #8e9dd6;
-  --mashy-surface: #1f2333;
-  --mashy-surface-text: #f3efe6;
-  --you-bg: #23211d;
-  --you-text: #f3efe6;
-  --you-inset: #1b1a17;
-  --you-rule: rgba(255, 250, 240, 0.12);
-  --banner-bg: #2a2824;
-  --banner-text: #f3efe6;
-  --tile-chats: transparent;
-  --tile-machines: transparent;
-  --tile-projects: transparent;
-  --tile-services: transparent;
-  --tile-fleet: transparent;
-  --tile-icon: #b3ac9f;
-  --agent-tile-bg: #23211d;
-  --agent-on-neutral: #1a1915;
-  --agent-codex: #f3efe6;
-  --agent-cursor: #f3efe6;
   --code-keyword: #f0be3c;
   --code-string: #5bc48c;
   --code-key: #8ea8e6;
@@ -449,16 +208,28 @@
   --code-literal: #e8b02a;
   --code-type: #6fc2c2;
   --quote-line: rgba(255, 250, 240, 0.16);
-  --brand-name: #f3efe6;
+  /* The main action's text: dark, on the light action. */
   --action-text: #141311;
+  /* The brand. */
+  --brand-name: #f3efe6;
+  --brand-cursor: #f5c84b;
+  /* The quick search panel the desktop app shows from the menu bar is drawn
+     in this theme. Its window is clear around the panel's rounded edge, and
+     over the system's blurred popover material (the desktop app on macOS) the
+     panel lets some of the material through, as a menu bar extra does. */
+  --quick-backdrop: transparent;
+  --quick-surface-material: color-mix(in srgb, var(--surface-page) 72%, transparent);
+  color-scheme: dark;
+  /* Search and reading: matched words glow, saved memory is a butter-ringed card with a glowing butter tile, and a chat's minimap marks its hits. */
   --find-glow: 0 0 14px rgba(245, 200, 75, 0.45);
   --memory-ring: rgba(245, 200, 75, 0.4);
   --memory-glow: 0 16px 34px -16px rgba(245, 200, 75, 0.28);
+  --memory-tile: radial-gradient(circle at 35% 30%, #fdedb4 0%, #f5c84b 70%);
+  --memory-tile-text: #1a1915;
   --chip-on-bg: rgba(245, 200, 75, 0.16);
   --chip-on-line: rgba(245, 200, 75, 0.4);
   --tick: rgba(255, 250, 240, 0.18);
   --tick-hit: #f5c84b;
-  color-scheme: dark;
 }
 
 /* Theme rules that a value alone cannot express. */

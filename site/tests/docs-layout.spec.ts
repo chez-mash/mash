@@ -187,11 +187,11 @@ test("on a phone every page's menu button is the same square at the left with th
   const [button, brand, search] = [own.button?.[0], own.brand?.[0], own.search?.[0]];
   expect(brand).toBeGreaterThan((button ?? 0) + 36);
   expect(search).toBeGreaterThan(brand ?? 0);
-  // It still opens the links and both menus.
+  // It still opens the links and the language menu; the site has no theme menu.
   await page.locator(".mash-menu summary").click();
   const panel = page.locator(".mash-menu .panel");
-  await expect(panel.locator("starlight-theme-select select")).toBeVisible();
   await expect(panel.locator("starlight-lang-select select")).toBeVisible();
+  await expect(page.locator("starlight-theme-select")).toHaveCount(0);
 });
 
 // What a sidebar lists: its section labels, then every link's words and address.
@@ -250,8 +250,8 @@ for (const [directory, guide, quickStart] of [
     await expect(
       menu.locator('.mash-menu-top a[href="https://github.com/mashhq/mash"]'),
     ).toBeInViewport();
-    await expect(menu.locator("starlight-theme-select select")).toBeInViewport();
     await expect(menu.locator("starlight-lang-select select")).toBeInViewport();
+    await expect(menu.locator("starlight-theme-select")).toHaveCount(0);
     const box = await pane.boundingBox();
     expect(box && [box.x, box.width, Math.round(box.y + box.height)]).toEqual([0, 390, 844]);
     // The same button closes it.
@@ -289,7 +289,7 @@ test("on a wide screen the guides directory keeps the full width, with no sideba
   // The header holds what the phone's menu does.
   const header = page.locator("header.header");
   await expect(header.getByRole("link", { name: "GitHub" })).toBeVisible();
-  await expect(header.locator("starlight-theme-select select")).toBeVisible();
+  await expect(header.locator("starlight-lang-select select")).toBeVisible();
   // The cards sit in the middle of the page, three to a row, with the tip
   // beside the lead at its own width.
   const cards = page.locator(".mash-guides");

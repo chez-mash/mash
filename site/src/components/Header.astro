@@ -1,8 +1,9 @@
 ---
 // The site header, as the wireframes draw it: the blue tile and the lowercase
 // name whose full stop is a pat of butter, "Docs" beside it on the docs pages,
-// search in the middle, then the guides and the source, the theme and
-// language menus, and the desktop app for the Mac in ink.
+// search in the middle, then the guides and the source, the language menu,
+// and the desktop app for the Mac in ink. The site is dark only, so there is
+// no theme menu.
 //
 // On the landing page the header is an island: a rounded bar on a translucent
 // surface that stays at the top while the page scrolls under it. Search is
@@ -11,12 +12,11 @@
 // buttons have scrolled away, when a small download button fades in beside
 // it: the hero and the footer lead to the guides. The other
 // page without a sidebar, the missing page, gets a menu holding the links and
-// both menus; docs pages, the guides directory among them, keep Starlight's
+// the language menu; docs pages, the guides directory among them, keep Starlight's
 // menu button, which opens the sidebar with the same controls at its top. The
 // two buttons are one raised square at the left with the same three lines,
-// and the landing page keeps the theme and language menus in its footer.
+// and the landing page keeps the language menu in its footer.
 import { Icon } from "@astrojs/starlight/components";
-import ThemeSelect from "@astrojs/starlight/components/ThemeSelect.astro";
 import LanguageSelect from "./LanguageSelect.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
@@ -41,7 +41,6 @@ const t = Astro.locals.t;
         <div class="panel">
           <nav class="links"><SocialIcons /></nav>
           <div class="controls">
-            <ThemeSelect />
             <LanguageSelect />
           </div>
         </div>
@@ -59,7 +58,6 @@ const t = Astro.locals.t;
     <a href="https://github.com/mashhq/mash" rel="me">GitHub</a>
   </nav>
   <div class="prefs wide">
-    <ThemeSelect />
     <LanguageSelect />
   </div>
   {

@@ -35,7 +35,7 @@ import QuickPreview from "./QuickPreview.svelte";
 // The panel the desktop app drops down from its menu bar icon (and shows for
 // its global shortcut): live search over this machine, or the latest chats
 // and a few of Mash's pages before anything is typed. It is drawn in the
-// dashboard's own theme, light or dark as the system is. The desktop window
+// dashboard's own theme, which is dark only. The desktop window
 // is small (menubar.rs), so the preview of the selected chat appears only
 // where the panel is wide enough, as in a browser.
 const desktop = inDesktopApp();

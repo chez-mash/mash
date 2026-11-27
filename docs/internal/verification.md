@@ -221,20 +221,20 @@ and the theme; the ordinary browser tests still own behaviour.
 
 | | Pages | Variants | Pictures |
 | --- | --- | --- | --- |
-| Dashboard (`dashboard/visual/`) | Overview, search results for "checkout", the chat list, a chat from its top, a chat with subagents, memory, a record, machines, a machine, agents, an agent, projects, a project, services, settings, tools, export, the fleet manager, viewing history, setup's review step, the quick panel empty and typed, and three open states: a filter menu, the viewing switcher and Mashy's panel | 1280×860 light and dark, 390×844 light; the overview, a chat and memory also on a dark phone | 78 |
-| Stories (`dashboard/visual/stories.spec.ts`) | Every story in the static Storybook, found through its `index.json`: foundations, kit controls, building blocks and composed pieces, each in its states | 1280×860 light and dark; a story tagged `phone` at 390×844 instead | 2 per story |
-| Site (`site/visual/`) | The landing page (the hero, the header island once the page has scrolled, each band at rest, each surface of the showcase, and the pinned quick search panel before and after its scene), a guide (Search across your machines), downloads, supported agents and the 404 page | 1440×900 light and dark, 390×844 light | 71 |
+| Dashboard (`dashboard/visual/`) | Overview, search results for "checkout", the chat list, a chat from its top, a chat with subagents, memory, a record, machines, a machine, agents, an agent, projects, a project, services, settings, tools, export, the fleet manager, viewing history, setup's review step, the quick panel empty and typed, and three open states: a filter menu, the viewing switcher and Mashy's panel | 1280×860 and 390×844 | 50 |
+| Stories (`dashboard/visual/stories.spec.ts`) | Every story in the static Storybook, found through its `index.json`: foundations, kit controls, building blocks and composed pieces, each in its states | 1280×860; a story tagged `phone` at 390×844 instead | 1 per story |
+| Site (`site/visual/`) | The landing page (the hero, the header island once the page has scrolled, each band at rest, each surface of the showcase, and the pinned quick search panel before and after its scene), a guide (Search across your machines), downloads, supported agents and the 404 page | 1440×900 and 390×844 | 52 |
 
 The dashboard pictures come from the demo build (`pnpm build:demo`) and its
 made-up history, so they need no index and no `mash dash`. The story
 pictures come from the static Storybook (`pnpm storybook:build`), which
 `tools/visual.sh dashboard` builds after the demo and serves beside it; they
-are in `baselines/stories-light` and `baselines/stories-dark`, named by the
+are in `baselines/stories`, named by the
 story's id. A story's picture is of its whole page, or of the screen when it
 is tagged `screen` (a dialog, a menu, the rail, Mashy). A new story is
 pictured without being named anywhere: add it, run
-`bash tools/visual.sh dashboard --update -- --project stories-light --project stories-dark`
-and commit its two pictures. A picture is of
+`bash tools/visual.sh dashboard --update -- --project stories`
+and commit its picture. A picture is of
 the screen, not of the whole page: apart from the landing page, which is
 taken band by band to its footer, what is below the first screen is not
 compared.
@@ -245,7 +245,7 @@ compared.
 bash tools/visual.sh              # compare both; `pnpm visual` in dashboard/ or site/ compares one
 bash tools/visual.sh all --update # take every picture again; `pnpm visual:update` for one package
 bash tools/visual.sh dashboard -- -g chat   # only the pictures whose name matches
-bash tools/visual.sh dashboard -- --project stories-light --project stories-dark   # only the stories
+bash tools/visual.sh dashboard -- --project stories   # only the stories
 ```
 
 It needs `node_modules` in the package (`pnpm install --frozen-lockfile`) and

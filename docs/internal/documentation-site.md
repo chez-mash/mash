@@ -244,10 +244,12 @@ the values in `theme.css` and the bundled fonts listed in
 `site/astro.config.mjs`. The dashboard keeps the same arrangement in
 `dashboard/src/theme/`.
 
-There are two themes, light and dark, with the same roles. `theme.css` sets
-the light values on `:root` and the dark ones under `[data-theme="dark"]`;
-Starlight's theme menu in the header offers Auto (follow the system, the
-default), Light and Dark, and remembers the choice. The typefaces are Geist and
+There is one theme, dark, like the app's: `theme.css` sets its values on
+`:root`. Starlight builds its pages with `data-theme="dark"`; its theme
+provider and theme menu are replaced with nothing
+(`components/ThemeProvider.astro`, `components/ThemeSelect.astro`), so a
+light system or a choice stored by an earlier version of the site leaves it
+dark. `tests/theme.spec.ts` checks both. The typefaces are Geist and
 Geist Mono, bundled through `@fontsource`.
 
 ## Local preview and checks

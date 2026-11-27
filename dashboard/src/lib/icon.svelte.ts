@@ -3,7 +3,7 @@
 // what it is saying: a small icon is bold so it holds up beside 12px text, a
 // large decorative one is light, the current item is filled, and a warning,
 // a failure or the icon on a primary button is bold. The weights themselves
-// are the --icon-weight-* roles in theme/tokens.css, so a theme can draw its
+// are the --icon-weight-* roles in theme/tokens.css, so the theme can draw its
 // icons heavier without touching a component.
 
 /** The weights the dashboard draws. Phosphor's thin and duotone are cut from the build (vite.config.ts). */
@@ -39,11 +39,11 @@ export const weightTokens = {
   strong: "--icon-weight-strong",
 } as const satisfies Record<keyof IconWeights, string>;
 
-/** The light theme's weights, used until the theme has been read (theme.test.ts keeps them equal). */
+/** The theme's weights, used until it has been read (icon.test.ts keeps them equal). */
 export const defaultIconWeights: IconWeights = {
   small: "bold",
-  base: "regular",
-  large: "light",
+  base: "bold",
+  large: "regular",
   on: "fill",
   strong: "bold",
 };
@@ -92,13 +92,7 @@ class IconTheme {
 /** The weights of the theme now showing. */
 export const iconTheme = new IconTheme();
 
-/** Reads the theme's icon weights, and again whenever the theme changes. */
+/** Reads the theme's icon weights. Mash has one theme, so once is enough. */
 export function installIconTheme(): void {
   iconTheme.refresh();
-  const reread = () => iconTheme.refresh();
-  globalThis.matchMedia?.("(prefers-color-scheme: dark)").addEventListener("change", reread);
-  new MutationObserver(reread).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"],
-  });
 }

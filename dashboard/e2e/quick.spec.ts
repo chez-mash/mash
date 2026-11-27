@@ -292,12 +292,12 @@ test("Control+, opens settings from the field", async ({ page }) => {
   await expect(page).toHaveURL(/#\/settings$/);
 });
 
-test("the quick panel and the dashboard follow the system's dark appearance", async ({ page }) => {
+test("the quick panel and the dashboard are dark, even on a light system", async ({ page }) => {
   await mock(page);
-  await page.emulateMedia({ colorScheme: "dark" });
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/#/quick");
   await expect(page.getByRole("heading", { name: "Recent", exact: true })).toBeVisible();
-  // The panel is drawn in the theme, whose dark roles follow the system.
+  // The panel is drawn in the theme, which is dark only.
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme),
   ).toContain("dark");

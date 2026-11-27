@@ -155,42 +155,39 @@ async function spread(
   }, picture);
 }
 
-for (const scheme of ["light", "dark"] as const) {
-  test(`nothing shows around the island's corners or through it as the ${scheme} page scrolls under`, async ({
-    page,
-  }) => {
-    await page.emulateMedia({ colorScheme: scheme });
-    await page.setViewportSize(phone);
-    await page.goto("/");
-    await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
-    const island = page.locator("header.header .mash-header");
-    // The surface is all but opaque, so words under it do not read through it.
-    const alpha = await island.evaluate((node) => {
-      const colour = getComputedStyle(node).backgroundColor;
-      const parts = colour.match(/[\d.]+/g)?.map(Number) ?? [];
-      // `rgba(r, g, b, a)` or `color(srgb r g b / a)`; no fourth part is opaque.
-      return parts.length > 3 ? (parts[3] ?? 1) : 1;
-    });
-    expect(alpha).toBeGreaterThanOrEqual(0.9);
-    await scrollToPart(page, "#welcome-surfaces");
-    await expect(island).toHaveAttribute("data-past-hero", "");
-    const box = await place(island);
-    const from = await page.evaluate(() => scrollY);
-    // The bands' windows and cards start at the island's own gutter: scroll
-    // them past it a little at a time and read the strip above the island and
-    // the square outside its rounded top-left corner. (Headless WebKit shades
-    // the screen's own first pixel on every page, so both start beside it.)
-    for (let top = from; top < from + 3600; top += 150) {
-      await page.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), top);
-      await expect
-        .poll(() => spread(page, { x: 2, y: 0, width: phone.width - 2, height: box.top - 1 }), {
-          message: `the strip above the island at ${top}`,
-        })
-        .toBeLessThanOrEqual(4);
-      expect(
-        await spread(page, { x: 2, y: 0, width: box.left + 1, height: box.top + 3 }),
-        `the island's top-left corner at ${top}`,
-      ).toBeLessThanOrEqual(4);
-    }
+test("nothing shows around the island's corners or through it as the page scrolls under", async ({
+  page,
+}) => {
+  await page.setViewportSize(phone);
+  await page.goto("/");
+  await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
+  const island = page.locator("header.header .mash-header");
+  // The surface is all but opaque, so words under it do not read through it.
+  const alpha = await island.evaluate((node) => {
+    const colour = getComputedStyle(node).backgroundColor;
+    const parts = colour.match(/[\d.]+/g)?.map(Number) ?? [];
+    // `rgba(r, g, b, a)` or `color(srgb r g b / a)`; no fourth part is opaque.
+    return parts.length > 3 ? (parts[3] ?? 1) : 1;
   });
-}
+  expect(alpha).toBeGreaterThanOrEqual(0.9);
+  await scrollToPart(page, "#welcome-surfaces");
+  await expect(island).toHaveAttribute("data-past-hero", "");
+  const box = await place(island);
+  const from = await page.evaluate(() => scrollY);
+  // The bands' windows and cards start at the island's own gutter: scroll
+  // them past it a little at a time and read the strip above the island and
+  // the square outside its rounded top-left corner. (Headless WebKit shades
+  // the screen's own first pixel on every page, so both start beside it.)
+  for (let top = from; top < from + 3600; top += 150) {
+    await page.evaluate((y) => scrollTo({ top: y, behavior: "instant" }), top);
+    await expect
+      .poll(() => spread(page, { x: 2, y: 0, width: phone.width - 2, height: box.top - 1 }), {
+        message: `the strip above the island at ${top}`,
+      })
+      .toBeLessThanOrEqual(4);
+    expect(
+      await spread(page, { x: 2, y: 0, width: box.left + 1, height: box.top + 3 }),
+      `the island's top-left corner at ${top}`,
+    ).toBeLessThanOrEqual(4);
+  }
+});

@@ -61,9 +61,9 @@ export default defineConfig({
     launchOptions: { args: ["--hide-scrollbars"] },
   },
   projects: [
-    { name: "desktop-light", use: { viewport: desktop, colorScheme: "light" } },
-    { name: "desktop-dark", use: { viewport: desktop, colorScheme: "dark" } },
-    { name: "phone-light", use: { viewport: phone, colorScheme: "light" } },
+    // The site has one theme, dark, so each size has one set of pictures.
+    { name: "desktop", use: { viewport: desktop } },
+    { name: "phone", use: { viewport: phone } },
   ],
   webServer: {
     // Through Node rather than pnpm, which the container does not have.

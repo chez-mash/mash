@@ -13,21 +13,6 @@ installEvents(undefined);
 installIconTheme();
 
 const preview: Preview = {
-  globalTypes: {
-    theme: {
-      description: "The theme's light or dark roles (data-theme on the document)",
-      toolbar: {
-        title: "Theme",
-        icon: "contrast",
-        dynamicTitle: true,
-        items: [
-          { value: "light", title: "Light", icon: "sun" },
-          { value: "dark", title: "Dark", icon: "moon" },
-        ],
-      },
-    },
-  },
-  initialGlobals: { theme: "light" },
   parameters: {
     layout: "padded",
     // The page behind a story is the theme's own surface, not a swatch.
@@ -45,7 +30,6 @@ const preview: Preview = {
   },
   decorators: [
     (_, context) => {
-      document.documentElement.dataset.theme = context.globals.theme === "dark" ? "dark" : "light";
       const data = context.parameters.data as StoryData | undefined;
       return { Component: Frame, props: { data } };
     },

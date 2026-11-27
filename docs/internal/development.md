@@ -104,9 +104,8 @@ those.
 A story is drawn with exactly what the dashboard is drawn with: Storybook
 uses the dashboard's Vite configuration, and its preview imports
 `src/styles.ts`, the same list of stylesheets and typefaces `main.ts` imports.
-The toolbar's theme switch sets `data-theme` on the document, as Settings
-does, and the viewport menu has the two sizes the baselines use (1280 and
-390). The accessibility panel is the a11y addon.
+Mash has one theme, dark, so there is no theme switch; the viewport menu has
+the two sizes the baselines use (1280 and 390). The accessibility panel is the a11y addon.
 
 To add a story, write `NAME.stories.svelte` beside the component:
 
@@ -158,7 +157,7 @@ const { Story } = defineMeta({
 `src/stories/coverage.test.ts` (part of `pnpm test`) fails when a control in
 `src/lib/components/ui` or a building block on its list has no story. A new
 building block is added to that list with its story. Every story is also
-compared with a committed picture in light and dark; see "Visual baselines"
+compared with a committed picture; see "Visual baselines"
 in `verification.md`. `pnpm knip` treats stories and `.storybook` as entry
 points. CI builds the static Storybook in the Front ends workflow and keeps
 it as the `dashboard-storybook` artifact for a week; it is not published.
