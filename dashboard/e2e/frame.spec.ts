@@ -108,3 +108,40 @@ test("in a browser a right-click on a chat opens the dashboard's own menu", asyn
   await expect(page).toHaveURL(/#\/chat\//);
   await expect(page.getByRole("menu")).toHaveCount(0);
 });
+
+test("in the app a right-click with no menu of Mash's opens nothing, but fields and selected text keep theirs", async ({
+  page,
+}) => {
+  /** Right-clicks the first element matching `selector`; true when the page held the system's menu back. */
+  const held = (selector: string) =>
+    page
+      .locator(selector)
+      .first()
+      .evaluate((node) => {
+        const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+        node.dispatchEvent(event);
+        return event.defaultPrevented;
+      });
+  await page.addInitScript(() =>
+    Object.assign(window, { __MASH_DESKTOP__: true, __MASH_SHELL__: "macos" }),
+  );
+  await inShell(page);
+  expect(await held("#main h1")).toBe(true);
+  expect(await held("#rail .nav-link")).toBe(true);
+  expect(await held("#q")).toBe(false);
+  await page.locator("#main h1").first().selectText();
+  expect(await held("#main h1")).toBe(false);
+});
+
+test("in a browser a right-click keeps the browser's menu", async ({ page }) => {
+  await inShell(page);
+  const held = await page
+    .locator("#main h1")
+    .first()
+    .evaluate((node) => {
+      const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+      node.dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+  expect(held).toBe(false);
+});
