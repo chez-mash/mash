@@ -74,7 +74,7 @@ fn installer(path: &Path) -> Option<Installer> {
     } else if lower.contains("/scoop/") {
         by("Scoop", "scoop update mash")
     } else if lower.contains("/microsoft/winget/") {
-        by("winget", "winget upgrade MashHQ.Mash")
+        by("winget", "winget upgrade MashHQ.Mash.CLI")
     } else if text == "/usr/bin/mash" && Path::new("/var/lib/dpkg/info/mash-cli.list").exists() {
         by("apt", "sudo apt install --only-upgrade mash-cli")
     } else if is_windows_app_command(&resolved) {
