@@ -58,7 +58,10 @@ fn launcher(app: &AppHandle) -> Result<AutoLaunch, String> {
     #[cfg(target_os = "linux")]
     {
         // An AppImage runs from a temporary mount; log in starts the file.
-        let path = app.env().appimage.unwrap_or(executable);
+        let path = app
+            .env()
+            .appimage
+            .map_or(executable, std::path::PathBuf::from);
         builder.set_app_path(&path.display().to_string());
     }
     #[cfg(windows)]
