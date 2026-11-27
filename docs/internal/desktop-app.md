@@ -64,8 +64,10 @@ stays `browser`.
   ⌘1 to ⌘5 for the main pages.
 - **Windows and Linux:** the system draws a dark title bar; the dashboard's
   top bar keeps its mark.
-- **Everywhere:** the window's ground is the page's dark colour from the
-  first frame, so it never shows white; the top bar is a drag region
+- **Everywhere:** the window opens where it was left, at the size it had,
+  maximized or full screen if it was (Tauri's window-state plugin,
+  `frame::remembered`); the window's ground is the page's dark colour from
+  the first frame, so it never shows white; the top bar is a drag region
   (`data-tauri-drag-region`, allowed by `capabilities/frame.json`).
 - **Right-click menus:** the page names a menu's lines and keeps what each
   does (`dashboard/src/lib/contextMenu.svelte.ts`); the app shows them as the
