@@ -21,8 +21,25 @@ public static class Win {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, int x, int y, uint data, UIntPtr extra);
+  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr dc, uint flags);
 }
 '@
+
+# The window by itself, as the window draws it: PrintWindow with
+# PW_RENDERFULLCONTENT takes WebView2's GPU-composed page, which a copy of the
+# screen can leave black on a runner's display.
+function WindowShot([IntPtr]$Handle, [string]$Name) {
+  $r = New-Object Win+RECT
+  [Win]::GetWindowRect($Handle, [ref]$r) | Out-Null
+  $bitmap = New-Object System.Drawing.Bitmap ($r.Right - $r.Left), ($r.Bottom - $r.Top)
+  $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+  $dc = $graphics.GetHdc()
+  [Win]::PrintWindow($Handle, $dc, 2) | Out-Null
+  $graphics.ReleaseHdc($dc)
+  $bitmap.Save((Join-Path $Out "$Name.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+  $graphics.Dispose(); $bitmap.Dispose()
+  Write-Output "took $Name.png (the window alone)"
+}
 
 function Shot([string]$Name) {
   $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
@@ -57,6 +74,13 @@ $r = New-Object Win+RECT
 [Win]::GetWindowRect($window.MainWindowHandle, [ref]$r) | Out-Null
 Write-Output "window: $($r.Left) $($r.Top) $($r.Right - $r.Left) $($r.Bottom - $r.Top) '$($window.MainWindowTitle)'"
 Shot '1-window'
+WindowShot $window.MainWindowHandle '1-window-alone'
+# Whether the dashboard the window shows is up: the engine and its answer.
+Get-Process -Name mash -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "engine: $($_.Path)" }
+try {
+  $page = Invoke-WebRequest -UseBasicParsing -TimeoutSec 10 'http://127.0.0.1:47290/'
+  Write-Output "dashboard: $($page.StatusCode), $($page.Content.Length) bytes"
+} catch { Write-Output "dashboard: no answer ($($_.Exception.Message))" }
 
 # The first Recent chats row on the overview, from the window's top left
 # (WIN_VM_ROW_X/Y as in the VM tool); then the right-click menu it opens.
@@ -66,3 +90,6 @@ Start-Sleep -Milliseconds 400
 [Win]::mouse_event(0x0008, 0, 0, 0, [UIntPtr]::Zero); [Win]::mouse_event(0x0010, 0, 0, 0, [UIntPtr]::Zero)
 Start-Sleep -Seconds 2
 Shot '2-right-click'
+WindowShot $window.MainWindowHandle '2-right-click-alone'
+# The offline `mash index` leaves a failing exit code behind; the pictures are what count.
+exit 0
