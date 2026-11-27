@@ -2,10 +2,10 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 
 const phone = { width: 390, height: 844 };
 const steps = [
-  "Monday, in Claude Code",
-  "Mash keeps the chat",
-  "Thursday, in Codex",
-  "Codex picks up from there",
+  "You chat with Codex",
+  "Mash remembers",
+  "Later, you ask Claude",
+  "Claude already knows",
 ];
 
 /** Opens the landing page with the plugin band's rail running and on screen. */
