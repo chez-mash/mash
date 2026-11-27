@@ -1,16 +1,16 @@
 {
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Search past coding-agent chats from your browser, terminal, or agents",
     "homepage": "https://github.com/mashhq/mash",
     "license": "MIT OR Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/mashhq/mash/releases/download/v0.3.0/mash-x86_64-pc-windows-msvc.zip",
-            "hash": "7a352266dccef5f889b6c8b12fcbca79b792bd246d49102837ef1354f733fe68"
+            "url": "https://github.com/mashhq/mash/releases/download/v0.3.1/mash-x86_64-pc-windows-msvc.zip",
+            "hash": "959c2d32a6eb4c08314adf676a133837fc1ab2b9bf0176ede8918514f02efe56"
         },
         "arm64": {
-            "url": "https://github.com/mashhq/mash/releases/download/v0.3.0/mash-aarch64-pc-windows-msvc.zip",
-            "hash": "eb15e5b9aff2417d0754fffc7fead8aa4a3ffb80e0967fedee88b180342e8cde"
+            "url": "https://github.com/mashhq/mash/releases/download/v0.3.1/mash-aarch64-pc-windows-msvc.zip",
+            "hash": "a2fa98b8cbade50a7093f6643da66fc99a149ed180ac30067df0ff9dc3b1b21c"
         }
     },
     "bin": ["mash.exe", "mash-server.exe"],
