@@ -10,3 +10,10 @@
 .mash-welcome .mashy-face {
   transform: none !important;
 }
+
+/* The plugin's step cards play their pictures in once on screen; a picture takes them played. */
+.mash-welcome .flow-card [data-in] {
+  opacity: 1 !important;
+  transition: none !important;
+  translate: none !important;
+}

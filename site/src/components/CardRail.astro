@@ -1,0 +1,98 @@
+---
+// A rail of cards that scrolls sideways and snaps to each card, with the
+// next card showing at the edge. Its cards are RailCard items in the default
+// slot. Under it: a link onward at the left, and previous and next buttons
+// at the right. The rail is a plain scroll container, so a swipe, a
+// trackpad and the keyboard work without scripting; src/rails.ts adds the
+// buttons and steps a card at a time on the arrow keys.
+import LineIcon from "./LineIcon.astro";
+
+interface Props {
+  /** What the rail lists, for assistive technology. */
+  label: string;
+  /** The link under the rail: where the whole list is. */
+  href: string;
+  more: string;
+}
+const { label, href, more } = Astro.props;
+---
+
+<div class="rail" data-rail>
+  <ul class="rail-track" aria-label={label} tabindex="0" data-rail-track>
+    <slot />
+  </ul>
+  <div class="rail-foot">
+    <a class="more" href={href}>{more} ›</a>
+    <span class="rail-go" hidden data-rail-go>
+      <button type="button" data-step="-1" aria-label={`Previous: ${label}`}><LineIcon name="arrow-left" size="1rem" /></button>
+      <button type="button" data-step="1" aria-label={`Next: ${label}`}><LineIcon name="arrow-right" size="1rem" /></button>
+    </span>
+  </div>
+</div>
+
+<style>
+  .rail {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  /* The track runs to the screen's edges through the band's gutter, so a
+     card can show past the column; cards snap to the column's own edge. */
+  .rail .rail-track {
+    display: flex;
+    gap: 0.875rem;
+    margin-inline: calc(-1 * var(--mash-gutter));
+    padding: 0.5rem var(--mash-gutter) 1.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--mash-gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .rail-track::-webkit-scrollbar {
+    display: none;
+  }
+  .rail-track:focus-visible {
+    outline-offset: -2px;
+  }
+  .rail-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 2.75rem;
+  }
+  .rail-foot .more {
+    align-self: center;
+    padding-block: 0.625rem;
+  }
+  .rail-go {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .rail-go[hidden] {
+    display: none;
+  }
+  .rail-go button {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-round);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+    cursor: pointer;
+  }
+  .rail-go button:hover {
+    background: var(--surface-muted);
+  }
+  .rail-go button:disabled {
+    color: var(--text-faint);
+    opacity: 0.45;
+    cursor: default;
+  }
+</style>

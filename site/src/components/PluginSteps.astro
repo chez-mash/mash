@@ -1,0 +1,360 @@
+---
+// The first band under the agents row: the plugin from the reader's side.
+// Most people meet Mash through their agents rather than one of its windows,
+// so this comes before the surface showcase. The cards follow one made-up
+// week: a problem worked out in Claude Code, then picked up days later in
+// Codex on another machine, without explaining it again. They tell what the
+// reader sees, not how the plugin does it.
+import AgentTile from "./AgentTile.astro";
+import CardRail from "./CardRail.astro";
+import LineIcon from "./LineIcon.astro";
+import OsMark from "./OsMark.astro";
+
+const steps = [
+  {
+    name: "Monday, in Claude Code",
+    says: "You work out how to rotate the webhook secret without dropping events.",
+  },
+  {
+    name: "Mash keeps the chat",
+    says: "Every chat from every agent is kept as you go. There’s nothing to copy.",
+  },
+  {
+    name: "Thursday, in Codex",
+    says: "Another agent, on another machine. You don’t explain it again.",
+  },
+  {
+    name: "Codex picks up from there",
+    says: "It finds what you settled in Claude Code and says where it came from.",
+  },
+];
+---
+
+<section class="band" id="welcome-plugin" aria-labelledby="welcome-plugin-title">
+  <div class="wrapper stack plugin" data-reveal>
+    <div class="head">
+      <span class="kicker">Agent plugin</span>
+      <h2 id="welcome-plugin-title">Start in one agent. <span class="quiet">Finish in another.</span></h2>
+      <p class="blurb">
+        Most days you won’t open Mash at all. With the plugin installed, your agents read each
+        other’s chats, so the next one already knows what the last one did.
+      </p>
+    </div>
+    <CardRail label="One week with the agent plugin, step by step" href="/plugin/" more="How the plugin works">
+      {steps.map(({ name, says }, index) => (
+        <li class="flow-card" data-flow-card>
+          <span class="flow-head">
+            <span class="flow-n" aria-hidden="true">{index + 1}</span>
+            <b>{name}</b>
+          </span>
+          <span class="flow-says">{says}</span>
+          <span class="flow-picture" aria-hidden="true">
+            {index === 0 && (
+              <span class="chat">
+                <span class="chat-h" data-in><AgentTile agent="claude-code" /><b>billing-api</b><small><OsMark system="macos" />laptop</small></span>
+                <span class="said you" data-in>Rotate the production webhook secret without dropping events.</span>
+                <span class="said agent" data-in>
+                  <mark>Accept both the old and the new secret for 24 hours</mark>, then remove the old one.
+                </span>
+                <span class="said you" data-in>Do it. We’ll do staging later.</span>
+              </span>
+            )}
+            {index === 1 && (
+              <span class="finds">
+                <span class="q" data-in><LineIcon name="message-square" size="0.875rem" /><b>Recent chats</b></span>
+                <span class="hit on" data-in>
+                  <AgentTile agent="claude-code" /><b>Rotate webhook signing secrets</b>
+                  <small><OsMark system="macos" />laptop · just now</small>
+                </span>
+                <span class="hit" data-in>
+                  <AgentTile agent="codex" /><b>Verify webhook signatures in tests</b>
+                  <small><OsMark system="linux" />workstation · Sun</small>
+                </span>
+                <span class="hit" data-in>
+                  <AgentTile agent="cursor" /><b>Staging env variables</b>
+                  <small><OsMark system="macos" />mini · last week</small>
+                </span>
+              </span>
+            )}
+            {index === 2 && (
+              <span class="term">
+                <span class="term-h"><u></u><u></u><u></u><i>codex · billing-api · workstation</i></span>
+                <span class="term-b">
+                  <span class="prompt" data-in><i>›</i>Rotate the staging webhook secret the way we did for production.</span>
+                  <span class="thinking" data-in><AgentTile agent="codex" />Looking through your earlier chats…</span>
+                </span>
+              </span>
+            )}
+            {index === 3 && (
+              <span class="reply">
+                <span class="reply-b" data-in>
+                  <AgentTile agent="codex" />
+                  <span>
+                    On Monday you settled this with Claude Code: both secrets work for 24 hours, then the
+                    old one goes. I’ll do the same on staging.
+                  </span>
+                </span>
+                <span class="source" data-in>
+                  <AgentTile agent="claude-code" /><b>Rotate webhook signing secrets</b>
+                  <small><OsMark system="macos" />laptop · Monday</small>
+                  <span class="open">Open the message ›</span>
+                </span>
+              </span>
+            )}
+          </span>
+        </li>
+      ))}
+    </CardRail>
+  </div>
+</section>
+
+<style>
+  .plugin {
+    gap: 2.5rem;
+  }
+  .flow-card {
+    display: flex;
+    flex: 0 0 min(21.5rem, 84%);
+    flex-direction: column;
+    height: 26rem;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-float);
+    color: var(--text-body);
+    scroll-snap-align: start;
+  }
+  .flow-head {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1rem 1rem 0;
+    color: var(--text-strong);
+  }
+  .flow-n {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: var(--radius-round);
+    background: var(--butter);
+    color: var(--text-on-butter);
+    font: 600 0.8125rem / 1 var(--type-mono);
+  }
+  .flow-head b {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .flow-says {
+    min-height: 2.625rem;
+    padding: 0.5rem 1rem 0.875rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  /* The picture sits on a butter wash, as the dashboard's highlighted rows do. */
+  .flow-picture {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    margin: 0 0.5rem 0.5rem;
+    padding: 0.875rem;
+    overflow: hidden;
+    border-radius: var(--radius-6);
+    background: color-mix(in srgb, var(--butter) 9%, var(--surface-muted));
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .flow-picture > span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .flow-picture b {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .flow-picture small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    color: var(--text-faint);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  /* 3: the other agent's terminal. */
+  .term {
+    overflow: hidden;
+    border-radius: var(--radius-5);
+    background: var(--surface-code);
+    box-shadow: var(--shadow-card);
+  }
+  .flow-picture .term {
+    gap: 0;
+  }
+  .term-h {
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-divider);
+  }
+  .term-h u {
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-round);
+    background: var(--text-faint);
+    opacity: 0.45;
+  }
+  .term-h i {
+    margin-inline-start: 0.375rem;
+    color: var(--text-faint);
+    font: 400 0.6875rem / 1 var(--type-mono);
+    font-style: normal;
+  }
+  .term-b {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 0.875rem 0.75rem 1rem;
+    font: 400 0.75rem / 1.6 var(--type-mono);
+  }
+  .prompt {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-4);
+    background: var(--surface-muted);
+    color: var(--text-strong);
+  }
+  .prompt i {
+    color: var(--text-faint);
+    font-style: normal;
+  }
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+  }
+
+  /* 2: the chat, now in Mash's history beside the rest. */
+  .q {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-muted);
+  }
+  .hit {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.125rem 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-5);
+  }
+  .hit small {
+    grid-column: 2;
+  }
+  .hit.on {
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-butter);
+  }
+
+  /* 1: the first chat, with the line that settles it marked. */
+  .chat-h {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .said {
+    max-width: 88%;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-5);
+  }
+  .said.you {
+    align-self: flex-end;
+    background: var(--surface-muted);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+  }
+  .said.agent {
+    align-self: flex-start;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+  }
+  .said mark {
+    padding: 0;
+    box-decoration-break: clone;
+    border-radius: var(--radius-2);
+    background: var(--butter-soft);
+    color: var(--text-strong);
+  }
+
+  /* 4: the second agent's answer, and the chat it came from. */
+  .reply-b {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-ring);
+    color: var(--text-strong);
+  }
+  .source {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.25rem 0.5rem;
+    align-items: center;
+    margin-inline-start: 1.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-5);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-butter);
+  }
+  .source small,
+  .source .open {
+    grid-column: 2;
+  }
+  .open {
+    color: var(--link);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* Once the rail is live, a card's picture plays in as the card comes into view.
+     Served without the script, every picture is simply shown. */
+  :global(.rail-live) .flow-card [data-in] {
+    opacity: 0;
+    translate: 0 0.5rem;
+    transition:
+      opacity 0.4s ease-out,
+      translate 0.4s ease-out;
+  }
+  :global(.rail-live) .flow-card.seen [data-in] {
+    opacity: 1;
+    translate: 0 0;
+  }
+  .flow-card.seen [data-in]:nth-child(2) { transition-delay: 0.25s; }
+  .flow-card.seen [data-in]:nth-child(3) { transition-delay: 0.5s; }
+  .flow-card.seen [data-in]:nth-child(4) { transition-delay: 0.75s; }
+
+  @media (width < 40rem) {
+    .flow-card {
+      height: 25rem;
+    }
+  }
+</style>
