@@ -332,8 +332,8 @@ describe("links and untrusted text", () => {
   });
 
   it("knows each agent's logo, and nothing for an unknown one", () => {
-    expect(agentLogo("claude-code")).toEqual({ file: "claude.svg", tint: "#d97757" });
-    expect(agentLogo("codex")).toEqual({ file: "openai.svg" });
+    expect(agentLogo("claude-code")).toBe("claude");
+    expect(agentLogo("codex")).toBe("openai");
     expect(agentLogo("someone-else")).toBeUndefined();
   });
 });
