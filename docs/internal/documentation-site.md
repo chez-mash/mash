@@ -98,8 +98,16 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   logo alone; once the hero's buttons have scrolled away a short Download
   button fades in, with the hero button's target. Links into the page stop
   under the island (`scroll-padding-top`), and the pinned panel holds below it.
+- **The plugin band** (`PluginSteps.astro`) is the first band, because most
+  people meet Mash through their agents: one made-up week told in four step
+  cards, from a chat in Claude Code to Codex picking it up days later on
+  another machine. It tells what the reader sees, not the plugin's calls. The
+  cards sit in a `CardRail`: a scroll container that snaps to each card with
+  the next one at the edge, which `rails.ts` gives previous and next buttons,
+  arrow keys, and a `seen` mark that plays a card's picture in once it is on
+  screen. Without scripting every picture shows and the rail still scrolls.
 - **The surface showcase** (`Surfaces.astro`, one file per surface in
-  `components/surfaces/`) is the first band: one of Mash's surfaces in its
+  `components/surfaces/`) comes next: one of Mash's surfaces in its
   window (the dashboard, the menu bar panel, the Raycast extension, an
   agent's session with the plugin, the terminal), a dock of icon buttons
   that chooses it, and a caption with a link. A caption may carry a second

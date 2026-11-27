@@ -23,6 +23,7 @@ async function play(page: Page): Promise<void> {
 /** The bands under the hero, in page order: a picture's name and what it is of. */
 const bands = [
   ["agents", ".mash-agents"],
+  ["plugin", "#welcome-plugin"],
   ["surfaces", "#welcome-surfaces"],
   ["quick-search", "#welcome-shortcuts"],
   ["search", "#welcome-search"],

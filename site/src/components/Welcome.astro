@@ -1,7 +1,8 @@
 ---
-// The landing page under the hero: the agents Mash reads, then one band per
-// idea, each with a small mono label, a heading and a window or set of cards
-// drawn as the dashboard draws them. The windows are illustrations: each is
+// The landing page under the hero: the agents Mash reads, what the agent
+// plugin does in a session, then one band per idea, each with a small mono
+// label, a heading and a window or set of cards drawn as the dashboard draws
+// them. The windows are illustrations: each is
 // one image to assistive technology, named for what it shows. Mashy appears
 // only in his own band; the closing call to action shows the app icon, as
 // the hero does.
@@ -20,6 +21,7 @@ import AgentTile from "./AgentTile.astro";
 import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
+import PluginSteps from "./PluginSteps.astro";
 import Surfaces from "./Surfaces.astro";
 
 /** The projects Mash is built on, shown under Ferris, each with its logo and linked to its own site. */
@@ -92,6 +94,8 @@ const quick: {
 
 <div class="mash-welcome not-content">
   <Agents />
+
+  <PluginSteps />
 
   <Surfaces />
 

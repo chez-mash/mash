@@ -1,5 +1,5 @@
 /**
- * Starts the welcome page: the surface showcase, Mashy's examples, and the
+ * Starts the welcome page: the plugin's step rail, the surface showcase, Mashy's examples, and the
  * page's motion.
  *
  * The motion (`motion.ts`, with GSAP) is fetched here, on this page only and
@@ -7,6 +7,7 @@
  * shown; the stylesheet hides nothing.
  */
 
+import { mountRails } from "./rails.ts";
 import { mountSurfaces } from "./surfaces.ts";
 
 /** Lets the hero show if the motion never takes over its entrance. */
@@ -19,6 +20,7 @@ function showHero(): void {
 export function mountWelcome(root: HTMLElement): () => void {
   const chats = [...root.querySelectorAll<HTMLElement>("[data-mashy-chat]")].map(mountMashyChat);
   const showcases = [...root.querySelectorAll<HTMLElement>("[data-surfaces]")].map(mountSurfaces);
+  const rails = mountRails(root);
   let stopped = false;
   let stopMotion: (() => void) | undefined;
   import("./motion.ts")
@@ -32,7 +34,7 @@ export function mountWelcome(root: HTMLElement): () => void {
     stopped = true;
     stopMotion?.();
     showHero();
-    for (const stop of [...chats, ...showcases]) stop();
+    for (const stop of [...chats, ...showcases, rails]) stop();
     root.classList.remove("reveal");
   };
 }
