@@ -4,6 +4,7 @@
 #
 # Usage: tools/mac-vm.sh build-image | push-image
 #        tools/mac-vm.sh run | store-shots [--mash PATH] [--keep]
+#        tools/mac-vm.sh desktop --app PATH
 #        tools/mac-vm.sh list | clean
 #
 #   build-image  build mash-golden-<yyyymmdd> on the Mac from the Cua macOS
@@ -22,6 +23,10 @@
 #   store-shots  like run, but draw the guest at 2x and write the Raycast Store
 #                screenshots raycast/metadata/mash-1.png ... mash-5.png:
 #                2000x1250, light, the window centred on a plain background
+#   desktop      install the desktop app (--app: a .dmg or Mash.app, such as
+#                CI's mash-desktop-aarch64-apple-darwin artifact) in a clone
+#                with the demo histories indexed, open it, take
+#                desktop-window.png, and leave the clone running
 #   list         list the Mac's VMs
 #   clean        delete run clones left behind by --keep or an interrupted run
 #
@@ -38,10 +43,12 @@ command=${1:-run}
 shift || true
 
 mash=
+app=
 keep=
 while [ $# -gt 0 ]; do
   case "$1" in
     --mash) mash=$2; shift 2 ;;
+    --app) app=$2; shift 2 ;;
     --keep) keep=1; shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
@@ -53,6 +60,8 @@ sync_sources() {
   # demo_history.py reads the recorded Antigravity tables from beside itself in a guest.
   rsync -a "$ROOT/fixtures/antigravity-native-runtime-2.5.5.json" "$MAC:$DIR/src/tools/mac-vm/"
   rsync -a --delete --exclude node_modules --exclude .git "$ROOT/raycast/" "$MAC:$DIR/src/raycast/"
+  ssh "$MAC" "rm -rf $DIR/src/desktop && mkdir -p $DIR/src/desktop"
+  [ -z "$app" ] || rsync -a "$app" "$MAC:$DIR/src/desktop/"
   if [ -n "$mash" ]; then
     ssh "$MAC" "mkdir -p $DIR/src/mash"
     if [ -d "$mash" ]; then
@@ -98,14 +107,14 @@ case "$command" in
     fi
     echo "ghcr.io/mashhq/mash-golden is private"
     ;;
-  run | store-shots)
+  run | store-shots | desktop)
     sync_sources
     if ssh "$MAC" "~/.local/bin/lume ls" | grep -q '^mash-golden-'; then
       on_mac "$command"
     else
       with_credentials read:packages "$command"
     fi
-    if [ "$command" = run ]; then
+    if [ "$command" = run ] || [ "$command" = desktop ]; then
       mkdir -p "$OUT"
       rsync -a --delete "$MAC:$DIR/shots/" "$OUT/"
       echo "screenshots in $OUT"
@@ -118,5 +127,5 @@ case "$command" in
     fi
     ;;
   list | clean) on_mac "$command" ;;
-  *) sed -n '2,32p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,35p' "$0" >&2; exit 2 ;;
 esac
