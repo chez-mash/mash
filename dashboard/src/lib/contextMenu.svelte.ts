@@ -102,7 +102,7 @@ export function installContextMenu(scope: Window = window): () => void {
 }
 
 /** Whether a right-click on `target` should still get the system's menu: in a field, or on selected text. */
-export function keepsSystemMenu(target: EventTarget | null, scope: Window = window): boolean {
+function keepsSystemMenu(target: EventTarget | null, scope: Window = window): boolean {
   const element = target as { closest?: (selector: string) => unknown } | null;
   if (
     typeof element?.closest === "function" &&
