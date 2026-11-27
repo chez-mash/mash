@@ -89,7 +89,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(menubar::shortcut_plugin())
         .plugin(frame::remembered())
-        .plugin(login::plugin())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state.clone())
         .manage(downloads::Downloads::default())
@@ -105,6 +104,7 @@ pub fn run() {
         .setup(move |app| {
             update::prepare(app.handle());
             frame::dark_menus();
+            login::install(app.handle());
             open_window(app.handle())?;
             menubar::install(app.handle())?;
             listen_for_links(app.handle());

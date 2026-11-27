@@ -69,10 +69,15 @@ stays `browser`.
   `frame::remembered`); the window's ground is the page's dark colour from
   the first frame, so it never shows white; the top bar is a drag region
   (`data-tauri-drag-region`, allowed by `capabilities/frame.json`).
-- **Open at Login:** a tick in the menu bar menu (`login.rs`, Tauri's
-  autostart plugin: a launch agent on macOS, the Run key on Windows, an
+- **Open at Login:** a tick in the menu bar menu (`login.rs`, through
+  `auto-launch`: a launch agent on macOS, the Run key on Windows, an
   autostart entry on Linux). A start at login passes `--at-login`, and the
-  app then opens into the menu bar alone, without its window.
+  app then opens into the menu bar alone, without its window. The macOS
+  agent names the app's bundle identifier (`AssociatedBundleIdentifiers`),
+  so Login Items and the background-activity notice say "Mash" with the
+  app's icon; without it macOS files the agent under the developer's name.
+  Tauri's autostart plugin cannot set that, so the app builds the launcher
+  itself, and rewrites one already enabled at each start.
 - **Right-click menus:** the page names a menu's lines and keeps what each
   does (`dashboard/src/lib/contextMenu.svelte.ts`); the app shows them as the
   system's menu at the pointer (`context_menu` in `context.rs`) and sends back
