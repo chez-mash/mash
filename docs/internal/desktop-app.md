@@ -70,8 +70,10 @@ stays `browser`.
 - **Right-click menus:** the page names a menu's lines and keeps what each
   does (`dashboard/src/lib/contextMenu.svelte.ts`); the app shows them as the
   system's menu at the pointer (`context_menu` in `context.rs`) and sends back
-  the chosen line's place as a `mash:context` event. In a browser the
-  dashboard draws the same lines itself (`ContextMenu.svelte`). A chat's
+  the chosen line's place as a `mash:context` event. In a browser, and in
+  the Linux app, the dashboard draws the same lines itself
+  (`ContextMenu.svelte`): GTK opens no menu at the pointer under Wayland,
+  Ubuntu's usual session, and reports nothing when it fails. A chat's
   menu, wherever chats are listed, opens it, copies its link and, for a chat
   of this machine its agent can resume, copies the resume command.
 
