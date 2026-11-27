@@ -34,7 +34,7 @@
     font-weight: 600;
     letter-spacing: -0.015em;
   }
-  /* Links in a card: the words over a quiet rule. */
+  /* Links in a sentence: the words over a quiet rule. */
   :where(a) {
     color: inherit;
     text-decoration: underline;
@@ -182,8 +182,7 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
-  .stats > div,
-  .cards li {
+  .stats > div {
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
@@ -192,8 +191,7 @@
     background: var(--surface-raised);
     box-shadow: var(--shadow-card);
   }
-  .stats .ico,
-  .cards .ico {
+  .stats .ico {
     width: 2.375rem;
     height: 2.375rem;
   }
@@ -213,8 +211,7 @@
     font-size: 1.25rem;
     letter-spacing: 0;
   }
-  .stats dd,
-  .cards p {
+  .stats dd {
     color: var(--text-muted);
     font-size: 0.875rem;
     line-height: 1.6;
@@ -277,31 +274,16 @@
     margin-inline-start: 0.5ch;
   }
 
-  /* Privacy: the heading beside the way onward, then four raised cards. */
-  .privacy-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1.75rem 5rem;
+  /* Privacy: words alone. The heading takes the windows' column and the
+     paragraph the words' column, so it lines up with the bands above. */
+  .split.plain {
+    row-gap: 1.125rem;
   }
-  .privacy-head .head {
-    flex: 1 1 26rem;
-  }
-  .privacy-head .aside {
+  .plain .head,
+  .aside {
     display: flex;
-    flex: 1 1 21rem;
     flex-direction: column;
-    gap: 0.875rem;
-    color: var(--text-strong);
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-  }
-  .cards li {
-    gap: 0.75rem;
-    padding: 1.5rem;
+    gap: 1.125rem;
   }
 
   /* Open source: the words beside Ferris, with the projects Mash is built on under him. */
@@ -460,8 +442,7 @@
     .split .words {
       order: -1;
     }
-    .stats,
-    .cards {
+    .stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -482,9 +463,6 @@
     .ferris {
       width: 15rem;
       stroke-width: 15;
-    }
-    .cards {
-      grid-template-columns: minmax(0, 1fr);
     }
     .closing {
       padding: 3rem 1.25rem;

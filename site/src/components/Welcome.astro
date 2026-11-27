@@ -319,38 +319,21 @@ const quick: {
   </section>
 
   <section class="band" id="welcome-privacy" aria-labelledby="welcome-privacy-title">
-    <div class="wrapper stack" data-reveal>
-      <div class="privacy-head">
-        <div class="head">
-          <span class="kicker">Privacy</span>
-          <h2 id="welcome-privacy-title">Self-hosted, end to end. <span class="quiet">No cloud. No account.</span></h2>
-        </div>
-        <div class="aside">
-          <a class="more" href="/privacy/">How Mash handles your history ›</a>
-        </div>
+    <div class="wrapper split plain" data-reveal>
+      <div class="head">
+        <span class="kicker">Privacy</span>
+        <h2 id="welcome-privacy-title">Self-hosted, end to end. <span class="quiet">No cloud. No account.</span></h2>
       </div>
-      <ul class="cards">
-        <li>
-          <span class="ico"><LineIcon name="laptop" /></span>
-          <h3>Runs on your machine</h3>
-          <p>Indexing and search work offline once the local search service is running.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="server" /></span>
-          <h3>Your own server</h3>
-          <p>For <a href="/search-across-machines/">search across machines</a>, share through a Mash server you run.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="power" /></span>
-          <h3>Off until you turn it on</h3>
-          <p>Sharing, remote workers and Mashy are each a choice you make.</p>
-        </li>
-        <li>
-          <span class="ico"><LineIcon name="key-round" /></span>
-          <h3>Credentials masked</h3>
-          <p>Mash masks common keys and tokens in results and outgoing shared history by default. Backups can still contain sensitive text.</p>
-        </li>
-      </ul>
+      <div class="aside">
+        <p class="blurb">
+          Indexing and search run on your machine, and work offline once the local search service
+          is running. Sharing, remote workers and Mashy stay off until you turn each one on,
+          and <a href="/search-across-machines/">search across machines</a> goes through a Mash
+          server you run. Mash masks common keys and tokens in results and outgoing shared history
+          by default, though backups can still contain sensitive text.
+        </p>
+        <a class="more" href="/privacy/">How Mash handles your history ›</a>
+      </div>
     </div>
   </section>
 

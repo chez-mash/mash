@@ -125,7 +125,11 @@ The homepage is the hero (`site/src/components/Hero.astro`), the agents' marks
   heading and never as a list of points; a key it names is a `kbd`. The windows are live HTML styled by
   `site/src/styles/welcome-panels.css`, each exposed as one image named for
   what it shows. On wide screens the copy sits beside the window and the side
-  alternates; on narrow screens the copy comes first. Bands take the theme's
+  alternates; on narrow screens the copy comes first. A band with no window
+  (privacy) is words alone: its heading takes the windows' column and its
+  paragraph and link the words' column, and on narrow screens they read
+  heading, paragraph, link. Only the performance band shows cards, for its
+  four figures. Bands take the theme's
   surfaces (beige, cream, butter, and lilac only for Mashy).
 - **Motion** is ten small scenes built around the product windows
   (`site/src/motion.ts`, with GSAP and ScrollTrigger), drawn first as the

@@ -52,6 +52,19 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Say it once, then ask the plugin to save the decision with your message as evidence. It can come back in a later session.",
   );
   await expect(page.locator(".mash-welcome .words :is(ul, ol)")).toHaveCount(0);
+  // So does the privacy band: one paragraph with the caveat about backups, then the way onward.
+  const privacy = page.locator("#welcome-privacy");
+  await expect(privacy.locator("h2")).toHaveText("Self-hosted, end to end. No cloud. No account.");
+  await expect(privacy.locator(".blurb")).toHaveText(
+    "Indexing and search run on your machine, and work offline once the local search service is running. Sharing, remote workers and Mashy stay off until you turn each one on, and search across machines goes through a Mash server you run. Mash masks common keys and tokens in results and outgoing shared history by default, though backups can still contain sensitive text.",
+  );
+  await expect(privacy.getByRole("link", { name: "search across machines" })).toHaveAttribute(
+    "href",
+    "/search-across-machines/",
+  );
+  await expect(privacy.locator(".blurb + a")).toHaveText("How Mash handles your history ›");
+  await expect(privacy.locator(".blurb + a")).toHaveAttribute("href", "/privacy/");
+  await expect(privacy.locator(":is(ul, ol, h3, svg)")).toHaveCount(0);
   // The windows are drawn in HTML, each one image named for what it shows.
   const illustrations = page.locator(".mash-welcome [role=img]");
   // Five of them are the showcase's surfaces, of which one shows at a time.
