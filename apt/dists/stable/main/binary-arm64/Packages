@@ -163,6 +163,30 @@ Description: Search your coding agents' past conversations
  machines. Run "mash qdrant install", then "mash init", after installing.
  Run "mash dash" and open the address it prints to use the dashboard.
 
+Package: mash-cli
+Architecture: arm64
+Version: 0.3.1
+Priority: optional
+Section: utils
+Maintainer: MashHQ <mash-release@users.noreply.github.com>
+Depends: libc6 (>= 2.34), libgcc-s1, libstdc++6 (>= 11)
+Conflicts: mash
+Replaces: mash
+Filename: pool/main/m/mash-cli/mash-cli_0.3.1_arm64.deb
+Size: 35804828
+MD5sum: 7ecb2fa8971b8d54f3dfff40890d2b97
+SHA1: 124b55970556c904b8888e736aed93c1995a0331
+SHA256: 5981eb20794436d8d43a1b580e5fb6dbb6d23c8a3c0e73d9f753ae9f5f7a5b85
+SHA512: 22540ce3e5a1cfce31f77957a8db4203d673d4a10760eec3f92bfbe020bfb9a1850f171ae33a96678afdac4c8a65b891afff8762726782a29decb581a551327a
+Homepage: https://github.com/mashhq/mash
+Description: Search your coding agents' past conversations
+ Mash indexes Claude Code, Codex, Copilot, Cursor, OpenCode and Antigravity
+ chat histories locally. Search them from the browser dashboard, the
+ terminal, or a connected agent.
+ Also installs mash-server, the optional service for sharing an index between
+ machines. Run "mash qdrant install", then "mash init", after installing.
+ Run "mash dash" and open the address it prints to use the dashboard.
+
 Package: mash-desktop
 Architecture: arm64
 Version: 0.3.0
@@ -176,6 +200,22 @@ MD5sum: d0926ef13bad80538823aa08d2938668
 SHA1: 7fe7193048cc5991b12b044376b07d9916e69b74
 SHA256: 84d2323203eba6986f169707924f27bf73ea929ca7daa20f36c49338360ac54d
 SHA512: e3b0e5ad4c4ac3987bd81df8f4c17a4d51f3a8ec06a8a0d382917f1f88d213eff040c3abca2e96fc91ec2ea9641f56e03441e2f71197b3d7256e35761cfee583
+Description: Search the history of your coding agents
+ Mash finds past chats, decisions and records across your coding agents and machines. The app runs the Mash dashboard in its own window.
+
+Package: mash-desktop
+Architecture: arm64
+Version: 0.3.1
+Priority: optional
+Maintainer: getmash
+Installed-Size: 11508
+Depends: mash-cli (= 0.3.1), libayatana-appindicator3-1, libwebkit2gtk-4.1-0, libgtk-3-0
+Filename: pool/main/m/mash-desktop/mash-desktop_0.3.1_arm64.deb
+Size: 4126660
+MD5sum: 170d62b7a7a56151cf7df107bb1388b7
+SHA1: 18f5f5c6c2dff03ab2efcf32b9530915578fe234
+SHA256: 5b79ccdd23d3c85f959e9d1c724a192c22e65d254250e856ccda4e9b66bab861
+SHA512: 46eb1c4beb008e4c26b0d9c3b86673885f8839ed8121f6466a77075651accee58a6124ac26a525c481148f37e5efe1f72cb4395d4b6ca3f45589b139df166150
 Description: Search the history of your coding agents
  Mash finds past chats, decisions and records across your coding agents and machines. The app runs the Mash dashboard in its own window.
 
