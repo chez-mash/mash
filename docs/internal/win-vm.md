@@ -125,3 +125,20 @@ Unless `--keep` is given, the clone is stopped and its disk deleted.
   renders in software; animations are slower than on real hardware.
 - Windows Update is off in the image, so it stays at the ISO's build.
   Rebuild the image from a newer ISO to test a newer Windows.
+
+## Without a VM: GitHub's Windows runner
+
+`.github/workflows/windows-shots.yml` photographs the app on a GitHub-hosted
+Windows runner (Windows Server 2025, which shares Windows 11's shell), using
+the same steps as the VM (`tools/win-vm/runner-shots.ps1`). The runner's job
+runs in a logged-on desktop session, so no scheduled task is needed. It takes
+the x64 installer from a Desktop workflow run:
+
+```bash
+gh workflow run windows-shots.yml -f run=<Desktop run id>
+gh run download <that run> -n windows-shots
+```
+
+It shows Windows' title bar, menus and fonts, not ARM or a desktop machine's
+display; the VM remains the closer match once its ISO is in place.
+
