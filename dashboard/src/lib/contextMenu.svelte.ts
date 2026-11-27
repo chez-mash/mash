@@ -3,9 +3,13 @@
 // pointer (desktop/src-tauri/src/context.rs) and says which was chosen by its
 // place in the list, and in a browser the dashboard draws the same lines
 // itself (components/ContextMenu.svelte). Either way the page keeps what a
-// line does, so one list serves both, as VS Code's menus do.
+// line does, so one list serves both, as VS Code's menus do. On Linux the
+// page draws the menu too: GTK opens no menu at the pointer under Wayland,
+// Ubuntu's usual session, and says nothing about it, so the app's menu would
+// silently not appear there.
 
 import { inDesktopApp } from "./shareLink";
+import { shellOf } from "./shell";
 
 export interface MenuLine {
   readonly title: string;
@@ -20,9 +24,9 @@ const CHOSEN_EVENT = "mash:context";
 
 type Invoke = (command: string, args: object) => Promise<unknown>;
 
-/** The app's commands, inside the desktop app and nowhere else. */
+/** The app's commands, inside the desktop app on macOS and Windows and nowhere else. */
 function appCommands(scope: object): Invoke | undefined {
-  if (!inDesktopApp(scope)) return undefined;
+  if (!inDesktopApp(scope) || shellOf(scope) === "linux") return undefined;
   const invoke = (scope as { __TAURI_INTERNALS__?: { invoke?: Invoke } }).__TAURI_INTERNALS__
     ?.invoke;
   return typeof invoke === "function" ? invoke : undefined;

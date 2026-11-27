@@ -44,6 +44,18 @@ describe("context menu", () => {
     expect(run).toHaveBeenCalledOnce();
   });
 
+  it("draws the menu itself in the Linux app, where GTK cannot open one at the pointer", () => {
+    const invoke = vi.fn(async () => undefined);
+    contextMenu.show(event(), [{ title: "Open", run: () => {} }], {
+      __MASH_DESKTOP__: true,
+      __MASH_SHELL__: "linux",
+      __TAURI_INTERNALS__: { invoke },
+    });
+    expect(invoke).not.toHaveBeenCalled();
+    expect(contextMenu.open).toMatchObject({ x: 40, y: 60 });
+    contextMenu.close();
+  });
+
   it("draws the menu itself in a browser, at the pointer", () => {
     contextMenu.show(event(), [{ title: "Open", run: () => {} }], {});
     expect(contextMenu.open).toMatchObject({ x: 40, y: 60 });
