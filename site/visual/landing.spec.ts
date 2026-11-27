@@ -28,7 +28,6 @@ const bands = [
   ["quick-search", "#welcome-shortcuts"],
   ["search", "#welcome-search"],
   ["mashy", "#welcome-mashy"],
-  ["memory", "#welcome-memory"],
   ["speed", "#welcome-speed"],
   ["privacy", "#welcome-privacy"],
   ["rust", "#welcome-rust"],

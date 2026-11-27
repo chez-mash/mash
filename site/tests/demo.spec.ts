@@ -81,9 +81,7 @@ test("dashboard settings lead to instructions for changing the history range", a
   await expect(page).toHaveURL("/dashboard-settings/#change-the-history-range");
 });
 
-test("the welcome examples open the checkout source and the cross-agent handoff", async ({
-  page,
-}) => {
+test("the welcome example opens the checkout source in the demo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/#welcome-search");
   await page.getByRole("link", { name: /read the checkout chat in the demo/i }).click();
@@ -94,13 +92,6 @@ test("the welcome examples open the checkout source and the cross-agent handoff"
   await expect(
     page.locator("article header").getByText("Claude Code", { exact: true }),
   ).toBeVisible();
-
-  await page.goto("/#welcome-memory");
-  await page.getByRole("link", { name: /follow the sign-in decision in the demo/i }).click();
-  await page.getByRole("link", { name: /open the message/i }).click();
-  await expect(page.locator("#message-sign-in-tokens-2")).toHaveClass(/\bhit\b/);
-  await page.getByRole("link", { name: "See the Codex follow-up", exact: true }).click();
-  await expect(page.locator("#message-mobile-keychain-follow-up-1")).toHaveClass(/\bhit\b/);
 });
 
 test("the README dashboard picture opens the sign-in decision it shows", async ({ page }) => {

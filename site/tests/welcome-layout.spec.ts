@@ -3,7 +3,6 @@ import { expect, test } from "@playwright/test";
 for (const [name, side] of [
   ["search", "left"],
   ["mashy", "right"],
-  ["memory", "left"],
   ["search", "below"],
 ] as const) {
   const stacked = side === "below";

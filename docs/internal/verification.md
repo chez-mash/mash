@@ -284,8 +284,8 @@ A picture is only worth comparing if nothing in it changes by itself:
   search panel is taken at the start of its hold and near its end. A band is
   pictured only once none of its parts still holds the opacity or the place a
   scene gave it, and is played again if a scene missed its scroll. A band
-  taller than the screen is taken a screen at a time (`landing-memory.png`,
-  `landing-memory-2.png`): a picture of a whole tall element makes Playwright
+  taller than the screen is taken a screen at a time (`landing-search.png`,
+  `landing-search-2.png`): a picture of a whole tall element makes Playwright
   resize and scroll the page, and the scenes answer both by starting over.
 - What is not Mash's own is left out: scrollbars, the demo's banner, and the
   build and contract hashes on the tools page (masked, drawn as a pink box).
