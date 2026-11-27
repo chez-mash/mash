@@ -58,7 +58,7 @@ objc2-app-kit = { version = "0.3", default-features = false, features = ["std", 
 # reading and writing that PATH (the `mash` command, src/cli/windows.rs);
 # Tauri already depends on both.
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Console", "Win32_UI_WindowsAndMessaging"] }
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_LibraryLoader", "Win32_UI_WindowsAndMessaging"] }
 windows-registry = "0.6"
 
 [profile.release]

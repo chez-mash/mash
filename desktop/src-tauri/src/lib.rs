@@ -104,6 +104,7 @@ pub fn run() {
         .on_menu_event(|app, event| menubar::choose(app, event.id().as_ref()))
         .setup(move |app| {
             update::prepare(app.handle());
+            frame::dark_menus();
             open_window(app.handle())?;
             menubar::install(app.handle())?;
             listen_for_links(app.handle());
