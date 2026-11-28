@@ -49,6 +49,9 @@ fn mash_description() -> &'static str {
 /// ```
 #[must_use]
 pub fn main_entry(revision: &'static str) -> i32 {
+    if let Some(code) = mash_app::platform::start_qdrant(std::env::args_os()) {
+        return code;
+    }
     mash_app::set_build_revision(revision);
     observability::initialize();
     if let Some(code) = semantic::remote_reranker::managed::entry(std::env::args_os()) {

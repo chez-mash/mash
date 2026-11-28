@@ -815,7 +815,7 @@ fn the_systemd_unit_runs_the_pinned_binary_as_a_user_service() {
         layout.definition(),
         home.join(".config/systemd/user/mash-qdrant.service")
     );
-    let unit = supervisor::definition(&layout, &layout.binary(VERSION)).unwrap();
+    let unit = supervisor::definition(&layout, &layout.binary(VERSION), None).unwrap();
     let root = "/home/ada/.mash/qdrant";
     for line in [
         "[Service]".to_owned(),
@@ -850,7 +850,7 @@ fn the_systemd_unit_runs_the_pinned_binary_as_a_user_service() {
         account(),
     );
     assert_eq!(odd.service, "mash-qdrant-e2e.service");
-    let unit = supervisor::definition(&odd, &odd.binary(VERSION)).unwrap();
+    let unit = supervisor::definition(&odd, &odd.binary(VERSION), None).unwrap();
     assert!(
         unit.contains("ExecStart=\"/home/a%%b/qdrant/bin/1.20.0/qdrant\""),
         "{unit}"
@@ -863,7 +863,7 @@ fn the_systemd_unit_runs_the_pinned_binary_as_a_user_service() {
         None,
         account(),
     );
-    assert!(supervisor::definition(&quoted, &quoted.binary(VERSION)).is_err());
+    assert!(supervisor::definition(&quoted, &quoted.binary(VERSION), None).is_err());
 }
 
 // Rendered only on Unix hosts, from Unix paths.
@@ -876,7 +876,7 @@ fn the_launch_agent_starts_at_login_and_keeps_qdrant_running() {
         layout.definition(),
         home.join("Library/LaunchAgents/dev.mash.qdrant.plist")
     );
-    let plist = supervisor::definition(&layout, &layout.binary(VERSION)).unwrap();
+    let plist = supervisor::definition(&layout, &layout.binary(VERSION), None).unwrap();
     let root = "/Users/ada &amp; co/.mash/qdrant";
     for part in [
         "<key>Label</key><string>dev.mash.qdrant</string>".to_owned(),
@@ -908,6 +908,38 @@ fn the_launch_agent_starts_at_login_and_keeps_qdrant_running() {
     );
 }
 
+// macOS lists a launch agent under whoever signed the program it starts.
+#[cfg(unix)]
+#[test]
+fn the_launch_agent_starts_qdrant_through_the_signed_mash() {
+    let home = Path::new("/Users/ada");
+    let layout = layout(home, Platform::MacosAarch64);
+    let root = "/Users/ada/.mash/qdrant";
+    let qdrant = format!(
+        "<string>{root}/bin/1.20.0/qdrant</string><string>--config-path</string><string>{root}/config.yaml</string></array>"
+    );
+    let standalone = Path::new("/opt/homebrew/bin/mash");
+    let plist = supervisor::definition(&layout, &layout.binary(VERSION), Some(standalone)).unwrap();
+    let start = format!(
+        "<key>ProgramArguments</key><array><string>/opt/homebrew/bin/mash</string><string>__start-qdrant</string>{qdrant}"
+    );
+    assert!(plist.contains(&start), "{plist}");
+    assert!(!plist.contains("AssociatedBundleIdentifiers"), "{plist}");
+
+    // The app's own mash also files the service under the app.
+    let app = Path::new("/Applications/Mash.app/Contents/MacOS/mash");
+    let plist = supervisor::definition(&layout, &layout.binary(VERSION), Some(app)).unwrap();
+    assert!(
+        plist.contains(
+            "<key>AssociatedBundleIdentifiers</key><array><string>io.getmash.desktop</string></array>"
+        ),
+        "{plist}"
+    );
+    assert!(plist.contains(
+        "<string>/Applications/Mash.app/Contents/MacOS/mash</string><string>__start-qdrant</string>"
+    ));
+}
+
 #[test]
 fn the_windows_logon_task_needs_no_administrator_and_opens_no_window() {
     let home = Path::new("C:\\Users\\ada");
@@ -924,7 +956,7 @@ fn the_windows_logon_task_needs_no_administrator_and_opens_no_window() {
         layout.storage(),
         Path::new("D:\\mash-qdrant").join("storage")
     );
-    let task = supervisor::definition(&layout, &layout.binary(VERSION)).unwrap();
+    let task = supervisor::definition(&layout, &layout.binary(VERSION), None).unwrap();
     for part in [
         "<LogonTrigger><Enabled>true</Enabled><UserId>WORKSTATION\\ada</UserId></LogonTrigger>",
         "<LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel>",
@@ -966,7 +998,7 @@ fn the_windows_logon_task_needs_no_administrator_and_opens_no_window() {
     );
     let mut nobody = layout.clone();
     nobody.account.user.clear();
-    assert!(supervisor::definition(&nobody, &nobody.binary(VERSION)).is_err());
+    assert!(supervisor::definition(&nobody, &nobody.binary(VERSION), None).is_err());
 }
 
 #[test]

@@ -384,7 +384,7 @@ pub(crate) async fn install(
     };
     let downloaded_bytes = staged.as_ref().map_or(0, |staged| staged.bytes);
     let qdrant_config = supervisor::qdrant_config(layout, ports);
-    let definition = supervisor::definition(layout, &binary)?;
+    let definition = supervisor::definition(layout, &binary, supervisor::launcher().as_deref())?;
     let definition_changed = read_text(&layout.definition())?.as_ref() != Some(&definition);
     let config_changed = read_text(&layout.qdrant_config())?.as_ref() != Some(&qdrant_config);
     let changed = staged.is_some() || definition_changed || config_changed;
