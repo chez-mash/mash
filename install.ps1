@@ -93,6 +93,13 @@ function Install-Mash {
             }
             Write-Host "Installed $destination"
         }
+        # The Visual C++ runtime the programs need, which Windows does not
+        # include: the archive carries it, and Windows looks beside a program
+        # first. A copy a running program holds open is already in place.
+        foreach ($library in Get-ChildItem -LiteralPath (Join-Path $scratch 'unpacked') -Filter '*.dll') {
+            try { Copy-Item -LiteralPath $library.FullName -Destination (Join-Path $Directory $library.Name) -Force }
+            catch { if (-not (Test-Path -LiteralPath (Join-Path $Directory $library.Name))) { throw } }
+        }
     } finally {
         [Net.ServicePointManager]::SecurityProtocol = $securityProtocol
         if ($incoming -and (Test-Path -LiteralPath $incoming)) { Remove-Item -LiteralPath $incoming -Force }

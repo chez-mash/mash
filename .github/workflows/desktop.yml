@@ -150,6 +150,12 @@ jobs:
           [ "${{ runner.os }}" = Windows ] && suffix=.exe
           mkdir -p desktop/src-tauri/binaries
           cp "target/release/mash$suffix" "desktop/src-tauri/binaries/mash-${{ matrix.target }}$suffix"
+          # The engine needs the Visual C++ runtime, which Windows does not
+          # include; the installer puts it beside the engine
+          # (tauri.windows.conf.json).
+          if [ "${{ runner.os }}" = Windows ]; then
+            python .github/scripts/windows-runtime.py --into desktop/src-tauri/binaries target/release/mash.exe
+          fi
       - name: Test the app
         working-directory: desktop/src-tauri
         run: |
