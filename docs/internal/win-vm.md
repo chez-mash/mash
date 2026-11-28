@@ -100,6 +100,14 @@ Setup then runs unattended:
   "finish setting up" screens, and stops the screen from sleeping or locking.
   Its log is `C:\mash-vm\setup.log` in the guest.
 
+Before installing SSH, setup checks HTTPS with bounded `curl.exe` requests
+and stops if they fail. This avoids an observed stall in `Test-NetConnection`
+despite working HTTPS. Inspect `setup.log` if the desktop appears but SSH
+does not become available. Setup also enables the SSH firewall rule for all
+guest network profiles: Windows can install a Private-only rule while QEMU's
+network is classified as Public. QEMU exposes the forwarded port only on the
+Mac's loopback address.
+
 The build restarts the guest once, saves a screenshot of the desktop in
 `build/desktop.png`, shuts it down and keeps the disk as the golden image.
 The disk has no Mash on it: each run installs the build under test.

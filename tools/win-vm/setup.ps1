@@ -25,11 +25,15 @@ if ($virtio) {
   Write-Output 'virtio-win.iso not found; no network or display driver'
 }
 
-# Wait for the network (QEMU's user network answers DHCP at once).
-for ($i = 0; $i -lt 60; $i++) {
-  if (Test-NetConnection -ComputerName www.microsoft.com -Port 443 -InformationLevel Quiet -WarningAction SilentlyContinue) { break }
+# Check an actual HTTPS request with a deadline. Test-NetConnection stalled
+# in this guest even while curl reached the same host successfully.
+$networkReady = $false
+for ($i = 0; $i -lt 12; $i++) {
+  curl.exe --silent --fail --head --connect-timeout 5 --max-time 10 https://www.microsoft.com *> $null
+  if ($LASTEXITCODE -eq 0) { $networkReady = $true; break }
   Start-Sleep -Seconds 5
 }
+if (-not $networkReady) { throw 'HTTPS is unavailable; see C:\mash-vm\setup.log before retrying setup' }
 
 # OpenSSH Server. Windows 11 ships it as an optional capability that Windows
 # Update provides, so this has to happen before updates are turned off.
@@ -39,7 +43,11 @@ if (-not (Get-Service sshd -ErrorAction SilentlyContinue)) {
 Set-Service sshd -StartupType Automatic
 Start-Service sshd
 if (-not (Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -ErrorAction SilentlyContinue)) {
-  New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
+  New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Profile Any -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
+} else {
+  # The capability's existing rule can be Private-only, while QEMU's network
+  # is Public. Host forwarding is bound to loopback by mac.sh.
+  Set-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -Enabled True -Profile Any -Action Allow
 }
 # mash is an administrator, and OpenSSH reads administrators' keys from one
 # file that only SYSTEM and Administrators may open; any other ACL makes sshd
