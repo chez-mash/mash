@@ -29,6 +29,18 @@ rustflags = ["-Zunstable-options", "--jobs-frontend=4"]
 [profile.dev.build-override]
 rustflags = ["-Zunstable-options", "--jobs-frontend=4"]
 
+# Windows programs carry the C and C++ runtime inside them. Built the usual
+# way, mash.exe needs the Visual C++ redistributable (VCRUNTIME140.dll,
+# MSVCP140.dll), which Windows does not include: on a PC without it the
+# program exits before it starts (0xC0000135), and the desktop app says
+# "Mash isn't running". A build that sets RUSTFLAGS drops these, as Cargo
+# does for any target's flags.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
 [net]
 git-fetch-with-cli = true
 

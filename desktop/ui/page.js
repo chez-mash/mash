@@ -62,3 +62,13 @@ copy.addEventListener("click", async () => {
     copy.textContent = "Copy";
   }, 1500);
 });
+
+// A right-click here opens nothing, as in a native app and on the dashboard
+// (dashboard/src/lib/contextMenu.svelte.ts): the webview's own page menu
+// (Back, Refresh, Print) has nothing to offer. Selected text keeps the
+// system's menu, for copying the engine's output.
+addEventListener("contextmenu", (event) => {
+  const selection = getSelection();
+  if (selection && !selection.isCollapsed && selection.toString().trim() !== "") return;
+  event.preventDefault();
+});
