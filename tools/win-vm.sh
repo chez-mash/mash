@@ -13,7 +13,7 @@
 #                Mac's key, dark mode, quiet, Windows Update off
 #   desktop      clone the newest golden disk copy-on-write, install the Mash
 #                NSIS installer (--app: the .exe, or a folder holding it such
-#                as the downloaded mash-desktop-aarch64-pc-windows-msvc CI
+#                as the downloaded mash-desktop-x86_64-pc-windows-msvc CI
 #                artifact) silently, start Mash on the desktop, take
 #                screenshots, then delete the clone (--keep leaves it running)
 #   list         list the golden disks and clones
