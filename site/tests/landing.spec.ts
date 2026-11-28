@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { raycastStore } from "../src/brand.ts";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -125,9 +126,19 @@ test("the hero leads with the app download, then the other systems and ways in",
   expect(
     Number(await docs.evaluate((link) => getComputedStyle(link).fontWeight)),
   ).toBeGreaterThanOrEqual(600);
-  // The row of quieter ways in has a bar only between its links.
-  await expect(note.locator(".ways a")).toHaveText(["Install with curl", "Raycast extension"]);
-  await expect(note.locator(".ways > :last-child")).toHaveText("Raycast extension");
+  // The row of quieter ways in has a bar only between its links. Until the
+  // Raycast Store lists the extension, a link there leads to its source.
+  const ways = raycastStore ? ["Install with curl"] : ["Install with curl", "Raycast extension"];
+  await expect(note.locator(".ways a")).toHaveText(ways);
+  await expect(note.locator(".ways > :last-child")).toHaveText(ways.at(-1) ?? "");
+  await expect(note.locator(".ways a").first()).toHaveAttribute(
+    "href",
+    "/quick-start/#install-it-yourself",
+  );
+  // The terminal install is in the docs, not on this page.
+  await expect(page.locator("#install")).toHaveCount(0);
+  // This browser is not a Mac's, so Raycast's button stays out of sight.
+  await expect(page.locator(".hero [data-raycast]:visible")).toHaveCount(0);
   // The header offers the Mac app beside the docs and the source.
   const header = page.locator("header.header");
   await expect(
@@ -159,7 +170,7 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   // The ways in wrap on a phone, so no bar is left hanging at a line's end.
   const ways = page.locator(".hero .ways");
   await expect(page.locator(".hero .tagline a.docs")).toBeVisible();
-  await expect(ways.locator("span")).toHaveCount(1);
+  await expect(ways.locator("span")).toHaveCount(raycastStore ? 0 : 1);
   for (const bar of await ways.locator("span").all()) await expect(bar).toBeHidden();
   await expect(
     page.getByRole("navigation", { name: "Footer" }).getByRole("link", { name: "Docs" }),
@@ -203,35 +214,31 @@ for (const [name, viewport, columns] of [
   });
 }
 
-test("the install tabs show each system's command, and copy it", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.setViewportSize({ width: 1280, height: 800 });
+test("a Mac is offered the Raycast extension once the Store lists it", async ({ browser }) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+    viewport: { width: 1280, height: 800 },
+  });
+  const page = await context.newPage();
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, "platform", { get: () => "MacIntel" }),
+  );
   await page.goto("/");
-  const install = page.locator("#install");
-  const tabs = install.getByRole("tab");
-  await expect(tabs).toHaveText(["Linux", "macOS", "Windows"]);
-  await install.getByRole("tab", { name: "Windows" }).click();
-  await expect(install.getByRole("tab", { name: "Windows" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
-  const panel = install.getByRole("tabpanel");
-  await expect(panel).toHaveCount(1);
-  await expect(panel).toContainText("install.ps1");
-  // The arrow keys move between the tabs.
-  await page.keyboard.press("ArrowLeft");
-  await expect(install.getByRole("tab", { name: "macOS" })).toBeFocused();
-  await expect(install.getByRole("tabpanel")).toContainText("install.sh | sh -s -- --dashboard");
-  await install.getByRole("tabpanel").getByRole("button").click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    "curl -fsSL https://raw.githubusercontent.com/mashhq/mash/main/install.sh | sh -s -- --dashboard",
-  );
-  // On a phone the headline and the download still lead. Back at the top:
-  // with the app icon over the headline, using the tabs scrolls the page.
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.evaluate(() => scrollTo(0, 0));
-  await expect(page.locator(".hero h1")).toBeInViewport();
-  await expect(page.locator(".hero .actions a").first()).toBeVisible();
+  const buttons = page.locator(".hero .actions a:visible");
+  if (raycastStore) {
+    await expect(buttons).toHaveText([
+      "Download for Mac",
+      "Get the Raycast extension",
+      "Try the demo",
+    ]);
+    await expect(buttons.nth(1)).toHaveAttribute("href", raycastStore);
+    await expect(buttons.nth(1).locator("svg")).toBeVisible();
+  } else {
+    await expect(buttons).toHaveText(["Download for Mac", "Try the demo"]);
+    await expect(page.locator(".hero .ways a").last()).toHaveText("Raycast extension");
+  }
+  await context.close();
 });
 
 test("a Homebrew visitor can review the package source and see what to do next", async ({
@@ -543,7 +550,7 @@ test("links into the page land on their target with the pinned panel above it", 
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  for (const id of ["install", "welcome-plugin", "welcome-mashy"]) {
+  for (const id of ["welcome-plugin", "welcome-mashy"]) {
     await page.goto(`/#${id}`);
     await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
     await expect(page.locator(`#${id}`)).toBeInViewport();
@@ -555,7 +562,8 @@ test("links into the page land on their target with the pinned panel above it", 
   await page.goto("/");
   await expect(page.locator(".mash-welcome")).toHaveClass(/\breveal\b/);
   await page.locator(".hero .ways").getByRole("link", { name: "Install with curl" }).click();
-  await expect(page.locator("#install")).toBeInViewport();
+  await expect(page).toHaveURL("/quick-start/#install-it-yourself");
+  await expect(page.locator("#install-it-yourself")).toBeInViewport();
 });
 
 test("the welcome page shows everything without scripting", async ({ browser }) => {
@@ -609,10 +617,6 @@ test("the welcome page shows everything without scripting", async ({ browser }) 
   await expect(
     welcome.locator(".measured").getByText("66 ms and 103k", { exact: true }),
   ).toBeVisible();
-  // Without scripting every system's install command shows.
-  await expect(page.locator("#install [role=tabpanel]")).toHaveCount(3);
-  for (const panel of await page.locator("#install [role=tabpanel]").all())
-    await expect(panel).toBeVisible();
   // Without scripting the download button cannot tell the system, so it opens the downloads.
   await page.locator(".hero .actions").getByRole("link", { name: "Download for Mac" }).click();
   await expect(page).toHaveURL(/\/downloads\/#desktop-app$/);
@@ -822,70 +826,4 @@ test("a swipe across Mashy's window goes on to the next example, and back", asyn
   // Scrolling the page down past it is not a swipe.
   await swipe(-50, 120);
   await expect(shown).toHaveText(["What caused the checkout outage last week?"]);
-});
-
-/** A box as the browser draws it inside its parent. */
-const drawn = (locator: Locator) =>
-  locator.evaluate((element) => {
-    const { left, top, width, height } = element.getBoundingClientRect();
-    const parent = element.parentElement?.getBoundingClientRect();
-    return [left - (parent?.left ?? 0), top - (parent?.top ?? 0), width, height];
-  });
-
-test("the install tabs' highlight slides to the tab chosen", async ({ page }) => {
-  // The landing page's motion plays for everyone, less motion preferred or not.
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const install = page.locator("#install");
-  const row = install.getByRole("tablist");
-  const highlight = install.locator("[data-tab-on]");
-  const chosen = install.locator('[role="tab"][aria-selected="true"]');
-  const running = () => highlight.evaluate((element) => element.getAnimations().length);
-  const close = async (box: number[], to: number[]) => {
-    for (const [index, value] of box.entries()) expect(value).toBeCloseTo(to[index] ?? 0, 1);
-  };
-  const settle = () =>
-    highlight.evaluate((element) => {
-      for (const animation of element.getAnimations()) animation.finish();
-    });
-
-  // It starts in place on the visitor's system, without moving there.
-  await expect(row).toHaveAttribute("data-sliding", "");
-  expect(await running()).toBe(0);
-  const from = await drawn(chosen);
-  await close(await drawn(highlight), from);
-  const rowBox = await row.boundingBox();
-  const first = (await chosen.textContent())?.trim();
-  const other = first === "Windows" ? "macOS" : "Windows";
-
-  // Half-way through the slide it is between the two tabs. The slide is
-  // short, so the test stretches it to stop it half-way without a race.
-  expect(await highlight.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
-    "0.2s, 0.2s",
-  );
-  await page.addStyleTag({ content: "[data-tab-on] { transition-duration: 20s !important; }" });
-  await install.getByRole("tab", { name: other }).click();
-  await expect(chosen).toHaveText(other);
-  await expect.poll(running).toBeGreaterThan(0);
-  await highlight.evaluate((element) => {
-    for (const animation of element.getAnimations()) {
-      animation.pause();
-      animation.currentTime = 10_000;
-    }
-  });
-  const to = await drawn(chosen);
-  const [left] = await drawn(highlight);
-  expect(left).toBeGreaterThan(Math.min(from[0] ?? 0, to[0] ?? 0));
-  expect(left).toBeLessThan(Math.max(from[0] ?? 0, to[0] ?? 0));
-  await settle();
-  await close(await drawn(highlight), to);
-  // The row keeps its height.
-  expect((await row.boundingBox())?.height).toBe(rowBox?.height);
-
-  // The arrow keys choose the next tab, and the highlight follows.
-  await page.keyboard.press("ArrowLeft");
-  await expect(chosen).not.toHaveText(other);
-  await expect(chosen).toBeFocused();
-  await settle();
-  await close(await drawn(highlight), await drawn(chosen));
 });

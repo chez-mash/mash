@@ -116,12 +116,6 @@ for (const [name, viewport] of [
       )
       .toBeGreaterThanOrEqual(island.bottom);
     await expect(page.locator("#welcome-mashy-title")).toBeInViewport();
-    // The install commands under the hero, reached from the hero's own link.
-    await page.goto("/");
-    await page.locator('.hero a[href="#install"]').click();
-    await expect
-      .poll(() => page.locator("#install").evaluate((node) => node.getBoundingClientRect().top))
-      .toBeGreaterThanOrEqual(island.bottom);
   });
 }
 
