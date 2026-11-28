@@ -3,10 +3,10 @@
 // the app icon and the headline, the page's own paragraph under it, the desktop
 // app for the visitor's system with the page's own actions (the demo) as
 // quieter buttons beside it, and where else Mash runs. On a Mac the Raycast
-// extension has a button of its own once the Store lists it. The terminal
+// extension has a button of its own. The terminal
 // install and the other ways in, including asking an agent, are in the docs.
 import raycast from "../art/raycast.svg?raw";
-import { headline, raycastRed, raycastStore } from "../brand.ts";
+import { headline, raycastLink, raycastRed } from "../brand.ts";
 import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
@@ -86,9 +86,7 @@ const raycastMark = raycast
             below; without it, or on a phone, the link opens the downloads. */}
         <a class="download" href="/downloads/#desktop-app" data-download data-system="macos"><OsMark system="macos" /><OsMark system="windows" /><OsMark system="linux" /><span data-download-label>{t("mash.download.mac")}</span></a>
         {/* Raycast runs on a Mac only, so the script below shows this there. */}
-        {raycastStore && (
-          <a class="try raycast" href={raycastStore} data-raycast hidden><Fragment set:html={raycastMark} />Get the Raycast extension</a>
-        )}
+        <a class="try raycast" href={raycastLink} data-raycast hidden><Fragment set:html={raycastMark} />Raycast extension</a>
         {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
           <a class="try" href={link} {...attrs}><LineIcon name="play" size="1rem" />{text}</a>
         ))}
@@ -100,12 +98,6 @@ const raycastMark = raycast
         </p>
         <p class="ways">
           <a href="/quick-start/#install-it-yourself">Install with curl</a>
-          {!raycastStore && (
-            <Fragment>
-              <span aria-hidden="true">|</span>
-              <a href="https://github.com/mashhq/mash/tree/main/raycast">Raycast extension</a>
-            </Fragment>
-          )}
         </p>
       </div>
     </div>
@@ -389,12 +381,6 @@ const raycastMark = raycast
   .download-note [data-also-system] {
     white-space: nowrap;
   }
-  .ways {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0 0.5rem;
-  }
 
   @media (width < 40rem) {
     .mash-hero {
@@ -411,14 +397,6 @@ const raycastMark = raycast
     .actions {
       flex-direction: column;
       align-self: stretch;
-    }
-    /* The ways in wrap here, so a wider gap parts them instead of bars,
-       which would be left hanging at the end of a line. */
-    .ways {
-      gap: 0 1rem;
-    }
-    .ways span {
-      display: none;
     }
   }
 </style>

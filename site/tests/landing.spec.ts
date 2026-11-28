@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { raycastStore } from "../src/brand.ts";
+import { raycastLink } from "../src/brand.ts";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -25,7 +25,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "content",
     `Mash: ${tagline}`,
   );
-  await expect(page.locator(".hero .actions a")).toHaveText([
+  await expect(page.locator(".hero .actions a:visible")).toHaveText([
     /^\s*Download for \w+$/,
     "Try the demo",
   ]);
@@ -97,7 +97,7 @@ test("the hero leads with the app download, then the other systems and ways in",
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
   // A Linux x86-64 browser here, so the download is the Linux app.
-  const download = page.locator(".hero .actions a").first();
+  const download = page.locator(".hero .actions a:visible").first();
   await expect(download).toHaveText(/Download for (Linux|Mac|Windows)/);
   await expect(download).toHaveAttribute(
     "href",
@@ -111,7 +111,7 @@ test("the hero leads with the app download, then the other systems and ways in",
     useInnerText: true,
   });
   // The demo is a button of its own beside the download, the same height.
-  const demo = page.locator(".hero .actions a").nth(1);
+  const demo = page.locator(".hero .actions a:visible").nth(1);
   await expect(demo).toHaveText("Try the demo");
   await expect(demo).toHaveAttribute("href", "/demo/");
   await expect(demo.locator("svg")).toBeVisible();
@@ -126,11 +126,8 @@ test("the hero leads with the app download, then the other systems and ways in",
   expect(
     Number(await docs.evaluate((link) => getComputedStyle(link).fontWeight)),
   ).toBeGreaterThanOrEqual(600);
-  // The row of quieter ways in has a bar only between its links. Until the
-  // Raycast Store lists the extension, a link there leads to its source.
-  const ways = raycastStore ? ["Install with curl"] : ["Install with curl", "Raycast extension"];
-  await expect(note.locator(".ways a")).toHaveText(ways);
-  await expect(note.locator(".ways > :last-child")).toHaveText(ways.at(-1) ?? "");
+  // The terminal install is the one quieter way in.
+  await expect(note.locator(".ways a")).toHaveText(["Install with curl"]);
   await expect(note.locator(".ways a").first()).toHaveAttribute(
     "href",
     "/quick-start/#install-it-yourself",
@@ -159,7 +156,7 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   await expect(header.locator(".mash-menu, .sl-menu-button")).toHaveCount(0);
   await expect(header.getByRole("link")).toHaveCount(1);
   await expect(header.getByRole("button")).toHaveCount(0);
-  const buttons = page.locator(".hero .actions a");
+  const buttons = page.locator(".hero .actions a:visible");
   await expect(buttons).toHaveText([/Download for (Linux|Mac|Windows)|Download/, "Try the demo"]);
   const [first, second] = [await buttons.nth(0).boundingBox(), await buttons.nth(1).boundingBox()];
   expect(second?.x).toBe(first?.x);
@@ -167,11 +164,7 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   expect(second?.height).toBe(first?.height);
   expect(second?.y).toBeGreaterThan((first?.y ?? 0) + (first?.height ?? 0));
   expect(first?.width).toBeGreaterThan(300);
-  // The ways in wrap on a phone, so no bar is left hanging at a line's end.
-  const ways = page.locator(".hero .ways");
   await expect(page.locator(".hero .tagline a.docs")).toBeVisible();
-  await expect(ways.locator("span")).toHaveCount(raycastStore ? 0 : 1);
-  for (const bar of await ways.locator("span").all()) await expect(bar).toBeHidden();
   await expect(
     page.getByRole("navigation", { name: "Footer" }).getByRole("link", { name: "Docs" }),
   ).toHaveAttribute("href", "/guides/");
@@ -214,7 +207,7 @@ for (const [name, viewport, columns] of [
   });
 }
 
-test("a Mac is offered the Raycast extension once the Store lists it", async ({ browser }) => {
+test("a Mac is offered the Raycast extension", async ({ browser }) => {
   const context = await browser.newContext({
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
@@ -226,18 +219,13 @@ test("a Mac is offered the Raycast extension once the Store lists it", async ({ 
   );
   await page.goto("/");
   const buttons = page.locator(".hero .actions a:visible");
-  if (raycastStore) {
-    await expect(buttons).toHaveText([
-      "Download for Mac",
-      "Get the Raycast extension",
-      "Try the demo",
-    ]);
-    await expect(buttons.nth(1)).toHaveAttribute("href", raycastStore);
-    await expect(buttons.nth(1).locator("svg")).toBeVisible();
-  } else {
-    await expect(buttons).toHaveText(["Download for Mac", "Try the demo"]);
-    await expect(page.locator(".hero .ways a").last()).toHaveText("Raycast extension");
-  }
+  await expect(buttons).toHaveText(["Download for Mac", "Raycast extension", "Try the demo"]);
+  await expect(buttons.nth(1)).toHaveAttribute("href", raycastLink);
+  await expect(buttons.nth(1).locator("svg")).toBeVisible();
+  // The three sit on one row, the same height.
+  const boxes = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).boundingBox()));
+  expect(new Set(boxes.map((box) => box?.y)).size).toBe(1);
+  expect(new Set(boxes.map((box) => box?.height)).size).toBe(1);
   await context.close();
 });
 
