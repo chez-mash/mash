@@ -52,7 +52,8 @@
           { "context": "windows / required", "integration_id": 15368 },
           { "context": "front-ends", "integration_id": 15368 },
           { "context": "visual / required", "integration_id": 15368 },
-          { "context": "docs / required", "integration_id": 15368 }
+          { "context": "docs / required", "integration_id": 15368 },
+          { "context": "desktop / required", "integration_id": 15368 }
         ]
       }
     }
