@@ -42,10 +42,10 @@ running() { [ -f "run/$1.pid" ] && kill -0 "$(cat "run/$1.pid")" 2>/dev/null; }
 start_vm() { # start_vm DISK VARS [QEMU ARGS...]: boot NAME headless
   local disk=$1 vars=$2
   shift 2
-  # GICv3 and the host CPU under Hypervisor.framework. The disk is NVMe,
-  # which Windows drives without an added driver; the network and display
-  # are virtio (setup.ps1 installs their drivers). The display offers
-  # 1440x900 from the firmware on, and the tablet gives VNC absolute pointing.
+  # Windows' ARM boot loader needs a linear framebuffer: virtio-gpu-pci's
+  # firmware display alone hangs before Setup. Keep ramfb through installation
+  # and subsequent boots. Eight USB ports keep all three installer drives off
+  # QEMU's automatically inserted USB 1.1 hub.
   qemu-system-aarch64 \
     -name "$NAME" -M virt,gic-version=3 -accel hvf -cpu host -smp 6 -m 8G \
     -drive if=pflash,format=raw,readonly=on,file="$FIRMWARE" \
@@ -53,8 +53,8 @@ start_vm() { # start_vm DISK VARS [QEMU ARGS...]: boot NAME headless
     -drive if=none,id=disk,format=qcow2,file="$disk" \
     -device nvme,drive=disk,serial=mashwin,bootindex=0 \
     -netdev "user,id=net,hostfwd=tcp:127.0.0.1:22$SLOT-:22" -device virtio-net-pci,netdev=net \
-    -device virtio-gpu-pci,xres=1440,yres=900 \
-    -device qemu-xhci -device usb-kbd -device usb-tablet \
+    -device ramfb \
+    -device qemu-xhci,p2=8,p3=8 -device usb-kbd -device usb-tablet \
     -object secret,id=vncpw,data="$VNC_PASSWORD" -vnc "127.0.0.1:$SLOT,password-secret=vncpw" \
     -display none -daemonize -pidfile "run/$NAME.pid" "$@" \
     >"$NAME.log" 2>&1
@@ -82,7 +82,9 @@ latest_golden() { find "$STORE" -maxdepth 1 -name 'win11-golden-*.qcow2' | sort 
 
 windows_iso() {
   local iso=${WIN_VM_ISO:-}
-  [ -n "$iso" ] || iso=$(find "$STORE/iso" -maxdepth 1 -iname 'Win11*arm64*.iso' 2>/dev/null | sort | tail -1)
+  [ -n "$iso" ] || iso=$(find "$STORE/iso" -maxdepth 1 \
+    \( -iname 'Win11*arm64*.iso' -o -iname 'Windows11*arm64*.iso' \) \
+    2>/dev/null | sort | tail -1)
   if [ -z "$iso" ] || [ ! -f "$iso" ]; then
     echo "no Windows 11 ARM64 ISO: download Microsoft's from https://www.microsoft.com/software-download/windows11arm64" >&2
     echo "on this Mac and save it in $STORE/iso/ (a name like Win11_25H2_English_Arm64.iso)" >&2
@@ -115,10 +117,14 @@ build_image() {
     -drive if=none,id=wincd,media=cdrom,readonly=on,file="$iso" -device usb-storage,drive=wincd,bootindex=1 \
     -drive if=none,id=unattend,media=cdrom,readonly=on,file="$STATE/build/unattend.iso" -device usb-storage,drive=unattend \
     -drive if=none,id=virtio,media=cdrom,readonly=on,file="$STORE/iso/virtio-win.iso" -device usb-storage,drive=virtio
-  # The ISO's boot loader waits a few seconds for "Press any key to boot from
-  # CD or DVD"; keep pressing one until Setup has started. Later boots find
-  # Windows on the NVMe disk first and never reach the ISO.
-  for _ in $(seq 1 40); do v key space >/dev/null 2>&1 || true; sleep 1; done
+  # Match the English ISO's boot prompt, then answer it exactly once. Fixed
+  # delays can miss it; repeated keys can cancel Setup. The reference covers
+  # only the prompt's first line, excluding its animated trailing dots.
+  if ! v -t 60 rexpect "$TOOLS/boot-prompt.png" 0 0 0 key space; then
+    v capture build/progress.png || true
+    echo "Windows boot prompt not found; see $STATE/build/progress.png" >&2
+    exit 1
+  fi
 
   # Setup copies files, restarts a few times and finishes with the first
   # logon, where setup.ps1 writes ready.txt. A progress screenshot every
