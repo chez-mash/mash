@@ -30,6 +30,11 @@ chat text and any vectors used for search by meaning.
 | macOS | LaunchAgent `dev.mash.qdrant` | `~/.mash/qdrant/qdrant.log` | `~/.mash/qdrant/storage` |
 | Windows | logon task `MashQdrant` | `%USERPROFILE%\.mash\qdrant\qdrant.log` | `%SystemDrive%\mash-qdrant\storage` |
 
+On macOS the LaunchAgent starts Qdrant through the `mash` that installed it,
+which is signed, so Login Items lists the service under Mash rather than as an
+item from an unidentified developer. If you remove or move that copy of
+`mash`, run `mash qdrant install` again.
+
 Qdrant also uses a `snapshots` folder next to `storage`. On Windows, these
 data folders are usually under `C:\mash-qdrant` because longer paths can make
 Qdrant fail. Its program, configuration, and log file stay under

@@ -6,7 +6,7 @@
 use super::{Layout, Ports, install_error};
 use crate::AppError;
 use crate::service::{Failure, UserService};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(crate) use crate::service::Step;
 #[cfg(test)]
@@ -38,9 +38,45 @@ pub(crate) fn qdrant_config(layout: &Layout, ports: Ports) -> String {
     text
 }
 
-/// The supervisor's definition of the service running `binary`.
-pub(crate) fn definition(layout: &Layout, binary: &Path) -> Result<String, AppError> {
-    for path in [binary, &layout.root, &layout.qdrant_config(), &layout.log()] {
+/// The Mash app's bundle identifier (`identifier` in the desktop app's
+/// `tauri.conf.json`).
+const APP_IDENTIFIER: &str = "io.getmash.desktop";
+
+/// The `mash` a launch agent starts Qdrant through: this program, which is
+/// signed, so macOS lists the service under Mash's developer rather than as
+/// an item from an unidentified developer. None when this program is not
+/// `mash`; the agent then starts Qdrant directly.
+pub(crate) fn launcher() -> Option<PathBuf> {
+    std::env::current_exe()
+        .ok()
+        .filter(|program| program.file_stem().is_some_and(|name| name == "mash"))
+}
+
+/// Whether `program` is the `mash` inside the Mash app, whose launch agents
+/// macOS then lists under the app itself.
+fn in_app(program: &Path) -> bool {
+    let macos = program.parent().filter(|folder| folder.ends_with("MacOS"));
+    let contents = macos
+        .and_then(Path::parent)
+        .filter(|folder| folder.ends_with("Contents"));
+    contents.and_then(Path::parent).is_some_and(|bundle| {
+        bundle
+            .extension()
+            .is_some_and(|extension| extension == "app")
+    })
+}
+
+/// The supervisor's definition of the service running `binary`, on macOS
+/// through `launcher` when there is one.
+pub(crate) fn definition(
+    layout: &Layout,
+    binary: &Path,
+    launcher: Option<&Path>,
+) -> Result<String, AppError> {
+    for path in [binary, &layout.root, &layout.qdrant_config(), &layout.log()]
+        .into_iter()
+        .chain(launcher)
+    {
         let text = path.to_str().ok_or_else(|| unexpressible(path))?;
         if text.chars().any(|c| c.is_control() || c == '"') {
             return Err(unexpressible(path));
@@ -65,13 +101,14 @@ pub(crate) fn definition(layout: &Layout, binary: &Path) -> Result<String, AppEr
         }
         Supervisor::LaunchAgent => {
             let string = |value: &str| format!("<string>{}</string>", xml(value));
+            let (owner, start) = through(launcher);
             format!(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
                  <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
                  <!-- Written by `mash qdrant install`; rerun it to repair, or run `mash qdrant uninstall`. -->\n\
                  <plist version=\"1.0\"><dict>\n\
                  <key>Label</key>{}\n\
-                 <key>ProgramArguments</key><array>{}<string>--config-path</string>{}</array>\n\
+                 {}<key>ProgramArguments</key><array>{}{}<string>--config-path</string>{}</array>\n\
                  <key>WorkingDirectory</key>{}\n\
                  <key>RunAtLoad</key><true/>\n\
                  <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>\n\
@@ -81,6 +118,8 @@ pub(crate) fn definition(layout: &Layout, binary: &Path) -> Result<String, AppEr
                  <key>StandardErrorPath</key>{}\n\
                  </dict></plist>\n",
                 string(&layout.service),
+                owner,
+                start,
                 string(&text(binary)),
                 string(&text(&layout.qdrant_config())),
                 string(&text(&layout.root)),
@@ -129,6 +168,30 @@ pub(crate) fn definition(layout: &Layout, binary: &Path) -> Result<String, AppEr
             )
         }
     })
+}
+
+/// What a launch agent adds to start Qdrant through `launcher`: the app's
+/// bundle identifier when `launcher` is the app's `mash`, and the program
+/// arguments that come before Qdrant's own.
+fn through(launcher: Option<&Path>) -> (String, String) {
+    let Some(launcher) = launcher else {
+        return (String::new(), String::new());
+    };
+    let string = |value: &str| format!("<string>{}</string>", xml(value));
+    let owner = if in_app(launcher) {
+        format!(
+            "<key>AssociatedBundleIdentifiers</key><array>{}</array>\n",
+            string(APP_IDENTIFIER)
+        )
+    } else {
+        String::new()
+    };
+    let start = format!(
+        "{}{}",
+        string(&launcher.display().to_string()),
+        string(mash_model::platform::START_QDRANT)
+    );
+    (owner, start)
 }
 
 fn unexpressible(path: &Path) -> AppError {

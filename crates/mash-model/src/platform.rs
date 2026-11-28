@@ -288,8 +288,72 @@ pub fn release_installed_executable() {
     }
 }
 
+/// The internal argument Qdrant's launch agent starts it with:
+/// `mash __start-qdrant QDRANT ARGS...`. macOS names a background item after
+/// whoever signed the program it starts, and Qdrant's own binary is
+/// unsigned, so the agent starts the signed `mash`, which becomes Qdrant.
+pub const START_QDRANT: &str = "__start-qdrant";
+
+/// Runs [`START_QDRANT`]: replaces this process with the Qdrant binary it
+/// names, so the supervisor keeps tracking one process, Qdrant itself. None
+/// for any other command line; otherwise the exit code when Qdrant could not
+/// be started.
+pub fn start_qdrant(args: impl IntoIterator<Item = std::ffi::OsString>) -> Option<i32> {
+    let mut args = args.into_iter().skip(1);
+    if args.next()? != START_QDRANT {
+        return None;
+    }
+    let program = PathBuf::from(args.next().unwrap_or_default());
+    if program.file_stem().is_none_or(|name| name != "qdrant") {
+        eprintln!(
+            "{START_QDRANT} starts only a Qdrant binary, not {}",
+            program.display()
+        );
+        return Some(2);
+    }
+    let mut command = std::process::Command::new(&program);
+    command.args(args);
+    #[cfg(unix)]
+    let error = {
+        use std::os::unix::process::CommandExt;
+        command.exec()
+    };
+    #[cfg(not(unix))]
+    let error = match command.status() {
+        Ok(status) => return Some(status.code().unwrap_or(1)),
+        Err(error) => error,
+    };
+    eprintln!("Mash could not start {}: {error}", program.display());
+    Some(1)
+}
+
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn start_qdrant_takes_only_its_own_command_line() {
+        let args = |list: &[&str]| {
+            list.iter()
+                .map(std::ffi::OsString::from)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(super::start_qdrant(args(&["mash", "search", "x"])), None);
+        assert_eq!(super::start_qdrant(args(&["mash"])), None);
+        assert_eq!(
+            super::start_qdrant(args(&[
+                "mash",
+                super::START_QDRANT,
+                "/bin/sh",
+                "-c",
+                "true"
+            ])),
+            Some(2)
+        );
+        assert_eq!(
+            super::start_qdrant(args(&["mash", super::START_QDRANT, "/nonexistent/qdrant"])),
+            Some(1)
+        );
+    }
     use super::file_uri_path;
 
     #[test]
