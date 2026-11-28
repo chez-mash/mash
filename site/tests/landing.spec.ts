@@ -27,6 +27,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
   );
   await expect(page.locator(".hero .actions a:visible")).toHaveText([
     /^\s*Download for \w+$/,
+    "Raycast extension",
     "Try the demo",
   ]);
   await expect(page.locator(".mash-welcome h2")).toHaveText([
@@ -110,15 +111,30 @@ test("the hero leads with the app download, then the other systems and ways in",
   await expect(also).toHaveText(/^(macOS|Windows) and\s+(Windows|Linux)$/, {
     useInnerText: true,
   });
-  // The demo is a button of its own beside the download, the same height.
-  const demo = page.locator(".hero .actions a:visible").nth(1);
+  // The Raycast extension and the demo are buttons of their own beside the
+  // download, in that order and the same height. Raycast's shows on every
+  // system, this Linux one included: it says Mash has an extension.
+  const raycast = page.locator(".hero .actions a:visible").nth(1);
+  await expect(raycast).toHaveText("Raycast extension");
+  await expect(raycast).toHaveAttribute("href", raycastLink);
+  await expect(raycast.locator("svg")).toBeVisible();
+  const demo = page.locator(".hero .actions a:visible").nth(2);
   await expect(demo).toHaveText("Try the demo");
   await expect(demo).toHaveAttribute("href", "/demo/");
   await expect(demo.locator("svg")).toBeVisible();
-  const [downloadBox, demoBox] = [await download.boundingBox(), await demo.boundingBox()];
-  expect(demoBox?.height).toBe(downloadBox?.height);
-  expect(demoBox?.y).toBe(downloadBox?.y);
-  expect(demoBox?.x).toBeGreaterThan((downloadBox?.x ?? 0) + (downloadBox?.width ?? 0));
+  const boxes = [
+    await download.boundingBox(),
+    await raycast.boundingBox(),
+    await demo.boundingBox(),
+  ];
+  for (const [index, box] of boxes.entries()) {
+    expect(box?.height).toBe(boxes[0]?.height);
+    expect(box?.y).toBe(boxes[0]?.y);
+    if (index > 0) {
+      const before = boxes[index - 1];
+      expect(box?.x).toBeGreaterThan((before?.x ?? 0) + (before?.width ?? 0));
+    }
+  }
   // The docs follow the opening paragraph as its last words, in bold.
   const docs = page.locator(".hero .tagline a.docs");
   await expect(docs).toHaveText("Read the docs →");
@@ -134,8 +150,6 @@ test("the hero leads with the app download, then the other systems and ways in",
   );
   // The terminal install is in the docs, not on this page.
   await expect(page.locator("#install")).toHaveCount(0);
-  // This browser is not a Mac's, so Raycast's button stays out of sight.
-  await expect(page.locator(".hero [data-raycast]:visible")).toHaveCount(0);
   // The header offers the Mac app beside the docs and the source.
   const header = page.locator("header.header");
   await expect(
@@ -157,12 +171,22 @@ test("on a phone the landing header is the logo alone, and the hero's buttons st
   await expect(header.getByRole("link")).toHaveCount(1);
   await expect(header.getByRole("button")).toHaveCount(0);
   const buttons = page.locator(".hero .actions a:visible");
-  await expect(buttons).toHaveText([/Download for (Linux|Mac|Windows)|Download/, "Try the demo"]);
-  const [first, second] = [await buttons.nth(0).boundingBox(), await buttons.nth(1).boundingBox()];
-  expect(second?.x).toBe(first?.x);
-  expect(second?.width).toBe(first?.width);
-  expect(second?.height).toBe(first?.height);
-  expect(second?.y).toBeGreaterThan((first?.y ?? 0) + (first?.height ?? 0));
+  await expect(buttons).toHaveText([
+    /Download for (Linux|Mac|Windows)|Download/,
+    "Raycast extension",
+    "Try the demo",
+  ]);
+  const stacked = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).boundingBox()));
+  const first = stacked[0];
+  for (const [index, box] of stacked.entries()) {
+    expect(box?.x).toBe(first?.x);
+    expect(box?.width).toBe(first?.width);
+    expect(box?.height).toBe(first?.height);
+    if (index > 0) {
+      const before = stacked[index - 1];
+      expect(box?.y).toBeGreaterThan((before?.y ?? 0) + (before?.height ?? 0));
+    }
+  }
   expect(first?.width).toBeGreaterThan(300);
   await expect(page.locator(".hero .tagline a.docs")).toBeVisible();
   await expect(
@@ -206,46 +230,6 @@ for (const [name, viewport, columns] of [
     await expect(band.locator(".measurement-copy dt")).toHaveText(["66 ms and 103k", "5× and 9×"]);
   });
 }
-
-test("a phone is offered the Raycast extension under the download", async ({ browser }) => {
-  const context = await browser.newContext({
-    userAgent:
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-    viewport: { width: 390, height: 844 },
-  });
-  const page = await context.newPage();
-  await page.goto("/");
-  const buttons = page.locator(".hero .actions a:visible");
-  await expect(buttons).toHaveText(["Download for Mac", "Raycast extension", "Try the demo"]);
-  // Stacked across the column, each as wide and as tall as the download.
-  const boxes = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).boundingBox()));
-  expect(new Set(boxes.map((box) => box?.x)).size).toBe(1);
-  expect(new Set(boxes.map((box) => box?.width)).size).toBe(1);
-  expect(new Set(boxes.map((box) => box?.height)).size).toBe(1);
-  await context.close();
-});
-
-test("a Mac is offered the Raycast extension", async ({ browser }) => {
-  const context = await browser.newContext({
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
-    viewport: { width: 1280, height: 800 },
-  });
-  const page = await context.newPage();
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, "platform", { get: () => "MacIntel" }),
-  );
-  await page.goto("/");
-  const buttons = page.locator(".hero .actions a:visible");
-  await expect(buttons).toHaveText(["Download for Mac", "Raycast extension", "Try the demo"]);
-  await expect(buttons.nth(1)).toHaveAttribute("href", raycastLink);
-  await expect(buttons.nth(1).locator("svg")).toBeVisible();
-  // The three sit on one row, the same height.
-  const boxes = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).boundingBox()));
-  expect(new Set(boxes.map((box) => box?.y)).size).toBe(1);
-  expect(new Set(boxes.map((box) => box?.height)).size).toBe(1);
-  await context.close();
-});
 
 test("a Homebrew visitor can review the package source and see what to do next", async ({
   page,

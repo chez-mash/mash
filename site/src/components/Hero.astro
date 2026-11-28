@@ -2,8 +2,8 @@
 // The landing hero, as the wireframe draws it: streaks of butter light behind
 // the app icon and the headline, the page's own paragraph under it, the desktop
 // app for the visitor's system with the page's own actions (the demo) as
-// quieter buttons beside it, and where else Mash runs. On a Mac the Raycast
-// extension has a button of its own. The terminal
+// quieter buttons beside it, and where else Mash runs. The Raycast extension
+// has a button of its own, on every system: it says Mash has one. The terminal
 // install and the other ways in, including asking an agent, are in the docs.
 import raycast from "../art/raycast.svg?raw";
 import { headline, raycastInk, raycastLink, raycastRed } from "../brand.ts";
@@ -85,10 +85,7 @@ const raycastMark = raycast
         {/* The desktop app for the visitor's system, chosen by the script
             below; without it, or on a phone, the link opens the downloads. */}
         <a class="download" href="/downloads/#desktop-app" data-download data-system="macos"><OsMark system="macos" /><OsMark system="windows" /><OsMark system="linux" /><span data-download-label>{t("mash.download.mac")}</span></a>
-        {/* The extension is for Raycast on a Mac, so the script below hides
-            this from a Windows or Linux computer. A phone sees it, as it
-            sees the Mac download. */}
-        <a class="try raycast" href={raycastLink} style={`background: ${raycastRed}; color: ${raycastInk}`} data-raycast><Fragment set:html={raycastMark} />Raycast extension</a>
+        <a class="try raycast" href={raycastLink} style={`background: ${raycastRed}; color: ${raycastInk}`}><Fragment set:html={raycastMark} />Raycast extension</a>
         {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
           <a class="try" href={link} {...attrs}><LineIcon name="play" size="1rem" />{text}</a>
         ))}
@@ -132,8 +129,6 @@ const raycastMark = raycast
       const and = also.querySelector("[data-also-and]");
       if (first && second && and) also.append(first, and, second);
     }
-    for (const button of document.querySelectorAll<HTMLElement>("[data-raycast]"))
-      button.hidden = download !== undefined && download.system !== "macOS";
   });
 </script>
 
@@ -338,9 +333,6 @@ const raycastMark = raycast
   }
   .raycast:hover {
     filter: brightness(0.94);
-  }
-  .raycast[hidden] {
-    display: none;
   }
   .raycast :global(.raycast-mark) {
     width: 1.0625rem;
