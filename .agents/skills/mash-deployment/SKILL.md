@@ -35,7 +35,7 @@ command ends; unknown/unverified outcomes fail closed. Skipped means not install
 
 Linux builds use tools/build-dev-linux.sh through agent-test, persistent targets
 and disk-backed temp paths. Reuse successful gates only for identical source,
-toolchain and effective validation inputs. `make validate-dev` can establish the
+toolchain and effective validation inputs. `just validate-dev` can establish the
 receipt before committing without building a release. Commit identity and the
 release-stamp override do not invalidate validation; always stamp the current release. Build
 once per platform. API installation uses authenticated readiness, rollout locking,

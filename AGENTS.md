@@ -335,8 +335,7 @@ candidates separate. Do not rewrite historical studies just to add tracking.
 
 Tasks run through `just`: `just` alone lists every recipe by group (develop,
 test, quality, deploy, release, design), and the recipes call the scripts in
-`tools/` and the packages' own scripts. Add a task to the `justfile`, never to
-the `Makefile`, which only forwards its old targets during the transition.
+`tools/` and the packages' own scripts. Add a task to the `justfile`.
 Install just with `bash tools/install-just.sh`; see "Task runner" in
 `docs/internal/development.md`.
 

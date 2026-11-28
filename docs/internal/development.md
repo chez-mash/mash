@@ -29,11 +29,7 @@ before the recipe: `DEV_TARGET_DIR=/somewhere just dev-build` and
 `just DEV_TARGET_DIR=/somewhere dev-build` are the same, and `DEV_RUN=` runs
 without the launcher.
 
-The `Makefile` is a shim for the transition: each target it had runs the
-recipe of the same name (`make iterate FOCUS=... PACKAGE=...` still works)
-and says how to install just when it is missing. Add new tasks to the
-justfile only. `tools/test-justfile.sh` dry-runs every recipe and checks the
-shim.
+Add new tasks to the justfile. `tools/test-justfile.sh` dry-runs every recipe.
 
 ### Dashboard browser checks
 
@@ -1012,7 +1008,7 @@ exact commit. A run whose jobs were skipped still concludes successfully.
 | `dashboard/` | nothing | nothing | `dashboard`, four `dashboard-browser` shards | build, pictures (the demo) |
 | `raycast/` | nothing | nothing | `raycast` (lint, build, test) | nothing |
 | `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md`, `bucket/` | nothing | nothing | nothing | nothing |
-| `.github/`, `tools/`, `justfile`, `Makefile`, anything not listed | everything | everything | everything | build, pictures |
+| `.github/`, `tools/`, `justfile`, anything not listed | everything | everything | everything | build, pictures |
 
 `visual.yml` runs its one job for the rows where `frontends.yml` runs the
 dashboard's. The `docs.yml` column is for a pull request and the merge queue.
