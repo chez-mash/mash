@@ -9,7 +9,10 @@ script here syncs `tools/win-vm/` to the Mac and calls
 
 The VM is Windows 11 ARM64 under QEMU with Hypervisor.framework
 (`qemu-system-aarch64 -accel hvf`), booted by QEMU's edk2 UEFI firmware with
-an NVMe system disk, a virtio network card and a virtio GPU showing 1440x900.
+an NVMe system disk, a virtio network card and a basic firmware framebuffer.
+Use `ramfb`: with Homebrew QEMU 11.1.3 and Windows 11 ARM 26H2,
+`virtio-gpu-pci` alone hangs before Windows Setup starts. The bundled
+firmware defaults to 800×600; this tool does not yet provide a larger desktop.
 Screenshots, clicks and keys go through QEMU's VNC server on the Mac's
 loopback, driven by `vncdotool` from the macOS VM tool's virtualenv
 (`~/scratch/mac-vm/venv`, or set `WIN_VM_VENV`). Commands reach the guest
@@ -36,7 +39,7 @@ tools/win-vm.sh desktop --app target/win-artifact
 ```
 
 Screenshots land in `target/win-vm/`: `1-window-screen.png` (the whole
-1440x900 screen with Mash open) and `1-window.png` (the Mash window alone),
+screen with Mash open) and `1-window.png` (the Mash window alone),
 then `2-context-menu-screen.png` and `2-context-menu.png` after a right-click
 on the first chat row. The row is clicked at an offset from the window's top
 left corner, `WIN_VM_ROW_X`/`WIN_VM_ROW_Y` (170, 170 by default).
@@ -61,19 +64,28 @@ On the Mac:
 
 `build-image` needs two ISOs in `$WIN_VM_STORE/iso/`:
 
-- Microsoft's Windows 11 ARM64 ISO, downloaded by hand from
+- Microsoft's Windows 11 ARM64 ISO, obtained through the browser form at
   <https://www.microsoft.com/software-download/windows11arm64> (the page
-  hands out time-limited links through a form). Any file named
-  `Win11*Arm64*.iso` there is used, or set `WIN_VM_ISO`. Use only
-  Microsoft's ISO, never a rebuilt image.
+  hands out time-limited links through a form). Choose English (United States),
+  matching the answer file and boot-prompt reference. Files named
+  `Win11*Arm64*.iso` or `Windows11*arm64*.iso` are recognized, or set
+  `WIN_VM_ISO` on the Mac. Use only
+  Microsoft's ISO, never a rebuilt image. Verify it with `shasum -a 256`
+  against the English ARM64 hash in the page's **Verify your download**
+  section. A browser can obtain the link even when a direct scripted request
+  to the download API is rejected; use the form's returned Microsoft URL.
 - `virtio-win.iso` from the Fedora project's stable virtio-win builds, for
   the ARM64 network and display drivers.
 
 It builds a small ISO holding `tools/win-vm/autounattend.xml`,
 `tools/win-vm/setup.ps1` and the Mac's `~/.ssh/id_ed25519.pub`, boots the
-installer with all three ISOs attached as USB drives, and presses a key
-until the ISO's "Press any key to boot from CD" prompt has passed. Setup then
-runs unattended:
+installer with all three ISOs attached to an eight-port USB controller, and
+waits up to 60 seconds for the ISO's "Press any key to boot from CD" prompt
+before pressing Space once. `boot-prompt.png` is a small VNC capture of that
+English prompt with its animated dots excluded. Repeated keypresses can
+activate Setup's Cancel button and confirm quitting. If the prompt does not
+match, the build stops and saves `build/progress.png` for inspection.
+Setup then runs unattended:
 
 - the answer file lets Setup continue without a TPM or Secure Boot
   (Microsoft's `LabConfig` switches), installs Windows 11 Pro with the
@@ -121,7 +133,7 @@ Unless `--keep` is given, the clone is stopped and its disk deleted.
 - Windows is never activated: the desktop shows the "Activate Windows"
   watermark in the lower right corner, and personalization settings are
   locked in the Settings app (the image sets them through the registry).
-- The display is QEMU's virtio GPU without 3D acceleration, so WebView2
+- The display is QEMU's basic framebuffer without 3D acceleration, so WebView2
   renders in software; animations are slower than on real hardware.
 - Windows Update is off in the image, so it stays at the ISO's build.
   Rebuild the image from a newer ISO to test a newer Windows.
@@ -141,4 +153,3 @@ gh run download <that run> -n windows-shots
 
 It shows Windows' title bar, menus and fonts, not ARM or a desktop machine's
 display; the VM remains the closer match once its ISO is in place.
-

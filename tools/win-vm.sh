@@ -10,7 +10,7 @@
 #   build-image  install Windows 11 ARM unattended from Microsoft's ISO into
 #                the golden disk win11-golden-<yyyymmdd>.qcow2 on the Mac:
 #                local user mash, automatic logon, OpenSSH Server with the
-#                Mac's key, dark mode, 1440x900, quiet, Windows Update off
+#                Mac's key, dark mode, quiet, Windows Update off
 #   desktop      clone the newest golden disk copy-on-write, install the Mash
 #                NSIS installer (--app: the .exe, or a folder holding it such
 #                as the downloaded mash-desktop-aarch64-pc-windows-msvc CI
