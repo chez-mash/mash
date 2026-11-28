@@ -293,11 +293,10 @@
     align-items: center;
     gap: 2rem;
   }
-  /* Strokes only, in the page's ink; the eyes and the smile are solid. */
+  /* Strokes only, in Ferris's own orange (brand.ts); the eyes and the smile are solid. */
   .ferris {
     width: min(100%, 22rem);
     height: auto;
-    color: var(--text-strong);
   }
   .ferris .dot {
     fill: currentColor;
