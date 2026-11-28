@@ -15,7 +15,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     await expect(mark.locator("svg path").first()).toBeAttached();
   }
   const blurb =
-    "Mash supercharges your agents so that they can search and remember from each others' chats. Leave off with Claude and pick up with Codex, without having to re-explain yourself. 100% self-hosted and open-source.";
+    "Mash supercharges your agents so that they can search and remember from each others' chats. 100% self-hosted and open-source.";
   await expect(page.locator(".hero .tagline")).toHaveText(`${blurb} Read the docs →`);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", blurb);
   // Link previews carry the tagline.
