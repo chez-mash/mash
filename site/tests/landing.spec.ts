@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { raycastLink } from "../src/brand.ts";
+import { ferrisOrange, raycastLink } from "../src/brand.ts";
 
 const agents = ["Claude Code", "Codex", "GitHub Copilot", "Cursor", "OpenCode", "Antigravity"];
 
@@ -634,13 +634,13 @@ test("Ferris stands over the stack chips, which have logos, and the close offers
   const built = welcome.locator(".built li");
   await expect(built).toHaveText(["Tauri", "Qdrant", "Tokio"]);
   for (const chip of await built.all()) await expect(chip.locator(".tile svg")).toBeAttached();
-  // Ferris is decoration: hidden from assistive technology, in the page's ink, above the chips.
+  // Ferris is decoration: hidden from assistive technology, in his own orange, above the chips.
   const crab = welcome.locator("#welcome-rust svg.ferris");
   await expect(crab).toHaveAttribute("aria-hidden", "true");
-  const ink = await welcome
-    .locator("#welcome-rust h2")
-    .evaluate((heading) => getComputedStyle(heading).color);
-  await expect(crab.locator("path[pathLength]").first()).toHaveCSS("stroke", ink);
+  const orange = "rgb(247, 76, 0)";
+  expect(ferrisOrange).toBe("#f74c00");
+  await expect(crab.locator("path[pathLength]").first()).toHaveCSS("stroke", orange);
+  await expect(crab.locator(".dot").first()).toHaveCSS("fill", orange);
   const [crabBox, chipsBox] = [
     await crab.boundingBox(),
     await welcome.locator(".built").boundingBox(),
