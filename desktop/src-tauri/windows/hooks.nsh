@@ -32,6 +32,7 @@
     Delete "$INSTDIR\bin\mash.old-*"
     Delete "$INSTDIR\bin\.mash-running-*"
     Delete "$INSTDIR\bin\.mash-staged-*"
+    Delete "$INSTDIR\bin\*.dll"
     RMDir "$INSTDIR\bin"
   ${EndIf}
 !macroend

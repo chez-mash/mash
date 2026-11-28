@@ -20,6 +20,8 @@
 
 #[cfg(any(windows, test))]
 mod path_command;
+#[cfg(any(windows, test))]
+mod runtime;
 #[cfg(windows)]
 mod windows;
 

@@ -181,6 +181,12 @@ fn put(layout: &Layout) -> Result<(), String> {
             )
         })?;
     }
+    super::runtime::carry(&layout.engine, &layout.command).map_err(|error| {
+        format!(
+            "Mash couldn’t put the Visual C++ runtime beside {}: {error}.",
+            layout.command.display()
+        )
+    })?;
     let folder = layout.folder.to_string_lossy();
     edit_user_path(|path| path_command::with_folder(path, &folder))?;
     Ok(())
@@ -191,6 +197,7 @@ fn take_away(layout: &Layout) -> Result<(), String> {
     let folder = layout.folder.to_string_lossy();
     // PATH first: should the file be held open, nothing points at it.
     edit_user_path(|path| path_command::without_folder(path, &folder))?;
+    super::runtime::drop(&layout.command);
     path_command::remove(&layout.command).map_err(|error| {
         format!(
             "Mash couldn’t remove {}: {error}.",
