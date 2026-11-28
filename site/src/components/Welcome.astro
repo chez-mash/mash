@@ -9,8 +9,9 @@
 
 import { Image } from "astro:assets";
 import type { Agent } from "../../../dashboard/src/lib/types";
-import ferris from "../art/ferris.svg?raw";
+import ferrisArt from "../art/ferris.svg?raw";
 import mashy from "../art/mashy.webp";
+import { ferrisOrange } from "../brand.ts";
 import "../styles/welcome.css";
 import "../styles/welcome-panels.css";
 import qdrant from "../art/stack/qdrant.svg?raw";
@@ -23,6 +24,9 @@ import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
 import PluginSteps from "./PluginSteps.astro";
 import Surfaces from "./Surfaces.astro";
+
+/** Ferris, his strokes and solids in his own orange. */
+const ferris = ferrisArt.replace('class="ferris"', `class="ferris" style="color: ${ferrisOrange}"`);
 
 /** The projects Mash is built on, shown under Ferris, each with its logo and linked to its own site. */
 const built = [
@@ -294,7 +298,7 @@ const quick: {
         </p>
       </div>
       <div class="rust-art">
-        <!-- Ferris, Rust's unofficial mascot, drawn in ink; the band's scene draws him a stroke at a time. -->
+        <!-- Ferris, Rust's unofficial mascot, drawn in his own orange; the band's scene draws him a stroke at a time. -->
         <Fragment set:html={ferris} />
         <div class="built-with">
           <p>Built with</p>

@@ -22,3 +22,6 @@ export const raycastLink = "https://github.com/mashhq/mash/tree/main/raycast";
  */
 export const raycastRed = "#d13438";
 export const raycastInk = "#ffffff";
+
+/** Ferris's own orange, as rustacean.net draws him, for his outline on the landing page. */
+export const ferrisOrange = "#f74c00";
