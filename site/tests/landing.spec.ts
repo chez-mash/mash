@@ -207,6 +207,24 @@ for (const [name, viewport, columns] of [
   });
 }
 
+test("a phone is offered the Raycast extension under the download", async ({ browser }) => {
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    viewport: { width: 390, height: 844 },
+  });
+  const page = await context.newPage();
+  await page.goto("/");
+  const buttons = page.locator(".hero .actions a:visible");
+  await expect(buttons).toHaveText(["Download for Mac", "Raycast extension", "Try the demo"]);
+  // Stacked across the column, each as wide and as tall as the download.
+  const boxes = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).boundingBox()));
+  expect(new Set(boxes.map((box) => box?.x)).size).toBe(1);
+  expect(new Set(boxes.map((box) => box?.width)).size).toBe(1);
+  expect(new Set(boxes.map((box) => box?.height)).size).toBe(1);
+  await context.close();
+});
+
 test("a Mac is offered the Raycast extension", async ({ browser }) => {
   const context = await browser.newContext({
     userAgent:

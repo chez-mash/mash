@@ -85,8 +85,10 @@ const raycastMark = raycast
         {/* The desktop app for the visitor's system, chosen by the script
             below; without it, or on a phone, the link opens the downloads. */}
         <a class="download" href="/downloads/#desktop-app" data-download data-system="macos"><OsMark system="macos" /><OsMark system="windows" /><OsMark system="linux" /><span data-download-label>{t("mash.download.mac")}</span></a>
-        {/* Raycast runs on a Mac only, so the script below shows this there. */}
-        <a class="try raycast" href={raycastLink} data-raycast hidden><Fragment set:html={raycastMark} />Raycast extension</a>
+        {/* The extension is for Raycast on a Mac, so the script below hides
+            this from a Windows or Linux computer. A phone sees it, as it
+            sees the Mac download. */}
+        <a class="try raycast" href={raycastLink} data-raycast><Fragment set:html={raycastMark} />Raycast extension</a>
         {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
           <a class="try" href={link} {...attrs}><LineIcon name="play" size="1rem" />{text}</a>
         ))}
@@ -131,7 +133,7 @@ const raycastMark = raycast
       if (first && second && and) also.append(first, and, second);
     }
     for (const button of document.querySelectorAll<HTMLElement>("[data-raycast]"))
-      button.hidden = download?.system !== "macOS";
+      button.hidden = download !== undefined && download.system !== "macOS";
   });
 </script>
 
