@@ -34,7 +34,7 @@ test("the landing page says what Mash is and which agents it reads", async ({ pa
     "Start in one agent. Finish in another.",
     "One history. Everywhere you work.",
     "Take shortcuts, not detours.",
-    "Meet Mashy. Ask anything about your chats.",
+    "Meet Mashy. Ask him anything about your chats.",
     "Fast, and light on your machine.",
     "Self-hosted, end to end. No cloud. No account.",
     "Written with <3 in Rust.",
@@ -371,8 +371,13 @@ for (const [name, viewport] of [
       return (Math.max(page, line) + 0.05) / (Math.min(page, line) + 0.05);
     });
     expect(contrast).toBeGreaterThanOrEqual(3);
-    const ink = await lines.nth(0).evaluate((line) => getComputedStyle(line).color);
-    await expect(lines.nth(1).locator(".accent")).toHaveCSS("color", ink);
+    // The claim's words run from the mash's cream to the butter's yellow.
+    await expect(lines.nth(1).locator(".accent")).toHaveCSS(
+      "background-image",
+      "linear-gradient(90deg, rgb(255, 241, 208), rgb(245, 200, 75))",
+    );
+    await expect(lines.nth(1).locator(".accent")).toHaveCSS("background-clip", "text");
+    await expect(lines.nth(1).locator(".accent")).toHaveCSS("color", "rgba(0, 0, 0, 0)");
     const at = await lines
       .nth(1)
       .locator(".accent")
