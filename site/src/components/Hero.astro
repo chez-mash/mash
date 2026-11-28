@@ -6,7 +6,7 @@
 // extension has a button of its own. The terminal
 // install and the other ways in, including asking an agent, are in the docs.
 import raycast from "../art/raycast.svg?raw";
-import { headline, raycastLink, raycastRed } from "../brand.ts";
+import { headline, raycastInk, raycastLink, raycastRed } from "../brand.ts";
 import AppIcon from "./AppIcon.astro";
 import LineIcon from "./LineIcon.astro";
 import OsMark from "./OsMark.astro";
@@ -21,7 +21,7 @@ const raycastMark = raycast
   .replace(/\srole="[^"]*"/, "")
   .replace(
     "<svg",
-    `<svg class="raycast-mark" fill="${raycastRed}" aria-hidden="true" focusable="false"`,
+    '<svg class="raycast-mark" fill="currentColor" aria-hidden="true" focusable="false"',
   );
 ---
 
@@ -88,7 +88,7 @@ const raycastMark = raycast
         {/* The extension is for Raycast on a Mac, so the script below hides
             this from a Windows or Linux computer. A phone sees it, as it
             sees the Mac download. */}
-        <a class="try raycast" href={raycastLink} data-raycast><Fragment set:html={raycastMark} />Raycast extension</a>
+        <a class="try raycast" href={raycastLink} style={`background: ${raycastRed}; color: ${raycastInk}`} data-raycast><Fragment set:html={raycastMark} />Raycast extension</a>
         {actions.map(({ attrs: { class: _className, ...attrs } = {}, link, text }) => (
           <a class="try" href={link} {...attrs}><LineIcon name="play" size="1rem" />{text}</a>
         ))}
@@ -331,8 +331,14 @@ const raycastMark = raycast
   .try:hover {
     background: var(--surface-muted);
   }
-  /* Raycast's mark is in Raycast's own red (brand.ts, as an agent's tile takes
-     its agent's colour); the button stays as quiet as the demo's. */
+  /* Raycast's button is in Raycast's own red with white on it (brand.ts, as
+     an agent's tile takes its agent's colours), lifted as the download is. */
+  .raycast {
+    box-shadow: var(--shadow-button-lift);
+  }
+  .raycast:hover {
+    filter: brightness(0.94);
+  }
   .raycast[hidden] {
     display: none;
   }
