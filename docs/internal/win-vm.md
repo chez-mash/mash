@@ -22,19 +22,19 @@ over OpenSSH on a forwarded loopback port.
 
 ```sh
 tools/win-vm.sh build-image                  # install the golden disk (about an hour)
-tools/win-vm.sh desktop --app Mash_0.9.0_arm64-setup.exe
-tools/win-vm.sh desktop --app ~/Downloads/mash-desktop-aarch64-pc-windows-msvc   # the CI artifact folder
+tools/win-vm.sh desktop --app Mash_0.9.0_x64-setup.exe
+tools/win-vm.sh desktop --app ~/Downloads/mash-desktop-x86_64-pc-windows-msvc   # the CI artifact folder
 tools/win-vm.sh desktop --app ... --keep     # leave the clone running to look around
 tools/win-vm.sh list                         # golden disks and clones
 tools/win-vm.sh clean                        # delete clones left by --keep
 ```
 
-The CI installer is the `mash-desktop-aarch64-pc-windows-msvc` artifact of
+The CI installer is the `mash-desktop-x86_64-pc-windows-msvc` artifact of
 the Desktop workflow:
 
 ```sh
-gh run list --branch work/native-shell --workflow Desktop
-gh run download <id> -n mash-desktop-aarch64-pc-windows-msvc -D target/win-artifact
+gh run list --branch main --workflow Desktop
+gh run download <id> -n mash-desktop-x86_64-pc-windows-msvc -D target/win-artifact
 tools/win-vm.sh desktop --app target/win-artifact
 ```
 
@@ -135,9 +135,11 @@ Unless `--keep` is given, the clone is stopped and its disk deleted.
 
 ## Limits
 
-- The guest is Windows on ARM, so it tests the `aarch64-pc-windows-msvc`
-  build only. The x64 installer would run under Windows' emulation, which
-  says nothing about the native x64 build.
+- The guest is Windows on ARM. The Desktop workflow builds only the x64
+  installer, which runs here under Windows' emulation: that shows what a
+  clean Windows 11 does with it (a missing Visual C++ runtime was found this
+  way) but not the native x64 build's speed or graphics. A release's
+  `aarch64-pc-windows-msvc` installer runs natively.
 - Windows is never activated: the desktop shows the "Activate Windows"
   watermark in the lower right corner, and personalization settings are
   locked in the Settings app (the image sets them through the registry).
