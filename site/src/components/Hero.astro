@@ -237,6 +237,11 @@ const raycastMark = raycast
     position: relative;
     display: inline-block;
     white-space: nowrap;
+    /* The words run from the mash's cream to the butter's yellow, the two
+       colours of the app icon. */
+    background: linear-gradient(90deg, var(--app-icon-mash), var(--butter));
+    background-clip: text;
+    color: transparent;
   }
   .rule {
     position: absolute;
