@@ -15,5 +15,6 @@ export const headline = ["Your agents forget.", "Mash doesn’t."] as const;
  */
 export const raycastLink = "https://github.com/mashhq/mash/tree/main/raycast";
 
-/** Raycast's own red, for its mark on that button. */
+/** Raycast's own red and the white it sets on it, for that button. */
 export const raycastRed = "#ff6363";
+export const raycastInk = "#ffffff";
