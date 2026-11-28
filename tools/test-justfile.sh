@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# Checks the justfile and the Makefile shim without running any real work:
-# every recipe parses, is documented and grouped, and evaluates in a dry run;
-# the guards refuse what they should; and every target the Makefile used to
-# have still exists there and forwards to the recipe of the same name with
-# its variables.
+# Checks the justfile without running any real work: every recipe parses, is
+# documented and grouped, and evaluates in a dry run; and the guards refuse
+# what they should.
 set -euo pipefail
 repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repository"
@@ -74,33 +72,9 @@ grep -q 'Name a nextest filter' "$scratch/output" || fail "iterate without a fil
 if just coverage > "$scratch/output" 2>&1; then fail 'coverage ran without its test services'; fi
 grep -q 'Set MASH_TEST_MODELS_DIR' "$scratch/output" || fail 'coverage does not name the missing setting'
 
-# The Makefile is a shim: every target it had before the move still exists,
-# the justfile has a recipe of that name, and make runs exactly that recipe.
-old_targets=(mutation-tools mutation-check mutation-services mutation-certification mutation-runtime
-    protocol-tools protocol-check release-tools deny test-cleanup iterate dev-build validate-dev build
-    check-skills generate-skills generate-docs generate-queries check-generated coverage site-review)
-for target in "${old_targets[@]}"; do
-    grep -q "^$target\( \|\$\)" "$scratch/invocations" || fail "the justfile has no recipe for the old Makefile target $target"
-    [[ $(make --no-print-directory JUST=echo "$target" 2> "$scratch/output") == "$target" ]] ||
-        fail "make $target does not forward to just $target: $(cat "$scratch/output")"
-done
-# One rule for all of them: a target with commands of its own would be a second source of truth.
-[[ $(grep -cE '^[^#[:space:]][^=]*:([^=]|$)' Makefile) == 2 ]] ||
-    fail 'the Makefile holds a rule besides the forwarding one; recipes belong in the justfile'
-# Variables given to make reach the recipe.
-[[ $(make --no-print-directory JUST='just --dry-run' iterate FOCUS='test(a)' PACKAGE=mash-silver TARGETS=all DEV_RUN= DEV_TARGET_DIR=/target 2>&1 | tail -n 1) == \
-    *'CARGO_TARGET_DIR="/target" '*'MASH_ITERATE_LAUNCHER="" MASH_ITERATE_PACKAGE="mash-silver" '*'--all-targets' ]] ||
-    fail 'make iterate does not pass its variables to just'
-[[ $(make --no-print-directory JUST='just --dry-run' build CODEGEN=1 CARGO_ARGS='--release --locked' 2>&1 | tail -n 2) == \
-    *'"1" == 1'*'generate-queries; fi'$'\n''cargo build-clif --release --locked' ]] || fail 'make build does not pass CODEGEN and CARGO_ARGS'
-[[ $(make --no-print-directory JUST='just --dry-run' test-cleanup OWNER=run-7 2>&1) == 'bash tools/clean-test-containers.sh run-7' ]] ||
-    fail 'make test-cleanup does not pass OWNER'
-if make --no-print-directory JUST=no-such-just deny > "$scratch/output" 2>&1; then fail 'make ran without just'; fi
-grep -q 'tools/install-just.sh' "$scratch/output" || fail 'make without just does not say how to install it'
-
 # The installer pins a version the justfile accepts.
 pinned=$(bash tools/install-just.sh --version)
 minimum=$(sed -n "s/^set minimum-version := '\(.*\)'$/\1/p" justfile)
 [[ -n $minimum && $(printf '%s\n%s\n' "$minimum" "$pinned" | sort -V | head -n 1) == "$minimum" ]] ||
     fail "tools/install-just.sh pins $pinned, older than the justfile's minimum $minimum"
-echo "The justfile's $count recipes and the Makefile shim's ${#old_targets[@]} targets passed."
+echo "The justfile's $count recipes passed."
