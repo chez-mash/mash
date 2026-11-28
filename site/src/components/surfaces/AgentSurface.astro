@@ -1,15 +1,16 @@
 ---
 // An agent's session with the Mash plugin: asked for something that depends
 // on an earlier decision, the agent searches Mash, finds the decision another
-// agent's chat left, and follows it. A made-up session, drawn as a terminal.
+// agent's chat left, and follows it. A made-up session, drawn as a chat with
+// the agent: the terminal has a picture of its own beside this one.
 import AgentTile from "../AgentTile.astro";
 import LineIcon from "../LineIcon.astro";
 ---
 
 <div class="session" aria-hidden="true">
-  <div class="window-h"><u></u><u></u><u></u><span>codex · mobile</span></div>
+  <div class="session-h"><AgentTile agent="codex" /><b>Codex</b><span><LineIcon name="folder" size="0.8125rem" />mobile</span></div>
   <div class="session-b">
-    <p class="ask"><i>›</i><span data-typed>Add sign-out to the mobile app.</span></p>
+    <p class="ask"><span data-typed>Add sign-out to the mobile app.</span></p>
     <p class="call" data-in><LineIcon name="plug" size="0.875rem" /><b>mash</b> search “sign-in tokens”</p>
     <div class="found" data-in>
       <p class="pills"><span class="pill butter"><LineIcon name="bookmark" size="0.75rem" />decision</span><span class="pill ok">accepted</span></p>
@@ -36,30 +37,49 @@ import LineIcon from "../LineIcon.astro";
     border-radius: var(--radius-7);
     background: var(--surface-code);
   }
+  /* The chat's heading: the agent and the folder it works in. */
+  .session-h {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.375rem;
+    box-shadow: var(--shadow-menubar);
+    color: var(--text-strong);
+    font: 600 0.875rem / 1 var(--type-sans);
+  }
+  .session-h span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    margin-inline-start: auto;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.8125rem;
+  }
   .session-b {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding: 1.25rem 1.375rem;
-    font: 400 0.875rem / 1.6 var(--type-mono);
+    font: 400 0.9375rem / 1.55 var(--type-sans);
   }
+  /* What the person asked, as their side of a chat. */
   .session-b .ask {
-    display: flex;
-    gap: 0.625rem;
+    align-self: flex-end;
+    max-width: 85%;
     padding: 0.625rem 0.875rem;
-    border-radius: var(--radius-5);
+    border-radius: var(--radius-6);
     background: var(--surface-muted);
     color: var(--text-strong);
   }
-  .ask i {
-    color: var(--text-faint);
-    font-style: normal;
-  }
+  /* The agent's lookup, the one line in the command's own type. */
   .call {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: var(--text-muted);
+    font: 400 0.8125rem / 1.6 var(--type-mono);
   }
   .call :global(svg) {
     flex: none;
@@ -106,9 +126,15 @@ import LineIcon from "../LineIcon.astro";
     .session {
       height: 100%;
     }
+    .session-h {
+      padding: 0.625rem 0.875rem;
+    }
     .session-b {
       gap: 0.75rem;
       padding: 0.875rem;
+      font-size: 0.8125rem;
+    }
+    .call {
       font-size: 0.75rem;
     }
     .found {
