@@ -44,7 +44,9 @@ try {
     Set-Content -LiteralPath $fixture -Value 'new binary' -NoNewline
     $serverFixture = Join-Path $root 'mash-server.exe'
     Set-Content -LiteralPath $serverFixture -Value 'new server' -NoNewline
-    Compress-Archive -LiteralPath @($fixture, $serverFixture) -DestinationPath $archive
+    $runtimeFixture = Join-Path $root 'vcruntime140.dll'
+    Set-Content -LiteralPath $runtimeFixture -Value 'runtime' -NoNewline
+    Compress-Archive -LiteralPath @($fixture, $serverFixture, $runtimeFixture) -DestinationPath $archive
     $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
     $validChecksum = "$hash  mash-x86_64-pc-windows-msvc.zip"
     Set-Content -LiteralPath $checksums -Value $validChecksum
@@ -60,6 +62,7 @@ try {
     Assert-Equal ($output -contains 'The setup wizard lets you choose which coding agents can search your chats.') $true 'optional agent connections'
     Assert-Equal (Get-Content -LiteralPath $installed -Raw) 'new binary' 'fresh install'
     Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'mash-server.exe') -Raw) 'new server' 'server install'
+    Assert-Equal (Get-Content -LiteralPath (Join-Path $destination 'vcruntime140.dll') -Raw) 'runtime' 'the Visual C++ runtime beside the programs'
     Assert-Equal $script:requests[0] 'https://github.com/mashhq/mash/releases/download/v0.8.0/mash-x86_64-pc-windows-msvc.zip' 'pinned release URL'
 
     Set-Content -LiteralPath $installed -Value 'previous binary' -NoNewline

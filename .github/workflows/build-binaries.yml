@@ -260,11 +260,16 @@ jobs:
           AZURE_SIGNING_ACCOUNT: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
           AZURE_SIGNING_PROFILE: ${{ secrets.AZURE_SIGNING_PROFILE }}
         run: .github/scripts/windows-sign.ps1 target/release/mash.exe target/release/mash-server.exe
+      # The programs need the Visual C++ runtime, which Windows does not
+      # include, so the archive carries it beside them (windows-runtime.py).
       - name: Package
         run: |
           mkdir packaged
           if [ "${ARCHIVE##*.}" = zip ]; then
-            (cd target/release && 7z a -tzip "$GITHUB_WORKSPACE/packaged/$ARCHIVE" mash.exe mash-server.exe)
+            runtime=$(python .github/scripts/windows-runtime.py --into target/release target/release/mash.exe target/release/mash-server.exe | tr -d '\r')
+            [ -n "$runtime" ]
+            # shellcheck disable=SC2086
+            (cd target/release && 7z a -tzip "$GITHUB_WORKSPACE/packaged/$ARCHIVE" mash.exe mash-server.exe $runtime)
           else
             tar -C target/release -czf "packaged/$ARCHIVE" mash mash-server
           fi

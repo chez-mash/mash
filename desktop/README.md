@@ -18,6 +18,15 @@ cp target/release/mash "desktop/src-tauri/binaries/mash-$(rustc -vV | sed -n 's/
 cd desktop && pnpm install && pnpm tauri build
 ```
 
+On Windows the engine needs the Visual C++ runtime (`VCRUNTIME140.dll`,
+`MSVCP140.dll` and their `_1` companions), which Windows does not include, so
+the installer puts it beside the engine (`src-tauri/tauri.windows.conf.json`).
+Copy it from Visual Studio before building the app or running its tests:
+
+```sh
+python .github/scripts/windows-runtime.py --into desktop/src-tauri/binaries target/release/mash.exe
+```
+
 On Linux the app also needs WebKitGTK 4.1 and its companions
 (`libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev`
 on Debian and Ubuntu).

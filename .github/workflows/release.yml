@@ -160,6 +160,9 @@ jobs:
           [ "${{ runner.os }}" = Windows ] && suffix=.exe
           mkdir -p desktop/src-tauri/binaries
           cp "engine/mash$suffix" "desktop/src-tauri/binaries/mash-${{ matrix.target }}$suffix"
+          # The Visual C++ runtime the archive carries beside the engine
+          # (build-binaries.yml); the installer puts it there too.
+          if [ "${{ runner.os }}" = Windows ]; then cp engine/*.dll desktop/src-tauri/binaries/; fi
       - name: Prepare Mac signing
         if: runner.os == 'macOS'
         env:
