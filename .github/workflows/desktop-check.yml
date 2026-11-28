@@ -1,0 +1,127 @@
+name: Desktop check
+
+# The desktop app's own crate compiles and passes its tests on each system,
+# before a change reaches main. desktop.yml builds the engine and the
+# installers as well, which takes about 17 minutes, so it runs on main and is
+# not required; this takes about three, and catches code that compiles on one
+# system and not on another.
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: "0"
+
+jobs:
+  # Whether this change can affect the app's crate: its own files, what its
+  # build script reads from the dashboard, the compiler and Cargo's settings
+  # (its workspace reads the repository's .cargo/config.toml), or this check.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      desktop: ${{ steps.changes.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+          MERGE_GROUP_BASE: ${{ github.event.merge_group.base_sha }}
+        run: |
+          answer() { echo "$2"; echo "desktop=$1" >> "$GITHUB_OUTPUT"; exit 0; }
+          base=$MERGE_GROUP_BASE
+          if [ "$EVENT" = pull_request ]; then
+            # `tools/worktree.sh land` opens a pull request only to queue it;
+            # the queue's run is the one that counts.
+            case "$PULL_REQUEST_BODY" in
+              *'[merge queue]'*) answer false 'Opened for the merge queue, which runs the check' ;;
+            esac
+            base=$PULL_REQUEST_BASE
+          fi
+          changed="$RUNNER_TEMP/changed-files"
+          if [ -z "$base" ] || ! git fetch --quiet --depth=1 origin "$base" \
+              || ! git diff --name-only "$base" HEAD > "$changed"; then
+            answer true 'Nothing to compare with; the check runs'
+          fi
+          pattern='^(desktop/|\.cargo/|rust-toolchain\.toml$|dashboard/src/theme/tokens\.css$|dashboard/public/mash-mark\.svg$|\.github/workflows/desktop-check\.yml$|\.github/actions/rust-toolchain/)'
+          if grep -E "$pattern" "$changed"; then
+            answer true 'These files can affect the desktop app'
+          fi
+          answer false "None of the $(wc -l < "$changed") changed files can affect the desktop app"
+
+  check:
+    name: check (${{ matrix.system }})
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: linux
+            runner: ubuntu-24.04
+          - system: macos
+            runner: macos-26
+          - system: windows
+            runner: windows-latest
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: ./.github/actions/rust-toolchain
+      - name: Install the webview toolkit
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+            librsvg2-dev libxdo-dev libssl-dev
+      # The app's build looks for the engine it bundles, and on Windows for
+      # the runtime libraries beside it (tauri.windows.conf.json). The tests
+      # run neither, so empty files stand in for them.
+      - name: Stand in for the engine
+        run: |
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          suffix=""
+          [ "${{ runner.os }}" = Windows ] && suffix=.exe
+          mkdir -p desktop/src-tauri/binaries
+          : > "desktop/src-tauri/binaries/mash-$host$suffix"
+          if [ "${{ runner.os }}" = Windows ]; then : > desktop/src-tauri/binaries/vcruntime140.dll; fi
+      - name: Test the app
+        working-directory: desktop/src-tauri
+        run: |
+          cargo fmt --check
+          cargo test --locked
+
+  # The one check the ruleset for main requires of this workflow: it passes
+  # when the builds passed or were skipped because the change cannot affect
+  # the app. A skipped job reports no status of its own, so requiring this
+  # one cannot leave a change waiting.
+  required:
+    name: desktop / required
+    needs: [changes, check]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job that ran to have passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "changes, check: $RESULTS"
+          case " $RESULTS " in
+            *" failure "*|*" cancelled "*) exit 1 ;;
+          esac

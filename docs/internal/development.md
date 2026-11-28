@@ -902,9 +902,11 @@ job that did not start:
 | `front-ends` | `frontends.yml` | the dashboard, its browser shards, Raycast | 3 minutes |
 | `visual / required` | `visual.yml` | the dashboard's pictures | 2 minutes |
 | `docs / required` | `docs.yml` | the website's build, tests and pictures, never its deploy | 5 minutes |
+| `desktop / required` | `desktop-check.yml` | the desktop app's crate compiles and passes its tests on Linux, macOS and Windows | 3 to 5 minutes |
 
-`desktop.yml` takes about half an hour, so it is not required and does not run
-in the queue; it still runs on `main` for the paths it names. `Dev artifacts`
+`desktop.yml` builds the engine and the installers as well, which takes about
+17 minutes, so it is not required and does not run in the queue; it still runs
+on `main` for the paths it names, and a broken installer shows there. `Dev artifacts`
 and the website's deploy run only on a push to `main`.
 
 A change is on `main` roughly as long after `land` as its slowest required
@@ -1040,10 +1042,10 @@ without comparing: the pull request's own run when `land` opened it for the
 queue, and the push to `main` of a commit the same workflow passed for in the
 queue.
 
-Each of the five workflows ends with one job that passes when every job
+Each of the six workflows ends with one job that passes when every job
 before it passed or was skipped: `front-ends` in `frontends.yml`, and
-`ci / required`, `windows / required`, `visual / required` and
-`docs / required` in the others. Those are the checks the ruleset for `main`
+`ci / required`, `windows / required`, `visual / required`,
+`docs / required` and `desktop / required` in the others. Those are the checks the ruleset for `main`
 requires. `front-ends` also merges the browser shards' reports into one HTML
 report, kept for a week as the `dashboard-browser-report` artifact.
 
