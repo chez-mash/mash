@@ -9,7 +9,7 @@ cleanup() {
 trap cleanup EXIT
 mkdir -p "$scratch/repository/tools" "$scratch/repository/app" "$scratch/repository/dashboard" "$scratch/bin" "$scratch/target"
 cp "$repository/tools/build-dev-linux.sh" "$scratch/repository/tools/"
-cp "$repository/justfile" "$repository/Makefile" "$scratch/repository/"
+cp "$repository/justfile" "$scratch/repository/"
 cp "$repository/tools/check_file_lines.py" "$repository/tools/file_growth.py" "$scratch/repository/tools/"
 for helper in generate-history-skill test-dev-api test-systemd-api test-dev-build test-install-shell test-run-ansible test-controller-environment test-ansible test-upgrade-local-index; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$scratch/repository/tools/$helper.sh"
@@ -76,9 +76,7 @@ iterate 'test(contract)' --package mash-silver
 grep -Fxq 'test-clif --locked -p mash-silver --lib -E test(contract) --no-tests fail --test-threads 4' "$TEST_BUILD_CALLS"
 # Integration targets are built on request, or when the filter names a binary.
 : > "$TEST_BUILD_CALLS"
-# Through the Makefile shim, with Make's variables.
-timeout 10 make --no-print-directory -C "$scratch/repository" iterate DEV_RUN= \
-    DEV_TMPDIR="$TMPDIR" DEV_TARGET_DIR="$scratch/target" FOCUS='test(contract)' TARGETS=all >/dev/null
+iterate 'test(contract)' --targets all
 grep -Fxq 'test-clif --locked -E test(contract) --no-tests fail --test-threads 4' "$TEST_BUILD_CALLS"
 : > "$TEST_BUILD_CALLS"
 run_build --focused 'binary(cli_contract)' >/dev/null
