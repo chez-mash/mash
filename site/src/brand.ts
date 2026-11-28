@@ -9,11 +9,11 @@ export const tagline = "Supercharged context for your agents.";
 export const headline = ["Your agents forget.", "Mash doesn’t."] as const;
 
 /**
- * The Mash extension's page in the Raycast Store, or nothing until the Store
- * lists it (raycast/extensions#33948). Set, the landing page offers it to Mac
- * visitors as a button; unset, a quiet link leads to the extension's source.
+ * Where the landing page's Raycast button leads: the extension's source until
+ * the Raycast Store lists it (raycast/extensions#33948), then its page there,
+ * https://www.raycast.com/james_ko/mash.
  */
-export const raycastStore: string | undefined = undefined; // "https://www.raycast.com/james_ko/mash"
+export const raycastLink = "https://github.com/mashhq/mash/tree/main/raycast";
 
 /** Raycast's own red, for its mark on that button. */
 export const raycastRed = "#ff6363";
